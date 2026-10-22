@@ -1,8 +1,10 @@
-# NEXUS
+# Papirus
 
 Ambiente de worldbuilding e escrita contextual para escritores, mestres de RPG e criadores de universos ficcionais.
 
-> O autor deve sentir que está escrevendo enquanto o NEXUS presta atenção — não que está preenchendo um banco de dados.
+> Projeto anteriormente chamado NEXUS.
+
+> O autor deve sentir que está escrevendo enquanto o Papirus presta atenção — não que está preenchendo um banco de dados.
 
 ## Documentação
 
