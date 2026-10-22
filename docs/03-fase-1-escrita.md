@@ -1,6 +1,18 @@
 # Fase 1 — Escrita
 
-Status: **especificação em discussão**. Nada implementado.
+Status: **E1 em andamento.**
+
+### O que a E1 já entrega
+- Editor de cena com TipTap: negrito, itálico, tachado, citação, listas e separador de cena (`* * *`, ou `---` numa linha vazia).
+- Histórias com cenas e cenas soltas; remover uma história nunca apaga as cenas (elas viram cenas soltas).
+- Salvamento automático local (IndexedDB, com localStorage como alternativa), versão anterior preservada, cópia de emergência síncrona ao fechar a página e pedido de armazenamento persistente ao navegador.
+- Formato salvo versionado e validado, com estrutura de migrações.
+- Exportação da cena ou de tudo em Markdown, e backup completo em JSON.
+
+### Ainda falta na E1
+- Menções como *marks* e migração das âncoras (dependem do cadastro de fichas).
+- Importação do backup JSON (fase de Dados).
+- Estilização definitiva.
 
 ## Regras da fase
 
