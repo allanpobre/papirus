@@ -1,4 +1,4 @@
-import { ChevronsLeft, ChevronsRight, Inbox, Library as LibraryIcon, Menu, Search, Settings } from 'lucide-react'
+import { ArrowLeftRight, ChevronsLeft, ChevronsRight, Inbox, Library as LibraryIcon, Menu, Search, Settings } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
 import type { Universe } from '../model/schema'
@@ -10,7 +10,9 @@ import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
+import { isSample } from '../model/sample'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
+import { Tour } from './Tour'
 import { useCloudPush } from '../account/useCloud'
 import { Brand } from './Brand'
 import { NAV, type NavItem } from './nav'
@@ -60,6 +62,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const folder = useFolderSync(library, repo, universe, status)
   useCodexSync(universe, prefs)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
+  // Primeira vez num universo: o tour começa sozinho (dá para pular e refazer).
+  useEffect(() => {
+    if (prefs.tourDone) return
+    const t = setTimeout(() => setTourOpen(true), 700)
+    return () => clearTimeout(t)
+  }, [prefs.tourDone])
   const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'inicio' }))
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
@@ -161,6 +170,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       },
       openCapture: () => setCaptureOpen(true),
       openSearch: () => setSearchOpen(true),
+      startTour: () => setTourOpen(true),
       folder,
       downloadBackup,
     }),
@@ -213,7 +223,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             onLibrary={() => void ws.closeUniverse()}
           />
         ) : (
-        <nav className="rail" aria-label="Áreas">
+        <nav className="rail" aria-label="Áreas" data-tour="menu">
           <div className="rail-top">
             <button type="button" className="rail-brand" title="Trocar de universo" onClick={() => void ws.closeUniverse()}>
               <Brand compact={collapsed} />
@@ -222,14 +232,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               type="button"
               className="rail-universe"
               title="Trocar de universo"
+              aria-label={`${universe.name || 'Sem nome'}: trocar de universo`}
+              data-tour="universos"
               onClick={() => void ws.closeUniverse()}
             >
               <LibraryIcon size={14} aria-hidden="true" />
-              <span className="rail-label">{universe.name || 'Sem nome'}</span>
+              <span className="rail-label rail-universe-name">{universe.name || 'Sem nome'}</span>
+              <ArrowLeftRight size={13} aria-hidden="true" className="rail-label rail-universe-switch" />
             </button>
           </div>
 
-          <button type="button" className="rail-search" aria-label="Buscar" title="Buscar" onClick={() => setSearchOpen(true)}>
+          <button type="button" className="rail-search" data-tour="busca" aria-label="Buscar" title="Buscar" onClick={() => setSearchOpen(true)}>
             <Search size={16} aria-hidden="true" />
             <span className="rail-label">Buscar</span>
             <kbd className="kbd rail-label">{modKey} K</kbd>
@@ -268,7 +281,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
           <div className="rail-bottom">
             <AccountButton compact={collapsed} onClick={() => setAccountOpen(true)} />
-            <span className="save-status" role="status" data-status={status} title={STATUS_LABEL[status]}>
+            <span className="save-status" data-tour="salvo" role="status" data-status={status} title={STATUS_LABEL[status]}>
               <span className="save-dot" aria-hidden="true" />
               <span className="rail-label">{STATUS_LABEL[status]}</span>
             </span>
@@ -285,6 +298,19 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
+          {isSample(universe) && (
+            <div className="sample-banner" role="status">
+              <span>
+                <strong>Você está no mundo de exemplo.</strong> Mexa à vontade: nada aqui é seu de verdade.
+              </span>
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => void ws.closeUniverse()}>
+                Criar o meu universo
+              </button>
+              <button type="button" className="btn btn-sm btn-ghost" onClick={() => void ws.closeUniverse()}>
+                Sair do exemplo
+              </button>
+            </div>
+          )}
           {needsBackup && (
             <div className="backup-banner" role="status">
               <span>
@@ -318,6 +344,15 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
         {peekId && <PeekDrawer entityId={peekId} onClose={() => setPeekId(null)} />}
         {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} />}
+        {tourOpen && (
+          <Tour
+            onGo={go}
+            onClose={() => {
+              setTourOpen(false)
+              setPref('tourDone', true)
+            }}
+          />
+        )}
         {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}
 
@@ -351,6 +386,7 @@ function RailButton({ item, active, onClick, badge }: { item: NavItem; active: b
     <button
       type="button"
       className="rail-item"
+      data-tour={`nav-${item.view}`}
       aria-current={active ? 'page' : undefined}
       aria-label={badge ? `${item.label} (${badge})` : item.label}
       title={item.label}
@@ -433,7 +469,7 @@ function PhoneNav({
   }, [open])
 
   return (
-    <nav className="rail rail-phone" aria-label="Áreas">
+    <nav className="rail rail-phone" aria-label="Áreas" data-tour="menu">
       <button type="button" className="rail-item" title="Buscar" aria-label="Buscar" onClick={onSearch}>
         <Search size={18} aria-hidden="true" />
       </button>

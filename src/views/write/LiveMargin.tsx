@@ -66,7 +66,7 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
   const open = questions.filter(isOpen)
 
   return (
-    <aside className={`margin${overlay ? ' write-overlay write-overlay-right' : ''}`} aria-label="Margem viva">
+    <aside className={`margin${overlay ? ' write-overlay write-overlay-right' : ''}`} aria-label="Margem viva" data-tour="margem">
       {overlay && (
         <button type="button" className="btn btn-ghost btn-sm margin-close" onClick={onClose}>
           Fechar margem

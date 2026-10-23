@@ -1,4 +1,4 @@
-import { BookMarked, Dices, Feather, Inbox, Lightbulb, Plus, Search, Sprout } from 'lucide-react'
+import { BookMarked, Compass, Dices, Feather, Inbox, Library, Lightbulb, Plus, Search, Sprout } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { continuityQuestions, isOpen } from '../logic/continuity'
 import { wordsByDay, wordsToday } from '../logic/stats'
@@ -14,7 +14,7 @@ const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', 
 
 /** Início do universo: onde parei, o dia de escrita, o que pede atenção e atalhos. */
 export default function HomeView() {
-  const { universe, prefs, go, peek, update, openCapture, openSearch } = useWorkspace()
+  const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, startTour } = useWorkspace()
   const scenes = useMemo(() => manuscriptOrder(universe), [universe])
   const [todayLabel] = useState(() => capitalize(longDate.format(new Date())))
   const lastId = recall(`cena:${universe.id}`)
@@ -60,13 +60,18 @@ export default function HomeView() {
   return (
     <div className="view home">
       <header className="home-head">
-        <p className="eyebrow">{todayLabel}</p>
+        <div className="home-top">
+          <p className="eyebrow">{todayLabel}</p>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => void closeUniverse()}>
+            <Library size={15} /> Seus universos
+          </button>
+        </div>
         <h1>{universe.name || 'Sem nome'}</h1>
         {universe.description && <p className="home-desc">{universe.description}</p>}
       </header>
 
       <div className="home-grid">
-        <section className="home-card home-continue" aria-label="Continuar">
+        <section className="home-card home-continue" aria-label="Continuar" data-tour="continuar">
           {last ? (
             <>
               <p className="eyebrow">{story ? story.title : 'Cena solta'} · onde você parou</p>
@@ -188,6 +193,9 @@ export default function HomeView() {
         </button>
         <button type="button" className="btn btn-ghost" onClick={openSearch}>
           <Search size={16} /> Buscar em tudo
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={startTour}>
+          <Compass size={16} /> Fazer o tour
         </button>
       </div>
     </div>

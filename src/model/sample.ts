@@ -37,12 +37,17 @@ const textOf = (paragraphs: string[]) => paragraphs.filter((p) => p !== '---').j
  * Universo de exemplo, para conhecer o Papirus sem começar do zero.
  * É marcado como exemplo no nome e pode ser apagado a qualquer momento.
  */
+/** Descrição do universo de exemplo; também serve para reconhecê-lo (se o autor mudar, vira dele). */
+export const SAMPLE_DESCRIPTION =
+  'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.'
+
+export const isSample = (u: Universe) => u.description === SAMPLE_DESCRIPTION
+
 export function sampleUniverse(): Universe {
   let u = createUniverse('Exemplo — As Cinzas de Ostria')
   u = {
     ...u,
-    description:
-      'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.',
+    description: SAMPLE_DESCRIPTION,
     settings: { ...u.settings, calendarSuffix: 'DC', dailyWordGoal: 500 },
   }
 

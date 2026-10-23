@@ -316,6 +316,7 @@ export default function WriteView() {
 
         <div className="page-scroll">
           <article
+            data-tour="editor"
             className={`page page-${prefs.editorWidth} font-${prefs.editorFont}`}
             style={{ ['--editor-size' as string]: `${prefs.editorSize}px` }}
           >

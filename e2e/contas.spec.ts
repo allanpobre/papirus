@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext } from '@playwright/test'
+import { expect, test, type BrowserContext } from './fixtures.ts'
 
 const SERVER = 'https://papirus-teste.supabase.co'
 const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString('base64url')

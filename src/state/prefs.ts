@@ -28,6 +28,8 @@ export interface Prefs {
   server: { url: string; anonKey: string }
   /** Endereço público do Papirus, usado nos links dos jogadores. Vazio = o padrão. */
   publicUrl: string
+  /** Já fez (ou pulou) o tour guiado. */
+  tourDone: boolean
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -46,6 +48,7 @@ export const DEFAULT_PREFS: Prefs = {
   backups: {},
   server: { url: '', anonKey: '' },
   publicUrl: '',
+  tourDone: false,
 }
 
 const KEY = 'papirus:prefs'

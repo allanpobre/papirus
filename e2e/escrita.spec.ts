@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures.ts'
 import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
