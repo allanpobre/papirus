@@ -128,12 +128,16 @@ export const draftEntity = (kind: string, name: string): Draft<'entities'> => ({
   fields: [],
 })
 
+export const GENERAL_SCOPE = { kind: 'geral' as const, fromYear: null, toYear: null, storyIds: [], sceneIds: [] }
+
 export const draftRelation = (fromId: string, toId: string, type: string): Draft<'relations'> => ({
   fromId,
   toId,
   type,
   note: '',
   canon: 'estabelecido',
+  via: [],
+  scope: GENERAL_SCOPE,
 })
 
 export const draftEvent = (title: string, year: number): Draft<'events'> => ({
@@ -250,6 +254,9 @@ export function removeStory(universe: Universe, storyId: string): Universe {
   return {
     ...universe,
     stories: universe.stories.filter((s) => s.id !== storyId),
+    relations: universe.relations.map((r) =>
+      r.scope.storyIds.includes(storyId) ? { ...r, scope: { ...r.scope, storyIds: r.scope.storyIds.filter((x) => x !== storyId) } } : r,
+    ),
     scenes: universe.scenes.map((s) =>
       s.storyId === storyId ? { ...s, storyId: null, order: order++, updatedAt: t } : s,
     ),
@@ -300,6 +307,9 @@ export function removeScene(universe: Universe, sceneId: string): Universe {
       payoffSceneId: clear(s.payoffSceneId),
       clues: s.clues.map((c) => ({ ...c, sceneId: clear(c.sceneId) })),
     })),
+    relations: universe.relations.map((r) =>
+      r.scope.sceneIds.includes(sceneId) ? { ...r, scope: { ...r.scope, sceneIds: r.scope.sceneIds.filter((x) => x !== sceneId) } } : r,
+    ),
   }
 }
 
@@ -359,7 +369,9 @@ export function removeEntity(universe: Universe, entityId: string): Universe {
     entities: universe.entities
       .filter((e) => e.id !== entityId)
       .map((e) => (e.parentId === entityId ? { ...e, parentId: null } : e)),
-    relations: universe.relations.filter((r) => r.fromId !== entityId && r.toId !== entityId),
+    relations: universe.relations
+      .filter((r) => r.fromId !== entityId && r.toId !== entityId)
+      .map((r) => (r.via.some((v) => v.entityId === entityId) ? { ...r, via: r.via.filter((v) => v.entityId !== entityId) } : r)),
     scenes: universe.scenes.map((s) => ({
       ...s,
       povId: clear(s.povId),

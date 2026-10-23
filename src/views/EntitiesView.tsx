@@ -4,6 +4,8 @@ import { factSentence } from '../logic/codex'
 import { MentionMatcher } from '../logic/detection'
 import { mentionIdsInDoc } from '../logic/doc'
 import { fold, snippet } from '../logic/text'
+import { involvements, scopeLabel } from '../logic/relations'
+import { RelationDetails } from './RelationDetails'
 import { formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, SEED_STATUS_LABEL } from '../model/labels'
 import { ENTITY_KINDS, KNOWLEDGE_STATES, type Entity, type KnowledgeState } from '../model/schema'
 import {
@@ -392,6 +394,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
   const { universe, update, peek } = useWorkspace()
   const [type, setType] = useState('')
   const [targets, setTargets] = useState<string[]>([])
+  const involved = involvements(universe, e.id)
 
   const add = () => {
     if (!targets.length || !type.trim()) return
@@ -404,7 +407,8 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
   const group = (list: Universe['relations']) => {
     const map = new Map<string, Universe['relations']>()
     for (const r of list) {
-      const k = fold(r.type.trim())
+      // Mesmo tipo, mesmos envolvidos e mesmo tempo: uma linha só.
+      const k = `${fold(r.type.trim())}|${JSON.stringify(r.via)}|${JSON.stringify(r.scope)}`
       map.set(k, [...(map.get(k) ?? []), r])
     }
     return [...map.values()]
@@ -429,7 +433,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       <CanonSelect value={rs[0].canon} onChange={(v) => update((u) => rs.reduce((acc, r) => patch(acc, 'relations', r.id, { canon: v }), u))} />
       <button
         type="button"
-        className="btn-icon btn-sm"
+        className="btn-icon btn-sm relation-remove"
         aria-label={rs.length > 1 ? 'Remover estas relações' : 'Remover relação'}
         onClick={() => update((u) => rs.reduce((acc, r) => remove(acc, 'relations', r.id), u))}
       >
@@ -455,10 +459,11 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
           placeholder="+ nome"
           value={null}
           exclude={[e.id, ...rs.map((r) => r.toId)]}
-          onChange={(t) => t && update((u) => insert(u, 'relations', { ...draftRelation(e.id, t, rs[0].type), canon: rs[0].canon })[0])}
+          onChange={(t) => t && update((u) => insert(u, 'relations', { ...draftRelation(e.id, t, rs[0].type), canon: rs[0].canon, via: rs[0].via, scope: rs[0].scope })[0])}
         />
       </span>
       {groupControls(rs)}
+      <RelationDetails relations={rs} exclude={[e.id, ...rs.map((r) => r.toId)]} />
     </li>
   )
 
@@ -468,6 +473,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       <span className="relation-type-text">{rs[0].type}</span>
       <span className="muted">{e.name}</span>
       {groupControls(rs)}
+      <RelationDetails relations={rs} exclude={[e.id, ...rs.map((r) => r.fromId)]} />
     </li>
   )
 
@@ -478,6 +484,26 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
         {group(outgoing).map(outRow)}
         {group(incoming).map(inRow)}
       </ul>
+      {involved.length > 0 && (
+        <div className="relation-involved">
+          <h3 className="section-label">Envolvido em</h3>
+          <ul className="plain-list small">
+            {involved.map(({ relation, role }) => (
+              <li key={relation.id + role}>
+                <strong>{role || 'com'}</strong>:{' '}
+                <button type="button" className="link-btn" onClick={() => peek(relation.fromId)}>
+                  {entityName(universe, relation.fromId)}
+                </button>{' '}
+                {relation.type}{' '}
+                <button type="button" className="link-btn" onClick={() => peek(relation.toId)}>
+                  {entityName(universe, relation.toId)}
+                </button>
+                {scopeLabel(universe, relation) && <span className="muted"> · {scopeLabel(universe, relation)}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="relation-add">
         <span className="muted small">{e.name || 'Esta ficha'}</span>
         <input className="input input-sm" aria-label="Nova relação" list="tipos-relacao" placeholder="é irmão de…" value={type} onChange={(ev) => setType(ev.target.value)} />

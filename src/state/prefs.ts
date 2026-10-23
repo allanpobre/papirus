@@ -30,7 +30,11 @@ export interface Prefs {
   publicUrl: string
   /** Já fez (ou pulou) o tour guiado. */
   tourDone: boolean
+  /** Cor de destaque do app. */
+  accent: Accent
 }
+
+export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite'
 
 export const DEFAULT_PREFS: Prefs = {
   theme: 'sistema',
@@ -49,6 +53,7 @@ export const DEFAULT_PREFS: Prefs = {
   server: { url: '', anonKey: '' },
   publicUrl: '',
   tourDone: false,
+  accent: 'viridiana',
 }
 
 const KEY = 'papirus:prefs'
@@ -76,6 +81,8 @@ export function usePrefs() {
     const root = document.documentElement
     if (prefs.theme === 'sistema') root.removeAttribute('data-theme')
     else root.setAttribute('data-theme', prefs.theme === 'escuro' ? 'dark' : 'light')
+    if (prefs.accent === 'viridiana') root.removeAttribute('data-accent')
+    else root.setAttribute('data-accent', prefs.accent)
   }, [prefs])
 
   const setPref = useCallback(<K extends keyof Prefs>(key: K, value: Prefs[K]) => {

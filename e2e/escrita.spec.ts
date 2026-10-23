@@ -254,6 +254,7 @@ test('snapshot: restaura o estado anterior e guarda o atual', async ({ page }) =
   await startWriting(page)
   await page.keyboard.type('Versão um.')
   await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Dados e backup' }).click()
   await page.getByRole('textbox', { name: 'Nome do snapshot' }).fill('Primeira versão')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
   await expect(page.getByText('Snapshot criado')).toBeVisible()

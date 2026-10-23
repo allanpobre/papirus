@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ChevronsLeft, ChevronsRight, Inbox, Library as LibraryIcon, Menu, Search, Settings } from 'lucide-react'
+import { ArrowLeftRight, ChevronsLeft, ChevronsRight, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
 import type { Universe } from '../model/schema'
@@ -281,6 +281,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
           <div className="rail-bottom">
             <AccountButton compact={collapsed} onClick={() => setAccountOpen(true)} />
+            <ThemeToggle prefs={prefs} setPref={setPref} />
             <span className="save-status" data-tour="salvo" role="status" data-status={status} title={STATUS_LABEL[status]}>
               <span className="save-dot" aria-hidden="true" />
               <span className="rail-label">{STATUS_LABEL[status]}</span>
@@ -338,7 +339,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             </div>
           )}
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
-            <ViewSwitch view={nav.view} onOpenOther={onOpenOther} />
+            <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
           </Suspense>
         </main>
 
@@ -403,7 +404,7 @@ function RailButton({ item, active, onClick, badge }: { item: NavItem; active: b
   )
 }
 
-function ViewSwitch({ view, onOpenOther }: { view: View; onOpenOther: (u: Universe) => void }) {
+function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | null; onOpenOther: (u: Universe) => void }) {
   switch (view) {
     case 'inicio':
       return <HomeView />
@@ -430,7 +431,8 @@ function ViewSwitch({ view, onOpenOther }: { view: View; onOpenOther: (u: Univer
     case 'archivist':
       return <ArchivistView />
     case 'config':
-      return <SettingsView onOpenOther={onOpenOther} />
+      // A categoria pedida (ex.: "conta") abre os Ajustes já nela.
+      return <SettingsView key={navId ?? ''} onOpenOther={onOpenOther} />
   }
 }
 
@@ -504,5 +506,22 @@ function PhoneNav({
         </>
       )}
     </nav>
+  )
+}
+
+/** Troca claro/escuro na hora, sem ir aos Ajustes. */
+function ThemeToggle({ prefs, setPref }: { prefs: Workspace['prefs']; setPref: Workspace['setPref'] }) {
+  const dark = prefs.theme === 'escuro' || (prefs.theme === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches)
+  return (
+    <button
+      type="button"
+      className="btn-icon rail-theme"
+      data-tour="tema"
+      aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}
+      title={dark ? 'Tema claro' : 'Tema escuro'}
+      onClick={() => setPref('theme', dark ? 'claro' : 'escuro')}
+    >
+      {dark ? <Sun size={16} /> : <Moon size={16} />}
+    </button>
   )
 }

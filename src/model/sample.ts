@@ -315,5 +315,16 @@ export function sampleUniverse(): Universe {
   })
 
   void c3
+  // Relações indiretas e com tempo: quem está por trás, e quando valem.
+  ;[u] = insert(u, 'relations', {
+    ...draftRelation(ilsa.id, mira.id, 'escondeu'),
+    via: [{ entityId: casa.id, role: 'a mando de' }],
+    scope: { kind: 'periodo', fromYear: 341, toYear: 358, storyIds: [], sceneIds: [] },
+    note: 'Depois da Queda, Ilsa levou a menina para longe da corte.',
+  })
+  ;[u] = insert(u, 'relations', {
+    ...draftRelation(mira.id, vaelor.id, 'teme'),
+    scope: { kind: 'historia', fromYear: null, toYear: null, storyIds: [story.id], sceneIds: [] },
+  })
   return u
 }
