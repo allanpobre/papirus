@@ -35,7 +35,7 @@ async function fakeSupabase(context: BrowserContext) {
 
 test('Codex ao vivo: o mestre compartilha, o jogador vê e recebe as novas revelações', async ({ page, context, baseURL }) => {
   const fake = await fakeSupabase(context)
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   const nav = page.getByRole('navigation', { name: 'Áreas' })
 

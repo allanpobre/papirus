@@ -47,9 +47,9 @@ async function fakeAccounts(context: BrowserContext) {
 
 test('conta opcional: entrar, levar os universos para a nuvem e sair sem perder nada', async ({ page, context }) => {
   const rows = await fakeAccounts(context)
-  await page.goto('/')
+  await page.goto('/app/')
   // Primeira visita: a tela inicial explica e não exige conta.
-  await expect(page.getByRole('heading', { name: 'Seu mundo, escrito e jogado no mesmo caderno.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Comece seu primeiro universo' })).toBeVisible()
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Ostria')
   await page.getByRole('button', { name: 'Criar universo' }).click()
   await page.getByRole('button', { name: 'Começar a escrever' }).click()

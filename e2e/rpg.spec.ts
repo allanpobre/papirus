@@ -4,7 +4,7 @@ const nav = (page: Page, name: string | RegExp) => page.getByRole('navigation', 
 const tray = (page: Page) => page.getByRole('complementary', { name: 'Últimas rolagens' })
 
 async function newUniverseWithTable(page: Page) {
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Campanha')
   await page.getByRole('button', { name: 'Criar universo' }).click()
   await nav(page, 'RPG').click()
@@ -54,7 +54,7 @@ test('recursos: dano e cura respeitam o máximo', async ({ page }) => {
 })
 
 test('iniciativa: grupo entra pela ficha, e vez e rodada continuam após recarregar', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await nav(page, 'RPG').click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
@@ -99,7 +99,7 @@ test('sistema próprio: criar do zero, adicionar atributo e testar a fórmula', 
 })
 
 test('tabela aleatória sorteia uma das opções', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await nav(page, 'RPG').click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()

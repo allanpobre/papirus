@@ -831,54 +831,6 @@
   gap: 0.4rem;
 }
 
-.landing {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding-block: 2.5rem 4rem;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: flex;
-  flex-direction: column;
-  gap: 3.5rem;
-}
-
-.landing-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: clamp(1.5rem, 4vw, 3.5rem);
-  align-items: center;
-}
-
-.landing-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-  min-width: 0;
-}
-
-.landing-copy .eyebrow {
-  margin: 0;
-  color: var(--accent);
-}
-
-.landing-copy h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
-  line-height: 1.08;
-  letter-spacing: -0.015em;
-  text-wrap: balance;
-}
-
-.landing-copy .lede {
-  margin: 0;
-}
-
-.landing-copy .library-alt {
-  margin-top: -0.4rem;
-}
-
 .landing-note {
   display: flex;
   gap: 0.45rem;
@@ -891,140 +843,6 @@
   flex: none;
   margin-top: 0.15rem;
   color: var(--ok);
-}
-
-/* A página de exemplo: papel com nomes reconhecidos e fichas na margem. */
-.landing-page {
-  position: relative;
-  margin: 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.landing-sheet {
-  position: relative;
-  padding: 2rem 2rem 2.6rem 2.6rem;
-  border-radius: 4px 4px 14px 4px;
-  background: var(--paper);
-  box-shadow: var(--shadow-page);
-  font-family: var(--font-text);
-  font-size: 1.06rem;
-  line-height: 1.75;
-  color: var(--ink);
-  transform: rotate(-1.2deg);
-}
-
-.landing-sheet::before {
-  content: '';
-  position: absolute;
-  top: 1.4rem;
-  bottom: 1.4rem;
-  left: 1.3rem;
-  width: 1px;
-  background: var(--ochre-line);
-  opacity: 0.6;
-}
-
-.landing-sheet p {
-  margin: 0 0 0.8rem;
-}
-
-.landing-scene {
-  font-family: var(--font-ui);
-  font-size: 0.74rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.landing-name {
-  text-decoration: underline dotted var(--ochre-line);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
-}
-
-.landing-fact {
-  padding: 0 0.15em;
-  border-radius: 3px;
-  background: var(--ochre-soft);
-  color: inherit;
-}
-
-.landing-margin {
-  position: relative;
-  align-self: flex-end;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  width: min(16rem, 70%);
-  margin-top: -1.6rem;
-  margin-right: -0.6rem;
-}
-
-.landing-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  margin: 0;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius-s);
-  background: var(--surface);
-  box-shadow: var(--shadow-2);
-  font-size: 0.82rem;
-}
-
-.landing-card strong {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 0.98rem;
-}
-
-.landing-card span {
-  color: var(--muted);
-}
-
-.landing-card-fact {
-  border-left-color: var(--ochre-line);
-}
-
-.landing-card-codex {
-  border-left-color: var(--violet);
-}
-
-.landing-features {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--line);
-}
-
-.feature {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.feature svg {
-  color: var(--accent);
-}
-
-.feature h2 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 1.15rem;
-}
-
-.feature p {
-  margin: 0;
-  color: var(--ink-2);
-  font-size: 0.9rem;
-  line-height: 1.55;
 }
 
 .library-cloud {
@@ -1108,40 +926,6 @@
   gap: 0.6rem;
 }
 
-@media (max-width: 900px) {
-  .landing-hero {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .landing-page {
-    max-width: 34rem;
-  }
-
-  .landing-features {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 520px) {
-  .landing-features {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .landing-margin {
-    width: auto;
-    align-self: stretch;
-    margin: 0.8rem 0 0;
-  }
-
-  .landing-sheet {
-    transform: none;
-    padding: 1.4rem 1.2rem 1.6rem 1.8rem;
-  }
-
-  .landing-sheet::before {
-    left: 0.9rem;
-  }
-}
 
 .rail-bottom {
   flex-wrap: wrap;
@@ -1155,4 +939,8 @@
 .shell.rail-collapsed .rail-bottom .account-btn {
   justify-content: center;
   padding-inline: 0;
+}
+
+.landing-note a {
+  color: var(--accent);
 }

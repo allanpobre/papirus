@@ -6,6 +6,7 @@ import type { SaveStatus } from '../persistence/useUniverse'
 import type { Prefs } from './prefs'
 
 export type View =
+  | 'inicio'
   | 'escrever'
   | 'fichas'
   | 'relacoes'

@@ -19,6 +19,7 @@ import { PeekDrawer } from './PeekDrawer'
 import { SearchPalette } from './SearchPalette'
 import { modKey } from '../ui/keys'
 
+const HomeView = lazy(() => import('../views/HomeView'))
 const WriteView = lazy(() => import('../views/write/WriteView'))
 const EntitiesView = lazy(() => import('../views/EntitiesView'))
 const GraphView = lazy(() => import('../views/GraphView'))
@@ -59,7 +60,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const folder = useFolderSync(library, repo, universe, status)
   useCodexSync(universe, prefs)
   const [accountOpen, setAccountOpen] = useState(false)
-  const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'escrever' }))
+  const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'inicio' }))
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
@@ -241,7 +242,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               if (!items.length) return null
               return (
                 <div key={g.group} className="rail-group">
-                  <span className="rail-group-label rail-label">{g.group}</span>
+                  {g.group && <span className="rail-group-label rail-label">{g.group}</span>}
                   {items.map((item) => (
                     <RailButton key={item.view} item={item} active={nav.view === item.view} onClick={() => go(item.view)} />
                   ))}
@@ -368,6 +369,8 @@ function RailButton({ item, active, onClick, badge }: { item: NavItem; active: b
 
 function ViewSwitch({ view, onOpenOther }: { view: View; onOpenOther: (u: Universe) => void }) {
   switch (view) {
+    case 'inicio':
+      return <HomeView />
     case 'escrever':
       return <WriteView />
     case 'fichas':

@@ -7,16 +7,18 @@ const tree = (page: Page) => page.getByRole('complementary', { name: 'Manuscrito
 const nav = (page: Page, name: string | RegExp) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name })
 
 async function newUniverse(page: Page, name = 'Teste') {
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill(name)
   await page.getByRole('button', { name: 'Criar universo' }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 }
 
 async function openSample(page: Page) {
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
+  // Um universo abre no Início; estes testes são sobre a escrita.
+  await nav(page, 'Escrever').click()
 }
 
 async function startWriting(page: Page) {
@@ -314,8 +316,11 @@ test('adota um save da primeira versão do Papirus sem perder o texto', async ({
       }),
     )
   })
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('button', { name: /^Meu universo/ }).click()
+  // O Início já mostra o trecho; "Continuar escrevendo" abre a cena.
+  await expect(page.getByText('Escrito na versão 1.')).toBeVisible()
+  await page.getByRole('button', { name: 'Continuar escrevendo' }).click()
   await expect(editor(page)).toContainText('Escrito na versão 1.')
 })
 

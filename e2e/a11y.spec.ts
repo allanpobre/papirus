@@ -15,11 +15,15 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' })
     await page.goto('/')
     const found: string[] = []
+    await page.getByRole('heading', { level: 1 }).waitFor()
+    await page.waitForTimeout(700)
+    found.push(...(await audit(page, 'apresentação')))
+    await page.goto('/app/')
     found.push(...(await audit(page, 'biblioteca')))
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
     await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
-    for (const area of ['Escrever', 'Fichas', 'Relações', 'Timeline', 'Atlas', 'Tramas', 'Conhecimento', 'Organizar', 'Archivist', 'RPG', 'Inbox', 'Ajustes e dados']) {
+    for (const area of ['Início', 'Escrever', 'Fichas', 'Relações', 'Timeline', 'Atlas', 'Tramas', 'Conhecimento', 'Organizar', 'Archivist', 'RPG', 'Inbox', 'Ajustes e dados']) {
       const button = nav(page, area)
       if (!(await button.count())) continue
       await button.click()

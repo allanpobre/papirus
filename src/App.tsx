@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { sampleUniverse } from './model/sample'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
 import { openBestStore, requestPersistentStorage } from './persistence/storage'
@@ -62,6 +63,16 @@ export default function App() {
         if (cancelled) return
         setLibrary(lib)
         setEntries(list)
+        // "Ver um mundo de exemplo" na apresentação: abre o exemplo (uma vez; o endereço volta ao normal).
+        if (new URLSearchParams(location.search).has('exemplo')) {
+          history.replaceState(null, '', location.pathname)
+          const sample = sampleUniverse()
+          await lib.repository(sample.id).save(sample)
+          await lib.touch(sample)
+          setEntries(await lib.list())
+          await open(lib, sample.id)
+          return
+        }
         const last = recall('ultimo-universo')
         if (last && list.some((e) => e.id === last)) await open(lib, last)
         void requestPersistentStorage()

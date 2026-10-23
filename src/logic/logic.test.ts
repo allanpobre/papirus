@@ -236,3 +236,19 @@ describe('mentiras no Codex', () => {
     expect(md).not.toMatch(/falso/i)
   })
 })
+
+describe('palavras por dia', () => {
+  it('conta cada dia pelo início do dia seguinte e hoje pelo total', async () => {
+    const { wordsByDay } = await import('./stats')
+    const { countWords } = await import('../persistence/repository')
+    const total = countWords(u)
+    const v = { ...u, dailyStart: { '2026-10-20': total - 300, '2026-10-22': total - 50, '2026-10-23': total - 20 } }
+    const days = wordsByDay(v, 4, new Date(2026, 9, 23, 12))
+    expect(days).toEqual([
+      { day: '2026-10-20', words: 250 },
+      { day: '2026-10-21', words: 0 },
+      { day: '2026-10-22', words: 30 },
+      { day: '2026-10-23', words: 20 },
+    ])
+  })
+})
