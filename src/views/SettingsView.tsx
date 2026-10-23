@@ -1,4 +1,4 @@
-import { Camera, Compass, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
+import { Camera, Compass, Search, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
 import { universeToMarkdown } from '../export/markdown'
@@ -8,7 +8,7 @@ import type { Universe } from '../model/schema'
 import { forkUniverse, newId } from '../model/universe'
 import type { SnapshotInfo } from '../persistence/repository'
 import { isStoragePersisted, requestPersistentStorage, storageEstimate } from '../persistence/storage'
-import type { Prefs } from '../state/prefs'
+import { recall, remember, type Prefs } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { Field, Kbd, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -18,6 +18,8 @@ import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
 import { ServerCard } from './ServerCard'
+import { AccentPicker, AccountCard } from './SettingsParts'
+import { matches, SETTINGS_CATEGORIES, type SettingsCategory } from './settingsCategories'
 
 const QUESTION_LABEL: Record<QuestionType, string> = {
   'presenca-dupla': 'Personagem em dois lugares no mesmo dia',
@@ -37,6 +39,17 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
   const [storage, setStorage] = useState<{ persisted: boolean; usage: number; quota: number } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const settings = universe.settings
+  const [cat, setCat] = useState<SettingsCategory>(() => {
+    const wanted = (ws.nav.id ?? recall('ajustes-aba')) as SettingsCategory | null
+    return SETTINGS_CATEGORIES.some((c) => c.id === wanted) ? wanted! : 'aparencia'
+  })
+  const [query, setQuery] = useState('')
+  const choose = (c: SettingsCategory) => {
+    setCat(c)
+    setQuery('')
+    remember('ajustes-aba', c)
+  }
+  const show = (id: SettingsCategory) => (query ? matches(SETTINGS_CATEGORIES.find((c) => c.id === id)!, query) : cat === id)
 
   const reloadSnapshots = () => void repo.listSnapshots().then(setSnapshots)
   useEffect(reloadSnapshots, [repo])
@@ -76,7 +89,31 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         <h1>Ajustes e dados</h1>
       </header>
 
+      <div className="settings-layout">
+        <nav className="settings-nav" aria-label="Categorias dos ajustes">
+          <div className="settings-search">
+            <Search size={15} aria-hidden="true" />
+            <label htmlFor="ajustes-busca" className="sr-only">
+              Procurar nos ajustes
+            </label>
+            <input id="ajustes-busca" className="input input-sm" type="search" placeholder="Procurar: tema, backup…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+          <ul>
+            {SETTINGS_CATEGORIES.map((c) => (
+              <li key={c.id}>
+                <button type="button" className="settings-nav-item" aria-current={!query && cat === c.id ? 'page' : undefined} onClick={() => choose(c.id)}>
+                  <c.icon size={16} aria-hidden="true" />
+                  <span>{c.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
       <div className="settings-grid">
+        {query && !SETTINGS_CATEGORIES.some((c) => matches(c, query)) && <p className="muted">Nada encontrado para “{query}”.</p>}
+        {query && <p className="muted small settings-found">Mostrando: {SETTINGS_CATEGORIES.filter((c) => matches(c, query)).map((c) => c.label).join(', ')}</p>}
+{show('universo') && (
         <section className="settings-card">
           <h2 className="section-title">Universo</h2>
           <div className="form-grid">
@@ -104,7 +141,9 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           </div>
           <CalendarEditor />
         </section>
+        )}
 
+{show('menu') && (
         <section className="settings-card">
           <h2 className="section-title">Áreas do menu</h2>
           <p className="muted small">Esconda o que você não usa. Tudo continua acessível pela busca, e nada é apagado.</p>
@@ -136,9 +175,12 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </button>
           </div>
         </section>
+        )}
 
+{show('aparencia') && (
         <section className="settings-card">
-          <h2 className="section-title">Escrita</h2>
+          <h2 className="section-title">Aparência</h2>
+          <AccentPicker value={prefs.accent} onChange={(v) => setPref('accent', v)} />
           <div className="form-grid">
             <Field label="Tema">
               {(id) => (
@@ -185,14 +227,22 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               )}
             </Field>
           </div>
-          <h3 className="section-label">O que o Papirus faz enquanto você escreve</h3>
+          <p className="muted tiny">Tema e cor valem para este aparelho, em todos os universos. Dica: o botão de sol/lua no menu lateral troca o tema na hora.</p>
+        </section>
+        )}
+
+{show('escrita') && (
+        <section className="settings-card">
+          <h2 className="section-title">Enquanto você escreve</h2>
           <Toggle label="Destacar nomes de fichas conhecidas" checked={prefs.detection} onChange={(v) => setPref('detection', v)} />
           <Toggle label="Procurar nomes ainda não cadastrados" checked={prefs.discovery} onChange={(v) => setPref('discovery', v)} />
           <Toggle label="Mostrar a margem viva" checked={prefs.margin} onChange={(v) => setPref('margin', v)} />
           <Toggle label="Mostrar a barra de formatação" checked={prefs.toolbar} onChange={(v) => setPref('toolbar', v)} />
           <p className="muted tiny">Tudo é opcional. Desligado, o Papirus vira um editor silencioso.</p>
         </section>
+        )}
 
+{show('escrita') && (
         <section className="settings-card">
           <h2 className="section-title">Perguntas de continuidade</h2>
           {(Object.keys(QUESTION_LABEL) as QuestionType[]).map((t) => (
@@ -214,11 +264,14 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </div>
           )}
         </section>
+        )}
 
-        <BookCard />
+        {show('livros') && <BookCard />}
 
-        <ServerCard />
+        {show('conta') && <AccountCard />}
+        {show('conta') && <ServerCard />}
 
+{show('dados') && (
         <section className="settings-card settings-data">
           <h2 className="section-title">Seus dados</h2>
           <p className="small">
@@ -283,9 +336,11 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </p>
           )}
         </section>
+        )}
 
-        <FolderCard />
+        {show('dados') && <FolderCard />}
 
+{show('dados') && (
         <section className="settings-card">
           <h2 className="section-title">Snapshots</h2>
           <p className="muted small">Fotografias do universo. Automáticos a cada 30 minutos de trabalho; os nomeados ficam até você apagar.</p>
@@ -352,7 +407,9 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             ))}
           </ul>
         </section>
+        )}
 
+{show('universo') && (
         <section className="settings-card">
           <h2 className="section-title">E se…?</h2>
           <p className="muted small">
@@ -375,7 +432,9 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </button>
           </form>
         </section>
+        )}
 
+{show('menu') && (
         <section className="settings-card">
           <h2 className="section-title">Atalhos</h2>
           <dl className="shortcuts">
@@ -387,7 +446,9 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             <div><dt><Kbd>{modKey}</Kbd> <Kbd>S</Kbd></dt><dd>Salvar agora (o salvamento já é automático)</dd></div>
           </dl>
         </section>
+        )}
 
+{show('perigo') && (
         <section className="settings-card settings-danger">
           <h2 className="section-title">Zona de perigo</h2>
           <ConfirmButton
@@ -404,6 +465,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             <Trash2 size={16} /> Apagar este universo
           </ConfirmButton>
         </section>
+        )}
+      </div>
       </div>
     </div>
   )

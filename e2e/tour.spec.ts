@@ -8,7 +8,7 @@ test('tour na primeira vez: destaca as partes, pode ser pulado e refeito', async
   // Começa sozinho.
   const tour = page.getByRole('dialog', { name: 'Bem-vindo ao Papirus' })
   await expect(tour).toBeVisible()
-  await expect(tour).toContainText('1 de 15')
+  await expect(tour).toContainText('1 de 16')
   const { violations } = await new AxeBuilder({ page }).include('.tour-card').analyze()
   expect(violations.map((v) => v.id)).toEqual([])
 

@@ -51,6 +51,16 @@ export function Landing() {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
+  // A mesma cor de destaque escolhida no app.
+  useEffect(() => {
+    try {
+      const accent = JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}').accent
+      if (accent && accent !== 'viridiana') document.documentElement.setAttribute('data-accent', accent)
+    } catch {
+      // Sem armazenamento: fica a cor padrão.
+    }
+  }, [])
+
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
     setTheme(next)
@@ -241,18 +251,72 @@ const FEATURES = [
   { icon: ScrollText, title: 'Archivist (opcional)', text: 'Pergunte à sua lore com IA, usando a sua chave. Ele só lê o que você manda e nunca muda nada.' },
 ]
 
-/** Uma página de manuscrito: nomes reconhecidos, um fato guardado e o Codex. */
+type Seg = { t: string; kind?: 'name' | 'fact' }
+
+/** O texto da cena de exemplo, em pedaços: nomes que o Papirus reconhece e o trecho que vira fato. */
+const SCENE: Seg[][] = [
+  [{ t: 'Era noite em ' }, { t: 'Ostria', kind: 'name' }, { t: ' quando o homem pálido desceu do navio. ' }, { t: 'Kael', kind: 'name' }, { t: ' o viu primeiro, da sombra das redes.' }],
+  [{ t: 'Mais tarde, na taverna, ' }, { t: 'Mira', kind: 'name' }, { t: ' jurou que ele tinha ' }, { t: 'olhos cinzentos', kind: 'fact' }, { t: '.' }],
+]
+const TOTAL = SCENE.flat().reduce((n, s) => n + s.t.length, 0)
+/** Onde cada pedaço começa no texto todo. */
+const STARTS: number[][] = (() => {
+  let at = 0
+  return SCENE.map((para) =>
+    para.map((seg) => {
+      const start = at
+      at += seg.t.length
+      return start
+    }),
+  )
+})()
+const calm = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/**
+ * A página de manuscrito se escreve sozinha: os nomes conhecidos ganham o sublinhado
+ * quando terminam de ser digitados, o trecho vira fato e as fichas chegam na margem.
+ * O texto inteiro já está na página desde o início (só transparente), então nada pula.
+ */
 function Manuscript() {
+  const [typed, setTyped] = useState(() => (calm() ? TOTAL : 0))
+  const [phase, setPhase] = useState<'escrevendo' | 'fato' | 'fichas'>(() => (calm() ? 'fichas' : 'escrevendo'))
+
+  useEffect(() => {
+    if (typed >= TOTAL) return
+    const t = setTimeout(() => setTyped((n) => Math.min(TOTAL, n + 1)), typed === 0 ? 700 : 26)
+    return () => clearTimeout(t)
+  }, [typed])
+
+  useEffect(() => {
+    if (typed < TOTAL || phase === 'fichas') return
+    const t = setTimeout(() => setPhase((p) => (p === 'escrevendo' ? 'fato' : 'fichas')), phase === 'escrevendo' ? 450 : 650)
+    return () => clearTimeout(t)
+  }, [typed, phase])
+
+  const render = (seg: Seg, start: number, key: number) => {
+    const shown = Math.max(0, Math.min(seg.t.length, typed - start))
+    const done = shown === seg.t.length
+    // O cursor fica no pedaço que está sendo digitado.
+    const caret = typed < TOTAL && typed >= start && typed < start + seg.t.length
+    const inner = (
+      <>
+        {seg.t.slice(0, shown)}
+        {caret && <span className="lp-caret" aria-hidden="true" />}
+        <span className="lp-ghost">{seg.t.slice(shown)}</span>
+      </>
+    )
+    if (seg.kind === 'name') return <span key={key} className={`lp-name${done ? ' is-on' : ''}`}>{inner}</span>
+    if (seg.kind === 'fact') return <mark key={key} className={`lp-fact${phase !== 'escrevendo' ? ' is-on' : ''}`}>{inner}</mark>
+    return <span key={key}>{inner}</span>
+  }
+
   return (
-    <figure className="lp-page" aria-label="Exemplo: uma cena com nomes reconhecidos, um fato guardado e o Codex da mesa">
+    <figure className={`lp-page lp-${phase}`} aria-label="Exemplo: uma cena com nomes reconhecidos, um fato guardado e o Codex da mesa">
       <div className="lp-sheet">
         <p className="lp-scene">A chegada · 12 de Neblina de 359 DC</p>
-        <p>
-          Era noite em <span className="lp-name">Ostria</span> quando o homem pálido desceu do navio. <span className="lp-name">Kael</span> o viu primeiro, da sombra das redes.
-        </p>
-        <p>
-          Mais tarde, na taverna, <span className="lp-name">Mira</span> jurou que ele tinha <mark className="lp-fact">olhos cinzentos</mark>.
-        </p>
+        {SCENE.map((para, i) => (
+          <p key={i}>{para.map((seg, j) => render(seg, STARTS[i][j], j))}</p>
+        ))}
       </div>
       <aside className="lp-cards" aria-hidden="true">
         <p className="lp-card">

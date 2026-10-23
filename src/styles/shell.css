@@ -1068,3 +1068,7 @@
   gap: 0.4rem;
   margin-top: 0.3rem;
 }
+
+.rail-theme {
+  flex: none;
+}

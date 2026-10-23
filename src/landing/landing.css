@@ -13,10 +13,7 @@ body,
   --lp-max: 1120px;
   --lp-gutter-l: max(20px, env(safe-area-inset-left, 0px));
   --lp-gutter-r: max(20px, env(safe-area-inset-right, 0px));
-  background:
-    radial-gradient(1100px 520px at 90% -8%, var(--accent-faint), transparent 62%),
-    radial-gradient(900px 420px at -10% 20%, color-mix(in srgb, var(--ochre-soft) 45%, transparent), transparent 60%),
-    var(--bg);
+  background: var(--bg);
   color: var(--ink);
   overflow-x: clip;
 }
@@ -42,9 +39,10 @@ body,
   display: flex;
   align-items: center;
   gap: 1rem;
-  max-width: calc(var(--lp-max) + 4rem);
-  margin: 0 auto;
-  padding: calc(0.8rem + env(safe-area-inset-top, 0px)) var(--lp-gutter-r) 0.8rem var(--lp-gutter-l);
+  /* A barra ocupa a largura toda; o conteúdo fica alinhado com o resto da página. */
+  padding-block: calc(0.8rem + env(safe-area-inset-top, 0px)) 0.8rem;
+  padding-left: max(var(--lp-gutter-l), calc((100% - var(--lp-max)) / 2 + 20px));
+  padding-right: max(var(--lp-gutter-r), calc((100% - var(--lp-max)) / 2 + 20px));
   background: color-mix(in srgb, var(--bg) 86%, transparent);
   backdrop-filter: blur(10px);
 }
@@ -651,20 +649,200 @@ body,
   }
 }
 
+/* ---------------------------------------------------------------- movimento */
+
+/* A cena que se escreve: o texto inteiro ocupa o lugar desde o início, só transparente. */
+.lp-ghost {
+  color: transparent;
+}
+
+.lp-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin: 0 1px -0.15em;
+  background: var(--accent);
+  animation: lp-blink 0.9s steps(1) infinite;
+}
+
+@keyframes lp-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.lp-sheet .lp-name {
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.5s ease 0.15s;
+}
+
+.lp-sheet .lp-name.is-on {
+  text-decoration-color: var(--ochre-line);
+}
+
+.lp-sheet .lp-fact {
+  background: linear-gradient(var(--ochre-soft), var(--ochre-soft)) no-repeat 0 0 / 0% 100%;
+  transition: background-size 0.6s ease;
+}
+
+.lp-sheet .lp-fact.is-on {
+  background-size: 100% 100%;
+}
+
+.lp-cards .lp-card {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lp-fato .lp-cards .lp-card:first-child,
+.lp-fichas .lp-cards .lp-card {
+  opacity: 1;
+  transform: none;
+}
+
+.lp-fichas .lp-cards .lp-card:nth-child(2) {
+  transition-delay: 0.15s;
+}
+
+/* Fundo que respira devagar. */
+.lp {
+  position: relative;
+  isolation: isolate;
+}
+
+.lp::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(40% 35% at 75% 20%, var(--accent-faint), transparent 70%),
+    radial-gradient(35% 30% at 20% 60%, color-mix(in srgb, var(--ochre-soft) 55%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.lp-ctas .btn-primary svg {
+  transition: transform 0.2s ease;
+}
+
+.lp-ctas .btn-primary:hover svg {
+  transform: translateX(3px);
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .lp-hero-copy > *,
-  .lp-page {
-    animation: lp-rise 0.6s ease-out both;
+  .lp::before {
+    animation: lp-drift 28s ease-in-out infinite alternate;
+  }
+
+  .lp-hero-copy > * {
+    animation: lp-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .lp-hero-copy > :nth-child(2) {
+    animation-delay: 0.08s;
+  }
+
+  .lp-hero-copy > :nth-child(3) {
+    animation-delay: 0.16s;
+  }
+
+  .lp-hero-copy > :nth-child(4) {
+    animation-delay: 0.24s;
+  }
+
+  .lp-hero-copy > :nth-child(5) {
+    animation-delay: 0.32s;
   }
 
   .lp-page {
-    animation-delay: 0.15s;
+    animation: lp-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
+  }
+
+  .lp-phone {
+    animation: lp-float 7s ease-in-out infinite;
+  }
+
+  /* Seções aparecem conforme a rolagem (onde o navegador sabe fazer; nos outros, já estão lá). */
+  @supports (animation-timeline: view()) {
+    .lp-section h2,
+    .lp-steps li,
+    .lp-feature,
+    .lp-principle-list blockquote,
+    .lp-band-copy > *,
+    .lp-final > * {
+      animation: lp-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+
+    .lp-phone-new-item {
+      animation: lp-arrive linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 45%;
+    }
+
+    .lp-nav {
+      animation: lp-nav linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 120px;
+    }
   }
 }
 
 @keyframes lp-rise {
   from {
     opacity: 0.001;
-    transform: translateY(8px);
+    transform: translateY(14px);
+  }
+}
+
+@keyframes lp-reveal {
+  from {
+    opacity: 0.001;
+    transform: translateY(24px);
+  }
+}
+
+@keyframes lp-arrive {
+  from {
+    opacity: 0.001;
+    transform: translateX(-18px);
+    box-shadow: 0 0 0 0 rgb(215 169 76 / 0%);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgb(215 169 76 / 35%);
+  }
+}
+
+@keyframes lp-drift {
+  to {
+    transform: translate3d(4%, -3%, 0) rotate(4deg);
+  }
+}
+
+@keyframes lp-float {
+  0%,
+  100% {
+    transform: rotate(2deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(1deg) translateY(-10px);
+  }
+}
+
+@keyframes lp-nav {
+  to {
+    box-shadow: 0 1px 0 var(--line), 0 8px 24px -16px rgb(0 0 0 / 30%);
+  }
+}
+
+@media (max-width: 640px) {
+  .lp-phone {
+    animation: none;
   }
 }

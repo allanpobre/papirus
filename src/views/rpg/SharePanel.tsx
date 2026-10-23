@@ -35,7 +35,7 @@ export function SharePanel({ group }: { group: Group }) {
           <Radio size={14} aria-hidden="true" /> Codex ao vivo
         </h3>
         <p className="small">Os jogadores abrem um link no celular e veem cada revelação na hora. Precisa de um servidor (Supabase, plano grátis), configurado uma vez.</p>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('config')}>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('config', 'conta')}>
           <Settings size={14} /> Configurar servidor
         </button>
       </section>

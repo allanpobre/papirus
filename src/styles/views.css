@@ -3277,3 +3277,152 @@ code {
   justify-content: space-between;
   gap: 0.5rem;
 }
+
+/* Ajustes por categoria */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.settings-nav {
+  position: sticky;
+  top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.settings-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.settings-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.settings-search svg {
+  position: absolute;
+  left: 0.6rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.settings-search .input {
+  width: 100%;
+  padding-left: 2rem;
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--ink-2);
+  font-weight: 550;
+  text-align: left;
+}
+
+.settings-nav-item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.settings-nav-item[aria-current='page'] {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-1);
+}
+
+.settings-layout .settings-grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 760px;
+}
+
+.settings-found {
+  margin: 0;
+}
+
+/* Cor de destaque */
+.accent-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.accent-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.accent-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.accent-option[aria-checked='true'] {
+  border-color: var(--ink-2);
+  box-shadow: 0 0 0 1px var(--ink-2);
+}
+
+.accent-swatch {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+}
+
+/* As amostras mostram cada cor como é no tema claro, para comparar. */
+.accent-viridiana .accent-swatch { background: #1d6b58; }
+.accent-azul .accent-swatch { background: #2459a6; }
+.accent-vinho .accent-swatch { background: #9b2c4f; }
+.accent-violeta .accent-swatch { background: #5f4596; }
+.accent-ocre .accent-swatch { background: #7d520c; }
+.accent-grafite .accent-swatch { background: #2f3a36; }
+
+@media (max-width: 860px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-nav {
+    position: static;
+  }
+
+  .settings-nav ul {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0.3rem;
+  }
+
+  .settings-nav-item {
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+  }
+}

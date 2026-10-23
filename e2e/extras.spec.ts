@@ -45,6 +45,7 @@ test('primeira vez: a escolha arruma o menu, e dá para mostrar tudo de novo', a
   await expect(nav(page, 'RPG')).toHaveCount(0)
 
   await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Menu e ajuda' }).click()
   await page.getByRole('button', { name: 'Só RPG' }).click()
   await expect(nav(page, 'Organizar')).toHaveCount(0)
   await expect(nav(page, 'RPG')).toBeVisible()
@@ -100,6 +101,7 @@ test('calendário próprio: meses nomeados nas datas das cenas', async ({ page }
   await newUniverse(page)
   await page.keyboard.type('Neblina na costa.')
   await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true }).click()
   await page.getByRole('button', { name: '+ Mês' }).click()
   await page.getByRole('button', { name: '+ Mês' }).click()
   await page.getByRole('textbox', { name: 'Nome do mês 1' }).fill('Geada')
@@ -161,6 +163,7 @@ test('Na mesa: começa a sessão, anota, rola e ajusta recursos', async ({ page 
 test('importa um livro em Markdown e exporta como Word e EPUB', async ({ page }) => {
   await newUniverse(page)
   await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Livros' }).click()
   await page.getByLabel('Arquivo do livro').setInputFiles({
     name: 'sal.md',
     mimeType: 'text/markdown',
@@ -232,4 +235,25 @@ test('a barra da seleção some quando a janela do fato abre, e dá para marcar 
   await dialog.getByRole('radio', { name: 'Mentira ou engano' }).click()
   await expect(dialog.getByText('Quem conta a mentira?')).toBeVisible()
   await expect(dialog.getByRole('combobox', { name: 'Canon' })).toHaveValue('falso')
+})
+
+test('ajustes por categoria: busca, cor de destaque e tema rápido', async ({ page }) => {
+  await openSample(page)
+  await nav(page, 'Ajustes e dados').click()
+  // Abre em Aparência, com a cor de destaque.
+  await page.getByRole('radio', { name: 'Azul' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'azul')
+  // A busca leva à categoria certa.
+  await page.getByRole('searchbox', { name: 'Procurar nos ajustes' }).fill('backup')
+  await expect(page.getByRole('heading', { name: 'Seus dados' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Aparência' })).toHaveCount(0)
+  await page.getByRole('searchbox', { name: 'Procurar nos ajustes' }).fill('xyzzy')
+  await expect(page.getByText('Nada encontrado para “xyzzy”.')).toBeVisible()
+  // Tema na hora, pelo menu lateral; a cor continua depois de recarregar.
+  const toggle = page.getByRole('button', { name: /Usar tema (claro|escuro)/ })
+  const before = await page.locator('html').getAttribute('data-theme')
+  await toggle.click()
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', before ?? 'nenhum')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'azul')
 })
