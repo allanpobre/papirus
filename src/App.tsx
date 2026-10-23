@@ -13,6 +13,7 @@ import {
 } from './model/universe'
 import type { Scene } from './model/schema'
 import { useUniverse, type SaveStatus } from './persistence/useUniverse'
+import { ConfirmButton } from './ui/ConfirmButton'
 
 const STATUS_LABEL: Record<SaveStatus, string> = {
   carregando: 'Carregando…',
@@ -50,7 +51,6 @@ export default function App() {
   }
 
   const deleteScene = (scene: Scene) => {
-    if (!window.confirm(`Apagar a cena “${scene.title || 'Sem título'}”?`)) return
     update((u) => removeScene(u, scene.id))
     if (selectedId === scene.id) setSelectedId(null)
   }
@@ -93,16 +93,14 @@ export default function App() {
                 placeholder="Sem título"
                 onChange={(e) => update((u) => renameStory(u, story.id, e.target.value))}
               />
-              <button
-                type="button"
+              <ConfirmButton
                 title="Remover a história (as cenas viram cenas soltas)"
-                onClick={() => {
-                  if (window.confirm('Remover esta história? As cenas dela não serão apagadas.'))
-                    update((u) => removeStory(u, story.id))
-                }}
+                question="Remover a história? As cenas viram cenas soltas."
+                confirmLabel="Remover história"
+                onConfirm={() => update((u) => removeStory(u, story.id))}
               >
                 Remover
-              </button>
+              </ConfirmButton>
             </div>
             {sceneList(scenesOf(universe, story.id))}
             <button type="button" onClick={() => newScene(story.id)}>
@@ -165,9 +163,13 @@ export default function App() {
               >
                 Exportar cena
               </button>
-              <button type="button" onClick={() => deleteScene(selected)}>
+              <ConfirmButton
+                question="Apagar esta cena?"
+                confirmLabel="Apagar cena"
+                onConfirm={() => deleteScene(selected)}
+              >
                 Apagar
-              </button>
+              </ConfirmButton>
             </div>
             <SceneEditor
               key={selected.id}

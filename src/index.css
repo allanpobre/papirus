@@ -1,10 +1,33 @@
 /* Estilo mínimo e funcional. A estilização definitiva vem depois. */
+/* Cores como tokens, com tema claro e escuro (seguindo o sistema ou data-theme). */
 :root {
   font-family: system-ui, sans-serif;
-  color-scheme: light dark;
+  color-scheme: light;
+  --bg: #fbfaf8;
+  --fg: #1d1b18;
+  --muted: #6b665e;
+  --line: #d9d5ce;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #1b1a18;
+    --fg: #ebe7e0;
+    --muted: #a39d93;
+    --line: #3a3733;
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1b1a18;
+  --fg: #ebe7e0;
+  --muted: #a39d93;
+  --line: #3a3733;
 }
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--fg);
 }
 .app {
   display: grid;
@@ -12,7 +35,7 @@ body {
   min-height: 100vh;
 }
 .sidebar {
-  border-right: 1px solid #8884;
+  border-right: 1px solid var(--line);
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -27,11 +50,21 @@ body {
 }
 .save-status {
   font-size: 0.8rem;
-  opacity: 0.7;
+  color: var(--muted);
+}
+.confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+.confirm-question {
+  font-size: 0.85rem;
 }
 .story-header,
 .scene-header {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 .story-title,
@@ -57,7 +90,10 @@ body {
   gap: 0.25rem;
 }
 .writing {
-  padding: 1rem;
+  padding-block: 1rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  min-width: 0;
 }
 .scene {
   max-width: 42rem;
@@ -89,6 +125,6 @@ body {
   }
   .sidebar {
     border-right: none;
-    border-bottom: 1px solid #8884;
+    border-bottom: 1px solid var(--line);
   }
 }

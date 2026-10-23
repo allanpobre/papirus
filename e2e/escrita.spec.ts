@@ -57,8 +57,8 @@ test('remover uma história preserva as cenas como cenas soltas', async ({ page 
   await page.getByRole('textbox', { name: 'Título da cena' }).fill('Prólogo')
   await expect(story.getByRole('button', { name: 'Prólogo' })).toBeVisible()
 
-  page.once('dialog', (d) => d.accept())
   await story.getByRole('button', { name: 'Remover' }).click()
+  await story.getByRole('button', { name: 'Remover história' }).click()
 
   await expect(page.getByRole('region', { name: 'Livro um' })).toHaveCount(0)
   await expect(
@@ -66,17 +66,21 @@ test('remover uma história preserva as cenas como cenas soltas', async ({ page 
   ).toBeVisible()
 })
 
-test('apagar uma cena pede confirmação e respeita o cancelamento', async ({ page }) => {
+test('apagar uma cena pede confirmação e respeita o cancelamento (botão ou Esc)', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Começar a escrever' }).click()
   await page.getByRole('textbox', { name: 'Título da cena' }).fill('Importante')
 
-  page.once('dialog', (d) => d.dismiss())
-  await page.getByRole('button', { name: 'Apagar' }).click()
+  await page.getByRole('button', { name: 'Apagar', exact: true }).click()
+  await page.getByRole('button', { name: 'Cancelar' }).click()
   await expect(page.getByRole('button', { name: 'Importante' })).toBeVisible()
 
-  page.once('dialog', (d) => d.accept())
-  await page.getByRole('button', { name: 'Apagar' }).click()
+  await page.getByRole('button', { name: 'Apagar', exact: true }).click()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: 'Importante' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Apagar', exact: true }).click()
+  await page.getByRole('button', { name: 'Apagar cena' }).click()
   await expect(page.getByRole('button', { name: 'Importante' })).toHaveCount(0)
 })
 
