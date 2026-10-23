@@ -9,10 +9,16 @@ Status: **E1 a E5 entregues na versão 1** (ver detalhes abaixo e no README).
 - Formato salvo versionado e validado, com estrutura de migrações.
 - Exportação da cena ou de tudo em Markdown, e backup completo em JSON.
 
-### Ainda falta na E1
-- Menções como *marks* e migração das âncoras (dependem do cadastro de fichas).
-- Importação do backup JSON (fase de Dados).
-- Estilização definitiva.
+### Entregue depois da E1
+- E2: margem viva e espiar ficha (Ctrl/⌘ + clique num nome).
+- E3: captura de fatos pela seleção, com fala tratada como afirmação de personagem; menções como *marks*.
+- E4: revisão sob demanda (nomes novos, perguntas de continuidade, pendências).
+- E5: ritmo e presença na área Organizar.
+- Extra: versões de cena com comparação, leitura e ensaio.
+
+### Ainda em aberto
+- Comentários inline no texto.
+- Importação de livros inteiros com extração assistida.
 
 ## Regras da fase
 
