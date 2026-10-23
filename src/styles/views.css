@@ -3625,3 +3625,11 @@ code {
 .relation-involved {
   padding-top: 0.4rem;
 }
+
+/* Na tela de Relações, arrastar e clicar não selecionam texto (os campos continuam selecionáveis). */
+.graph-wrap,
+.graph-hint,
+.graph-view .view-head h1 {
+  user-select: none;
+  -webkit-user-select: none;
+}

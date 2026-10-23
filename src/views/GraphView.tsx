@@ -84,6 +84,26 @@ export default function GraphView() {
   const [sceneIndex, setSceneIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
+  const pointers = useRef(new Map<number, { x: number; y: number }>())
+  const pinch = useRef<{ d: number; k: number } | null>(null)
+  const endPointer = (e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId)
+    if (pointers.current.size < 2) pinch.current = null
+    if (pointers.current.size === 0) drag.current = null
+  }
+
+  // A roda do mouse dá zoom no grafo sem rolar a página por trás.
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, v.k * (e.deltaY < 0 ? 1.1 : 0.9))) }))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  })
 
   const scenes = useMemo(() => manuscriptOrder(universe), [universe])
   const scene = inTime ? (scenes[Math.min(sceneIndex, scenes.length - 1)] ?? null) : null
@@ -266,22 +286,51 @@ export default function GraphView() {
       ) : (
         <div className="graph-wrap">
           <svg
+            ref={svgRef}
             className="graph"
             viewBox={`0 0 ${W} ${H}`}
             role="group"
             aria-label={`Grafo com ${nodes.length} fichas e ${visibleEdges.filter(active).length} relações`}
             onPointerDown={(e) => {
+              // Arrastar o grafo nunca seleciona texto (no app do Claude, texto selecionado abre uma camada que escurece a tela).
+              e.preventDefault()
+              getSelection()?.removeAllRanges()
+              pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+              if (pointers.current.size === 2) {
+                // Dois dedos: pinça para zoom.
+                const [a, b] = [...pointers.current.values()]
+                pinch.current = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, k: view.k }
+                drag.current = null
+                return
+              }
               if ((e.target as Element).closest('.node')) return
-              ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
+              ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
               drag.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }
             }}
             onPointerMove={(e) => {
+              if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+              if (pinch.current && pointers.current.size === 2) {
+                const [a, b] = [...pointers.current.values()]
+                const k = pinch.current.k * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.current.d)
+                if (Number.isFinite(k)) setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, k)) }))
+                return
+              }
               if (!drag.current) return
-              const scale = W / (e.currentTarget as SVGSVGElement).clientWidth
-              setView((v) => ({ ...v, x: drag.current!.vx + (e.clientX - drag.current!.x) * scale, y: drag.current!.vy + (e.clientY - drag.current!.y) * scale }))
+              // Converte pixels da tela para unidades do desenho. A largura vem do retângulo na tela:
+              // alguns navegadores dão 0 para clientWidth de um SVG, o que levava a posição ao infinito.
+              const width = (e.currentTarget as SVGSVGElement).getBoundingClientRect().width
+              if (!(width > 0)) return
+              const scale = W / width
+              const d = drag.current
+              const x = d.vx + (e.clientX - d.x) * scale
+              const y = d.vy + (e.clientY - d.y) * scale
+              if (!Number.isFinite(x) || !Number.isFinite(y)) return
+              // Não deixa o desenho sair inteiro da tela.
+              setView((v) => ({ ...v, x: Math.max(-W, Math.min(W, x)), y: Math.max(-H, Math.min(H, y)) }))
             }}
-            onPointerUp={() => (drag.current = null)}
-            onWheel={(e) => zoom(e.deltaY < 0 ? 1.1 : 0.9)}
+            onPointerUp={endPointer}
+            onPointerCancel={endPointer}
+            onLostPointerCapture={endPointer}
           >
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

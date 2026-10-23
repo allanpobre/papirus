@@ -226,6 +226,19 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
   )
 
+  // Arrastar texto selecionado sem querer inicia o "arrastar e soltar" do navegador, e alguns
+  // visualizadores (como o app do Claude) cobrem a tela com uma camada de soltar arquivo.
+  // Só o editor e o que é arrastável de propósito podem arrastar.
+  useEffect(() => {
+    const onDragStart = (e: DragEvent) => {
+      const el = e.target instanceof Element ? e.target : (e.target as Node | null)?.parentElement
+      if (el?.closest('.ProseMirror, [draggable="true"]')) return
+      e.preventDefault()
+    }
+    document.addEventListener('dragstart', onDragStart, true)
+    return () => document.removeEventListener('dragstart', onDragStart, true)
+  }, [])
+
   // Atalhos globais.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
