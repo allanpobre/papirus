@@ -39,7 +39,7 @@ export function ServerFields({ prefs, setPref }: { prefs: Prefs; setPref: <K ext
   return (
     <div className="server-fields">
       <p className="muted small">
-        Contas e o Codex ao vivo usam um projeto Supabase (plano grátis). Crie o projeto, rode no SQL Editor os scripts <code>supabase/codex.sql</code> e <code>supabase/contas.sql</code> do
+        Contas, compartilhar e o Codex ao vivo usam um projeto Supabase (plano grátis). Crie o projeto, rode no SQL Editor os scripts <code>supabase/codex.sql</code>, <code>supabase/contas.sql</code> e <code>supabase/compartilhar.sql</code> do
         repositório e cole aqui o endereço e a chave pública (em Project Settings → API Keys: a "publishable", que começa com sb_publishable_, ou a antiga "anon public", que começa com eyJ).
         {BUILD_SERVER && ' Esta publicação já vem com um servidor; preencha só se quiser usar outro.'}
       </p>

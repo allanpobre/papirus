@@ -67,7 +67,7 @@ function FactsTab() {
   return (
     <>
       <div className="filters-row">
-        <input className="input" aria-label="Filtrar fatos" placeholder="Filtrar…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input className="input" data-livre aria-label="Filtrar fatos" placeholder="Filtrar…" value={query} onChange={(e) => setQuery(e.target.value)} />
         <Select label="Canon" value={canon} onChange={setCanon} options={[{ value: 'todos', label: 'Todo canon' }, ...CANON_STATES.map((c) => ({ value: c, label: CANON_LABEL[c] }))]} />
         <Select label="Estado editorial" value={editorial} onChange={setEditorial} options={[{ value: 'todos', label: 'Todo estado' }, ...EDITORIAL_STATES.map((c) => ({ value: c, label: EDITORIAL_LABEL[c] }))]} />
         <button type="button" className="btn btn-primary" onClick={() => setEditing('novo')}>

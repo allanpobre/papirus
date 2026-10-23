@@ -96,6 +96,15 @@ export default function WriteView() {
   // Se a cena aberta não existe (apagada, desfeita, outro universo), cai para a primeira.
   const scene = (sceneId ? byId(universe, 'scenes', sceneId) : undefined) ?? order[0]
 
+  // Conta para quem mais está no universo qual cena está aberta aqui.
+  const { setEditingScene } = ws
+  const editingSceneId = scene?.id ?? null
+  useEffect(() => {
+    setEditingScene(editingSceneId)
+    return () => setEditingScene(null)
+  }, [editingSceneId, setEditingScene])
+  const editingHere = scene ? ws.others.filter((o) => o.sceneId === scene.id) : []
+
   useEffect(() => {
     if (scene) remember(`cena:${universe.id}`, scene.id)
   }, [scene, universe.id])
@@ -397,14 +406,24 @@ export default function WriteView() {
               </section>
             )}
 
+            {editingHere.length > 0 && (
+              <p className="editing-here" role="status">
+                <span className="editing-dot" aria-hidden="true" />
+                <span>
+                  <strong>{editingHere.map((o) => o.who).join(', ')}</strong> {editingHere.length === 1 ? 'está' : 'estão'} com esta cena aberta agora. O que cada um escreve
+                  é juntado em segundos; se mexerem nela ao mesmo tempo, a outra versão vira uma cópia ao lado.
+                </span>
+              </p>
+            )}
             <SceneEditor
-              key={`${scene.id}:${editorNonce}`}
+              key={`${scene.id}:${editorNonce}:${ws.remoteRev[scene.id] ?? 0}`}
+              editable={!ws.readOnly}
               doc={scene.doc}
               onChange={onChange}
               onCursorParagraph={setParagraph}
               matcher={matcher}
               actions={actions}
-              showToolbar={prefs.toolbar && !focus}
+              showToolbar={prefs.toolbar && !focus && !ws.readOnly}
               onReady={(ed) => (editorRef.current = ed)}
             />
           </article>

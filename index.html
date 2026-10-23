@@ -13,7 +13,7 @@
       // Links antigos de jogadores (?mesa=) e retornos de login por e-mail (#access_token) vão para o app.
       ;(function () {
         var s = location.search, h = location.hash
-        if (/[?&]mesa=/.test(s) || /access_token=|error_description=|type=(signup|recovery|magiclink)/.test(h)) location.replace('app/' + s + h)
+        if (/[?&](mesa|ler)=/.test(s) || /access_token=|error_description=|type=(signup|recovery|magiclink)/.test(h)) location.replace('app/' + s + h)
       })()
     </script>
   </head>

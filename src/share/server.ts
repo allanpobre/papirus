@@ -20,7 +20,8 @@ export const isConfigured = (c: ServerConfig | null | undefined): c is ServerCon
 
 const clients = new Map<string, Promise<SupabaseClient>>()
 
-function client(cfg: ServerConfig): Promise<SupabaseClient> {
+/** Cliente sem conta (Codex dos jogadores, link de leitura). */
+export function anonClient(cfg: ServerConfig): Promise<SupabaseClient> {
   const k = `${cfg.url}|${cfg.anonKey}`
   let c = clients.get(k)
   if (!c) {
@@ -43,7 +44,7 @@ const explain = (message: string): string => {
 }
 
 async function rpc<T>(cfg: ServerConfig, fn: string, args: Record<string, unknown>): Promise<T> {
-  const sb = await client(cfg)
+  const sb = await anonClient(cfg)
   const { data, error } = await sb.rpc(fn, args)
   if (error) throw new ServerError(explain(error.message))
   return data as T
@@ -73,7 +74,7 @@ export async function testServer(cfg: ServerConfig): Promise<void> {
 }
 
 async function ping(cfg: ServerConfig, id: string) {
-  const sb = await client(cfg)
+  const sb = await anonClient(cfg)
   const channel = sb.channel(`papirus-codex-${id}`)
   await new Promise<void>((resolve) => {
     const timer = setTimeout(resolve, 4000)
@@ -92,7 +93,7 @@ async function ping(cfg: ServerConfig, id: string) {
 export function listenCodex(cfg: ServerConfig, id: string, onUpdate: () => void, onStatus?: (live: boolean) => void): () => void {
   let stop = () => {}
   let stopped = false
-  void client(cfg).then((sb) => {
+  void anonClient(cfg).then((sb) => {
     if (stopped) return
     const channel = sb
       .channel(`papirus-codex-${id}`)

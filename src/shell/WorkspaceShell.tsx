@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ChevronsLeft, ChevronsRight, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings } from 'lucide-react'
+import { ArrowLeftRight, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings, Users } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
 import type { Universe } from '../model/schema'
@@ -13,7 +13,10 @@ import { useCodexSync } from '../share/useCodexSync'
 import { isSample } from '../model/sample'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { Tour } from './Tour'
-import { useCloudPush } from '../account/useCloud'
+import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
+import { ShareDialog } from '../share/ShareDialog'
+import { useReadOnlyInputs } from './useReadOnlyInputs'
+import { shortName } from '../share/sharing'
 import { Brand } from './Brand'
 import { NAV, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -49,15 +52,23 @@ interface Props {
   prefsApi: ReturnType<typeof usePrefs>
   onClose: () => void
   onOpenOther: (u: Universe) => void
+  /** Universo de outra pessoa ou aberto pelo link de leitura. Padrão: deste navegador. */
+  source?: LiveSource
 }
+
+const OWN: LiveSource = { kind: 'proprio' }
 
 interface ToastItem extends ToastOptions {
   id: number
   message: string
 }
 
-export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose, onOpenOther }: Props) {
-  const { universe, status, update, flush, repo } = useUniverse(library, initial, recovered)
+export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose, onOpenOther, source = OWN }: Props) {
+  const { universe, status, update: write, flush, repo } = useUniverse(library, initial, recovered)
+  const readOnly = isReadOnly(source)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [editingScene, setEditingScene] = useState<string | null>(null)
+  const [remoteRev, setRemoteRev] = useState<Record<string, number>>({})
   const { prefs, setPref } = prefsApi
   const folder = useFolderSync(library, repo, universe, status)
   useCodexSync(universe, prefs)
@@ -65,10 +76,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [tourOpen, setTourOpen] = useState(false)
   // Primeira vez num universo: o tour começa sozinho (dá para pular e refazer).
   useEffect(() => {
-    if (prefs.tourDone) return
+    if (prefs.tourDone || source.kind !== 'proprio') return
     const t = setTimeout(() => setTourOpen(true), 700)
     return () => clearTimeout(t)
-  }, [prefs.tourDone])
+  }, [prefs.tourDone, source.kind])
   const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'inicio' }))
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
@@ -78,17 +89,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   // Registra o total de palavras no início do dia, para a meta diária.
   useEffect(() => {
-    update(withDailyStart)
-  }, [update])
+    if (!readOnly) write(withDailyStart)
+  }, [write, readOnly])
 
   // Repetir uma nova tentativa de salvar se a anterior falhou.
   useEffect(() => {
     if (status !== 'erro') return
     const t = setTimeout(() => {
-      update((u) => ({ ...u }))
+      write((u) => ({ ...u }))
     }, 5000)
     return () => clearTimeout(t)
-  }, [status, update])
+  }, [status, write])
 
   const go = useCallback(
     (view: View, id: string | null = null) => {
@@ -103,9 +114,40 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     setToasts((t) => [...t.slice(-2), { id, message, ...options }])
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), options.action ? 7000 : 3500)
   }, [])
-  useCloudPush(library, universe, status, (copy) =>
-    toast(`Este universo também mudou em outro aparelho. A versão de lá foi guardada como “${copy}”.`, { tone: 'erro' }),
+
+  // Só leitura: nenhuma mudança passa (e um aviso explica, no máximo a cada poucos segundos).
+  const lastBlocked = useRef(0)
+  const update = useMemo(() => {
+    if (!readOnly) return write
+    return () => {
+      if (Date.now() - lastBlocked.current < 4000) return
+      lastBlocked.current = Date.now()
+      toast(source.kind === 'link' ? 'Você está lendo pelo link: aqui nada pode ser mudado.' : 'Este universo foi compartilhado só para ver. Peça a quem é dono para poder editar.')
+    }
+  }, [readOnly, write, toast, source.kind])
+  useReadOnlyInputs(readOnly)
+
+  const applyRemote = useCallback(
+    (next: Universe, changedScenes: string[]) => {
+      write(() => next)
+      if (changedScenes.length)
+        setRemoteRev((r) => {
+          const out = { ...r }
+          for (const id of changedScenes) out[id] = (out[id] ?? 0) + 1
+          return out
+        })
+    },
+    [write],
   )
+  const others = useLiveSync({
+    lib: library,
+    universe,
+    status,
+    source,
+    sceneId: editingScene,
+    applyRemote,
+    notify: (message, tone) => toast(message, { tone }),
+  })
 
   const undoable = useCallback(
     (message: string, change: (u: Universe) => Universe) => {
@@ -143,6 +185,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const lastBackup = Date.parse(backupInfo.last ?? universe.createdAt)
   const hasContent = universe.scenes.some((s) => s.text.trim()) || universe.entities.length > 0
   const needsBackup =
+    source.kind === 'proprio' &&
     hasContent &&
     folder.state !== 'ok' &&
     folder.state !== 'escrevendo' &&
@@ -173,9 +216,28 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       startTour: () => setTourOpen(true),
       folder,
       downloadBackup,
+      source,
+      readOnly,
+      others,
+      remoteRev,
+      setEditingScene,
+      openShare: () => setShareOpen(true),
     }),
-    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup],
+    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
   )
+
+  // Arrastar texto selecionado sem querer inicia o "arrastar e soltar" do navegador, e alguns
+  // visualizadores (como o app do Claude) cobrem a tela com uma camada de soltar arquivo.
+  // Só o editor e o que é arrastável de propósito podem arrastar.
+  useEffect(() => {
+    const onDragStart = (e: DragEvent) => {
+      const el = e.target instanceof Element ? e.target : (e.target as Node | null)?.parentElement
+      if (el?.closest('.ProseMirror, [draggable="true"]')) return
+      e.preventDefault()
+    }
+    document.addEventListener('dragstart', onDragStart, true)
+    return () => document.removeEventListener('dragstart', onDragStart, true)
+  }, [])
 
   // Atalhos globais.
   useEffect(() => {
@@ -280,6 +342,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </div>
 
           <div className="rail-bottom">
+            {others.length > 0 && <OthersHere others={others} compact={collapsed} />}
+            {source.kind === 'proprio' && (
+              <button type="button" className="rail-item rail-share" data-tour="compartilhar" title="Compartilhar este universo" aria-label="Compartilhar" onClick={() => setShareOpen(true)}>
+                <Users size={18} aria-hidden="true" />
+                <span className="rail-label">Compartilhar</span>
+              </button>
+            )}
             <AccountButton compact={collapsed} onClick={() => setAccountOpen(true)} />
             <ThemeToggle prefs={prefs} setPref={setPref} />
             <span className="save-status" data-tour="salvo" role="status" data-status={status} title={STATUS_LABEL[status]}>
@@ -299,6 +368,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
+          {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} />}
           {isSample(universe) && (
             <div className="sample-banner" role="status">
               <span>
@@ -356,6 +426,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
         {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}
+        {shareOpen && <ShareDialog onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
 
         <div className="toasts" aria-live="polite">
           {toasts.map((t) => (
@@ -506,6 +577,50 @@ function PhoneNav({
         </>
       )}
     </nav>
+  )
+}
+
+/** Faixa no topo de um universo de outra pessoa: de quem é e o que dá para fazer. */
+function SharedBanner({ source, onLeave }: { source: LiveSource; onLeave: () => void }) {
+  if (source.kind === 'proprio') return null
+  const owner = shortName(source.ownerEmail) || 'outra pessoa'
+  return (
+    <div className={`shared-banner${source.kind === 'editar' ? ' shared-edit' : ''}`} role="status">
+      {source.kind === 'editar' ? <Users size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}
+      <span>
+        {source.kind === 'editar' ? (
+          <>
+            Universo de <strong>{owner}</strong>. Você pode editar: as mudanças chegam para todos em segundos.
+          </>
+        ) : source.kind === 'ver' ? (
+          <>
+            Universo de <strong>{owner}</strong>, compartilhado com você <strong>só para ver</strong>.
+          </>
+        ) : (
+          <>
+            Você está lendo <strong>pelo link</strong>{source.ownerEmail ? <> de {owner}</> : null}. Nada aqui pode ser mudado.
+          </>
+        )}
+      </span>
+      <button type="button" className="btn btn-sm btn-ghost" onClick={onLeave}>
+        {source.kind === 'link' ? 'Abrir o Papirus' : 'Voltar aos meus universos'}
+      </button>
+    </div>
+  )
+}
+
+/** Quem mais está com o universo aberto agora. */
+function OthersHere({ others, compact }: { others: { key: string; who: string }[]; compact: boolean }) {
+  const names = others.map((o) => o.who).join(', ')
+  return (
+    <span className="others-here" title={`Também aqui agora: ${names}`} aria-label={`Também aqui agora: ${names}`}>
+      {others.slice(0, 3).map((o) => (
+        <span key={o.key} className="others-avatar" aria-hidden="true">
+          {o.who.slice(0, 1).toUpperCase()}
+        </span>
+      ))}
+      {!compact && <span className="rail-label others-names">{names}</span>}
+    </span>
   )
 }
 

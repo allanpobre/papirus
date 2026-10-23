@@ -1,9 +1,10 @@
-import { BookOpen, Cloud, Dices, Feather, FileUp, FolderOpen, Moon, Plus, ShieldCheck, Sparkles, Sun, Trash2 } from 'lucide-react'
+import { BookOpen, Cloud, Dices, Eye, Feather, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, ShieldCheck, Sparkles, Sun, Trash2, Users } from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
 import { useCloudStatus } from '../account/useCloud'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { leaveShared, mySharedIds, sharedWithMe, shortName, stopSharing, type SharedWithMe } from '../share/sharing'
 import { migrate } from '../model/migrations'
 import { sampleUniverse } from '../model/sample'
 import type { Universe } from '../model/schema'
@@ -22,11 +23,12 @@ interface Props {
   onOpen: (id: string) => void
   onCreated: (u: Universe) => void
   onChanged: () => void
+  onOpenShared: (item: SharedWithMe) => void
 }
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
 
-export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onChanged }: Props) {
+export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onChanged, onOpenShared }: Props) {
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [accountOpen, setAccountOpen] = useState(false)
@@ -37,6 +39,71 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const cloud = useCloudStatus()
   const synced = account.user ? syncedMap(account.user.id) : {}
   const first = entries.length === 0
+
+  // Com conta: o que outras pessoas compartilharam comigo, e quais dos meus estão compartilhados.
+  const [shared, setShared] = useState<SharedWithMe[]>([])
+  const [mine, setMine] = useState<Set<string>>(new Set())
+  const userId = account.user?.id
+  const userEmail = account.user?.email
+  const accountServer = account.server
+  const [sharedNonce, setSharedNonce] = useState(0)
+  useEffect(() => {
+    if (!userId || !userEmail || !accountServer) return
+    let off = false
+    void (async () => {
+      try {
+        const sb = await authClient(accountServer)
+        const [theirs, ours] = await Promise.all([sharedWithMe(sb, userId, userEmail), mySharedIds(sb, userId)])
+        if (off) return
+        setShared(theirs)
+        setMine(ours)
+      } catch {
+        // Servidor sem o script de compartilhar: a lista só não aparece.
+      }
+    })()
+    return () => {
+      off = true
+    }
+  }, [userId, userEmail, accountServer, sharedNonce])
+  const visibleShared = userId ? shared : []
+
+  const sharedList = visibleShared.length > 0 && (
+    <section className="library-shared" aria-labelledby="compartilhados">
+      <h2 id="compartilhados" className="library-shared-title">
+        <Users size={16} aria-hidden="true" /> Compartilhados com você
+      </h2>
+      <ul className="library-list" aria-label="Compartilhados com você">
+        {visibleShared.map((item) => (
+          <li key={`${item.owner_id}:${item.universe_id}`} className="library-item">
+            <button type="button" className="library-open" onClick={() => onOpenShared(item)}>
+              {item.role === 'editar' ? <Pencil size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+              <span className="library-name">{item.name || 'Sem nome'}</span>
+              <span className="library-meta">
+                <span className={`share-tag${item.role === 'editar' ? ' share-tag-edit' : ''}`}>compartilhado por {shortName(item.owner_email) || 'alguém'} · {item.role === 'editar' ? 'pode editar' : 'só leitura'}</span>
+              </span>
+            </button>
+            <ConfirmButton
+              className="btn-icon"
+              title={`Sair de ${item.name}`}
+              question="Sair deste universo? Ele some da sua lista; só quem é dono pode convidar de novo."
+              confirmLabel="Sair"
+              onConfirm={async () => {
+                if (!accountServer || !userEmail) return
+                try {
+                  await leaveShared(await authClient(accountServer), item, userEmail)
+                  setSharedNonce((n) => n + 1)
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : String(err))
+                }
+              }}
+            >
+              <LogOut size={16} aria-label={`Sair de ${item.name}`} />
+            </ConfirmButton>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
 
   const importFile = async (file: File) => {
     setError(null)
@@ -136,6 +203,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             <h1>Comece seu primeiro universo</h1>
             <p className="lede">Dê um nome ao seu mundo e comece a escrever. Fichas, linha do tempo e mesa de RPG vêm quando você quiser.</p>
           </section>
+          {sharedList}
           {start}
           {!p.onboarded && <Welcome onChoose={(hidden) => { setPref('hiddenViews', hidden); setPref('onboarded', true) }} />}
           <p className="landing-note small">
@@ -174,6 +242,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                   <span className="library-meta">
                     {e.words.toLocaleString('pt-BR')} palavras · {dateFmt.format(new Date(e.updatedAt))}
                     {account.user && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
+                    {account.user && mine.has(e.id) && (
+                      <>
+                        {' '}
+                        <span className="share-tag">compartilhado</span>
+                      </>
+                    )}
                   </span>
                 </button>
                 <ConfirmButton
@@ -185,7 +259,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                     await library.remove(e.id)
                     if (account.user && account.server && synced[e.id]) {
                       try {
-                        await removeFromCloud(await authClient(account.server), account.user.id, e.id)
+                        const sb = await authClient(account.server)
+                        if (mine.has(e.id)) await stopSharing(sb, account.user.id, e.id)
+                        await removeFromCloud(sb, account.user.id, e.id)
                       } catch (err) {
                         setError(`Apagado aqui, mas não na conta: ${err instanceof Error ? err.message : String(err)}`)
                       }
@@ -198,6 +274,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
               </li>
             ))}
           </ul>
+          {sharedList}
         </main>
       )}
 

@@ -291,3 +291,52 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
   await page.getByRole('button', { name: 'Tocar a história' }).click()
   await expect(page.getByText(/^2\/4/)).toBeVisible({ timeout: 4000 })
 })
+
+test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', async ({ page }) => {
+  await openSample(page)
+  await nav(page, 'Relações').click()
+  const graph = page.locator('.graph')
+  await expect(page.locator('.node').first()).toBeVisible()
+  const box = (await graph.boundingBox())!
+  // Arrasta do grafo até a dica de baixo e o título de cima.
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box.x + 20, box.y + box.height + 40, { steps: 8 })
+  await page.mouse.move(box.x + 20, box.y - 80, { steps: 8 })
+  await page.mouse.up()
+  expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('')
+  await page.locator('.node', { hasText: 'Kael' }).dblclick({ force: true })
+  expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('')
+  await nav(page, 'Relações').click()
+  const stage = page.locator('.stage')
+  const before = await stage.evaluate((el) => el.scrollTop)
+  await page.locator('.graph').hover()
+  await page.mouse.wheel(0, 600)
+  await page.waitForTimeout(200)
+  expect(await stage.evaluate((el) => el.scrollTop)).toBe(before)
+})
+
+test('arrastar o grafo por cima de nomes e de texto selecionado não inicia o "arrastar e soltar"', async ({ page }) => {
+  await openSample(page)
+  await nav(page, 'Relações').click()
+  await expect(page.locator('.node').first()).toBeVisible()
+  await page.waitForTimeout(1200)
+  await page.evaluate(() => {
+    const w = window as unknown as { drags: number }
+    w.drags = 0
+    window.addEventListener('dragstart', (e) => !e.defaultPrevented && w.drags++)
+  })
+  const label = (await page.locator('.node-label').first().boundingBox())!
+  const hint = (await page.locator('.graph-hint').boundingBox())!
+  for (const [x, y] of [
+    [label.x + 5, label.y + 5],
+    [hint.x + 30, hint.y + 5],
+  ]) {
+    await page.mouse.dblclick(x, y)
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    await page.mouse.move(x + 220, y - 160, { steps: 10 })
+    await page.mouse.up()
+  }
+  expect(await page.evaluate(() => (window as unknown as { drags: number }).drags)).toBe(0)
+})

@@ -241,7 +241,7 @@ function SheetEditor({ sheet: s, onBack }: { sheet: Sheet; onBack: () => void })
             <section className="entity-section">
               <div className="section-head">
                 <h2 className="section-title">Perícias</h2>
-                <input className="input input-sm skill-filter" aria-label="Filtrar perícias" placeholder="Filtrar…" value={skillFilter} onChange={(e) => setSkillFilter(e.target.value)} />
+                <input className="input input-sm skill-filter" data-livre aria-label="Filtrar perícias" placeholder="Filtrar…" value={skillFilter} onChange={(e) => setSkillFilter(e.target.value)} />
               </div>
               <ul className="skill-list">
                 {system.skills

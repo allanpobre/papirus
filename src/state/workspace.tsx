@@ -3,6 +3,7 @@ import type { Universe } from '../model/schema'
 import type { Library, UniverseRepository } from '../persistence/repository'
 import type { FolderSync } from '../persistence/useFolderSync'
 import type { SaveStatus } from '../persistence/useUniverse'
+import type { LiveSource, Presence } from '../share/useLiveSync'
 import type { Prefs } from './prefs'
 
 export type View =
@@ -60,6 +61,17 @@ export interface Workspace {
   openSearch: () => void
   /** Abre o tour guiado pela tela. */
   startTour: () => void
+  /** De onde veio o universo: deste navegador, compartilhado por alguém ou pelo link de leitura. */
+  source: LiveSource
+  /** Só leitura: nada pode ser mudado (o servidor também não aceitaria). */
+  readOnly: boolean
+  /** Outras pessoas com este universo aberto agora. */
+  others: Presence[]
+  /** Muda quando o texto de uma cena chega de fora, para o editor recarregar. */
+  remoteRev: Record<string, number>
+  setEditingScene: (sceneId: string | null) => void
+  /** Abre a janela de compartilhar este universo. */
+  openShare: () => void
 }
 
 export const WorkspaceContext = createContext<Workspace | null>(null)

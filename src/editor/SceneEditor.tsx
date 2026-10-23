@@ -40,13 +40,15 @@ interface Props {
   actions: SceneEditorActions
   showToolbar: boolean
   onReady?: (editor: Editor) => void
+  /** `false` = só leitura (universo compartilhado só para ver). */
+  editable?: boolean
 }
 
 /**
  * Editor de uma cena. Deve ser montado com `key={scene.id}`: o conteúdo inicial
  * só é lido na montagem, e o editor passa a ser a fonte da verdade do texto.
  */
-export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions, showToolbar, onReady }: Props) {
+export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions, showToolbar, onReady, editable = true }: Props) {
   const cb = useRef({ onChange, onCursorParagraph, actions })
   useLayoutEffect(() => {
     cb.current = { onChange, onCursorParagraph, actions }
@@ -56,6 +58,7 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
   const editor = useEditor({
     extensions: sceneExtensions,
     content: doc,
+    editable,
     // Foco manual (abaixo): o automático do editor pode roubar o foco de uma janela recém-aberta.
     autofocus: false,
     editorProps: {
@@ -99,6 +102,10 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
   useEffect(() => {
     if (!editor.isDestroyed) editor.commands.setMatcher(matcher)
   }, [editor, matcher])
+
+  useEffect(() => {
+    if (!editor.isDestroyed) editor.setEditable(editable)
+  }, [editor, editable])
 
   useEffect(() => {
     onReady?.(editor)

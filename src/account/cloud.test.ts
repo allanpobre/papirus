@@ -32,13 +32,20 @@ function fakeSupabase(rows: Map<string, Row>, userId: string): SupabaseClient {
         rows.set(row.id, { ...row, user_id: userId })
         return { data: null, error: null }
       },
-      update: (patch: Partial<Row>) => ({
-        eq: async (_c: string, id: string) => {
-          const r = rows.get(id)
-          if (r && r.user_id === userId) rows.set(id, { ...r, ...patch })
-          return { data: null, error: null }
-        },
-      }),
+      update: (patch: Partial<Row>) => {
+        const where: [keyof Row, unknown][] = []
+        const q = {
+          eq: (c: keyof Row, v: unknown) => {
+            where.push([c, v])
+            return q
+          },
+          then: (ok: (v: { data: null; error: null }) => void) => {
+            for (const r of mine()) if (where.every(([c, v]) => r[c] === v)) rows.set(r.id, { ...r, ...patch })
+            ok({ data: null, error: null })
+          },
+        }
+        return q
+      },
     }),
   } as unknown as SupabaseClient
 }
