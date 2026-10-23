@@ -1076,3 +1076,15 @@ input[type='radio'] {
   width: auto;
   flex: 1 1 10rem;
 }
+
+/* Tabelas largas rolam dentro da própria caixa, nunca a página inteira. */
+.table-wrap {
+  max-width: 100%;
+  min-width: 0;
+  /* Contém os rótulos invisíveis (sr-only), que são absolutos e escapariam da rolagem. */
+  position: relative;
+}
+
+.tabs {
+  position: relative;
+}

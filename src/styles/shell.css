@@ -383,6 +383,7 @@
 }
 
 .stage {
+  position: relative;
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -715,4 +716,112 @@
 
 .welcome > .link-btn {
   align-self: flex-start;
+}
+
+/* Menu do celular */
+.rail-phone {
+  justify-content: space-around;
+  overflow: visible;
+}
+
+.rail-phone .rail-item {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.rail-more-label {
+  font-size: 0.66rem;
+  line-height: 1;
+}
+
+.rail-phone .rail-badge:empty {
+  min-width: 8px;
+  height: 8px;
+  padding: 0;
+  top: 6px;
+  right: 30%;
+}
+
+.rail-more-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 25%);
+}
+
+.rail-more {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+
+.rail-more-universe {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.5rem;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  text-align: left;
+}
+
+.rail-more-universe span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-more-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.rail-more-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 68px;
+  padding: 0.6rem 0.3rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.rail-more-item[aria-current='page'] {
+  border-color: var(--line);
+  background: var(--accent-faint);
+  color: var(--accent);
+}
+
+.rail-more-item .rail-badge {
+  position: absolute;
+  top: 6px;
+  right: 18%;
 }

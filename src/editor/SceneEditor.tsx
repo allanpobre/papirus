@@ -85,7 +85,9 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
   useEffect(() => () => clearTimeout(cursorTimer.current), [])
 
   // Leva o cursor ao fim do texto ao abrir a cena, se nada mais estiver com o foco.
+  // No celular e no tablet não: abriria o teclado e rolaria a página para longe do título.
   useEffect(() => {
+    if (matchMedia('(pointer: coarse), (max-width: 760px)').matches) return
     const frame = requestAnimationFrame(() => {
       const active = document.activeElement
       const free = !active || active === document.body || active.closest('.scene-meta, .write-tree, .rail') !== null

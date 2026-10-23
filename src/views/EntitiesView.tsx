@@ -391,38 +391,83 @@ const RELATION_TYPES = [
 function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; outgoing: Universe['relations']; incoming: Universe['relations'] }) {
   const { universe, update, peek } = useWorkspace()
   const [type, setType] = useState('')
-  const [target, setTarget] = useState<string | null>(null)
+  const [targets, setTargets] = useState<string[]>([])
 
   const add = () => {
-    if (!target || !type.trim()) return
-    update((u) => insert(u, 'relations', draftRelation(e.id, target, type.trim()))[0])
+    if (!targets.length || !type.trim()) return
+    update((u) => targets.reduce((acc, t) => insert(acc, 'relations', draftRelation(e.id, t, type.trim()))[0], u))
     setType('')
-    setTarget(null)
+    setTargets([])
   }
 
-  const row = (r: Universe['relations'][number], out: boolean) => (
-    <li key={r.id} className="relation-row">
-      {out ? (
-        <>
-          <span className="muted">{e.name}</span>
-          <input className="input input-sm relation-type" aria-label="Tipo da relação" value={r.type} onChange={(ev) => update((u) => patch(u, 'relations', r.id, { type: ev.target.value }))} />
-          <button type="button" className="link-btn" onClick={() => peek(r.toId)}>
-            {entityName(universe, r.toId)}
+  // Relações do mesmo tipo ficam numa linha só: "criado por Allan, Bia".
+  const group = (list: Universe['relations']) => {
+    const map = new Map<string, Universe['relations']>()
+    for (const r of list) {
+      const k = fold(r.type.trim())
+      map.set(k, [...(map.get(k) ?? []), r])
+    }
+    return [...map.values()]
+  }
+
+  const names = (rs: Universe['relations'], side: 'fromId' | 'toId', editable: boolean) =>
+    rs.map((r) => (
+      <span key={r.id} className="chip chip-entity">
+        <button type="button" className="chip-link" onClick={() => peek(r[side])}>
+          {entityName(universe, r[side]) || 'Ficha removida'}
+        </button>
+        {editable && (
+          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta relação`} onClick={() => update((u) => remove(u, 'relations', r.id))}>
+            <X size={12} />
           </button>
-        </>
-      ) : (
-        <>
-          <button type="button" className="link-btn" onClick={() => peek(r.fromId)}>
-            {entityName(universe, r.fromId)}
-          </button>
-          <span className="relation-type-text">{r.type}</span>
-          <span className="muted">{e.name}</span>
-        </>
-      )}
-      <CanonSelect value={r.canon} onChange={(v) => update((u) => patch(u, 'relations', r.id, { canon: v }))} />
-      <button type="button" className="btn-icon btn-sm" aria-label="Remover relação" onClick={() => update((u) => remove(u, 'relations', r.id))}>
+        )}
+      </span>
+    ))
+
+  const groupControls = (rs: Universe['relations']) => (
+    <>
+      <CanonSelect value={rs[0].canon} onChange={(v) => update((u) => rs.reduce((acc, r) => patch(acc, 'relations', r.id, { canon: v }), u))} />
+      <button
+        type="button"
+        className="btn-icon btn-sm"
+        aria-label={rs.length > 1 ? 'Remover estas relações' : 'Remover relação'}
+        onClick={() => update((u) => rs.reduce((acc, r) => remove(acc, 'relations', r.id), u))}
+      >
         <X size={14} />
       </button>
+    </>
+  )
+
+  const outRow = (rs: Universe['relations']) => (
+    <li key={rs[0].id} className="relation-row">
+      <span className="muted">{e.name}</span>
+      <input
+        className="input input-sm relation-type"
+        aria-label="Tipo da relação"
+        value={rs[0].type}
+        onChange={(ev) => update((u) => rs.reduce((acc, r) => patch(acc, 'relations', r.id, { type: ev.target.value }), u))}
+      />
+      <span className="chips relation-targets">
+        {names(rs, 'toId', true)}
+        <EntityPicker
+          label={`Mais alguém: ${rs[0].type}`}
+          hideLabel
+          placeholder="+ nome"
+          value={null}
+          exclude={[e.id, ...rs.map((r) => r.toId)]}
+          onChange={(t) => t && update((u) => insert(u, 'relations', { ...draftRelation(e.id, t, rs[0].type), canon: rs[0].canon })[0])}
+        />
+      </span>
+      {groupControls(rs)}
+    </li>
+  )
+
+  const inRow = (rs: Universe['relations']) => (
+    <li key={rs[0].id} className="relation-row">
+      <span className="chips relation-targets">{names(rs, 'fromId', true)}</span>
+      <span className="relation-type-text">{rs[0].type}</span>
+      <span className="muted">{e.name}</span>
+      {groupControls(rs)}
     </li>
   )
 
@@ -430,17 +475,37 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
     <Fold id="ficha-rela-es" title="Relações">
       {outgoing.length + incoming.length === 0 && <p className="muted small">Nenhuma relação ainda.</p>}
       <ul className="relation-list">
-        {outgoing.map((r) => row(r, true))}
-        {incoming.map((r) => row(r, false))}
+        {group(outgoing).map(outRow)}
+        {group(incoming).map(inRow)}
       </ul>
       <div className="relation-add">
         <span className="muted small">{e.name || 'Esta ficha'}</span>
         <input className="input input-sm" aria-label="Nova relação" list="tipos-relacao" placeholder="é irmão de…" value={type} onChange={(ev) => setType(ev.target.value)} />
-        <EntityPicker label="Com" hideLabel value={target} exclude={[e.id]} onChange={setTarget} />
-        <button type="button" className="btn btn-sm btn-primary" disabled={!target || !type.trim()} onClick={add}>
+        {targets.length > 0 && (
+          <span className="chips">
+            {targets.map((t) => (
+              <span key={t} className="chip chip-entity">
+                {entityName(universe, t)}
+                <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, t)}`} onClick={() => setTargets(targets.filter((x) => x !== t))}>
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </span>
+        )}
+        <EntityPicker
+          label="Com"
+          hideLabel
+          placeholder={targets.length ? '+ mais alguém' : 'Com quem…'}
+          value={null}
+          exclude={[e.id, ...targets]}
+          onChange={(t) => t && setTargets([...targets, t])}
+        />
+        <button type="button" className="btn btn-sm btn-primary" disabled={!targets.length || !type.trim()} onClick={add}>
           Adicionar
         </button>
       </div>
+      <p className="muted tiny">Escolha quantas fichas quiser: “criado por Allan, Bia”. No grafo, cada uma vira uma ligação.</p>
       <datalist id="tipos-relacao">
         {RELATION_TYPES.map((t) => (
           <option key={t} value={t} />

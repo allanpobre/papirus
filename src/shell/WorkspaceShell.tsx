@@ -1,4 +1,4 @@
-import { ChevronsLeft, ChevronsRight, Inbox, Library as LibraryIcon, Search, Settings } from 'lucide-react'
+import { ChevronsLeft, ChevronsRight, Inbox, Library as LibraryIcon, Menu, Search, Settings } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
 import type { Universe } from '../model/schema'
@@ -8,6 +8,7 @@ import { useFolderSync } from '../persistence/useFolderSync'
 import { useUniverse, type SaveStatus } from '../persistence/useUniverse'
 import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
+import { useMediaQuery } from '../ui/useMediaQuery'
 import { Brand } from './Brand'
 import { NAV, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -178,7 +179,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [flush])
 
   const openInbox = universe.inbox.filter((i) => i.status === 'aberto').length
-  const collapsed = prefs.railCollapsed
+  // Em telas médias (tablet), o menu começa recolhido para sobrar espaço para o texto.
+  const medium = useMediaQuery('(min-width: 761px) and (max-width: 1180px)')
+  const [mediumOpen, setMediumOpen] = useState(false)
+  const collapsed = medium ? !mediumOpen : prefs.railCollapsed
+  const phone = useMediaQuery('(max-width: 760px)')
+  const allItems: NavItem[] = [...NAV.flatMap((g) => g.items), { view: 'inbox', label: 'Inbox', icon: Inbox }, { view: 'config', label: 'Ajustes e dados', icon: Settings }]
+  const visibleItems = allItems.filter((item) => item.view === 'config' || !prefs.hiddenViews.includes(item.view) || nav.view === item.view)
 
   return (
     <WorkspaceContext.Provider value={ws}>
@@ -186,6 +193,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
+        {phone ? (
+          <PhoneNav
+            items={visibleItems}
+            current={nav.view}
+            inboxCount={openInbox}
+            universeName={universe.name}
+            onGo={go}
+            onSearch={() => setSearchOpen(true)}
+            onLibrary={() => void ws.closeUniverse()}
+          />
+        ) : (
         <nav className="rail" aria-label="Áreas">
           <div className="rail-top">
             <button type="button" className="rail-brand" title="Trocar de universo" onClick={() => void ws.closeUniverse()}>
@@ -202,7 +220,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             </button>
           </div>
 
-          <button type="button" className="rail-search" onClick={() => setSearchOpen(true)}>
+          <button type="button" className="rail-search" aria-label="Buscar" title="Buscar" onClick={() => setSearchOpen(true)}>
             <Search size={16} aria-hidden="true" />
             <span className="rail-label">Buscar</span>
             <kbd className="kbd rail-label">{modKey} K</kbd>
@@ -248,12 +266,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               type="button"
               className="btn-icon rail-collapse"
               aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-              onClick={() => setPref('railCollapsed', !collapsed)}
+              onClick={() => (medium ? setMediumOpen(collapsed) : setPref('railCollapsed', !collapsed))}
             >
               {collapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
             </button>
           </div>
         </nav>
+        )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
           {needsBackup && (
@@ -318,11 +337,18 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 function RailButton({ item, active, onClick, badge }: { item: NavItem; active: boolean; onClick: () => void; badge?: number }) {
   const Icon = item.icon
   return (
-    <button type="button" className="rail-item" aria-current={active ? 'page' : undefined} title={item.label} onClick={onClick}>
+    <button
+      type="button"
+      className="rail-item"
+      aria-current={active ? 'page' : undefined}
+      aria-label={badge ? `${item.label} (${badge})` : item.label}
+      title={item.label}
+      onClick={onClick}
+    >
       <Icon size={18} aria-hidden="true" />
       <span className="rail-label">{item.label}</span>
       {badge !== undefined && (
-        <span className="rail-badge" aria-label={`${badge} itens`}>
+        <span className="rail-badge" aria-hidden="true">
           {badge}
         </span>
       )}
@@ -359,3 +385,75 @@ function ViewSwitch({ view, onOpenOther }: { view: View; onOpenOther: (u: Univer
   }
 }
 
+/** Menu do celular: busca, as primeiras áreas e "Mais" com todas. */
+function PhoneNav({
+  items,
+  current,
+  inboxCount,
+  universeName,
+  onGo,
+  onSearch,
+  onLibrary,
+}: {
+  items: NavItem[]
+  current: View
+  inboxCount: number
+  universeName: string
+  onGo: (v: View) => void
+  onSearch: () => void
+  onLibrary: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  // A área aberta sempre aparece entre os atalhos.
+  const first = items.slice(0, 4)
+  const shortcuts = first.some((i) => i.view === current) ? first : [...items.slice(0, 3), ...items.filter((i) => i.view === current)]
+  const choose = (v: View) => {
+    setOpen(false)
+    onGo(v)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    addEventListener('keydown', onKey)
+    return () => removeEventListener('keydown', onKey)
+  }, [open])
+
+  return (
+    <nav className="rail rail-phone" aria-label="Áreas">
+      <button type="button" className="rail-item" title="Buscar" aria-label="Buscar" onClick={onSearch}>
+        <Search size={18} aria-hidden="true" />
+      </button>
+      {shortcuts.map((item) => (
+        <RailButton key={item.view} item={item} active={current === item.view} badge={item.view === 'inbox' && inboxCount ? inboxCount : undefined} onClick={() => choose(item.view)} />
+      ))}
+      <button type="button" className="rail-item" aria-expanded={open} aria-controls="menu-mais" aria-label="Mais" title="Mais áreas" onClick={() => setOpen(!open)}>
+        <Menu size={18} aria-hidden="true" />
+        <span className="rail-more-label">Mais</span>
+        {inboxCount > 0 && !shortcuts.some((i) => i.view === 'inbox') && <span className="rail-badge" aria-hidden="true" />}
+      </button>
+      {open && (
+        <>
+          <div className="rail-more-backdrop" aria-hidden="true" onClick={() => setOpen(false)} />
+          <div id="menu-mais" className="rail-more" role="group" aria-label="Todas as áreas">
+            <button type="button" className="rail-more-universe" onClick={onLibrary}>
+              <LibraryIcon size={16} aria-hidden="true" /> <span>{universeName || 'Sem nome'}</span> <span className="muted tiny">trocar</span>
+            </button>
+            <div className="rail-more-grid">
+              {items.map((item) => {
+                const Icon = item.icon
+                return (
+                  <button key={item.view} type="button" className="rail-more-item" aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
+                    <Icon size={20} aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {item.view === 'inbox' && inboxCount > 0 && <span className="rail-badge">{inboxCount}</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </nav>
+  )
+}

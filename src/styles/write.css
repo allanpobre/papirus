@@ -1150,3 +1150,21 @@
   gap: 0.25rem;
 }
 
+
+@media (max-width: 1180px) {
+  .write-bar {
+    gap: 0.3rem;
+  }
+
+  .write-bar-actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    min-width: 0;
+  }
+
+  .write-bar-actions .btn-sm {
+    font-size: 0;
+    gap: 0;
+    padding: 0.2rem 0.4rem;
+  }
+}

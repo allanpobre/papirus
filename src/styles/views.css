@@ -2833,3 +2833,65 @@ code {
   padding-top: 0;
   border-top: 0;
 }
+
+.view > * {
+  min-width: 0;
+}
+
+.view-head > *,
+.view-head .tabs {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.relation-targets {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.relation-targets .picker {
+  flex: 1 1 120px;
+  min-width: 110px;
+}
+
+/* Cada relação é um cartãozinho: tipo, fichas, canon; o × fica no canto. */
+.relation-list > .relation-row {
+  position: relative;
+  padding: 0.45rem 2.1rem 0.45rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  gap: 0.35rem;
+}
+
+.relation-list > .relation-row > .btn-icon:last-child {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+}
+
+.relation-list > .relation-row > .muted:first-child {
+  display: none;
+}
+
+.relation-list > .relation-row select {
+  width: auto;
+  max-width: 100%;
+  min-height: 26px;
+  padding-block: 0.1rem;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+.relation-list > .relation-row .relation-type {
+  flex: 1 1 8rem;
+  font-weight: 600;
+}
+
+.relation-list > .relation-row .relation-targets .picker {
+  flex: 1 1 90px;
+}
