@@ -1072,3 +1072,189 @@
 .rail-theme {
   flex: none;
 }
+
+/* Compartilhar */
+.shared-banner {
+  position: sticky;
+  top: 0;
+  z-index: 19;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--sky) 35%, var(--line));
+  background: var(--sky-soft);
+  color: var(--ink);
+  font-size: 0.88rem;
+}
+
+.shared-banner.shared-edit {
+  border-bottom-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: var(--accent-faint);
+}
+
+.shared-banner > span {
+  flex: 1 1 260px;
+}
+
+.rail-share {
+  width: 100%;
+}
+
+.others-here {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+.others-avatar,
+.share-avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--violet-soft);
+  color: var(--violet);
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.others-avatar + .others-avatar {
+  margin-left: -8px;
+}
+
+.others-names {
+  overflow: hidden;
+  margin-left: 0.3rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.share-intro {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.share-intro li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.share-section {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+.share-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.share-title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.share-invite {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.5rem;
+}
+
+.share-members {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.share-members li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.share-email {
+  overflow: hidden;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-link-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+}
+
+.share-stop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+}
+
+.share-tag {
+  display: inline-block;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--sky-soft);
+  color: var(--sky);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.share-tag-edit {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.library-shared {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.library-shared-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+[data-travado] {
+  cursor: default;
+}
+
+@media (max-width: 560px) {
+  .share-invite {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .share-invite input {
+    grid-column: 1 / -1;
+  }
+}

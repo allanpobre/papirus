@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { sampleUniverse } from './model/sample'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
-import { openBestStore, requestPersistentStorage } from './persistence/storage'
+import { memoryStore, openBestStore, requestPersistentStorage } from './persistence/storage'
+import { fetchByLink, openShared, parseReadLink, type SharedWithMe } from './share/sharing'
+import type { LiveSource } from './share/useLiveSync'
+import { authClient } from './account/auth'
 import { LibraryScreen } from './shell/LibraryScreen'
 import { WorkspaceShell } from './shell/WorkspaceShell'
 import { accountServer, startAccount, useAccount } from './account/auth'
@@ -14,6 +17,17 @@ interface Opened {
   recovered: boolean
   /** Muda a cada abertura, para remontar a área de trabalho mesmo com o mesmo universo. */
   nonce: number
+  /** Universo de outra pessoa (ou pelo link): fica só na memória, nunca na biblioteca daqui. */
+  source?: LiveSource
+  memory?: Library
+}
+
+/** Guarda um universo de fora numa biblioteca só de memória. */
+async function inMemory(universe: Universe): Promise<Library> {
+  const lib = new Library(memoryStore())
+  await lib.repository(universe.id).save(universe)
+  await lib.touch(universe)
+  return lib
 }
 
 export default function App() {
@@ -40,6 +54,23 @@ export default function App() {
     void syncLibrary(library, account.server, userId).then((r) => r && refresh(library))
   }, [library, userId, account.server, inLibrary, refresh])
 
+  const openFromShare = useCallback(async (item: SharedWithMe) => {
+    if (!account.server) return
+    try {
+      const sb = await authClient(account.server)
+      const { universe, stamp } = await openShared(sb, item)
+      setOpened({
+        universe,
+        recovered: false,
+        nonce: Date.now(),
+        memory: await inMemory(universe),
+        source: { kind: item.role, ownerId: item.owner_id, ownerEmail: item.owner_email, stamp },
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }, [account.server])
+
   const open = useCallback(async (lib: Library, id: string) => {
     try {
       const repo = lib.repository(id)
@@ -56,6 +87,29 @@ export default function App() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      // Link de leitura (?ler=…): abre só aquele universo, sem tocar na biblioteca daqui.
+      const link = parseReadLink(location.search)
+      if (link) {
+        try {
+          if (!link.server) throw new Error('Este link de leitura está incompleto. Peça o link de novo a quem compartilhou.')
+          const got = await fetchByLink(link.server, link.token)
+          if (cancelled) return
+          if (!got) throw new Error('Este link de leitura foi desligado ou trocado. Peça um novo a quem compartilhou.')
+          const memory = await inMemory(got.universe)
+          setLibrary(memory)
+          setEntries([])
+          setOpened({
+            universe: got.universe,
+            recovered: false,
+            nonce: Date.now(),
+            memory,
+            source: { kind: 'link', token: link.token, stamp: got.stamp, server: link.server, ownerEmail: got.ownerEmail },
+          })
+        } catch (err) {
+          if (!cancelled) setError(err instanceof Error ? err.message : String(err))
+        }
+        return
+      }
       const store = await openBestStore()
       const lib = new Library(store, safeLocalStorage())
       try {
@@ -88,7 +142,7 @@ export default function App() {
   if (error) {
     return (
       <main className="fatal" role="alert">
-        <h1>Não foi possível abrir seus dados</h1>
+        <h1>{parseReadLink(location.search) ? 'Não foi possível abrir este link' : 'Não foi possível abrir seus dados'}</h1>
         <p>{error}</p>
         <p>Nada foi apagado nem sobrescrito.</p>
         <button type="button" className="btn" onClick={() => location.reload()}>
@@ -121,6 +175,7 @@ export default function App() {
           await open(library, u.id)
         }}
         onChanged={() => void refresh(library)}
+        onOpenShared={(item) => void openFromShare(item)}
       />
     )
   }
@@ -128,11 +183,16 @@ export default function App() {
   return (
     <WorkspaceShell
       key={`${opened.universe.id}:${opened.nonce}`}
-      library={library}
+      library={opened.memory ?? library}
+      source={opened.source}
       initial={opened.universe}
       recovered={opened.recovered}
       prefsApi={prefsApi}
       onClose={async () => {
+        if (opened.source?.kind === 'link') {
+          location.href = location.pathname
+          return
+        }
         remember('ultimo-universo', null)
         setOpened(null)
         await refresh(library)

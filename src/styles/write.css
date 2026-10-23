@@ -1173,3 +1173,39 @@ body:has([role='dialog']) .bubble-wrap {
     padding: 0.2rem 0.4rem;
   }
 }
+
+/* Outra pessoa com a mesma cena aberta */
+.editing-here {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.8rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--violet) 35%, var(--line));
+  border-radius: var(--radius);
+  background: var(--violet-soft);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+}
+
+.editing-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--violet);
+  animation: editing-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes editing-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editing-dot {
+    animation: none;
+  }
+}

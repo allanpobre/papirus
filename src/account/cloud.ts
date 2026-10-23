@@ -38,7 +38,7 @@ export function syncedMap(userId: string): Record<string, string> {
   }
 }
 
-function setSynced(userId: string, id: string, updatedAt: string | null) {
+export function setSynced(userId: string, id: string, updatedAt: string | null) {
   const map = syncedMap(userId)
   if (updatedAt === null) delete map[id]
   else map[id] = updatedAt
@@ -63,8 +63,9 @@ function check<T>(r: { data: T; error: { message: string } | null }): T {
   return r.data
 }
 
-export async function listCloud(sb: SupabaseClient): Promise<CloudRow[]> {
-  return check(await sb.from(TABLE).select('id,name,words,updated_at,deleted')) as CloudRow[]
+// Sempre filtra pelo dono: quem pode editar o universo de outra pessoa também o enxerga na tabela.
+export async function listCloud(sb: SupabaseClient, userId: string): Promise<CloudRow[]> {
+  return check(await sb.from(TABLE).select('id,name,words,updated_at,deleted').eq('user_id', userId)) as CloudRow[]
 }
 
 export async function upload(sb: SupabaseClient, userId: string, universe: Universe) {
@@ -85,14 +86,40 @@ export async function upload(sb: SupabaseClient, userId: string, universe: Unive
   setSynced(userId, universe.id, universe.updatedAt)
 }
 
-async function download(sb: SupabaseClient, id: string): Promise<Universe> {
-  const row = check(await sb.from(TABLE).select('data').eq('id', id).single()) as { data: unknown }
+/** Grava só se ninguém gravou desde `stamp`. `false` = outra pessoa ou aparelho gravou antes. */
+export async function uploadIfUnchanged(sb: SupabaseClient, userId: string, universe: Universe, stamp: string): Promise<boolean> {
+  const rows = check(
+    await sb
+      .from(TABLE)
+      .update({
+        name: universe.name,
+        words: countWords(universe),
+        data: { schemaVersion: CURRENT_SCHEMA_VERSION, revision: 0, universe },
+        updated_at: universe.updatedAt,
+        deleted: false,
+      })
+      .eq('user_id', userId)
+      .eq('id', universe.id)
+      .eq('updated_at', stamp)
+      .select('id'),
+  ) as unknown[]
+  if (rows.length) setSynced(userId, universe.id, universe.updatedAt)
+  return rows.length > 0
+}
+
+/** Data da última gravação na nuvem (ou `null` se não está lá). */
+export async function cloudStamp(sb: SupabaseClient, userId: string, id: string): Promise<{ updated_at: string; deleted: boolean } | null> {
+  return check(await sb.from(TABLE).select('updated_at,deleted').eq('user_id', userId).eq('id', id).maybeSingle()) as { updated_at: string; deleted: boolean } | null
+}
+
+export async function download(sb: SupabaseClient, userId: string, id: string): Promise<Universe> {
+  const row = check(await sb.from(TABLE).select('data').eq('user_id', userId).eq('id', id).single()) as { data: unknown }
   return migrate(row.data).universe
 }
 
 /** Marca como apagado na nuvem (os outros aparelhos ficam sabendo). */
 export async function removeFromCloud(sb: SupabaseClient, userId: string, id: string) {
-  check(await sb.from(TABLE).update({ deleted: true, data: null, updated_at: new Date().toISOString() }).eq('id', id))
+  check(await sb.from(TABLE).update({ deleted: true, data: null, updated_at: new Date().toISOString() }).eq('user_id', userId).eq('id', id))
   setSynced(userId, id, null)
 }
 
@@ -104,7 +131,7 @@ async function saveLocal(lib: Library, universe: Universe) {
 /** Sincroniza todos os universos deste navegador com a conta. */
 export async function syncAll(sb: SupabaseClient, userId: string, lib: Library): Promise<SyncReport> {
   const report: SyncReport = { uploaded: 0, downloaded: 0, conflicts: 0, removed: 0 }
-  const cloud = new Map((await listCloud(sb)).map((r) => [r.id, r]))
+  const cloud = new Map((await listCloud(sb, userId)).map((r) => [r.id, r]))
   const local = new Map((await lib.list()).map((e) => [e.id, e]))
   const synced = syncedMap(userId)
 
@@ -142,7 +169,7 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
     }
     if (localChanged && cloudChanged && last) {
       // Os dois lados mudaram: guarda a versão da nuvem como cópia e sobe a daqui.
-      const theirs = await download(sb, id)
+      const theirs = await download(sb, userId, id)
       await saveLocal(lib, { ...theirs, id: newId(), name: `${theirs.name} (versão da nuvem)` })
       const mine = await lib.repository(id).load()
       if (mine) await upload(sb, userId, mine)
@@ -154,7 +181,7 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
         report.uploaded++
       }
     } else {
-      const u = await download(sb, id)
+      const u = await download(sb, userId, id)
       await saveLocal(lib, u)
       setSynced(userId, id, u.updatedAt)
       report.downloaded++
@@ -163,7 +190,7 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
 
   for (const [id, row] of cloud) {
     if (local.has(id) || row.deleted) continue
-    const u = await download(sb, id)
+    const u = await download(sb, userId, id)
     await saveLocal(lib, u)
     setSynced(userId, id, u.updatedAt)
     report.downloaded++

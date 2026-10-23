@@ -83,7 +83,7 @@ export default function EntitiesView() {
             <Plus size={16} />
           </button>
         </form>
-        <input className="input" aria-label="Filtrar fichas" placeholder="Filtrar por nome, apelido, etiqueta…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Filtrar por nome, apelido, etiqueta…" value={query} onChange={(e) => setQuery(e.target.value)} />
         <div className="filter-chips" role="radiogroup" aria-label="Tipo">
           <button type="button" role="radio" aria-checked={kind === 'todos'} className="chip" onClick={() => setKind('todos')}>
             Todas
