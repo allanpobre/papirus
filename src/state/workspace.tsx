@@ -58,6 +58,8 @@ export interface Workspace {
   downloadBackup: () => void
   openCapture: () => void
   openSearch: () => void
+  /** Abre o tour guiado pela tela. */
+  startTour: () => void
 }
 
 export const WorkspaceContext = createContext<Workspace | null>(null)

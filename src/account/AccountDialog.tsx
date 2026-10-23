@@ -216,7 +216,7 @@ export function AccountButton({ onClick, compact = false }: { onClick: () => voi
   const cloud = useCloudStatus()
   const label = user ? (user.email ?? 'Conta') : 'Entrar'
   return (
-    <button type="button" className={`account-btn${user ? ' signed' : ''}`} title={user ? `Conta: ${user.email}` : 'Entrar ou criar conta'} aria-label={user ? `Conta: ${user.email}` : 'Entrar'} onClick={onClick}>
+    <button type="button" data-tour="conta" className={`account-btn${user ? ' signed' : ''}`} title={user ? `Conta: ${user.email}` : 'Entrar ou criar conta'} aria-label={user ? `Conta: ${user.email}` : 'Entrar'} onClick={onClick}>
       {!user ? <LogIn size={16} aria-hidden="true" /> : cloud.state === 'erro' ? <CloudOff size={16} aria-hidden="true" /> : <Cloud size={16} aria-hidden="true" />}
       {!compact && <span className="account-btn-label">{label}</span>}
     </button>

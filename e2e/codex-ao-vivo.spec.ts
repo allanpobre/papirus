@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext } from '@playwright/test'
+import { expect, test, type BrowserContext } from './fixtures.ts'
 
 const SERVER = 'https://papirus-teste.supabase.co'
 

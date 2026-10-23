@@ -3270,3 +3270,10 @@ code {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.home-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

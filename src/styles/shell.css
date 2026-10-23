@@ -944,3 +944,127 @@
 .landing-note a {
   color: var(--accent);
 }
+
+.rail-universe {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.rail-universe-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-universe-switch {
+  flex: none;
+  color: var(--accent);
+}
+
+.shell.rail-collapsed .rail-universe {
+  border: 0;
+  background: none;
+}
+
+/* Mundo de exemplo */
+.sample-banner {
+  position: sticky;
+  top: 0;
+  z-index: 19;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: var(--accent-faint);
+  font-size: 0.88rem;
+}
+
+.sample-banner > span {
+  flex: 1 1 260px;
+}
+
+/* Tour guiado */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.tour-block {
+  position: absolute;
+  inset: 0;
+}
+
+.tour-dim {
+  position: absolute;
+  inset: 0;
+  background: rgb(8 12 10 / 55%);
+}
+
+.tour-spot {
+  position: fixed;
+  border-radius: var(--radius);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 9999px rgb(8 12 10 / 55%);
+  pointer-events: none;
+  transition:
+    left 0.25s ease,
+    top 0.25s ease,
+    width 0.25s ease,
+    height 0.25s ease;
+}
+
+.tour-card {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  transition:
+    left 0.25s ease,
+    top 0.25s ease;
+}
+
+.tour-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tour-count {
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.tour-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3rem;
+}
+
+.tour-body {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.tour-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}

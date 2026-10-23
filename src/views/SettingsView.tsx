@@ -1,4 +1,4 @@
-import { Camera, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
+import { Camera, Compass, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
 import { universeToMarkdown } from '../export/markdown'
@@ -127,6 +127,12 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </button>
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPref('hiddenViews', [])}>
               Mostrar tudo
+            </button>
+          </div>
+          <p className="muted small">Quer rever para que serve cada parte da tela?</p>
+          <div className="inline-fields">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={ws.startTour}>
+              <Compass size={14} /> Refazer o tour
             </button>
           </div>
         </section>
