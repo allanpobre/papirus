@@ -84,6 +84,19 @@ export default function GraphView() {
   const [sceneIndex, setSceneIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
+
+  // A roda do mouse dá zoom no grafo sem rolar a página por trás.
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, v.k * (e.deltaY < 0 ? 1.1 : 0.9))) }))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  })
 
   const scenes = useMemo(() => manuscriptOrder(universe), [universe])
   const scene = inTime ? (scenes[Math.min(sceneIndex, scenes.length - 1)] ?? null) : null
@@ -266,11 +279,15 @@ export default function GraphView() {
       ) : (
         <div className="graph-wrap">
           <svg
+            ref={svgRef}
             className="graph"
             viewBox={`0 0 ${W} ${H}`}
             role="group"
             aria-label={`Grafo com ${nodes.length} fichas e ${visibleEdges.filter(active).length} relações`}
             onPointerDown={(e) => {
+              // Arrastar o grafo nunca seleciona texto (no app do Claude, texto selecionado abre uma camada que escurece a tela).
+              e.preventDefault()
+              getSelection()?.removeAllRanges()
               if ((e.target as Element).closest('.node')) return
               ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
               drag.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }
@@ -281,7 +298,6 @@ export default function GraphView() {
               setView((v) => ({ ...v, x: drag.current!.vx + (e.clientX - drag.current!.x) * scale, y: drag.current!.vy + (e.clientY - drag.current!.y) * scale }))
             }}
             onPointerUp={() => (drag.current = null)}
-            onWheel={(e) => zoom(e.deltaY < 0 ? 1.1 : 0.9)}
           >
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
