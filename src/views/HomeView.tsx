@@ -18,7 +18,10 @@ export default function HomeView() {
   const scenes = useMemo(() => manuscriptOrder(universe), [universe])
   const [todayLabel] = useState(() => capitalize(longDate.format(new Date())))
   const lastId = recall(`cena:${universe.id}`)
-  const last = (lastId && byId(universe, 'scenes', lastId)) || [...universe.scenes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
+  // Sem cena lembrada: a última editada de verdade (depois de criada); se nenhuma foi, a primeira do manuscrito.
+  const edited = scenes.filter((x) => Date.parse(x.updatedAt) - Date.parse(x.createdAt) > 5000)
+  const last =
+    (lastId && byId(universe, 'scenes', lastId)) || (edited.length ? [...edited].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] : scenes[0])
   const story = last?.storyId ? byId(universe, 'stories', last.storyId) : undefined
   const total = countWords(universe)
   const today = wordsToday(universe)
