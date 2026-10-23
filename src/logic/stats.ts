@@ -63,3 +63,25 @@ export function longestAbsence(rows: { cells: Map<string, Presence> }[], entityI
   }
   return best
 }
+
+/**
+ * Palavras escritas em cada um dos últimos `days` dias (o último é hoje), a partir
+ * do total registrado no início de cada dia. Dias sem registro contam como zero.
+ */
+export function wordsByDay(universe: Universe, days = 7, now = new Date()): { day: string; words: number }[] {
+  const keys = Array.from({ length: days }, (_, i) => {
+    const d = new Date(now)
+    d.setDate(d.getDate() - (days - 1 - i))
+    return todayKey(d)
+  })
+  const starts = universe.dailyStart
+  const sorted = Object.keys(starts).sort()
+  const total = countWords(universe)
+  return keys.map((day) => {
+    if (starts[day] === undefined) return { day, words: 0 }
+    // O fim do dia é o início do próximo dia registrado (ou o total atual, se for o último).
+    const next = sorted.find((k) => k > day)
+    const end = next === undefined ? total : starts[next]
+    return { day, words: Math.max(0, end - starts[day]) }
+  })
+}

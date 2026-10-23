@@ -40,7 +40,8 @@ describe('link dos jogadores', () => {
     const server = { url: 'https://abc.supabase.co', anonKey: 'eyJ.chave-publica' }
     const id = '6f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f'
     const link = playerLink('https://exemplo.github.io/papirus/', server, id)
-    expect(link.startsWith('https://exemplo.github.io/papirus/?mesa=' + id)).toBe(true)
+    expect(link.startsWith('https://exemplo.github.io/papirus/app/?mesa=' + id)).toBe(true)
+    expect(playerLink('https://exemplo.github.io/papirus/app/', server, id)).toBe(link)
     expect(readPlayerLink(new URL(link).search)).toEqual({ id, server })
     expect(readPlayerLink('?mesa=nao-e-um-id')).toBeNull()
     expect(readPlayerLink('')).toBeNull()

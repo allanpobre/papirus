@@ -118,9 +118,9 @@ const fromB64Url = (s: string) => decodeURIComponent(escape(atob(s.replace(/-/g,
 
 /** Link dos jogadores. Só leva o servidor quando ele não é o da publicação. */
 export function playerLink(publicUrl: string, cfg: ServerConfig, id: string): string {
-  const url = new URL(publicUrl || DEFAULT_PUBLIC_URL)
-  url.search = ''
-  url.hash = ''
+  // O app fica em /app/ do endereço público; a apresentação fica na raiz.
+  const base = new URL(publicUrl || DEFAULT_PUBLIC_URL)
+  const url = new URL(base.pathname.replace(/\/app\/?$/, '/').replace(/\/?$/, '/') + 'app/', base)
   url.searchParams.set('mesa', id)
   const same = BUILD_SERVER && BUILD_SERVER.url === cfg.url && BUILD_SERVER.anonKey === cfg.anonKey
   if (!same) url.searchParams.set('srv', toB64Url(JSON.stringify([cfg.url.trim(), cfg.anonKey.trim()])))

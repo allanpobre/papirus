@@ -6,13 +6,13 @@ const nav = (page: Page, name: string) => page.getByRole('navigation', { name: '
 const welcome = (page: Page) => page.getByRole('region', { name: 'Boas-vindas' })
 
 async function openSample(page: Page) {
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 }
 
 async function newUniverse(page: Page) {
-  await page.goto('/')
+  await page.goto('/app/')
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Teste')
   await page.getByRole('button', { name: 'Criar universo' }).click()
   await page.getByRole('button', { name: 'Começar a escrever' }).click()
@@ -37,7 +37,7 @@ async function selectText(page: Page, text: string) {
 }
 
 test('primeira vez: a escolha arruma o menu, e dá para mostrar tudo de novo', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app/')
   await welcome(page).getByRole('button', { name: /Escrever histórias/ }).click()
   await expect(welcome(page)).toHaveCount(0)
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()

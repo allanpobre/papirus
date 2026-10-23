@@ -1,0 +1,670 @@
+/*
+ * Apresentação do Papirus. Usa os mesmos tokens do app (tokens.css), com mais ar:
+ * títulos grandes em Young Serif, prosa em Literata, uma faixa escura para a mesa de RPG.
+ */
+html,
+body,
+#root {
+  height: auto;
+  min-height: 100%;
+}
+
+.lp {
+  --lp-max: 1120px;
+  --lp-gutter-l: max(20px, env(safe-area-inset-left, 0px));
+  --lp-gutter-r: max(20px, env(safe-area-inset-right, 0px));
+  background:
+    radial-gradient(1100px 520px at 90% -8%, var(--accent-faint), transparent 62%),
+    radial-gradient(900px 420px at -10% 20%, color-mix(in srgb, var(--ochre-soft) 45%, transparent), transparent 60%),
+    var(--bg);
+  color: var(--ink);
+  overflow-x: clip;
+}
+
+.lp a {
+  color: inherit;
+}
+
+.lp-eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Navegação */
+.lp-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: calc(var(--lp-max) + 4rem);
+  margin: 0 auto;
+  padding: calc(0.8rem + env(safe-area-inset-top, 0px)) var(--lp-gutter-r) 0.8rem var(--lp-gutter-l);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.lp-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  text-decoration: none;
+}
+
+.lp-links {
+  display: flex;
+  gap: 1.4rem;
+  margin-left: auto;
+}
+
+.lp-links a {
+  font-size: 0.92rem;
+  font-weight: 550;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.lp-links a:hover {
+  color: var(--accent);
+}
+
+.lp-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.lp .btn-primary {
+  color: var(--accent-ink);
+}
+
+/* Abertura */
+.lp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding-block: clamp(2.5rem, 7vw, 5.5rem) clamp(3rem, 8vw, 6rem);
+  padding-left: var(--lp-gutter-l);
+  padding-right: var(--lp-gutter-r);
+}
+
+.lp-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+  min-width: 0;
+}
+
+.lp-hero h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 6.2vw, 4.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lp-hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.lp-lede {
+  margin: 0;
+  max-width: 34em;
+  font-family: var(--font-text);
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.lp-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.lp-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+}
+
+.lp-proof li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.lp-proof svg {
+  color: var(--ok);
+}
+
+/* Página de manuscrito */
+.lp-page {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  min-width: 0;
+}
+
+.lp-sheet {
+  position: relative;
+  padding: 2.2rem 2.2rem 2.8rem 2.9rem;
+  border-radius: 4px 4px 16px 4px;
+  background: var(--paper);
+  box-shadow: var(--shadow-page), 0 30px 60px -30px rgb(27 36 32 / 28%);
+  font-family: var(--font-text);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  transform: rotate(-1.5deg);
+}
+
+.lp-sheet::before {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  left: 1.4rem;
+  width: 1px;
+  background: var(--ochre-line);
+  opacity: 0.6;
+}
+
+.lp-sheet p {
+  margin: 0 0 0.9rem;
+}
+
+.lp-scene {
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lp-name {
+  text-decoration: underline dotted var(--ochre-line);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.lp-fact {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: var(--ochre-soft);
+  color: inherit;
+}
+
+.lp-cards {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(17rem, 72%);
+  margin-top: -1.8rem;
+  margin-right: -0.8rem;
+}
+
+.lp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  font-size: 0.84rem;
+}
+
+.lp-card strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+.lp-card span {
+  color: var(--muted);
+}
+
+.lp-card-fact {
+  border-left-color: var(--ochre-line);
+}
+
+/* Seções */
+.lp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding-block: clamp(3rem, 7vw, 5rem);
+  padding-left: var(--lp-gutter-l);
+  padding-right: var(--lp-gutter-r);
+  scroll-margin-top: 4rem;
+}
+
+.lp-section h2,
+.lp-band h2,
+.lp-final h2 {
+  margin: 0;
+  max-width: 20em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.lp-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 3vw, 2.4rem);
+  margin: 1.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--ink);
+}
+
+.lp-step-n {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.lp-steps h3,
+.lp-feature h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3rem;
+}
+
+.lp-steps p,
+.lp-feature p {
+  margin: 0;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+/* Faixa da mesa de RPG: sempre escura, nos dois temas. */
+.lp-band {
+  --band-bg: #121a17;
+  --band-ink: #e5ece8;
+  --band-ink-2: #b4c2bb;
+  --band-line: #2a3632;
+  --band-accent: #6fd0ae;
+  background:
+    radial-gradient(700px 360px at 85% 10%, rgb(111 208 174 / 12%), transparent 60%),
+    var(--band-bg);
+  color: var(--band-ink);
+  border-block: 1px solid var(--line);
+  scroll-margin-top: 4rem;
+}
+
+.lp-band-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+  padding-left: var(--lp-gutter-l);
+  padding-right: var(--lp-gutter-r);
+}
+
+.lp-band-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.lp-band .lp-eyebrow {
+  color: var(--band-accent);
+}
+
+.lp-band .lp-lede {
+  color: var(--band-ink-2);
+}
+
+.lp-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-checks li {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+
+.lp-checks svg {
+  flex: none;
+  margin-top: 0.1rem;
+  color: var(--band-accent);
+}
+
+/* Celular com o Codex */
+.lp-phone {
+  justify-self: center;
+  width: min(290px, 100%);
+  margin: 0;
+  padding: 12px;
+  border-radius: 38px;
+  background: #050807;
+  box-shadow: 0 0 0 1px #2c3833, 0 40px 80px -30px rgb(0 0 0 / 70%);
+  transform: rotate(2deg);
+}
+
+.lp-phone-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 520px;
+  padding: 1.1rem 1rem 1.4rem;
+  border-radius: 28px;
+  background: #fcfcf9;
+  color: #1b2420;
+  font-family: var(--font-text);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.lp-phone-screen p {
+  margin: 0;
+}
+
+.lp-phone-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+}
+
+.lp-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  color: #2f7445;
+}
+
+.lp-phone-new {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: #f3e4c2;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+}
+
+.lp-phone-title {
+  margin-top: 0.4rem !important;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.lp-phone-sub {
+  font-style: italic;
+  text-align: center;
+  color: #5c6862;
+}
+
+.lp-phone-kind {
+  margin-top: 0.4rem !important;
+  padding-bottom: 0.15rem;
+  border-bottom: 1px solid #d3d9d1;
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #835810;
+}
+
+.lp-phone-entry strong {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.lp-phone-entry em {
+  color: #5c6862;
+}
+
+.lp-phone-new-item {
+  margin-inline: -0.4rem !important;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px rgb(215 169 76 / 55%);
+}
+
+.lp-phone-new-item strong {
+  display: inline;
+  margin-right: 0.3rem;
+}
+
+/* Recursos */
+.lp-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.6rem 1.4rem;
+  margin-top: 1rem;
+}
+
+.lp-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.lp-feature svg {
+  color: var(--accent);
+}
+
+.lp-feature h3 {
+  font-size: 1.15rem;
+}
+
+.lp-feature p {
+  font-size: 0.92rem;
+}
+
+/* Princípios */
+.lp-principle-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.lp-principle-list blockquote {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 1.3rem 1.3rem 1.4rem;
+  border-radius: var(--radius-l);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.lp-principle-list p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  line-height: 1.15;
+}
+
+.lp-principle-list span {
+  font-family: var(--font-text);
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+/* Fim */
+.lp-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding-block: clamp(3rem, 8vw, 6rem);
+  padding-left: var(--lp-gutter-l);
+  padding-right: var(--lp-gutter-r);
+  text-align: center;
+}
+
+.lp-final p {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 1.15rem;
+  color: var(--ink-2);
+}
+
+.lp-final .lp-ctas {
+  justify-content: center;
+}
+
+.lp-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.4rem;
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding-block: 1.6rem calc(1.6rem + env(safe-area-inset-bottom, 0px));
+  padding-left: var(--lp-gutter-l);
+  padding-right: var(--lp-gutter-r);
+  border-top: 1px solid var(--line);
+}
+
+.lp-footer .lp-brand {
+  font-size: 1.05rem;
+}
+
+.lp-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.lp-footer-link:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 920px) {
+  .lp-hero,
+  .lp-band-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lp-page {
+    max-width: 36rem;
+  }
+
+  .lp-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lp-steps,
+  .lp-principle-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .lp-links {
+    display: none;
+  }
+
+  .lp-nav-actions {
+    margin-left: auto;
+  }
+
+  .lp-features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lp-sheet {
+    transform: none;
+    padding: 1.5rem 1.2rem 1.8rem 2rem;
+    font-size: 1.02rem;
+  }
+
+  .lp-sheet::before {
+    left: 1rem;
+  }
+
+  .lp-cards {
+    width: auto;
+    align-self: stretch;
+    margin: 0.8rem 0 0;
+  }
+
+  .lp-phone {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-hero-copy > *,
+  .lp-page {
+    animation: lp-rise 0.6s ease-out both;
+  }
+
+  .lp-page {
+    animation-delay: 0.15s;
+  }
+}
+
+@keyframes lp-rise {
+  from {
+    opacity: 0.001;
+    transform: translateY(8px);
+  }
+}

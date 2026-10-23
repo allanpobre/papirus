@@ -1,4 +1,4 @@
-import { BookOpen, Cloud, Dices, Feather, FileUp, FolderOpen, HardDrive, Map as MapIcon, Moon, Plus, ShieldCheck, Sparkles, Sun, Trash2 } from 'lucide-react'
+import { BookOpen, Cloud, Dices, Feather, FileUp, FolderOpen, Moon, Plus, ShieldCheck, Sparkles, Sun, Trash2 } from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
@@ -131,32 +131,17 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       </header>
 
       {first ? (
-        <main className="landing">
-          <section className="landing-hero">
-            <div className="landing-copy">
-              <p className="eyebrow">Para quem escreve e para quem mestra</p>
-              <h1>Seu mundo, escrito e jogado no mesmo caderno.</h1>
-              <p className="lede">
-                Escreva a história como sempre. O Papirus percebe os nomes, guarda fichas, datas e segredos, e na mesa de RPG mostra aos jogadores só o que você revelar. Nada é obrigatório.
-              </p>
-              {start}
-              {!p.onboarded && <Welcome onChoose={(hidden) => { setPref('hiddenViews', hidden); setPref('onboarded', true) }} />}
-              <p className="landing-note small">
-                <ShieldCheck size={15} aria-hidden="true" /> Sem cadastro: tudo fica neste navegador. Com uma conta (opcional), seus universos aparecem em todos os seus aparelhos.
-              </p>
-            </div>
-            <ManuscriptPreview />
+        <main className="library-main">
+          <section className="library-hero">
+            <h1>Comece seu primeiro universo</h1>
+            <p className="lede">Dê um nome ao seu mundo e comece a escrever. Fichas, linha do tempo e mesa de RPG vêm quando você quiser.</p>
           </section>
-
-          <section className="landing-features" aria-label="O que dá para fazer">
-            {FEATURES.map(({ icon: Icon, title, text }) => (
-              <article key={title} className="feature">
-                <Icon size={20} aria-hidden="true" />
-                <h2>{title}</h2>
-                <p>{text}</p>
-              </article>
-            ))}
-          </section>
+          {start}
+          {!p.onboarded && <Welcome onChoose={(hidden) => { setPref('hiddenViews', hidden); setPref('onboarded', true) }} />}
+          <p className="landing-note small">
+            <ShieldCheck size={15} aria-hidden="true" /> Sem cadastro: tudo fica neste navegador. Com uma conta (opcional), seus universos aparecem em todos os seus aparelhos.{' '}
+            <a href="../">O que é o Papirus?</a>
+          </p>
         </main>
       ) : (
         <main className="library-main">
@@ -218,44 +203,6 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
       {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
     </div>
-  )
-}
-
-const FEATURES = [
-  { icon: Feather, title: 'Escrever', text: 'Editor limpo, nomes viram fichas quando você quiser, comentários, versões e livros em Word ou EPUB.' },
-  { icon: MapIcon, title: 'Construir o mundo', text: 'Fichas, relações, linha do tempo com calendário próprio, mapas com marcadores e mentiras que os personagens acreditam.' },
-  { icon: Dices, title: 'Mestrar', text: 'Qualquer sistema, ou o seu. Sessões, iniciativa, fichas de jogo e o Codex ao vivo no celular dos jogadores.' },
-  { icon: HardDrive, title: 'Seus dados, suas regras', text: 'Funciona sem internet e sem cadastro. Backup, pasta no computador ou conta na nuvem: você escolhe.' },
-]
-
-/** Uma página de manuscrito de exemplo: o que o Papirus faz com o texto, sem precisar explicar. */
-function ManuscriptPreview() {
-  return (
-    <figure className="landing-page" aria-label="Exemplo: uma cena com nomes reconhecidos e uma ficha na margem">
-      <div className="landing-sheet">
-        <p className="landing-scene">A chegada · ano 359 DC</p>
-        <p>
-          Era noite em <span className="landing-name">Ostria</span> quando o homem pálido desceu do navio. <span className="landing-name">Kael</span> o viu primeiro, da sombra das redes.
-        </p>
-        <p>
-          Mais tarde, na taverna, <span className="landing-name">Mira</span> jurou que ele tinha <mark className="landing-fact">olhos cinzentos</mark>.
-        </p>
-      </div>
-      <aside className="landing-margin" aria-hidden="true">
-        <p className="landing-card">
-          <strong>Kael</strong>
-          <span>Personagem · em 3 cenas</span>
-        </p>
-        <p className="landing-card landing-card-fact">
-          <strong>Fato guardado</strong>
-          <span>Vaelor tem olhos cinzentos, segundo Mira</span>
-        </p>
-        <p className="landing-card landing-card-codex">
-          <strong>Codex da mesa</strong>
-          <span>3 jogadores veem · 1 segredo guardado</span>
-        </p>
-      </aside>
-    </figure>
   )
 }
 

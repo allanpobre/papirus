@@ -8,5 +8,9 @@ export default defineConfig({
     // O editor (TipTap) e o SDK da IA ficam em blocos próprios, carregados só quando usados;
     // o bloco do editor passa um pouco de 500 kB e isso é esperado.
     chunkSizeWarningLimit: 600,
+    // Duas páginas: a apresentação (/) e o app (/app/).
+    rollupOptions: {
+      input: { apresentacao: 'index.html', app: 'app/index.html' },
+    },
   },
 })
