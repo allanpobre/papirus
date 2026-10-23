@@ -54,7 +54,7 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
     content: doc,
     autofocus: 'end',
     editorProps: {
-      attributes: { 'aria-label': 'Texto da cena', class: 'scene-text', spellcheck: 'true' },
+      attributes: { 'aria-label': 'Texto da cena', class: 'scene-text', spellcheck: 'true', lang: 'pt-BR' },
       handleClick: (_view, _pos, event) => {
         if (!(event.ctrlKey || event.metaKey)) return false
         const el = (event.target as HTMLElement).closest('[data-entity]')
