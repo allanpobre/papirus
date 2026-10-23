@@ -11,6 +11,8 @@
   --surface: #f7f8f5;
   --surface-2: #eff1ec;
   --surface-3: #e3e7e0;
+  --inverse-bg: #1b2420;
+  --inverse-fg: #f7f8f5;
   --paper: #fcfcf9;
   --ink: #1b2420;
   --ink-2: #44514b;
@@ -63,6 +65,8 @@
     --surface: #171c1a;
     --surface-2: #1d2421;
     --surface-3: #252d29;
+    --inverse-bg: #252e2a;
+    --inverse-fg: #e2e8e4;
     --paper: #1a201d;
     --ink: #e2e8e4;
     --ink-2: #b6c1bb;
@@ -99,6 +103,8 @@
   --surface: #171c1a;
   --surface-2: #1d2421;
   --surface-3: #252d29;
+  --inverse-bg: #252e2a;
+  --inverse-fg: #e2e8e4;
   --paper: #1a201d;
   --ink: #e2e8e4;
   --ink-2: #b6c1bb;

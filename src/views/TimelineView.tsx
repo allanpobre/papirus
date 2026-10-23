@@ -113,7 +113,7 @@ export default function TimelineView() {
               key={era.id}
               type="button"
               className="era"
-              style={{ left: `${((era.year - minY) / span) * 100}%`, width: `${Math.max(4, (((era.endYear ?? era.year) - era.year) / span) * 100)}%` }}
+              style={{ left: `min(${((era.year - minY) / span) * 100}%, calc(100% - 46px))`, width: `${Math.max(4, (((era.endYear ?? era.year) - era.year) / span) * 100)}%` }}
               title={`${era.title}: ${formatYear(era.year, suffix)} — ${formatYear(era.endYear, suffix)}`}
               onClick={() => setEditing(era.id)}
             >

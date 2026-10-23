@@ -393,6 +393,9 @@
   display: block;
   cursor: grab;
   touch-action: none;
+  /* Clique duplo abre a ficha; não deve selecionar os nomes. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .graph:active {
@@ -1497,8 +1500,8 @@
   min-height: 9rem;
   padding: 1.2rem 1.4rem;
   border-radius: var(--radius-l);
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--inverse-bg);
+  color: var(--inverse-fg);
 }
 
 .dice-total {
@@ -1759,11 +1762,16 @@
   }
 
   .timeline::before {
-    left: 4.4rem;
+    left: 5.4rem;
   }
 
   .tl-year {
-    grid-template-columns: 3.6rem minmax(0, 1fr);
+    grid-template-columns: 4.6rem minmax(0, 1fr);
+    gap: 1.6rem;
+  }
+
+  .tl-year-label {
+    padding-right: 0.45rem;
   }
 
   .board {
@@ -2826,7 +2834,7 @@ code {
 }
 
 .dice-result > .muted {
-  color: color-mix(in srgb, var(--paper) 78%, var(--ink));
+  color: color-mix(in srgb, var(--inverse-fg) 78%, var(--inverse-bg));
 }
 
 .table-initiative > .initiative {
@@ -2894,4 +2902,14 @@ code {
 
 .relation-list > .relation-row .relation-targets .picker {
   flex: 1 1 90px;
+}
+
+.tl-year-num {
+  white-space: nowrap;
+}
+
+/* O fato é a coluna principal: não deixa espremer em uma palavra por linha. */
+.knowledge-view .table td:first-child,
+.knowledge-view .table th:first-child {
+  min-width: 15rem;
 }

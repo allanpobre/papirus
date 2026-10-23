@@ -165,9 +165,12 @@
 /* ---------------------------------------------------------------- casca */
 
 .shell {
+  /* Preso à janela visível: não depende da altura do html/body, que alguns visualizadores mudam. */
+  position: fixed;
+  inset: 0;
+  padding-top: env(safe-area-inset-top, 0px);
   display: grid;
   grid-template-columns: var(--rail-w) minmax(0, 1fr);
-  height: 100%;
 }
 
 .shell.rail-collapsed {
@@ -824,4 +827,23 @@
   position: absolute;
   top: 6px;
   right: 18%;
+}
+
+/* Janelas baixas: menu lateral mais compacto. */
+@media (min-width: 761px) and (max-height: 760px) {
+  .rail {
+    gap: 0.4rem;
+  }
+
+  .rail-item {
+    padding-block: 0.3rem;
+  }
+
+  .rail-group-label {
+    margin-top: 0.35rem;
+  }
+
+  .rail-groups {
+    gap: 0.2rem;
+  }
 }

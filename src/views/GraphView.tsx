@@ -173,7 +173,12 @@ export default function GraphView() {
                     role="button"
                     aria-label={`${n.name}, ${kindLabel(n.kind)}`}
                     onClick={() => setSelected(n.id === selected ? null : n.id)}
-                    onDoubleClick={() => go('fichas', n.id)}
+                    onMouseDown={(e) => e.detail > 1 && e.preventDefault()}
+                    onDoubleClick={(e) => {
+                      e.preventDefault()
+                      getSelection()?.removeAllRanges()
+                      go('fichas', n.id)
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') setSelected(n.id)
                     }}
