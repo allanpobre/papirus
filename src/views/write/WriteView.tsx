@@ -1,7 +1,9 @@
 import type { Editor } from '@tiptap/react'
 import {
+  BookOpen,
   Download,
   Feather,
+  History,
   Maximize2,
   Minimize2,
   PanelLeftClose,
@@ -46,13 +48,17 @@ import { Modal } from '../../ui/Modal'
 import { useMediaQuery } from '../../ui/useMediaQuery'
 import { LiveMargin } from './LiveMargin'
 import { ManuscriptTree } from './ManuscriptTree'
+import { ReadingMode } from './ReadingMode'
 import { ReviewDialog } from './ReviewDialog'
+import { VersionsDialog } from './VersionsDialog'
 
 type Dialog =
   | { kind: 'link'; sel: SelectionInfo }
   | { kind: 'entity'; sel: SelectionInfo }
   | { kind: 'fact'; initial: Partial<FactDraft> }
   | { kind: 'review' }
+  | { kind: 'versions' }
+  | { kind: 'reading' }
   | null
 
 export default function WriteView() {
@@ -73,6 +79,8 @@ export default function WriteView() {
   const [narrowMargin, setNarrowMargin] = useState(false)
   const marginVisible = narrow ? narrowMargin : prefs.margin
   const [metaOpen, setMetaOpen] = useState(false)
+  // Muda quando o texto da cena é trocado por fora (ex.: voltar a uma versão), para remontar o editor.
+  const [editorNonce, setEditorNonce] = useState(0)
   const editorRef = useRef<Editor | null>(null)
 
   // Navegação vinda de fora (busca, links): abre a cena pedida.
@@ -253,6 +261,12 @@ export default function WriteView() {
             <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
               <SlidersHorizontal size={15} /> Detalhes da cena
             </button>
+            <button type="button" className="btn-icon" title="Versões da cena" aria-label="Versões da cena" onClick={() => setDialog({ kind: 'versions' })}>
+              <History size={17} />
+            </button>
+            <button type="button" className="btn-icon" title="Ler a história" aria-label="Ler" onClick={() => setDialog({ kind: 'reading' })}>
+              <BookOpen size={17} />
+            </button>
             <button
               type="button"
               className="btn-icon"
@@ -370,7 +384,7 @@ export default function WriteView() {
             )}
 
             <SceneEditor
-              key={scene.id}
+              key={`${scene.id}:${editorNonce}`}
               doc={scene.doc}
               onChange={onChange}
               onCursorParagraph={setParagraph}
@@ -417,6 +431,15 @@ export default function WriteView() {
         />
       )}
 
+      {dialog?.kind === 'versions' && <VersionsDialog scene={scene} onClose={() => setDialog(null)} onRestored={() => setEditorNonce((n) => n + 1)} />}
+      {dialog?.kind === 'reading' && (
+        <ReadingMode
+          title={scene.storyId ? (byId(universe, 'stories', scene.storyId)?.title || 'Sem título') : 'Cenas soltas'}
+          scenes={order.filter((s) => s.storyId === scene.storyId)}
+          startSceneId={scene.id}
+          onClose={() => setDialog(null)}
+        />
+      )}
       {dialog?.kind === 'review' && <ReviewDialog scene={scene} questions={questions} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'fact' && <FactDialog initial={dialog.initial} onClose={() => setDialog(null)} title="Capturar fato" />}
       {dialog?.kind === 'link' && (

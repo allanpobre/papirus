@@ -260,6 +260,7 @@ export function addScene(
     date: null,
     presentIds: [],
     notes: '',
+    versions: [],
   })
 }
 
@@ -284,6 +285,23 @@ export function removeScene(universe: Universe, sceneId: string): Universe {
       clues: s.clues.map((c) => ({ ...c, sceneId: clear(c.sceneId) })),
     })),
   }
+}
+
+/** Guarda o texto atual da cena como uma versão nomeada. */
+export function saveSceneVersion(universe: Universe, sceneId: string, name: string): Universe {
+  const scene = byId(universe, 'scenes', sceneId)
+  if (!scene) return universe
+  const version = { id: newId(), name, at: now(), doc: scene.doc, text: scene.text }
+  return patch(universe, 'scenes', sceneId, { versions: [version, ...scene.versions] })
+}
+
+/** Troca o texto da cena por uma versão, guardando antes o texto atual. */
+export function restoreSceneVersion(universe: Universe, sceneId: string, versionId: string): Universe {
+  const scene = byId(universe, 'scenes', sceneId)
+  const version = scene?.versions.find((v) => v.id === versionId)
+  if (!scene || !version) return universe
+  const saved = saveSceneVersion(universe, sceneId, `Antes de voltar para “${version.name}”`)
+  return patch(saved, 'scenes', sceneId, { doc: version.doc, text: version.text })
 }
 
 /** Move a cena uma posição para cima (-1) ou para baixo (+1) dentro do seu grupo. */

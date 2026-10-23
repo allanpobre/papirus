@@ -13,6 +13,7 @@ export type View =
   | 'tramas'
   | 'conhecimento'
   | 'organizar'
+  | 'archivist'
   | 'rpg'
   | 'inbox'
   | 'config'

@@ -1801,3 +1801,94 @@
 .entity-main .form-grid {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
 }
+
+/* ---------------------------------------------------------------- Archivist */
+
+.archivist-key {
+  max-width: 60rem;
+}
+
+.archivist-ask {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 60rem;
+}
+
+.archivist-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem 1rem;
+}
+
+.archivist-pins {
+  flex: 1 1 260px;
+}
+
+.archivist-preview {
+  max-width: 60rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--line-strong);
+  background: var(--surface-2);
+}
+
+.archivist-preview pre {
+  margin: 0.4rem 0 0;
+  max-height: 40vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+.archivist-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 60rem;
+}
+
+.archivist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 1.1rem 1.2rem;
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.archivist-q {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.archivist-answer {
+  font-family: var(--font-text);
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.archivist-answer h4 {
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-top: 0.4rem;
+}
+
+.archivist-answer ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}

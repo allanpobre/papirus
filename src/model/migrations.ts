@@ -39,6 +39,7 @@ const migrations: Record<number, (data: Data) => Data> = {
           date: null,
           presentIds: [],
           notes: '',
+          versions: [],
           ...s,
         })),
       },

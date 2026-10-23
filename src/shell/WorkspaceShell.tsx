@@ -14,6 +14,7 @@ import {
   Settings,
   Sprout,
   Lightbulb,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -39,6 +40,7 @@ const KnowledgeView = lazy(() => import('../views/KnowledgeView'))
 const OrganizeView = lazy(() => import('../views/OrganizeView'))
 const RpgView = lazy(() => import('../views/rpg/RpgView'))
 const InboxView = lazy(() => import('../views/InboxView'))
+const ArchivistView = lazy(() => import('../views/ArchivistView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
 
 interface NavItem {
@@ -64,6 +66,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { view: 'tramas', label: 'Tramas', icon: Sprout },
       { view: 'conhecimento', label: 'Conhecimento', icon: Lightbulb },
       { view: 'organizar', label: 'Organizar', icon: PanelsTopLeft },
+      { view: 'archivist', label: 'Archivist', icon: ScrollText },
     ],
   },
   { group: 'Mesa', items: [{ view: 'rpg', label: 'RPG', icon: Dices }] },
@@ -332,6 +335,8 @@ function ViewSwitch({ view, onOpenOther }: { view: View; onOpenOther: (u: Univer
       return <RpgView />
     case 'inbox':
       return <InboxView />
+    case 'archivist':
+      return <ArchivistView />
     case 'config':
       return <SettingsView onOpenOther={onOpenOther} />
   }

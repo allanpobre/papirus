@@ -318,3 +318,81 @@ test('adota um save da primeira versão do Papirus sem perder o texto', async ({
   await page.getByRole('button', { name: /^Meu universo/ }).click()
   await expect(editor(page)).toContainText('Escrito na versão 1.')
 })
+
+test('versões: guarda, compara e volta para uma versão anterior da cena', async ({ page }) => {
+  await newUniverse(page)
+  await startWriting(page)
+  await page.keyboard.type('Era noite em Ostria.')
+  await page.getByRole('button', { name: 'Versões da cena' }).click()
+  await page.getByRole('textbox', { name: 'Nome da versão' }).fill('Noite')
+  await page.getByRole('button', { name: 'Guardar texto atual' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Fechar' }).click()
+
+  await editor(page).click()
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.type('Era madrugada em Ostria.')
+  await page.getByRole('button', { name: 'Versões da cena' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.locator('del')).toHaveText('noite')
+  await expect(dialog.locator('ins')).toHaveText('madrugada')
+  await dialog.getByRole('button', { name: 'Voltar para esta versão' }).click()
+  await dialog.getByRole('button', { name: 'Voltar', exact: true }).click()
+
+  await expect(editor(page)).toHaveText('Era noite em Ostria.')
+  await page.getByRole('button', { name: 'Versões da cena' }).click()
+  await expect(page.getByRole('dialog').getByText('Antes de voltar para “Noite”')).toBeVisible()
+})
+
+test('leitura: ensaio mostra um parágrafo por vez', async ({ page }) => {
+  await openSample(page)
+  await page.getByRole('button', { name: 'Ler', exact: true }).click()
+  const reading = page.getByRole('dialog', { name: /Leitura/ })
+  await expect(reading.getByText('Era noite em Ostria')).toBeVisible()
+  await reading.getByRole('radio', { name: 'Ensaio' }).click()
+  await expect(reading.getByText('O estranho parou.')).toHaveCount(0)
+  await reading.getByRole('button', { name: 'Avançar' }).click()
+  await reading.getByRole('button', { name: 'Avançar' }).click()
+  await reading.getByRole('button', { name: 'Avançar' }).click()
+  await expect(reading.getByText(/O estranho parou\./)).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(reading).toHaveCount(0)
+})
+
+test('Archivist: mostra o contexto antes de enviar e exibe a resposta', async ({ page }) => {
+  let sent: { model?: string; fallbacks?: unknown; messages?: { content: { text: string }[] }[] } = {}
+  await page.route('https://api.anthropic.com/v1/messages**', async (route) => {
+    sent = route.request().postDataJSON()
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({
+        id: 'msg_teste',
+        type: 'message',
+        role: 'assistant',
+        model: 'claude-opus-5-5',
+        content: [{ type: 'text', text: '**Registrado**\n- Ilsa é guardiã da Torre de Marfim.\n\n**Inferência**\n- Ela pode saber onde Vaelor esteve.' }],
+        stop_reason: 'end_turn',
+        stop_details: null,
+        usage: { input_tokens: 900, output_tokens: 60 },
+      }),
+    })
+  })
+
+  await openSample(page)
+  await nav(page, 'Archivist').click()
+  await page.getByRole('textbox', { name: 'Chave da API da Anthropic' }).fill('sk-ant-teste')
+  await page.getByRole('textbox', { name: 'Pergunta' }).fill('O que Ilsa guardava?')
+  await page.getByRole('button', { name: 'Ver o que será enviado' }).click()
+  const preview = page.getByRole('region', { name: 'Contexto que será enviado' })
+  await expect(preview).toContainText('### Ilsa')
+  await expect(preview).not.toContainText('### Vaelor')
+
+  await page.getByRole('button', { name: 'Perguntar' }).click()
+  await expect(page.locator('.archivist-answer')).toContainText('Ilsa é guardiã da Torre de Marfim.')
+  expect(sent.model).toBe('claude-opus-5-5')
+  expect(sent.fallbacks).toBe('default')
+  expect(sent.messages?.[0].content[0].text).toContain('### Ilsa')
+  await page.getByRole('button', { name: 'Guardar na Inbox' }).click()
+  await expect(page.getByRole('button', { name: 'Guardada na Inbox' })).toBeDisabled()
+})

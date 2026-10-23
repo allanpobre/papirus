@@ -65,6 +65,10 @@ export const sceneSchema = z.object({
   /** Elenco presente na cena, registrado pelo autor. */
   presentIds: z.array(id),
   notes: z.string(),
+  /** Versões guardadas do texto, para comparar e voltar atrás. */
+  versions: z
+    .array(z.object({ id, name: z.string(), at: z.string(), doc: sceneDocSchema, text: z.string() }))
+    .default([]),
   ...timestamps,
 })
 
@@ -285,6 +289,7 @@ export type SceneDoc = z.infer<typeof sceneDocSchema>
 export type NarrativeDate = z.infer<typeof narrativeDateSchema>
 export type Story = z.infer<typeof storySchema>
 export type Scene = z.infer<typeof sceneSchema>
+export type SceneVersion = Scene['versions'][number]
 export type SceneStatus = Scene['status']
 export type Entity = z.infer<typeof entitySchema>
 export type Relation = z.infer<typeof relationSchema>
