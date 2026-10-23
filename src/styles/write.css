@@ -229,7 +229,11 @@
   text-decoration-style: solid;
 }
 
-/* Menu da seleção. */
+/* Menu da seleção (fica no body, acima de tudo menos janelas). */
+.bubble-wrap {
+  z-index: 45;
+}
+
 .bubble {
   display: flex;
   align-items: center;

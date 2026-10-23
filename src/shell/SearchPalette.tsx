@@ -117,7 +117,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                 role="option"
                 aria-selected={i === active}
                 className={i === active ? 'active' : undefined}
-                onMouseEnter={() => setActive(i)}
+                onMouseMove={() => active !== i && setActive(i)}
                 onMouseDown={(e) => {
                   e.preventDefault()
                   open(r)
@@ -136,7 +136,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
               role="option"
               aria-selected={active === results.length}
               className={active === results.length ? 'active' : undefined}
-              onMouseEnter={() => setActive(results.length)}
+              onMouseMove={() => active !== results.length && setActive(results.length)}
               onMouseDown={(e) => {
                 e.preventDefault()
                 create()

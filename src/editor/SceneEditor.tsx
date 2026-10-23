@@ -131,10 +131,13 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
 
       <BubbleMenu
         editor={editor}
-        options={{ placement: 'top' }}
+        className="bubble-wrap"
+        appendTo={() => document.body}
+        options={{ placement: 'top', strategy: 'fixed', offset: 8, flip: true, shift: { padding: 8 } }}
         shouldShow={({ editor, state }) => !state.selection.empty && editor.isFocused}
       >
-        <div className="bubble" role="toolbar" aria-label="Ações da seleção">
+        {/* Clicar no menu não pode tirar o foco do editor, senão o menu some antes do clique. */}
+        <div className="bubble" role="toolbar" aria-label="Ações da seleção" onMouseDown={(e) => e.preventDefault()}>
           <button type="button" className="btn-icon" aria-pressed={active.bold} aria-label="Negrito" onClick={() => editor.chain().focus().toggleBold().run()}>
             <Bold size={15} />
           </button>

@@ -81,11 +81,12 @@ export default function WriteView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nav])
 
-  const scene = sceneId ? byId(universe, 'scenes', sceneId) : undefined
+  // Se a cena aberta não existe (apagada, desfeita, outro universo), cai para a primeira.
+  const scene = (sceneId ? byId(universe, 'scenes', sceneId) : undefined) ?? order[0]
 
   useEffect(() => {
-    if (sceneId) remember(`cena:${universe.id}`, sceneId)
-  }, [sceneId, universe.id])
+    if (scene) remember(`cena:${universe.id}`, scene.id)
+  }, [scene, universe.id])
 
   // O matcher só muda quando nomes de fichas mudam, não a cada tecla.
   const namesKey = universe.entities.map((e) => `${e.id}:${namesOf(e).join('|')}`).join(';')
@@ -150,9 +151,9 @@ export default function WriteView() {
 
   const onChange = useCallback(
     (doc: Scene['doc'], text: string) => {
-      if (sceneId) update((u) => updateScene(u, sceneId, { doc, text }))
+      if (scene) update((u) => updateScene(u, scene.id, { doc, text }))
     },
-    [sceneId, update],
+    [scene?.id, update],
   )
 
   const guessFact = (sel: SelectionInfo): Partial<FactDraft> => {
