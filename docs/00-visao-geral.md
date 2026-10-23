@@ -1,8 +1,8 @@
-# NEXUS — Resumo Geral do Programa
+# Papirus — Resumo Geral do Programa
 
 ## 1. Visão do produto
 
-**NEXUS é um ambiente de worldbuilding e escrita contextual** para escritores, mestres de RPG e criadores de universos ficcionais. Ele ajuda a organizar uma lore já existente e conectar personagens, lugares, instituições, acontecimentos e histórias. Não deve substituir a criatividade do autor nem inventar um mundo inteiro por conta própria.
+**Papirus é um ambiente de worldbuilding e escrita contextual** para escritores, mestres de RPG e criadores de universos ficcionais. Ele ajuda a organizar uma lore já existente e conectar personagens, lugares, instituições, acontecimentos e histórias. Não deve substituir a criatividade do autor nem inventar um mundo inteiro por conta própria.
 
 O autor decide o que é verdade, o que é canon e o que permanece misterioso. O sistema pode sugerir relações e apontar possíveis problemas, mas não transforma sugestões em fatos automaticamente.
 
@@ -81,7 +81,7 @@ Lentes contextuais disponíveis incluem:
 - **Fontes:** fontes relacionadas;
 - **Rascunhos:** notas, outline, trechos guardados e versões alternativas.
 
-As lentes reutilizam os registros do NEXUS; não criam cópias de entidades ou timelines.
+As lentes reutilizam os registros do Papirus; não criam cópias de entidades ou timelines.
 
 ### Menções e descoberta de novas referências
 
@@ -113,7 +113,7 @@ As **sementes narrativas** conectam uma preparação a um payoff futuro e podem 
 
 ## 8. Archivist — IA generativa
 
-O Archivist ajuda a investigar a lore, comparar fontes, encontrar lacunas e contradições, explorar conexões, consequências, conhecimento e impacto narrativo. É opcional: os recursos determinísticos do NEXUS continuam utilizáveis sem IA.
+O Archivist ajuda a investigar a lore, comparar fontes, encontrar lacunas e contradições, explorar conexões, consequências, conhecimento e impacto narrativo. É opcional: os recursos determinísticos do Papirus continuam utilizáveis sem IA.
 
 Os provedores documentados incluem OpenAI, Google Gemini, Anthropic, OpenRouter, Ollama e LM Studio/endpoints locais compatíveis. Chaves remotas são armazenadas no servidor de forma cifrada e separadas por usuário/provedor. Modelos locais são chamados diretamente pelo navegador e exigem que o runtime local esteja instalado e ativo. Uma falha local não deve provocar fallback automático para a nuvem.
 
@@ -158,4 +158,4 @@ A escrita e a descoberta de referências devem continuar funcionando localmente 
 8. Preserve a diferença entre verdade autoral, crença de personagem, informação do leitor e sugestão da IA.
 9. Prefira arquitetura modular e simples. Introduza novas linguagens ou infraestrutura apenas quando resolverem um problema concreto.
 
-**Princípio de produto:** o autor deve sentir que está escrevendo enquanto o NEXUS presta atenção — não que está preenchendo um banco de dados.
+**Princípio de produto:** o autor deve sentir que está escrevendo enquanto o Papirus presta atenção — não que está preenchendo um banco de dados.

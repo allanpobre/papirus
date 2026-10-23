@@ -1,4 +1,6 @@
-# NEXUS — Roadmap
+# Papirus — Roadmap
+
+Estado: a versão 1 entrega uma primeira camada de todas as áreas abaixo (ver README). As próximas iterações aprofundam cada uma, na mesma ordem.
 
 Ordem das áreas de foco:
 

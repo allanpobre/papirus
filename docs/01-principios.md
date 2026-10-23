@@ -1,10 +1,10 @@
-# NEXUS — Princípios
+# Papirus — Princípios
 
 Estes princípios valem para todas as fases. Quando uma decisão de produto ou de código entrar em conflito com eles, os princípios vencem.
 
 ## 1. Liberdade do autor acima de tudo
 
-O NEXUS existe para servir o autor, nunca para enquadrá-lo.
+O Papirus existe para servir o autor, nunca para enquadrá-lo.
 
 - **Nada é obrigatório.** Nenhum campo, ficha, data, estrutura ou fluxo precisa ser preenchido para continuar escrevendo.
 - **Texto livre sempre.** Toda estrutura convive com um campo de texto livre. O autor pode escrever o mundo inteiro em prosa e nunca estruturar nada.
@@ -18,7 +18,7 @@ O NEXUS existe para servir o autor, nunca para enquadrá-lo.
 
 ## 2. Escrever primeiro, estruturar quando for útil
 
-O autor deve sentir que está escrevendo enquanto o NEXUS presta atenção — não que está preenchendo um banco de dados.
+O autor deve sentir que está escrevendo enquanto o Papirus presta atenção — não que está preenchendo um banco de dados.
 
 ## 3. Silêncio durante a escrita
 
