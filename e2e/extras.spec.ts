@@ -257,3 +257,37 @@ test('ajustes por categoria: busca, cor de destaque e tema rápido', async ({ pa
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-accent', 'azul')
 })
+
+test('relação indireta e com tempo: "envenenou, a mando de", só num período, no grafo', async ({ page }) => {
+  await openSample(page)
+  await nav(page, 'Fichas').click()
+  await page.getByRole('button', { name: /^Kael/ }).first().click()
+  await page.getByRole('combobox', { name: 'Nova relação' }).fill('envenenou')
+  await page.getByRole('combobox', { name: 'Com' }).fill('Vaelor')
+  await page.getByRole('option', { name: /^Vaelor/ }).first().click()
+  await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
+
+  const row = page.locator('.relation-row').filter({ has: page.locator('input[value="envenenou"]') })
+  await row.locator('summary').click()
+  await row.getByRole('combobox', { name: 'Quem está por trás' }).fill('Mira')
+  await page.getByRole('option', { name: /^Mira/ }).first().click()
+  await row.getByRole('radio', { name: 'Num período' }).click()
+  await row.getByRole('textbox', { name: 'De (ano)' }).fill('360')
+  await expect(row.locator('summary')).toHaveText('a mando de Mira · a partir de 360 DC')
+
+  // Na ficha de Mira, aparece como envolvida.
+  await page.getByRole('button', { name: /^Mira/ }).first().click()
+  await expect(page.locator('.relation-involved')).toContainText('a mando de: Kael envenenou Vaelor')
+
+  // No grafo: a linha tracejada de quem está por trás; no ponto da história (359), a relação ainda não vale.
+  await nav(page, 'Relações').click()
+  await expect(page.locator('.edge-via')).toHaveCount(2)
+  await page.locator('.node', { hasText: 'Kael' }).click()
+  await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toContainText('Kael envenenou Vaelor, a mando de Mira · a partir de 360 DC')
+  await page.getByRole('radio', { name: 'Num ponto da história' }).click()
+  await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toContainText('(não vale nesta cena)')
+  const envenenou = page.locator('.edge.off')
+  await expect(envenenou).not.toHaveCount(0)
+  await page.getByRole('button', { name: 'Tocar a história' }).click()
+  await expect(page.getByText(/^2\/4/)).toBeVisible({ timeout: 4000 })
+})

@@ -1,5 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 import { factSentence } from '../logic/codex'
+import { relationDetails } from '../logic/relations'
 import { formatYear, kindLabel } from '../model/labels'
 import { byId, entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
@@ -79,6 +80,7 @@ export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: (
                       <strong>{entityName(universe, r.fromId)}</strong> {r.type}
                     </>
                   )}
+                  {relationDetails(universe, r) && <span className="muted"> · {relationDetails(universe, r)}</span>}
                 </li>
               ))}
             </ul>

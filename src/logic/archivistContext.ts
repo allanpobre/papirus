@@ -4,6 +4,7 @@ import { byId, entityName, manuscriptOrder } from '../model/universe'
 import { factSentence } from './codex'
 import { MentionMatcher } from './detection'
 import { searchUniverse } from './search'
+import { scopeLabel } from './relations'
 import { stripSecrets } from './secrets'
 import { snippet } from './text'
 
@@ -45,8 +46,14 @@ export function buildArchivistContext(universe: Universe, question: string, opti
   for (const word of question.split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 4)) {
     for (const r of searchUniverse(universe, word, 8)) if (r.kind === 'ficha') picked.add(r.id)
   }
-  // Vizinhos diretos das fichas citadas.
+  // Vizinhos diretos das fichas citadas (uma ficha secreta escondida não puxa os vizinhos dela).
+  const hiddenEntity = (id: string | null) => {
+    if (!id || options.includeSecrets) return false
+    const e = byId(universe, 'entities', id)
+    return Boolean(e && isSecret(e.canon))
+  }
   for (const id of [...picked]) {
+    if (hiddenEntity(id)) continue
     for (const rel of universe.relations) {
       if (rel.fromId === id) picked.add(rel.toId)
       if (rel.toId === id) picked.add(rel.fromId)
@@ -92,17 +99,19 @@ export function buildArchivistContext(universe: Universe, question: string, opti
   if (visibleRelations.length) {
     lines.push('', '## Relações')
     for (const r of visibleRelations) {
-      lines.push(`- ${entityName(universe, r.fromId)} ${r.type} ${entityName(universe, r.toId)} (canon: ${CANON_LABEL[r.canon]})`)
+      const via = r.via.filter((v) => !hiddenEntity(v.entityId)).map((v) => `${v.role} ${entityName(universe, v.entityId)}`)
+      const when = scopeLabel(universe, r)
+      lines.push(`- ${entityName(universe, r.fromId)} ${r.type} ${entityName(universe, r.toId)}${via.length ? `, ${via.join(', ')}` : ''} (canon: ${CANON_LABEL[r.canon]}${when ? `; vale ${when}` : ''})`)
     }
   }
 
   const facts = universe.facts.filter((f) => (f.subjectId && ids.has(f.subjectId)) || (f.objectId && ids.has(f.objectId)))
-  const visibleFacts = facts.filter((f) => options.includeSecrets || !isSecret(f.canon))
+  const visibleFacts = facts.filter((f) => options.includeSecrets || (!isSecret(f.canon) && !hiddenEntity(f.subjectId) && !hiddenEntity(f.objectId)))
   hiddenSecrets += facts.length - visibleFacts.length
   if (visibleFacts.length) {
     lines.push('', '## Fatos registrados')
     for (const f of visibleFacts) {
-      const who = f.speakerId ? `segundo ${entityName(universe, f.speakerId)}` : 'segundo o narrador'
+      const who = f.speakerId ? (hiddenEntity(f.speakerId) ? 'segundo uma fonte que você mantém em segredo' : `segundo ${entityName(universe, f.speakerId)}`) : 'segundo o narrador'
       lines.push(`- ${factSentence(universe, f)} (${who}; canon: ${CANON_LABEL[f.canon]})`)
       const holders = universe.knowledge.filter((k) => k.factId === f.id && ids.has(k.holderId))
       for (const k of holders) lines.push(`  - ${entityName(universe, k.holderId)}: ${KNOWLEDGE_LABEL[k.state].toLowerCase()}`)

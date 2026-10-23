@@ -112,6 +112,17 @@ export const entitySchema = z.object({
   ...timestamps,
 })
 
+export const RELATION_SCOPES = ['geral', 'periodo', 'historia', 'cenas'] as const
+
+/** Quando uma relação vale: sempre, num intervalo de anos, numa história/arco ou em cenas específicas. */
+export const relationScopeSchema = z.object({
+  kind: z.enum(RELATION_SCOPES),
+  fromYear: z.number().nullable(),
+  toYear: z.number().nullable(),
+  storyIds: z.array(id),
+  sceneIds: z.array(id),
+})
+
 export const relationSchema = z.object({
   id,
   fromId: id,
@@ -120,6 +131,12 @@ export const relationSchema = z.object({
   type: z.string(),
   note: z.string(),
   canon: canonSchema,
+  /**
+   * Quem está por trás ou junto, com o papel em texto livre:
+   * "Luan envenenou João, a mando de José" → via = [{ José, "a mando de" }].
+   */
+  via: z.array(z.object({ entityId: id, role: z.string() })).default([]),
+  scope: relationScopeSchema.default({ kind: 'geral', fromYear: null, toYear: null, storyIds: [], sceneIds: [] }),
   ...timestamps,
 })
 

@@ -1,8 +1,11 @@
-import { Maximize, Minus, Network, Plus } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-import { forceLayout, neighborhood, type GraphEdge } from '../logic/graph'
+import { Maximize, Minus, Network, Pause, Play, Plus } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { forceLayout, neighborhood, type GraphEdge, type Point } from '../logic/graph'
+import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
+import { formatDate } from '../logic/calendar'
 import { kindLabel, kindPlural } from '../model/labels'
-import { byId, entityName } from '../model/universe'
+import type { Relation } from '../model/schema'
+import { byId, entityName, manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
@@ -13,8 +16,58 @@ const H = 800
 interface Edge extends GraphEdge {
   id: string
   label: string
-  derived: boolean
+  /** "fica em" (vem da ficha), relação comum, ou quem está por trás de uma relação. */
+  kind: 'derivada' | 'relacao' | 'por-tras'
+  relation?: Relation
   canon?: string
+}
+
+const calm = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+const ease = (t: number) => 1 - Math.pow(1 - t, 3)
+
+/**
+ * Posições mostradas na tela, animadas até o alvo do layout. Ao abrir, as fichas
+ * saem do centro e se acomodam; ao mudar o filtro, deslizam para o novo lugar.
+ */
+function useAnimatedPositions(target: Map<string, Point>): Map<string, Point> {
+  const [shown, setShown] = useState<Map<string, Point>>(() => (calm() ? target : new Map()))
+  const shownRef = useRef(shown)
+  useEffect(() => {
+    shownRef.current = shown
+  })
+
+  useEffect(() => {
+    if (calm()) {
+      const id = requestAnimationFrame(() => setShown(target))
+      return () => cancelAnimationFrame(id)
+    }
+    const from = new Map<string, Point>()
+    let i = 0
+    for (const id of target.keys()) {
+      const prev = shownRef.current.get(id)
+      // Fichas novas nascem perto do centro, cada uma num ângulo, e "abrem" para o lugar delas.
+      const a = i++ * 2.399963
+      from.set(id, prev ?? { x: W / 2 + Math.cos(a) * 30, y: H / 2 + Math.sin(a) * 30 })
+    }
+    const start = performance.now()
+    const duration = 900
+    let frame = 0
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const k = ease(t)
+      const next = new Map<string, Point>()
+      for (const [id, p] of target) {
+        const f = from.get(id)!
+        next.set(id, { x: f.x + (p.x - f.x) * k, y: f.y + (p.y - f.y) * k })
+      }
+      setShown(next)
+      if (t < 1) frame = requestAnimationFrame(step)
+    }
+    frame = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(frame)
+  }, [target])
+
+  return shown
 }
 
 export default function GraphView() {
@@ -25,14 +78,35 @@ export default function GraphView() {
   const [onlyConnected, setOnlyConnected] = useState(true)
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(new Set())
   const [selected, setSelected] = useState<string | null>(focusId)
+  const [hovered, setHovered] = useState<string | null>(null)
   const [view, setView] = useState({ x: 0, y: 0, k: 1 })
+  const [inTime, setInTime] = useState(false)
+  const [sceneIndex, setSceneIndex] = useState(0)
+  const [playing, setPlaying] = useState(false)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null)
 
+  const scenes = useMemo(() => manuscriptOrder(universe), [universe])
+  const scene = inTime ? (scenes[Math.min(sceneIndex, scenes.length - 1)] ?? null) : null
+
+  // Tocar a história: avança uma cena por vez.
+  useEffect(() => {
+    if (!playing) return
+    const t = setTimeout(() => {
+      if (sceneIndex >= scenes.length - 1) setPlaying(false)
+      else setSceneIndex((i) => i + 1)
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [playing, sceneIndex, scenes.length])
+
   const edges = useMemo<Edge[]>(() => {
-    const list: Edge[] = universe.relations.map((r) => ({ id: r.id, from: r.fromId, to: r.toId, label: r.type, derived: false, canon: r.canon }))
+    const list: Edge[] = []
+    for (const r of universe.relations) {
+      list.push({ id: r.id, from: r.fromId, to: r.toId, label: r.type, kind: 'relacao', relation: r, canon: r.canon })
+      r.via.forEach((v, i) => list.push({ id: `${r.id}-via-${i}`, from: v.entityId, to: r.fromId, label: v.role || 'com', kind: 'por-tras', relation: r }))
+    }
     if (showDerived) {
       for (const e of universe.entities) {
-        if (e.parentId) list.push({ id: `p-${e.id}`, from: e.id, to: e.parentId, label: 'fica em', derived: true })
+        if (e.parentId) list.push({ id: `p-${e.id}`, from: e.id, to: e.parentId, label: 'fica em', kind: 'derivada' })
       }
     }
     return list
@@ -40,7 +114,7 @@ export default function GraphView() {
 
   const { nodes, visibleEdges } = useMemo(() => {
     let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind)).map((e) => e.id))
-    let es = edges.filter((e) => ids.has(e.from) && ids.has(e.to))
+    let es = edges.filter((e) => ids.has(e.from) && ids.has(e.to) && (e.kind !== 'por-tras' || ids.has(e.relation!.toId)))
     if (focusId && ids.has(focusId)) {
       const near = neighborhood(focusId, es, depth)
       ids = new Set([...ids].filter((id) => near.has(id)))
@@ -52,22 +126,34 @@ export default function GraphView() {
     return { nodes: universe.entities.filter((e) => ids.has(e.id)), visibleEdges: es }
   }, [universe.entities, edges, hiddenKinds, focusId, depth, onlyConnected])
 
+  // O layout usa todas as ligações visíveis (não só as do momento), para que as fichas não pulem com o tempo.
   const layoutKey = nodes.map((n) => n.id).join(',') + '|' + visibleEdges.map((e) => e.from + e.to).join(',')
-  const pos = useMemo(
-    () => forceLayout(nodes.map((n) => ({ id: n.id })), visibleEdges, { width: W, height: H }),
+  const target = useMemo(
+    () => {
+      const springs = [...visibleEdges, ...visibleEdges.filter((e) => e.kind === 'por-tras').map((e) => ({ from: e.from, to: e.relation!.toId }))]
+      return forceLayout(nodes.map((n) => ({ id: n.id })), springs, { width: W, height: H })
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [layoutKey],
   )
+  const pos = useAnimatedPositions(target)
+
+  const active = (e: Edge) => !e.relation || activeAt(e.relation, scene)
+  const liveIds = new Set(visibleEdges.filter(active).flatMap((e) => [e.from, e.to]))
 
   const degree = new Map<string, number>()
   for (const e of visibleEdges) {
+    if (e.kind === 'por-tras') continue
     degree.set(e.from, (degree.get(e.from) ?? 0) + 1)
     degree.set(e.to, (degree.get(e.to) ?? 0) + 1)
   }
+  const radius = (id: string) => 13 + Math.min(10, (degree.get(id) ?? 0) * 1.5)
   const kinds = [...new Set(universe.entities.map((e) => e.kind))]
   const sel = selected ? byId(universe, 'entities', selected) : undefined
-  const selEdges = selected ? edges.filter((e) => e.from === selected || e.to === selected) : []
-  const highlight = selected ? new Set([selected, ...selEdges.flatMap((e) => [e.from, e.to])]) : null
+  const focus = hovered ?? selected
+  const focusEdges = focus ? visibleEdges.filter((e) => active(e) && (e.from === focus || e.to === focus || e.relation?.via.some((v) => v.entityId === focus))) : []
+  const highlight = focus ? new Set([focus, ...focusEdges.flatMap((e) => [e.from, e.to, ...(e.relation ? [e.relation.fromId, e.relation.toId] : [])])]) : null
+  const selRelations = sel ? universe.relations.filter((r) => r.fromId === sel.id || r.toId === sel.id || r.via.some((v) => v.entityId === sel.id)) : []
 
   const zoom = (f: number) => setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, v.k * f)) }))
 
@@ -76,7 +162,18 @@ export default function GraphView() {
       <header className="view-head view-head-wide">
         <h1>Relações</h1>
         <div className="graph-controls">
-          <EntityPicker label="Centrar em" hideLabel placeholder="Centrar numa ficha…" value={focusId} allowCreate={false} onChange={(id) => { setFocusId(id); setSelected(id); setView({ x: 0, y: 0, k: 1 }) }} />
+          <EntityPicker
+            label="Centrar em"
+            hideLabel
+            placeholder="Centrar numa ficha…"
+            value={focusId}
+            allowCreate={false}
+            onChange={(id) => {
+              setFocusId(id)
+              setSelected(id)
+              setView({ x: 0, y: 0, k: 1 })
+            }}
+          />
           {focusId && (
             <label className="inline-label">
               Distância
@@ -95,19 +192,72 @@ export default function GraphView() {
         </div>
       </header>
 
-      <div className="filter-chips" aria-label="Tipos visíveis">
-        {kinds.map((k) => (
-          <button
-            key={k}
-            type="button"
-            className="chip"
-            aria-pressed={!hiddenKinds.has(k)}
-            onClick={() => setHiddenKinds((h) => { const n = new Set(h); if (n.has(k)) n.delete(k); else n.add(k); return n })}
-          >
-            <span className={`kind-dot kind-${k}`} aria-hidden="true" /> {kindPlural(k)}
+      <div className="graph-bar">
+        <div className="filter-chips" aria-label="Tipos visíveis">
+          {kinds.map((k) => (
+            <button
+              key={k}
+              type="button"
+              className="chip"
+              aria-pressed={!hiddenKinds.has(k)}
+              onClick={() =>
+                setHiddenKinds((h) => {
+                  const n = new Set(h)
+                  if (n.has(k)) n.delete(k)
+                  else n.add(k)
+                  return n
+                })
+              }
+            >
+              <span className={`kind-dot kind-${k}`} aria-hidden="true" /> {kindPlural(k)}
+            </button>
+          ))}
+        </div>
+        <div className="segmented" role="radiogroup" aria-label="Quais relações">
+          <button type="button" role="radio" aria-checked={!inTime} onClick={() => { setInTime(false); setPlaying(false) }}>
+            Todas
           </button>
-        ))}
+          <button type="button" role="radio" aria-checked={inTime} disabled={!scenes.length} onClick={() => setInTime(true)}>
+            Num ponto da história
+          </button>
+        </div>
       </div>
+
+      {inTime && scene && (
+        <div className="graph-time">
+          <button
+            type="button"
+            className="btn-icon"
+            aria-label={playing ? 'Pausar' : 'Tocar a história'}
+            onClick={() => {
+              if (!playing && sceneIndex >= scenes.length - 1) setSceneIndex(0)
+              setPlaying(!playing)
+            }}
+          >
+            {playing ? <Pause size={16} /> : <Play size={16} />}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={scenes.length - 1}
+            value={Math.min(sceneIndex, scenes.length - 1)}
+            aria-label="Cena"
+            aria-valuetext={scene.title}
+            onChange={(e) => {
+              setPlaying(false)
+              setSceneIndex(Number(e.target.value))
+            }}
+          />
+          <p className="graph-time-label" aria-live="polite">
+            <span className="tabular muted">
+              {Math.min(sceneIndex, scenes.length - 1) + 1}/{scenes.length}
+            </span>{' '}
+            <strong>{scene.title || 'Sem título'}</strong>
+            {scene.storyId && <span className="muted"> · {byId(universe, 'stories', scene.storyId)?.title}</span>}
+            {scene.date && <span className="muted"> · {formatDate(universe, scene.date)}</span>}
+          </p>
+        </div>
+      )}
 
       {nodes.length === 0 ? (
         <Empty icon={<Network size={32} />} title="Nenhuma relação para mostrar.">
@@ -119,7 +269,7 @@ export default function GraphView() {
             className="graph"
             viewBox={`0 0 ${W} ${H}`}
             role="group"
-            aria-label={`Grafo com ${nodes.length} fichas e ${visibleEdges.length} relações`}
+            aria-label={`Grafo com ${nodes.length} fichas e ${visibleEdges.filter(active).length} relações`}
             onPointerDown={(e) => {
               if ((e.target as Element).closest('.node')) return
               ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
@@ -143,36 +293,67 @@ export default function GraphView() {
                 const a = pos.get(e.from)
                 const b = pos.get(e.to)
                 if (!a || !b) return null
-                const r = 13 + Math.min(10, (degree.get(e.to) ?? 0) * 1.5)
+                const on = active(e)
+                const lit = highlight ? highlight.has(e.from) && highlight.has(e.to) && focusEdges.includes(e) : false
+                const dim = highlight && !lit
+                if (e.kind === 'por-tras') {
+                  // Quem está por trás aponta para o meio da relação principal.
+                  const r = e.relation!
+                  const p = pos.get(r.fromId)
+                  const q = pos.get(r.toId)
+                  if (!p || !q) return null
+                  const mx = (p.x + q.x) / 2
+                  const my = (p.y + q.y) / 2
+                  return (
+                    <g key={e.id} className={`edge edge-via${on ? '' : ' off'}${dim ? ' dim' : ''}`}>
+                      <path d={`M${a.x},${a.y} L${mx},${my}`} />
+                      <circle cx={mx} cy={my} r={3.5} className="edge-via-dot" />
+                      {lit && (
+                        <text x={(a.x + mx) / 2} y={(a.y + my) / 2 - 5} className="edge-label">
+                          {e.label}
+                        </text>
+                      )}
+                    </g>
+                  )
+                }
+                const rr = radius(e.to)
                 const d = Math.hypot(b.x - a.x, b.y - a.y) || 1
-                const bx = b.x - ((b.x - a.x) / d) * (r + 3)
-                const by = b.y - ((b.y - a.y) / d) * (r + 3)
-                const dim = highlight && !(highlight.has(e.from) && highlight.has(e.to) && (e.from === selected || e.to === selected))
+                const bx = b.x - ((b.x - a.x) / d) * (rr + 3)
+                const by = b.y - ((b.y - a.y) / d) * (rr + 3)
+                const scoped = e.relation && e.relation.scope.kind !== 'geral'
                 return (
-                  <g key={e.id} className={`edge${e.derived ? ' edge-derived' : ''}${dim ? ' dim' : ''}${e.canon && e.canon !== 'estabelecido' ? ` edge-${e.canon}` : ''}`}>
-                    <line x1={a.x} y1={a.y} x2={bx} y2={by} markerEnd="url(#arrow)" />
-                    {(!dim && highlight) && (
-                      <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 4} className="edge-label">
+                  <g
+                    key={e.id}
+                    className={`edge${e.kind === 'derivada' ? ' edge-derived' : ''}${on ? '' : ' off'}${dim ? ' dim' : ''}${lit ? ' lit' : ''}${e.canon && e.canon !== 'estabelecido' ? ` edge-${e.canon}` : ''}${scoped ? ' edge-scoped' : ''}`}
+                  >
+                    <path d={`M${a.x},${a.y} L${bx},${by}`} pathLength={e.kind === 'relacao' && e.canon !== 'rumor' ? 1 : undefined} markerEnd="url(#arrow)" />
+                    {lit && (
+                      <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 5} className="edge-label">
                         {e.label}
                       </text>
                     )}
                   </g>
                 )
               })}
-              {nodes.map((n) => {
+              {nodes.map((n, i) => {
                 const p = pos.get(n.id)
                 if (!p) return null
-                const r = 13 + Math.min(10, (degree.get(n.id) ?? 0) * 1.5)
-                const dim = highlight && !highlight.has(n.id)
+                const r = radius(n.id)
+                const dim = (highlight && !highlight.has(n.id)) || (inTime && !liveIds.has(n.id))
                 return (
                   <g
                     key={n.id}
                     className={`node kind-${n.kind}${n.id === selected ? ' selected' : ''}${dim ? ' dim' : ''}`}
+                    style={{ ['--i' as string]: i }}
                     transform={`translate(${p.x} ${p.y})`}
                     tabIndex={0}
                     role="button"
                     aria-label={`${n.name}, ${kindLabel(n.kind)}`}
                     onClick={() => setSelected(n.id === selected ? null : n.id)}
+                    onPointerEnter={() => setHovered(n.id)}
+                    onPointerLeave={() => setHovered((h) => (h === n.id ? null : h))}
+                    onFocus={() => setHovered(n.id)}
+                    onBlur={() => setHovered((h) => (h === n.id ? null : h))}
                     onMouseDown={(e) => e.detail > 1 && e.preventDefault()}
                     onDoubleClick={(e) => {
                       e.preventDefault()
@@ -183,6 +364,7 @@ export default function GraphView() {
                       if (e.key === 'Enter') setSelected(n.id)
                     }}
                   >
+                    {n.id === selected && <circle r={r + 7} className="node-ring" />}
                     <circle r={r} />
                     <text y={r + 17} className="node-label">
                       {n.name}
@@ -209,27 +391,36 @@ export default function GraphView() {
               <span className="eyebrow">{kindLabel(sel.kind)}</span>
               <h2>{sel.name}</h2>
               {sel.summary && <p className="small">{sel.summary}</p>}
-              <ul className="plain-list small">
-                {selEdges.map((e) => (
-                  <li key={e.id}>
-                    {e.from === sel.id ? (
-                      <>
-                        {e.label} <strong>{entityName(universe, e.to)}</strong>
-                      </>
-                    ) : (
-                      <>
-                        <strong>{entityName(universe, e.from)}</strong> {e.label}
-                      </>
-                    )}
-                    {e.canon && e.canon !== 'estabelecido' && <CanonBadge canon={e.canon as never} />}
+              <ul className="plain-list small graph-panel-list">
+                {selRelations.map((r) => {
+                  const on = activeAt(r, scene)
+                  return (
+                    <li key={r.id} className={on ? undefined : 'muted'}>
+                      {relationSentence(universe, r)}
+                      {scopeLabel(universe, r) && <span className="muted"> · {scopeLabel(universe, r)}</span>}
+                      {r.canon !== 'estabelecido' && <CanonBadge canon={r.canon} />}
+                      {inTime && !on && <span className="tiny"> (não vale nesta cena)</span>}
+                    </li>
+                  )
+                })}
+                {sel.parentId && showDerived && (
+                  <li>
+                    fica em <strong>{entityName(universe, sel.parentId)}</strong>
                   </li>
-                ))}
+                )}
               </ul>
               <div className="inline-fields">
                 <button type="button" className="btn btn-sm btn-primary" onClick={() => go('fichas', sel.id)}>
                   Abrir ficha
                 </button>
-                <button type="button" className="btn btn-sm btn-ghost" onClick={() => { setFocusId(sel.id); setView({ x: 0, y: 0, k: 1 }) }}>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-ghost"
+                  onClick={() => {
+                    setFocusId(sel.id)
+                    setView({ x: 0, y: 0, k: 1 })
+                  }}
+                >
                   Centrar
                 </button>
                 <button type="button" className="btn btn-sm btn-ghost" onClick={() => peek(sel.id)}>
@@ -240,7 +431,9 @@ export default function GraphView() {
           )}
         </div>
       )}
-      <p className="muted small graph-hint">Arraste para mover, role para aproximar, clique numa ficha para destacar, duplo clique para abrir.</p>
+      <p className="muted small graph-hint">
+        Arraste para mover, role para aproximar, passe o mouse ou clique numa ficha para destacar, duplo clique para abrir. Linhas tracejadas: quem está por trás de uma relação.
+      </p>
     </div>
   )
 }
