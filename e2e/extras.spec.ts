@@ -315,3 +315,28 @@ test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', asy
   await page.waitForTimeout(200)
   expect(await stage.evaluate((el) => el.scrollTop)).toBe(before)
 })
+
+test('arrastar o grafo por cima de nomes e de texto selecionado não inicia o "arrastar e soltar"', async ({ page }) => {
+  await openSample(page)
+  await nav(page, 'Relações').click()
+  await expect(page.locator('.node').first()).toBeVisible()
+  await page.waitForTimeout(1200)
+  await page.evaluate(() => {
+    const w = window as unknown as { drags: number }
+    w.drags = 0
+    window.addEventListener('dragstart', (e) => !e.defaultPrevented && w.drags++)
+  })
+  const label = (await page.locator('.node-label').first().boundingBox())!
+  const hint = (await page.locator('.graph-hint').boundingBox())!
+  for (const [x, y] of [
+    [label.x + 5, label.y + 5],
+    [hint.x + 30, hint.y + 5],
+  ]) {
+    await page.mouse.dblclick(x, y)
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    await page.mouse.move(x + 220, y - 160, { steps: 10 })
+    await page.mouse.up()
+  }
+  expect(await page.evaluate(() => (window as unknown as { drags: number }).drags)).toBe(0)
+})
