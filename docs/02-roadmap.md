@@ -1,5 +1,7 @@
 # Papirus — Roadmap
 
+Estado: a versão 1 entrega uma primeira camada de todas as áreas abaixo (ver README). As próximas iterações aprofundam cada uma, na mesma ordem.
+
 Ordem das áreas de foco:
 
 1. **Escrita** — editor, margem viva, captura de fatos, perguntas de continuidade, revisão de sessão, ritmo. Ver [03-fase-1-escrita.md](03-fase-1-escrita.md).

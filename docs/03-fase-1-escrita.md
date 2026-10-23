@@ -1,6 +1,6 @@
 # Fase 1 — Escrita
 
-Status: **E1 em andamento.**
+Status: **E1 a E5 entregues na versão 1** (ver detalhes abaixo e no README).
 
 ### O que a E1 já entrega
 - Editor de cena com TipTap: negrito, itálico, tachado, citação, listas e separador de cena (`* * *`, ou `---` numa linha vazia).
