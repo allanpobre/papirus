@@ -9,6 +9,7 @@ import { useUniverse, type SaveStatus } from '../persistence/useUniverse'
 import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
+import { useCodexSync } from '../share/useCodexSync'
 import { Brand } from './Brand'
 import { NAV, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -54,6 +55,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const { universe, status, update, flush, repo } = useUniverse(library, initial, recovered)
   const { prefs, setPref } = prefsApi
   const folder = useFolderSync(library, repo, universe, status)
+  useCodexSync(universe, prefs)
   const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'escrever' }))
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])

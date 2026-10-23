@@ -11,9 +11,12 @@ import './styles/shell.css'
 import './styles/write.css'
 import './styles/views.css'
 import App from './App.tsx'
+import PlayerApp from './player/PlayerApp.tsx'
+import { readPlayerLink } from './share/server'
+
+// Link de jogador (?mesa=…): só o Codex, sem biblioteca nem dados deste navegador.
+const player = readPlayerLink(location.search)
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <StrictMode>{player ? <PlayerApp id={player.id} server={player.server} /> : <App />}</StrictMode>,
 )

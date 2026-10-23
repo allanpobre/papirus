@@ -2913,3 +2913,169 @@ code {
 .knowledge-view .table th:first-child {
   min-width: 15rem;
 }
+
+/* Codex ao vivo (mestre) */
+.share-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  padding: 0.8rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+
+.share-panel .section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.share-panel p {
+  margin: 0;
+}
+
+.share-on {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: var(--accent-faint);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent);
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+.live-dot.live-error {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 25%, transparent);
+  animation: none;
+}
+
+@keyframes live-pulse {
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--ok) 10%, transparent);
+  }
+}
+
+.share-link {
+  display: flex;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.share-link .input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+/* O QR fica sempre preto no branco, para qualquer câmera ler. */
+.share-qr {
+  width: 156px;
+  padding: 6px;
+  border-radius: var(--radius-s);
+  background: #fff;
+}
+
+.share-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ok-text,
+.error-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ok-text {
+  color: var(--ok);
+}
+
+.error-text {
+  color: var(--danger);
+}
+
+/* Codex dos jogadores (celular) */
+.player {
+  min-height: 100%;
+  background: var(--bg);
+}
+
+.player-top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: calc(0.6rem + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0.6rem max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.player-brand {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.player-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.player-live.on {
+  color: var(--ok);
+}
+
+.player-main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding-block: 1.2rem 3rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.player-main .codex-doc {
+  border-radius: var(--radius-l);
+}
+
+.player-new {
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-s);
+  background: var(--ochre-soft);
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.player-fresh .codex-doc {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ochre-line) 60%, transparent);
+  transition: box-shadow 0.4s;
+}
+
+.player-foot {
+  text-align: center;
+}

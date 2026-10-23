@@ -24,6 +24,10 @@ export interface Prefs {
   onboarded: boolean
   /** Último backup baixado e "lembrar depois", por universo (ISO). */
   backups: Record<string, { last?: string; snoozeUntil?: string }>
+  /** Servidor do Codex ao vivo (Supabase). Vazio = usa o da publicação, se houver. */
+  server: { url: string; anonKey: string }
+  /** Endereço público do Papirus, usado nos links dos jogadores. Vazio = o padrão. */
+  publicUrl: string
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -40,6 +44,8 @@ export const DEFAULT_PREFS: Prefs = {
   hiddenViews: [],
   onboarded: false,
   backups: {},
+  server: { url: '', anonKey: '' },
+  publicUrl: '',
 }
 
 const KEY = 'papirus:prefs'

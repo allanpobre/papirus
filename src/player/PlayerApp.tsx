@@ -1,0 +1,108 @@
+import { Moon, Radio, Sun } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { fetchCodex, listenCodex, type ServerConfig } from '../share/server'
+import { sameContent, type CodexSnapshot } from '../share/snapshot'
+import { CodexDoc } from '../views/rpg/CodexDoc'
+
+const POLL_MS = 20_000
+const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+/**
+ * O Codex no celular dos jogadores: só leitura, sem nada do universo além do que o
+ * mestre revelou. Atualiza na hora pelo aviso do servidor e, por garantia, a cada 20 s.
+ */
+export default function PlayerApp({ id, server }: { id: string; server: ServerConfig | null }) {
+  const [codex, setCodex] = useState<CodexSnapshot | null>(null)
+  const current = useRef<CodexSnapshot | null>(null)
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null)
+  const [state, setState] = useState<'carregando' | 'ok' | 'sumiu' | 'erro'>('carregando')
+  const [error, setError] = useState('')
+  const [live, setLive] = useState(false)
+  const [fresh, setFresh] = useState(false)
+  const [dark, setDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.hasAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches))
+
+  const load = useCallback(async () => {
+    if (!server) return
+    try {
+      const r = await fetchCodex(server, id)
+      if (!r) {
+        setState('sumiu')
+        return
+      }
+      const prev = current.current
+      if (prev && !sameContent(prev, r.data)) {
+        setFresh(true)
+        setTimeout(() => setFresh(false), 2500)
+      }
+      current.current = r.data
+      setCodex(r.data)
+      setUpdatedAt(r.updatedAt)
+      setState('ok')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+      setState((s) => (s === 'ok' ? 'ok' : 'erro'))
+    }
+  }, [server, id])
+
+  useEffect(() => {
+    if (!server) return
+    const first = setTimeout(() => void load(), 0)
+    const timer = setInterval(() => void load(), POLL_MS)
+    const onVisible = () => document.visibilityState === 'visible' && void load()
+    document.addEventListener('visibilitychange', onVisible)
+    const stop = listenCodex(server, id, () => void load(), setLive)
+    return () => {
+      clearTimeout(first)
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+      stop()
+    }
+  }, [server, id, load])
+
+  useEffect(() => {
+    document.title = codex ? `Codex · ${codex.group}` : 'Codex'
+  }, [codex])
+
+  const toggleTheme = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light')
+  }
+
+  return (
+    <div className="player">
+      <header className="player-top">
+        <span className="player-brand">{codex ? codex.universe : 'Codex'}</span>
+        <span className={`player-live${live ? ' on' : ''}`} title={live ? 'Recebendo na hora' : 'Atualiza a cada 20 segundos'}>
+          <Radio size={13} aria-hidden="true" /> {live ? 'ao vivo' : 'atualiza sozinho'}
+        </span>
+        <button type="button" className="btn-icon" aria-label={dark ? 'Tema claro' : 'Tema escuro'} onClick={toggleTheme}>
+          {dark ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+      </header>
+      <main className={`player-main${fresh ? ' player-fresh' : ''}`}>
+        {!server ? (
+          <p className="notice notice-error">Este link está incompleto: falta o endereço do servidor. Peça um link novo ao mestre.</p>
+        ) : state === 'carregando' ? (
+          <p className="muted">Abrindo o Codex…</p>
+        ) : state === 'sumiu' ? (
+          <p className="notice">Este Codex não está mais compartilhado. Peça um link novo ao mestre.</p>
+        ) : state === 'erro' && !codex ? (
+          <p className="notice notice-error" role="alert">
+            Não foi possível abrir o Codex: {error}
+          </p>
+        ) : codex ? (
+          <>
+            {fresh && (
+              <p className="player-new" role="status">
+                Novidades do mestre
+              </p>
+            )}
+            <CodexDoc codex={codex} />
+            {updatedAt && <p className="muted tiny player-foot">Atualizado às {timeFmt.format(new Date(updatedAt))} · feito com Papirus</p>}
+          </>
+        ) : null}
+      </main>
+    </div>
+  )
+}

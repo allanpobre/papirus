@@ -192,6 +192,8 @@ export const groupSchema = z.object({
   systemId: ref.default(null),
   /** Mostrar as fichas dos personagens dos jogadores no Codex da mesa. */
   showSheetsInCodex: z.boolean().default(true),
+  /** Codex ao vivo: id público (vai no link) e chave secreta do mestre. `null` = não compartilha. */
+  share: z.object({ id, key: z.string() }).nullable().default(null),
   ...timestamps,
 })
 

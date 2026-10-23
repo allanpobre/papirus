@@ -17,6 +17,7 @@ import { daysInYear } from '../logic/calendar'
 import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
+import { ServerCard } from './ServerCard'
 
 const QUESTION_LABEL: Record<QuestionType, string> = {
   'presenca-dupla': 'Personagem em dois lugares no mesmo dia',
@@ -209,6 +210,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         </section>
 
         <BookCard />
+
+        <ServerCard />
 
         <section className="settings-card settings-data">
           <h2 className="section-title">Seus dados</h2>

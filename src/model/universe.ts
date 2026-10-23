@@ -213,7 +213,7 @@ export const draftRevelation = (
   sessionId,
 })
 
-export const draftGroup = (name: string, systemId: string | null = null): Draft<'groups'> => ({ name, systemId, showSheetsInCodex: true })
+export const draftGroup = (name: string, systemId: string | null = null): Draft<'groups'> => ({ name, systemId, showSheetsInCodex: true, share: null })
 
 export const draftMap = (name: string, image: string, width: number, height: number): Draft<'maps'> => ({
   name,

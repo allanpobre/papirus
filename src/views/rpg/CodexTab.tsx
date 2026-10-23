@@ -1,14 +1,15 @@
-import { Copy, Download, MapPin, X } from 'lucide-react'
-import { useState } from 'react'
+import { Copy, Download, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { downloadText, fileNameFor } from '../../export/download'
-import { codexFor, codexMarkdown, factSentence, playerTag, revelationLabel } from '../../logic/codex'
-import { stripSecrets } from '../../logic/secrets'
-import { formatYear, kindPlural } from '../../model/labels'
+import { codexMarkdown, factSentence, revelationLabel } from '../../logic/codex'
 import type { Group, Revelation } from '../../model/schema'
 import { byId, draftRevelation, entityName, insert, patch, remove } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { Select } from '../../ui/bits'
 import { EntityPicker } from '../../ui/EntityPicker'
+import { codexSnapshot } from '../../share/snapshot'
+import { CodexDoc } from './CodexDoc'
+import { SharePanel } from './SharePanel'
 
 const TARGET_LABEL: Record<Revelation['target'], string> = {
   entidade: 'Ficha',
@@ -25,12 +26,9 @@ export function CodexTab({ group }: { group: Group }) {
   const sessions = universe.sessions.filter((s) => s.groupId === group.id).sort((a, b) => a.number - b.number)
   const [until, setUntil] = useState<string>('')
   const untilNumber = until ? Number(until) : undefined
-  const codex = codexFor(universe, group.id, untilNumber)
+  const snapshot = useMemo(() => codexSnapshot(universe, group.id, untilNumber), [universe, group.id, untilNumber])
   const revs = universe.revelations.filter((r) => r.groupId === group.id)
-  const kinds = [...new Set(codex.entries.map((e) => e.entity.kind))]
   const md = () => codexMarkdown(universe, group.id, untilNumber)
-  const suffix = universe.settings.calendarSuffix
-  const empty = !codex.entries.length && !codex.facts.length && !codex.events.length && !codex.clues.length && !codex.maps.length && !codex.sheets.length
 
   return (
     <div className="codex-layout">
@@ -71,6 +69,7 @@ export function CodexTab({ group }: { group: Group }) {
           <span className="toggle-track" aria-hidden="true" />
           <span>Mostrar as fichas dos personagens dos jogadores no Codex</span>
         </label>
+        <SharePanel group={group} />
       </section>
 
       <section className="codex-preview" aria-label="Codex como os jogadores veem">
@@ -102,110 +101,7 @@ export function CodexTab({ group }: { group: Group }) {
             <Download size={16} />
           </button>
         </div>
-        <div className="codex-doc">
-          <h2 className="codex-title">Codex</h2>
-          <p className="codex-sub">{group.name}</p>
-          {empty && <p className="muted">Nada foi revelado ainda.</p>}
-
-          {codex.sheets.length > 0 && (
-            <section>
-              <h3 className="codex-kind">O grupo</h3>
-              <div className="codex-party">
-                {codex.sheets.map((s) => {
-                  const system = universe.systems.find((x) => x.id === s.systemId)
-                  const fields = Object.entries(s.fields).filter(([, v]) => v.trim())
-                  return (
-                    <div key={s.id} className="codex-pc">
-                      <h4>{s.name}</h4>
-                      {s.player && <p className="muted small">{s.player}</p>}
-                      {fields.length > 0 && <p className="small">{fields.map(([k, v]) => `${k}: ${v}`).join(' · ')}</p>}
-                      {system && system.attributes.length > 0 && (
-                        <p className="codex-attrs">
-                          {system.attributes.map((a) => (
-                            <span key={a.id}>
-                              <strong>{a.abbr}</strong> {s.attributes[a.id] ?? a.default}
-                            </span>
-                          ))}
-                        </p>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
-          )}
-
-          {kinds.map((k) => (
-            <section key={k}>
-              <h3 className="codex-kind">{kindPlural(k)}</h3>
-              {codex.entries
-                .filter((e) => e.entity.kind === k)
-                .map(({ entity, depth }) => (
-                  <div key={entity.id} className="codex-entry">
-                    <h4>{entity.name}</h4>
-                    {depth !== 'nome' && stripSecrets(entity.summary) && <p>{stripSecrets(entity.summary)}</p>}
-                    {depth === 'completo' && stripSecrets(entity.description) && <p className="codex-desc">{stripSecrets(entity.description)}</p>}
-                    {depth === 'nome' && <p className="muted small">Ainda pouco se sabe.</p>}
-                  </div>
-                ))}
-            </section>
-          ))}
-
-          {codex.events.length > 0 && (
-            <section>
-              <h3 className="codex-kind">Linha do tempo</h3>
-              <ul className="codex-timeline">
-                {codex.events.map((e) => (
-                  <li key={e.id}>
-                    <strong>{e.endYear !== null ? `${formatYear(e.year, suffix)} – ${formatYear(e.endYear, suffix)}` : formatYear(e.year, suffix)}</strong> {e.title}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {codex.facts.length > 0 && (
-            <section>
-              <h3 className="codex-kind">O que sabemos</h3>
-              <ul>
-                {codex.facts.map((f) => (
-                  <li key={f.id}>
-                    {factSentence(universe, f)}
-                    {playerTag(universe, f) && <em className="muted"> ({playerTag(universe, f)})</em>}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {codex.clues.length > 0 && (
-            <section>
-              <h3 className="codex-kind">Pistas</h3>
-              <ul>
-                {codex.clues.map(({ seed, clue }) => (
-                  <li key={clue.id}>
-                    {clue.text}
-                    {seed.kind === 'misterio' && <em className="muted"> — {seed.title}</em>}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {codex.maps.map(({ map, pins }) => (
-            <section key={map.id}>
-              <h3 className="codex-kind">{map.name}</h3>
-              <div className="codex-map" style={{ aspectRatio: `${map.width} / ${map.height}`, backgroundImage: `url(${map.image})` }} role="img" aria-label={`Mapa ${map.name}`}>
-                {pins.map((p) => (
-                  <span key={p.id} className="pin codex-pin" style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}>
-                    <MapPin size={20} aria-hidden="true" />
-                    <span className="pin-label">{p.label || entityName(universe, p.entityId)}</span>
-                  </span>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        <CodexDoc codex={snapshot} />
       </section>
     </div>
   )
