@@ -149,11 +149,12 @@ export default function WriteView() {
     if (created) select(created.id)
   }
 
+  const openSceneId = scene?.id
   const onChange = useCallback(
     (doc: Scene['doc'], text: string) => {
-      if (scene) update((u) => updateScene(u, scene.id, { doc, text }))
+      if (openSceneId) update((u) => updateScene(u, openSceneId, { doc, text }))
     },
-    [scene?.id, update],
+    [openSceneId, update],
   )
 
   const guessFact = (sel: SelectionInfo): Partial<FactDraft> => {
