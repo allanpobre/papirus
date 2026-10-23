@@ -133,7 +133,8 @@ export function codexMarkdown(universe: Universe, groupId: string, untilSession?
   if (facts.length) {
     lines.push('## O que sabemos', '')
     for (const f of facts) {
-      const tag = f.canon === 'estabelecido' ? '' : ` _(${CANON_LABEL[f.canon].toLowerCase()})_`
+      const t = playerTag(universe, f)
+      const tag = t ? ` _(${t})_` : ''
       lines.push(`- ${factSentence(universe, f)}${tag}`)
     }
     lines.push('')
@@ -169,3 +170,13 @@ export function codexMarkdown(universe: Universe, groupId: string, untilSession?
 }
 
 export { kindLabel }
+
+/**
+ * Como os jogadores veem a natureza de um fato revelado. Mentira e segredo nunca
+ * aparecem como tais: mostram só quem disse. Boatos e lendas mantêm o rótulo.
+ */
+export function playerTag(universe: Universe, f: Fact): string {
+  const who = f.speakerId ? `segundo ${entityName(universe, f.speakerId)}` : ''
+  if (f.canon === 'estabelecido' || f.canon === 'falso' || f.canon === 'secreto') return who
+  return [CANON_LABEL[f.canon].toLowerCase(), who].filter(Boolean).join(', ')
+}

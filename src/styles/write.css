@@ -234,6 +234,11 @@
   z-index: 45;
 }
 
+/* Com uma janela aberta, a barra da seleção some (ela fica no body, por cima de tudo). */
+body:has([role='dialog']) .bubble-wrap {
+  display: none;
+}
+
 .bubble {
   display: flex;
   align-items: center;

@@ -89,6 +89,31 @@ export function FactDialog({
             <EntityPicker label="Valor (ficha)" hideLabel value={f.objectId} onChange={(v) => set('objectId', v)} />
           )}
         </div>
+        <div className="field field-wide">
+          <span className="field-label">É verdade?</span>
+          <div className="segmented" role="radiogroup" aria-label="É verdade?">
+            {(
+              [
+                ['estabelecido', 'Verdade'],
+                ['falso', 'Mentira ou engano'],
+                ['rumor', 'Boato'],
+                ['lenda', 'Lenda'],
+                ['disputado', 'Ninguém sabe ao certo'],
+              ] as const
+            ).map(([c, label]) => (
+              <button key={c} type="button" role="radio" aria-checked={f.canon === c} onClick={() => set('canon', c)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {f.canon === 'falso' && (
+            <p className="muted small">
+              {f.speakerId
+                ? 'Fica registrado como algo que foi dito, mas é falso. Personagens podem acreditar (em Conhecimento), e não conta como contradição.'
+                : 'Quem conta a mentira? Escolha em “Quem afirma”. Personagens podem acreditar nela, e ela não conta como contradição.'}
+            </p>
+          )}
+        </div>
         <EntityPicker
           label="Quem afirma"
           placeholder="Narrador (deixe vazio)"

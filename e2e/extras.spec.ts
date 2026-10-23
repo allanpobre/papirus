@@ -219,3 +219,17 @@ test('no celular, o menu "Mais" leva a todas as áreas e a página não rola de 
   await page.keyboard.press('Escape')
   await expect(page.getByRole('group', { name: 'Todas as áreas' })).toHaveCount(0)
 })
+
+test('a barra da seleção some quando a janela do fato abre, e dá para marcar mentira', async ({ page }) => {
+  await newUniverse(page)
+  await page.keyboard.type('Gean disse que era filho de Marcos.')
+  await selectText(page, 'filho de Marcos')
+  const bubble = page.getByRole('toolbar', { name: 'Ações da seleção' })
+  await bubble.getByRole('button', { name: 'Fato' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await expect(bubble).toBeHidden()
+  await dialog.getByRole('radio', { name: 'Mentira ou engano' }).click()
+  await expect(dialog.getByText('Quem conta a mentira?')).toBeVisible()
+  await expect(dialog.getByRole('combobox', { name: 'Canon' })).toHaveValue('falso')
+})

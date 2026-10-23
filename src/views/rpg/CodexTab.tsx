@@ -1,9 +1,9 @@
 import { Copy, Download, MapPin, X } from 'lucide-react'
 import { useState } from 'react'
 import { downloadText, fileNameFor } from '../../export/download'
-import { codexFor, codexMarkdown, factSentence, revelationLabel } from '../../logic/codex'
+import { codexFor, codexMarkdown, factSentence, playerTag, revelationLabel } from '../../logic/codex'
 import { stripSecrets } from '../../logic/secrets'
-import { CANON_LABEL, formatYear, kindPlural } from '../../model/labels'
+import { formatYear, kindPlural } from '../../model/labels'
 import type { Group, Revelation } from '../../model/schema'
 import { byId, draftRevelation, entityName, insert, patch, remove } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
@@ -171,7 +171,7 @@ export function CodexTab({ group }: { group: Group }) {
                 {codex.facts.map((f) => (
                   <li key={f.id}>
                     {factSentence(universe, f)}
-                    {f.canon !== 'estabelecido' && <em className="muted"> ({CANON_LABEL[f.canon].toLowerCase()})</em>}
+                    {playerTag(universe, f) && <em className="muted"> ({playerTag(universe, f)})</em>}
                   </li>
                 ))}
               </ul>

@@ -473,6 +473,7 @@ kbd,
 }
 
 .segmented {
+  flex-wrap: wrap;
   display: inline-flex;
   padding: 2px;
   border-radius: var(--radius-s);

@@ -222,3 +222,17 @@ describe('Codex: eventos, pistas, mapas e fichas do grupo', () => {
     expect(codexFor(v, group.id).sheets).toEqual([])
   })
 })
+
+describe('mentiras no Codex', () => {
+  it('a mesa vê quem disse, nunca que é falso', async () => {
+    const { draftFact } = await import('../model/universe')
+    const { playerTag } = await import('./codex')
+    const group = u.groups[0]
+    const [v, lie] = insert(u, 'facts', draftFact({ subjectId: find('Kael').id, predicate: 'é filho de', value: 'um pescador', speakerId: find('Mira').id, canon: 'falso' }))
+    const [w] = insert(v, 'revelations', draftRevelation(group.id, 'fato', lie.id, null))
+    expect(playerTag(w, lie)).toBe('segundo Mira')
+    const md = codexMarkdown(w, group.id)
+    expect(md).toContain('Kael é filho de um pescador _(segundo Mira)_')
+    expect(md).not.toMatch(/falso/i)
+  })
+})
