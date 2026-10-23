@@ -645,44 +645,40 @@
   flex: 1 1 260px;
 }
 
-/* Primeira vez */
+/* Primeira vez: escolha compacta */
 .welcome {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.25rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-  box-shadow: var(--shadow-1);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
 }
 
 .welcome-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 400;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-2);
 }
 
 .welcome-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 .welcome-option {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
   color: var(--ink);
-  text-align: left;
+  font-size: 0.88rem;
+  font-weight: 550;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, transform 0.15s;
 }
 
 .welcome-option svg {
@@ -695,30 +691,9 @@
   background: var(--accent-faint);
 }
 
-.welcome-option:active {
-  transform: translateY(1px);
-}
-
-.welcome-option-title {
-  font-weight: 650;
-}
-
-.welcome-option-desc {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.welcome-tips {
+.welcome > .tiny {
+  flex-basis: 100%;
   margin: 0;
-  padding-left: 1.1rem;
-  color: var(--ink-2);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.welcome > .link-btn {
-  align-self: flex-start;
 }
 
 /* Menu do celular */
@@ -846,4 +821,338 @@
   .rail-groups {
     gap: 0.2rem;
   }
+}
+
+/* ---------------------------------------------------------------- tela inicial (primeira visita) */
+
+.library-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.landing {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-block: 2.5rem 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+.landing-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.landing-copy .eyebrow {
+  margin: 0;
+  color: var(--accent);
+}
+
+.landing-copy h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.landing-copy .lede {
+  margin: 0;
+}
+
+.landing-copy .library-alt {
+  margin-top: -0.4rem;
+}
+
+.landing-note {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+  margin: 0;
+  color: var(--muted);
+}
+
+.landing-note svg {
+  flex: none;
+  margin-top: 0.15rem;
+  color: var(--ok);
+}
+
+/* A página de exemplo: papel com nomes reconhecidos e fichas na margem. */
+.landing-page {
+  position: relative;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing-sheet {
+  position: relative;
+  padding: 2rem 2rem 2.6rem 2.6rem;
+  border-radius: 4px 4px 14px 4px;
+  background: var(--paper);
+  box-shadow: var(--shadow-page);
+  font-family: var(--font-text);
+  font-size: 1.06rem;
+  line-height: 1.75;
+  color: var(--ink);
+  transform: rotate(-1.2deg);
+}
+
+.landing-sheet::before {
+  content: '';
+  position: absolute;
+  top: 1.4rem;
+  bottom: 1.4rem;
+  left: 1.3rem;
+  width: 1px;
+  background: var(--ochre-line);
+  opacity: 0.6;
+}
+
+.landing-sheet p {
+  margin: 0 0 0.8rem;
+}
+
+.landing-scene {
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.landing-name {
+  text-decoration: underline dotted var(--ochre-line);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.landing-fact {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: var(--ochre-soft);
+  color: inherit;
+}
+
+.landing-margin {
+  position: relative;
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: min(16rem, 70%);
+  margin-top: -1.6rem;
+  margin-right: -0.6rem;
+}
+
+.landing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  font-size: 0.82rem;
+}
+
+.landing-card strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.98rem;
+}
+
+.landing-card span {
+  color: var(--muted);
+}
+
+.landing-card-fact {
+  border-left-color: var(--ochre-line);
+}
+
+.landing-card-codex {
+  border-left-color: var(--violet);
+}
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.feature svg {
+  color: var(--accent);
+}
+
+.feature h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+}
+
+.feature p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.library-cloud {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+  color: var(--ink-2);
+}
+
+/* Conta */
+.account-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 34px;
+  max-width: 100%;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.account-btn.signed {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  color: var(--accent);
+}
+
+.account-btn:hover {
+  border-color: var(--accent);
+}
+
+.account-btn-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail .account-btn {
+  justify-content: center;
+  border-radius: var(--radius-s);
+}
+
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.account p {
+  margin: 0;
+}
+
+.account-email {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.account-server-link {
+  align-self: flex-start;
+  color: var(--muted);
+}
+
+.server-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+@media (max-width: 900px) {
+  .landing-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-page {
+    max-width: 34rem;
+  }
+
+  .landing-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .landing-features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-margin {
+    width: auto;
+    align-self: stretch;
+    margin: 0.8rem 0 0;
+  }
+
+  .landing-sheet {
+    transform: none;
+    padding: 1.4rem 1.2rem 1.6rem 1.8rem;
+  }
+
+  .landing-sheet::before {
+    left: 0.9rem;
+  }
+}
+
+.rail-bottom {
+  flex-wrap: wrap;
+}
+
+.rail-bottom .account-btn {
+  flex: 1 1 100%;
+  justify-content: flex-start;
+}
+
+.shell.rail-collapsed .rail-bottom .account-btn {
+  justify-content: center;
+  padding-inline: 0;
 }

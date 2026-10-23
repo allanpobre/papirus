@@ -4,6 +4,8 @@ import { Library, type LibraryEntry } from './persistence/repository'
 import { openBestStore, requestPersistentStorage } from './persistence/storage'
 import { LibraryScreen } from './shell/LibraryScreen'
 import { WorkspaceShell } from './shell/WorkspaceShell'
+import { accountServer, startAccount, useAccount } from './account/auth'
+import { syncLibrary } from './account/useCloud'
 import { recall, remember, usePrefs } from './state/prefs'
 
 interface Opened {
@@ -21,6 +23,21 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async (lib: Library) => setEntries(await lib.list()), [])
+  const account = useAccount()
+  const server = accountServer(prefsApi.prefs)
+
+  // Liga a conta ao servidor configurado (ou desliga, se não houver).
+  useEffect(() => {
+    void startAccount(server)
+  }, [server])
+
+  // Com conta e na biblioteca: sincroniza e mostra o que chegou de outros aparelhos.
+  const userId = account.user?.id
+  const inLibrary = !opened
+  useEffect(() => {
+    if (!library || !userId || !account.server || !inLibrary) return
+    void syncLibrary(library, account.server, userId).then((r) => r && refresh(library))
+  }, [library, userId, account.server, inLibrary, refresh])
 
   const open = useCallback(async (lib: Library, id: string) => {
     try {

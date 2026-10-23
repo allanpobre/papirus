@@ -10,6 +10,8 @@ import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
+import { AccountButton, AccountDialog } from '../account/AccountDialog'
+import { useCloudPush } from '../account/useCloud'
 import { Brand } from './Brand'
 import { NAV, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -56,6 +58,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const { prefs, setPref } = prefsApi
   const folder = useFolderSync(library, repo, universe, status)
   useCodexSync(universe, prefs)
+  const [accountOpen, setAccountOpen] = useState(false)
   const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'escrever' }))
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
@@ -90,6 +93,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     setToasts((t) => [...t.slice(-2), { id, message, ...options }])
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), options.action ? 7000 : 3500)
   }, [])
+  useCloudPush(library, universe, status, (copy) =>
+    toast(`Este universo também mudou em outro aparelho. A versão de lá foi guardada como “${copy}”.`, { tone: 'erro' }),
+  )
 
   const undoable = useCallback(
     (message: string, change: (u: Universe) => Universe) => {
@@ -260,6 +266,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </div>
 
           <div className="rail-bottom">
+            <AccountButton compact={collapsed} onClick={() => setAccountOpen(true)} />
             <span className="save-status" role="status" data-status={status} title={STATUS_LABEL[status]}>
               <span className="save-dot" aria-hidden="true" />
               <span className="rail-label">{STATUS_LABEL[status]}</span>
@@ -310,6 +317,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
         {peekId && <PeekDrawer entityId={peekId} onClose={() => setPeekId(null)} />}
         {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} />}
+        {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}
 
         <div className="toasts" aria-live="polite">
