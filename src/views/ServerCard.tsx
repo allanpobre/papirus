@@ -40,7 +40,7 @@ export function ServerFields({ prefs, setPref }: { prefs: Prefs; setPref: <K ext
     <div className="server-fields">
       <p className="muted small">
         Contas e o Codex ao vivo usam um projeto Supabase (plano grátis). Crie o projeto, rode no SQL Editor os scripts <code>supabase/codex.sql</code> e <code>supabase/contas.sql</code> do
-        repositório e cole aqui o endereço e a chave pública (em Project Settings → API).
+        repositório e cole aqui o endereço e a chave pública (em Project Settings → API Keys: a "publishable", que começa com sb_publishable_, ou a antiga "anon public", que começa com eyJ).
         {BUILD_SERVER && ' Esta publicação já vem com um servidor; preencha só se quiser usar outro.'}
       </p>
       <div className="form-grid">
@@ -57,9 +57,9 @@ export function ServerFields({ prefs, setPref }: { prefs: Prefs; setPref: <K ext
             />
           )}
         </Field>
-        <Field label="Chave pública (anon key)" hint="Pode ir no link dos jogadores: só permite ler.">
+        <Field label="Chave pública (anon key)" hint="Publishable (sb_publishable_…) ou anon (eyJ…). Nunca a secret nem a service_role.">
           {(id) => (
-            <input id={id} className="input" spellCheck={false} placeholder="eyJ…" value={server.anonKey} onChange={(e) => setPref('server', { ...server, anonKey: e.target.value.trim() })} />
+            <input id={id} className="input" spellCheck={false} placeholder="sb_publishable_… ou eyJ…" value={server.anonKey} onChange={(e) => setPref('server', { ...server, anonKey: e.target.value.trim() })} />
           )}
         </Field>
         <Field label="Endereço público do Papirus" hint="Onde os jogadores abrem o link." wide>
