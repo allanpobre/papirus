@@ -45,6 +45,9 @@ export function createUniverse(name = 'Meu universo'): Universe {
     inbox: [],
     maps: [],
     continuity: [],
+    systems: [],
+    sheets: [],
+    tables: [],
     settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [] },
     dailyStart: {},
     createdAt: t,
@@ -169,6 +172,8 @@ export const draftSession = (number: number, groupId: string | null): Draft<'ses
   prep: '',
   log: [],
   initiative: [],
+  turn: 0,
+  round: 1,
 })
 
 export const draftInbox = (
@@ -198,7 +203,7 @@ export const draftRevelation = (
   sessionId,
 })
 
-export const draftGroup = (name: string): Draft<'groups'> => ({ name })
+export const draftGroup = (name: string, systemId: string | null = null): Draft<'groups'> => ({ name, systemId })
 
 export const draftMap = (name: string, image: string, width: number, height: number): Draft<'maps'> => ({
   name,
@@ -367,6 +372,7 @@ export function removeEntity(universe: Universe, entityId: string): Universe {
       (r) => !(r.target === 'entidade' && r.targetId === entityId),
     ),
     maps: universe.maps.map((m) => ({ ...m, pins: m.pins.filter((p) => p.entityId !== entityId) })),
+    sheets: universe.sheets.map((s) => (s.entityId === entityId ? { ...s, entityId: null } : s)),
     updatedAt: t,
   }
 }
@@ -382,6 +388,7 @@ export function removeFact(universe: Universe, factId: string): Universe {
 export function removeGroup(universe: Universe, groupId: string): Universe {
   return {
     ...remove(universe, 'groups', groupId),
+    sheets: universe.sheets.map((s) => (s.groupId === groupId ? { ...s, groupId: null } : s)),
     sessions: universe.sessions.map((s) => (s.groupId === groupId ? { ...s, groupId: null } : s)),
     revelations: universe.revelations.filter((r) => r.groupId !== groupId),
   }
@@ -393,6 +400,26 @@ export function removeSession(universe: Universe, sessionId: string): Universe {
     revelations: universe.revelations.map((r) =>
       r.sessionId === sessionId ? { ...r, sessionId: null } : r,
     ),
+  }
+}
+
+/** Remove um sistema; mesas e fichas de jogo que o usavam ficam sem sistema. */
+export function removeSystem(universe: Universe, systemId: string): Universe {
+  return {
+    ...remove(universe, 'systems', systemId),
+    groups: universe.groups.map((g) => (g.systemId === systemId ? { ...g, systemId: null } : g)),
+    sheets: universe.sheets.map((s) => (s.systemId === systemId ? { ...s, systemId: null } : s)),
+  }
+}
+
+/** Remove uma ficha de jogo e tira o vínculo das iniciativas. */
+export function removeSheet(universe: Universe, sheetId: string): Universe {
+  return {
+    ...remove(universe, 'sheets', sheetId),
+    sessions: universe.sessions.map((s) => ({
+      ...s,
+      initiative: s.initiative.map((i) => (i.sheetId === sheetId ? { ...i, sheetId: null } : i)),
+    })),
   }
 }
 

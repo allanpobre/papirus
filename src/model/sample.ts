@@ -1,3 +1,5 @@
+import { draftSheet } from '../rpg/sheets'
+import { systemFromTemplate } from '../rpg/systems'
 import type { SceneDoc, Universe } from './schema'
 import {
   addScene,
@@ -234,8 +236,48 @@ export function sampleUniverse(): Universe {
   ;[u] = insert(u, 'seeds', { ...draftSeed('Os trezentos e doze degraus'), status: 'aberta', setupSceneId: c2.id, entityIds: [mira.id, ilsa.id] })
 
   // RPG: o mesmo mundo como campanha
+  let sistema
+  ;[u, sistema] = insert(u, 'systems', systemFromTemplate('d20-5e'))
   let grupo
-  ;[u, grupo] = insert(u, 'groups', draftGroup('Mesa de sexta'))
+  ;[u, grupo] = insert(u, 'groups', draftGroup('Mesa de sexta', sistema.id))
+  const attr = (abbr: string) => sistema.attributes.find((a) => a.abbr === abbr)!.id
+  const skill = (name: string) => sistema.skills.find((k) => k.name === name)!.id
+  const pv = sistema.resources[0].id
+  const ca = sistema.resources[1].id
+  const pc = (name: string, player: string, attrs: Record<string, number>, skills: Record<string, number>, hp: number, armor: number, fields: Record<string, string>) => {
+    const base = draftSheet(name, sistema, { role: 'pj', player, groupId: grupo.id })
+    ;[u] = insert(u, 'sheets', {
+      ...base,
+      attributes: { ...base.attributes, ...Object.fromEntries(Object.entries(attrs).map(([k, v]) => [attr(k), v])) },
+      skills: { ...base.skills, ...Object.fromEntries(Object.entries(skills).map(([k, v]) => [skill(k), v])) },
+      resources: { ...base.resources, [pv]: { current: hp, max: hp }, [ca]: { current: armor, max: armor } },
+      fields: { ...base.fields, ...fields },
+    })
+  }
+  pc('Brisa', 'Ana', { FOR: 8, DES: 16, CON: 12, INT: 13, SAB: 10, CAR: 14 }, { Furtividade: 4, Prestidigitação: 2, Percepção: 2, Enganação: 2 }, 22, 14, { 'Classe e nível': 'Ladina 3', Raça: 'Meio-elfa', Antecedente: 'Criminosa' })
+  pc('Taren', 'Bruno', { FOR: 16, DES: 10, CON: 15, INT: 8, SAB: 12, CAR: 10 }, { Atletismo: 2, Intimidação: 2, Sobrevivência: 2 }, 31, 17, { 'Classe e nível': 'Guerreiro 3', Raça: 'Humano', Antecedente: 'Soldado' })
+  pc('Ilmar', 'Carla', { FOR: 9, DES: 12, CON: 13, INT: 17, SAB: 12, CAR: 10 }, { Arcanismo: 2, História: 2, Investigação: 2 }, 17, 12, { 'Classe e nível': 'Mago 3', Raça: 'Elfo', Antecedente: 'Sábio' })
+  {
+    const base = draftSheet('Kael (contrabandista)', sistema, { role: 'npc', groupId: grupo.id, entityId: kael.id })
+    ;[u] = insert(u, 'sheets', {
+      ...base,
+      attributes: { ...base.attributes, [attr('DES')]: 14, [attr('CAR')]: 12 },
+      skills: { ...base.skills, [skill('Enganação')]: 2, [skill('Furtividade')]: 2 },
+      resources: { ...base.resources, [pv]: { current: 18, max: 18 }, [ca]: { current: 13, max: 13 } },
+      notes: 'Desconfiado. Ajuda os jogadores se envolverem a irmã dele.',
+    })
+  }
+  ;[u] = insert(u, 'tables', {
+    name: 'Rumores do porto',
+    entries: [
+      'Um navio sem nome atracou ontem à noite.',
+      'A luz na Torre de Marfim voltou a acender.',
+      'Os sacerdotes da Maré dizem que os mortos estão voltando.',
+      'Alguém está comprando vidro negro no mercado.',
+      'A guarda da cidade dobrou as rondas perto das falésias.',
+      'Uma menina das docas foi vista com um anel da casa real.',
+    ],
+  })
   let s1
   ;[u, s1] = insert(u, 'sessions', {
     ...draftSession(1, grupo.id),
@@ -244,8 +286,8 @@ export function sampleUniverse(): Universe {
     playedOn: '2026-10-09',
     prep: 'Abrir no porto à noite. O estranho desce do navio. Se perguntarem, ninguém sabe de onde veio o navio.',
     log: [
-      { id: crypto.randomUUID(), at: '20:14', text: 'Os jogadores seguiram o estranho até a taverna.' },
-      { id: crypto.randomUUID(), at: '21:02', text: 'Bardo tentou ler a mente dele; falhou feio.' },
+      { id: crypto.randomUUID(), at: '20:14', text: 'Os jogadores seguiram o estranho até a taverna.', kind: 'nota' },
+      { id: crypto.randomUUID(), at: '21:02', text: 'Bardo tentou ler a mente dele; falhou feio.', kind: 'nota' },
     ],
   })
   ;[u] = insert(u, 'sessions', { ...draftSession(2, grupo.id), title: 'Sessão 2 — A Torre', prep: 'Luz na janela da Torre de Marfim. Ilsa pode aparecer se forem até lá.' })

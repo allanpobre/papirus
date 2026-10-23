@@ -181,7 +181,81 @@ export const seedSchema = z.object({
   ...timestamps,
 })
 
-export const groupSchema = z.object({ id, name: z.string(), ...timestamps })
+export const groupSchema = z.object({
+  id,
+  name: z.string(),
+  /** Sistema de jogo da mesa. `null` = sem sistema. */
+  systemId: ref.default(null),
+  ...timestamps,
+})
+
+/** Como o resultado de uma rolagem é lido. */
+export const RESOLUTION_MODES = ['total', 'sucessos', 'abaixo'] as const
+/** Como um atributo vira modificador. */
+export const MODIFIER_RULES = ['nenhum', 'direto', 'd20'] as const
+
+/**
+ * Sistema de jogo editável: atributos, recursos, perícias, fórmulas de rolagem e
+ * condições. Pode nascer de um modelo pronto ou do zero.
+ */
+export const gameSystemSchema = z.object({
+  id,
+  name: z.string(),
+  /** Modelo de origem, só para referência. */
+  template: z.string().nullable(),
+  attributes: z.array(
+    z.object({ id, abbr: z.string(), name: z.string(), default: z.number(), min: z.number(), max: z.number() }),
+  ),
+  modifierRule: z.enum(MODIFIER_RULES),
+  resources: z.array(z.object({ id, abbr: z.string(), name: z.string(), default: z.number() })),
+  skills: z.array(z.object({ id, name: z.string(), attributeId: ref })),
+  /** Fórmulas com marcadores: {atr}, {mod}, {per}, {SIGLA}, {mod:SIGLA}. */
+  skillFormula: z.string(),
+  attributeFormula: z.string(),
+  initiativeFormula: z.string(),
+  resolution: z.enum(RESOLUTION_MODES),
+  /** No modo "sucessos": valor mínimo de um dado para contar como sucesso. */
+  successTarget: z.number().int(),
+  /** Zero (ou menos) dados vira "rola 2 e fica com o pior". */
+  zeroDiceRule: z.boolean(),
+  conditions: z.array(z.string()),
+  /** Campos de texto da ficha: classe, origem, trilha… */
+  fields: z.array(z.string()),
+  /** Partes da mesa que este sistema usa. */
+  features: z.object({
+    initiative: z.boolean(),
+    resources: z.boolean(),
+    conditions: z.boolean(),
+    rollLog: z.boolean(),
+  }),
+  ...timestamps,
+})
+
+/** Ficha de jogo de um personagem de jogador ou NPC, ligada (ou não) a uma ficha do mundo. */
+export const sheetSchema = z.object({
+  id,
+  name: z.string(),
+  role: z.enum(['pj', 'npc']),
+  player: z.string(),
+  entityId: ref,
+  groupId: ref,
+  systemId: ref,
+  attributes: z.record(z.string(), z.number()),
+  resources: z.record(z.string(), z.object({ current: z.number(), max: z.number() })),
+  skills: z.record(z.string(), z.number()),
+  conditions: z.array(z.string()),
+  fields: z.record(z.string(), z.string()),
+  notes: z.string(),
+  ...timestamps,
+})
+
+/** Tabela aleatória do mestre: nomes, rumores, encontros… */
+export const randomTableSchema = z.object({
+  id,
+  name: z.string(),
+  entries: z.array(z.string()),
+  ...timestamps,
+})
 
 export const SESSION_STATUSES = ['planejada', 'em-andamento', 'encerrada'] as const
 
@@ -194,10 +268,23 @@ export const sessionSchema = z.object({
   groupId: ref,
   status: z.enum(SESSION_STATUSES),
   prep: z.string(),
-  log: z.array(z.object({ id, at: z.string(), text: z.string() })),
-  initiative: z.array(
-    z.object({ id, name: z.string(), value: z.number(), hp: z.string(), note: z.string() }),
+  log: z.array(
+    z.object({ id, at: z.string(), text: z.string(), kind: z.enum(['nota', 'rolagem']).default('nota') }),
   ),
+  initiative: z.array(
+    z.object({
+      id,
+      name: z.string(),
+      value: z.number(),
+      hp: z.string(),
+      note: z.string(),
+      /** Ficha de jogo ligada, para recursos e condições. */
+      sheetId: ref.default(null),
+    }),
+  ),
+  /** Posição na ordem de iniciativa e número da rodada. */
+  turn: z.number().int().nonnegative().default(0),
+  round: z.number().int().positive().default(1),
   ...timestamps,
 })
 
@@ -270,6 +357,9 @@ export const universeSchema = z.object({
   inbox: z.array(inboxItemSchema),
   maps: z.array(atlasMapSchema),
   continuity: z.array(continuityAnswerSchema),
+  systems: z.array(gameSystemSchema).default([]),
+  sheets: z.array(sheetSchema).default([]),
+  tables: z.array(randomTableSchema).default([]),
   settings: universeSettingsSchema,
   /** Total de palavras no início de cada dia (AAAA-MM-DD), para metas diárias. */
   dailyStart: z.record(z.string(), z.number()),
@@ -302,6 +392,9 @@ export type SeedStatus = Seed['status']
 export type Group = z.infer<typeof groupSchema>
 export type Session = z.infer<typeof sessionSchema>
 export type Revelation = z.infer<typeof revelationSchema>
+export type GameSystem = z.infer<typeof gameSystemSchema>
+export type Sheet = z.infer<typeof sheetSchema>
+export type RandomTable = z.infer<typeof randomTableSchema>
 export type InboxItem = z.infer<typeof inboxItemSchema>
 export type AtlasMap = z.infer<typeof atlasMapSchema>
 export type ContinuityAnswer = z.infer<typeof continuityAnswerSchema>
@@ -323,4 +416,7 @@ export type CollectionKey =
   | 'revelations'
   | 'inbox'
   | 'maps'
+  | 'systems'
+  | 'sheets'
+  | 'tables'
 export type RecordOf<K extends CollectionKey> = Universe[K][number]

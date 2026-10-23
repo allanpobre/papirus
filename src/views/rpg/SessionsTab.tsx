@@ -1,4 +1,4 @@
-import { Flag, Play, Plus, Send, Trash2, X } from 'lucide-react'
+import { Dices, Flag, Play, Plus, Send, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { factSentence } from '../../logic/codex'
 import { SESSION_STATUS_LABEL } from '../../model/labels'
@@ -9,9 +9,11 @@ import { Empty, Field, Select } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { EntityPicker } from '../../ui/EntityPicker'
 import { InitiativeTracker } from './InitiativeTracker'
+import { useRpg } from './rpgContext'
 
-export function SessionsTab({ group }: { group: Group }) {
+export function SessionsTab() {
   const { universe, update, nav } = useWorkspace()
+  const { group, system } = useRpg()
   const sessions = universe.sessions.filter((s) => s.groupId === group.id).sort((a, b) => b.number - a.number)
   const [openId, setOpenId] = useState<string | null>(
     (nav.view === 'rpg' && nav.id && sessions.some((s) => s.id === nav.id) ? nav.id : null) ?? sessions.find((s) => s.status !== 'encerrada')?.id ?? sessions[0]?.id ?? null,
@@ -53,13 +55,17 @@ export function SessionsTab({ group }: { group: Group }) {
         )}
       </section>
       <section className="split-detail" aria-label="Sessão">
-        {session ? <SessionDetail key={session.id} session={session} group={group} onDeleted={() => setOpenId(null)} /> : <Empty title="Escolha ou crie uma sessão." />}
+        {session ? (
+          <SessionDetail key={session.id} session={session} group={group} showInitiative={system ? system.features.initiative : true} onDeleted={() => setOpenId(null)} />
+        ) : (
+          <Empty title="Escolha ou crie uma sessão." />
+        )}
       </section>
     </div>
   )
 }
 
-function SessionDetail({ session: s, group, onDeleted }: { session: Session; group: Group; onDeleted: () => void }) {
+function SessionDetail({ session: s, group, showInitiative, onDeleted }: { session: Session; group: Group; showInitiative: boolean; onDeleted: () => void }) {
   const { universe, update, toast, undoable, go } = useWorkspace()
   const [note, setNote] = useState('')
   const [revealId, setRevealId] = useState<string | null>(null)
@@ -71,7 +77,7 @@ function SessionDetail({ session: s, group, onDeleted }: { session: Session; gro
   const addNote = () => {
     if (!note.trim()) return
     const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    set({ log: [...s.log, { id: newId(), at, text: note.trim() }], status: s.status === 'planejada' ? 'em-andamento' : s.status })
+    set({ log: [...s.log, { id: newId(), at, text: note.trim(), kind: 'nota' }], status: s.status === 'planejada' ? 'em-andamento' : s.status })
     setNote('')
   }
 
@@ -140,9 +146,11 @@ function SessionDetail({ session: s, group, onDeleted }: { session: Session; gro
           <h2 className="section-title">Registro da mesa</h2>
           <ol className="log">
             {s.log.map((l) => (
-              <li key={l.id}>
+              <li key={l.id} className={l.kind === 'rolagem' ? 'log-roll' : undefined}>
                 <span className="log-at tabular">{l.at}</span>
-                <span className="log-text">{l.text}</span>
+                <span className="log-text">
+                  {l.kind === 'rolagem' && <Dices size={13} aria-label="Rolagem" />} {l.text}
+                </span>
                 <button type="button" className="btn-icon btn-xs" aria-label="Remover nota" onClick={() => set({ log: s.log.filter((x) => x.id !== l.id) })}>
                   <X size={12} />
                 </button>
@@ -231,7 +239,7 @@ function SessionDetail({ session: s, group, onDeleted }: { session: Session; gro
         </section>
       </div>
 
-      <InitiativeTracker session={s} />
+      {showInitiative && <InitiativeTracker session={s} />}
     </article>
   )
 }

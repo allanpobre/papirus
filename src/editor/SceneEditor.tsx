@@ -52,7 +52,8 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
   const editor = useEditor({
     extensions: sceneExtensions,
     content: doc,
-    autofocus: 'end',
+    // Foco manual (abaixo): o automático do editor pode roubar o foco de uma janela recém-aberta.
+    autofocus: false,
     editorProps: {
       attributes: { 'aria-label': 'Texto da cena', class: 'scene-text', spellcheck: 'true', lang: 'pt-BR' },
       handleClick: (_view, _pos, event) => {
@@ -76,6 +77,16 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
   })
 
   useEffect(() => () => clearTimeout(cursorTimer.current), [])
+
+  // Leva o cursor ao fim do texto ao abrir a cena, se nada mais estiver com o foco.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const active = document.activeElement
+      const free = !active || active === document.body || active.closest('.scene-meta, .write-tree, .rail') !== null
+      if (free && !document.querySelector('.overlay, [role="dialog"]') && !editor.isDestroyed) editor.commands.focus('end')
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [editor])
 
   useEffect(() => {
     if (!editor.isDestroyed) editor.commands.setMatcher(matcher)

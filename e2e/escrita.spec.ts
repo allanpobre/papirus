@@ -236,14 +236,14 @@ test('RPG: registro de sessão vai para a Inbox ao encerrar', async ({ page }) =
 test('dados: rola expressões e recusa as inválidas', async ({ page }) => {
   await openSample(page)
   await nav(page, 'RPG').click()
-  await page.getByRole('tab', { name: 'Dados e iniciativa' }).click()
+  await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
   await page.getByRole('textbox', { name: 'Rolagem' }).fill('2d6+100')
-  await page.getByRole('button', { name: 'Rolar' }).click()
+  await page.getByRole('button', { name: 'Rolar', exact: true }).first().click()
   const total = Number(await page.locator('.dice-total').textContent())
   expect(total).toBeGreaterThanOrEqual(102)
   expect(total).toBeLessThanOrEqual(112)
   await page.getByRole('textbox', { name: 'Rolagem' }).fill('banana')
-  await page.getByRole('button', { name: 'Rolar' }).click()
+  await page.getByRole('button', { name: 'Rolar', exact: true }).first().click()
   await expect(page.getByRole('alert')).toContainText('Não entendi')
 })
 
