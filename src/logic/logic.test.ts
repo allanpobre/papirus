@@ -180,3 +180,45 @@ describe('ritmo e presença', () => {
     expect(longestAbsence(rows, kael)).toBe(1)
   })
 })
+
+describe('Codex: eventos, pistas, mapas e fichas do grupo', () => {
+  it('mostra só o que foi revelado de cada tipo', async () => {
+    const { draftMap, newId } = await import('../model/universe')
+    let v = u
+    const group = v.groups[0]
+    const queda = v.events.find((e) => e.title === 'A Queda')!
+    const misterio = v.seeds.find((s) => s.kind === 'misterio')!
+    const pinOstria = { id: newId(), entityId: find('Ostria').id, x: 0.5, y: 0.5, label: '' }
+    const pinBrumas = { id: newId(), entityId: find('Vale das Brumas').id, x: 0.2, y: 0.2, label: '' }
+    const pinTorre = { id: newId(), entityId: find('Torre de Marfim').id, x: 0.4, y: 0.4, label: '' }
+    let map
+    ;[v, map] = insert(v, 'maps', { ...draftMap('Costa', 'data:,', 10, 10), pins: [pinOstria, pinBrumas, pinTorre] })
+    for (const [target, id] of [
+      ['evento', queda.id],
+      ['pista', misterio.clues[0].id],
+      ['mapa', map.id],
+      ['marcador', pinBrumas.id],
+    ] as const) {
+      ;[v] = insert(v, 'revelations', draftRevelation(group.id, target, id, null))
+    }
+    const codex = codexFor(v, group.id)
+    expect(codex.events.map((e) => e.title)).toEqual(['A Queda'])
+    expect(codex.clues.map((c) => c.clue.text)).toEqual([misterio.clues[0].text])
+    // Brumas foi revelado como marcador; Ostria e a Torre porque as fichas são conhecidas.
+    expect(codex.maps[0].pins.map((p) => p.id).sort()).toEqual([pinOstria.id, pinBrumas.id, pinTorre.id].sort())
+    expect(codex.sheets.map((s) => s.name)).toEqual(['Brisa', 'Taren', 'Ilmar'])
+
+    const md = codexMarkdown(v, group.id)
+    expect(md).toContain('## Linha do tempo')
+    expect(md).toContain('A Queda')
+    expect(md).toContain('## Pistas')
+    expect(md).toContain('## O grupo')
+    expect(md).toContain('### Brisa (Ana)')
+  })
+
+  it('a mesa pode esconder as fichas do grupo', () => {
+    const group = { ...u.groups[0], showSheetsInCodex: false }
+    const v = { ...u, groups: [group] }
+    expect(codexFor(v, group.id).sheets).toEqual([])
+  })
+})

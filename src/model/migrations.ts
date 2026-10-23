@@ -27,7 +27,7 @@ const migrations: Record<number, (data: Data) => Data> = {
         inbox: [],
         maps: [],
         continuity: [],
-        settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [] },
+        settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [] },
         dailyStart: {},
         ...u,
         stories: ((u.stories as Data[]) ?? []).map((s) => ({ synopsis: '', ...s })),

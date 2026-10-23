@@ -21,7 +21,9 @@ import {
 } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, CanonSelect, EditorialBadge, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
+import { Fold } from '../ui/Fold'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { SecretTextarea } from '../ui/SecretText'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
 
@@ -215,7 +217,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
             </Field>
             <Field label="Descrição" wide>
               {(id) => (
-                <textarea id={id} className="input textarea textarea-prose" rows={8} value={e.description} placeholder="Escreva livremente." onChange={(ev) => set({ description: ev.target.value })} />
+                <SecretTextarea id={id} value={e.description} placeholder="Escreva livremente." onChange={(v) => set({ description: v })} />
               )}
             </Field>
             <div className="field-wide">
@@ -223,8 +225,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
             </div>
           </div>
 
-          <section className="entity-section">
-            <h2 className="section-title">Campos</h2>
+          <Fold id="ficha-campos" title="Campos">
             {e.fields.map((f, i) => (
               <div key={i} className="kv-row">
                 <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
@@ -237,7 +238,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => set({ fields: [...e.fields, { key: '', value: '' }] })}>
               <Plus size={14} /> Campo
             </button>
-          </section>
+          </Fold>
 
           <RelationsSection entity={e} outgoing={outgoing} incoming={incoming} />
 
@@ -267,8 +268,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
         </div>
 
         <aside className="entity-side">
-          <section className="entity-section">
-            <h2 className="section-title">Aparições</h2>
+          <Fold id="ficha-apari-es" title="Aparições">
             {appearances.length === 0 ? (
               <p className="muted small">Ainda não aparece no manuscrito.</p>
             ) : (
@@ -284,11 +284,10 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
                 ))}
               </ul>
             )}
-          </section>
+          </Fold>
 
           {children.length > 0 && (
-            <section className="entity-section">
-              <h2 className="section-title">Contém</h2>
+            <Fold id="ficha-cont-m" title="Contém">
               <div className="chips">
                 {children.map((c) => (
                   <button key={c.id} type="button" className="chip chip-entity" onClick={() => go('fichas', c.id)}>
@@ -296,11 +295,10 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
                   </button>
                 ))}
               </div>
-            </section>
+            </Fold>
           )}
 
-          <section className="entity-section">
-            <h2 className="section-title">Linha do tempo</h2>
+          <Fold id="ficha-linha-do-tempo" title="Linha do tempo">
             {events.length === 0 && e.startYear === null && e.endYear === null ? (
               <p className="muted small">Nenhum evento ligado.</p>
             ) : (
@@ -324,11 +322,10 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
                 )}
               </ol>
             )}
-          </section>
+          </Fold>
 
           {seeds.length > 0 && (
-            <section className="entity-section">
-              <h2 className="section-title">Tramas</h2>
+            <Fold id="ficha-tramas" title="Tramas">
               <ul className="plain-list small">
                 {seeds.map((s) => (
                   <li key={s.id}>
@@ -339,7 +336,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
                   </li>
                 ))}
               </ul>
-            </section>
+            </Fold>
           )}
 
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('relacoes', e.id)}>
@@ -430,8 +427,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
   )
 
   return (
-    <section className="entity-section">
-      <h2 className="section-title">Relações</h2>
+    <Fold id="ficha-rela-es" title="Relações">
       {outgoing.length + incoming.length === 0 && <p className="muted small">Nenhuma relação ainda.</p>}
       <ul className="relation-list">
         {outgoing.map((r) => row(r, true))}
@@ -450,7 +446,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
           <option key={t} value={t} />
         ))}
       </datalist>
-    </section>
+    </Fold>
   )
 }
 
@@ -461,8 +457,7 @@ function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Uni
   const factOptions = universe.facts.map((f) => ({ value: f.id, label: factSentence(universe, f).slice(0, 80) }))
 
   return (
-    <section className="entity-section">
-      <h2 className="section-title">O que {e.name || 'esta ficha'} sabe</h2>
+    <Fold id="ficha-o-que-x-sabe" title={<>O que {e.name || 'esta ficha'} sabe</>}>
       {entries.length === 0 && <p className="muted small">Nada registrado. Útil para pontos de vista, segredos e mentiras.</p>}
       <ul className="knowledge-list">
         {entries.map((k) => {
@@ -507,7 +502,7 @@ function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Uni
       ) : (
         <p className="muted small">Registre fatos primeiro.</p>
       )}
-    </section>
+    </Fold>
   )
 }
 

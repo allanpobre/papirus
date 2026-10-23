@@ -2506,3 +2506,330 @@ code {
 .system-editor .form-grid .select {
   width: 100%;
 }
+
+/* Áreas do menu e calendário */
+.area-toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.45rem 1rem;
+}
+
+.calendar-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.month-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.month-row {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr) 5rem auto auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.month-date {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+/* Seções recolhíveis */
+.fold > .fold-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  list-style: none;
+  cursor: pointer;
+  border-radius: var(--radius-s);
+  user-select: none;
+}
+
+.fold > .fold-summary::-webkit-details-marker {
+  display: none;
+}
+
+.fold > .fold-summary .section-title {
+  margin: 0;
+}
+
+.fold > .fold-summary:hover .fold-chevron {
+  color: var(--accent);
+}
+
+.fold-chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.fold[open] > .fold-summary .fold-chevron {
+  transform: rotate(90deg);
+}
+
+.fold-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* Segredos */
+.secret-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.secret-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.secret-mark {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: var(--wine-soft);
+  color: inherit;
+  outline: 1px dashed color-mix(in srgb, var(--wine) 45%, transparent);
+}
+
+/* Codex: tipos e novas seções */
+.reveal-kind {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.codex-party {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.6rem;
+}
+
+.codex-pc {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.codex-pc h4 {
+  margin: 0 0 0.15rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.codex-pc p {
+  margin: 0.15rem 0;
+}
+
+.codex-attrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.codex-timeline li strong {
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.35rem;
+}
+
+.codex-map {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius);
+  background-size: cover;
+  background-position: center;
+  background-color: var(--surface-3);
+  border: 1px solid var(--line);
+}
+
+.codex-pin {
+  pointer-events: none;
+}
+
+/* Na mesa: tela de jogo para tablet e celular */
+.table-start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 2rem 0;
+}
+
+.table-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.table-mode-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+}
+
+.table-mode-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.2rem;
+}
+
+.table-full {
+  margin-left: auto;
+}
+
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.table-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.table-panel .section-title {
+  margin: 0;
+}
+
+.table-initiative {
+  grid-row: span 2;
+}
+
+.pc-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.pc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.pc-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.pc-res {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-icon.pc-step {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.pc-res-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.pc-res-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.pc-rolls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.pc-rolls .chip {
+  min-height: 34px;
+  min-width: 46px;
+  justify-content: center;
+  font-family: var(--font-mono);
+}
+
+.pc-conditions summary {
+  cursor: pointer;
+  color: var(--ink-2);
+}
+
+.pc-conditions .chips {
+  margin-top: 0.35rem;
+}
+
+.table-dice .die {
+  min-height: 52px;
+}
+
+.table-log {
+  max-height: 340px;
+}
+
+.table-log li {
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+}
+
+.rpg-at-table .dice-tray {
+  bottom: 1rem;
+}
+
+@media (max-width: 720px) {
+  .table-initiative {
+    grid-row: auto;
+  }
+
+  .table-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dice-result > .muted {
+  color: color-mix(in srgb, var(--paper) 78%, var(--ink));
+}
+
+.table-initiative > .initiative {
+  padding-top: 0;
+  border-top: 0;
+}

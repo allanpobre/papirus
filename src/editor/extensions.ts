@@ -1,5 +1,6 @@
 import { Placeholder } from '@tiptap/extensions'
 import StarterKit from '@tiptap/starter-kit'
+import { Comment } from './comment'
 import { Detection, Mention } from './mention'
 
 /**
@@ -16,6 +17,7 @@ export const baseExtensions = [
     underline: false,
   }),
   Mention,
+  Comment,
 ]
 
 export const sceneExtensions = [

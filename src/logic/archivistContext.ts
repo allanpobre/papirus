@@ -4,6 +4,7 @@ import { byId, entityName, manuscriptOrder } from '../model/universe'
 import { factSentence } from './codex'
 import { MentionMatcher } from './detection'
 import { searchUniverse } from './search'
+import { stripSecrets } from './secrets'
 import { snippet } from './text'
 
 export interface ContextOptions {
@@ -78,8 +79,9 @@ export function buildArchivistContext(universe: Universe, question: string, opti
     if (e.aliases.length) lines.push(`Outros nomes: ${e.aliases.join(', ')}`)
     if (e.parentId) lines.push(`Fica em: ${entityName(universe, e.parentId)}`)
     if (span) lines.push(`Período: ${span}`)
-    if (e.summary) lines.push(`Resumo: ${e.summary}`)
-    if (e.description) lines.push(`Descrição: ${e.description}`)
+    const clean = (t: string) => (options.includeSecrets ? t : stripSecrets(t))
+    if (clean(e.summary)) lines.push(`Resumo: ${clean(e.summary)}`)
+    if (clean(e.description)) lines.push(`Descrição: ${clean(e.description)}`)
     for (const f of e.fields) if (f.key || f.value) lines.push(`${f.key}: ${f.value}`)
     if (e.tags.length) lines.push(`Etiquetas: ${e.tags.join(', ')}`)
   }

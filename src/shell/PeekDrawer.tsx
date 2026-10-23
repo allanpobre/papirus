@@ -5,6 +5,7 @@ import { byId, entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge } from '../ui/bits'
 import { Modal } from '../ui/Modal'
+import { SecretAwareText } from '../ui/SecretText'
 
 /** Resumo de uma ficha num painel lateral, sem sair do que se está fazendo. */
 export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: () => void }) {
@@ -52,7 +53,7 @@ export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: (
         {e.aliases.length > 0 && <p className="muted small">Também: {e.aliases.join(', ')}</p>}
         {span && <p className="muted small">{span}</p>}
         {e.summary ? <p className="peek-summary">{e.summary}</p> : <p className="muted">Sem resumo ainda.</p>}
-        {e.description && <p className="peek-desc">{e.description}</p>}
+        {e.description && <SecretAwareText className="peek-desc" text={e.description} />}
         {e.fields.length > 0 && (
           <dl className="kv">
             {e.fields.map((f, i) => (

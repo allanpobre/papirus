@@ -118,7 +118,7 @@ export default function GraphView() {
           <svg
             className="graph"
             viewBox={`0 0 ${W} ${H}`}
-            role="img"
+            role="group"
             aria-label={`Grafo com ${nodes.length} fichas e ${visibleEdges.length} relações`}
             onPointerDown={(e) => {
               if ((e.target as Element).closest('.node')) return

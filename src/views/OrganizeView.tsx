@@ -1,4 +1,5 @@
 import { PanelsTopLeft } from 'lucide-react'
+import { tabListKeys } from '../ui/keys'
 import { useMemo, useState } from 'react'
 import { longestAbsence, presenceMatrix } from '../logic/stats'
 import { SCENE_STATUS_LABEL, SEED_STATUS_LABEL } from '../model/labels'
@@ -18,7 +19,7 @@ export default function OrganizeView() {
     <div className="view organize-view">
       <header className="view-head view-head-wide">
         <h1>Organizar</h1>
-        <div className="tabs tabs-inline" role="tablist">
+        <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys}>
           {(
             [
               ['quadro', 'Quadro de cenas'],
@@ -26,7 +27,7 @@ export default function OrganizeView() {
               ['ritmo', 'Ritmo'],
             ] as const
           ).map(([t, label]) => (
-            <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
+            <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => setTab(t)}>
               {label}
             </button>
           ))}

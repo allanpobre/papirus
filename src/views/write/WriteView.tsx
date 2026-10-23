@@ -19,6 +19,7 @@ import { downloadText, fileNameFor } from '../../export/download'
 import { sceneToMarkdown } from '../../export/markdown'
 import { continuityQuestions, isOpen } from '../../logic/continuity'
 import { findCandidates, MentionMatcher } from '../../logic/detection'
+import { dayToMonth, formatDate, monthToDay, type Months } from '../../logic/calendar'
 import { isDialogue } from '../../logic/doc'
 import { fold } from '../../logic/text'
 import { wordsToday } from '../../logic/stats'
@@ -32,6 +33,7 @@ import {
   insert,
   manuscriptOrder,
   moveSceneTo,
+  newId,
   namesOf,
   patch,
   removeScene,
@@ -59,6 +61,7 @@ type Dialog =
   | { kind: 'review' }
   | { kind: 'versions' }
   | { kind: 'reading' }
+  | { kind: 'comment'; sel: SelectionInfo }
   | null
 
 export default function WriteView() {
@@ -81,6 +84,7 @@ export default function WriteView() {
   const [metaOpen, setMetaOpen] = useState(false)
   // Muda quando o texto da cena é trocado por fora (ex.: voltar a uma versão), para remontar o editor.
   const [editorNonce, setEditorNonce] = useState(0)
+  const [focusedComment, setFocusedComment] = useState<string | null>(null)
   const editorRef = useRef<Editor | null>(null)
 
   // Navegação vinda de fora (busca, links): abre a cena pedida.
@@ -204,6 +208,12 @@ export default function WriteView() {
       toast('Trecho guardado na Inbox')
     },
     openEntity: (id: string) => peek(id),
+    comment: (sel: SelectionInfo) => sel.text && setDialog({ kind: 'comment', sel }),
+    openComment: (id: string) => {
+      setFocusedComment(id)
+      if (narrow) setNarrowMargin(true)
+      else if (!prefs.margin) setPref('margin', true)
+    },
   }
 
   if (!scene) {
@@ -250,12 +260,7 @@ export default function WriteView() {
           <div className="write-bar-meta">
             <span className={`status-dot status-${scene.status}`} aria-hidden="true" />
             <span className="muted small">{SCENE_STATUS_LABEL[scene.status]}</span>
-            {scene.date && (
-              <span className="muted small">
-                · ano {scene.date.year}
-                {scene.date.day !== null && `, dia ${scene.date.day}`} {universe.settings.calendarSuffix}
-              </span>
-            )}
+            {scene.date && <span className="muted small">· {formatDate(universe, scene.date)}</span>}
           </div>
           <div className="write-bar-actions">
             <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
@@ -358,12 +363,20 @@ export default function WriteView() {
                         value={scene.date?.year ?? null}
                         onChange={(y) => set({ date: y === null ? null : { year: y, day: scene.date?.day ?? null } })}
                       />
-                      <YearInput
-                        label="Dia"
-                        placeholder="Dia"
-                        value={scene.date?.day ?? null}
-                        onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
-                      />
+                      {universe.settings.calendarMonths.length > 0 && scene.date ? (
+                        <MonthDayInput
+                          months={universe.settings.calendarMonths}
+                          day={scene.date.day}
+                          onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
+                        />
+                      ) : (
+                        <YearInput
+                          label="Dia"
+                          placeholder="Dia"
+                          value={scene.date?.day ?? null}
+                          onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
+                        />
+                      )}
                     </div>
                   </div>
                   <div className="field-wide">
@@ -420,6 +433,8 @@ export default function WriteView() {
 
       {marginVisible && !focus && (
         <LiveMargin
+          focusedComment={focusedComment}
+          onRemoveCommentMark={(id) => editorRef.current?.commands.removeComment(id)}
           overlay={narrow}
           onClose={() => setNarrowMargin(false)}
           scene={scene}
@@ -431,6 +446,23 @@ export default function WriteView() {
         />
       )}
 
+      {dialog?.kind === 'comment' && (
+        <CommentDialog
+          sel={dialog.sel}
+          onClose={() => setDialog(null)}
+          onSave={(text) => {
+            const id = newId()
+            update((u) =>
+              updateScene(u, scene.id, {
+                comments: [...(byId(u, 'scenes', scene.id)?.comments ?? []), { id, text, quote: dialog.sel.text, resolved: false, at: new Date().toISOString() }],
+              }),
+            )
+            editorRef.current?.chain().focus().setTextSelection({ from: dialog.sel.from, to: dialog.sel.to }).setComment(id).run()
+            setFocusedComment(id)
+            setDialog(null)
+          }}
+        />
+      )}
       {dialog?.kind === 'versions' && <VersionsDialog scene={scene} onClose={() => setDialog(null)} onRestored={() => setEditorNonce((n) => n + 1)} />}
       {dialog?.kind === 'reading' && (
         <ReadingMode
@@ -543,6 +575,66 @@ function NewEntityDialog({ name: initial, onClose, onCreate }: { name: string; o
         </Field>
       </div>
       <p className="muted small">Uma ficha mínima. Complete quando quiser — ou nunca.</p>
+    </Modal>
+  )
+}
+
+/** Dia no calendário próprio: mês e dia do mês (guardado como dia do ano). */
+function MonthDayInput({ months, day, onChange }: { months: Months; day: number | null; onChange: (day: number | null) => void }) {
+  const md = day === null ? null : dayToMonth(months, day)
+  return (
+    <>
+      <YearInput
+        label="Dia do mês"
+        placeholder="Dia"
+        value={md?.dayOfMonth ?? null}
+        onChange={(d) => onChange(d === null ? null : monthToDay(months, md?.month ?? 0, Math.max(1, Math.min(d, months[md?.month ?? 0].days))))}
+      />
+      <Select
+        label="Mês"
+        value={String(md?.month ?? '')}
+        onChange={(m) => onChange(m === '' ? null : monthToDay(months, Number(m), Math.min(md?.dayOfMonth ?? 1, months[Number(m)].days)))}
+        options={[{ value: '', label: 'Mês…' }, ...months.map((m, i) => ({ value: String(i), label: m.name }))]}
+      />
+    </>
+  )
+}
+
+function CommentDialog({ sel, onClose, onSave }: { sel: SelectionInfo; onClose: () => void; onSave: (text: string) => void }) {
+  const [text, setText] = useState('')
+  return (
+    <Modal
+      title="Comentar trecho"
+      size="sm"
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className="btn btn-ghost" onClick={onClose}>
+            Cancelar
+          </button>
+          <button type="button" className="btn btn-primary" disabled={!text.trim()} onClick={() => onSave(text.trim())}>
+            Comentar
+          </button>
+        </>
+      }
+    >
+      <blockquote className="quote">“{sel.text}”</blockquote>
+      <label htmlFor="comment-text" className="sr-only">
+        Comentário
+      </label>
+      <textarea
+        id="comment-text"
+        className="input textarea"
+        rows={3}
+        autoFocus
+        placeholder="Ex.: reescrever com mais tensão; conferir a data"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && text.trim()) onSave(text.trim())
+        }}
+      />
+      <p className="muted small">Só você vê. Comentários não saem na exportação.</p>
     </Modal>
   )
 }

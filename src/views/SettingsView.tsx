@@ -1,4 +1,4 @@
-import { Camera, Download, FileJson, FileUp, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
+import { Camera, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
 import { universeToMarkdown } from '../export/markdown'
@@ -10,9 +10,13 @@ import type { SnapshotInfo } from '../persistence/repository'
 import { isStoragePersisted, requestPersistentStorage, storageEstimate } from '../persistence/storage'
 import type { Prefs } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
-import { Field, Kbd, Select } from '../ui/bits'
+import { Field, Kbd, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { NAV } from '../shell/nav'
+import { daysInYear } from '../logic/calendar'
+import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
+import { BookCard } from './BookCard'
 
 const QUESTION_LABEL: Record<QuestionType, string> = {
   'presenca-dupla': 'Personagem em dois lugares no mesmo dia',
@@ -41,7 +45,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
   const setSetting = <K extends keyof Universe['settings']>(k: K, v: Universe['settings'][K]) => update((u) => ({ ...u, settings: { ...u.settings, [k]: v } }))
 
-  const backup = () => downloadText(fileNameFor(`${universe.name}-backup-${new Date().toISOString().slice(0, 10)}`, 'json'), JSON.stringify(repo.toFile(universe), null, 2), 'application/json')
+  const backup = ws.downloadBackup
+  const lastBackup = prefs.backups[universe.id]?.last
 
   /**
    * Troca o conteúdo deste universo (restaurar/importar). Salva tudo e guarda um
@@ -80,7 +85,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             <Field label="Descrição" wide>
               {(id) => <textarea id={id} className="input textarea" rows={2} value={universe.description} onChange={(e) => update((u) => ({ ...u, description: e.target.value }))} />}
             </Field>
-            <Field label="Calendário" hint="Texto depois do ano: DC, da Coroa, AA…">
+            <Field label="Rótulo do ano" hint="Texto depois do ano: DC, da Coroa, AA…">
               {(id) => <input id={id} className="input" value={settings.calendarSuffix} onChange={(e) => setSetting('calendarSuffix', e.target.value)} />}
             </Field>
             <Field label="Meta diária de palavras" hint="0 = sem meta">
@@ -95,6 +100,33 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 />
               )}
             </Field>
+          </div>
+          <CalendarEditor />
+        </section>
+
+        <section className="settings-card">
+          <h2 className="section-title">Áreas do menu</h2>
+          <p className="muted small">Esconda o que você não usa. Tudo continua acessível pela busca, e nada é apagado.</p>
+          <div className="area-toggles">
+            {[...NAV.flatMap((g) => g.items), { view: 'inbox' as const, label: 'Inbox' }].map((item) => (
+              <Toggle
+                key={item.view}
+                label={item.label}
+                checked={!prefs.hiddenViews.includes(item.view)}
+                onChange={(v) => setPref('hiddenViews', v ? prefs.hiddenViews.filter((x) => x !== item.view) : [...prefs.hiddenViews, item.view])}
+              />
+            ))}
+          </div>
+          <div className="inline-fields">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPref('hiddenViews', PRESETS.escrita)}>
+              Só escrita
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPref('hiddenViews', PRESETS.rpg)}>
+              Só RPG
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPref('hiddenViews', [])}>
+              Mostrar tudo
+            </button>
           </div>
         </section>
 
@@ -176,6 +208,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           )}
         </section>
 
+        <BookCard />
+
         <section className="settings-card settings-data">
           <h2 className="section-title">Seus dados</h2>
           <p className="small">
@@ -214,6 +248,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               }}
             />
           </div>
+          <p className="muted small">{lastBackup ? `Último backup baixado: ${dateFmt.format(new Date(lastBackup))}.` : 'Nenhum backup baixado deste universo ainda.'}</p>
           {storage && (
             <p className="muted small storage-line">
               <HardDrive size={14} aria-hidden="true" /> {formatBytes(storage.usage)} usados
@@ -239,6 +274,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </p>
           )}
         </section>
+
+        <FolderCard />
 
         <section className="settings-card">
           <h2 className="section-title">Snapshots</h2>
@@ -378,4 +415,108 @@ function formatBytes(n: number): string {
   if (n < 1024 ** 2) return `${(n / 1024).toFixed(0)} KB`
   if (n < 1024 ** 3) return `${(n / 1024 ** 2).toFixed(1)} MB`
   return `${(n / 1024 ** 3).toFixed(1)} GB`
+}
+
+/** Áreas escondidas por perfil de uso. */
+const PRESETS: Record<'escrita' | 'rpg', View[]> = {
+  escrita: ['rpg'],
+  rpg: ['organizar', 'conhecimento'],
+}
+
+function CalendarEditor() {
+  const { universe, update } = useWorkspace()
+  const months = universe.settings.calendarMonths
+  const setMonths = (m: typeof months) => update((u) => ({ ...u, settings: { ...u.settings, calendarMonths: m } }))
+  return (
+    <div className="calendar-editor">
+      <h3 className="section-label">Meses do calendário</h3>
+      {months.length === 0 ? (
+        <p className="muted small">Sem meses, as datas são “ano” e “dia do ano”. Adicione meses para escrever “12 de Neblina”.</p>
+      ) : (
+        <ol className="month-list">
+          {months.map((m, i) => (
+            <li key={i} className="month-row">
+              <span className="muted tabular small">{i + 1}.</span>
+              <input
+                className="input input-sm"
+                aria-label={`Nome do mês ${i + 1}`}
+                value={m.name}
+                onChange={(e) => setMonths(months.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
+              />
+              <YearInput label={`Dias do mês ${i + 1}`} value={m.days} onChange={(v) => v !== null && v > 0 && setMonths(months.map((x, j) => (j === i ? { ...x, days: v } : x)))} />
+              <span className="muted tiny">dias</span>
+              <button type="button" className="btn-icon btn-sm" aria-label={`Remover ${m.name}`} onClick={() => setMonths(months.filter((_, j) => j !== i))}>
+                <X size={14} />
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="inline-fields">
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setMonths([...months, { name: `Mês ${months.length + 1}`, days: 30 }])}>
+          + Mês
+        </button>
+        {months.length > 0 && <span className="muted tiny">{daysInYear(months)} dias no ano</span>}
+      </div>
+    </div>
+  )
+}
+
+function FolderCard() {
+  const { folder } = useWorkspace()
+  const timeFmt = new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' })
+  return (
+    <section className="settings-card">
+      <h2 className="section-title">
+        <FolderOpen size={17} aria-hidden="true" /> Pasta no computador
+      </h2>
+      {!folder.supported ? (
+        <p className="small">
+          Este navegador não permite salvar numa pasta. No Chrome, Edge ou Opera, o Papirus mantém uma cópia do universo numa pasta sua (Dropbox, Drive, Git…). Aqui, use o
+          backup em JSON.
+        </p>
+      ) : folder.name ? (
+        <>
+          <p className="small">
+            Salvando em <strong>{folder.name}</strong>
+            {folder.state === 'ok' && folder.lastSync && ` · atualizada às ${timeFmt.format(new Date(folder.lastSync))}`}
+            {folder.state === 'escrevendo' && ' · salvando…'}
+            {folder.state === 'pendente' && ' · precisa de permissão de novo'}
+          </p>
+          {folder.error && (
+            <p className="notice notice-error small" role="alert">
+              {folder.error}
+            </p>
+          )}
+          <div className="inline-fields">
+            {folder.state === 'pendente' ? (
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => void folder.reconnect()}>
+                Reconectar
+              </button>
+            ) : (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => void folder.syncNow()}>
+                Salvar agora
+              </button>
+            )}
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => void folder.connect()}>
+              Trocar pasta
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => void folder.disconnect()}>
+              Parar de salvar na pasta
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="small">
+            Mantenha uma cópia sempre atualizada numa pasta do computador: o backup completo, cada cena em Markdown e cada ficha num arquivo. Se o navegador perder os dados,
+            é só reabrir a pasta.
+          </p>
+          <button type="button" className="btn btn-primary" onClick={() => void folder.connect()}>
+            <FolderOpen size={16} /> Escolher pasta
+          </button>
+        </>
+      )}
+    </section>
+  )
 }

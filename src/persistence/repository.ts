@@ -180,7 +180,7 @@ export interface LibraryEntry {
 
 /** Índice dos universos guardados neste navegador. */
 export class Library {
-  private readonly store: KeyValueStore
+  readonly store: KeyValueStore
   private readonly emergency: Storage | null
 
   constructor(store: KeyValueStore, emergency: Storage | null = null) {

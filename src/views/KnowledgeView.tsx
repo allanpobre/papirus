@@ -1,4 +1,5 @@
 import { Lightbulb, Pencil, Plus, Trash2 } from 'lucide-react'
+import { tabListKeys } from '../ui/keys'
 import { useMemo, useState } from 'react'
 import { factSentence } from '../logic/codex'
 import { holdersOf, knowledgeAt, readerKnowsAt } from '../logic/knowledge'
@@ -20,7 +21,7 @@ export default function KnowledgeView() {
     <div className="view knowledge-view">
       <header className="view-head view-head-wide">
         <h1>Conhecimento</h1>
-        <div className="tabs tabs-inline" role="tablist">
+        <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys}>
           {(
             [
               ['fatos', 'Fatos'],
@@ -29,7 +30,7 @@ export default function KnowledgeView() {
               ['divergencias', 'Versões que divergem'],
             ] as const
           ).map(([t, label]) => (
-            <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
+            <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => setTab(t)}>
               {label}
             </button>
           ))}

@@ -1,9 +1,9 @@
 import { Dices, Flag, Play, Plus, Send, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
-import { factSentence } from '../../logic/codex'
+import { factSentence, revelationLabel } from '../../logic/codex'
 import { SESSION_STATUS_LABEL } from '../../model/labels'
 import { SESSION_STATUSES, type Group, type Revelation, type Session } from '../../model/schema'
-import { byId, draftInbox, draftRevelation, draftSession, entityName, insert, newId, patch, remove, removeSession } from '../../model/universe'
+import { byId, draftInbox, draftRevelation, draftSession, insert, newId, patch, remove, removeSession } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { Empty, Field, Select } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
@@ -182,13 +182,8 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
           <ul className="plain-list small">
             {revelations.map((r) => (
               <li key={r.id} className="reveal-row">
-                {r.target === 'entidade' ? (
-                  <>
-                    <strong>{entityName(universe, r.targetId)}</strong> <span className="muted">({r.depth === 'nome' ? 'só nome' : r.depth})</span>
-                  </>
-                ) : (
-                  <>{byId(universe, 'facts', r.targetId) ? factSentence(universe, byId(universe, 'facts', r.targetId)!) : 'Fato removido'}</>
-                )}
+                <span>{revelationLabel(universe, r)}</span>
+                {r.target === 'entidade' && <span className="muted"> ({r.depth === 'nome' ? 'só nome' : r.depth})</span>}
                 <button type="button" className="btn-icon btn-xs" aria-label="Desfazer revelação" onClick={() => update((u) => remove(u, 'revelations', r.id))}>
                   <X size={12} />
                 </button>

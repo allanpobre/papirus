@@ -1,6 +1,6 @@
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
-import { Bold, BookmarkPlus, Italic, Link2, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
+import { Bold, BookmarkPlus, Italic, Link2, MessageSquarePlus, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { MentionMatcher } from '../logic/detection'
 import type { SceneDoc } from '../model/schema'
@@ -23,6 +23,10 @@ export interface SceneEditorActions {
   createEntity: (sel: SelectionInfo) => void
   /** Guardar o trecho na Inbox. */
   keep: (sel: SelectionInfo) => void
+  /** Comentar o trecho (nota do autor). */
+  comment: (sel: SelectionInfo) => void
+  /** Clique num trecho comentado. */
+  openComment: (commentId: string) => void
   /** Ctrl/⌘ + clique num nome. */
   openEntity: (entityId: string) => void
 }
@@ -57,6 +61,8 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
     editorProps: {
       attributes: { 'aria-label': 'Texto da cena', class: 'scene-text', spellcheck: 'true', lang: 'pt-BR' },
       handleClick: (_view, _pos, event) => {
+        const commented = (event.target as HTMLElement).closest('[data-comment]')?.getAttribute('data-comment')
+        if (commented && !(event.ctrlKey || event.metaKey)) cb.current.actions.openComment(commented)
         if (!(event.ctrlKey || event.metaKey)) return false
         const el = (event.target as HTMLElement).closest('[data-entity]')
         const id = el?.getAttribute('data-entity')
@@ -170,6 +176,9 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
           </button>
           <button type="button" className="bubble-btn" onClick={() => actions.createEntity(selection())}>
             <UserPlus size={15} /> Ficha
+          </button>
+          <button type="button" className="bubble-btn" onClick={() => actions.comment(selection())}>
+            <MessageSquarePlus size={15} /> Comentar
           </button>
           <button type="button" className="bubble-btn" title="Guardar trecho na Inbox" onClick={() => actions.keep(selection())}>
             <BookmarkPlus size={15} /> Guardar

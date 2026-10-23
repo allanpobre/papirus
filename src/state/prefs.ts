@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { QuestionType } from '../logic/continuity'
+import type { View } from './workspace'
 
 /** Preferências deste navegador (não fazem parte do universo). */
 export interface Prefs {
@@ -17,6 +18,12 @@ export interface Prefs {
   toolbar: boolean
   continuity: Record<QuestionType, boolean>
   railCollapsed: boolean
+  /** Áreas escondidas do menu (continuam acessíveis pela busca e por links). */
+  hiddenViews: View[]
+  /** Já viu a apresentação da primeira vez. */
+  onboarded: boolean
+  /** Último backup baixado e "lembrar depois", por universo (ISO). */
+  backups: Record<string, { last?: string; snoozeUntil?: string }>
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -30,6 +37,9 @@ export const DEFAULT_PREFS: Prefs = {
   toolbar: true,
   continuity: { 'presenca-dupla': true, 'apos-fim': true, 'antes-inicio': true, 'fatos-divergentes': true },
   railCollapsed: false,
+  hiddenViews: [],
+  onboarded: false,
+  backups: {},
 }
 
 const KEY = 'papirus:prefs'

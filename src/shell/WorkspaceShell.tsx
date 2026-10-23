@@ -1,30 +1,15 @@
-import {
-  BookMarked,
-  CalendarRange,
-  ChevronsLeft,
-  ChevronsRight,
-  Dices,
-  Feather,
-  Inbox,
-  Library as LibraryIcon,
-  Map as MapIcon,
-  Network,
-  PanelsTopLeft,
-  Search,
-  Settings,
-  Sprout,
-  Lightbulb,
-  ScrollText,
-  type LucideIcon,
-} from 'lucide-react'
+import { ChevronsLeft, ChevronsRight, Inbox, Library as LibraryIcon, Search, Settings } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
 import type { Universe } from '../model/schema'
 import type { Library } from '../persistence/repository'
+import { downloadText, fileNameFor } from '../export/download'
+import { useFolderSync } from '../persistence/useFolderSync'
 import { useUniverse, type SaveStatus } from '../persistence/useUniverse'
 import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { Brand } from './Brand'
+import { NAV, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
 import { SearchPalette } from './SearchPalette'
@@ -42,35 +27,6 @@ const RpgView = lazy(() => import('../views/rpg/RpgView'))
 const InboxView = lazy(() => import('../views/InboxView'))
 const ArchivistView = lazy(() => import('../views/ArchivistView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
-
-interface NavItem {
-  view: View
-  label: string
-  icon: LucideIcon
-}
-
-const NAV: { group: string; items: NavItem[] }[] = [
-  { group: 'Escrita', items: [{ view: 'escrever', label: 'Escrever', icon: Feather }] },
-  {
-    group: 'Mundo',
-    items: [
-      { view: 'fichas', label: 'Fichas', icon: BookMarked },
-      { view: 'relacoes', label: 'Relações', icon: Network },
-      { view: 'timeline', label: 'Timeline', icon: CalendarRange },
-      { view: 'atlas', label: 'Atlas', icon: MapIcon },
-    ],
-  },
-  {
-    group: 'Narrativa',
-    items: [
-      { view: 'tramas', label: 'Tramas', icon: Sprout },
-      { view: 'conhecimento', label: 'Conhecimento', icon: Lightbulb },
-      { view: 'organizar', label: 'Organizar', icon: PanelsTopLeft },
-      { view: 'archivist', label: 'Archivist', icon: ScrollText },
-    ],
-  },
-  { group: 'Mesa', items: [{ view: 'rpg', label: 'RPG', icon: Dices }] },
-]
 
 const STATUS_LABEL: Record<SaveStatus, string> = {
   salvo: 'Salvo',
@@ -96,6 +52,7 @@ interface ToastItem extends ToastOptions {
 export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose, onOpenOther }: Props) {
   const { universe, status, update, flush, repo } = useUniverse(library, initial, recovered)
   const { prefs, setPref } = prefsApi
+  const folder = useFolderSync(library, repo, universe, status)
   const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'escrever' }))
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
@@ -148,6 +105,31 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     [update, toast],
   )
 
+  const markBackup = useCallback(
+    (changes: { last?: string; snoozeUntil?: string }) =>
+      setPref('backups', { ...prefs.backups, [initial.id]: { ...prefs.backups[initial.id], ...changes } }),
+    [prefs.backups, initial.id, setPref],
+  )
+
+  const downloadBackup = useCallback(() => {
+    const date = new Date().toISOString().slice(0, 10)
+    downloadText(fileNameFor(`${universe.name}-backup-${date}`, 'json'), JSON.stringify(repo.toFile(universe), null, 2), 'application/json')
+    markBackup({ last: new Date().toISOString() })
+  }, [universe, repo, markBackup])
+
+  // Momento de abertura do universo: o lembrete é avaliado uma vez por visita.
+  const [openedAt] = useState(() => Date.now())
+  // Lembrete de backup: universo com conteúdo, sem backup há 7 dias e sem pasta sincronizada.
+  const backupInfo = prefs.backups[initial.id] ?? {}
+  const lastBackup = Date.parse(backupInfo.last ?? universe.createdAt)
+  const hasContent = universe.scenes.some((s) => s.text.trim()) || universe.entities.length > 0
+  const needsBackup =
+    hasContent &&
+    folder.state !== 'ok' &&
+    folder.state !== 'escrevendo' &&
+    openedAt - lastBackup > 7 * 24 * 3600 * 1000 &&
+    (!backupInfo.snoozeUntil || openedAt > Date.parse(backupInfo.snoozeUntil))
+
   const ws: Workspace = useMemo(
     () => ({
       universe,
@@ -169,8 +151,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       },
       openCapture: () => setCaptureOpen(true),
       openSearch: () => setSearchOpen(true),
+      folder,
+      downloadBackup,
     }),
-    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose],
+    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup],
   )
 
   // Atalhos globais.
@@ -225,21 +209,28 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </button>
 
           <div className="rail-groups">
-            {NAV.map((g) => (
-              <div key={g.group} className="rail-group">
-                <span className="rail-group-label rail-label">{g.group}</span>
-                {g.items.map((item) => (
-                  <RailButton key={item.view} item={item} active={nav.view === item.view} onClick={() => go(item.view)} />
-                ))}
-              </div>
-            ))}
+            {NAV.map((g) => {
+              // Áreas escondidas somem do menu, mas a aberta continua visível.
+              const items = g.items.filter((item) => !prefs.hiddenViews.includes(item.view) || nav.view === item.view)
+              if (!items.length) return null
+              return (
+                <div key={g.group} className="rail-group">
+                  <span className="rail-group-label rail-label">{g.group}</span>
+                  {items.map((item) => (
+                    <RailButton key={item.view} item={item} active={nav.view === item.view} onClick={() => go(item.view)} />
+                  ))}
+                </div>
+              )
+            })}
             <div className="rail-group rail-group-end">
-              <RailButton
-                item={{ view: 'inbox', label: 'Inbox', icon: Inbox }}
-                active={nav.view === 'inbox'}
-                badge={openInbox || undefined}
-                onClick={() => go('inbox')}
-              />
+              {(!prefs.hiddenViews.includes('inbox') || nav.view === 'inbox') && (
+                <RailButton
+                  item={{ view: 'inbox', label: 'Inbox', icon: Inbox }}
+                  active={nav.view === 'inbox'}
+                  badge={openInbox || undefined}
+                  onClick={() => go('inbox')}
+                />
+              )}
               <RailButton
                 item={{ view: 'config', label: 'Ajustes e dados', icon: Settings }}
                 active={nav.view === 'config'}
@@ -265,6 +256,32 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         </nav>
 
         <main id="conteudo" className="stage" tabIndex={-1}>
+          {needsBackup && (
+            <div className="backup-banner" role="status">
+              <span>
+                Faz {Math.floor((openedAt - lastBackup) / 86400000)} dias sem backup de “{universe.name}”. Tudo está só neste navegador.
+              </span>
+              <button type="button" className="btn btn-sm btn-primary" onClick={downloadBackup}>
+                Baixar backup
+              </button>
+              {folder.supported && (
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => void folder.connect()}>
+                  Salvar numa pasta
+                </button>
+              )}
+              <button type="button" className="btn btn-sm btn-ghost" onClick={() => markBackup({ snoozeUntil: new Date(Date.now() + 3 * 86400000).toISOString() })}>
+                Lembrar em 3 dias
+              </button>
+            </div>
+          )}
+          {folder.state === 'pendente' && (
+            <div className="backup-banner" role="status">
+              <span>O navegador pede permissão de novo para salvar na pasta “{folder.name}”.</span>
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => void folder.reconnect()}>
+                Reconectar pasta
+              </button>
+            </div>
+          )}
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
             <ViewSwitch view={nav.view} onOpenOther={onOpenOther} />
           </Suspense>

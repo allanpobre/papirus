@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { tabListKeys } from '../../ui/keys'
 import { isOpen, type Question } from '../../logic/continuity'
 import { findCandidates, type Candidate } from '../../logic/detection'
 import { snippet } from '../../logic/text'
@@ -66,7 +67,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
 
   return (
     <Modal title="Revisão" onClose={onClose} size="lg">
-      <div className="tabs" role="tablist">
+      <div className="tabs" role="tablist" onKeyDown={tabListKeys}>
         {(
           [
             ['nomes', `Nomes novos (${candidates.length})`],
@@ -74,7 +75,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
             ['pendentes', `Pendências (${errors.length + draftFacts.length + inbox.length})`],
           ] as const
         ).map(([t, label]) => (
-          <button key={t} type="button" role="tab" aria-selected={tab === t} className="tab" onClick={() => setTab(t)}>
+          <button key={t} type="button" role="tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} className="tab" onClick={() => setTab(t)}>
             {label}
           </button>
         ))}

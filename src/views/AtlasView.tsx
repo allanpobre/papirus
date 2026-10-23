@@ -1,4 +1,5 @@
 import { ImagePlus, MapPin, Minus, Plus, Trash2, X } from 'lucide-react'
+import { tabListKeys } from '../ui/keys'
 import { useRef, useState } from 'react'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
@@ -85,9 +86,9 @@ export default function AtlasView() {
     <div className="view atlas-view">
       <header className="view-head view-head-wide">
         <h1>Atlas</h1>
-        <div className="tabs tabs-inline" role="tablist" aria-label="Mapas">
+        <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys} aria-label="Mapas">
           {universe.maps.map((m) => (
-            <button key={m.id} type="button" role="tab" className="tab" aria-selected={m.id === map?.id} onClick={() => setMapId(m.id)}>
+            <button key={m.id} type="button" role="tab" className="tab" aria-selected={m.id === map?.id} tabIndex={m.id === map?.id ? 0 : -1} onClick={() => setMapId(m.id)}>
               {m.name || 'Mapa'}
             </button>
           ))}

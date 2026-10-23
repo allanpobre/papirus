@@ -48,7 +48,7 @@ export function createUniverse(name = 'Meu universo'): Universe {
     systems: [],
     sheets: [],
     tables: [],
-    settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [] },
+    settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [] },
     dailyStart: {},
     createdAt: t,
     updatedAt: t,
@@ -97,8 +97,18 @@ export function byId<K extends CollectionKey>(
   id: string | null | undefined,
 ): RecordOf<K> | undefined {
   if (!id) return undefined
-  return (universe[key] as RecordOf<K>[]).find((r) => r.id === id)
+  const list = universe[key] as RecordOf<K>[]
+  if (list.length < 32) return list.find((r) => r.id === id)
+  let index = indexes.get(list)
+  if (!index) {
+    index = new Map(list.map((r) => [r.id, r]))
+    indexes.set(list, index)
+  }
+  return index.get(id) as RecordOf<K> | undefined
 }
+
+/** Índice por id de cada coleção. As listas são imutáveis, então o índice vale enquanto a lista existir. */
+const indexes = new WeakMap<readonly { id: string }[], Map<string, { id: string }>>()
 
 // ---------------------------------------------------------------------------
 // Rascunhos padrão de cada tipo de registro
@@ -203,7 +213,7 @@ export const draftRevelation = (
   sessionId,
 })
 
-export const draftGroup = (name: string, systemId: string | null = null): Draft<'groups'> => ({ name, systemId })
+export const draftGroup = (name: string, systemId: string | null = null): Draft<'groups'> => ({ name, systemId, showSheetsInCodex: true })
 
 export const draftMap = (name: string, image: string, width: number, height: number): Draft<'maps'> => ({
   name,
@@ -266,6 +276,7 @@ export function addScene(
     presentIds: [],
     notes: '',
     versions: [],
+    comments: [],
   })
 }
 

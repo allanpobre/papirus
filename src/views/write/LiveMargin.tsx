@@ -1,5 +1,5 @@
-import { Check, Eye, ScanSearch, Sparkles, UserCheck } from 'lucide-react'
-import { useMemo } from 'react'
+import { Check, Eye, RotateCcw, ScanSearch, Sparkles, Trash2, UserCheck } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { factSentence } from '../../logic/codex'
 import { isOpen, type Question } from '../../logic/continuity'
 import type { MentionMatcher } from '../../logic/detection'
@@ -22,13 +22,16 @@ interface Props {
   /** Em telas estreitas, a margem abre como painel por cima do texto. */
   overlay?: boolean
   onClose?: () => void
+  focusedComment?: string | null
+  /** Tira a marca do comentário do texto (o editor é quem sabe onde ela está). */
+  onRemoveCommentMark?: (id: string) => void
 }
 
 /**
  * Margem viva: o contexto da cena e do parágrafo onde está o cursor. Só mostra;
  * não interrompe e não muda nada sem um clique do autor.
  */
-export function LiveMargin({ scene, paragraph, matcher, questions, candidates, onReview, overlay, onClose }: Props) {
+export function LiveMargin({ scene, paragraph, matcher, questions, candidates, onReview, overlay, onClose, focusedComment, onRemoveCommentMark }: Props) {
   const { universe, update, peek, go } = useWorkspace()
 
   const here = useMemo(() => {
@@ -69,6 +72,8 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
           Fechar margem
         </button>
       )}
+      <CommentsSection scene={scene} focused={focusedComment ?? null} onRemoveMark={onRemoveCommentMark} />
+
       {here.length > 0 && (
         <section className="margin-section margin-here">
           <h3 className="section-label">Neste parágrafo</h3>
@@ -190,5 +195,68 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
         </p>
       </section>
     </aside>
+  )
+}
+
+function CommentsSection({ scene, focused, onRemoveMark }: { scene: Scene; focused: string | null; onRemoveMark?: (id: string) => void }) {
+  const { update } = useWorkspace()
+  const [showResolved, setShowResolved] = useState(false)
+  const open = scene.comments.filter((c) => !c.resolved)
+  const resolved = scene.comments.filter((c) => c.resolved)
+  if (!scene.comments.length) return null
+  const setComments = (comments: Scene['comments']) => update((u) => updateScene(u, scene.id, { comments }))
+  const list = showResolved ? scene.comments : open
+
+  return (
+    <section className="margin-section">
+      <h3 className="section-label">Comentários ({open.length})</h3>
+      <ul className="comments">
+        {list.map((c) => (
+          <li key={c.id} className={`comment${c.id === focused ? ' focused' : ''}${c.resolved ? ' resolved' : ''}`}>
+            <p className="comment-quote">“{c.quote.length > 90 ? `${c.quote.slice(0, 90)}…` : c.quote}”</p>
+            <textarea
+              className="input textarea comment-text"
+              aria-label="Texto do comentário"
+              rows={2}
+              value={c.text}
+              onChange={(e) => setComments(scene.comments.map((x) => (x.id === c.id ? { ...x, text: e.target.value } : x)))}
+            />
+            <div className="comment-actions">
+              {c.resolved ? (
+                <button type="button" className="btn btn-ghost btn-xs" onClick={() => setComments(scene.comments.map((x) => (x.id === c.id ? { ...x, resolved: false } : x)))}>
+                  <RotateCcw size={12} /> Reabrir
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs"
+                  onClick={() => {
+                    onRemoveMark?.(c.id)
+                    setComments(scene.comments.map((x) => (x.id === c.id ? { ...x, resolved: true } : x)))
+                  }}
+                >
+                  <Check size={12} /> Resolver
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs"
+                onClick={() => {
+                  onRemoveMark?.(c.id)
+                  setComments(scene.comments.filter((x) => x.id !== c.id))
+                }}
+              >
+                <Trash2 size={12} /> Apagar
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {resolved.length > 0 && (
+        <button type="button" className="link-btn tiny" onClick={() => setShowResolved(!showResolved)}>
+          {showResolved ? 'Esconder resolvidos' : `Ver ${resolved.length} resolvidos`}
+        </button>
+      )}
+    </section>
   )
 }

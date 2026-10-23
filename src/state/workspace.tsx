@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { Universe } from '../model/schema'
 import type { Library, UniverseRepository } from '../persistence/repository'
+import type { FolderSync } from '../persistence/useFolderSync'
 import type { SaveStatus } from '../persistence/useUniverse'
 import type { Prefs } from './prefs'
 
@@ -50,6 +51,10 @@ export interface Workspace {
    */
   undoable: (message: string, change: (u: Universe) => Universe) => void
   closeUniverse: () => void
+  /** Cópia do universo numa pasta do computador. */
+  folder: FolderSync
+  /** Baixa o backup completo em JSON e registra a data. */
+  downloadBackup: () => void
   openCapture: () => void
   openSearch: () => void
 }

@@ -69,6 +69,10 @@ export const sceneSchema = z.object({
   versions: z
     .array(z.object({ id, name: z.string(), at: z.string(), doc: sceneDocSchema, text: z.string() }))
     .default([]),
+  /** Comentários do autor presos a trechos do texto (marca `comment` no documento). */
+  comments: z
+    .array(z.object({ id, text: z.string(), quote: z.string(), resolved: z.boolean(), at: z.string() }))
+    .default([]),
   ...timestamps,
 })
 
@@ -186,6 +190,8 @@ export const groupSchema = z.object({
   name: z.string(),
   /** Sistema de jogo da mesa. `null` = sem sistema. */
   systemId: ref.default(null),
+  /** Mostrar as fichas dos personagens dos jogadores no Codex da mesa. */
+  showSheetsInCodex: z.boolean().default(true),
   ...timestamps,
 })
 
@@ -292,7 +298,11 @@ export const sessionSchema = z.object({
 export const revelationSchema = z.object({
   id,
   groupId: id,
-  target: z.enum(['entidade', 'fato']),
+  /**
+   * O que foi revelado: uma ficha, um fato, um evento da timeline, uma pista de
+   * mistério, um mapa (só a imagem) ou um marcador de mapa.
+   */
+  target: z.enum(['entidade', 'fato', 'evento', 'pista', 'mapa', 'marcador']),
   targetId: id,
   /** Para fichas: revelar só o nome, o resumo, ou também a descrição. */
   depth: z.enum(['nome', 'resumo', 'completo']),
@@ -337,6 +347,8 @@ export const universeSettingsSchema = z.object({
   dailyWordGoal: z.number().int().nonnegative(),
   /** Palavras que a descoberta de nomes deve ignorar. */
   ignoredNames: z.array(z.string()),
+  /** Meses do calendário do universo. Vazio = só o ano e o dia do ano. */
+  calendarMonths: z.array(z.object({ name: z.string(), days: z.number().int().positive() })).default([]),
 })
 
 export const universeSchema = z.object({
@@ -380,6 +392,7 @@ export type NarrativeDate = z.infer<typeof narrativeDateSchema>
 export type Story = z.infer<typeof storySchema>
 export type Scene = z.infer<typeof sceneSchema>
 export type SceneVersion = Scene['versions'][number]
+export type SceneComment = Scene['comments'][number]
 export type SceneStatus = Scene['status']
 export type Entity = z.infer<typeof entitySchema>
 export type Relation = z.infer<typeof relationSchema>

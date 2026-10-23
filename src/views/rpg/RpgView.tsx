@@ -1,4 +1,5 @@
 import { Dices, Users, X } from 'lucide-react'
+import { tabListKeys } from '../../ui/keys'
 import { useCallback, useMemo, useState } from 'react'
 import { draftGroup, insert, newId, patch } from '../../model/universe'
 import { describeOutcome, type RollOutcome } from '../../rpg/rolls'
@@ -12,11 +13,13 @@ import { RpgContext, type RpgState } from './rpgContext'
 import { SessionsTab } from './SessionsTab'
 import { SheetsTab } from './SheetsTab'
 import { SystemsTab } from './SystemsTab'
+import { TableTab } from './TableTab'
 
-export type RpgTab = 'mestre' | 'sessoes' | 'personagens' | 'sistemas' | 'codex' | 'dados'
+export type RpgTab = 'mesa' | 'mestre' | 'sessoes' | 'personagens' | 'sistemas' | 'codex' | 'dados'
 
 const TABS: [RpgTab, string][] = [
   ['mestre', 'Painel do mestre'],
+  ['mesa', 'Na mesa'],
   ['sessoes', 'Sessões'],
   ['personagens', 'Personagens'],
   ['codex', 'Revelações e Codex'],
@@ -74,7 +77,7 @@ export default function RpgView() {
   )
 
   return (
-    <div className="view rpg-view">
+    <div className={`view rpg-view${tab === 'mesa' ? ' rpg-at-table' : ''}`}>
       <header className="view-head view-head-wide">
         <h1>Mesa de RPG</h1>
         {universe.groups.length > 0 && (
@@ -99,9 +102,9 @@ export default function RpgView() {
           </label>
         )}
       </header>
-      <div className="tabs" role="tablist" aria-label="Mesa de RPG">
+      <div className="tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Mesa de RPG">
         {TABS.map(([t, label]) => (
-          <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} onClick={() => choose(t)}>
+          <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => choose(t)}>
             {label}
           </button>
         ))}
@@ -142,6 +145,7 @@ export default function RpgView() {
       ) : (
         <RpgContext.Provider value={ctx}>
           {tab === 'mestre' && <GmTab onGo={choose} />}
+          {tab === 'mesa' && <TableTab />}
           {tab === 'sessoes' && <SessionsTab />}
           {tab === 'personagens' && <SheetsTab />}
           {tab === 'codex' && <CodexTab group={group} />}

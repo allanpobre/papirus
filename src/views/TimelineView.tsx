@@ -1,5 +1,6 @@
 import { CalendarRange, Feather, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { formatDate } from '../logic/calendar'
 import { formatYear } from '../model/labels'
 import type { TimelineEvent } from '../model/schema'
 import { byId, draftEvent, entityName, insert, manuscriptOrder, patch, remove } from '../model/universe'
@@ -157,7 +158,7 @@ export default function TimelineView() {
                       <button type="button" className="tl-card" onClick={() => go('escrever', r.sceneId)}>
                         <Feather size={14} aria-hidden="true" />
                         <span className="tl-title">{byId(universe, 'scenes', r.sceneId)?.title || 'Sem título'}</span>
-                        {r.day !== null && <span className="muted small"> · dia {r.day}</span>}
+                        {r.day !== null && <span className="muted small"> · {formatDate(universe, { year: r.year, day: r.day })}</span>}
                         <span className="muted small"> · cena</span>
                       </button>
                     </li>

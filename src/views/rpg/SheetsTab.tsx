@@ -7,6 +7,7 @@ import { modifier, rollAttribute, rollInitiative, rollSkill } from '../../rpg/ro
 import { adjustResource, attributeOf, draftSheet } from '../../rpg/sheets'
 import { useWorkspace } from '../../state/workspace'
 import { Empty, Field, Select, YearInput } from '../../ui/bits'
+import { Fold } from '../../ui/Fold'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { EntityPicker } from '../../ui/EntityPicker'
 import { useRpg } from './rpgContext'
@@ -187,8 +188,7 @@ function SheetEditor({ sheet: s, onBack }: { sheet: Sheet; onBack: () => void })
       {system ? (
         <>
           {system.attributes.length > 0 && (
-            <section className="entity-section">
-              <h2 className="section-title">Atributos</h2>
+            <Fold id="jogo-atributos" title="Atributos">
               <div className="attr-grid">
                 {system.attributes.map((a) => {
                   const v = attributeOf(system, s, a.id)
@@ -206,23 +206,21 @@ function SheetEditor({ sheet: s, onBack }: { sheet: Sheet; onBack: () => void })
                   )
                 })}
               </div>
-            </section>
+            </Fold>
           )}
 
           {system.features.resources && system.resources.length > 0 && (
-            <section className="entity-section">
-              <h2 className="section-title">Recursos</h2>
+            <Fold id="jogo-recursos" title="Recursos">
               <div className="resource-list">
                 {system.resources.map((r) => (
                   <ResourceRow key={r.id} system={system} sheet={s} resourceId={r.id} onChange={(resources) => set({ resources })} />
                 ))}
               </div>
-            </section>
+            </Fold>
           )}
 
           {system.features.conditions && system.conditions.length > 0 && (
-            <section className="entity-section">
-              <h2 className="section-title">Condições</h2>
+            <Fold id="jogo-condi-es" title="Condições">
               <div className="chips">
                 {system.conditions.map((c) => (
                   <button
@@ -236,7 +234,7 @@ function SheetEditor({ sheet: s, onBack }: { sheet: Sheet; onBack: () => void })
                   </button>
                 ))}
               </div>
-            </section>
+            </Fold>
           )}
 
           {system.skills.length > 0 && (

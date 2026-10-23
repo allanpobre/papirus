@@ -1,6 +1,7 @@
 import { CANON_LABEL, kindLabel, kindPlural } from '../model/labels'
-import type { Entity, Fact, Revelation, Universe } from '../model/schema'
+import type { AtlasMap, Entity, Fact, Revelation, Seed, Sheet, TimelineEvent, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
+import { stripSecrets } from './secrets'
 
 const DEPTH_RANK: Record<Revelation['depth'], number> = { nome: 0, resumo: 1, completo: 2 }
 
@@ -12,6 +13,12 @@ export interface CodexEntry {
 export interface Codex {
   entries: CodexEntry[]
   facts: Fact[]
+  events: TimelineEvent[]
+  clues: { seed: Seed; clue: Seed['clues'][number] }[]
+  /** Mapas revelados, com os marcadores que a mesa conhece. */
+  maps: { map: AtlasMap; pins: AtlasMap['pins'] }[]
+  /** Fichas dos personagens dos jogadores (se a mesa mostra). */
+  sheets: Sheet[]
 }
 
 /**
@@ -28,10 +35,16 @@ export function codexFor(universe: Universe, groupId: string, untilSession?: num
   )
 
   const depth = new Map<string, Revelation['depth']>()
-  const factIds = new Set<string>()
+  const ids: Record<Exclude<Revelation['target'], 'entidade'>, Set<string>> = {
+    fato: new Set(),
+    evento: new Set(),
+    pista: new Set(),
+    mapa: new Set(),
+    marcador: new Set(),
+  }
   for (const r of revs) {
-    if (r.target === 'fato') {
-      factIds.add(r.targetId)
+    if (r.target !== 'entidade') {
+      ids[r.target].add(r.targetId)
       continue
     }
     const prev = depth.get(r.targetId)
@@ -43,7 +56,52 @@ export function codexFor(universe: Universe, groupId: string, untilSession?: num
     .filter((e) => e.entity)
     .sort((a, b) => a.entity.name.localeCompare(b.entity.name, 'pt'))
 
-  return { entries, facts: universe.facts.filter((f) => factIds.has(f.id)) }
+  const clues = universe.seeds.flatMap((seed) => seed.clues.filter((c) => ids.pista.has(c.id)).map((clue) => ({ seed, clue })))
+  // Um marcador aparece se foi revelado, ou se a ficha do lugar já é conhecida.
+  const maps = universe.maps
+    .filter((m) => ids.mapa.has(m.id))
+    .map((map) => ({ map, pins: map.pins.filter((p) => ids.marcador.has(p.id) || depth.has(p.entityId)) }))
+  const group = byId(universe, 'groups', groupId)
+  const sheets = group?.showSheetsInCodex ? universe.sheets.filter((s) => s.groupId === groupId && s.role === 'pj') : []
+
+  return {
+    entries,
+    facts: universe.facts.filter((f) => ids.fato.has(f.id)),
+    events: universe.events.filter((e) => ids.evento.has(e.id)).sort((a, b) => a.year - b.year),
+    clues,
+    maps,
+    sheets,
+  }
+}
+
+/** Nome legível do que foi revelado. */
+export function revelationLabel(universe: Universe, r: Revelation): string {
+  switch (r.target) {
+    case 'entidade':
+      return byId(universe, 'entities', r.targetId)?.name ?? 'Ficha removida'
+    case 'fato': {
+      const f = byId(universe, 'facts', r.targetId)
+      return f ? factSentence(universe, f) : 'Fato removido'
+    }
+    case 'evento':
+      return byId(universe, 'events', r.targetId)?.title ?? 'Evento removido'
+    case 'pista': {
+      for (const s of universe.seeds) {
+        const c = s.clues.find((x) => x.id === r.targetId)
+        if (c) return `Pista: ${c.text}`
+      }
+      return 'Pista removida'
+    }
+    case 'mapa':
+      return `Mapa: ${byId(universe, 'maps', r.targetId)?.name ?? 'removido'}`
+    case 'marcador': {
+      for (const m of universe.maps) {
+        const p = m.pins.find((x) => x.id === r.targetId)
+        if (p) return `Marcador: ${p.label || entityName(universe, p.entityId)} (${m.name})`
+      }
+      return 'Marcador removido'
+    }
+  }
 }
 
 /** Texto de um fato, na forma "Sujeito relação valor". */
@@ -56,7 +114,7 @@ export function factSentence(universe: Universe, f: Fact): string {
 /** Codex do grupo em Markdown, pronto para entregar aos jogadores. */
 export function codexMarkdown(universe: Universe, groupId: string, untilSession?: number): string {
   const group = byId(universe, 'groups', groupId)
-  const { entries, facts } = codexFor(universe, groupId, untilSession)
+  const { entries, facts, events, clues, maps, sheets } = codexFor(universe, groupId, untilSession)
   const lines = [`# Codex — ${group?.name ?? 'Jogadores'}`, '']
 
   const kinds = [...new Set(entries.map((e) => e.entity.kind))]
@@ -64,8 +122,11 @@ export function codexMarkdown(universe: Universe, groupId: string, untilSession?
     lines.push(`## ${kindPlural(kind)}`, '')
     for (const { entity, depth } of entries.filter((e) => e.entity.kind === kind)) {
       lines.push(`### ${entity.name}`)
-      if (depth !== 'nome' && entity.summary.trim()) lines.push('', entity.summary.trim())
-      if (depth === 'completo' && entity.description.trim()) lines.push('', entity.description.trim())
+      // Trechos marcados como segredo nunca vão para os jogadores.
+      const summary = stripSecrets(entity.summary)
+      const description = stripSecrets(entity.description)
+      if (depth !== 'nome' && summary) lines.push('', summary)
+      if (depth === 'completo' && description) lines.push('', description)
       lines.push('')
     }
   }
@@ -77,7 +138,33 @@ export function codexMarkdown(universe: Universe, groupId: string, untilSession?
     }
     lines.push('')
   }
-  if (!entries.length && !facts.length) lines.push('_Nada foi revelado ainda._', '')
+  if (events.length) {
+    lines.push('## Linha do tempo', '')
+    for (const e of events) lines.push(`- ${e.endYear !== null ? `${e.year}–${e.endYear}` : e.year}: ${e.title}`)
+    lines.push('')
+  }
+  if (clues.length) {
+    lines.push('## Pistas', '')
+    for (const { seed, clue } of clues) lines.push(`- ${clue.text}${seed.kind === 'misterio' ? ` _(${seed.title})_` : ''}`)
+    lines.push('')
+  }
+  if (maps.length) {
+    lines.push('## Mapas', '')
+    for (const { map, pins } of maps) lines.push(`- ${map.name}: ${pins.map((p) => p.label || entityName(universe, p.entityId)).join(', ') || 'sem marcadores conhecidos'}`)
+    lines.push('')
+  }
+  if (sheets.length) {
+    lines.push('## O grupo', '')
+    for (const s of sheets) {
+      const system = universe.systems.find((x) => x.id === s.systemId)
+      lines.push(`### ${s.name}${s.player ? ` (${s.player})` : ''}`)
+      const fields = Object.entries(s.fields).filter(([, v]) => v.trim())
+      if (fields.length) lines.push('', fields.map(([k, v]) => `${k}: ${v}`).join(' · '))
+      if (system?.attributes.length) lines.push('', system.attributes.map((a) => `${a.abbr} ${s.attributes[a.id] ?? a.default}`).join(' · '))
+      lines.push('')
+    }
+  }
+  if (!entries.length && !facts.length && !events.length && !clues.length && !maps.length && !sheets.length) lines.push('_Nada foi revelado ainda._', '')
   return lines.join('\n')
 }
 
