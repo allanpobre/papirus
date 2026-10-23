@@ -6,6 +6,7 @@ export interface KeyValueStore {
   readonly kind: 'indexeddb' | 'localstorage' | 'memory'
   get(key: string): Promise<unknown>
   set(key: string, value: unknown): Promise<void>
+  delete(key: string): Promise<void>
 }
 
 const DB_NAME = 'papirus'
@@ -34,6 +35,14 @@ export async function openIndexedDbStore(factory: IDBFactory = indexedDB): Promi
         tx.onerror = () => reject(tx.error)
         tx.onabort = () => reject(tx.error)
       }),
+    delete: (key) =>
+      new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite')
+        tx.objectStore(STORE).delete(key)
+        tx.oncomplete = () => resolve()
+        tx.onerror = () => reject(tx.error)
+        tx.onabort = () => reject(tx.error)
+      }),
   }
 }
 
@@ -46,6 +55,7 @@ export function localStorageStore(storage: Storage = localStorage): KeyValueStor
       return raw === null ? undefined : JSON.parse(raw)
     },
     set: async (key, value) => storage.setItem(prefix + key, JSON.stringify(value)),
+    delete: async (key) => storage.removeItem(prefix + key),
   }
 }
 
@@ -55,6 +65,7 @@ export function memoryStore(): KeyValueStore {
     kind: 'memory',
     get: async (key) => structuredClone(map.get(key)),
     set: async (key, value) => void map.set(key, structuredClone(value)),
+    delete: async (key) => void map.delete(key),
   }
 }
 
@@ -75,6 +86,25 @@ export async function openBestStore(): Promise<KeyValueStore> {
     // localStorage também indisponível.
   }
   return memoryStore()
+}
+
+/** Quanto o navegador diz estar usando e quanto permite usar, em bytes. */
+export async function storageEstimate(): Promise<{ usage: number; quota: number } | null> {
+  try {
+    const e = await navigator.storage?.estimate?.()
+    return e ? { usage: e.usage ?? 0, quota: e.quota ?? 0 } : null
+  } catch {
+    return null
+  }
+}
+
+/** Se o navegador já garantiu que não apagará os dados locais sozinho. */
+export async function isStoragePersisted(): Promise<boolean> {
+  try {
+    return (await navigator.storage?.persisted?.()) ?? false
+  } catch {
+    return false
+  }
 }
 
 /** Pede ao navegador para não apagar os dados locais sob pressão de espaço. */

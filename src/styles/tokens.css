@@ -1,0 +1,144 @@
+/*
+ * Papirus — tokens de design.
+ * Direção: escritório de copista moderno. Neutros de pedra com leve tom de sálvia,
+ * tinta verde-viridiana como acento, ocre para o que o sistema percebeu no texto.
+ * Young Serif nos títulos, Instrument Sans na interface, Literata na prosa.
+ */
+:root {
+  color-scheme: light;
+
+  --bg: #e9ece7;
+  --surface: #f7f8f5;
+  --surface-2: #eff1ec;
+  --surface-3: #e3e7e0;
+  --paper: #fcfcf9;
+  --ink: #1b2420;
+  --ink-2: #44514b;
+  --muted: #6c7872;
+  --line: #d3d9d1;
+  --line-strong: #a9b4ac;
+
+  --accent: #1d6b58;
+  --accent-hover: #155344;
+  --accent-ink: #ffffff;
+  --accent-soft: #d8eae3;
+  --accent-faint: #ebf4f0;
+
+  --ochre: #9c6a12;
+  --ochre-soft: #f3e4c2;
+  --ochre-line: #d7a94c;
+
+  --danger: #a3372b;
+  --danger-soft: #f6dcd7;
+  --ok: #2f7445;
+  --ok-soft: #dcefe1;
+  --violet: #6a4ea3;
+  --violet-soft: #e8e1f5;
+  --wine: #8b2f52;
+  --wine-soft: #f3dce5;
+  --sky: #2d6290;
+  --sky-soft: #dce8f3;
+
+  --shadow-1: 0 1px 2px rgb(27 36 32 / 6%), 0 1px 1px rgb(27 36 32 / 4%);
+  --shadow-2: 0 6px 24px rgb(27 36 32 / 10%), 0 2px 6px rgb(27 36 32 / 6%);
+  --shadow-page: 0 1px 0 rgb(27 36 32 / 4%), 0 12px 40px -18px rgb(27 36 32 / 22%);
+
+  --font-ui: 'Instrument Sans Variable', 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-text: 'Literata Variable', 'Literata', Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  --font-display: 'Young Serif', 'Literata Variable', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --radius-s: 6px;
+  --radius: 10px;
+  --radius-l: 16px;
+
+  --rail-w: 232px;
+  --rail-w-collapsed: 64px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #101413;
+    --surface: #171c1a;
+    --surface-2: #1d2421;
+    --surface-3: #252d29;
+    --paper: #1a201d;
+    --ink: #e2e8e4;
+    --ink-2: #b6c1bb;
+    --muted: #87938d;
+    --line: #2c3531;
+    --line-strong: #46524c;
+    --accent: #5cbf9f;
+    --accent-hover: #7ad1b4;
+    --accent-ink: #0b1a14;
+    --accent-soft: #1d3a31;
+    --accent-faint: #172a24;
+    --ochre: #e0b65c;
+    --ochre-soft: #3a2f19;
+    --ochre-line: #a8833a;
+    --danger: #ec8a7c;
+    --danger-soft: #3d201c;
+    --ok: #79c991;
+    --ok-soft: #1d3324;
+    --violet: #b9a3ec;
+    --violet-soft: #2c2541;
+    --wine: #e590b0;
+    --wine-soft: #3c2030;
+    --sky: #8bbbe6;
+    --sky-soft: #1d2d3d;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-2: 0 10px 30px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 30%);
+    --shadow-page: 0 1px 0 rgb(0 0 0 / 20%), 0 16px 40px -20px rgb(0 0 0 / 60%);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #101413;
+  --surface: #171c1a;
+  --surface-2: #1d2421;
+  --surface-3: #252d29;
+  --paper: #1a201d;
+  --ink: #e2e8e4;
+  --ink-2: #b6c1bb;
+  --muted: #87938d;
+  --line: #2c3531;
+  --line-strong: #46524c;
+  --accent: #5cbf9f;
+  --accent-hover: #7ad1b4;
+  --accent-ink: #0b1a14;
+  --accent-soft: #1d3a31;
+  --accent-faint: #172a24;
+  --ochre: #e0b65c;
+  --ochre-soft: #3a2f19;
+  --ochre-line: #a8833a;
+  --danger: #ec8a7c;
+  --danger-soft: #3d201c;
+  --ok: #79c991;
+  --ok-soft: #1d3324;
+  --violet: #b9a3ec;
+  --violet-soft: #2c2541;
+  --wine: #e590b0;
+  --wine-soft: #3c2030;
+  --sky: #8bbbe6;
+  --sky-soft: #1d2d3d;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 30%);
+  --shadow-2: 0 10px 30px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 30%);
+  --shadow-page: 0 1px 0 rgb(0 0 0 / 20%), 0 16px 40px -20px rgb(0 0 0 / 60%);
+}
+
+/* Cores por tipo de ficha (grafo, atlas, listas). */
+:root {
+  --kind-personagem: var(--accent);
+  --kind-lugar: var(--sky);
+  --kind-reino: #3f7f8f;
+  --kind-faccao: var(--wine);
+  --kind-cultura: var(--ochre);
+  --kind-religiao: var(--violet);
+  --kind-magia: #b0458f;
+  --kind-artefato: #8a6a2f;
+  --kind-especie: #5a7d2c;
+  --kind-conceito: var(--muted);
+  --kind-outro: var(--ink-2);
+}

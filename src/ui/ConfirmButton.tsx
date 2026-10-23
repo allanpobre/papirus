@@ -7,13 +7,14 @@ interface Props {
   confirmLabel: string
   onConfirm: () => void
   title?: string
+  className?: string
 }
 
 /**
  * Botão de ação destrutiva com confirmação no próprio lugar, sem caixas de
  * diálogo do navegador (que alguns ambientes bloqueiam). Esc ou "Cancelar" desistem.
  */
-export function ConfirmButton({ children, question, confirmLabel, onConfirm, title }: Props) {
+export function ConfirmButton({ children, question, confirmLabel, onConfirm, title, className }: Props) {
   const [asking, setAsking] = useState(false)
   const cancelRef = useRef<HTMLButtonElement>(null)
 
@@ -23,7 +24,7 @@ export function ConfirmButton({ children, question, confirmLabel, onConfirm, tit
 
   if (!asking) {
     return (
-      <button type="button" title={title} onClick={() => setAsking(true)}>
+      <button type="button" className={className ?? 'btn btn-ghost'} title={title} onClick={() => setAsking(true)}>
         {children}
       </button>
     )
@@ -35,12 +36,16 @@ export function ConfirmButton({ children, question, confirmLabel, onConfirm, tit
       role="group"
       aria-label={question}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') setAsking(false)
+        if (e.key === 'Escape') {
+          e.stopPropagation()
+          setAsking(false)
+        }
       }}
     >
       <span className="confirm-question">{question}</span>
       <button
         type="button"
+        className="btn btn-danger btn-sm"
         onClick={() => {
           setAsking(false)
           onConfirm()
@@ -48,7 +53,7 @@ export function ConfirmButton({ children, question, confirmLabel, onConfirm, tit
       >
         {confirmLabel}
       </button>
-      <button type="button" ref={cancelRef} onClick={() => setAsking(false)}>
+      <button type="button" className="btn btn-ghost btn-sm" ref={cancelRef} onClick={() => setAsking(false)}>
         Cancelar
       </button>
     </span>

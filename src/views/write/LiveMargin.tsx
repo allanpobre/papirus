@@ -1,0 +1,194 @@
+import { Check, Eye, ScanSearch, Sparkles, UserCheck } from 'lucide-react'
+import { useMemo } from 'react'
+import { factSentence } from '../../logic/codex'
+import { isOpen, type Question } from '../../logic/continuity'
+import type { MentionMatcher } from '../../logic/detection'
+import { mentionIdsInDoc } from '../../logic/doc'
+import { knowledgeAt } from '../../logic/knowledge'
+import { KNOWLEDGE_LABEL, SEED_STATUS_LABEL } from '../../model/labels'
+import type { Scene } from '../../model/schema'
+import { byId, entityName, updateScene } from '../../model/universe'
+import { useWorkspace } from '../../state/workspace'
+import { CanonBadge } from '../../ui/bits'
+import { QuestionCard } from './QuestionCard'
+
+interface Props {
+  scene: Scene
+  paragraph: string
+  matcher: MentionMatcher | null
+  questions: Question[]
+  candidates: number
+  onReview: () => void
+  /** Em telas estreitas, a margem abre como painel por cima do texto. */
+  overlay?: boolean
+  onClose?: () => void
+}
+
+/**
+ * Margem viva: o contexto da cena e do parágrafo onde está o cursor. Só mostra;
+ * não interrompe e não muda nada sem um clique do autor.
+ */
+export function LiveMargin({ scene, paragraph, matcher, questions, candidates, onReview, overlay, onClose }: Props) {
+  const { universe, update, peek, go } = useWorkspace()
+
+  const here = useMemo(() => {
+    if (!matcher) return []
+    return [...new Set(matcher.find(paragraph).map((m) => m.entityId))]
+  }, [matcher, paragraph])
+
+  const cast = useMemo(() => {
+    const mentioned = new Set([...(matcher?.find(scene.text).map((m) => m.entityId) ?? []), ...mentionIdsInDoc(scene.doc)])
+    const ids = new Set([scene.povId, ...scene.presentIds, ...mentioned].filter(Boolean) as string[])
+    ids.delete(scene.placeId ?? '')
+    return [...ids]
+      .map((id) => byId(universe, 'entities', id))
+      .filter((e) => e !== undefined)
+      .map((e) => ({
+        entity: e,
+        role: scene.povId === e.id ? 'POV' : scene.presentIds.includes(e.id) ? 'presente' : 'mencionado',
+      }))
+      .sort((a, b) => (a.role === b.role ? a.entity.name.localeCompare(b.entity.name, 'pt') : a.role === 'POV' ? -1 : b.role === 'POV' ? 1 : a.role === 'presente' ? -1 : 1))
+  }, [matcher, scene, universe])
+
+  const povKnows = useMemo(() => (scene.povId ? knowledgeAt(universe, scene.povId, scene.id) : []), [universe, scene.povId, scene.id])
+  const facts = universe.facts.filter((f) => f.sourceSceneId === scene.id)
+  const castIds = new Set(cast.map((c) => c.entity.id))
+  const seeds = universe.seeds.filter(
+    (s) =>
+      s.setupSceneId === scene.id ||
+      s.payoffSceneId === scene.id ||
+      s.clues.some((c) => c.sceneId === scene.id) ||
+      ((s.status === 'aberta' || s.status === 'parcial') && s.entityIds.some((id) => castIds.has(id))),
+  )
+  const open = questions.filter(isOpen)
+
+  return (
+    <aside className={`margin${overlay ? ' write-overlay write-overlay-right' : ''}`} aria-label="Margem viva">
+      {overlay && (
+        <button type="button" className="btn btn-ghost btn-sm margin-close" onClick={onClose}>
+          Fechar margem
+        </button>
+      )}
+      {here.length > 0 && (
+        <section className="margin-section margin-here">
+          <h3 className="section-label">Neste parágrafo</h3>
+          <div className="chips">
+            {here.map((id) => (
+              <button key={id} type="button" className="chip chip-entity" onClick={() => peek(id)}>
+                {entityName(universe, id)}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="margin-section">
+        <h3 className="section-label">Na cena</h3>
+        {cast.length === 0 ? (
+          <p className="muted small">Ninguém por aqui ainda. Nomes de fichas aparecem sozinhos quando você os escreve.</p>
+        ) : (
+          <ul className="cast">
+            {cast.map(({ entity, role }) => (
+              <li key={entity.id}>
+                <button type="button" className="cast-name" onClick={() => peek(entity.id)}>
+                  {entity.name}
+                </button>
+                <span className={`cast-role role-${role}`}>{role}</span>
+                {role === 'mencionado' ? (
+                  <button
+                    type="button"
+                    className="btn-icon btn-xs"
+                    title="Marcar como presente na cena"
+                    aria-label={`Marcar ${entity.name} como presente`}
+                    onClick={() => update((u) => updateScene(u, scene.id, { presentIds: [...scene.presentIds, entity.id] }))}
+                  >
+                    <UserCheck size={13} />
+                  </button>
+                ) : role === 'presente' ? (
+                  <Check size={13} className="muted" aria-hidden="true" />
+                ) : (
+                  <Eye size={13} className="muted" aria-hidden="true" />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {scene.placeId && (
+          <p className="margin-place">
+            Em{' '}
+            <button type="button" className="link-btn" onClick={() => peek(scene.placeId)}>
+              {entityName(universe, scene.placeId)}
+            </button>
+          </p>
+        )}
+      </section>
+
+      {scene.povId && (
+        <section className="margin-section">
+          <h3 className="section-label">O que {entityName(universe, scene.povId)} sabe aqui</h3>
+          {povKnows.length === 0 ? (
+            <p className="muted small">Nada registrado até esta cena.</p>
+          ) : (
+            <ul className="plain-list small">
+              {povKnows.map(({ fact, entry }) => (
+                <li key={entry.id}>
+                  <span className={`knows knows-${entry.state}`}>{KNOWLEDGE_LABEL[entry.state]}</span> {factSentence(universe, fact)}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {facts.length > 0 && (
+        <section className="margin-section">
+          <h3 className="section-label">Fatos desta cena</h3>
+          <ul className="plain-list small">
+            {facts.map((f) => (
+              <li key={f.id}>
+                {factSentence(universe, f)} <CanonBadge canon={f.canon} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {seeds.length > 0 && (
+        <section className="margin-section">
+          <h3 className="section-label">Tramas por perto</h3>
+          <ul className="plain-list small">
+            {seeds.map((s) => (
+              <li key={s.id}>
+                <button type="button" className="link-btn" onClick={() => go('tramas', s.id)}>
+                  {s.title}
+                </button>{' '}
+                <span className={`seed-status seed-${s.status}`}>{SEED_STATUS_LABEL[s.status]}</span>
+                {s.setupSceneId === scene.id && <span className="muted"> · preparada aqui</span>}
+                {s.payoffSceneId === scene.id && <span className="muted"> · paga aqui</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {open.length > 0 && (
+        <section className="margin-section">
+          <h3 className="section-label">Perguntas</h3>
+          {open.map((q) => (
+            <QuestionCard key={q.key} q={q} compact />
+          ))}
+        </section>
+      )}
+
+      <section className="margin-section margin-review">
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onReview}>
+          <ScanSearch size={15} /> Revisar
+          {candidates > 0 && <span className="count-pill">{candidates} {candidates === 1 ? 'nome novo' : 'nomes novos'}</span>}
+        </button>
+        <p className="muted tiny">
+          <Sparkles size={11} aria-hidden="true" /> Selecione um trecho para vincular, capturar um fato ou criar ficha.
+        </p>
+      </section>
+    </aside>
+  )
+}

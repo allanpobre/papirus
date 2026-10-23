@@ -1,10 +1,50 @@
 import { CURRENT_SCHEMA_VERSION, savedFileSchema, type SavedFile } from './schema'
 
+type Data = Record<string, unknown>
+
 /**
  * Cada migração recebe um arquivo na versão N e devolve na versão N + 1.
  * Migrações nunca descartam dados nem trocam IDs existentes.
  */
-const migrations: Record<number, (data: Record<string, unknown>) => Record<string, unknown>> = {}
+const migrations: Record<number, (data: Data) => Data> = {
+  // v1 → v2: universo ganha fichas, relações, timeline, fatos, RPG etc.;
+  // histórias e cenas ganham metadados. Tudo começa vazio.
+  1: (data) => {
+    const u = data.universe as Data
+    return {
+      ...data,
+      universe: {
+        description: '',
+        entities: [],
+        relations: [],
+        events: [],
+        facts: [],
+        knowledge: [],
+        seeds: [],
+        groups: [],
+        sessions: [],
+        revelations: [],
+        inbox: [],
+        maps: [],
+        continuity: [],
+        settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [] },
+        dailyStart: {},
+        ...u,
+        stories: ((u.stories as Data[]) ?? []).map((s) => ({ synopsis: '', ...s })),
+        scenes: ((u.scenes as Data[]) ?? []).map((s) => ({
+          synopsis: '',
+          status: 'rascunho',
+          povId: null,
+          placeId: null,
+          date: null,
+          presentIds: [],
+          notes: '',
+          ...s,
+        })),
+      },
+    }
+  },
+}
 
 export class MigrationError extends Error {}
 
@@ -13,7 +53,7 @@ export function migrate(raw: unknown): SavedFile {
     throw new MigrationError('Arquivo salvo inválido: não é um objeto.')
   }
 
-  let data = raw as Record<string, unknown>
+  let data = raw as Data
   let version = data.schemaVersion
 
   if (typeof version !== 'number' || !Number.isInteger(version) || version < 1) {
@@ -24,6 +64,9 @@ export function migrate(raw: unknown): SavedFile {
       `Este arquivo foi salvo por uma versão mais nova do Papirus (formato ${version}). ` +
         'Atualize o aplicativo antes de abri-lo.',
     )
+  }
+  if (typeof data.universe !== 'object' || data.universe === null) {
+    throw new MigrationError('Arquivo salvo inválido: universo ausente.')
   }
 
   while (version < CURRENT_SCHEMA_VERSION) {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { Editor } from '@tiptap/core'
 import { describe, expect, it } from 'vitest'
-import { sceneExtensions } from '../editor/extensions'
+import { baseExtensions as sceneExtensions } from '../editor/extensions'
 import { addScene, addStory, createUniverse, updateScene } from '../model/universe'
 import type { SceneDoc } from '../model/schema'
 import { docToMarkdown, sceneToMarkdown, universeToMarkdown } from './markdown'
