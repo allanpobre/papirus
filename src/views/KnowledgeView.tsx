@@ -80,7 +80,7 @@ function FactsTab() {
         </Empty>
       ) : (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-cards">
             <thead>
               <tr>
                 <th>Fato</th>
@@ -104,14 +104,14 @@ function FactsTab() {
                       <span className="fact-sentence">{factSentence(universe, f)}</span>
                       {f.quote && <span className="fact-quote">“{f.quote}”</span>}
                     </td>
-                    <td className="small">{f.speakerId ? entityName(universe, f.speakerId) : <span className="muted">Narrador</span>}</td>
-                    <td>
+                    <td className="small" data-label="Segundo">{f.speakerId ? entityName(universe, f.speakerId) : <span className="muted">Narrador</span>}</td>
+                    <td data-label="Canon">
                       <CanonBadge canon={f.canon} />
                     </td>
-                    <td>
+                    <td data-label="Estado">
                       <EditorialBadge editorial={f.editorial} />
                     </td>
-                    <td className="small">
+                    <td className="small" data-label="Fonte">
                       {scene ? (
                         <button type="button" className="link-btn" onClick={() => go('escrever', scene.id)}>
                           {scene.title || 'Sem título'}
@@ -120,7 +120,7 @@ function FactsTab() {
                         <span className="muted">—</span>
                       )}
                     </td>
-                    <td className="small">
+                    <td className="small" data-label="Quem sabe">
                       {holders.length ? holders.map((k) => `${entityName(universe, k.holderId)} (${KNOWLEDGE_LABEL[k.state].toLowerCase()})`).join(', ') : <span className="muted">—</span>}
                     </td>
                     <td className="row-actions">

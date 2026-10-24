@@ -40,7 +40,7 @@ export function ShelfPublish({ book, title, status, onSocial }: { book: BookReco
           </div>
           <p className="muted tiny">
             {HINT[book.shelfVisibility]} Vai só a vitrine: capa, título, sinopse e números. O texto não.
-            {book.shelfVisibility !== 'privado' && ' Se o universo tiver link de leitura, quem vê pode abrir o livro.'}
+            {book.shelfVisibility !== 'privado' && ' Se o universo tiver link de leitura, quem vê pode abrir o livro. Voltar para “Só eu” apaga os comentários e os “quero ler” deste livro.'}
           </p>
           {book.shelfVisibility !== 'privado' && (
             <label className="shelf-publish-blurb">

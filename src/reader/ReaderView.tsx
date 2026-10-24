@@ -19,6 +19,28 @@ interface Progress {
   current: number
   /** A cena mais longe já lida: o caderno mostra tudo até ela. */
   furthest: number
+  /** Onde estava a rolagem dentro da cena atual (px). */
+  top?: number
+}
+
+/** Aparência da página: só deste aparelho. */
+interface Look {
+  /** Tamanho da letra, em px. */
+  size: number
+  tema: 'app' | 'papel' | 'sepia' | 'noite'
+  fonte: 'serifa' | 'sem-serifa'
+}
+const DEFAULT_LOOK: Look = { size: 18, tema: 'app', fonte: 'serifa' }
+const TEMA_LABEL: Record<Look['tema'], string> = { app: 'Igual ao app', papel: 'Papel', sepia: 'Sépia', noite: 'Noite' }
+
+function loadLook(): Look {
+  try {
+    const saved = JSON.parse(recall('leitor-aparencia') ?? 'null') as Partial<Look> | null
+    if (saved) return { ...DEFAULT_LOOK, ...saved, size: Math.min(28, Math.max(14, Number(saved.size) || DEFAULT_LOOK.size)) }
+  } catch {
+    // Preferência ilegível: usa o padrão.
+  }
+  return DEFAULT_LOOK
 }
 
 type Tab = 'quem' | 'descobertas' | 'relacoes' | 'linha'
@@ -67,7 +89,8 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
       const saved = JSON.parse(recall(storageKey) ?? 'null') as Progress | null
       if (saved && Number.isInteger(saved.current) && Number.isInteger(saved.furthest)) {
         const last = Math.max(0, total - 1)
-        return { current: Math.min(saved.current, last), furthest: Math.min(Math.max(saved.furthest, saved.current), last) }
+        const current = Math.min(saved.current, last)
+        return { current, furthest: Math.min(Math.max(saved.furthest, current), last), top: current === saved.current ? Math.max(0, Number(saved.top) || 0) : 0 }
       }
     } catch {
       // Progresso ilegível: começa do início.
@@ -88,6 +111,29 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
   const [notebookOpen, setNotebookOpen] = useState(() => presetOf(loadAids()) === 'tudo' && !matchMedia('(max-width: 900px)').matches)
   const [fresh, setFresh] = useState(0)
   const pageRef = useRef<HTMLDivElement>(null)
+  const [look, setLookState] = useState<Look>(loadLook)
+  const setLook = (l: Look) => {
+    setLookState(l)
+    remember('leitor-aparencia', JSON.stringify(l))
+  }
+  // Voltou no meio de uma cena: leva para onde parou e avisa (some sozinho).
+  const [resumed, setResumed] = useState(() => (progress.top ?? 0) > 120)
+  useEffect(() => {
+    const top = progress.top ?? 0
+    if (top > 0) requestAnimationFrame(() => pageRef.current?.scrollTo({ top }))
+    const t = setTimeout(() => setResumed(false), 4000)
+    return () => clearTimeout(t)
+    // Só ao abrir.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const saveScroll = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const onScroll = () => {
+    if (saveScroll.current) clearTimeout(saveScroll.current)
+    saveScroll.current = setTimeout(() => {
+      const top = Math.round(pageRef.current?.scrollTop ?? 0)
+      setProgress((p) => (p.top === top ? p : { ...p, top }))
+    }, 400)
+  }
 
   useEffect(() => {
     remember(storageKey, JSON.stringify(progress))
@@ -109,7 +155,7 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
         const n = d.entities.length + d.items.length
         if (n) setFresh(n)
       }
-      return { current: i, furthest: Math.max(p.furthest, i) }
+      return { current: i, furthest: Math.max(p.furthest, i), top: 0 }
     })
     pageRef.current?.scrollTo({ top: 0 })
   }
@@ -153,7 +199,12 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
   const pct = Math.round(((furthest + 1) / total) * 100)
 
   return (
-    <div className={`leitor${notebookOpen ? ' leitor-com-caderno' : ''}`}>
+    <div
+      className={`leitor${notebookOpen ? ' leitor-com-caderno' : ''}`}
+      data-tema={look.tema}
+      data-fonte={look.fonte}
+      style={{ '--leitor-size': `${look.size}px` } as React.CSSProperties}
+    >
       <header className="leitor-top">
         {onClose && (
           <button type="button" className="btn-icon" aria-label={closeLabel} title={closeLabel} onClick={onClose}>
@@ -180,7 +231,7 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
           <button type="button" className="btn btn-sm btn-ghost" aria-expanded={aidsOpen} aria-controls="leitor-ajudas" onClick={() => setAidsOpen(!aidsOpen)}>
             <SlidersHorizontal size={15} /> Como ler
           </button>
-          {aidsOpen && <AidsPanel aids={aids} onChange={setAids} onClose={() => setAidsOpen(false)} />}
+          {aidsOpen && <AidsPanel aids={aids} onChange={setAids} look={look} onLook={setLook} onClose={() => setAidsOpen(false)} />}
         </div>
         {aids.caderno && (
         <button
@@ -204,7 +255,22 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
       </header>
 
       <div className="leitor-body">
-        <div className="leitor-page-wrap" ref={pageRef}>
+        <div className="leitor-page-wrap" ref={pageRef} onScroll={onScroll}>
+          {resumed && (
+            <p className="leitor-resumed" role="status">
+              Você voltou para onde parou.{' '}
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => {
+                  pageRef.current?.scrollTo({ top: 0 })
+                  setResumed(false)
+                }}
+              >
+                Ir para o começo da cena
+              </button>
+            </p>
+          )}
           <article className="leitor-page" key={scene.id}>
             {story && <p className="leitor-story">{story.title}</p>}
             <h1 className="leitor-title">{scene.title || 'Sem título'}</h1>
@@ -543,7 +609,7 @@ function Notebook({
 }
 
 /** "Como ler": quanto o Papirus aparece durante a leitura. */
-function AidsPanel({ aids, onChange, onClose }: { aids: Aids; onChange: (a: Aids) => void; onClose: () => void }) {
+function AidsPanel({ aids, onChange, look, onLook, onClose }: { aids: Aids; onChange: (a: Aids) => void; look: Look; onLook: (l: Look) => void; onClose: () => void }) {
   const preset = presetOf(aids)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -566,6 +632,38 @@ function AidsPanel({ aids, onChange, onClose }: { aids: Aids; onChange: (a: Aids
   )
   return (
     <div id="leitor-ajudas" className="leitor-aids" role="group" aria-label="Como ler">
+      <div className="leitor-look">
+        <span className="field-label">Letra</span>
+        <div className="leitor-size">
+          <button type="button" className="btn btn-sm btn-ghost" aria-label="Letra menor" disabled={look.size <= 14} onClick={() => onLook({ ...look, size: look.size - 1 })}>
+            A−
+          </button>
+          <span className="tabular small" aria-live="polite">
+            {look.size}px
+          </span>
+          <button type="button" className="btn btn-sm btn-ghost" aria-label="Letra maior" disabled={look.size >= 28} onClick={() => onLook({ ...look, size: look.size + 1 })}>
+            A+
+          </button>
+        </div>
+        <div className="segmented" role="radiogroup" aria-label="Fonte do texto">
+          <button type="button" role="radio" aria-checked={look.fonte === 'serifa'} className="leitor-font-serifa" onClick={() => onLook({ ...look, fonte: 'serifa' })}>
+            Com serifa
+          </button>
+          <button type="button" role="radio" aria-checked={look.fonte === 'sem-serifa'} className="leitor-font-sem" onClick={() => onLook({ ...look, fonte: 'sem-serifa' })}>
+            Sem serifa
+          </button>
+        </div>
+        <span className="field-label">Página</span>
+        <div className="leitor-temas" role="radiogroup" aria-label="Cor da página">
+          {(Object.keys(TEMA_LABEL) as Look['tema'][]).map((t) => (
+            <button key={t} type="button" role="radio" aria-checked={look.tema === t} className={`leitor-tema leitor-tema-${t}`} onClick={() => onLook({ ...look, tema: t })}>
+              <span className="leitor-tema-swatch" aria-hidden="true" />
+              {TEMA_LABEL[t]}
+            </button>
+          ))}
+        </div>
+      </div>
+      <span className="field-label">Ajudas</span>
       <div className="segmented" role="radiogroup" aria-label="Ajudas de leitura">
         {(Object.keys(PRESETS) as Preset[]).map((k) => (
           <button key={k} type="button" role="radio" aria-checked={preset === k} onClick={() => onChange(PRESETS[k])}>

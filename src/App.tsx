@@ -138,7 +138,8 @@ export default function App() {
           return
         }
         const last = recall('ultimo-universo')
-        if (last && list.some((e) => e.id === last)) await open(lib, last)
+        // Link de perfil (?perfil=) mostra a página da pessoa, não o último universo.
+        if (last && list.some((e) => e.id === last) && !new URLSearchParams(location.search).has('perfil')) await open(lib, last)
         void requestPersistentStorage()
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err))

@@ -94,18 +94,49 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   const anaShelf = bia.getByRole('list', { name: 'Estante de @ana_ribeiro' })
   await expect(anaShelf).toContainText('A Maré')
   await expect(anaShelf).toContainText('Uma cidade que esquece quando a maré sobe.')
+
+  // Bia quer ler e comenta.
+  await anaShelf.getByRole('button', { name: 'Quero ler' }).click()
+  await expect(anaShelf.getByRole('button', { name: /Quero ler/ })).toHaveAttribute('aria-pressed', 'true')
+  await anaShelf.getByRole('button', { name: 'Comentar' }).click()
+  await anaShelf.getByRole('textbox', { name: 'Seu comentário' }).fill('Quero muito ler isso!')
+  await anaShelf.getByRole('button', { name: 'Enviar' }).click()
+  await expect(anaShelf.getByRole('region', { name: 'Comentários sobre A Maré' })).toContainText('Quero muito ler isso!')
+  expect(fake.tables.papirus_shelf_reactions).toHaveLength(1)
   await anaProfile.getByRole('button', { name: 'Fechar' }).click()
+
+  // Ana vê os avisos, abre o comentário no livro dela e apaga.
+  await page.getByRole('button', { name: 'Ver meu perfil' }).click()
+  await anaSocial.getByRole('tab', { name: /Avisos/ }).click()
+  const avisos = anaSocial.getByRole('list', { name: 'Avisos' })
+  await expect(avisos).toContainText('comentou em “A Maré”')
+  await expect(avisos).toContainText('quer ler “A Maré”')
+  await avisos.getByRole('button', { name: /comentou/ }).click()
+  const myShelf = page.getByRole('list', { name: 'Estante de @ana_ribeiro' })
+  const comments = myShelf.getByRole('region', { name: 'Comentários sobre A Maré' })
+  await expect(comments).toContainText('Quero muito ler isso!')
+  await expect(myShelf).toContainText('1 pessoa quer ler')
+  await comments.getByRole('button', { name: 'Apagar comentário' }).click()
+  await comments.getByRole('button', { name: 'Apagar', exact: true }).click()
+  await expect(comments).toContainText('Ninguém comentou ainda.')
+  expect(fake.tables.papirus_shelf_comments).toHaveLength(0)
+  await page.getByRole('dialog', { name: 'Ana Ribeiro' }).getByRole('button', { name: 'Fechar' }).click()
 
   // Sem conta: o link do perfil só mostra o que é de todo mundo.
   const stranger = await newPerson(browser, fake, { server: { url: SERVER, anonKey: 'eyJ.chave-de-teste' } })
   await stranger.goto('/app/?perfil=ana_ribeiro')
-  await expect(stranger.getByRole('dialog', { name: 'Perfil e amigos' })).toContainText('Não achei @ana_ribeiro')
+  await expect(stranger.getByText('Não achamos esse perfil')).toBeVisible()
 
   await visibility.getByRole('radio', { name: 'Todo mundo' }).click()
   await expect.poll(() => fake.tables.papirus_shelf.map((r) => r.visibility)).toEqual(['publico'])
   await stranger.goto('/app/?perfil=ana_ribeiro')
   await expect(stranger.getByRole('list', { name: 'Estante de @ana_ribeiro' })).toContainText('A Maré')
+  await expect(stranger.getByRole('heading', { name: 'Ana Ribeiro', level: 1 })).toBeVisible()
   await expect(stranger.getByRole('button', { name: 'Entrar para adicionar' })).toBeVisible()
+  // Sem conta: vê quantos querem ler, mas para marcar precisa entrar.
+  await expect(stranger.getByRole('button', { name: /Quero ler/ })).toContainText('1')
+  await stranger.getByRole('button', { name: /Quero ler/ }).click()
+  await expect(stranger.getByRole('dialog', { name: 'Entrar no Papirus' })).toBeVisible()
 
   // "Só eu" tira da estante.
   await visibility.getByRole('radio', { name: 'Só eu' }).click()
