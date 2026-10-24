@@ -432,6 +432,12 @@ export const bookDesignSchema = z.object({
   parts: z.boolean().default(true),
 })
 
+/** Um livro da estante: a diagramação com um id (um universo pode ter vários: série, contos…). */
+export const bookRecordSchema = bookDesignSchema.extend({
+  id,
+  ...timestamps,
+})
+
 /** Algo apagado, guardado por 30 dias. `records` traz o item e o que saiu junto (relações, fatos…). */
 export const trashItemSchema = z.object({
   id,
@@ -481,8 +487,10 @@ export const universeSchema = z.object({
   sheets: z.array(sheetSchema).default([]),
   tables: z.array(randomTableSchema).default([]),
   trash: z.array(trashItemSchema).default([]),
-  /** Diagramação do livro (opcional). */
+  /** Formato antigo (um livro só). Ao mexer na estante, vira o primeiro de `books`. */
   book: bookDesignSchema.nullable().default(null),
+  /** A estante: os livros deste universo. */
+  books: z.array(bookRecordSchema).default([]),
   history: z.array(historyEntrySchema).default([]),
   settings: universeSettingsSchema,
   /** Total de palavras no início de cada dia (AAAA-MM-DD), para metas diárias. */
@@ -544,7 +552,9 @@ export type CollectionKey =
   | 'systems'
   | 'sheets'
   | 'tables'
+  | 'books'
 export type TrashItem = z.infer<typeof trashItemSchema>
 export type BookDesign = z.infer<typeof bookDesignSchema>
+export type BookRecord = z.infer<typeof bookRecordSchema>
 export type HistoryEntry = z.infer<typeof historyEntrySchema>
 export type RecordOf<K extends CollectionKey> = Universe[K][number]

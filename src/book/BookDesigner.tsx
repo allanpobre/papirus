@@ -2,8 +2,9 @@ import { BookOpen, Columns2, Download, FileText, ImagePlus, Minus, Plus, Printer
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import polyfill from '../../node_modules/pagedjs/dist/paged.polyfill.min.js?raw'
 import { downloadText, fileNameFor } from '../export/download'
-import { BOOK_PRESETS, PAGE_SIZES, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
+import { BOOK_PRESETS, PAGE_SIZES, bookTitle, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
 import { BOOK_FONTS, fontFaces } from '../export/bookFonts'
+import { shelf, styleOf, updateBook } from '../export/shelf'
 import type { BookDesign } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
@@ -88,11 +89,18 @@ function bookDocument(title: string, html: string, css: string, fonts: string, p
  * Diagramar o livro: o autor escolhe a capa, o Papirus monta o miolo. Prévia página
  * por página, e o PDF sai pela impressão do navegador ("Salvar como PDF").
  */
-export default function BookDesigner({ onClose }: { onClose: () => void }) {
+export default function BookDesigner({ bookId, onClose }: { bookId: string; onClose: () => void }) {
   const { universe, update, toast } = useWorkspace()
-  // Sem diagramação salva, o padrão (um objeto só, para não paginar de novo a cada desenho).
-  const design = useMemo(() => universe.book ?? defaultDesign(), [universe.book])
-  const set = (changes: Partial<BookDesign>) => update((u) => ({ ...u, book: { ...(u.book ?? defaultDesign()), ...changes }, updatedAt: new Date().toISOString() }))
+  // O livro da estante (um objeto estável, para não paginar de novo a cada desenho).
+  const books = useMemo(() => shelf(universe), [universe.books, universe.book]) // eslint-disable-line react-hooks/exhaustive-deps
+  const record = books.find((b) => b.id === bookId)
+  const design = useMemo(() => record ?? defaultDesign(), [record])
+  const others = books.filter((b) => b.id !== bookId)
+  const set = (changes: Partial<BookDesign>) => update((u) => updateBook(u, bookId, changes))
+  // O livro foi apagado (por aqui ou por outra pessoa): fecha.
+  useEffect(() => {
+    if (!record) onClose()
+  }, [record, onClose])
 
   const book = useMemo(() => buildBook(universe, design), [universe, design])
   const fonts = useMemo(() => fontFaces(fontsOf(design)), [design])
@@ -205,7 +213,7 @@ export default function BookDesigner({ onClose }: { onClose: () => void }) {
           <X size={18} />
         </button>
         <div className="book-top-title">
-          <strong>Diagramar o livro</strong>
+          <strong>Diagramar: {book.title}</strong>
           <span className="muted tiny">
             {book.chapters} {book.chapters === 1 ? 'capítulo' : 'capítulos'} · {book.words.toLocaleString('pt-BR')} palavras ·{' '}
             {pages === null ? 'paginando…' : `${pages} páginas`}
@@ -226,6 +234,16 @@ export default function BookDesigner({ onClose }: { onClose: () => void }) {
         <aside className="book-panel" aria-label="Opções do livro">
           <Section title="Modelo" open>
             <p className="muted tiny">Um ponto de partida. Depois, mude o que quiser.</p>
+            {others.length > 0 && (
+              <div className="book-presets">
+                {others.map((o) => (
+                  <button key={o.id} type="button" className="book-preset book-preset-series" onClick={() => set(styleOf(o))}>
+                    <strong>Mesmo estilo de “{bookTitle(universe, o)}”</strong>
+                    <span className="muted tiny">Fontes, capítulos, margens e símbolos iguais; título, capa e histórias ficam.</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="book-presets">
               {Object.entries(BOOK_PRESETS).map(([k, p]) => (
                 <button key={k} type="button" className="book-preset" onClick={() => set(p.design)}>

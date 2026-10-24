@@ -49,3 +49,26 @@ test('diagramar o livro: modelo, capa do autor, prévia paginada com sumário', 
   await expect(designer.getByRole('radio', { name: 'Capítulo Um' })).toHaveAttribute('aria-checked', 'true')
   await expect(designer.getByRole('radiogroup', { name: 'Ornamento acima do capítulo' }).getByRole('radio', { name: '⚜' })).toHaveAttribute('aria-checked', 'true')
 })
+
+test('estante: segundo volume com o mesmo estilo do primeiro', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Seu primeiro livro' })).toBeVisible()
+  await page.getByRole('button', { name: 'Criar o livro' }).click()
+  const designer = page.getByRole('dialog', { name: 'Diagramar o livro' })
+  await designer.getByRole('button', { name: /^Fantasia/ }).click()
+  await designer.getByRole('button', { name: 'Fechar' }).click()
+
+  // Próximo volume: mesmo estilo.
+  await page.getByRole('button', { name: 'Próximo volume' }).click()
+  await page.getByRole('textbox', { name: 'Título' }).fill('Livro II — A Torre')
+  await expect(page.getByRole('combobox', { name: 'Estilo' })).toHaveValue(/.+/)
+  await page.getByRole('button', { name: 'Criar livro' }).click()
+  const estante = page.getByRole('listbox', { name: 'Estante' })
+  await expect(estante.getByRole('option')).toHaveCount(2)
+  await expect(page.getByRole('region', { name: 'Livro Livro II — A Torre' })).toContainText('capítulos em estilo ornamentado')
+
+  // Cada livro tem a sua diagramação.
+  await estante.getByRole('option', { name: /Livro I — A Maré Volta/ }).click()
+  await expect(page.getByRole('region', { name: 'Livro Livro I — A Maré Volta' })).toBeVisible()
+})
