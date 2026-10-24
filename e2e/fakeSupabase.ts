@@ -28,11 +28,18 @@ export function createFakeSupabase() {
   const PUBLIC_READ = new Set(['papirus_profiles', 'papirus_shelf'])
   /** Coluna do dono de cada linha (quem pode escrever). */
   const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner' }
+  // Contas: as de sempre e as criadas no teste (com o que foi preenchido ao criar).
+  const accounts: { id: string; email: string; password: string; meta: Record<string, unknown> }[] = Object.values(PEOPLE).map((p) => ({ ...p, password: PASSWORD, meta: {} }))
+  const session = (a: (typeof accounts)[number]) => {
+    const user = { id: a.id, email: a.email, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: a.meta, created_at: new Date().toISOString() }
+    return { access_token: jwt(a.id), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'r', user }
+  }
   const userOf = (route: Route) => {
     const auth = route.request().headers()['authorization'] ?? ''
     try {
       const sub = JSON.parse(Buffer.from(auth.replace('Bearer ', '').split('.')[1] ?? '', 'base64url').toString()).sub as string
-      return Object.values(PEOPLE).find((p) => p.id === sub) ?? null
+      const a = accounts.find((p) => p.id === sub)
+      return a ? { id: a.id, email: a.email } : null
     } catch {
       return null
     }
@@ -83,17 +90,23 @@ export function createFakeSupabase() {
     await context.route(`${SERVER}/auth/v1/**`, async (route) => {
       const url = route.request().url()
       if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+      if (url.includes('/signup')) {
+        const body = route.request().postDataJSON() as { email: string; password: string; data?: Record<string, unknown> }
+        if (accounts.some((a) => a.email === body.email)) return route.fulfill({ status: 422, headers: cors, json: { code: 422, error_code: 'user_already_exists', msg: 'User already registered' } })
+        const a = { id: crypto.randomUUID(), email: body.email, password: body.password, meta: body.data ?? {} }
+        accounts.push(a)
+        return route.fulfill({ headers: cors, json: session(a) })
+      }
       if (url.includes('/token')) {
         const body = route.request().postDataJSON() as { email?: string; password?: string }
-        const person = Object.values(PEOPLE).find((p) => p.email === body.email)
-        if (!person || body.password !== PASSWORD) return route.fulfill({ status: 400, headers: cors, json: { error: 'invalid_grant', error_description: 'Invalid login credentials', msg: 'Invalid login credentials' } })
-        const user = { ...person, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() }
-        return route.fulfill({ headers: cors, json: { access_token: jwt(person.id), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'r', user } })
+        const person = accounts.find((p) => p.email === body.email)
+        if (!person || body.password !== person.password) return route.fulfill({ status: 400, headers: cors, json: { error: 'invalid_grant', error_description: 'Invalid login credentials', msg: 'Invalid login credentials' } })
+        return route.fulfill({ headers: cors, json: session(person) })
       }
       if (url.includes('/logout')) return route.fulfill({ status: 204, headers: cors, body: '' })
       if (url.includes('/user')) {
         const me = userOf(route)
-        return me ? route.fulfill({ headers: cors, json: { ...me, aud: 'authenticated', role: 'authenticated' } }) : route.fulfill({ status: 401, headers: cors, json: {} })
+        return me ? route.fulfill({ headers: cors, json: session(accounts.find((a) => a.id === me.id)!).user }) : route.fulfill({ status: 401, headers: cors, json: {} })
       }
       return route.fulfill({ status: 404, headers: cors, json: {} })
     })

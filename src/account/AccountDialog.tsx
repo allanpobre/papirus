@@ -1,18 +1,19 @@
-import { Cloud, CloudOff, LogIn, LogOut, Mail, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, CloudOff, Eye, EyeOff, LogIn, Mail, MailCheck, UserPlus } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import type { Library } from '../persistence/repository'
 import type { Prefs } from '../state/prefs'
+import { BrandMark } from '../shell/Brand'
+import { cleanHandle, getMyProfileCache, isHandle, loadMyProfile, saveProfile, subscribeMyProfile, suggestHandle } from '../social/social'
+import { Avatar, SocialDialog } from '../social/SocialDialog'
 import { Field } from '../ui/bits'
 import { Modal } from '../ui/Modal'
 import { ServerFields } from '../views/ServerCard'
-import { sendMagicLink, sendPasswordReset, signIn, signOut, signUp, useAccount } from './auth'
-import { syncLibrary, useCloudStatus } from './useCloud'
+import { authClient, sendMagicLink, sendPasswordReset, signIn, signUp, useAccount } from './auth'
+import { useCloudStatus } from './useCloud'
 
 type Mode = 'entrar' | 'criar' | 'link'
 
-const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
-
-/** Entrar, criar conta, ou ver a conta e a sincronização. */
+/** Entrar ou criar conta; com conta, abre o perfil, os amigos e a sincronização. */
 export function AccountDialog({
   library,
   prefs,
@@ -27,14 +28,22 @@ export function AccountDialog({
   onSynced?: () => void
 }) {
   const { user, server, loading } = useAccount()
-  const cloud = useCloudStatus()
   const [mode, setMode] = useState<Mode>('entrar')
+  const [step, setStep] = useState<1 | 2>(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [show, setShow] = useState(false)
+  const [handle, setHandle] = useState('')
+  const [name, setName] = useState('')
+  const [bio, setBio] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [checkEmail, setCheckEmail] = useState<string | null>(null)
   const [showServer, setShowServer] = useState(!server)
+
+  if (user && server) return <SocialDialog library={library} onSynced={onSynced} publicUrl={prefs.publicUrl} onClose={onClose} />
 
   const act = async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -49,72 +58,80 @@ export function AccountDialog({
     }
   }
 
+  const switchMode = (m: Mode) => {
+    setMode(m)
+    setStep(1)
+    setError(null)
+    setNotice(null)
+  }
+
+  const mismatch = mode === 'criar' && confirm.length > 0 && confirm !== password
+  const cleanedHandle = cleanHandle(handle)
+
   const submit = () =>
     act(async () => {
       if (!server) return
       if (mode === 'entrar') {
         await signIn(server, email.trim(), password)
-      } else if (mode === 'criar') {
-        const confirm = await signUp(server, email.trim(), password)
-        if (confirm) setNotice(`Conta criada. Enviamos um e-mail para ${email.trim()}: abra o link para confirmar e depois entre.`)
-      } else {
+      } else if (mode === 'link') {
         await sendMagicLink(server, email.trim())
         setNotice(`Enviamos um link para ${email.trim()}. Abra-o neste aparelho para entrar.`)
+      } else if (step === 1) {
+        if (password.length < 6) throw new Error('A senha precisa ter pelo menos 6 caracteres.')
+        if (password !== confirm) throw new Error('As duas senhas não são iguais.')
+        if (!handle) setHandle(suggestHandle(email.trim()))
+        setStep(2)
+      } else {
+        if (!isHandle(cleanedHandle)) throw new Error('O @ precisa ter de 3 a 24 caracteres: letras minúsculas, números, "." ou "_".')
+        const profile = { handle: cleanedHandle, name: name.trim(), bio: bio.trim() }
+        const needsConfirm = await signUp(server, email.trim(), password, profile)
+        if (needsConfirm) {
+          setCheckEmail(email.trim())
+          return
+        }
+        // Entrou direto: o perfil já nasce agora (sem o script social, fica para depois).
+        const { data } = await (await authClient(server)).auth.getUser()
+        if (data.user) await saveProfile(await authClient(server), data.user.id, { ...profile, avatar: null }).catch(() => undefined)
       }
     })
 
-  if (user && server) {
+  if (checkEmail) {
     return (
-      <Modal title="Sua conta" size="sm" onClose={onClose}>
-        <div className="account">
-          <p className="account-email">
-            <Cloud size={18} aria-hidden="true" /> {user.email}
+      <Modal title="Entrar no Papirus" size="sm" onClose={onClose}>
+        <div className="account account-done">
+          <MailCheck size={36} aria-hidden="true" className="account-done-icon" />
+          <h3>Confira seu e-mail</h3>
+          <p className="small">
+            Mandamos um link para <strong>{checkEmail}</strong>. Abra-o neste aparelho para confirmar a conta. Seu perfil (@{cleanedHandle}) fica pronto quando você entrar.
           </p>
-          <p className="small">Seus universos são salvos neste navegador e na sua conta. Ao entrar em outro aparelho, eles aparecem lá.</p>
-          <p className="small muted" role="status">
-            {cloud.state === 'sincronizando'
-              ? 'Sincronizando…'
-              : cloud.state === 'erro'
-                ? `Não sincronizou: ${cloud.error}`
-                : cloud.at
-                  ? `Sincronizado às ${timeFmt.format(new Date(cloud.at))}${cloud.report?.conflicts ? `. ${cloud.report.conflicts} universo(s) mudaram nos dois lugares: a versão da nuvem ficou como cópia.` : '.'}`
-                  : 'Ainda não sincronizou nesta visita.'}
-          </p>
-          <div className="inline-fields">
-            {library && (
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                disabled={cloud.state === 'sincronizando'}
-                onClick={() => void syncLibrary(library, server, user.id).then(() => onSynced?.())}
-              >
-                <RefreshCw size={14} /> Sincronizar agora
-              </button>
-            )}
-          </div>
           <button
             type="button"
-            className="btn account-signout"
-            onClick={() =>
-              void act(async () => {
-                await signOut(server)
-                onClose()
-                goToLanding()
-              })
-            }
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              setCheckEmail(null)
+              switchMode('entrar')
+            }}
           >
-            <LogOut size={16} /> Sair da conta
+            Já confirmei: entrar
           </button>
-          <p className="muted tiny">Ao sair, você volta para a apresentação do Papirus. Os universos continuam neste navegador; nada é apagado.</p>
         </div>
       </Modal>
     )
   }
 
+  const passwordToggle = (
+    <button type="button" className="btn-icon account-eye" aria-label={show ? 'Esconder o que digitei' : 'Ver o que digitei'} aria-pressed={show} onClick={() => setShow((v) => !v)}>
+      {show ? <EyeOff size={16} /> : <Eye size={16} />}
+    </button>
+  )
+
   return (
     <Modal title="Entrar no Papirus" size="sm" onClose={onClose}>
       <div className="account">
-        <p className="small">A conta é opcional. Com ela, seus universos ficam guardados na nuvem e aparecem em qualquer aparelho. Sem ela, tudo continua funcionando neste navegador.</p>
+        <div className="account-hero">
+          <BrandMark size={34} />
+          <p className="small">A conta é opcional. Com ela, seus universos vão para todos os seus aparelhos, e você ganha um perfil para amigos verem sua estante.</p>
+        </div>
 
         {!server || showServer ? (
           <>
@@ -132,19 +149,28 @@ export function AccountDialog({
           </>
         ) : (
           <>
-            <div className="segmented" role="tablist" aria-label="Como entrar">
-              {(
-                [
-                  ['entrar', 'Entrar'],
-                  ['criar', 'Criar conta'],
-                  ['link', 'Link por e-mail'],
-                ] as const
-              ).map(([m, label]) => (
-                <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}>
-                  {label}
-                </button>
-              ))}
-            </div>
+            {mode !== 'link' && (
+              <div className="segmented account-tabs" role="tablist" aria-label="Como entrar">
+                {(
+                  [
+                    ['entrar', 'Entrar'],
+                    ['criar', 'Criar conta'],
+                  ] as const
+                ).map(([m, label]) => (
+                  <button key={m} type="button" role="tab" aria-selected={mode === m} aria-checked={mode === m} onClick={() => switchMode(m)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {mode === 'criar' && (
+              <ol className="account-steps" aria-label="Passos">
+                <li aria-current={step === 1 ? 'step' : undefined}>Acesso</li>
+                <li aria-current={step === 2 ? 'step' : undefined}>Seu perfil</li>
+              </ol>
+            )}
+
             <form
               className="account-form"
               onSubmit={(e) => {
@@ -152,45 +178,115 @@ export function AccountDialog({
                 void submit()
               }}
             >
-              <Field label="E-mail">
-                {(id) => <input id={id} className="input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
-              </Field>
-              {mode !== 'link' && (
-                <Field label="Senha" hint={mode === 'criar' ? 'Pelo menos 6 caracteres.' : undefined}>
-                  {(id) => (
-                    <input
-                      id={id}
-                      className="input"
-                      type="password"
-                      autoComplete={mode === 'criar' ? 'new-password' : 'current-password'}
-                      required
-                      minLength={6}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  )}
-                </Field>
+              {mode === 'link' && (
+                <p className="small">
+                  <strong>Entrar sem senha.</strong> Mandamos um link para o seu e-mail; é só abrir neste aparelho.
+                </p>
               )}
-              <button type="submit" className="btn btn-primary" disabled={busy || loading}>
-                {mode === 'link' ? <Mail size={16} /> : null}
-                {busy ? 'Aguarde…' : mode === 'entrar' ? 'Entrar' : mode === 'criar' ? 'Criar conta' : 'Mandar o link'}
-              </button>
+
+              {(mode !== 'criar' || step === 1) && (
+                <>
+                  <Field label="E-mail">
+                    {(id) => <input id={id} className="input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
+                  </Field>
+                  {mode !== 'link' && (
+                    <Field label="Senha" hint={mode === 'criar' ? 'Pelo menos 6 caracteres.' : undefined}>
+                      {(id) => (
+                        <span className="account-password">
+                          <input
+                            id={id}
+                            className="input"
+                            type={show ? 'text' : 'password'}
+                            autoComplete={mode === 'criar' ? 'new-password' : 'current-password'}
+                            required
+                            minLength={6}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                          />
+                          {passwordToggle}
+                        </span>
+                      )}
+                    </Field>
+                  )}
+                  {mode === 'criar' && (
+                    <Field label="Repita a senha" hint={mismatch ? 'As duas senhas não são iguais.' : undefined}>
+                      {(id) => (
+                        <input
+                          id={id}
+                          className="input"
+                          type={show ? 'text' : 'password'}
+                          autoComplete="new-password"
+                          required
+                          aria-invalid={mismatch}
+                          value={confirm}
+                          onChange={(e) => setConfirm(e.target.value)}
+                        />
+                      )}
+                    </Field>
+                  )}
+                </>
+              )}
+
+              {mode === 'criar' && step === 2 && (
+                <>
+                  <p className="small">Como as pessoas vão te ver no Papirus. Só o @ é obrigatório; foto e o resto dá para mudar depois.</p>
+                  <Field label="@ (como te acham)" hint={isHandle(cleanedHandle) ? `Fica @${cleanedHandle}.` : 'De 3 a 24 caracteres: letras minúsculas, números, "." ou "_".'}>
+                    {(id) => (
+                      <span className="social-handle-input">
+                        <span aria-hidden="true">@</span>
+                        <input id={id} className="input" value={handle} maxLength={30} autoCapitalize="off" autoCorrect="off" spellCheck={false} aria-invalid={!isHandle(cleanedHandle)} onChange={(e) => setHandle(e.target.value)} />
+                      </span>
+                    )}
+                  </Field>
+                  <Field label="Nome">{(id) => <input id={id} className="input" value={name} maxLength={80} placeholder="Como quer aparecer" onChange={(e) => setName(e.target.value)} />}</Field>
+                  <Field label="Sobre você">
+                    {(id) => <textarea id={id} className="input" rows={3} value={bio} maxLength={600} placeholder="O que você escreve, o que joga, o que lê…" onChange={(e) => setBio(e.target.value)} />}
+                  </Field>
+                </>
+              )}
+
+              <div className="account-actions">
+                {mode === 'criar' && step === 2 && (
+                  <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>
+                    <ArrowLeft size={16} /> Voltar
+                  </button>
+                )}
+                <button type="submit" className="btn btn-primary account-submit" disabled={busy || loading || mismatch}>
+                  {mode === 'link' ? <Mail size={16} /> : mode === 'entrar' ? <LogIn size={16} /> : step === 2 ? <UserPlus size={16} /> : null}
+                  {busy ? 'Aguarde…' : mode === 'entrar' ? 'Entrar' : mode === 'link' ? 'Mandar o link' : step === 1 ? 'Continuar' : 'Criar conta'}
+                </button>
+              </div>
             </form>
-            {mode === 'entrar' && (
-              <button
-                type="button"
-                className="link-btn small"
-                disabled={!email.trim()}
-                onClick={() =>
-                  void act(async () => {
-                    await sendPasswordReset(server, email.trim())
-                    setNotice(`Se existir uma conta com ${email.trim()}, chegou um e-mail para trocar a senha.`)
-                  })
-                }
-              >
-                Esqueci a senha
-              </button>
-            )}
+
+            <div className="account-links">
+              {mode === 'entrar' && (
+                <button
+                  type="button"
+                  className="link-btn small"
+                  disabled={!email.trim()}
+                  title={email.trim() ? undefined : 'Escreva o e-mail primeiro'}
+                  onClick={() =>
+                    void act(async () => {
+                      await sendPasswordReset(server, email.trim())
+                      setNotice(`Se existir uma conta com ${email.trim()}, chegou um e-mail para trocar a senha.`)
+                    })
+                  }
+                >
+                  Esqueci a senha
+                </button>
+              )}
+              {mode === 'link' ? (
+                <button type="button" className="link-btn small" onClick={() => switchMode('entrar')}>
+                  Entrar com senha
+                </button>
+              ) : (
+                mode === 'entrar' && (
+                  <button type="button" className="link-btn small" onClick={() => switchMode('link')}>
+                    Entrar sem senha (link por e-mail)
+                  </button>
+                )
+              )}
+            </div>
             {error && (
               <p className="notice notice-error small" role="alert">
                 {error}
@@ -211,22 +307,35 @@ export function AccountDialog({
   )
 }
 
-/** Botão da conta: "Entrar" ou o e-mail. */
-/** Volta para a página de apresentação (quando o app está em …/app/). */
-function goToLanding() {
-  if (/\/app\/?$/.test(location.pathname)) location.assign(new URL('../', location.href).toString())
-}
-
+/** Botão da conta: "Entrar", ou a foto (ou inicial) do perfil. Abre perfil, amigos e a nuvem. */
 export function AccountButton({ onClick, compact = false }: { onClick: () => void; compact?: boolean }) {
-  const { user } = useAccount()
+  const { user, server } = useAccount()
   const cloud = useCloudStatus()
-  // Só o começo do e-mail: o endereço inteiro estoura o topo no celular.
-  const label = user ? (user.email?.split('@')[0] || 'Conta') : 'Entrar'
+  const cache = useSyncExternalStore(subscribeMyProfile, getMyProfileCache)
+  const profile = user && cache?.userId === user.id ? cache.profile : null
+  const userId = user?.id
+  useEffect(() => {
+    if (!userId || !server) return
+    void authClient(server).then((sb) => loadMyProfile(sb, userId))
+  }, [userId, server])
+
+  if (!user) {
+    return (
+      <button type="button" data-tour="conta" className="account-btn" title="Entrar ou criar conta" aria-label="Entrar" onClick={onClick}>
+        <LogIn size={16} aria-hidden="true" />
+        {!compact && <span className="account-btn-label">Entrar</span>}
+      </button>
+    )
+  }
+  // Só o @ ou o começo do e-mail: o endereço inteiro estoura o topo no celular.
+  const label = profile ? `@${profile.handle}` : user.email?.split('@')[0] || 'Conta'
   return (
-    <button type="button" data-tour="conta" className={`account-btn${user ? ' signed' : ''}`} title={user ? `Conta: ${user.email}` : 'Entrar ou criar conta'} aria-label={user ? `Conta: ${user.email}` : 'Entrar'} onClick={onClick}>
-      {!user ? <LogIn size={16} aria-hidden="true" /> : cloud.state === 'erro' ? <CloudOff size={16} aria-hidden="true" /> : <Cloud size={16} aria-hidden="true" />}
+    <button type="button" data-tour="conta" className="account-btn signed" title={`Conta: ${user.email}`} aria-label={`Conta: ${user.email}`} onClick={onClick}>
+      <span className="account-btn-avatar">
+        <Avatar p={profile ?? { avatar: null, name: '', handle: user.email ?? '?' }} size={24} />
+        {cloud.state === 'erro' && <CloudOff size={12} aria-label="Não sincronizou" className="account-btn-warn" />}
+      </span>
       {!compact && <span className="account-btn-label">{label}</span>}
     </button>
   )
 }
-

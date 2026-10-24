@@ -1,4 +1,4 @@
-import { BookOpen, CircleUser, Cloud, Coffee, Dices, Eye, Feather, FileText, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, Rocket, Search, ShieldCheck, Sparkles, Sun, Trash2, Users, Wand2 } from 'lucide-react'
+import { BookOpen, Cloud, Coffee, Dices, Eye, Feather, FileText, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, Rocket, Search, ShieldCheck, Sparkles, Sun, Trash2, Users, Wand2 } from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
@@ -225,11 +225,6 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <button type="button" className="btn-icon" aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'} onClick={() => setPref('theme', dark ? 'claro' : 'escuro')}>
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-          {account.server && (
-            <button type="button" className="btn-icon" aria-label="Perfil e amigos" title="Perfil e amigos" onClick={() => setSocialOpen(true)}>
-              <CircleUser size={18} />
-            </button>
-          )}
           <AccountButton onClick={() => setAccountOpen(true)} />
         </div>
       </header>

@@ -83,6 +83,7 @@ test('conta opcional: entrar, levar os universos para a nuvem e sair sem perder 
 
   // Sair não apaga nada deste navegador.
   await page.getByRole('button', { name: 'Conta: ana@exemplo.com' }).click()
+  await page.getByRole('dialog', { name: 'Sua conta' }).getByRole('tab', { name: 'Conta' }).click()
   await page.getByRole('button', { name: 'Sair da conta' }).click()
   // Volta para a apresentação; o app abre de novo sem conta.
   await expect(page).not.toHaveURL(/\/app\/$/)
