@@ -18,6 +18,7 @@ import { daysInYear } from '../logic/calendar'
 import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
+import { WikiCard } from './WikiCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
 import { matches, SETTINGS_CATEGORIES, type SettingsCategory } from './settingsCategories'
@@ -275,6 +276,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         {show('historico') && <HistoryCard />}
 
         {show('livros') && <BookCard />}
+        {show('livros') && <WikiCard />}
 
         {show('conta') && <AccountCard />}
         {show('conta') && <ServerCard />}
