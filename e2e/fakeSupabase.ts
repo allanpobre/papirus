@@ -21,13 +21,13 @@ export const PEOPLE = {
 export const PASSWORD = 'segredo123'
 
 export function createFakeSupabase() {
-  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [] }
+  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [] }
   const friends = (a: unknown, b: unknown) =>
     tables.papirus_friendships.some((f) => f.status === 'aceita' && ((f.requester === a && f.addressee === b) || (f.requester === b && f.addressee === a)))
   /** Tabelas que quem não tem conta também lê (o que é público). */
-  const PUBLIC_READ = new Set(['papirus_profiles', 'papirus_shelf'])
+  const PUBLIC_READ = new Set(['papirus_profiles', 'papirus_shelf', 'papirus_shelf_reactions', 'papirus_shelf_comments'])
   /** Coluna do dono de cada linha (quem pode escrever). */
-  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner' }
+  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author' }
   // Contas: as de sempre e as criadas no teste (com o que foi preenchido ao criar).
   const accounts: { id: string; email: string; password: string; meta: Record<string, unknown> }[] = Object.values(PEOPLE).map((p) => ({ ...p, password: PASSWORD, meta: {} }))
   const session = (a: (typeof accounts)[number]) => {
@@ -48,7 +48,15 @@ export function createFakeSupabase() {
     (me && (tables.papirus_members.find((m) => m.owner_id === owner && m.universe_id === universe && m.email === me.email)?.role as string)) || null
 
   /** O RLS: o que cada pessoa enxerga em cada tabela. */
+  const bookVisible = (me: { id: string } | null, owner: unknown, bookId: unknown) => {
+    const b = tables.papirus_shelf.find((x) => x.owner === owner && x.id === bookId)
+    return !!b && (b.owner === me?.id || b.visibility === 'publico' || (!!me && b.visibility === 'amigos' && friends(b.owner, me.id)))
+  }
   const visible = (table: string, me: (typeof PEOPLE)['ana'] | null, r: Row, write = false) => {
+    if (table === 'papirus_shelf_reactions' || table === 'papirus_shelf_comments') {
+      if (write) return table === 'papirus_shelf_reactions' ? r.user_id === me?.id : r.author === me?.id || r.owner === me?.id
+      return bookVisible(me, r.owner, r.book_id)
+    }
     if (table === 'papirus_shelf') return write ? r.owner === me?.id : r.owner === me?.id || r.visibility === 'publico' || (!!me && r.visibility === 'amigos' && friends(r.owner, me.id))
     if (table === 'papirus_profiles')
       return write ? r.user_id === me?.id : !!me || tables.papirus_shelf.some((x) => x.owner === r.user_id && x.visibility === 'publico')
@@ -78,6 +86,8 @@ export function createFakeSupabase() {
         const want = v.slice(3)
         const have = r[k]
         if (k === 'updated_at' ? Date.parse(String(have)) !== Date.parse(want) : String(have) !== want) return false
+      } else if (v.startsWith('gte.')) {
+        if (!(String(r[k]) >= v.slice(4))) return false
       } else if (v.startsWith('in.(')) {
         if (!v.slice(4, -1).split(',').includes(String(r[k]))) return false
       }
@@ -157,6 +167,8 @@ export function createFakeSupabase() {
           papirus_profiles: ['user_id'],
           papirus_friendships: ['requester', 'addressee'],
           papirus_shelf: ['owner', 'id'],
+          papirus_shelf_reactions: ['owner', 'book_id', 'user_id'],
+          papirus_shelf_comments: ['id'],
         }
         const written: Row[] = []
         for (const raw of Array.isArray(body) ? body : [body]) {
@@ -169,6 +181,12 @@ export function createFakeSupabase() {
               return route.fulfill({ status: 409, headers: cors, json: { code: '23505', message: 'duplicate key value violates unique constraint "papirus_profiles_handle_key"' } })
             Object.assign(r, { name: r.name ?? '', bio: r.bio ?? '', avatar: r.avatar ?? null })
           }
+          if (path === 'papirus_shelf_reactions' || path === 'papirus_shelf_comments') {
+            if (!bookVisible(me, r.owner, r.book_id)) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
+            if (path === 'papirus_shelf_comments') r.id ??= crypto.randomUUID()
+            r.created_at ??= new Date().toISOString()
+          }
+          if (path === 'papirus_shelf' && !table.some((x) => x.owner === r.owner && x.id === r.id)) r.created_at ??= new Date().toISOString()
           if (path === 'papirus_friendships') {
             if (r.status !== 'pendente' || r.requester === r.addressee) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
             if (table.some((x) => x.requester === r.addressee && x.addressee === r.requester))
@@ -208,6 +226,8 @@ export function createFakeSupabase() {
       if (req.method() === 'DELETE') {
         const hit = table.filter((r) => matches(url.searchParams, r) && (path === 'papirus_universes' ? r.user_id === me.id : visible(path, me, r, true)))
         tables[path] = table.filter((r) => !hit.includes(r))
+        if (path === 'papirus_shelf')
+          for (const t of ['papirus_shelf_reactions', 'papirus_shelf_comments']) tables[t] = tables[t].filter((x) => !hit.some((b) => b.owner === x.owner && b.id === x.book_id))
         if (path === 'papirus_shares') tables.papirus_members = tables.papirus_members.filter((m) => !hit.some((s) => s.owner_id === m.owner_id && s.universe_id === m.universe_id))
         return route.fulfill({ status: 204, headers: cors, body: '' })
       }

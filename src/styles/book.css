@@ -666,3 +666,253 @@
   flex: 1;
   padding-block: 0.4rem;
 }
+
+/* ---------------------------------------------------------------- "quero ler", comentários e avisos */
+
+.social-book {
+  align-items: flex-start;
+}
+
+.social-book-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.social-want-on {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+  color: var(--accent);
+}
+
+.social-count {
+  margin-left: 0.15rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--surface-3);
+  font-size: 0.75rem;
+}
+
+.social-want-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.social-comments {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.social-comment-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.social-comment p {
+  margin: 0.1rem 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.social-comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.45rem;
+}
+
+.social-comment-head .btn-icon {
+  margin-left: auto;
+}
+
+.social-comment-form {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.social-comment-form .btn {
+  justify-self: end;
+}
+
+.social-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: inherit;
+  text-align: left;
+}
+
+.social-notice.is-new {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--accent-faint);
+}
+
+.social-notice-text {
+  display: grid;
+  flex: 1;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.social-notice-quote {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social-dot,
+.account-btn-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.social-dot {
+  margin-top: 0.35rem;
+}
+
+.account-btn-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* ---------------------------------------------------------------- página pública do perfil */
+
+.profile-page {
+  min-height: 100%;
+  overflow-x: clip;
+  background:
+    radial-gradient(900px 420px at 80% -10%, var(--accent-faint), transparent 60%),
+    var(--bg);
+}
+
+.profile-page-home {
+  border: 0;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+.profile-page-main {
+  display: grid;
+  gap: 2rem;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem max(16px, env(safe-area-inset-left, 0px)) 4rem;
+}
+
+.profile-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.profile-hero .social-avatar {
+  box-shadow: 0 0 0 4px var(--surface), var(--shadow-1);
+}
+
+.profile-hero-text {
+  display: grid;
+  flex: 1;
+  gap: 0.35rem;
+  min-width: 14rem;
+}
+
+.profile-hero h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.profile-hero p {
+  margin: 0;
+}
+
+.profile-bio {
+  max-width: 36em;
+  font-family: var(--font-text);
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.profile-shelf {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.profile-shelf h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+}
+
+.profile-shelf .social-shelf {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 1.4rem;
+}
+
+.profile-shelf .social-book-cover {
+  width: 112px;
+  height: 168px;
+}
+
+.profile-page-missing {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.profile-page-missing h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.profile-page-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.profile-page-foot p {
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .profile-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-shelf .social-book-cover {
+    width: 92px;
+    height: 138px;
+  }
+}

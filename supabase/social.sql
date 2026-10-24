@@ -102,3 +102,61 @@ grant select, insert, delete on public.papirus_friendships to authenticated;
 grant update (status) on public.papirus_friendships to authenticated;
 revoke all on function public.papirus_are_friends(uuid, uuid) from public, anon;
 grant execute on function public.papirus_are_friends(uuid, uuid) to authenticated;
+
+-- Quando o livro entrou na estante (os avisos mostram livros novos de amigos, não cada edição).
+alter table public.papirus_shelf add column if not exists created_at timestamptz not null default now();
+
+-- ─── "Quero ler" e comentários nos livros da estante ─────────────────
+-- Quem consegue ver o livro (dono, amigos se for "amigos", todos se for "público") vê e participa.
+-- O dono do livro pode apagar qualquer comentário no livro dele; cada um apaga o seu.
+
+create table if not exists public.papirus_shelf_reactions (
+  owner uuid not null,
+  book_id text not null,
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (owner, book_id, user_id),
+  foreign key (owner, book_id) references public.papirus_shelf (owner, id) on delete cascade
+);
+
+create table if not exists public.papirus_shelf_comments (
+  id uuid primary key default gen_random_uuid(),
+  owner uuid not null,
+  book_id text not null,
+  author uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  body text not null check (length(trim(body)) between 1 and 1000),
+  created_at timestamptz not null default now(),
+  foreign key (owner, book_id) references public.papirus_shelf (owner, id) on delete cascade
+);
+create index if not exists papirus_shelf_comments_book on public.papirus_shelf_comments (owner, book_id, created_at);
+
+-- O livro está visível para quem pergunta? (as regras da estante valem aqui dentro)
+create or replace function public.papirus_book_visible(o uuid, b text) returns boolean
+language sql stable security invoker set search_path = '' as $$
+  select exists (select 1 from public.papirus_shelf s where s.owner = o and s.id = b)
+$$;
+
+alter table public.papirus_shelf_reactions enable row level security;
+alter table public.papirus_shelf_comments enable row level security;
+
+drop policy if exists "ver quem quer ler" on public.papirus_shelf_reactions;
+drop policy if exists "marcar quero ler" on public.papirus_shelf_reactions;
+drop policy if exists "desmarcar quero ler" on public.papirus_shelf_reactions;
+create policy "ver quem quer ler" on public.papirus_shelf_reactions for select to authenticated, anon using (public.papirus_book_visible(owner, book_id));
+create policy "marcar quero ler" on public.papirus_shelf_reactions for insert to authenticated
+  with check (user_id = auth.uid() and public.papirus_book_visible(owner, book_id));
+create policy "desmarcar quero ler" on public.papirus_shelf_reactions for delete to authenticated using (user_id = auth.uid());
+
+drop policy if exists "ver comentários" on public.papirus_shelf_comments;
+drop policy if exists "comentar" on public.papirus_shelf_comments;
+drop policy if exists "apagar comentário" on public.papirus_shelf_comments;
+create policy "ver comentários" on public.papirus_shelf_comments for select to authenticated, anon using (public.papirus_book_visible(owner, book_id));
+create policy "comentar" on public.papirus_shelf_comments for insert to authenticated
+  with check (author = auth.uid() and public.papirus_book_visible(owner, book_id));
+create policy "apagar comentário" on public.papirus_shelf_comments for delete to authenticated using (author = auth.uid() or owner = auth.uid());
+
+grant select on public.papirus_shelf_reactions, public.papirus_shelf_comments to anon;
+revoke insert, update, delete on public.papirus_shelf_reactions, public.papirus_shelf_comments from anon;
+grant select, insert, delete on public.papirus_shelf_reactions, public.papirus_shelf_comments to authenticated;
+revoke update on public.papirus_shelf_reactions, public.papirus_shelf_comments from authenticated;
+grant execute on function public.papirus_book_visible(uuid, text) to authenticated, anon;

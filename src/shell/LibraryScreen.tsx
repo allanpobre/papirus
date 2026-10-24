@@ -15,7 +15,7 @@ import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistenc
 import type { usePrefs } from '../state/prefs'
 import type { View } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
-import { SocialDialog } from '../social/SocialDialog'
+import { ProfilePage } from '../social/ProfilePage'
 import { Brand } from './Brand'
 
 interface Props {
@@ -39,7 +39,6 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const [accountOpen, setAccountOpen] = useState(false)
   // Link de perfil (?perfil=fulano) abre direto a estante dessa pessoa.
   const [profileHandle, setProfileHandle] = useState<string | undefined>(() => new URLSearchParams(location.search).get('perfil') ?? undefined)
-  const [socialOpen, setSocialOpen] = useState(!!profileHandle)
   const fileRef = useRef<HTMLInputElement>(null)
   const { prefs: p, setPref } = prefs
   const dark = p.theme === 'escuro' || (p.theme === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches)
@@ -211,6 +210,24 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     </>
   )
 
+  if (profileHandle) {
+    return (
+      <>
+        <ProfilePage
+          handle={profileHandle}
+          publicUrl={p.publicUrl}
+          onAccount={() => setAccountOpen(true)}
+          accountButton={<AccountButton onClick={() => setAccountOpen(true)} />}
+          onLeave={() => {
+            history.replaceState(null, '', location.pathname)
+            setProfileHandle(undefined)
+          }}
+        />
+        {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
+      </>
+    )
+  }
+
   return (
     <div className={`library${first ? ' library-first' : ''}`}>
       <header className="library-top">
@@ -310,20 +327,6 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         </main>
       )}
 
-      {socialOpen && (
-        <SocialDialog
-          publicUrl={p.publicUrl}
-          initialHandle={profileHandle}
-          onAccount={() => setAccountOpen(true)}
-          onClose={() => {
-            setSocialOpen(false)
-            if (profileHandle) {
-              history.replaceState(null, '', location.pathname)
-              setProfileHandle(undefined)
-            }
-          }}
-        />
-      )}
       {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
     </div>
   )

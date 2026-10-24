@@ -3,7 +3,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import type { Library } from '../persistence/repository'
 import type { Prefs } from '../state/prefs'
 import { BrandMark } from '../shell/Brand'
-import { cleanHandle, getMyProfileCache, isHandle, loadMyProfile, saveProfile, subscribeMyProfile, suggestHandle } from '../social/social'
+import { cleanHandle, getMyProfileCache, getNoticeCount, isHandle, loadMyProfile, loadNotices, noticesSeenAt, saveProfile, setNoticeCount, subscribeMyProfile, subscribeNoticeCount, suggestHandle, unseenCount } from '../social/social'
 import { Avatar, SocialDialog } from '../social/SocialDialog'
 import { Field } from '../ui/bits'
 import { Modal } from '../ui/Modal'
@@ -314,10 +314,32 @@ export function AccountButton({ onClick, compact = false }: { onClick: () => voi
   const cache = useSyncExternalStore(subscribeMyProfile, getMyProfileCache)
   const profile = user && cache?.userId === user.id ? cache.profile : null
   const userId = user?.id
+  const notices = useSyncExternalStore(subscribeNoticeCount, getNoticeCount)
+  const hasProfile = !!profile
   useEffect(() => {
     if (!userId || !server) return
     void authClient(server).then((sb) => loadMyProfile(sb, userId))
   }, [userId, server])
+  // Avisos novos (pedidos, comentários, "quero ler", livros de amigos): confere ao abrir e a cada 3 minutos.
+  useEffect(() => {
+    if (!userId || !server || !hasProfile) return
+    let off = false
+    const check = async () => {
+      if (document.hidden) return
+      try {
+        const list = await loadNotices(await authClient(server), userId)
+        if (!off) setNoticeCount(unseenCount(list, noticesSeenAt(userId)))
+      } catch {
+        // Sem a parte social no servidor: sem avisos.
+      }
+    }
+    void check()
+    const t = setInterval(() => void check(), 180_000)
+    return () => {
+      off = true
+      clearInterval(t)
+    }
+  }, [userId, server, hasProfile])
 
   if (!user) {
     return (
@@ -330,10 +352,18 @@ export function AccountButton({ onClick, compact = false }: { onClick: () => voi
   // Só o @ ou o começo do e-mail: o endereço inteiro estoura o topo no celular.
   const label = profile ? `@${profile.handle}` : user.email?.split('@')[0] || 'Conta'
   return (
-    <button type="button" data-tour="conta" className="account-btn signed" title={`Conta: ${user.email}`} aria-label={`Conta: ${user.email}`} onClick={onClick}>
+    <button
+      type="button"
+      data-tour="conta"
+      className="account-btn signed"
+      title={`Conta: ${user.email}`}
+      aria-label={`Conta: ${user.email}${notices ? ` (${notices} ${notices === 1 ? 'aviso novo' : 'avisos novos'})` : ''}`}
+      onClick={onClick}
+    >
       <span className="account-btn-avatar">
         <Avatar p={profile ?? { avatar: null, name: '', handle: user.email ?? '?' }} size={24} />
         {cloud.state === 'erro' && <CloudOff size={12} aria-label="Não sincronizou" className="account-btn-warn" />}
+        {notices > 0 && cloud.state !== 'erro' && <span className="account-btn-dot" aria-hidden="true" />}
       </span>
       {!compact && <span className="account-btn-label">{label}</span>}
     </button>
