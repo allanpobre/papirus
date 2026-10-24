@@ -19,7 +19,7 @@ import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
 import { ServerCard } from './ServerCard'
-import { AccentPicker, AccountCard } from './SettingsParts'
+import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
 import { matches, SETTINGS_CATEGORIES, type SettingsCategory } from './settingsCategories'
 
 const QUESTION_LABEL: Record<QuestionType, string> = {
@@ -412,6 +412,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           </ul>
         </section>
         )}
+
+{show('universo') && <FieldTemplatesCard />}
 
 {show('universo') && (
         <section className="settings-card">

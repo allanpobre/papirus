@@ -368,6 +368,8 @@ export const universeSettingsSchema = z.object({
   ignoredNames: z.array(z.string()),
   /** Meses do calendário do universo. Vazio = só o ano e o dia do ano. */
   calendarMonths: z.array(z.object({ name: z.string(), days: z.number().int().positive() })).default([]),
+  /** Campos sugeridos por tipo de ficha: toda ficha nova daquele tipo já nasce com eles (vazios). */
+  fieldTemplates: z.record(z.string(), z.array(z.string())).default({}),
 })
 
 /**

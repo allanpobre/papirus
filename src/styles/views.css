@@ -4076,3 +4076,22 @@ code {
 .book-hero-cover.is-empty {
   cursor: default;
 }
+
+.field-templates {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.field-template-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 170px) 1fr;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+@media (max-width: 560px) {
+  .field-template-row {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}
