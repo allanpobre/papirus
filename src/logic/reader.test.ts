@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { discoveries, readerBook, readerEntities, readerText } from './reader'
 import { unmarkReveals, wrapReveal } from './reveals'
 

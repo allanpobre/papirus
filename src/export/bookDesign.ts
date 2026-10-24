@@ -160,11 +160,14 @@ function inline(nodes: DocNode[] = []): string {
     .join('')
 }
 
+/** Capitular só em parágrafo de pelo menos umas duas linhas: num parágrafo curto ela fica maior que o texto. */
+const DROP_MIN_CHARS = 140
+
 /** Primeiras palavras em versalete e capitular: só faz sentido se o parágrafo começa com letra. */
 function opening(html: string, d: BookDesign): { html: string; drop: boolean } {
   const plain = html.replace(/<[^>]+>/g, '')
-  const startsWithLetter = /^\p{L}/u.test(plain)
-  if (!d.smallCapsLead || !startsWithLetter || /^<(strong|em|s)>/.test(html)) return { html, drop: startsWithLetter }
+  const startsWithLetter = /^\p{L}/u.test(plain) && plain.length >= DROP_MIN_CHARS
+  if (!d.smallCapsLead || !/^\p{L}/u.test(plain) || /^<(strong|em|s)>/.test(html)) return { html, drop: startsWithLetter }
   const words = html.match(/^(\S+(?:\s+\S+){0,2})/)
   if (!words || /</.test(words[1])) return { html, drop: startsWithLetter }
   return { html: `<span class="lead">${words[1]}</span>${html.slice(words[1].length)}`, drop: startsWithLetter }
@@ -420,7 +423,8 @@ ${CHAPTER_CSS[d.chapterStyle](titleStack, d)}
 .chapter-ornament{text-align:center!important;font-size:1.6em;line-height:1;margin:0 0 .5em;color:#555;text-indent:0}
 .chapter-body p.first{text-indent:0}
 .chapter-body p.first .lead{font-variant:small-caps;letter-spacing:.05em}
-.chapter-body p.drop::first-letter{float:left;font-family:${titleStack};font-size:3.6em;line-height:.82;padding:.06em .08em 0 0;margin-top:.04em}
+.chapter-body p.drop::first-letter{float:left;font-family:${titleStack};font-size:2.9em;line-height:.86;padding:.04em .07em 0 0;margin-top:.03em}
+.chapter-body p.first+*{clear:left}
 .scene-break{text-align:center!important;text-indent:0!important;margin:1em 0;letter-spacing:.2em;break-after:avoid}
 hr.scene-break.line{border:0;border-top:.6pt solid #888;width:22%;margin:1.3em auto}
 .scene-break.space{height:1.4em}

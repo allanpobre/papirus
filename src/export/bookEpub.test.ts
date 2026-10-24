@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { strFromU8, unzipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { BOOK_PRESETS, defaultDesign } from './bookDesign'
 import { designedEpub } from './bookEpub'
 

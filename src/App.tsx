@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { isOutdatedSample, sampleUniverse } from './model/sample'
+import { isOutdatedSample, sampleFor, sampleUniverse } from './model/sample'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
 import { memoryStore, openBestStore, requestPersistentStorage } from './persistence/storage'
@@ -81,7 +81,7 @@ export default function App() {
       if (!universe) throw new Error('Este universo não foi encontrado neste navegador.')
       // Exemplo de uma versão antiga do Papirus: troca pelo atual (nada nele é do autor).
       if (isOutdatedSample(universe)) {
-        universe = { ...sampleUniverse(), id: universe.id }
+        universe = { ...(await sampleUniverse()), id: universe.id }
         await repo.save(universe)
         await lib.touch(universe)
       }
@@ -128,9 +128,10 @@ export default function App() {
         setLibrary(lib)
         setEntries(list)
         // "Ver um mundo de exemplo" na apresentação: abre o exemplo (uma vez; o endereço volta ao normal).
-        if (new URLSearchParams(location.search).has('exemplo')) {
+        const which = new URLSearchParams(location.search).get('exemplo')
+        if (which !== null) {
           history.replaceState(null, '', location.pathname)
-          const sample = sampleUniverse()
+          const sample = await sampleFor(which)
           await lib.repository(sample.id).save(sample)
           await lib.touch(sample)
           setEntries(await lib.list())

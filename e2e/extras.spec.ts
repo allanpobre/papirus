@@ -6,8 +6,8 @@ const nav = (page: Page, name: string) => page.getByRole('navigation', { name: '
 const welcome = (page: Page) => page.getByRole('region', { name: 'Boas-vindas' })
 
 async function openSample(page: Page) {
-  await page.goto('/app/')
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  // O exemplo de fantasia (pequeno, com tudo): a base destes testes.
+  await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 }
 

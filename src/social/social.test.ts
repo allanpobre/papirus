@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { addBook, updateBook } from '../export/shelf'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { cleanHandle, isHandle, profileLink, shelfRowOf, suggestHandle } from './social'
 
 describe('social', () => {

@@ -14,8 +14,8 @@ async function newUniverse(page: Page, name = 'Teste') {
 }
 
 async function openSample(page: Page) {
-  await page.goto('/app/')
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  // O exemplo de fantasia (pequeno, com tudo): a base destes testes.
+  await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
   // Um universo abre no Início; estes testes são sobre a escrita.
   await nav(page, 'Escrever').click()

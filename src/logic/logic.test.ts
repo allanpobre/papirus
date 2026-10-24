@@ -1,7 +1,7 @@
 import { codexSnapshot } from '../share/snapshot'
 import { describe, expect, it } from 'vitest'
 import { universeSchema } from '../model/schema'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { insert, manuscriptOrder, draftRevelation } from '../model/universe'
 import { codexFor, codexMarkdown, factSentence } from './codex'
 import { continuityQuestions, isOpen } from './continuity'

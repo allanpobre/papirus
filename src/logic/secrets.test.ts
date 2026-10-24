@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { patch } from '../model/universe'
 import { buildArchivistContext } from './archivistContext'
 import { codexMarkdown } from './codex'

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { draftRelation, insert, manuscriptOrder, removeEntity } from '../model/universe'
 import { activeAt, involvements, relationSentence, scopeLabel } from './relations'
 

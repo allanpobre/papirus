@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures.ts'
 
 test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Ler como leitor' }).click()
   const leitor = page.getByRole('dialog', { name: 'Modo leitor' })
 
@@ -50,7 +50,7 @@ test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async
 })
 
 test('como ler: discreto por padrão, e dá para ficar só com o texto', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Ler como leitor' }).click()
   const leitor = page.getByRole('dialog', { name: 'Modo leitor' })
   await leitor.getByRole('button', { name: 'Próxima cena' }).click()
@@ -74,7 +74,7 @@ test('como ler: discreto por padrão, e dá para ficar só com o texto', async (
 })
 
 test('ficha: marcar um trecho para revelar a partir de uma cena', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Fichas' }).first().click()
   await page.getByRole('button', { name: /^Ilsa/ }).first().click()
   const desc = page.getByRole('textbox', { name: 'Descrição' })
@@ -94,7 +94,7 @@ test('ficha: marcar um trecho para revelar a partir de uma cena', async ({ page 
 })
 
 test('relações mudam ao longo da história do exemplo', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Relações' }).first().click()
   await page.getByRole('button', { name: /Ver cena a cena/ }).click()
   const slider = page.getByRole('slider', { name: 'Cena' })
@@ -115,7 +115,7 @@ test('relações mudam ao longo da história do exemplo', async ({ page }) => {
 
 test('leitor: letra, sépia e sem serifa ficam guardados, e volta para onde parou na cena', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 520 })
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Ler como leitor' }).click()
   const leitor = page.getByRole('dialog', { name: 'Modo leitor' })
   await leitor.getByRole('button', { name: 'Próxima cena' }).click()

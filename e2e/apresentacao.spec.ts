@@ -9,11 +9,11 @@ test('a apresentação leva ao app e ao exemplo', async ({ page }) => {
   await page.getByRole('link', { name: 'Ver um mundo de exemplo' }).click()
   await expect(page).toHaveURL(/\/app\/$/)
   // O exemplo abre direto, no Início do universo.
-  await expect(page.getByRole('heading', { name: 'Exemplo — As Cinzas de Ostria' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await expect(page.getByText(/perguntas? de continuidade/)).toBeVisible()
   await page.getByRole('button', { name: 'Continuar escrevendo' }).click()
-  await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toContainText('Ostria')
+  await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toContainText('Itaguaí')
 
   // Voltando à apresentação, quem já usa vê "Continuar".
   await page.goto('/')

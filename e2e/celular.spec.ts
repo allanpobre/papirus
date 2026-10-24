@@ -5,7 +5,7 @@ const { defaultBrowserType: _ignored, ...pixel } = devices['Pixel 7']
 test.use(pixel)
 
 test('escrever no celular: barra acima do teclado, sem menu flutuante por cima do texto', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Escrever' }).tap()
   const text = page.getByRole('textbox', { name: 'Texto da cena' })
   await text.tap()

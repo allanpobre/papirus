@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures.ts'
 
 test('lixeira e histórico: apagar, recuperar e voltar como estava', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Fichas' }).first().click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
   const resumo = page.getByRole('textbox', { name: 'Resumo' })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { addScene, createUniverse, patch, removeScene, updateScene } from '../model/universe'
 import { mergeUniverse } from './merge'
 import { readerCopy } from './readerCopy'

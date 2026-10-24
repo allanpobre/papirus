@@ -1015,7 +1015,7 @@
   top: 0.55rem;
   right: 0.7rem;
   font-family: var(--font-display);
-  color: var(--line-strong);
+  color: var(--muted);
 }
 
 .cork-title {
