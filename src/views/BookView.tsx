@@ -7,6 +7,9 @@ import { addBook, removeBook, shelf, storiesOutsideBooks } from '../export/shelf
 import type { BookRecord } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { ShelfPublish } from '../social/ShelfPublish'
+import { SocialDialog } from '../social/SocialDialog'
+import { useShelfSync } from '../social/useShelfSync'
 import { BookCard } from './BookCard'
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
@@ -16,7 +19,9 @@ const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'm
  * Cada livro tem capa, histórias e diagramação próprias; dá para copiar o estilo de outro.
  */
 export default function BookView() {
-  const { universe, update, openBookDesigner, openReader, readOnly, toast } = useWorkspace()
+  const { universe, update, openBookDesigner, openReader, readOnly, toast, source, prefs } = useWorkspace()
+  const shelfStatus = useShelfSync()
+  const [socialOpen, setSocialOpen] = useState(false)
   const books = useMemo(() => shelf(universe), [universe])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = books.find((b) => b.id === selectedId) ?? books[0] ?? null
@@ -114,7 +119,12 @@ export default function BookView() {
       )}
 
       {selected ? (
-        <BookHero book={selected} hasText={hasText} />
+        <>
+          <BookHero book={selected} hasText={hasText} />
+          {!readOnly && source.kind === 'proprio' && (
+            <ShelfPublish book={selected} title={bookTitle(universe, selected)} status={shelfStatus} onSocial={() => setSocialOpen(true)} />
+          )}
+        </>
       ) : (
         <section className="book-hero" aria-label="Seu livro">
           <span className="book-hero-cover is-empty" aria-hidden="true">
@@ -161,6 +171,7 @@ export default function BookView() {
       </ul>
 
       {!readOnly && <BookCard />}
+      {socialOpen && <SocialDialog publicUrl={prefs.publicUrl} onClose={() => setSocialOpen(false)} />}
       {reviewBookRecord && <ReviewDialog design={reviewBookRecord} title={bookTitle(universe, reviewBookRecord)} onClose={() => setReviewing(null)} />}
     </div>
   )

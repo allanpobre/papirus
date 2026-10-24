@@ -432,6 +432,10 @@ export const bookDesignSchema = z.object({
   toc: z.boolean().default(true),
   /** Histórias viram "partes" com página própria (quando há mais de uma). */
   parts: z.boolean().default(true),
+  /** Sinopse de contracapa: vai na estante do perfil (e no e-book). */
+  blurb: z.string().max(2000).default(''),
+  /** Na estante do perfil: ninguém vê, amigos ou todo mundo. */
+  shelfVisibility: z.enum(['privado', 'amigos', 'publico']).default('privado'),
 })
 
 /** Um livro da estante: a diagramação com um id (um universo pode ter vários: série, contos…). */
