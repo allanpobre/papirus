@@ -10,6 +10,8 @@ import { addScene, addStory, draftGroup, draftSeed, draftSession, insert } from 
 export interface UniverseTemplate {
   id: 'branco' | 'fantasia' | 'ficcao' | 'misterio' | 'realista' | 'rpg'
   label: string
+  /** Duas ou três palavras para o cartão. */
+  short: string
   hint: string
   apply: (u: Universe) => Universe
 }
@@ -35,10 +37,11 @@ const FANTASY_FIELDS = {
 }
 
 export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
-  { id: 'branco', label: 'Em branco', hint: 'Só o nome. Você monta o resto.', apply: (u) => u },
+  { id: 'branco', label: 'Em branco', short: 'Só o nome', hint: 'Só o nome. Você monta o resto.', apply: (u) => u },
   {
     id: 'fantasia',
     label: 'Fantasia',
+    short: 'Magia, reinos, calendário',
     hint: 'Calendário de 12 meses, campos para magia, reinos e facções, “Livro I”.',
     apply: (u) =>
       startStory(
@@ -57,6 +60,7 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
   {
     id: 'ficcao',
     label: 'Ficção científica',
+    short: 'Naves, planetas, facções',
     hint: 'Anos da Era Comum, campos para naves, planetas, tecnologia e facções.',
     apply: (u) =>
       startStory(
@@ -81,6 +85,7 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
   {
     id: 'misterio',
     label: 'Mistério',
+    short: 'Suspeitos, pistas, álibis',
     hint: 'Suspeitos com álibi e motivo, pistas e um caso para resolver.',
     apply: (u) => {
       u = startStory(
@@ -104,6 +109,7 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
   {
     id: 'realista',
     label: 'Romance realista',
+    short: 'Família, desejo, cidade',
     hint: 'Personagens com família, desejo e ferida; lugares com bairro e atmosfera.',
     apply: (u) =>
       startStory(
@@ -123,6 +129,7 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
   {
     id: 'rpg',
     label: 'Campanha de RPG',
+    short: 'Mesa d20 e sessão 1',
     hint: 'Uma mesa com sistema estilo d20, a sessão 1 e uma tabela de rumores.',
     apply: (u) => {
       u = { ...u, settings: { ...u.settings, calendarSuffix: 'DC', fieldTemplates: { ...FANTASY_FIELDS, personagem: ['Classe', 'Jogador', 'Objetivo', 'Ganchos', 'Segredo'] } } }

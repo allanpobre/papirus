@@ -1,4 +1,4 @@
-import { BookOpen, CircleUser, Cloud, Dices, Eye, Feather, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, ShieldCheck, Sparkles, Sun, Trash2, Users } from 'lucide-react'
+import { BookOpen, CircleUser, Cloud, Coffee, Dices, Eye, Feather, FileText, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, Rocket, Search, ShieldCheck, Sparkles, Sun, Trash2, Users, Wand2 } from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
@@ -27,6 +27,8 @@ interface Props {
   onChanged: () => void
   onOpenShared: (item: SharedWithMe) => void
 }
+
+const TEMPLATE_ICON: Record<UniverseTemplate['id'], typeof Plus> = { branco: FileText, fantasia: Wand2, ficcao: Rocket, misterio: Search, realista: Coffee, rpg: Dices }
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -124,33 +126,42 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     }
   }
 
+  const chosen = UNIVERSE_TEMPLATES.find((t) => t.id === template) ?? UNIVERSE_TEMPLATES[0]
   const start = (
     <>
       <form
-        className="library-new"
+        className={`start-card${first ? '' : ' start-card-compact'}`}
         onSubmit={(e) => {
           e.preventDefault()
           onCreated(applyTemplate(createUniverse(name.trim() || 'Novo universo'), template))
           setName('')
         }}
       >
-        <label htmlFor="novo-universo" className="sr-only">
+        {!first && <h2 className="start-card-title">Novo universo</h2>}
+        <label htmlFor="novo-universo" className={first ? 'start-label' : 'sr-only'}>
           Nome do novo universo
         </label>
-        <input id="novo-universo" className="input input-lg" placeholder="Nome do novo universo" value={name} onChange={(e) => setName(e.target.value)} />
-        <button type="submit" className="btn btn-primary btn-lg">
+        <input id="novo-universo" className="input input-lg" placeholder={first ? 'Ex.: As Cinzas de Ostria' : 'Nome do novo universo'} value={name} onChange={(e) => setName(e.target.value)} />
+        <p className="start-label" id="comecar-como">
+          Começar como
+        </p>
+        <div className="start-templates" role="radiogroup" aria-labelledby="comecar-como">
+          {UNIVERSE_TEMPLATES.map((t) => {
+            const Icon = TEMPLATE_ICON[t.id]
+            return (
+              <button key={t.id} type="button" role="radio" aria-checked={template === t.id} aria-label={t.label} className="start-template" title={t.hint} onClick={() => setTemplate(t.id)}>
+                <Icon size={18} aria-hidden="true" />
+                <span className="start-template-name">{t.label}</span>
+                <span className="start-template-short">{t.short}</span>
+              </button>
+            )
+          })}
+        </div>
+        <p className="tiny muted start-hint">{chosen.hint} Nada é escrito por você; tudo pode mudar depois.</p>
+        <button type="submit" className="btn btn-primary btn-lg start-submit">
           <Plus size={18} /> Criar universo
         </button>
       </form>
-      <div className="library-templates" role="radiogroup" aria-label="Começar como">
-        <span className="library-templates-label">Começar como:</span>
-        {UNIVERSE_TEMPLATES.map((t) => (
-          <button key={t.id} type="button" role="radio" aria-checked={template === t.id} className="welcome-option" title={t.hint} onClick={() => setTemplate(t.id)}>
-            {t.label}
-          </button>
-        ))}
-        <p className="tiny muted library-templates-hint">{UNIVERSE_TEMPLATES.find((t) => t.id === template)?.hint} Nada é escrito por você; tudo pode mudar depois.</p>
-      </div>
 
       <div className="library-alt">
         <button type="button" className="btn btn-ghost" onClick={() => onCreated(sampleUniverse())}>
@@ -203,7 +214,13 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   return (
     <div className={`library${first ? ' library-first' : ''}`}>
       <header className="library-top">
-        <Brand />
+        {/\/app\/?$/.test(location.pathname) ? (
+          <a href="../" className="library-brand" title="O que é o Papirus?">
+            <Brand />
+          </a>
+        ) : (
+          <Brand />
+        )}
         <div className="library-top-actions">
           <button type="button" className="btn-icon" aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'} onClick={() => setPref('theme', dark ? 'claro' : 'escuro')}>
             {dark ? <Sun size={18} /> : <Moon size={18} />}
@@ -251,7 +268,6 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
           {!p.onboarded && <Welcome onChoose={(hidden) => { setPref('hiddenViews', hidden); setPref('onboarded', true) }} />}
 
-          {start}
 
           <ul className="library-list" aria-label="Universos">
             {entries.map((e) => (
@@ -295,6 +311,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             ))}
           </ul>
           {sharedList}
+          {start}
         </main>
       )}
 

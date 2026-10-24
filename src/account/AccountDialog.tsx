@@ -91,20 +91,21 @@ export function AccountDialog({
                 <RefreshCw size={14} /> Sincronizar agora
               </button>
             )}
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() =>
-                void act(async () => {
-                  await signOut(server)
-                  onClose()
-                })
-              }
-            >
-              <LogOut size={14} /> Sair
-            </button>
           </div>
-          <p className="muted tiny">Ao sair, os universos continuam neste navegador. Nada é apagado.</p>
+          <button
+            type="button"
+            className="btn account-signout"
+            onClick={() =>
+              void act(async () => {
+                await signOut(server)
+                onClose()
+                goToLanding()
+              })
+            }
+          >
+            <LogOut size={16} /> Sair da conta
+          </button>
+          <p className="muted tiny">Ao sair, você volta para a apresentação do Papirus. Os universos continuam neste navegador; nada é apagado.</p>
         </div>
       </Modal>
     )
@@ -211,10 +212,16 @@ export function AccountDialog({
 }
 
 /** Botão da conta: "Entrar" ou o e-mail. */
+/** Volta para a página de apresentação (quando o app está em …/app/). */
+function goToLanding() {
+  if (/\/app\/?$/.test(location.pathname)) location.assign(new URL('../', location.href).toString())
+}
+
 export function AccountButton({ onClick, compact = false }: { onClick: () => void; compact?: boolean }) {
   const { user } = useAccount()
   const cloud = useCloudStatus()
-  const label = user ? (user.email ?? 'Conta') : 'Entrar'
+  // Só o começo do e-mail: o endereço inteiro estoura o topo no celular.
+  const label = user ? (user.email?.split('@')[0] || 'Conta') : 'Entrar'
   return (
     <button type="button" data-tour="conta" className={`account-btn${user ? ' signed' : ''}`} title={user ? `Conta: ${user.email}` : 'Entrar ou criar conta'} aria-label={user ? `Conta: ${user.email}` : 'Entrar'} onClick={onClick}>
       {!user ? <LogIn size={16} aria-hidden="true" /> : cloud.state === 'erro' ? <CloudOff size={16} aria-hidden="true" /> : <Cloud size={16} aria-hidden="true" />}
