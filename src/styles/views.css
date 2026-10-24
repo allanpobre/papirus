@@ -4133,3 +4133,103 @@ code {
     min-height: 0;
   }
 }
+
+/* ---------------------------------------------------------------- arco do personagem */
+
+.arc-summary {
+  margin: 0 0 0.6rem;
+}
+
+.arc-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.arc-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: -2px;
+}
+
+button.arc-dot {
+  cursor: pointer;
+}
+
+.arc-presente {
+  background: color-mix(in srgb, var(--accent) 55%, var(--surface));
+}
+
+.arc-mencionado {
+  background: transparent;
+}
+
+.arc-ausente {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.arc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.arc-legend .arc-dot {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+
+.arc-steps {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0 0 0.6rem;
+  padding: 0 0 0 0.9rem;
+  border-left: 2px solid var(--line);
+  list-style: none;
+}
+
+.arc-step-title {
+  font-weight: 600;
+}
+
+.arc-moments {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.arc-moment {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.arc-moment svg {
+  flex: none;
+  margin-top: 0.15rem;
+  color: var(--ink-2);
+}
+
+.arc-moment-relacao-comeca svg,
+.arc-moment-entra svg {
+  color: var(--accent);
+}
+
+.arc-moment-relacao-termina svg {
+  color: var(--danger);
+}
+
+.arc-moment-revela svg {
+  color: var(--violet);
+}
