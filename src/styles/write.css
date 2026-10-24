@@ -1209,3 +1209,93 @@ body:has([role='dialog']) .bubble-wrap {
     animation: none;
   }
 }
+
+/* Celular: barra presa acima do teclado */
+.phone-dock {
+  position: fixed;
+  right: 0;
+  left: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow-x: auto;
+  padding: 0.35rem max(8px, env(safe-area-inset-right, 0px)) 0.35rem max(8px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 -4px 16px rgb(0 0 0 / 6%);
+  backdrop-filter: blur(8px);
+  scrollbar-width: none;
+  animation: dock-in 0.16s ease-out;
+}
+
+.phone-dock::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.dock-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 44px;
+  height: 40px;
+  padding: 0 0.55rem;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.dock-btn-wide {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-weight: 600;
+}
+
+.dock-btn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.dock-btn:active {
+  background: var(--surface-3);
+}
+
+.dock-space {
+  flex: 1 0 0.5rem;
+}
+
+/* Escrevendo no celular: o menu de baixo sai e o texto ganha espaço para não ficar atrás da barra. */
+body.escrevendo-no-celular .rail-phone {
+  display: none;
+}
+
+body.escrevendo-no-celular .scene-editor {
+  padding-bottom: 72px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-dock {
+    animation: none;
+  }
+}
+
+/* Faixas de aviso (exemplo, backup, compartilhado) saem enquanto o teclado está aberto: voltam ao fechar. */
+body.escrevendo-no-celular .sample-banner,
+body.escrevendo-no-celular .backup-banner,
+body.escrevendo-no-celular .shared-banner {
+  display: none;
+}
