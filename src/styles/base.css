@@ -1090,3 +1090,96 @@ input[type='radio'] {
 .tabs {
   position: relative;
 }
+
+/* ---------------------------------------------------------------- celular: tabelas viram cartões, alvos maiores */
+
+@media (max-width: 640px) {
+  .table-wrap:has(.table-cards) {
+    border: 0;
+    background: none;
+    overflow: visible;
+  }
+
+  .table-cards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table-cards,
+  .table-cards tbody,
+  .table-cards tr,
+  .table-cards td {
+    display: block;
+  }
+
+  .table-cards tr {
+    position: relative;
+    margin-bottom: 0.6rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .table-cards td {
+    padding: 0.15rem 0;
+    border: 0;
+  }
+
+  .table-cards td:first-child {
+    padding-right: 4.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .table-cards td[data-label] {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .table-cards td[data-label]::before {
+    content: attr(data-label);
+    flex: none;
+    width: 6.5rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .table-cards td.row-actions {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+  }
+}
+
+/* Dedo precisa de mais área que o mouse. */
+@media (pointer: coarse) {
+  .btn-icon.btn-sm {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-icon.btn-xs {
+    width: 30px;
+    height: 30px;
+  }
+
+  .chip {
+    min-height: 34px;
+    padding-inline: 0.75rem;
+  }
+
+  .chip-x {
+    width: 24px;
+    height: 24px;
+  }
+
+  .segmented button {
+    min-height: 36px;
+  }
+}

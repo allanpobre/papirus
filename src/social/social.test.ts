@@ -27,3 +27,17 @@ describe('social', () => {
     expect(profileLink('https://allanpobre.github.io/papirus/', 'ana')).toBe('https://allanpobre.github.io/papirus/app/?perfil=ana')
   })
 })
+
+describe('avisos', () => {
+  it('conta só o que é novo, e pedidos pendentes sempre', async () => {
+    const { unseenCount } = await import('./social')
+    const who = { user_id: 'x', handle: 'bia', name: '', bio: '', avatar: null }
+    const list = [
+      { kind: 'pedido' as const, at: '2026-01-01T00:00:00Z', who },
+      { kind: 'comentario' as const, at: '2026-05-02T00:00:00Z', who },
+      { kind: 'quero-ler' as const, at: '2026-04-01T00:00:00Z', who },
+    ]
+    expect(unseenCount(list, '2026-05-01T00:00:00Z')).toBe(2)
+    expect(unseenCount(list, '2026-06-01T00:00:00Z')).toBe(1)
+  })
+})

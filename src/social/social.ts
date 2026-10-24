@@ -299,3 +299,129 @@ export function draftFromMetadata(meta: unknown): ProfileDraft | null {
   if (!isHandle(handle)) return null
   return { handle, name: typeof m.name === 'string' ? m.name : '', bio: typeof m.bio === 'string' ? m.bio : '' }
 }
+
+// ─── "Quero ler" e comentários ───────────────────────────────────────
+
+export interface Reaction {
+  owner: string
+  book_id: string
+  user_id: string
+  created_at: string
+}
+
+export interface ShelfComment {
+  id: string
+  owner: string
+  book_id: string
+  author: string
+  body: string
+  created_at: string
+}
+
+/** Tudo de uma estante: quem quer ler e os comentários de cada livro (só dos livros que a pessoa pode ver). */
+export async function shelfActivity(sb: SupabaseClient, ownerId: string): Promise<{ reactions: Reaction[]; comments: ShelfComment[] }> {
+  const [r, c] = await Promise.all([
+    sb.from('papirus_shelf_reactions').select('owner,book_id,user_id,created_at').eq('owner', ownerId),
+    sb.from('papirus_shelf_comments').select('id,owner,book_id,author,body,created_at').eq('owner', ownerId).order('created_at', { ascending: true }),
+  ])
+  // Servidor sem a parte nova do script: sem "quero ler" e sem comentários, o resto funciona.
+  return { reactions: r.error ? [] : ((r.data ?? []) as Reaction[]), comments: c.error ? [] : ((c.data ?? []) as ShelfComment[]) }
+}
+
+export async function setWantToRead(sb: SupabaseClient, myId: string, ownerId: string, bookId: string, on: boolean) {
+  if (on) check(await sb.from('papirus_shelf_reactions').insert({ owner: ownerId, book_id: bookId, user_id: myId }))
+  else check(await sb.from('papirus_shelf_reactions').delete().eq('owner', ownerId).eq('book_id', bookId).eq('user_id', myId))
+}
+
+export async function addComment(sb: SupabaseClient, myId: string, ownerId: string, bookId: string, body: string) {
+  const text = body.trim().slice(0, 1000)
+  if (!text) throw new SocialError('Escreva alguma coisa antes de enviar.')
+  check(await sb.from('papirus_shelf_comments').insert({ owner: ownerId, book_id: bookId, author: myId, body: text }))
+}
+
+export async function deleteComment(sb: SupabaseClient, id: string) {
+  check(await sb.from('papirus_shelf_comments').delete().eq('id', id))
+}
+
+// ─── Avisos: o que aconteceu desde a última vez ───────────────────────
+
+export type NoticeKind = 'pedido' | 'comentario' | 'quero-ler' | 'livro-amigo'
+
+export interface Notice {
+  kind: NoticeKind
+  at: string
+  who: Profile
+  /** Livro envolvido (comentário, quero ler, livro novo de amigo). */
+  book?: { owner: string; id: string; title: string }
+  text?: string
+}
+
+const seenKey = (userId: string) => `papirus:avisos-vistos:${userId}`
+
+export function noticesSeenAt(userId: string): string {
+  try {
+    return localStorage.getItem(seenKey(userId)) ?? new Date(0).toISOString()
+  } catch {
+    return new Date(0).toISOString()
+  }
+}
+
+export function markNoticesSeen(userId: string) {
+  try {
+    localStorage.setItem(seenKey(userId), new Date().toISOString())
+  } catch {
+    // Sem armazenamento: os avisos aparecem de novo na próxima vez.
+  }
+  setNoticeCount(0)
+}
+
+/** Pedidos de amizade, comentários e "quero ler" nos meus livros, e livros novos de amigos (últimos 30 dias). */
+export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Notice[]> {
+  const since = new Date(Date.now() - 30 * 86400_000).toISOString()
+  const friends = await myFriends(sb, myId)
+  const friendIds = friends.filter((f) => f.status === 'aceita').map((f) => f.other.user_id)
+  const [mine, comments, reactions, friendBooks] = await Promise.all([
+    sb.from('papirus_shelf').select('id,title').eq('owner', myId),
+    sb.from('papirus_shelf_comments').select('id,owner,book_id,author,body,created_at').eq('owner', myId).gte('created_at', since),
+    sb.from('papirus_shelf_reactions').select('owner,book_id,user_id,created_at').eq('owner', myId).gte('created_at', since),
+    friendIds.length ? sb.from('papirus_shelf').select('owner,id,title,created_at').in('owner', friendIds).gte('created_at', since) : Promise.resolve({ data: [], error: null }),
+  ])
+  const titles = new Map(((mine.data ?? []) as { id: string; title: string }[]).map((b) => [b.id, b.title]))
+  const cs = ((comments.error ? [] : comments.data) ?? []) as ShelfComment[]
+  const rs = ((reactions.error ? [] : reactions.data) ?? []) as Reaction[]
+  const fb = ((friendBooks.error ? [] : friendBooks.data) ?? []) as { owner: string; id: string; title: string; created_at: string }[]
+  const people = await profilesByIds(sb, [...new Set([...cs.map((c) => c.author), ...rs.map((r) => r.user_id), ...fb.map((b) => b.owner)])].filter((id) => id !== myId))
+  const out: Notice[] = []
+  for (const f of friends) if (f.status === 'pendente' && !f.outgoing) out.push({ kind: 'pedido', at: new Date().toISOString(), who: f.other })
+  for (const c of cs) {
+    const who = people.get(c.author)
+    if (who) out.push({ kind: 'comentario', at: c.created_at, who, book: { owner: myId, id: c.book_id, title: titles.get(c.book_id) ?? 'seu livro' }, text: c.body })
+  }
+  for (const r of rs) {
+    const who = people.get(r.user_id)
+    if (who) out.push({ kind: 'quero-ler', at: r.created_at, who, book: { owner: myId, id: r.book_id, title: titles.get(r.book_id) ?? 'seu livro' } })
+  }
+  for (const b of fb) {
+    const who = people.get(b.owner)
+    if (who) out.push({ kind: 'livro-amigo', at: b.created_at, who, book: { owner: b.owner, id: b.id, title: b.title } })
+  }
+  return out.sort((a, b) => b.at.localeCompare(a.at))
+}
+
+/** Quantos avisos novos (pedidos pendentes sempre contam). */
+export const unseenCount = (notices: Notice[], seenAt: string) => notices.filter((n) => n.kind === 'pedido' || n.at > seenAt).length
+
+let noticeCount = 0
+const noticeListeners = new Set<() => void>()
+export function setNoticeCount(n: number) {
+  if (n === noticeCount) return
+  noticeCount = n
+  for (const l of noticeListeners) l()
+}
+export const getNoticeCount = () => noticeCount
+export function subscribeNoticeCount(cb: () => void) {
+  noticeListeners.add(cb)
+  return () => {
+    noticeListeners.delete(cb)
+  }
+}

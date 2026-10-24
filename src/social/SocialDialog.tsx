@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { ArrowLeft, BookOpen, Camera, Check, Cloud, Copy, Globe, LogIn, LogOut, RefreshCw, Search, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, Camera, Check, Cloud, Copy, LogIn, LogOut, RefreshCw, Search, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { authClient, signOut, useAccount } from '../account/auth'
 import { syncLibrary, useCloudStatus } from '../account/useCloud'
@@ -7,10 +7,17 @@ import type { Library } from '../persistence/repository'
 import { anonClient } from '../share/server'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { Modal } from '../ui/Modal'
+import { OwnerShelf } from './ShelfBook'
 import {
   acceptFriend,
   cleanHandle,
   draftFromMetadata,
+  getNoticeCount,
+  loadNotices,
+  markNoticesSeen,
+  noticesSeenAt,
+  unseenCount,
+  type Notice,
   isHandle,
   myFriends,
   myProfile,
@@ -20,16 +27,14 @@ import {
   requestFriend,
   saveProfile,
   setMyProfileCache,
-  shelfOf,
   shrinkAvatar,
   suggestHandle,
   type FriendEntry,
   type Profile,
   type ProfileDraft,
-  type ShelfRow,
 } from './social'
 
-type Tab = 'perfil' | 'amigos' | 'conta'
+type Tab = 'avisos' | 'perfil' | 'amigos' | 'conta'
 
 interface Props {
   onClose: () => void
@@ -49,9 +54,22 @@ interface Props {
  * A conta num lugar só: perfil, amigos (e a estante de cada um) e a sincronização.
  * Tudo opcional: cada livro só vai para a estante se o autor escolher.
  */
-export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab = 'perfil', library = null, onSynced }: Props) {
+export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab, library = null, onSynced }: Props) {
   const { user, server } = useAccount()
-  const [tab, setTab] = useState<Tab>(initialTab)
+  // Com avisos novos, abre neles.
+  const [tab, setTabState] = useState<Tab>(() => initialTab ?? (getNoticeCount() > 0 ? 'avisos' : 'perfil'))
+  const [notices, setNotices] = useState<Notice[] | null>(null)
+  const [seenAt] = useState(() => (user ? noticesSeenAt(user.id) : ''))
+  const [focusBook, setFocusBook] = useState<string | undefined>()
+  const setTab = (t: Tab) => {
+    setTabState(t)
+    if (t === 'avisos' && user) markNoticesSeen(user.id)
+  }
+  useEffect(() => {
+    if (tab === 'avisos' && user) markNoticesSeen(user.id)
+    // Só ao abrir.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [me, setMe] = useState<Profile | null>(null)
   const [draft, setDraft] = useState<ProfileDraft | null>(null)
   const [loaded, setLoaded] = useState(false)
@@ -90,8 +108,10 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             }
           }
         }
+        const ns = userId && p ? await loadNotices(sb, userId).catch(() => []) : []
         if (off) return
         setMe(p)
+        setNotices(ns)
         if (userId) setMyProfileCache(userId, p)
         setFriends(list)
         if (start) setViewing(start)
@@ -135,7 +155,14 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
       <Modal title={viewing.name || `@${viewing.handle}`} size="lg" onClose={onClose}>
         <div className="social">
           {(user || !initialHandle) && (
-            <button type="button" className="btn btn-ghost btn-sm social-back" onClick={() => setViewing(null)}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm social-back"
+              onClick={() => {
+                setViewing(null)
+                setFocusBook(undefined)
+              }}
+            >
               <ArrowLeft size={15} /> Voltar
             </button>
           )}
@@ -151,6 +178,8 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             onAccept={() => void act((sb) => acceptFriend(sb, userId!, viewing.user_id))}
             onRemove={() => void act((sb) => removeFriend(sb, userId!, viewing.user_id))}
             onAccount={onAccount}
+            myId={userId ?? null}
+            focusBook={focusBook}
           />
         </div>
       </Modal>
@@ -181,7 +210,9 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
   }
 
   const incoming = friends.filter((f) => f.status === 'pendente' && !f.outgoing)
+  const newNotices = notices ? unseenCount(notices, seenAt) : 0
   const tabs: [Tab, string][] = [
+    ['avisos', 'Avisos'],
     ['perfil', 'Perfil'],
     ['amigos', 'Amigos'],
     ['conta', 'Conta'],
@@ -204,6 +235,11 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
           {tabs.map(([t, label]) => (
             <button key={t} type="button" role="tab" aria-selected={tab === t} aria-checked={tab === t} onClick={() => setTab(t)}>
               {label}
+              {t === 'avisos' && newNotices > 0 && (
+                <span className="social-badge" aria-label={`${newNotices} novos`}>
+                  {newNotices}
+                </span>
+              )}
               {t === 'amigos' && incoming.length > 0 && (
                 <span className="social-badge" aria-label={`${incoming.length} pedidos`}>
                   {incoming.length}
@@ -216,6 +252,16 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
 
         {tab === 'conta' ? (
           <AccountPanel library={library} onSynced={onSynced} onClose={onClose} />
+        ) : tab === 'avisos' && me ? (
+          <NoticeList
+            notices={notices}
+            seenAt={seenAt}
+            onOpen={(n) => {
+              if (n.kind === 'pedido') return setTab('amigos')
+              setFocusBook(n.book?.id)
+              setViewing(n.kind === 'livro-amigo' ? n.who : me)
+            }}
+          />
         ) : !loaded ? (
           <p className="muted small">Carregando…</p>
         ) : !me ? (
@@ -264,6 +310,49 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
         )}
       </div>
     </Modal>
+  )
+}
+
+const NOTICE_TEXT: Record<Notice['kind'], (n: Notice) => string> = {
+  pedido: () => 'quer ser seu amigo no Papirus.',
+  comentario: (n) => `comentou em “${n.book?.title}”.`,
+  'quero-ler': (n) => `quer ler “${n.book?.title}”.`,
+  'livro-amigo': (n) => `pôs “${n.book?.title}” na estante.`,
+}
+const ago = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
+const when = (iso: string) => {
+  const days = Math.round((Date.parse(iso) - Date.now()) / 86400_000)
+  if (days === 0) {
+    const hours = Math.round((Date.parse(iso) - Date.now()) / 3600_000)
+    return hours === 0 ? 'agora' : ago.format(hours, 'hour')
+  }
+  return ago.format(days, 'day')
+}
+
+function NoticeList({ notices, seenAt, onOpen }: { notices: Notice[] | null; seenAt: string; onOpen: (n: Notice) => void }) {
+  if (!notices) return <p className="muted small">Carregando…</p>
+  if (!notices.length) return <p className="muted small">Nada de novo nos últimos 30 dias. Pedidos de amizade, comentários e “quero ler” nos seus livros, e livros novos de amigos aparecem aqui.</p>
+  return (
+    <ul className="social-list social-notices" aria-label="Avisos">
+      {notices.map((n, i) => {
+        const fresh = n.kind === 'pedido' || n.at > seenAt
+        return (
+          <li key={i}>
+            <button type="button" className={`social-notice${fresh ? ' is-new' : ''}`} onClick={() => onOpen(n)}>
+              <Avatar p={n.who} size={36} />
+              <span className="social-notice-text">
+                <span className="small">
+                  <strong>{n.who.name || `@${n.who.handle}`}</strong> {NOTICE_TEXT[n.kind](n)}
+                </span>
+                {n.text && <span className="small muted social-notice-quote">“{n.text}”</span>}
+                <span className="tiny muted">{n.kind === 'pedido' ? 'Esperando sua resposta' : when(n.at)}</span>
+              </span>
+              {fresh && <span className="social-dot" aria-label="novo" />}
+            </button>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
@@ -553,8 +642,12 @@ function PersonView({
   onAccept,
   onRemove,
   onAccount,
+  myId,
+  focusBook,
 }: {
   person: Profile
+  myId: string | null
+  focusBook?: string
   isMe: boolean
   relation: FriendEntry | undefined
   signedIn: boolean
@@ -565,24 +658,8 @@ function PersonView({
   onRemove: () => void
   onAccount?: () => void
 }) {
-  const [books, setBooks] = useState<ShelfRow[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  // A estante muda de acordo com a amizade (aceitar abre os livros "amigos").
   const status = relation?.status
-  useEffect(() => {
-    let off = false
-    void (async () => {
-      try {
-        const rows = await shelfOf(await client(), person.user_id)
-        if (!off) setBooks(rows)
-      } catch (err) {
-        if (!off) setError(err instanceof Error ? err.message : String(err))
-      }
-    })()
-    return () => {
-      off = true
-    }
-    // A estante muda de acordo com a amizade (aceitar abre os livros "amigos").
-  }, [person.user_id, client, status])
 
   return (
     <div className="social-person-view">
@@ -628,60 +705,22 @@ function PersonView({
       </header>
 
       <h3 className="social-h">Estante</h3>
-      {error ? (
-        <p className="notice notice-error small" role="alert">
-          {error}
-        </p>
-      ) : !books ? (
-        <p className="muted small">Carregando…</p>
-      ) : books.length === 0 ? (
-        <p className="muted small">
-          {isMe
-            ? 'Nenhum livro à mostra. Na página Livros de um universo, escolha “Amigos” ou “Todo mundo”.'
+      <OwnerShelf
+        ownerId={person.user_id}
+        handle={person.handle}
+        me={signedIn ? myId : null}
+        client={client}
+        refreshKey={status}
+        focusBook={focusBook}
+        onAccount={onAccount}
+        empty={
+          isMe
+            ? 'Nenhum livro à mostra. Na página Livro de um universo, escolha “Amigos” ou “Todo mundo”.'
             : relation?.status === 'aceita'
               ? 'Nenhum livro à mostra por enquanto.'
-              : 'Nada aberto para você. Livros só para amigos aparecem depois que o pedido é aceito.'}
-        </p>
-      ) : (
-        <ul className="social-shelf" aria-label={`Estante de @${person.handle}`}>
-          {books.map((b) => (
-            <li key={b.id} className="social-book">
-              {b.cover ? (
-                <img className="social-book-cover" src={b.cover} alt={`Capa de ${b.title}`} />
-              ) : (
-                <span className="social-book-cover book-hero-placeholder" aria-hidden="true">
-                  <span className="book-hero-placeholder-title">{b.title}</span>
-                </span>
-              )}
-              <div className="social-book-info">
-                <strong className="social-book-title">{b.title}</strong>
-                {b.author && <span className="small">{b.author}</span>}
-                <span className="muted tiny">
-                  {b.chapters} {b.chapters === 1 ? 'capítulo' : 'capítulos'} · {b.words.toLocaleString('pt-BR')} palavras
-                  {b.universe_name && ` · ${b.universe_name}`}
-                  {b.visibility === 'publico' ? (
-                    <>
-                      {' '}
-                      · <Globe size={11} aria-label="público" />
-                    </>
-                  ) : (
-                    <>
-                      {' '}
-                      · <Users size={11} aria-label="só amigos" />
-                    </>
-                  )}
-                </span>
-                {b.blurb && <p className="small social-book-blurb">{b.blurb}</p>}
-                {b.read_link && /^https?:\/\//i.test(b.read_link) && (
-                  <a className="btn btn-sm social-book-read" href={b.read_link}>
-                    <BookOpen size={15} /> Ler
-                  </a>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              : 'Nada aberto para você. Livros só para amigos aparecem depois que o pedido é aceito.'
+        }
+      />
     </div>
   )
 }
