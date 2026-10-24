@@ -78,16 +78,6 @@
   max-width: 34em;
 }
 
-.library-new {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.library-new .input {
-  flex: 1 1 260px;
-}
-
 .library-alt {
   display: flex;
   flex-wrap: wrap;
@@ -943,6 +933,7 @@
 
 .landing-note a {
   color: var(--accent);
+  white-space: nowrap;
 }
 
 .rail-universe {
@@ -1269,27 +1260,138 @@
   }
 }
 
-.library-templates {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.7rem;
+/* ---------------------------------------------------------------- começar um universo */
+
+.library-brand {
+  color: inherit;
+  text-decoration: none;
 }
 
-.library-templates-label {
+.library-top {
+  gap: 0.75rem;
+}
+
+.library-top-actions {
+  min-width: 0;
+}
+
+.library-top .account-btn {
+  max-width: 11rem;
+}
+
+.account-signout {
+  align-self: flex-start;
+}
+
+.start-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.start-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.start-label {
+  margin: 0.3rem 0 0;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--ink-2);
 }
 
-.library-templates .welcome-option[aria-checked='true'] {
+.start-templates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.start-template {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.1rem 0.5rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.start-template svg {
+  grid-row: span 2;
+  color: var(--ink-2);
+}
+
+.start-template-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.start-template-short {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+.start-template:hover {
+  border-color: var(--line-strong);
+}
+
+.start-template[aria-checked='true'] {
   border-color: var(--accent);
   background: var(--accent-faint);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.start-template[aria-checked='true'] svg {
   color: var(--accent);
 }
 
-.library-templates-hint {
-  flex-basis: 100%;
+.start-hint {
   margin: 0;
+}
+
+.start-submit {
+  align-self: flex-start;
+  margin-top: 0.2rem;
+}
+
+/* Com universos já criados: o cartão fica menor (os universos vêm primeiro). */
+.start-card-compact .start-template {
+  padding-block: 0.5rem;
+}
+
+.start-card-compact .start-template-short {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .library-top {
+    padding-inline: 16px;
+  }
+
+  .library-top .account-btn-label {
+    display: none;
+  }
+
+  .start-card {
+    padding: 1rem;
+  }
+
+  .start-templates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .start-submit {
+    align-self: stretch;
+    justify-content: center;
+  }
 }

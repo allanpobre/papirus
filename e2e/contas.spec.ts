@@ -83,7 +83,10 @@ test('conta opcional: entrar, levar os universos para a nuvem e sair sem perder 
 
   // Sair não apaga nada deste navegador.
   await page.getByRole('button', { name: 'Conta: ana@exemplo.com' }).click()
-  await page.getByRole('button', { name: 'Sair' }).click()
+  await page.getByRole('button', { name: 'Sair da conta' }).click()
+  // Volta para a apresentação; o app abre de novo sem conta.
+  await expect(page).not.toHaveURL(/\/app\/$/)
+  await page.goto('/app/')
   await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()
   await expect(page.getByRole('list', { name: 'Universos' }).getByRole('button', { name: /^Ostria/ })).toBeVisible()
 })
