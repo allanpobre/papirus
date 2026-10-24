@@ -388,6 +388,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               <span>
                 <strong>Você está no mundo de exemplo.</strong> Mexa à vontade: nada aqui é seu de verdade.
               </span>
+              <button type="button" className="btn btn-sm" onClick={() => setReaderOpen(true)}>
+                <BookOpen size={14} /> Ler como livro
+              </button>
               <button type="button" className="btn btn-sm btn-primary" onClick={() => void ws.closeUniverse()}>
                 Criar o meu universo
               </button>

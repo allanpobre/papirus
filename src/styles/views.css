@@ -3691,3 +3691,37 @@ code {
   color: var(--violet);
   white-space: nowrap;
 }
+
+.graph-changes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex-basis: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.graph-changes li {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  animation: node-pop 0.35s ease-out both;
+}
+
+.graph-change-start {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.graph-change-end {
+  background: var(--surface-3);
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--ink-2) 50%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-changes li {
+    animation: none;
+  }
+}

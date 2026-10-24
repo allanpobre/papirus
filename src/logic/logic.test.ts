@@ -62,10 +62,10 @@ describe('conhecimento', () => {
   })
 
   it('o leitor só sabe fatos com fonte em cenas já lidas', () => {
-    expect(readerKnowsAt(u, scenes[0].id).map((f) => f.quote)).toEqual([
-      'Mira jurou que o homem tinha olhos cinzentos',
-    ])
-    expect(readerKnowsAt(u, scenes[1].id)).toHaveLength(2)
+    // O mesmo trecho sustenta dois fatos (sobre o estranho e, em segredo, sobre Vaelor).
+    expect(new Set(readerKnowsAt(u, scenes[0].id).map((f) => f.quote))).toEqual(new Set(['Mira jurou que o homem tinha olhos cinzentos']))
+    expect(readerKnowsAt(u, scenes[1].id)).toHaveLength(3)
+    expect(readerKnowsAt(u, scenes[7].id).length).toBeGreaterThan(readerKnowsAt(u, scenes[3].id).length)
   })
 })
 
@@ -159,8 +159,8 @@ describe('grafo', () => {
 
 describe('busca', () => {
   it('encontra fichas por apelido sem acento', () => {
-    const r = searchUniverse(u, 'homem palido')
-    expect(r[0]).toMatchObject({ kind: 'ficha', title: 'Vaelor' })
+    expect(searchUniverse(u, 'principe perdido')[0]).toMatchObject({ kind: 'ficha', title: 'Vaelor' })
+    expect(searchUniverse(u, 'homem palido')[0]).toMatchObject({ kind: 'ficha', title: 'Homem Pálido' })
   })
 
   it('encontra trechos de cenas', () => {
@@ -177,7 +177,7 @@ describe('ritmo e presença', () => {
     expect(rows[0].cells.get(kael)).toBe('pov')
     expect(rows[0].cells.get(vaelor)).toBe('presente')
     expect(columns[0].name).toBe('Kael')
-    expect(longestAbsence(rows, kael)).toBe(1)
+    expect(longestAbsence(rows, kael)).toBe(2)
   })
 })
 

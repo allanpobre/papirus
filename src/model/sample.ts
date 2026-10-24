@@ -87,7 +87,7 @@ export function sampleUniverse(): Universe {
     editorial: 'definido',
   })
   const vaelor = ent('personagem', 'Vaelor', {
-    aliases: ['Pale Man', 'o Homem Pálido'],
+    aliases: ['o Príncipe Perdido'],
     summary: 'Último príncipe da Casa de Vaelor. Dado como morto na Queda.',
     description: 'Ninguém em Ostria sabe que ele sobreviveu. Voltou com outro rosto e outro nome.',
     canon: 'secreto',
@@ -97,6 +97,19 @@ export function sampleUniverse(): Universe {
     fields: [
       { key: 'Olhos', value: 'Cinzentos' },
       { key: 'Arma', value: 'Lâmina de vidro negro' },
+    ],
+  })
+  // O que a cidade vê: um estranho. Quem ele é de verdade (Vaelor) é segredo do autor.
+  const homem = ent('personagem', 'Homem Pálido', {
+    aliases: ['Pale Man', 'o estranho'],
+    summary: 'Estranho de rosto sem cor que desceu de um navio sem nome, com uma espada embrulhada em pano.',
+    description:
+      'Fala pouco e paga em vidro negro. [a partir de "O retrato"]Tem os mesmos olhos cinzentos do retrato do príncipe, dado como morto na Queda.[/a partir] [segredo]É Vaelor.[/segredo]',
+    editorial: 'definido',
+    tags: ['estrangeiro', 'mistério'],
+    fields: [
+      { key: 'Olhos', value: '[a partir de "A chegada"]Cinzentos, segundo Mira[/a partir]' },
+      { key: 'Arma', value: '[a partir de "A maré volta"]Lâmina de vidro negro[/a partir]' },
     ],
   })
   const kael = ent('personagem', 'Kael', {
@@ -120,6 +133,37 @@ export function sampleUniverse(): Universe {
     startYear: 280,
     endYear: 341,
     editorial: 'definido',
+  })
+  const rhea = ent('personagem', 'Rhea', {
+    summary: 'Capitã do navio sem nome. Não faz perguntas a quem paga bem.',
+    description: 'Já levou e trouxe contrabando de Kael por anos. Os dois fingem que não se conhecem na frente da guarda.',
+    editorial: 'provisorio',
+    tags: ['mar'],
+    fields: [{ key: 'Navio', value: 'Sem nome, sem bandeira' }],
+  })
+  const cassian = ent('personagem', 'Cassian', {
+    aliases: ['o regente'],
+    summary: 'Regente de Ostria desde a Queda. Nunca se sentou no trono.',
+    description: 'Governa do antigo salão real. É cuidadoso, paciente e tem medo de navios sem nome. [segredo]Foi ele quem mandou incendiar o salão na noite do solstício.[/segredo]',
+    editorial: 'definido',
+    startYear: 305,
+    tags: ['nobreza', 'antagonista'],
+  })
+  const odo = ent('personagem', 'Odo', {
+    aliases: ['Irmão Odo'],
+    summary: 'Sacerdote da Fé da Maré. Conselheiro do regente.',
+    description: 'Diz em voz alta o que o povo sussurra. [a partir de "A maré volta"]Na noite da tempestade, foi visto rezando na praia, de frente para a Torre.[/a partir]',
+    editorial: 'rascunho',
+  })
+  const anzol = ent('lugar', 'Taverna do Anzol', {
+    summary: 'Taverna do porto. Cerveja ruim, conversa boa, duas portas.',
+    parentId: ostria.id,
+    editorial: 'definido',
+  })
+  const paco = ent('lugar', 'Paço do Regente', {
+    summary: 'O antigo salão da casa real, hoje sede da regência.',
+    parentId: ostria.id,
+    editorial: 'provisorio',
   })
   const fe = ent('religiao', 'Fé da Maré', {
     summary: 'Culto do mar; acredita que os mortos voltam com a maré.',
@@ -179,7 +223,7 @@ export function sampleUniverse(): Universe {
       '---',
       'Mais tarde, na taverna, Mira jurou que o homem tinha olhos cinzentos. Kael disse que era impossível ver os olhos de alguém naquela neblina.',
     ],
-    { povId: kael.id, placeId: ostria.id, date: { year: 359, day: 12 }, presentIds: [kael.id, vaelor.id, mira.id], status: 'revisao', synopsis: 'O Homem Pálido chega ao porto.' },
+    { povId: kael.id, placeId: ostria.id, date: { year: 359, day: 12 }, presentIds: [kael.id, vaelor.id, homem.id, mira.id], status: 'revisao', synopsis: 'O Homem Pálido chega ao porto.' },
   )
   const c2 = scene(
     'A Torre fechada',
@@ -197,6 +241,61 @@ export function sampleUniverse(): Universe {
       'Alguém tinha feito outra lâmina.',
     ],
     { povId: kael.id, placeId: brumas.id, date: { year: 359, day: 12 }, presentIds: [kael.id], status: 'ideia' },
+  )
+  const c4 = scene(
+    'O navio sem nome',
+    [
+      'O navio continuava no fim do cais, sem nome no casco e sem bandeira. Nenhum estivador chegava perto.',
+      'Kael subiu pela corda da âncora, como nos tempos de contrabando. No convés, a capitã Rhea afiava uma faca e não pareceu surpresa.',
+      '— Você é o irmão da moça das docas — disse ela. — Ele avisou que você viria.',
+      '— Quem é ele?',
+      'Rhea deu de ombros. — Pagou a viagem em vidro negro. Pedra que não reflete luz. Num porto como este, isso compra silêncio.',
+      'Antes de descer, Kael viu no porão um baú com o brasão raspado a faca. Sobrava só a ponta de uma torre.',
+    ],
+    { povId: kael.id, placeId: ostria.id, date: { year: 359, day: 13 }, presentIds: [kael.id, rhea.id], status: 'rascunho', synopsis: 'Kael sobe no navio e descobre como o estranho pagou a viagem.' },
+  )
+  const c5 = scene(
+    'O regente',
+    [
+      'O Paço do Regente ficava onde antes era o salão da casa real. Cassian governava dali havia dezessete anos e nunca tinha se sentado no trono.',
+      'Mira entregava as redes consertadas da guarda quando ouviu o apelido que a cidade inteira repetia: o Homem Pálido.',
+      '— Encontrem esse estranho antes da maré cheia — disse Cassian. — Vivo, se puderem.',
+      'Ao lado dele, o Irmão Odo sorria como quem já sabe o fim de uma história. — Os mortos voltam com a maré, senhor. Eu avisei.',
+      'Cassian não respondeu. Mas Mira viu a mão dele tremer sobre a mesa.',
+    ],
+    { povId: mira.id, placeId: paco.id, date: { year: 359, day: 13 }, presentIds: [mira.id, cassian.id, odo.id], status: 'rascunho', synopsis: 'O regente manda caçar o estranho. Mira ouve tudo.' },
+  )
+  const c6 = scene(
+    'O retrato',
+    [
+      'Ilsa guardava as chaves dos andares de cima num cordão, junto ao peito. Naquela noite, deixou Mira subir sozinha.',
+      'No último andar, coberto por um lençol, havia um retrato: um rapaz de olhos cinzentos, segurando uma espada escura como o fundo de um poço.',
+      '— O príncipe — disse Ilsa da escada. — Morreu na Queda. Ou foi o que contaram.',
+      'Mira olhou de novo para os olhos do retrato. Já tinha visto aqueles olhos. Na taverna, sob a neblina, num rosto sem cor.',
+    ],
+    { povId: mira.id, placeId: torre.id, date: { year: 359, day: 14 }, presentIds: [mira.id, ilsa.id], status: 'revisao', synopsis: 'Mira encontra o retrato do príncipe e reconhece os olhos.' },
+  )
+  const c7 = scene(
+    'Duas portas',
+    [
+      'A guarda do regente fechou as duas portas da Taverna do Anzol ao mesmo tempo. Kael contou seis homens e nenhuma saída.',
+      'Foi o Homem Pálido quem se levantou. Não sacou a espada embrulhada: só tirou o capuz. Os guardas recuaram um passo, como se tivessem visto um fantasma.',
+      'Na confusão, Kael puxou o estranho pela cozinha, para o beco das redes.',
+      '— Por que me ajudou? — perguntou o Homem Pálido.',
+      '— Não ajudei você. Ajudei quem o regente quer pegar. — Kael cuspiu no chão. — Nesta cidade, isso é quase todo mundo de quem eu gosto.',
+    ],
+    { povId: kael.id, placeId: anzol.id, date: { year: 359, day: 14 }, presentIds: [kael.id, homem.id], status: 'rascunho', synopsis: 'A guarda cerca a taverna. Kael escolhe um lado.' },
+  )
+  const c8 = scene(
+    'A maré volta',
+    [
+      'A tempestade chegou com a maré cheia. Kael trouxe o estranho pela trilha das falésias, e Mira abriu a porta da Torre de Marfim antes que batessem.',
+      'Ilsa desceu os trezentos e doze degraus devagar, com a lamparina no alto.',
+      'O Homem Pálido desembrulhou a espada. A lâmina era de vidro negro e não refletia a chama.',
+      '— Alteza — disse Ilsa, e se ajoelhou.',
+      'Mira olhou para Kael. Pela primeira vez desde que eram crianças, o irmão não tinha nada a dizer.',
+    ],
+    { povId: mira.id, placeId: torre.id, date: { year: 359, day: 15 }, presentIds: [mira.id, kael.id, ilsa.id, homem.id], status: 'ideia', synopsis: 'Na Torre, a espada é revelada e Ilsa se ajoelha.' },
   )
   let loose
   ;[u, loose] = addScene(u, null, 'Fragmento: a canção da maré')
@@ -218,6 +317,14 @@ export function sampleUniverse(): Universe {
   fact({ subjectId: ilsa.id, predicate: 'está', value: 'morta desde a Queda', canon: 'estabelecido', editorial: 'definido' })
   fact({ subjectId: ilsa.id, predicate: 'está', value: 'viva na Torre', speakerId: mira.id, sourceSceneId: c2.id, quote: 'Lá dentro, Ilsa esperava por ela.', canon: 'estabelecido', editorial: 'provisorio' })
   fact({ subjectId: fe.id, predicate: 'acredita que', value: 'os mortos voltam com a maré', sourceSceneId: loose.id, canon: 'lenda' })
+  fact({ subjectId: homem.id, predicate: 'tem olhos', value: 'cinzentos', speakerId: mira.id, sourceSceneId: c1.id, quote: 'Mira jurou que o homem tinha olhos cinzentos', canon: 'estabelecido', editorial: 'definido' })
+  fact({ subjectId: homem.id, predicate: 'pagou a viagem em', value: 'vidro negro', speakerId: rhea.id, sourceSceneId: c4.id, quote: 'Pagou a viagem em vidro negro.', canon: 'estabelecido', editorial: 'definido' })
+  fact({ subjectId: cassian.id, predicate: 'quer', objectId: homem.id, value: '', sourceSceneId: c5.id, quote: 'Encontrem esse estranho antes da maré cheia', canon: 'estabelecido', editorial: 'definido', note: 'Vivo, se puderem.' })
+  fact({ subjectId: homem.id, predicate: 'é', value: 'um morto que voltou com a maré', speakerId: odo.id, sourceSceneId: c5.id, quote: 'Os mortos voltam com a maré, senhor.', canon: 'rumor', editorial: 'provisorio' })
+  fact({ subjectId: homem.id, predicate: 'tem os olhos do', value: 'retrato do príncipe', speakerId: mira.id, sourceSceneId: c6.id, quote: 'Já tinha visto aqueles olhos.', canon: 'estabelecido', editorial: 'definido' })
+  fact({ subjectId: homem.id, predicate: 'carrega', objectId: lamina.id, value: '', sourceSceneId: c8.id, quote: 'A lâmina era de vidro negro e não refletia a chama.', canon: 'estabelecido', editorial: 'definido' })
+  fact({ subjectId: ilsa.id, predicate: 'chama o estranho de', value: 'Alteza', sourceSceneId: c8.id, quote: '— Alteza — disse Ilsa, e se ajoelhou.', canon: 'estabelecido', editorial: 'definido' })
+  fact({ subjectId: cassian.id, predicate: 'mandou incendiar', value: 'o salão real na noite da Queda', canon: 'secreto', editorial: 'definido', note: 'Só aparece no Livro II.' })
 
   ;[u] = insert(u, 'knowledge', { ...draftKnowledge(kael.id, fOlhos.id), state: 'suspeita', sinceSceneId: c1.id })
   ;[u] = insert(u, 'knowledge', { ...draftKnowledge(ilsa.id, fVivo.id), state: 'sabe' })
@@ -227,7 +334,9 @@ export function sampleUniverse(): Universe {
   ;[u] = insert(u, 'seeds', {
     ...draftSeed('A espada embrulhada'),
     description: 'A espada do estranho só é revelada no fim do Livro I.',
+    status: 'resolvida',
     setupSceneId: c1.id,
+    payoffSceneId: c8.id,
     entityIds: [vaelor.id, lamina.id],
   })
   ;[u] = insert(u, 'seeds', {
@@ -239,6 +348,9 @@ export function sampleUniverse(): Universe {
     clues: [
       { id: crypto.randomUUID(), text: 'Olha para as torres como quem reconhece uma casa.', sceneId: c1.id },
       { id: crypto.randomUUID(), text: 'Olhos cinzentos, como os retratos da casa real.', sceneId: c1.id },
+      { id: crypto.randomUUID(), text: 'O baú no navio tem um brasão raspado: sobrou a ponta de uma torre.', sceneId: c4.id },
+      { id: crypto.randomUUID(), text: 'O retrato do príncipe tem os mesmos olhos.', sceneId: c6.id },
+      { id: crypto.randomUUID(), text: 'Ilsa o chama de “Alteza”.', sceneId: c8.id },
     ],
   })
   ;[u] = insert(u, 'seeds', { ...draftSeed('Os trezentos e doze degraus'), status: 'aberta', setupSceneId: c2.id, entityIds: [mira.id, ilsa.id] })
@@ -318,6 +430,28 @@ export function sampleUniverse(): Universe {
   })
 
   void c3
+  // O que muda ao longo da história: no grafo, "Num ponto da história" mostra cada momento.
+  const cenas = (...ids: string[]) => ({ kind: 'cenas' as const, fromYear: null, toYear: null, storyIds: [], sceneIds: ids })
+  const scoped = (a: string, b: string, type: string, scope: ReturnType<typeof cenas>, extra: Partial<ReturnType<typeof draftRelation>> = {}) => {
+    ;[u] = insert(u, 'relations', { ...draftRelation(a, b, type), scope, ...extra })
+  }
+  scoped(rhea.id, homem.id, 'trouxe', cenas(c1.id, c4.id))
+  scoped(kael.id, homem.id, 'desconfia de', cenas(c1.id, c3.id, c4.id, c5.id, c6.id))
+  scoped(kael.id, homem.id, 'protege', cenas(c7.id, c8.id), { note: 'Desde a briga na Taverna do Anzol.' })
+  scoped(cassian.id, homem.id, 'caça', cenas(c5.id, c6.id, c7.id, c8.id), { via: [{ entityId: odo.id, role: 'com ajuda de' }] })
+  scoped(mira.id, homem.id, 'reconhece', cenas(c6.id, c8.id))
+  scoped(ilsa.id, homem.id, 'jura lealdade a', cenas(c8.id))
+  rel(odo.id, cassian.id, 'aconselha')
+  rel(kael.id, rhea.id, 'contrabandeava com')
+  rel(odo.id, fe.id, 'sacerdote de')
+  rel(homem.id, vaelor.id, 'é na verdade', 'secreto')
+  ;[u] = insert(u, 'relations', {
+    ...draftRelation(cassian.id, ostria.id, 'governa'),
+    scope: { kind: 'periodo', fromYear: 341, toYear: null, storyIds: [], sceneIds: [] },
+  })
+  ev('Cassian assume a regência', 342, { importance: 2, entityIds: [cassian.id], placeId: paco.id, description: 'Sem herdeiro vivo, o conselho entrega a cidade ao primo distante da casa real.' })
+  ev('Chegada do navio sem nome', 359, { importance: 2, entityIds: [homem.id, rhea.id], placeId: ostria.id, description: 'Um navio sem bandeira atraca no fim do cais, numa noite de neblina.' })
+  ;[u] = insert(u, 'knowledge', { ...draftKnowledge(mira.id, fOlhos.id), state: 'suspeita', sinceSceneId: c6.id })
   // Relações indiretas e com tempo: quem está por trás, e quando valem.
   ;[u] = insert(u, 'relations', {
     ...draftRelation(ilsa.id, mira.id, 'escondeu'),

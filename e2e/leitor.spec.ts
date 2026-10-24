@@ -2,7 +2,7 @@ import { expect, test } from './fixtures.ts'
 
 test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await page.getByRole('button', { name: 'Prévia do leitor' }).click()
+  await page.getByRole('button', { name: 'Ler como leitor' }).click()
   const leitor = page.getByRole('dialog', { name: 'Modo leitor' })
 
   await expect(leitor.getByRole('heading', { name: 'A chegada' })).toBeVisible()
@@ -40,7 +40,7 @@ test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async
   // O progresso fica guardado.
   await leitor.getByRole('button', { name: 'Voltar ao universo' }).click()
   await expect(leitor).toHaveCount(0)
-  await page.getByRole('button', { name: 'Prévia do leitor' }).click()
+  await page.getByRole('button', { name: 'Ler como leitor' }).click()
   await expect(leitor.getByRole('heading', { name: 'A Torre fechada' })).toBeVisible()
 })
 
@@ -62,4 +62,17 @@ test('ficha: marcar um trecho para revelar a partir de uma cena', async ({ page 
   await expect(page.getByRole('textbox', { name: 'Resumo' })).toHaveValue(/^\[a partir de "A Torre fechada" #[0-9a-f]{6}\]Guardiã/)
   await page.getByRole('button', { name: /Resumo: só a partir da cena 2/ }).click()
   await expect(page.getByRole('textbox', { name: 'Resumo' })).toHaveValue(/^Guardiã/)
+})
+
+test('relações mudam ao longo da história do exemplo', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await page.getByRole('button', { name: 'Relações' }).first().click()
+  await page.getByRole('radio', { name: 'Num ponto da história' }).click()
+  const slider = page.getByRole('slider', { name: 'Cena' })
+  const changes = page.getByRole('list', { name: 'O que muda nesta cena' })
+  await slider.fill('0')
+  await expect(changes).toContainText('Kael desconfia de Homem Pálido')
+  await slider.fill('6')
+  await expect(changes).toContainText('Kael protege Homem Pálido')
+  await expect(changes).toContainText('deixa de valer')
 })
