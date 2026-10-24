@@ -47,10 +47,33 @@ test('dá para sair do mundo de exemplo', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-  await expect(page.getByText('Você está no mundo de exemplo.')).toBeVisible()
+  await expect(page.getByText('Mundo de exemplo', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Sair do exemplo' }).click()
   await expect(page.getByRole('heading', { name: 'Seus universos' })).toBeVisible()
   await page.getByRole('list', { name: 'Universos' }).getByRole('button', { name: /^Exemplo/ }).click()
   await page.getByRole('button', { name: 'Seus universos' }).click()
   await expect(page.getByRole('heading', { name: 'Seus universos' })).toBeVisible()
+})
+
+test('aviso do exemplo é discreto, dá para esconder, e exemplo antigo vira o atual', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
+  await page.goto('/app/')
+  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await expect(page.getByText('Mundo de exemplo', { exact: true })).toBeVisible()
+
+  // Simula um exemplo de uma versão antiga do Papirus.
+  await page.getByRole('button', { name: 'Ajustes e dados' }).click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true }).click()
+  await page.getByRole('textbox', { name: 'Nome', exact: true }).fill('Exemplo velho')
+  await page.getByRole('textbox', { name: 'Descrição' }).fill('Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.')
+  await expect(page.getByRole('status').filter({ hasText: 'Salvo' }).first()).toBeVisible()
+
+  await page.getByRole('button', { name: 'Esconder este aviso' }).click()
+  await expect(page.getByText('Mundo de exemplo', { exact: true })).toHaveCount(0)
+
+  await page.getByRole('button', { name: /trocar de universo/i }).first().click()
+  await page.getByRole('list', { name: 'Universos' }).getByRole('button', { name: /^Exemplo velho/ }).click()
+  // Trocado pelo exemplo atual, e o aviso continua escondido.
+  await expect(page.getByRole('button', { name: 'Exemplo — As Cinzas de Ostria: trocar de universo' })).toBeVisible()
+  await expect(page.getByText('Mundo de exemplo', { exact: true })).toHaveCount(0)
 })

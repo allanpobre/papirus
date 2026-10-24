@@ -243,6 +243,12 @@ export default function GraphView() {
         </div>
       </div>
 
+      {!inTime && scenes.length > 1 && universe.relations.some((r) => r.scope.kind !== 'geral') && (
+        <button type="button" className="graph-time-hint" onClick={() => setInTime(true)}>
+          <Play size={14} aria-hidden="true" /> Algumas relações mudam ao longo da história. Ver cena a cena
+        </button>
+      )}
+
       {inTime && scene && (
         <div className="graph-time">
           <button

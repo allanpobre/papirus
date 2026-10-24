@@ -970,21 +970,31 @@
 
 /* Mundo de exemplo */
 .sample-banner {
-  position: sticky;
-  top: 0;
-  z-index: 19;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.75rem;
-  padding: 0.55rem 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  gap: 0.4rem 0.6rem;
+  padding: 0.35rem 0.6rem 0.35rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
   background: var(--accent-faint);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
-.sample-banner > span {
-  flex: 1 1 260px;
+.sample-banner-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sample-banner .btn {
+  flex: none;
+}
+
+@media (max-width: 560px) {
+  .sample-banner-more {
+    display: none;
+  }
 }
 
 /* Tour guiado */
