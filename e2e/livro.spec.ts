@@ -68,6 +68,11 @@ test('estante: segundo volume com o mesmo estilo do primeiro', async ({ page }) 
   await expect(estante.getByRole('option')).toHaveCount(2)
   await expect(page.getByRole('region', { name: 'Livro Livro II — A Torre' })).toContainText('capítulos em estilo ornamentado')
 
+  // E-book com a cara do livro.
+  const download = page.waitForEvent('download')
+  await page.getByRole('region', { name: 'Livro Livro II — A Torre' }).getByRole('button', { name: 'E-book' }).click()
+  expect((await download).suggestedFilename()).toMatch(/\.epub$/)
+
   // Cada livro tem a sua diagramação.
   await estante.getByRole('option', { name: /Livro I — A Maré Volta/ }).click()
   await expect(page.getByRole('region', { name: 'Livro Livro I — A Maré Volta' })).toBeVisible()

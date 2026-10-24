@@ -192,6 +192,15 @@ export default function BookView() {
             <button type="button" className="btn btn-ghost" disabled={!chapters} onClick={openReader}>
               <BookOpen size={16} /> Ler como leitor
             </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={!chapters}
+              title="E-book com a mesma capa e estilo"
+              onClick={() => void import('../book/epubDownload').then((m) => m.downloadEpub(universe, book))}
+            >
+              <FileDown size={16} /> E-book
+            </button>
             {!readOnly && (
               <button
                 type="button"
