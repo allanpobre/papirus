@@ -3740,3 +3740,71 @@ code {
   font-size: 0.85rem;
   cursor: pointer;
 }
+
+/* Codex: novidades, ligações e linha do tempo */
+.codex-new {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--violet);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.codex-entry.is-fresh {
+  border-left: 3px solid var(--violet);
+  padding-left: 0.6rem;
+}
+
+.codex-graph {
+  margin: 0.4rem 0 0.8rem;
+  border: 1px solid var(--line);
+}
+
+.codex-relations {
+  display: grid;
+  gap: 0.3rem;
+  padding-left: 1.1rem;
+}
+
+.codex-years {
+  position: relative;
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  list-style: none;
+  border-left: 2px solid var(--line);
+}
+
+.codex-years li {
+  position: relative;
+  display: grid;
+  gap: 0.05rem;
+}
+
+.codex-years li::before {
+  content: '';
+  position: absolute;
+  top: 0.45rem;
+  left: calc(-1.1rem - 6px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+.codex-years li.is-fresh::before {
+  background: var(--violet);
+}
+
+.codex-year {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

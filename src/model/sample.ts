@@ -456,6 +456,25 @@ export function sampleUniverse(): Universe {
   ev('Cassian assume a regência', 342, { importance: 2, entityIds: [cassian.id], placeId: paco.id, description: 'Sem herdeiro vivo, o conselho entrega a cidade ao primo distante da casa real.' })
   ev('Chegada do navio sem nome', 359, { importance: 2, entityIds: [homem.id, rhea.id], placeId: ostria.id, description: 'Um navio sem bandeira atraca no fim do cais, numa noite de neblina.' })
   ;[u] = insert(u, 'knowledge', { ...draftKnowledge(mira.id, fOlhos.id), state: 'suspeita', sinceSceneId: c6.id })
+
+  // Na mesa: ligações reveladas aos jogadores, sessão a sessão (o Codex mostra o mapa crescendo).
+  const relOf = (a: string, b: string, type: string) => u.relations.find((r) => r.fromId === a && r.toId === b && r.type === type)!.id
+  const s2 = u.sessions.find((s) => s.groupId === grupo.id && s.number === 2)!
+  for (const [id, session] of [
+    [relOf(kael.id, mira.id, 'irmão de'), s1.id],
+    [relOf(rhea.id, homem.id, 'trouxe'), s1.id],
+    [relOf(cassian.id, homem.id, 'caça'), s2.id],
+  ] as const) {
+    ;[u] = insert(u, 'revelations', draftRevelation(grupo.id, 'relacao', id, session))
+  }
+  for (const [id, depth] of [
+    [homem.id, 'resumo'],
+    [rhea.id, 'resumo'],
+    [mira.id, 'resumo'],
+  ] as const) {
+    ;[u] = insert(u, 'revelations', { ...draftRevelation(grupo.id, 'entidade', id, s1.id), depth })
+  }
+  ;[u] = insert(u, 'revelations', { ...draftRevelation(grupo.id, 'entidade', cassian.id, s2.id), depth: 'resumo' })
   // Relações indiretas e com tempo: quem está por trás, e quando valem.
   ;[u] = insert(u, 'relations', {
     ...draftRelation(ilsa.id, mira.id, 'escondeu'),

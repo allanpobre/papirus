@@ -321,7 +321,7 @@ export const revelationSchema = z.object({
    * O que foi revelado: uma ficha, um fato, um evento da timeline, uma pista de
    * mistério, um mapa (só a imagem) ou um marcador de mapa.
    */
-  target: z.enum(['entidade', 'fato', 'evento', 'pista', 'mapa', 'marcador']),
+  target: z.enum(['entidade', 'fato', 'evento', 'pista', 'mapa', 'marcador', 'relacao']),
   targetId: id,
   /** Para fichas: revelar só o nome, o resumo, ou também a descrição. */
   depth: z.enum(['nome', 'resumo', 'completo']),

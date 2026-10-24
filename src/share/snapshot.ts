@@ -16,8 +16,10 @@ export interface CodexSnapshot {
   group: string
   at: string
   party: { name: string; player: string; fields: [string, string][]; attrs: [string, number][] }[]
-  sections: { title: string; entries: { name: string; summary: string; description: string; depth: 'nome' | 'resumo' | 'completo' }[] }[]
-  events: { when: string; title: string }[]
+  sections: { title: string; entries: { name: string; summary: string; description: string; depth: 'nome' | 'resumo' | 'completo'; fresh?: boolean }[] }[]
+  events: { when: string; title: string; year?: number; fresh?: boolean }[]
+  /** Ligações reveladas, pelo nome (opcional: retratos antigos não têm). */
+  relations?: { from: string; to: string; text: string; fresh?: boolean }[]
   facts: { text: string; tag: string }[]
   clues: { text: string; mystery: string }[]
   maps: { name: string; image: string; width: number; height: number; pins: { x: number; y: number; label: string }[] }[]
@@ -49,6 +51,7 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
         .map(({ entity, depth }) => ({
           name: entity.name,
           depth,
+          fresh: codex.fresh.has(entity.id),
           summary: depth === 'nome' ? '' : unmarkReveals(stripSecrets(entity.summary)),
           description: depth === 'completo' ? unmarkReveals(stripSecrets(entity.description)) : '',
         })),
@@ -56,7 +59,17 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     events: codex.events.map((e) => ({
       when: e.endYear !== null ? `${formatYear(e.year, suffix)} – ${formatYear(e.endYear, suffix)}` : formatYear(e.year, suffix),
       title: e.title,
+      year: e.year,
+      fresh: codex.fresh.has(e.id),
     })),
+    relations: codex.relations.map((r) => {
+      // Quem está por trás só aparece se a mesa já conhece essa ficha.
+      const known = new Set(codex.entries.map((e) => e.entity.id))
+      const via = r.via.filter((v) => known.has(v.entityId)).map((v) => `${v.role || 'com'} ${entityName(universe, v.entityId)}`)
+      const from = entityName(universe, r.fromId)
+      const to = entityName(universe, r.toId)
+      return { from, to, text: `${from} ${r.type} ${to}${via.length ? `, ${via.join(', ')}` : ''}`, fresh: codex.fresh.has(r.id) }
+    }),
     facts: codex.facts.map((f) => ({ text: factSentence(universe, f), tag: playerTag(universe, f) })),
     clues: codex.clues.map(({ seed, clue }) => ({ text: clue.text, mystery: seed.kind === 'misterio' ? seed.title : '' })),
     maps: codex.maps.map(({ map, pins }) => ({
@@ -70,7 +83,7 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
 }
 
 export const isEmptySnapshot = (s: CodexSnapshot) =>
-  !s.party.length && !s.sections.length && !s.events.length && !s.facts.length && !s.clues.length && !s.maps.length
+  !s.party.length && !s.sections.length && !s.events.length && !s.facts.length && !s.clues.length && !s.maps.length && !(s.relations ?? []).length
 
 /** Compara dois retratos ignorando a hora, para saber se vale publicar de novo. */
 export const sameContent = (a: CodexSnapshot, b: CodexSnapshot) => JSON.stringify({ ...a, at: '' }) === JSON.stringify({ ...b, at: '' })

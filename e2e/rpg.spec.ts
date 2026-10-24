@@ -107,3 +107,16 @@ test('tabela aleatória sorteia uma das opções', async ({ page }) => {
   await card.getByRole('button', { name: 'Rolar' }).click()
   await expect(card.locator('.table-result')).toHaveText(/navio|Torre|Maré|vidro|guarda|anel/)
 })
+
+test('Codex: revelar uma ligação coloca no mapa dos jogadores, marcada como nova', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await nav(page, 'RPG').click()
+  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  const codex = page.locator('.codex-doc').first()
+  await expect(codex.getByRole('img', { name: /^Mapa com 5 fichas e 3 ligações/ })).toBeVisible()
+  await page.getByRole('combobox', { name: 'O que revelar' }).selectOption({ label: 'Ligação' })
+  await page.getByRole('combobox', { name: 'Escolher ligação' }).selectOption({ label: 'Kael protege Homem Pálido' })
+  await page.getByRole('button', { name: 'Revelar', exact: true }).click()
+  await expect(codex.getByRole('img', { name: /^Mapa com 5 fichas e 4 ligações/ })).toBeVisible()
+  await expect(codex.getByText('Kael protege Homem Pálido')).toBeVisible()
+})

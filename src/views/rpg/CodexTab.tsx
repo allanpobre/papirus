@@ -2,6 +2,7 @@ import { Copy, Download, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { downloadText, fileNameFor } from '../../export/download'
 import { codexMarkdown, factSentence, revelationLabel } from '../../logic/codex'
+import { relationSentence } from '../../logic/relations'
 import type { Group, Revelation } from '../../model/schema'
 import { byId, draftRevelation, entityName, insert, patch, remove } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
@@ -18,6 +19,7 @@ const TARGET_LABEL: Record<Revelation['target'], string> = {
   pista: 'Pista',
   mapa: 'Mapa',
   marcador: 'Marcador de mapa',
+  relacao: 'Ligação',
 }
 
 /** O que a mesa já descobriu, e como os jogadores veem isso. */
@@ -126,7 +128,9 @@ function RevealForm({ group }: { group: Group }) {
             ? universe.maps.map((m) => ({ value: m.id, label: m.name }))
             : target === 'marcador'
               ? universe.maps.flatMap((m) => m.pins.map((p) => ({ value: p.id, label: `${m.name}: ${p.label || entityName(universe, p.entityId)}` })))
-              : []
+              : target === 'relacao'
+                ? universe.relations.map((r) => ({ value: r.id, label: relationSentence(universe, r).slice(0, 90) }))
+                : []
 
   const id = target === 'entidade' ? entityId : choice
   const reveal = () => {
@@ -169,6 +173,7 @@ function RevealForm({ group }: { group: Group }) {
       <button type="button" className="btn btn-sm btn-primary" disabled={!id} onClick={reveal}>
         Revelar
       </button>
+      {target === 'relacao' && <p className="muted tiny">No Codex, as ligações formam um mapa que cresce a cada sessão. Quem está por trás só aparece se os jogadores já conhecem essa ficha.</p>}
       {target === 'mapa' && <p className="muted tiny">No mapa revelado, aparecem os marcadores revelados e os dos lugares que a mesa já conhece.</p>}
     </div>
   )
