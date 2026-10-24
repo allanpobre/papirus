@@ -5,6 +5,8 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { MentionMatcher } from '../logic/detection'
 import type { SceneDoc } from '../model/schema'
 import { sceneExtensions } from './extensions'
+import { PhoneDock } from './PhoneDock'
+import { useMediaQuery } from '../ui/useMediaQuery'
 
 export interface SelectionInfo {
   text: string
@@ -54,6 +56,8 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
     cb.current = { onChange, onCursorParagraph, actions }
   })
   const cursorTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  // Celular e tablet de toque: barra presa acima do teclado no lugar do menu flutuante.
+  const touch = useMediaQuery('(pointer: coarse), (max-width: 760px)')
 
   const editor = useEditor({
     extensions: sceneExtensions,
@@ -62,6 +66,9 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
     // Foco manual (abaixo): o automático do editor pode roubar o foco de uma janela recém-aberta.
     autofocus: false,
     editorProps: {
+      // Deixa o cursor sempre acima da barra do celular.
+      scrollMargin: { top: 16, bottom: 96, left: 0, right: 0 },
+      scrollThreshold: { top: 16, bottom: 96, left: 0, right: 0 },
       attributes: { 'aria-label': 'Texto da cena', class: 'scene-text', spellcheck: 'true', lang: 'pt-BR' },
       handleClick: (_view, _pos, event) => {
         const commented = (event.target as HTMLElement).closest('[data-comment]')?.getAttribute('data-comment')
@@ -129,7 +136,7 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
 
   return (
     <div className="scene-editor">
-      {showToolbar && (
+      {showToolbar && !touch && (
         <div className="format-bar" role="toolbar" aria-label="Formatação">
           <button type="button" className="btn-icon" aria-pressed={active.bold} title="Negrito (Ctrl+B)" aria-label="Negrito" onClick={() => editor.chain().focus().toggleBold().run()}>
             <Bold size={16} />
@@ -155,6 +162,8 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
         </div>
       )}
 
+      {touch && <PhoneDock editor={editor} actions={actions} selection={selection} />}
+      {!touch && (
       <BubbleMenu
         editor={editor}
         className="bubble-wrap"
@@ -194,6 +203,7 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
           </button>
         </div>
       </BubbleMenu>
+      )}
 
       <EditorContent editor={editor} />
     </div>
