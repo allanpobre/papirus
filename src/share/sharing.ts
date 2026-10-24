@@ -212,28 +212,33 @@ export async function fetchByLink(server: ServerConfig, token: string): Promise<
 const toB64Url = (s: string) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 const fromB64Url = (s: string) => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))))
 
+/** Como o link abre: o livro com o caderno sem spoiler, ou o universo inteiro (só leitura). */
+export type LinkMode = 'livro' | 'universo'
+
 /** Link de leitura. Só leva o servidor quando ele não é o da publicação. */
-export function readLink(publicUrl: string, cfg: ServerConfig, token: string): string {
+export function readLink(publicUrl: string, cfg: ServerConfig, token: string, mode: LinkMode = 'livro'): string {
   const base = new URL(publicUrl || DEFAULT_PUBLIC_URL)
   const url = new URL(base.pathname.replace(/\/app\/?$/, '/').replace(/\/?$/, '/') + 'app/', base)
   url.searchParams.set('ler', token)
+  if (mode === 'livro') url.searchParams.set('modo', 'livro')
   const same = BUILD_SERVER && BUILD_SERVER.url === cfg.url && BUILD_SERVER.anonKey === cfg.anonKey
   if (!same) url.searchParams.set('srv', toB64Url(JSON.stringify([cfg.url.trim(), cfg.anonKey.trim()])))
   return url.toString()
 }
 
-export function parseReadLink(search: string): { token: string; server: ServerConfig | null } | null {
+export function parseReadLink(search: string): { token: string; server: ServerConfig | null; mode: LinkMode } | null {
   const params = new URLSearchParams(search)
   const token = params.get('ler')
   if (!token || !/^[0-9a-f]{32,}$/i.test(token)) return null
+  const mode: LinkMode = params.get('modo') === 'livro' ? 'livro' : 'universo'
   const srv = params.get('srv')
   if (srv) {
     try {
       const [url, anonKey] = JSON.parse(fromB64Url(srv)) as [string, string]
-      if (typeof url === 'string' && typeof anonKey === 'string') return { token, server: { url, anonKey } }
+      if (typeof url === 'string' && typeof anonKey === 'string') return { token, server: { url, anonKey }, mode }
     } catch {
-      return { token, server: null }
+      return { token, server: null, mode }
     }
   }
-  return { token, server: BUILD_SERVER }
+  return { token, server: BUILD_SERVER, mode }
 }

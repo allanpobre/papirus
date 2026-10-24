@@ -1,0 +1,529 @@
+/* Modo leitor: o livro e o caderno sem spoiler */
+.leitor-overlay,
+.leitor-app {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--bg);
+}
+
+.leitor-overlay {
+  animation: fade-in 0.18s ease-out;
+}
+
+.leitor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.leitor-empty {
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 16px;
+  text-align: center;
+}
+
+.leitor-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  padding: max(0.55rem, env(safe-area-inset-top, 0px)) 16px 0.55rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.leitor-where {
+  display: flex;
+  flex: 1 1 260px;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.leitor-book {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leitor-jump {
+  min-width: 0;
+  max-width: 260px;
+}
+
+.leitor-progress {
+  flex: 0 1 160px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+
+.leitor-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.leitor-caderno-btn {
+  position: relative;
+}
+
+.leitor-caderno-btn.has-new {
+  border-color: var(--violet);
+  animation: leitor-nudge 0.6s ease 2;
+}
+
+.leitor-new-count {
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--violet);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@keyframes leitor-nudge {
+  30% {
+    transform: translateY(-2px) scale(1.04);
+  }
+}
+
+.leitor-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.leitor-page-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 2rem 16px 4rem;
+}
+
+.leitor-page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 5vw, 3.5rem) clamp(1rem, 5vw, 3.5rem);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow-page);
+  animation: leitor-page-in 0.35s ease-out;
+}
+
+@keyframes leitor-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.leitor-story {
+  margin: 0 0 0.3rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.leitor-title {
+  margin: 0 0 1.6rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.leitor-text {
+  font-family: var(--font-text);
+  font-size: 1.12rem;
+  line-height: 1.75;
+}
+
+.leitor-text p {
+  margin: 0 0 1em;
+}
+
+.leitor-text blockquote {
+  margin: 0 0 1em;
+  padding-left: 1rem;
+  border-left: 3px solid var(--line-strong);
+  font-style: italic;
+}
+
+.leitor-sep {
+  text-align: center;
+  color: var(--muted);
+}
+
+.leitor-name {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dotted color-mix(in srgb, var(--accent) 60%, transparent);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.leitor-name:hover,
+.leitor-name:focus-visible {
+  border-bottom-style: solid;
+  color: var(--accent);
+}
+
+.leitor-found {
+  margin: 2.2rem 0 1rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+}
+
+.leitor-found h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.8rem;
+  color: var(--violet);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.leitor-found-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 0.6rem;
+}
+
+.leitor-found-card {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  animation: leitor-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+
+button.leitor-found-card {
+  cursor: pointer;
+}
+
+.leitor-found-card.is-person {
+  border-color: color-mix(in srgb, var(--violet) 45%, var(--line));
+  background: var(--violet-soft);
+}
+
+.leitor-found-card strong {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.leitor-found-kind {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@keyframes leitor-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+.leitor-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 2rem;
+}
+
+.leitor-end {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.leitor-preview-note,
+.leitor-made {
+  margin: 1.6rem 0 0;
+  text-align: center;
+}
+
+.leitor-caderno {
+  display: flex;
+  flex: 0 0 min(360px, 40vw);
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  animation: leitor-slide 0.25s ease-out;
+}
+
+@keyframes leitor-slide {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+.leitor-caderno-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem 0.4rem;
+}
+
+.leitor-caderno-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.leitor-caderno-head .btn-icon {
+  margin-left: auto;
+}
+
+.leitor-tabs {
+  flex-wrap: nowrap;
+  max-width: calc(100% - 2rem);
+  margin: 0 1rem 0.6rem;
+  overflow-x: auto;
+}
+
+.leitor-tabs button {
+  white-space: nowrap;
+}
+
+.leitor-caderno-body {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 0.7rem;
+  overflow-y: auto;
+  padding: 0.2rem 1rem 1rem;
+}
+
+.leitor-kind {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.leitor-kind h3 {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.leitor-card {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.leitor-card.is-new {
+  border-color: color-mix(in srgb, var(--violet) 50%, var(--line));
+  animation: leitor-pop 0.45s ease both;
+}
+
+.leitor-card.is-open {
+  box-shadow: var(--shadow-1);
+}
+
+.leitor-card p {
+  margin: 0.25rem 0 0;
+}
+
+.leitor-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.leitor-card-head strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.leitor-card-head .tiny {
+  margin-left: auto;
+}
+
+.leitor-badge {
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--violet);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.leitor-card-more {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.leitor-desc {
+  white-space: pre-line;
+}
+
+.leitor-fields {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.leitor-fields div {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.leitor-fields dt {
+  color: var(--muted);
+}
+
+.leitor-fields dd {
+  margin: 0;
+}
+
+.leitor-about,
+.leitor-timeline {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+}
+
+.leitor-about li {
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--violet-soft);
+}
+
+.leitor-timeline li {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+}
+
+.leitor-caderno-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem max(0.6rem, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+}
+
+.reveal-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+.reveal-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.reveal-list .reveal-missing {
+  color: var(--danger);
+}
+
+/* Celular e tablet: o caderno vira uma gaveta por cima do texto. */
+@media (max-width: 900px) {
+  .leitor-caderno {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 61;
+    max-height: 72vh;
+    border-top: 1px solid var(--line-strong);
+    border-left: 0;
+    border-radius: var(--radius-l) var(--radius-l) 0 0;
+    box-shadow: var(--shadow-2);
+    animation-name: leitor-rise;
+  }
+
+  @keyframes leitor-rise {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+  }
+
+  .leitor-page-wrap {
+    padding: 1rem 0 3rem;
+  }
+
+  .leitor-page {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .leitor-progress {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leitor-overlay,
+  .leitor-page,
+  .leitor-found-card,
+  .leitor-card.is-new,
+  .leitor-caderno,
+  .leitor-caderno-btn.has-new {
+    animation: none;
+  }
+
+  .leitor-progress span {
+    transition: none;
+  }
+}
+
+.leitor-tabs button[aria-selected='true'] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}

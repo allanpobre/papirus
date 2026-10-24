@@ -1,4 +1,4 @@
-import { BookMarked, Compass, Dices, Feather, Inbox, Library, Lightbulb, Plus, Search, Sprout, Users } from 'lucide-react'
+import { BookMarked, BookOpen, Compass, Dices, Feather, Inbox, Library, Lightbulb, Plus, Search, Sprout, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { continuityQuestions, isOpen } from '../logic/continuity'
 import { wordsByDay, wordsToday } from '../logic/stats'
@@ -14,7 +14,7 @@ const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', 
 
 /** Início do universo: onde parei, o dia de escrita, o que pede atenção e atalhos. */
 export default function HomeView() {
-  const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, startTour, source, openShare } = useWorkspace()
+  const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, startTour, source, openShare, openReader } = useWorkspace()
   const scenes = useMemo(() => manuscriptOrder(universe), [universe])
   const [todayLabel] = useState(() => capitalize(longDate.format(new Date())))
   const lastId = recall(`cena:${universe.id}`)
@@ -196,6 +196,9 @@ export default function HomeView() {
         </button>
         <button type="button" className="btn btn-ghost" onClick={openSearch}>
           <Search size={16} /> Buscar em tudo
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={openReader}>
+          <BookOpen size={16} /> {source.kind === 'proprio' || source.kind === 'editar' ? 'Prévia do leitor' : 'Ler como livro'}
         </button>
         {source.kind === 'proprio' && (
           <button type="button" className="btn btn-ghost" onClick={openShare}>

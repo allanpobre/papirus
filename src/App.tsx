@@ -3,7 +3,8 @@ import { sampleUniverse } from './model/sample'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
 import { memoryStore, openBestStore, requestPersistentStorage } from './persistence/storage'
-import { fetchByLink, openShared, parseReadLink, type SharedWithMe } from './share/sharing'
+import { fetchByLink, openShared, parseReadLink, shortName, type SharedWithMe } from './share/sharing'
+import { ReaderView } from './reader/ReaderView'
 import type { LiveSource } from './share/useLiveSync'
 import { authClient } from './account/auth'
 import { LibraryScreen } from './shell/LibraryScreen'
@@ -20,6 +21,8 @@ interface Opened {
   /** Universo de outra pessoa (ou pelo link): fica só na memória, nunca na biblioteca daqui. */
   source?: LiveSource
   memory?: Library
+  /** Link "como livro": só o modo leitor, sem a área de trabalho. */
+  book?: { key: string; ownerEmail: string }
 }
 
 /** Guarda um universo de fora numa biblioteca só de memória. */
@@ -104,6 +107,7 @@ export default function App() {
             nonce: Date.now(),
             memory,
             source: { kind: 'link', token: link.token, stamp: got.stamp, server: link.server, ownerEmail: got.ownerEmail },
+            book: link.mode === 'livro' ? { key: `leitor:link:${link.token.slice(0, 16)}`, ownerEmail: got.ownerEmail } : undefined,
           })
         } catch (err) {
           if (!cancelled) setError(err instanceof Error ? err.message : String(err))
@@ -177,6 +181,22 @@ export default function App() {
         onChanged={() => void refresh(library)}
         onOpenShared={(item) => void openFromShare(item)}
       />
+    )
+  }
+
+  if (opened.book) {
+    return (
+      <main className="leitor-app">
+        <ReaderView
+          universe={opened.universe}
+          storageKey={opened.book.key}
+          footer={
+            <p className="leitor-made muted tiny">
+              Compartilhado {opened.book.ownerEmail ? `por ${shortName(opened.book.ownerEmail)} ` : ''}com o <a href="../">Papirus</a>. O caderno guarda só o que você já leu.
+            </p>
+          }
+        />
+      </main>
     )
   }
 

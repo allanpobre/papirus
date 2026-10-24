@@ -116,9 +116,14 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
       if (isReadOnly(initialSource) || !base.current) {
         const mineScenes = new Map(mine.scenes.map((s) => [s.id, stableJson(s.doc)]))
         cb.current.applyRemote(theirs, theirs.scenes.filter((s) => mineScenes.get(s.id) !== stableJson(s.doc)).map((s) => s.id))
+        // Já vale daqui em diante, antes mesmo da tela redesenhar (o envio logo abaixo usa esta).
+        latest.current = theirs
       } else {
         const r = mergeUniverse(base.current, mine, theirs, from)
-        if (r.universe !== mine) cb.current.applyRemote(r.universe, r.changedScenes)
+        if (r.universe !== mine) {
+          cb.current.applyRemote(r.universe, r.changedScenes)
+          latest.current = r.universe
+        }
         if (r.copies.length) {
           cb.current.notify(
             `${from} mexeu ao mesmo tempo em ${r.copies.length === 1 ? `“${r.copies[0]}”` : `${r.copies.length} itens`}. A versão de ${from} foi guardada ao lado, com “(versão de ${from})” no nome.`,
