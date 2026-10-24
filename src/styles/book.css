@@ -289,3 +289,87 @@
 .book-symbol-grid .book-symbol-wide {
   grid-column: span 2;
 }
+
+/* Revisão */
+.review {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.review-ok {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.review-group {
+  padding: 0.4rem 0.7rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.review-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+
+.review-group > :not(summary) {
+  margin-top: 0.4rem;
+}
+
+.review-count {
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.review-list {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-item {
+  display: grid;
+  gap: 0.1rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.review-item:hover {
+  border-color: var(--accent);
+}
+
+.review-where {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.review-excerpt {
+  color: var(--ink-2);
+  font-family: var(--font-text);
+  font-style: italic;
+}

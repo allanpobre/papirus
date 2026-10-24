@@ -1,6 +1,7 @@
 import { Placeholder } from '@tiptap/extensions'
 import StarterKit from '@tiptap/starter-kit'
 import { Comment } from './comment'
+import { DialogueDash, ProseBulletList } from './dialogue'
 import { Detection, Mention } from './mention'
 
 /**
@@ -15,7 +16,10 @@ export const baseExtensions = [
     codeBlock: false,
     link: false,
     underline: false,
+    bulletList: false,
   }),
+  ProseBulletList,
+  DialogueDash,
   Mention,
   Comment,
 ]

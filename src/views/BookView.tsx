@@ -1,4 +1,5 @@
-import { BookOpen, BookOpenText, Copy, FileDown, Palette, Plus, Printer, Trash2 } from 'lucide-react'
+import { BookOpen, BookOpenText, Copy, FileDown, Palette, Plus, Printer, SpellCheck, Trash2 } from 'lucide-react'
+import { ReviewDialog } from '../book/ReviewDialog'
 import { useMemo, useState } from 'react'
 import { BOOK_FONTS } from '../export/bookFonts'
 import { BODY_FONT_KEY, PAGE_SIZES, bookContent, bookTitle } from '../export/bookDesign'
@@ -20,6 +21,8 @@ export default function BookView() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = books.find((b) => b.id === selectedId) ?? books[0] ?? null
   const [adding, setAdding] = useState(false)
+  const [reviewing, setReviewing] = useState<string | null>(null)
+  const reviewBookRecord = books.find((b) => b.id === reviewing)
   const [newTitle, setNewTitle] = useState('')
   const [styleFrom, setStyleFrom] = useState<string>('')
   const hasText = universe.scenes.some((s) => s.text.trim())
@@ -158,6 +161,7 @@ export default function BookView() {
       </ul>
 
       {!readOnly && <BookCard />}
+      {reviewBookRecord && <ReviewDialog design={reviewBookRecord} title={bookTitle(universe, reviewBookRecord)} onClose={() => setReviewing(null)} />}
     </div>
   )
 
@@ -192,6 +196,11 @@ export default function BookView() {
             <button type="button" className="btn btn-ghost" disabled={!chapters} onClick={openReader}>
               <BookOpen size={16} /> Ler como leitor
             </button>
+            {!readOnly && (
+              <button type="button" className="btn btn-ghost" disabled={!chapters} title="Repetições, frases longas, aspas, travessões…" onClick={() => setReviewing(book.id)}>
+                <SpellCheck size={16} /> Revisar
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-ghost"
