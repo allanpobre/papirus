@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
 import { purgeTrash, track } from '../logic/history'
+import { addBook, shelf } from '../export/shelf'
 import { useAccount } from '../account/auth'
 import type { Universe } from '../model/schema'
 import type { Library } from '../persistence/repository'
@@ -75,7 +76,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const readOnly = isReadOnly(source)
   const [shareOpen, setShareOpen] = useState(false)
   const [readerOpen, setReaderOpen] = useState(false)
-  const [bookOpen, setBookOpen] = useState(false)
+  const [bookOpen, setBookOpen] = useState<string | null>(null)
+  const closeBook = useCallback(() => setBookOpen(null), [])
   const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [remoteRev, setRemoteRev] = useState<Record<string, number>>({})
@@ -240,7 +242,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       setEditingScene,
       openShare: () => setShareOpen(true),
       openReader: () => setReaderOpen(true),
-      openBookDesigner: () => setBookOpen(true),
+      openBookDesigner: (bookId?: string) => {
+        // Sem livro escolhido: o primeiro da estante, ou um novo.
+        let id = bookId ?? shelf(universe)[0]?.id
+        if (!id)
+          update((u) => {
+            const [next, b] = addBook(u)
+            id = b.id
+            return next
+          })
+        setBookOpen(id ?? null)
+      },
     }),
     [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
   )
@@ -289,7 +301,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   return (
     <WorkspaceContext.Provider value={ws}>
-      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || bookOpen || undefined}>
+      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || bookOpen !== null || undefined}>
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
@@ -480,10 +492,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           ))}
         </div>
       </div>
-      {bookOpen &&
+      {bookOpen !== null &&
         createPortal(
           <Suspense fallback={<div className="book-designer view-loading">Abrindo a diagramação…</div>}>
-            <BookDesigner onClose={() => setBookOpen(false)} />
+            <BookDesigner bookId={bookOpen} onClose={closeBook} />
           </Suspense>,
           document.body,
         )}

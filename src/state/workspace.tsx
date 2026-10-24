@@ -76,7 +76,7 @@ export interface Workspace {
   /** Abre o modo leitor (o livro com o caderno sem spoiler). */
   openReader: () => void
   /** Abre a diagramação do livro (PDF para imprimir). */
-  openBookDesigner: () => void
+  openBookDesigner: (bookId?: string) => void
 }
 
 export const WorkspaceContext = createContext<Workspace | null>(null)
