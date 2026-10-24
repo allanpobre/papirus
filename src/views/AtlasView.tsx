@@ -248,6 +248,9 @@ function MapCanvas({ map }: { map: AtlasMap }) {
 
       {pin && (
         <aside className="atlas-panel" aria-label="Marcador">
+          <button type="button" className="btn-icon graph-panel-close" aria-label="Fechar o cartão" onClick={() => setSelectedPin(null)}>
+            <X size={16} />
+          </button>
           <span className="eyebrow">{pinEntity ? kindLabel(pinEntity.kind) : 'Marcador'}</span>
           <h2>{pinEntity?.name ?? 'Ficha removida'}</h2>
           {pinEntity?.summary && <p className="small">{pinEntity.summary}</p>}

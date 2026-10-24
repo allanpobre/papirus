@@ -1,4 +1,4 @@
-import { Maximize, Minus, Network, Pause, Play, Plus } from 'lucide-react'
+import { Maximize, Minus, Network, Pause, Play, Plus, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { forceLayout, neighborhood, type GraphEdge, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
@@ -93,6 +93,16 @@ export default function GraphView() {
     if (pointers.current.size < 2) pinch.current = null
     if (pointers.current.size === 0) drag.current = null
   }
+
+  // Esc fecha o cartão da ficha.
+  useEffect(() => {
+    if (!selected) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.querySelector('[role="dialog"]')) setSelected(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selected])
 
   // A roda do mouse dá zoom no grafo sem rolar a página por trás.
   useEffect(() => {
@@ -373,7 +383,12 @@ export default function GraphView() {
               // Não deixa o desenho sair inteiro da tela.
               setView((v) => ({ ...v, x: Math.max(-W, Math.min(W, x)), y: Math.max(-H, Math.min(H, y)) }))
             }}
-            onPointerUp={endPointer}
+            onPointerUp={(e) => {
+              // Toque no fundo (sem arrastar) fecha o cartão da ficha.
+              const d = drag.current
+              if (d && pointers.current.size === 1 && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) setSelected(null)
+              endPointer(e)
+            }}
             onPointerCancel={endPointer}
             onLostPointerCapture={endPointer}
           >
@@ -482,7 +497,16 @@ export default function GraphView() {
           </div>
 
           {sel && (
-            <aside className="graph-panel" aria-label="Ficha selecionada">
+            <aside
+              className="graph-panel"
+              aria-label="Ficha selecionada"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setSelected(null)
+              }}
+            >
+              <button type="button" className="btn-icon graph-panel-close" aria-label="Fechar o cartão" onClick={() => setSelected(null)}>
+                <X size={16} />
+              </button>
               <span className="eyebrow">{kindLabel(sel.kind)}</span>
               <h2>{sel.name}</h2>
               {sel.summary && <p className="small">{sel.summary}</p>}

@@ -51,3 +51,25 @@ test.describe('no celular', () => {
     expect(await page.evaluate(() => [scrollX, scrollY, document.querySelector('.stage')!.scrollTop])).toEqual([0, 0, 0])
   })
 })
+
+test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/app/?exemplo')
+  await page.getByRole('button', { name: 'Mais' }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Relações' }).click()
+  const card = page.getByRole('complementary', { name: 'Ficha selecionada' })
+  const node = page.locator('.node').first()
+  await node.click()
+  await expect(card).toBeVisible()
+  await page.getByRole('button', { name: 'Fechar o cartão' }).click()
+  await expect(card).toHaveCount(0)
+
+  await node.click()
+  await page.keyboard.press('Escape')
+  await expect(card).toHaveCount(0)
+
+  await node.click()
+  const box = (await page.locator('.graph').boundingBox())!
+  await page.mouse.click(box.x + 8, box.y + 8)
+  await expect(card).toHaveCount(0)
+})
