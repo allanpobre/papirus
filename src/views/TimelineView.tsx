@@ -107,19 +107,25 @@ export default function TimelineView() {
       </div>
 
       {eras.length > 0 && (
-        <div className="era-strip" aria-label="Eras">
-          {eras.map((era) => (
-            <button
-              key={era.id}
-              type="button"
-              className="era"
-              style={{ left: `min(${((era.year - minY) / span) * 100}%, calc(100% - 46px))`, width: `${Math.max(4, (((era.endYear ?? era.year) - era.year) / span) * 100)}%` }}
-              title={`${era.title}: ${formatYear(era.year, suffix)} — ${formatYear(era.endYear, suffix)}`}
-              onClick={() => setEditing(era.id)}
-            >
-              {era.title}
-            </button>
-          ))}
+        <div className="era-strip" aria-label="Eras" style={{ height: 30 * eras.length + 28 }}>
+          {eras.map((era, i) => {
+            // Cada era na sua faixa; o nome nunca é cortado (eras curtas crescem para o lado que cabe).
+            const start = (era.year - minY) / span
+            const end = ((era.endYear ?? era.year) - minY) / span
+            const place = start > 0.5 ? { right: `${Math.max(0, (1 - end) * 100)}%` } : { left: `${start * 100}%` }
+            return (
+              <button
+                key={era.id}
+                type="button"
+                className="era"
+                style={{ ...place, top: 6 + i * 30, width: `${Math.max(4, (end - start) * 100)}%` }}
+                title={`${era.title}: ${formatYear(era.year, suffix)} — ${formatYear(era.endYear, suffix)}`}
+                onClick={() => setEditing(era.id)}
+              >
+                {era.title}
+              </button>
+            )
+          })}
           <span className="era-axis era-axis-start">{formatYear(minY, suffix)}</span>
           <span className="era-axis era-axis-end">{formatYear(maxY, suffix)}</span>
         </div>
