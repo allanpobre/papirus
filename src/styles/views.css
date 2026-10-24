@@ -3807,6 +3807,8 @@ code {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 600;
+}
+
 /* Num ponto da história: quem entra nesta cena chega sem atraso e com destaque. */
 .node.is-new > circle:not(.node-ring) {
   stroke: var(--violet);
