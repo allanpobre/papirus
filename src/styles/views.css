@@ -4095,3 +4095,27 @@ code {
     gap: 0.2rem;
   }
 }
+
+/* Fechar o cartão da ficha (grafo e atlas). */
+.graph-panel-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+}
+
+.graph-panel h2,
+.atlas-panel h2 {
+  padding-right: 2rem;
+}
+
+@media (max-width: 640px) {
+  /* No celular, o cartão fica embaixo e não cobre o grafo. */
+  .graph-panel,
+  .atlas-panel {
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 48%;
+  }
+}
