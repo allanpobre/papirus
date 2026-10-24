@@ -50,8 +50,12 @@ test('compartilhar: convidar para editar, as mudanças chegam, o link só lê e 
   await expect(share.getByRole('status')).toContainText('Avise bia@exemplo.com')
   await expect(share.getByRole('combobox', { name: 'O que bia@exemplo.com pode fazer' })).toHaveValue('editar')
   await share.getByRole('button', { name: 'Criar link de leitura' }).click()
+  const bookLink = await share.getByRole('textbox', { name: 'Link de leitura' }).inputValue()
+  expect(bookLink).toContain('modo=livro')
+  await share.getByRole('radio', { name: 'Universo inteiro' }).click()
   const link = await share.getByRole('textbox', { name: 'Link de leitura' }).inputValue()
   expect(link).toContain('?ler=')
+  expect(link).not.toContain('modo=livro')
   await share.getByRole('button', { name: 'Fechar' }).click()
   expect(fake.tables.papirus_members).toHaveLength(1)
 
@@ -84,6 +88,13 @@ test('compartilhar: convidar para editar, as mudanças chegam, o link só lê e 
   await expect(readerText).toHaveAttribute('contenteditable', 'false')
   await reader.getByRole('button', { name: 'Nova cena' }).first().click()
   await expect(reader.getByText('Você está lendo pelo link: aqui nada pode ser mudado.')).toBeVisible()
+
+  // Como livro: o modo leitor, sem a área de trabalho.
+  const bookReader = await newPerson(browser, fake)
+  await bookReader.goto(`/app/${new URL(bookLink).search}`)
+  await expect(bookReader.getByRole('heading', { name: 'Nova cena' })).toBeVisible()
+  await expect(bookReader.getByText('Bia chegou.')).toBeVisible()
+  await expect(bookReader.getByRole('navigation', { name: 'Áreas' })).toHaveCount(0)
 
   // Ana tira o acesso de edição: a Bia fica sabendo.
   await page.getByRole('button', { name: 'Compartilhar', exact: true }).first().click()

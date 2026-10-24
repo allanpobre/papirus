@@ -72,6 +72,8 @@ export interface Workspace {
   setEditingScene: (sceneId: string | null) => void
   /** Abre a janela de compartilhar este universo. */
   openShare: () => void
+  /** Abre o modo leitor (o livro com o caderno sem spoiler). */
+  openReader: () => void
 }
 
 export const WorkspaceContext = createContext<Workspace | null>(null)

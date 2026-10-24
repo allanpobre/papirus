@@ -1,3 +1,4 @@
+import { unmarkReveals } from './reveals'
 import { CANON_LABEL, formatYear, kindLabel, KNOWLEDGE_LABEL } from '../model/labels'
 import type { Entity, Universe } from '../model/schema'
 import { byId, entityName, manuscriptOrder } from '../model/universe'
@@ -86,7 +87,7 @@ export function buildArchivistContext(universe: Universe, question: string, opti
     if (e.aliases.length) lines.push(`Outros nomes: ${e.aliases.join(', ')}`)
     if (e.parentId) lines.push(`Fica em: ${entityName(universe, e.parentId)}`)
     if (span) lines.push(`Período: ${span}`)
-    const clean = (t: string) => (options.includeSecrets ? t : stripSecrets(t))
+    const clean = (t: string) => unmarkReveals(options.includeSecrets ? t : stripSecrets(t))
     if (clean(e.summary)) lines.push(`Resumo: ${clean(e.summary)}`)
     if (clean(e.description)) lines.push(`Descrição: ${clean(e.description)}`)
     for (const f of e.fields) if (f.key || f.value) lines.push(`${f.key}: ${f.value}`)

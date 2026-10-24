@@ -1,3 +1,4 @@
+import { unmarkReveals } from '../logic/reveals'
 import { codexFor, factSentence, playerTag } from '../logic/codex'
 import { stripSecrets } from '../logic/secrets'
 import { formatYear, kindPlural } from '../model/labels'
@@ -48,8 +49,8 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
         .map(({ entity, depth }) => ({
           name: entity.name,
           depth,
-          summary: depth === 'nome' ? '' : stripSecrets(entity.summary),
-          description: depth === 'completo' ? stripSecrets(entity.description) : '',
+          summary: depth === 'nome' ? '' : unmarkReveals(stripSecrets(entity.summary)),
+          description: depth === 'completo' ? unmarkReveals(stripSecrets(entity.description)) : '',
         })),
     })),
     events: codex.events.map((e) => ({

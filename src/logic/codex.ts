@@ -1,3 +1,4 @@
+import { unmarkReveals } from './reveals'
 import { CANON_LABEL, kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap, Entity, Fact, Revelation, Seed, Sheet, TimelineEvent, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
@@ -123,8 +124,8 @@ export function codexMarkdown(universe: Universe, groupId: string, untilSession?
     for (const { entity, depth } of entries.filter((e) => e.entity.kind === kind)) {
       lines.push(`### ${entity.name}`)
       // Trechos marcados como segredo nunca vão para os jogadores.
-      const summary = stripSecrets(entity.summary)
-      const description = stripSecrets(entity.description)
+      const summary = unmarkReveals(stripSecrets(entity.summary))
+      const description = unmarkReveals(stripSecrets(entity.description))
       if (depth !== 'nome' && summary) lines.push('', summary)
       if (depth === 'completo' && description) lines.push('', description)
       lines.push('')

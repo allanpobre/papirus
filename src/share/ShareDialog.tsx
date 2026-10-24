@@ -21,6 +21,7 @@ import {
   updateShare,
   getShare,
   shareChanged,
+  type LinkMode,
   type Member,
   type Role,
   type Share,
@@ -39,6 +40,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
   const [notice, setNotice] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [confirmStop, setConfirmStop] = useState(false)
+  const [linkMode, setLinkMode] = useState<LinkMode>('livro')
 
   const act = useCallback(async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -99,7 +101,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
   const sb = () => authClient(server)
   const publicUrl = prefs.publicUrl || DEFAULT_PUBLIC_URL
   const appUrl = new URL('app/', new URL(publicUrl.replace(/\/app\/?$/, '/').replace(/\/?$/, '/'))).toString()
-  const link = share?.link_token ? readLink(publicUrl, server, share.link_token) : null
+  const link = share?.link_token ? readLink(publicUrl, server, share.link_token, linkMode) : null
 
   const begin = () =>
     act(async () => {
@@ -253,6 +255,19 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
               {link ? (
                 <>
                   <p className="small">Quem tiver este link lê “{universe.name}” sem conta, mas não muda nada.</p>
+                  <div className="segmented" role="radiogroup" aria-label="O link abre como">
+                    <button type="button" role="radio" aria-checked={linkMode === 'livro'} onClick={() => setLinkMode('livro')}>
+                      Livro, sem spoiler
+                    </button>
+                    <button type="button" role="radio" aria-checked={linkMode === 'universo'} onClick={() => setLinkMode('universo')}>
+                      Universo inteiro
+                    </button>
+                  </div>
+                  <p className="muted tiny">
+                    {linkMode === 'livro'
+                      ? 'Abre o modo leitor: cena por cena, com um caderno que só mostra o que já foi lido.'
+                      : 'Abre todas as fichas, relações e a linha do tempo de uma vez (cuidado com spoilers).'}
+                  </p>
                   <div className="share-link-row">
                     <input className="input input-sm" readOnly aria-label="Link de leitura" value={link} onFocus={(e) => e.target.select()} />
                     <button type="button" className="btn btn-sm" onClick={() => void copy(link)}>

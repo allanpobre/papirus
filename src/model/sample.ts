@@ -101,14 +101,17 @@ export function sampleUniverse(): Universe {
   })
   const kael = ent('personagem', 'Kael', {
     summary: 'Contrabandista do porto. Desconfia de todo mundo, menos da irmã.',
+    description: 'Conhece cada beco das docas. [a partir de "Nas brumas"]Achou a forja de vidro negro no Vale das Brumas: alguém fez outra lâmina.[/a partir]',
     editorial: 'provisorio',
     startYear: 318,
     tags: ['porto'],
   })
   const mira = ent('personagem', 'Mira', {
     aliases: ['Mira das Docas'],
-    summary: 'Irmã de Kael. Herdeira escondida, sem saber.',
-    canon: 'secreto',
+    summary: 'Irmã de Kael. Cresceu nas docas, sem saber de onde veio.',
+    description:
+      '[a partir de "A Torre fechada"]Foi criada por Ilsa, que a tirou da corte depois da Queda.[/a partir] [segredo]É a herdeira escondida da Casa de Vaelor.[/segredo]',
+    canon: 'estabelecido',
     editorial: 'nao-decidido',
     startYear: 322,
   })

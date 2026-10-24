@@ -12,7 +12,9 @@ describe('contexto do Archivist', () => {
     expect(ctx.text).toContain('Ilsa guardiã de Torre de Marfim')
     // Relação com ficha secreta não vaza.
     const kael = buildArchivistContext(u, 'Kael', { includeSecrets: false, includeManuscript: false })
-    expect(kael.text).not.toContain('Mira')
+    expect(kael.text).toContain('### Mira')
+    expect(kael.text).not.toContain('### Vaelor')
+    expect(kael.text).not.toContain('desconfia de Vaelor')
   })
 
   it('deixa segredos de fora, a menos que o autor peça', () => {

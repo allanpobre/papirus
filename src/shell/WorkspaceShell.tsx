@@ -1,4 +1,5 @@
-import { ArrowLeftRight, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings, Users } from 'lucide-react'
+import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings, Users } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
 import type { Universe } from '../model/schema'
@@ -17,6 +18,8 @@ import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
 import { ShareDialog } from '../share/ShareDialog'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
+import { readerCopy } from '../share/readerCopy'
+import { ReaderView } from '../reader/ReaderView'
 import { Brand } from './Brand'
 import { NAV, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -67,6 +70,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const { universe, status, update: write, flush, repo } = useUniverse(library, initial, recovered)
   const readOnly = isReadOnly(source)
   const [shareOpen, setShareOpen] = useState(false)
+  const [readerOpen, setReaderOpen] = useState(false)
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [remoteRev, setRemoteRev] = useState<Record<string, number>>({})
   const { prefs, setPref } = prefsApi
@@ -222,6 +226,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       remoteRev,
       setEditingScene,
       openShare: () => setShareOpen(true),
+      openReader: () => setReaderOpen(true),
     }),
     [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
   )
@@ -270,7 +275,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   return (
     <WorkspaceContext.Provider value={ws}>
-      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view}>
+      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || undefined}>
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
@@ -368,7 +373,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
-          {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} />}
+          {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
           {isSample(universe) && (
             <div className="sample-banner" role="status">
               <span>
@@ -448,6 +453,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           ))}
         </div>
       </div>
+      {readerOpen &&
+        createPortal(<ReaderOverlay universe={universe} preview={source.kind === 'proprio' || source.kind === 'editar'} onClose={() => setReaderOpen(false)} />, document.body)}
     </WorkspaceContext.Provider>
   )
 }
@@ -581,7 +588,7 @@ function PhoneNav({
 }
 
 /** Faixa no topo de um universo de outra pessoa: de quem é e o que dá para fazer. */
-function SharedBanner({ source, onLeave }: { source: LiveSource; onLeave: () => void }) {
+function SharedBanner({ source, onLeave, onRead }: { source: LiveSource; onLeave: () => void; onRead: () => void }) {
   if (source.kind === 'proprio') return null
   const owner = shortName(source.ownerEmail) || 'outra pessoa'
   return (
@@ -602,9 +609,34 @@ function SharedBanner({ source, onLeave }: { source: LiveSource; onLeave: () => 
           </>
         )}
       </span>
+      <button type="button" className="btn btn-sm" onClick={onRead}>
+        <BookOpen size={14} /> Ler como livro
+      </button>
       <button type="button" className="btn btn-sm btn-ghost" onClick={onLeave}>
         {source.kind === 'link' ? 'Abrir o Papirus' : 'Voltar aos meus universos'}
       </button>
+    </div>
+  )
+}
+
+/** O modo leitor por cima da área de trabalho. Para o autor, é a prévia do que o leitor vê. */
+function ReaderOverlay({ universe, preview, onClose }: { universe: Universe; preview: boolean; onClose: () => void }) {
+  const [copy] = useState(() => readerCopy(universe, false))
+  return (
+    <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
+      <ReaderView
+        universe={copy}
+        storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}`}
+        onClose={onClose}
+        closeLabel={preview ? 'Voltar ao universo' : 'Fechar o modo leitor'}
+        footer={
+          preview ? (
+            <p className="leitor-preview-note muted tiny">
+              Prévia: é assim que um leitor vê, sem nada secreto. Para esconder um spoiler numa ficha, selecione o trecho e use “Revelar a partir de…”.
+            </p>
+          ) : undefined
+        }
+      />
     </div>
   )
 }
