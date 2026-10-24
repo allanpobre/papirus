@@ -61,23 +61,32 @@ export interface ReaderEvent {
 const isSecret = (canon: string) => canon === 'secreto'
 
 /** Prepara o livro uma vez: aparições, fatos e relações com a cena em que o leitor os conhece. */
-export function readerBook(universe: Universe): ReaderBook {
-  const scenes = manuscriptOrder(universe)
-  const visible = universe.entities.filter((e) => !isSecret(e.canon))
-  const entities = new Map(visible.map((e) => [e.id, e]))
-  const matcher = new MentionMatcher(visible)
+/**
+ * Em que cena cada ficha aparece pela primeira vez: nome ou apelido no texto, menção vinculada,
+ * elenco, ponto de vista ou lugar da cena. Serve ao caderno do leitor e ao grafo "num ponto da história".
+ */
+export function appearances(scenes: Scene[], entities: Entity[]): { first: Map<string, number>; inScene: Map<string, Set<string>> } {
+  const known = new Set(entities.map((e) => e.id))
+  const matcher = new MentionMatcher(entities)
   const first = new Map<string, number>()
   const inScene = new Map<string, Set<string>>()
-
   scenes.forEach((s, i) => {
     const ids = new Set<string>()
     for (const m of matcher.find(s.text)) ids.add(m.entityId)
     for (const id of mentionIdsInDoc(s.doc)) ids.add(id)
     for (const id of [...s.presentIds, s.povId, s.placeId]) if (id) ids.add(id)
-    for (const id of [...ids]) if (!entities.has(id)) ids.delete(id)
+    for (const id of [...ids]) if (!known.has(id)) ids.delete(id)
     inScene.set(s.id, ids)
     for (const id of ids) if (!first.has(id)) first.set(id, i)
   })
+  return { first, inScene }
+}
+
+export function readerBook(universe: Universe): ReaderBook {
+  const scenes = manuscriptOrder(universe)
+  const visible = universe.entities.filter((e) => !isSecret(e.canon))
+  const entities = new Map(visible.map((e) => [e.id, e]))
+  const { first, inScene } = appearances(scenes, visible)
 
   const sceneIndex = new Map(scenes.map((s, i) => [s.id, i]))
   const seenAt = (id: string | null) => (id === null ? -1 : (first.get(id) ?? null))
