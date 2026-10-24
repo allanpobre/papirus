@@ -50,6 +50,7 @@ export function createUniverse(name = 'Meu universo'): Universe {
     tables: [],
     trash: [],
     history: [],
+    book: null,
     settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [] },
     dailyStart: {},
     createdAt: t,

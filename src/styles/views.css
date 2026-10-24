@@ -3747,8 +3747,8 @@ code {
   margin-left: 0.4rem;
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: var(--violet);
-  color: #fff;
+  background: var(--violet-soft);
+  color: var(--violet);
   font-family: var(--font-ui);
   font-size: 0.7rem;
   font-weight: 700;

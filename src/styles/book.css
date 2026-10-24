@@ -1,0 +1,241 @@
+/* Diagramar o livro */
+.book-designer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  animation: fade-in 0.18s ease-out;
+}
+
+.book-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.8rem;
+  padding: max(0.55rem, env(safe-area-inset-top, 0px)) 16px 0.55rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.book-top-title {
+  display: grid;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.book-top-title strong {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.book-panel-toggle {
+  display: none;
+}
+
+.book-body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.book-panel {
+  display: grid;
+  flex: 0 0 min(380px, 42vw);
+  align-content: start;
+  gap: 0.4rem;
+  overflow-y: auto;
+  padding: 0.8rem 1rem 2rem;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.book-section {
+  border-bottom: 1px solid var(--line);
+}
+
+.book-section > summary {
+  padding: 0.6rem 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.book-section-body {
+  display: grid;
+  gap: 0.7rem;
+  padding-bottom: 1rem;
+}
+
+.book-presets {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.book-preset {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.book-preset:hover {
+  border-color: var(--accent);
+}
+
+.book-covers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.book-cover-slot {
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+}
+
+.book-cover-slot img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: var(--shadow-2);
+}
+
+.book-cover-empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.3rem;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.book-cover-empty:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.book-stories {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.book-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.book-choices button {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.book-choices button[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.book-choices-wide button {
+  flex: 1 1 100%;
+}
+
+.book-fonts button {
+  font-size: 1.02rem;
+}
+
+.book-range {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.book-range input {
+  width: 100%;
+}
+
+.book-note {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+}
+
+.book-preview {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.book-preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.book-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #d9ddd6;
+}
+
+.book-empty {
+  padding: 2rem;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .book-panel-toggle {
+    display: inline-flex;
+  }
+
+  .book-panel {
+    display: none;
+    flex-basis: 100%;
+    border-right: 0;
+  }
+
+  .book-body.panel-open .book-panel {
+    display: grid;
+  }
+
+  /* Escondida, mas ainda montada: o Paged.js precisa medir a página para paginar. */
+  .book-body.panel-open .book-preview {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -200vw;
+    width: 100vw;
+    visibility: hidden;
+  }
+}

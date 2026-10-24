@@ -42,6 +42,7 @@ const RpgView = lazy(() => import('../views/rpg/RpgView'))
 const InboxView = lazy(() => import('../views/InboxView'))
 const ArchivistView = lazy(() => import('../views/ArchivistView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
+const BookDesigner = lazy(() => import('../book/BookDesigner'))
 
 const STATUS_LABEL: Record<SaveStatus, string> = {
   salvo: 'Salvo',
@@ -73,6 +74,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const readOnly = isReadOnly(source)
   const [shareOpen, setShareOpen] = useState(false)
   const [readerOpen, setReaderOpen] = useState(false)
+  const [bookOpen, setBookOpen] = useState(false)
   const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [remoteRev, setRemoteRev] = useState<Record<string, number>>({})
@@ -237,6 +239,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       setEditingScene,
       openShare: () => setShareOpen(true),
       openReader: () => setReaderOpen(true),
+      openBookDesigner: () => setBookOpen(true),
     }),
     [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
   )
@@ -285,7 +288,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   return (
     <WorkspaceContext.Provider value={ws}>
-      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || undefined}>
+      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || bookOpen || undefined}>
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
@@ -476,6 +479,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           ))}
         </div>
       </div>
+      {bookOpen &&
+        createPortal(
+          <Suspense fallback={<div className="book-designer view-loading">Abrindo a diagramação…</div>}>
+            <BookDesigner onClose={() => setBookOpen(false)} />
+          </Suspense>,
+          document.body,
+        )}
       {readerOpen &&
         createPortal(<ReaderOverlay universe={universe} preview={source.kind === 'proprio' || source.kind === 'editar'} onClose={() => setReaderOpen(false)} />, document.body)}
     </WorkspaceContext.Provider>
