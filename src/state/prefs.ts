@@ -5,7 +5,7 @@ import type { View } from './workspace'
 /** Preferências deste navegador (não fazem parte do universo). */
 export interface Prefs {
   theme: 'sistema' | 'claro' | 'escuro'
-  editorFont: 'serifa' | 'sem-serifa'
+  editorFont: 'serifa' | 'sem-serifa' | 'maquina'
   editorSize: number
   editorWidth: 'estreita' | 'media' | 'larga'
   /** Destacar nomes de fichas conhecidas no texto. */
@@ -32,9 +32,15 @@ export interface Prefs {
   tourDone: boolean
   /** Cor de destaque do app. */
   accent: Accent
+  /** Modo máquina de escrever: a linha em que se escreve fica no meio da tela. */
+  typewriter: boolean
+  /** Só o parágrafo atual em destaque; os outros ficam claros. */
+  focusParagraph: boolean
+  /** Som ao digitar (só no editor). */
+  keySound: 'nenhum' | 'suave' | 'maquina'
 }
 
-export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite'
+export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite' | 'rosa' | 'turquesa' | 'terracota'
 
 export const DEFAULT_PREFS: Prefs = {
   theme: 'sistema',
@@ -63,6 +69,9 @@ export const DEFAULT_PREFS: Prefs = {
   publicUrl: '',
   tourDone: false,
   accent: 'viridiana',
+  typewriter: false,
+  focusParagraph: false,
+  keySound: 'nenhum',
 }
 
 const KEY = 'papirus:prefs'

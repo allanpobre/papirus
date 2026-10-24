@@ -44,16 +44,19 @@ interface Props {
   onReady?: (editor: Editor) => void
   /** `false` = só leitura (universo compartilhado só para ver). */
   editable?: boolean
+  /** Modo máquina de escrever: a linha do cursor fica no meio da tela. */
+  typewriter?: boolean
+  keySound?: 'nenhum' | 'suave' | 'maquina'
 }
 
 /**
  * Editor de uma cena. Deve ser montado com `key={scene.id}`: o conteúdo inicial
  * só é lido na montagem, e o editor passa a ser a fonte da verdade do texto.
  */
-export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions, showToolbar, onReady, editable = true }: Props) {
-  const cb = useRef({ onChange, onCursorParagraph, actions })
+export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions, showToolbar, onReady, editable = true, typewriter = false, keySound = 'nenhum' }: Props) {
+  const cb = useRef({ onChange, onCursorParagraph, actions, typewriter, keySound })
   useLayoutEffect(() => {
-    cb.current = { onChange, onCursorParagraph, actions }
+    cb.current = { onChange, onCursorParagraph, actions, typewriter, keySound }
   })
   const cursorTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   // Celular e tablet de toque: barra presa acima do teclado no lugar do menu flutuante.
@@ -70,6 +73,11 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
       scrollMargin: { top: 16, bottom: 96, left: 0, right: 0 },
       scrollThreshold: { top: 16, bottom: 96, left: 0, right: 0 },
       attributes: { 'aria-label': 'Texto da cena', class: 'scene-text', spellcheck: 'true', lang: 'pt-BR' },
+      handleKeyDown: (_view, event) => {
+        const sound = cb.current.keySound
+        if (sound !== 'nenhum' && !event.ctrlKey && !event.metaKey && !event.altKey) void import('./keySounds').then((m) => m.playKey(sound, event.key))
+        return false
+      },
       handleClick: (_view, _pos, event) => {
         const commented = (event.target as HTMLElement).closest('[data-comment]')?.getAttribute('data-comment')
         if (commented && !(event.ctrlKey || event.metaKey)) cb.current.actions.openComment(commented)
@@ -85,6 +93,7 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
       cb.current.onChange(editor.getJSON() as SceneDoc, editor.getText({ blockSeparator: '\n\n' }))
     },
     onSelectionUpdate: ({ editor }) => {
+      if (cb.current.typewriter && editor.isFocused) centerCursor(editor)
       clearTimeout(cursorTimer.current)
       cursorTimer.current = setTimeout(() => {
         cb.current.onCursorParagraph?.(editor.state.selection.$from.parent.textContent)
@@ -208,4 +217,20 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
       <EditorContent editor={editor} />
     </div>
   )
+}
+
+/** Modo máquina de escrever: rola a página para a linha do cursor ficar perto do meio da tela. */
+function centerCursor(editor: Editor) {
+  const view = editor.view
+  const scroller = (view.dom.closest('.page-scroll') as HTMLElement | null) ?? (document.scrollingElement as HTMLElement | null)
+  if (!scroller) return
+  let caret: { top: number; bottom: number }
+  try {
+    caret = view.coordsAtPos(editor.state.selection.head)
+  } catch {
+    return
+  }
+  const box = scroller === document.scrollingElement ? { top: 0, height: window.innerHeight } : scroller.getBoundingClientRect()
+  const delta = (caret.top + caret.bottom) / 2 - (box.top + box.height * 0.45)
+  if (Math.abs(delta) > 4) scroller.scrollBy({ top: delta, behavior: 'smooth' })
 }

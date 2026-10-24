@@ -326,7 +326,7 @@ export default function WriteView() {
         <div className="page-scroll">
           <article
             data-tour="editor"
-            className={`page page-${prefs.editorWidth} font-${prefs.editorFont}`}
+            className={`page page-${prefs.editorWidth} font-${prefs.editorFont}${prefs.typewriter ? ' typewriter' : ''}${prefs.focusParagraph ? ' focus-paragraph' : ''}`}
             style={{ ['--editor-size' as string]: `${prefs.editorSize}px` }}
           >
             <label htmlFor="scene-title" className="sr-only">
@@ -425,6 +425,8 @@ export default function WriteView() {
               actions={actions}
               showToolbar={prefs.toolbar && !focus && !ws.readOnly}
               onReady={(ed) => (editorRef.current = ed)}
+              typewriter={prefs.typewriter}
+              keySound={prefs.keySound}
             />
           </article>
         </div>

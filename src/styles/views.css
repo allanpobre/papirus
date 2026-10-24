@@ -3404,6 +3404,9 @@ code {
 .accent-violeta .accent-swatch { background: #5f4596; }
 .accent-ocre .accent-swatch { background: #7d520c; }
 .accent-grafite .accent-swatch { background: #2f3a36; }
+.accent-rosa .accent-swatch { background: #b0306a; }
+.accent-turquesa .accent-swatch { background: #0f6f7a; }
+.accent-terracota .accent-swatch { background: #a4462a; }
 
 @media (max-width: 860px) {
   .settings-layout {
