@@ -3,7 +3,7 @@ import { expect, test } from './fixtures.ts'
 test.setTimeout(90_000)
 
 test('diagramar o livro: modelo, capa do autor, prévia paginada com sumário', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Ler como leitor' })).toBeVisible()
   await page.keyboard.press('Control+k')
   await page.getByRole('combobox', { name: 'Buscar no universo' }).fill('diagramar')
@@ -51,7 +51,7 @@ test('diagramar o livro: modelo, capa do autor, prévia paginada com sumário', 
 })
 
 test('estante: segundo volume com o mesmo estilo do primeiro', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Seu primeiro livro' })).toBeVisible()
   await page.getByRole('button', { name: 'Criar o livro' }).click()
@@ -79,7 +79,7 @@ test('estante: segundo volume com o mesmo estilo do primeiro', async ({ page }) 
 })
 
 test('revisar antes de publicar: aponta e corrige a tipografia com desfazer', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   // "- " no começo da fala vira travessão enquanto se digita (e não uma lista).
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Escrever' }).click()
   const text = page.getByRole('textbox', { name: 'Texto da cena' })

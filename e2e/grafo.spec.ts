@@ -54,7 +54,7 @@ test.describe('no celular', () => {
 
 test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Mais' }).click()
   await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Relações' }).click()
   const card = page.getByRole('complementary', { name: 'Ficha selecionada' })

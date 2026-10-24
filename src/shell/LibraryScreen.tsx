@@ -163,7 +163,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       </form>
 
       <div className="library-alt">
-        <button type="button" className="btn btn-ghost" onClick={() => onCreated(sampleUniverse())}>
+        <button type="button" className="btn btn-ghost" onClick={() => void sampleUniverse().then(onCreated)}>
           <Sparkles size={16} /> Abrir um universo de exemplo
         </button>
         <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>

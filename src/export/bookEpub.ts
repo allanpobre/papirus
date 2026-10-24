@@ -89,7 +89,8 @@ nav a{text-decoration:none;color:inherit}
 ${CHAPTER_CSS[d.chapterStyle](title, d)}
 .chapter-body p.first{text-indent:0}
 .chapter-body p.first .lead{font-variant:small-caps;letter-spacing:.05em}
-.chapter-body p.drop::first-letter{float:left;font-family:${title};font-size:3.2em;line-height:.85;padding:.05em .08em 0 0}
+.chapter-body p.drop::first-letter{float:left;font-family:${title};font-size:2.9em;line-height:.86;padding:.04em .07em 0 0}
+.chapter-body p.first+*{clear:left}
 .scene-break{text-align:center;text-indent:0;margin:1em 0;letter-spacing:.2em}
 hr.scene-break.line{border:0;border-top:1px solid #888;width:22%;margin:1.3em auto}
 .scene-break.space{height:1.4em}

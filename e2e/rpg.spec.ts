@@ -105,11 +105,11 @@ test('tabela aleatória sorteia uma das opções', async ({ page }) => {
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
   const card = page.locator('.table-card').filter({ has: page.getByRole('textbox', { name: 'Nome da tabela' }) }).first()
   await card.getByRole('button', { name: 'Rolar' }).click()
-  await expect(card.locator('.table-result')).toHaveText(/navio|Torre|Maré|vidro|guarda|anel/)
+  await expect(card.locator('.table-result')).toHaveText(/cubículos|matraca|boticário|albardeiro|barbeiro|Rio de Janeiro/)
 })
 
 test('Codex: revelar uma ligação coloca no mapa dos jogadores, marcada como nova', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await nav(page, 'RPG').click()
   await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
   const codex = page.locator('.codex-doc').first()

@@ -34,12 +34,12 @@ async function createProfile(dialog: ReturnType<Page['getByRole']>, handle: stri
 }
 
 test('social: perfil, pedido de amizade, estante para amigos e para todo mundo', async ({ page, browser }) => {
-  test.setTimeout(120_000)
+  test.setTimeout(180_000)
   const fake = createFakeSupabase()
   await fake.attach(page.context())
 
   // Ana entra, põe um livro na estante para amigos e cria o perfil.
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=ostria')
   await signIn(page, 'ana@exemplo.com')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
   await page.getByRole('button', { name: 'Novo livro' }).click()

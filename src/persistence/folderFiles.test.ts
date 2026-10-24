@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { migrate } from '../model/migrations'
-import { sampleUniverse } from '../model/sample'
+import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
 import { CURRENT_SCHEMA_VERSION } from '../model/schema'
 import { draftEntity, insert } from '../model/universe'
 import { BACKUP_FILE, universeToFiles } from './folderFiles'

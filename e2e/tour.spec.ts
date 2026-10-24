@@ -28,9 +28,9 @@ test('tour na primeira vez: destaca as partes, pode ser pulado e refeito', async
   // Pular (Esc) fecha e não volta sozinho.
   await page.keyboard.press('Escape')
   await expect(page.locator('.tour')).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Exemplo — As Cinzas de Ostria' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Exemplo — As Cinzas de Ostria' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
   await page.waitForTimeout(1200)
   await expect(page.locator('.tour')).toHaveCount(0)
 
@@ -74,6 +74,6 @@ test('aviso do exemplo é discreto, dá para esconder, e exemplo antigo vira o a
   await page.getByRole('button', { name: /trocar de universo/i }).first().click()
   await page.getByRole('list', { name: 'Universos' }).getByRole('button', { name: /^Exemplo velho/ }).click()
   // Trocado pelo exemplo atual, e o aviso continua escondido.
-  await expect(page.getByRole('button', { name: 'Exemplo — As Cinzas de Ostria: trocar de universo' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Exemplo — O Alienista: trocar de universo' })).toBeVisible()
   await expect(page.getByText('Mundo de exemplo', { exact: true })).toHaveCount(0)
 })
