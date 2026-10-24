@@ -527,3 +527,89 @@ button.leitor-found-card {
   color: var(--ink);
   box-shadow: var(--shadow-1);
 }
+
+.leitor-years li {
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.leitor-years li.is-new {
+  outline: 1px solid color-mix(in srgb, var(--violet) 50%, transparent);
+}
+
+.leitor-year {
+  color: var(--violet);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.leitor-graph {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  max-height: 300px;
+  overflow: visible;
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.leitor-graph line {
+  stroke: var(--line-strong);
+  stroke-width: 1.4;
+}
+
+.leitor-graph line.is-new {
+  stroke: var(--violet);
+  stroke-dasharray: 1;
+  animation: leitor-draw 0.8s ease-out both;
+}
+
+.leitor-graph g {
+  cursor: pointer;
+}
+
+.leitor-graph circle {
+  fill: var(--accent);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.leitor-graph g.is-new circle {
+  fill: var(--violet);
+  animation: leitor-node 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.leitor-graph text {
+  fill: var(--ink);
+  font-size: 10px;
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
+}
+
+@keyframes leitor-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes leitor-node {
+  from {
+    transform: scale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leitor-graph line.is-new,
+  .leitor-graph g.is-new circle {
+    animation: none;
+  }
+}

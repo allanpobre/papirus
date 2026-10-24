@@ -34,6 +34,11 @@ describe('caderno do leitor', () => {
     expect(book.relations.some((r) => r.text.includes('Vaelor'))).toBe(false)
   })
 
+  it('linha do tempo: eventos entram quando quem participou já apareceu; secretos nunca', () => {
+    expect(book.events.some((e) => e.title === 'Retorno do Homem Pálido')).toBe(false)
+    for (const ev of book.events) for (const id of ev.entityIds) expect(book.first.get(id)).toBeLessThanOrEqual(ev.at)
+  })
+
   it('marcar e desmarcar', () => {
     const scene = book.scenes[2]
     const { text } = wrapReveal('Ela mente.', 0, 10, scene)

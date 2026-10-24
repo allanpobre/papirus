@@ -3668,3 +3668,26 @@ code {
   align-items: center;
   gap: 0.3rem;
 }
+
+.with-reveal {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.with-reveal > .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.with-reveal > select {
+  flex: 0 1 180px;
+}
+
+.reveal-chip {
+  flex: none;
+  color: var(--violet);
+  white-space: nowrap;
+}

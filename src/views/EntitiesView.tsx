@@ -1,5 +1,5 @@
 import { ArrowLeft, BookMarked, Plus, Trash2, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { factSentence } from '../logic/codex'
 import { MentionMatcher } from '../logic/detection'
 import { mentionIdsInDoc } from '../logic/doc'
@@ -26,6 +26,7 @@ import { CanonBadge, CanonSelect, EditorialBadge, EditorialSelect, Empty, Field,
 import { Fold } from '../ui/Fold'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { SecretTextarea } from '../ui/SecretText'
+import { RevealPicker } from '../ui/RevealPicker'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
 
@@ -131,6 +132,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
   const { universe, update, go, peek, undoable } = useWorkspace()
   const [factFor, setFactFor] = useState<boolean>(false)
   const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
+  const summaryRef = useRef<HTMLInputElement>(null)
   const suffix = universe.settings.calendarSuffix
 
   const outgoing = universe.relations.filter((r) => r.fromId === e.id)
@@ -215,7 +217,12 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
               <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
             </div>
             <Field label="Resumo" wide>
-              {(id) => <input id={id} className="input" value={e.summary} placeholder="Uma linha sobre esta ficha" onChange={(ev) => set({ summary: ev.target.value })} />}
+              {(id) => (
+                <div className="with-reveal">
+                  <input ref={summaryRef} id={id} className="input" value={e.summary} placeholder="Uma linha sobre esta ficha" onChange={(ev) => set({ summary: ev.target.value })} />
+                  <RevealPicker label="Resumo" value={e.summary} inputRef={summaryRef} onChange={(v) => set({ summary: v })} />
+                </div>
+              )}
             </Field>
             <Field label="Descrição" wide>
               {(id) => (
@@ -231,7 +238,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
             {e.fields.map((f, i) => (
               <div key={i} className="kv-row">
                 <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
-                <input className="input" aria-label="Valor" placeholder="Valor" value={f.value} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, value: ev.target.value } : x)) })} />
+                <FieldValue value={f.value} label={f.key || 'Valor'} onChange={(v) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, value: v } : x)) })} />
                 <button type="button" className="btn-icon btn-sm" aria-label="Remover campo" onClick={() => set({ fields: e.fields.filter((_, j) => j !== i) })}>
                   <X size={14} />
                 </button>
@@ -598,3 +605,14 @@ function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Uni
 }
 
 type Universe = ReturnType<typeof useWorkspace>['universe']
+
+/** Valor de um campo livre, com a marcação de spoiler para o modo leitor. */
+function FieldValue({ value, label, onChange }: { value: string; label: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLInputElement>(null)
+  return (
+    <div className="with-reveal">
+      <input ref={ref} className="input" aria-label="Valor" placeholder="Valor" value={value} onChange={(ev) => onChange(ev.target.value)} />
+      <RevealPicker label={label} value={value} inputRef={ref} onChange={onChange} />
+    </div>
+  )
+}
