@@ -321,7 +321,7 @@ export const revelationSchema = z.object({
    * O que foi revelado: uma ficha, um fato, um evento da timeline, uma pista de
    * mistério, um mapa (só a imagem) ou um marcador de mapa.
    */
-  target: z.enum(['entidade', 'fato', 'evento', 'pista', 'mapa', 'marcador']),
+  target: z.enum(['entidade', 'fato', 'evento', 'pista', 'mapa', 'marcador', 'relacao']),
   targetId: id,
   /** Para fichas: revelar só o nome, o resumo, ou também a descrição. */
   depth: z.enum(['nome', 'resumo', 'completo']),
@@ -368,6 +368,62 @@ export const universeSettingsSchema = z.object({
   ignoredNames: z.array(z.string()),
   /** Meses do calendário do universo. Vazio = só o ano e o dia do ano. */
   calendarMonths: z.array(z.object({ name: z.string(), days: z.number().int().positive() })).default([]),
+})
+
+/**
+ * Diagramação do livro (PDF para imprimir). Cada campo tem padrão, para que
+ * opções novas não quebrem livros já configurados. A capa é do autor: uma imagem.
+ */
+export const BOOK_PAGE_SIZES = ['bolso', 'a5', '14x21', '16x23', 'a4', 'carta'] as const
+export const BOOK_BODY_FONTS = ['literata', 'garamond', 'crimson', 'lora', 'baskerville', 'mono'] as const
+export const BOOK_TITLE_FONTS = ['igual', 'young', 'cinzel', 'playfair', 'garamond', 'sans'] as const
+export const BOOK_CHAPTER_STYLES = ['classico', 'moderno', 'minimalista', 'ornamentado', 'manuscrito'] as const
+export const BOOK_CHAPTER_LABELS = ['capitulo-numero', 'capitulo-extenso', 'numero', 'romano', 'nenhum'] as const
+export const BOOK_SCENE_BREAKS = ['asterismo', 'asteriscos', 'floral', 'traco', 'linha', 'espaco'] as const
+export const BOOK_HEADERS = ['nada', 'titulo-autor', 'titulo-capitulo'] as const
+export const BOOK_PAGE_NUMBERS = ['rodape-centro', 'rodape-externo', 'topo-externo', 'nenhum'] as const
+
+export const bookDesignSchema = z.object({
+  /** Histórias que entram, na ordem. Vazio = todas. */
+  storyIds: z.array(z.string()).default([]),
+  title: z.string().default(''),
+  subtitle: z.string().default(''),
+  author: z.string().default(''),
+  publisher: z.string().default(''),
+  year: z.string().default(''),
+  dedication: z.string().default(''),
+  epigraph: z.string().default(''),
+  epigraphSource: z.string().default(''),
+  copyright: z.string().default(''),
+  acknowledgments: z.string().default(''),
+  aboutAuthor: z.string().default(''),
+  /** Capa escolhida pelo autor (imagem como data URL). */
+  cover: z.string().nullable().default(null),
+  backCover: z.string().nullable().default(null),
+  pageSize: z.enum(BOOK_PAGE_SIZES).default('14x21'),
+  margins: z.enum(['estreitas', 'normais', 'largas']).default('normais'),
+  mirrored: z.boolean().default(true),
+  bodyFont: z.enum(BOOK_BODY_FONTS).default('garamond'),
+  titleFont: z.enum(BOOK_TITLE_FONTS).default('igual'),
+  fontSize: z.number().min(8).max(16).default(11),
+  lineHeight: z.number().min(1).max(2.2).default(1.45),
+  paragraph: z.enum(['recuo', 'espaco']).default('recuo'),
+  justify: z.boolean().default(true),
+  hyphenate: z.boolean().default(true),
+  /** O que vira capítulo: cada cena, ou cada história (com as cenas separadas por quebra). */
+  chapterUnit: z.enum(['cena', 'historia']).default('cena'),
+  chapterLabel: z.enum(BOOK_CHAPTER_LABELS).default('capitulo-numero'),
+  chapterTitles: z.boolean().default(true),
+  chapterStyle: z.enum(BOOK_CHAPTER_STYLES).default('classico'),
+  chapterRecto: z.boolean().default(false),
+  dropCap: z.boolean().default(true),
+  smallCapsLead: z.boolean().default(true),
+  sceneBreak: z.enum(BOOK_SCENE_BREAKS).default('asterismo'),
+  header: z.enum(BOOK_HEADERS).default('titulo-autor'),
+  pageNumbers: z.enum(BOOK_PAGE_NUMBERS).default('rodape-centro'),
+  toc: z.boolean().default(true),
+  /** Histórias viram "partes" com página própria (quando há mais de uma). */
+  parts: z.boolean().default(true),
 })
 
 /** Algo apagado, guardado por 30 dias. `records` traz o item e o que saiu junto (relações, fatos…). */
@@ -419,6 +475,8 @@ export const universeSchema = z.object({
   sheets: z.array(sheetSchema).default([]),
   tables: z.array(randomTableSchema).default([]),
   trash: z.array(trashItemSchema).default([]),
+  /** Diagramação do livro (opcional). */
+  book: bookDesignSchema.nullable().default(null),
   history: z.array(historyEntrySchema).default([]),
   settings: universeSettingsSchema,
   /** Total de palavras no início de cada dia (AAAA-MM-DD), para metas diárias. */
@@ -481,5 +539,6 @@ export type CollectionKey =
   | 'sheets'
   | 'tables'
 export type TrashItem = z.infer<typeof trashItemSchema>
+export type BookDesign = z.infer<typeof bookDesignSchema>
 export type HistoryEntry = z.infer<typeof historyEntrySchema>
 export type RecordOf<K extends CollectionKey> = Universe[K][number]

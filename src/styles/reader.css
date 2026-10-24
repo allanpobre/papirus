@@ -86,8 +86,8 @@
 .leitor-new-count {
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: var(--violet);
-  color: #fff;
+  background: var(--violet-soft);
+  color: var(--violet);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -381,8 +381,8 @@ button.leitor-found-card {
 .leitor-badge {
   padding: 0 0.35rem;
   border-radius: 999px;
-  background: var(--violet);
-  color: #fff;
+  background: var(--violet-soft);
+  color: var(--violet);
   font-size: 0.7rem;
   font-weight: 700;
 }

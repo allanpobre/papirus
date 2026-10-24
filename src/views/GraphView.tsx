@@ -2,6 +2,7 @@ import { Maximize, Minus, Network, Pause, Play, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { forceLayout, neighborhood, type GraphEdge, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
+import { appearances } from '../logic/reader'
 import { formatDate } from '../logic/calendar'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { Relation } from '../model/schema'
@@ -158,6 +159,12 @@ export default function GraphView() {
   )
   const pos = useAnimatedPositions(target)
 
+  // Num ponto da história, só entra no mapa quem já apareceu até a cena (no texto, no elenco, como POV ou lugar).
+  const firstSeen = useMemo(() => appearances(scenes, universe.entities).first, [scenes, universe.entities])
+  const sceneAt = Math.min(sceneIndex, scenes.length - 1)
+  const appeared = (id: string) => !inTime || (firstSeen.get(id) ?? Infinity) <= sceneAt
+  const shownNodes = nodes.filter((n) => appeared(n.id))
+  const notYet = inTime ? nodes.length - shownNodes.length : 0
   const active = (e: Edge) => !e.relation || activeAt(e.relation, scene)
   const liveIds = new Set(visibleEdges.filter(active).flatMap((e) => [e.from, e.to]))
 
@@ -281,17 +288,26 @@ export default function GraphView() {
             <strong>{scene.title || 'Sem título'}</strong>
             {scene.storyId && <span className="muted"> · {byId(universe, 'stories', scene.storyId)?.title}</span>}
             {scene.date && <span className="muted"> · {formatDate(universe, scene.date)}</span>}
+            {notYet > 0 && <span className="muted"> · {notYet} {notYet === 1 ? 'ficha ainda não apareceu' : 'fichas ainda não apareceram'}</span>}
           </p>
           {(() => {
             // O que muda nesta cena em relação à anterior: é isso que o mapa anima.
             const i = Math.min(sceneIndex, scenes.length - 1)
             const prev = i > 0 ? scenes[i - 1] : null
             const scoped = universe.relations.filter((r) => r.scope.kind !== 'geral')
-            const starts = scoped.filter((r) => activeAt(r, scene) && (!prev || !activeAt(r, prev)))
-            const ends = prev ? scoped.filter((r) => !activeAt(r, scene) && activeAt(r, prev)) : []
-            if (!starts.length && !ends.length) return <p className="graph-changes muted small">Nada muda nesta cena.</p>
+            const seen = (id: string, at: number) => (firstSeen.get(id) ?? Infinity) <= at
+            const both = (r: (typeof scoped)[number], at: number) => seen(r.fromId, at) && seen(r.toId, at)
+            const entering = nodes.filter((n) => firstSeen.get(n.id) === i)
+            const starts = scoped.filter((r) => activeAt(r, scene) && both(r, i) && (!prev || !activeAt(r, prev) || !both(r, i - 1)))
+            const ends = prev ? scoped.filter((r) => !activeAt(r, scene) && activeAt(r, prev) && both(r, i - 1)) : []
+            if (!starts.length && !ends.length && !entering.length) return <p className="graph-changes muted small">Nada muda nesta cena.</p>
             return (
               <ul className="graph-changes small" aria-label="O que muda nesta cena">
+                {entering.length > 0 && (
+                  <li className="graph-change-new">
+                    <span aria-hidden="true">●</span> Entra na história: {entering.map((n) => n.name).join(', ')}
+                  </li>
+                )}
                 {starts.map((r) => (
                   <li key={`s-${r.id}`} className="graph-change-start">
                     <span aria-hidden="true">+</span> {relationSentence(universe, r)}
@@ -319,7 +335,7 @@ export default function GraphView() {
             className="graph"
             viewBox={`0 0 ${W} ${H}`}
             role="group"
-            aria-label={`Grafo com ${nodes.length} fichas e ${visibleEdges.filter(active).length} relações`}
+            aria-label={`Grafo com ${shownNodes.length} fichas e ${visibleEdges.filter((e) => active(e) && appeared(e.from) && appeared(e.to)).length} relações`}
             onPointerDown={(e) => {
               // Arrastar o grafo nunca seleciona texto (no app do Claude, texto selecionado abre uma camada que escurece a tela).
               e.preventDefault()
@@ -371,6 +387,7 @@ export default function GraphView() {
                 const a = pos.get(e.from)
                 const b = pos.get(e.to)
                 if (!a || !b) return null
+                if (!appeared(e.from) || !appeared(e.to) || (e.relation && (!appeared(e.relation.fromId) || !appeared(e.relation.toId)))) return null
                 const on = active(e)
                 const lit = highlight ? highlight.has(e.from) && highlight.has(e.to) && focusEdges.includes(e) : false
                 const dim = highlight && !lit
@@ -413,7 +430,7 @@ export default function GraphView() {
                   </g>
                 )
               })}
-              {nodes.map((n, i) => {
+              {shownNodes.map((n, i) => {
                 const p = pos.get(n.id)
                 if (!p) return null
                 const r = radius(n.id)
@@ -421,7 +438,7 @@ export default function GraphView() {
                 return (
                   <g
                     key={n.id}
-                    className={`node kind-${n.kind}${n.id === selected ? ' selected' : ''}${dim ? ' dim' : ''}`}
+                    className={`node kind-${n.kind}${n.id === selected ? ' selected' : ''}${dim ? ' dim' : ''}${inTime && firstSeen.get(n.id) === sceneAt ? ' is-new' : ''}`}
                     style={{ ['--i' as string]: i }}
                     transform={`translate(${p.x} ${p.y})`}
                     tabIndex={0}

@@ -101,6 +101,13 @@ test('relações mudam ao longo da história do exemplo', async ({ page }) => {
   const changes = page.getByRole('list', { name: 'O que muda nesta cena' })
   await slider.fill('0')
   await expect(changes).toContainText('Kael desconfia de Homem Pálido')
+  // Quem ainda não apareceu não está no mapa: Rhea só entra na cena 4, Cassian na 5.
+  const graph = page.locator('svg.graph')
+  await expect(graph.locator('.node', { hasText: 'Kael' })).toHaveCount(1)
+  await expect(graph.locator('.node', { hasText: 'Cassian' })).toHaveCount(0)
+  await slider.fill('4')
+  await expect(changes).toContainText('Entra na história: Cassian')
+  await expect(graph.locator('.node', { hasText: 'Cassian' })).toHaveCount(1)
   await slider.fill('6')
   await expect(changes).toContainText('Kael protege Homem Pálido')
   await expect(changes).toContainText('deixa de valer')

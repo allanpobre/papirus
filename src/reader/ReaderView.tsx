@@ -6,6 +6,7 @@ import { kindLabel, kindPlural } from '../model/labels'
 import type { Universe } from '../model/schema'
 import { byId } from '../model/universe'
 import { recall, remember } from '../state/prefs'
+import { MiniGraph } from '../ui/MiniGraph'
 
 interface DocNode {
   type: string
@@ -485,7 +486,19 @@ function Notebook({
             <p className="muted small">Nenhum acontecimento ainda. Eles entram quando quem participou deles aparece na história.</p>
           ))}
 
-        {tab === 'relacoes' && relations.length > 1 && <MiniGraph known={known} relations={relations} current={current} onPick={(id) => { setSelected(id); setTab('quem') }} />}
+        {tab === 'relacoes' && relations.length > 1 && (() => {
+          const linked = new Set(relations.flatMap((r) => r.entityIds))
+          return (
+            <MiniGraph
+              nodes={known.filter((e) => linked.has(e.entity.id)).map((e) => ({ id: e.entity.id, label: e.entity.name, isNew: e.first === current }))}
+              edges={relations.map((r) => ({ from: r.entityIds[0], to: r.entityIds[1], isNew: r.at === current }))}
+              onPick={(id) => {
+                setSelected(id)
+                setTab('quem')
+              }}
+            />
+          )
+        })()}
         {tab === 'relacoes' &&
           (relations.length ? (
             <ul className="leitor-timeline">
@@ -526,41 +539,6 @@ function Notebook({
         )}
       </div>
     </aside>
-  )
-}
-
-/** O mapa das ligações conhecidas: cresce conforme a leitura. */
-function MiniGraph({ known, relations, current, onPick }: { known: ReaderEntity[]; relations: ReaderItem[]; current: number; onPick: (id: string) => void }) {
-  const linked = new Set(relations.flatMap((r) => r.entityIds))
-  const nodes = known.filter((e) => linked.has(e.entity.id))
-  const W = 320
-  const H = 240
-  const pos = new Map(
-    nodes.map((e, i) => {
-      const a = (i / nodes.length) * Math.PI * 2 - Math.PI / 2
-      return [e.entity.id, { x: W / 2 + Math.cos(a) * (W / 2 - 52), y: H / 2 + Math.sin(a) * (H / 2 - 26) }]
-    }),
-  )
-  return (
-    <svg className="leitor-graph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Mapa com ${nodes.length} fichas e ${relations.length} ligações`}>
-      {relations.map((r, i) => {
-        const a = pos.get(r.entityIds[0])
-        const b = pos.get(r.entityIds[1])
-        if (!a || !b) return null
-        return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={r.at === current ? 'is-new' : undefined} pathLength={1} />
-      })}
-      {nodes.map((e) => {
-        const p = pos.get(e.entity.id)!
-        return (
-          <g key={e.entity.id} transform={`translate(${p.x} ${p.y})`} className={e.first === current ? 'is-new' : undefined} onClick={() => onPick(e.entity.id)}>
-            <circle r={7} />
-            <text y={-11} textAnchor="middle">
-              {e.entity.name.length > 16 ? `${e.entity.name.slice(0, 15)}…` : e.entity.name}
-            </text>
-          </g>
-        )
-      })}
-    </svg>
   )
 }
 

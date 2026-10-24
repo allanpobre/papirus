@@ -58,6 +58,7 @@ export function commands(ws: Workspace): Command[] {
   }
   out.push(
     { id: 'leitor', title: ws.source.kind === 'proprio' || ws.source.kind === 'editar' ? 'Prévia do leitor' : 'Ler como livro', words: 'modo leitor livro caderno spoiler ler', icon: BookOpen, run: (w) => w.openReader() },
+    ...(ws.readOnly ? [] : [{ id: 'livro', title: 'Diagramar o livro (PDF)', words: 'imprimir pdf capa fonte formatação exportar livro publicar diagramação', icon: BookOpen, run: (w: Workspace) => w.openBookDesigner() }]),
     { id: 'tema', title: ws.prefs.theme === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro', words: 'tema claro escuro aparência cor noite', icon: Moon, run: (w) => w.setPref('theme', w.prefs.theme === 'escuro' ? 'claro' : 'escuro') },
     { id: 'lixeira', title: 'Abrir a lixeira e o histórico', words: 'lixeira apagado recuperar histórico mudanças voltar', icon: History, run: (w) => w.go('config', 'historico') },
     { id: 'tour', title: 'Fazer o tour', words: 'ajuda tutorial guia', icon: Compass, run: (w) => w.startTour() },

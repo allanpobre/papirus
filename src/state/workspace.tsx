@@ -74,6 +74,8 @@ export interface Workspace {
   openShare: () => void
   /** Abre o modo leitor (o livro com o caderno sem spoiler). */
   openReader: () => void
+  /** Abre a diagramação do livro (PDF para imprimir). */
+  openBookDesigner: () => void
 }
 
 export const WorkspaceContext = createContext<Workspace | null>(null)

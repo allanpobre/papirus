@@ -1,3 +1,4 @@
+import { codexSnapshot } from '../share/snapshot'
 import { describe, expect, it } from 'vitest'
 import { universeSchema } from '../model/schema'
 import { sampleUniverse } from '../model/sample'
@@ -75,8 +76,12 @@ describe('Codex dos jogadores', () => {
   it('mostra só o que foi revelado, na profundidade revelada', () => {
     const codex = codexFor(u, group.id)
     expect(codex.entries.map((e) => [e.entity.name, e.depth])).toEqual([
+      ['Cassian', 'resumo'],
+      ['Homem Pálido', 'resumo'],
       ['Kael', 'resumo'],
+      ['Mira', 'resumo'],
       ['Ostria', 'completo'],
+      ['Rhea', 'resumo'],
       ['Torre de Marfim', 'resumo'],
       ['Vaelor', 'nome'],
     ])
@@ -85,6 +90,21 @@ describe('Codex dos jogadores', () => {
     expect(md).not.toContain('Último príncipe')
     expect(md).toContain('Cidade portuária')
     expect(md).toContain('Vaelor tem olhos cinzentos')
+    expect(md).toContain('## Ligações')
+    expect(md).toContain('- Cassian caça Homem Pálido')
+  })
+
+  it('ligações reveladas, sessão a sessão, e o que é novo', () => {
+    expect(codexFor(u, group.id, 1).relations.map((r) => r.type).sort()).toEqual(['irmão de', 'trouxe'])
+    const all = codexFor(u, group.id)
+    expect(all.relations).toHaveLength(3)
+    // Na sessão mais recente (2), entrou Cassian e a caça: é o que aparece como novo.
+    const cassian = find('Cassian').id
+    expect(all.fresh.has(cassian)).toBe(true)
+    expect(all.fresh.has(find('Kael').id)).toBe(false)
+    // "Com ajuda de Odo" fica de fora: a mesa não conhece Odo.
+    const snap = codexSnapshot(u, group.id)
+    expect(snap.relations?.find((r) => r.from === 'Cassian')?.text).toBe('Cassian caça Homem Pálido')
   })
 
   it('usa a revelação mais profunda e filtra por sessão', () => {

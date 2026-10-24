@@ -1,6 +1,6 @@
 import { unmarkReveals } from './reveals'
 import { CANON_LABEL, kindLabel, kindPlural } from '../model/labels'
-import type { AtlasMap, Entity, Fact, Revelation, Seed, Sheet, TimelineEvent, Universe } from '../model/schema'
+import type { AtlasMap, Entity, Fact, Relation, Revelation, Seed, Sheet, TimelineEvent, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { stripSecrets } from './secrets'
 
@@ -20,6 +20,10 @@ export interface Codex {
   maps: { map: AtlasMap; pins: AtlasMap['pins'] }[]
   /** Fichas dos personagens dos jogadores (se a mesa mostra). */
   sheets: Sheet[]
+  /** Ligações reveladas (quem conhece quem, quem serve a quem…). */
+  relations: Relation[]
+  /** O que foi revelado na sessão mais recente (para destacar como novo). */
+  fresh: Set<string>
 }
 
 /**
@@ -42,6 +46,7 @@ export function codexFor(universe: Universe, groupId: string, untilSession?: num
     pista: new Set(),
     mapa: new Set(),
     marcador: new Set(),
+    relacao: new Set(),
   }
   for (const r of revs) {
     if (r.target !== 'entidade') {
@@ -65,7 +70,13 @@ export function codexFor(universe: Universe, groupId: string, untilSession?: num
   const group = byId(universe, 'groups', groupId)
   const sheets = group?.showSheetsInCodex ? universe.sheets.filter((s) => s.groupId === groupId && s.role === 'pj') : []
 
+  // Novidades: o que entrou na última sessão com revelações.
+  const latest = Math.max(-Infinity, ...revs.filter((r) => r.sessionId).map((r) => sessionNumber(r.sessionId)))
+  const fresh = new Set(Number.isFinite(latest) ? revs.filter((r) => sessionNumber(r.sessionId) === latest).map((r) => r.targetId) : [])
+
   return {
+    relations: universe.relations.filter((r) => ids.relacao.has(r.id)),
+    fresh,
     entries,
     facts: universe.facts.filter((f) => ids.fato.has(f.id)),
     events: universe.events.filter((e) => ids.evento.has(e.id)).sort((a, b) => a.year - b.year),
@@ -95,6 +106,10 @@ export function revelationLabel(universe: Universe, r: Revelation): string {
     }
     case 'mapa':
       return `Mapa: ${byId(universe, 'maps', r.targetId)?.name ?? 'removido'}`
+    case 'relacao': {
+      const rel = byId(universe, 'relations', r.targetId)
+      return rel ? `Ligação: ${entityName(universe, rel.fromId)} ${rel.type} ${entityName(universe, rel.toId)}` : 'Ligação removida'
+    }
     case 'marcador': {
       for (const m of universe.maps) {
         const p = m.pins.find((x) => x.id === r.targetId)
@@ -115,7 +130,7 @@ export function factSentence(universe: Universe, f: Fact): string {
 /** Codex do grupo em Markdown, pronto para entregar aos jogadores. */
 export function codexMarkdown(universe: Universe, groupId: string, untilSession?: number): string {
   const group = byId(universe, 'groups', groupId)
-  const { entries, facts, events, clues, maps, sheets } = codexFor(universe, groupId, untilSession)
+  const { entries, facts, events, clues, maps, sheets, relations } = codexFor(universe, groupId, untilSession)
   const lines = [`# Codex — ${group?.name ?? 'Jogadores'}`, '']
 
   const kinds = [...new Set(entries.map((e) => e.entity.kind))]
@@ -137,6 +152,15 @@ export function codexMarkdown(universe: Universe, groupId: string, untilSession?
       const t = playerTag(universe, f)
       const tag = t ? ` _(${t})_` : ''
       lines.push(`- ${factSentence(universe, f)}${tag}`)
+    }
+    lines.push('')
+  }
+  if (relations.length) {
+    const known = new Set(entries.map((e) => e.entity.id))
+    lines.push('## Ligações', '')
+    for (const r of relations) {
+      const via = r.via.filter((v) => known.has(v.entityId)).map((v) => `${v.role || 'com'} ${entityName(universe, v.entityId)}`)
+      lines.push(`- ${entityName(universe, r.fromId)} ${r.type} ${entityName(universe, r.toId)}${via.length ? `, ${via.join(', ')}` : ''}`)
     }
     lines.push('')
   }

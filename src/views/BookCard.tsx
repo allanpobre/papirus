@@ -9,7 +9,7 @@ import { Field, Select } from '../ui/bits'
 
 /** Trazer um livro escrito em outro lugar e levar uma história para fora como livro. */
 export function BookCard() {
-  const { universe, update, toast, go } = useWorkspace()
+  const { universe, update, toast, go, openBookDesigner } = useWorkspace()
   const fileRef = useRef<HTMLInputElement>(null)
   const [split, setSplit] = useState<SplitMode>('titulos')
   const [storyId, setStoryId] = useState(universe.stories[0]?.id ?? '')
@@ -94,6 +94,14 @@ export function BookCard() {
             e.target.value = ''
           }}
         />
+      </div>
+
+      <h3 className="section-label">Livro impresso (PDF)</h3>
+      <p className="muted small">Você escolhe a capa; o Papirus monta o miolo: fontes, títulos de capítulo, margens, sumário, cabeçalhos. Com prévia página por página.</p>
+      <div className="inline-fields">
+        <button type="button" className="btn btn-primary btn-sm" disabled={!universe.scenes.some((s) => s.text.trim())} onClick={openBookDesigner}>
+          <BookDown size={14} /> Diagramar o livro
+        </button>
       </div>
 
       <h3 className="section-label">Exportar</h3>

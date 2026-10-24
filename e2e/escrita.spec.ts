@@ -215,13 +215,13 @@ test('RPG: revelar uma ficha a um grupo coloca no Codex dos jogadores', async ({
 
   const codex = page.getByRole('region', { name: 'Codex como os jogadores veem' })
   await expect(codex.getByRole('heading', { name: 'Ostria' })).toBeVisible()
-  await expect(codex.getByRole('heading', { name: 'Mira' })).toHaveCount(0)
+  await expect(codex.getByRole('heading', { name: 'Ilsa' })).toHaveCount(0)
 
-  await page.getByRole('combobox', { name: 'Revelar ficha' }).fill('Mira')
-  await page.getByRole('option', { name: /Mira/ }).click()
+  await page.getByRole('combobox', { name: 'Revelar ficha' }).fill('Ilsa')
+  await page.getByRole('option', { name: /Ilsa/ }).click()
   await page.getByRole('button', { name: 'Revelar', exact: true }).click()
-  await expect(codex.getByRole('heading', { name: 'Mira' })).toBeVisible()
-  await expect(codex).toContainText('Irmã de Kael')
+  await expect(codex.getByRole('heading', { name: 'Ilsa' })).toBeVisible()
+  await expect(codex).toContainText('Guardiã da Torre de Marfim')
 })
 
 test('RPG: registro de sessão vai para a Inbox ao encerrar', async ({ page }) => {

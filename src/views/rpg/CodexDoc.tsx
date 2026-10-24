@@ -1,6 +1,7 @@
 import { MapPin } from 'lucide-react'
 import type { CodexSnapshot } from '../../share/snapshot'
 import { isEmptySnapshot } from '../../share/snapshot'
+import { MiniGraph } from '../../ui/MiniGraph'
 
 /** O Codex como documento: o mesmo na prévia do mestre e no celular dos jogadores. */
 export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
@@ -38,8 +39,11 @@ export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
         <section key={sec.title}>
           <h3 className="codex-kind">{sec.title}</h3>
           {sec.entries.map((e, i) => (
-            <div key={i} className="codex-entry">
-              <h4>{e.name}</h4>
+            <div key={i} className={`codex-entry${e.fresh ? ' is-fresh' : ''}`}>
+              <h4>
+                {e.name}
+                {e.fresh && <span className="codex-new">novo</span>}
+              </h4>
               {e.summary && <p>{e.summary}</p>}
               {e.description && <p className="codex-desc">{e.description}</p>}
               {e.depth === 'nome' && <p className="muted small">Ainda pouco se sabe.</p>}
@@ -48,16 +52,40 @@ export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
         </section>
       ))}
 
-      {codex.events.length > 0 && (
+      {(codex.relations ?? []).length > 0 && (
         <section>
-          <h3 className="codex-kind">Linha do tempo</h3>
-          <ul className="codex-timeline">
-            {codex.events.map((e, i) => (
-              <li key={i}>
-                <strong>{e.when}</strong> {e.title}
+          <h3 className="codex-kind">Ligações</h3>
+          {(codex.relations ?? []).length > 1 && (() => {
+            const rels = codex.relations ?? []
+            const names = [...new Set(rels.flatMap((r) => [r.from, r.to]))]
+            const freshNames = new Set(rels.filter((r) => r.fresh).flatMap((r) => [r.from, r.to]))
+            return <MiniGraph className="leitor-graph codex-graph" nodes={names.map((n) => ({ id: n, label: n, isNew: freshNames.has(n) }))} edges={rels.map((r) => ({ from: r.from, to: r.to, isNew: r.fresh }))} />
+          })()}
+          <ul className="codex-relations">
+            {(codex.relations ?? []).map((r, i) => (
+              <li key={i} className={r.fresh ? 'is-fresh' : undefined}>
+                {r.text}
+                {r.fresh && <span className="codex-new">novo</span>}
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {codex.events.length > 0 && (
+        <section>
+          <h3 className="codex-kind">Linha do tempo</h3>
+          <ol className="codex-timeline codex-years">
+            {codex.events.map((e, i) => (
+              <li key={i} className={e.fresh ? 'is-fresh' : undefined}>
+                <span className="codex-year">{e.when}</span>
+                <span>
+                  {e.title}
+                  {e.fresh && <span className="codex-new">novo</span>}
+                </span>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 
