@@ -9,6 +9,7 @@ import type { Prefs } from './prefs'
 export type View =
   | 'inicio'
   | 'escrever'
+  | 'livro'
   | 'fichas'
   | 'relacoes'
   | 'timeline'

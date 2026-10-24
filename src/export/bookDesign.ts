@@ -27,7 +27,7 @@ export const BOOK_PRESETS: Record<'romance' | 'fantasia' | 'contemporaneo' | 'bo
   fantasia: {
     label: 'Fantasia',
     hint: 'Títulos em Cinzel, ornamentos, capítulos por extenso, sempre à direita.',
-    design: { pageSize: '16x23', bodyFont: 'garamond', titleFont: 'cinzel', fontSize: 11.5, lineHeight: 1.5, chapterStyle: 'ornamentado', chapterLabel: 'capitulo-extenso', dropCap: true, smallCapsLead: true, sceneBreak: 'floral', header: 'titulo-capitulo', pageNumbers: 'rodape-centro', justify: true, hyphenate: true, paragraph: 'recuo', margins: 'normais', mirrored: true, chapterRecto: true },
+    design: { ornament: '❦', dividerSymbol: '✦', pageSize: '16x23', bodyFont: 'garamond', titleFont: 'cinzel', fontSize: 11.5, lineHeight: 1.5, chapterStyle: 'ornamentado', chapterLabel: 'capitulo-extenso', dropCap: true, smallCapsLead: true, sceneBreak: 'floral', header: 'titulo-capitulo', pageNumbers: 'rodape-centro', justify: true, hyphenate: true, paragraph: 'recuo', margins: 'normais', mirrored: true, chapterRecto: true },
   },
   contemporaneo: {
     label: 'Contemporâneo',
@@ -87,6 +87,7 @@ const SCENE_BREAK: Record<BookDesign['sceneBreak'], string> = {
   traco: '—',
   linha: '',
   espaco: '',
+  simbolo: '',
 }
 
 // ─── Números de capítulo ─────────────────────────────────────────────
@@ -213,7 +214,11 @@ function body(doc: SceneDoc, d: BookDesign, startOfChapter: boolean): string {
 }
 
 const sceneBreak = (d: BookDesign) =>
-  d.sceneBreak === 'linha' ? '<hr class="scene-break line">' : d.sceneBreak === 'espaco' ? '<div class="scene-break space"></div>' : `<p class="scene-break">${SCENE_BREAK[d.sceneBreak]}</p>`
+  d.sceneBreak === 'linha'
+    ? '<hr class="scene-break line">'
+    : d.sceneBreak === 'espaco'
+      ? '<div class="scene-break space"></div>'
+      : `<p class="scene-break">${esc(d.sceneBreak === 'simbolo' ? d.sceneBreakSymbol.trim() || '✦' : SCENE_BREAK[d.sceneBreak])}</p>`
 
 const paragraphs = (text: string) =>
   text
@@ -310,6 +315,8 @@ export function buildBook(universe: Universe, design: BookDesign): { title: stri
       const running = (showTitle ? c.title : c.label) || title
       sections.push(
         `<section class="chapter${firstChapter ? ' first-chapter' : ''}" id="${c.id}"><header class="chapter-head"><span class="running">${esc(running)}</span>${
+          d.ornament.trim() ? `<p class="chapter-ornament" aria-hidden="true">${esc(d.ornament.trim())}</p>` : ''
+        }${
           c.label ? `<p class="chapter-label">${esc(c.label)}</p>` : ''
         }${showTitle ? `<h2 class="chapter-title">${esc(c.title)}</h2>` : ''}<div class="chapter-orn" aria-hidden="true"></div></header><div class="chapter-body">${c.html}</div></section>`,
       )
@@ -409,7 +416,8 @@ section:first-child{break-before:auto}
 .chapter-label{margin:0}
 .chapter-head p,.title-page p,.part p{text-align:inherit;hyphens:none}
 .chapter-title{font-family:${titleStack};font-weight:400;margin:0}
-${CHAPTER_CSS[d.chapterStyle](titleStack)}
+${CHAPTER_CSS[d.chapterStyle](titleStack, d)}
+.chapter-ornament{text-align:center!important;font-size:1.6em;line-height:1;margin:0 0 .5em;color:#555;text-indent:0}
 .chapter-body p.first{text-indent:0}
 .chapter-body p.first .lead{font-variant:small-caps;letter-spacing:.05em}
 .chapter-body p.drop::first-letter{float:left;font-family:${titleStack};font-size:3.6em;line-height:.82;padding:.06em .08em 0 0;margin-top:.04em}
@@ -438,7 +446,7 @@ function fontFamily(key: BookDesign['bodyFont'] | Exclude<BookDesign['titleFont'
   return map[key]
 }
 
-const CHAPTER_CSS: Record<BookDesign['chapterStyle'], (titleStack: string) => string> = {
+const CHAPTER_CSS: Record<BookDesign['chapterStyle'], (titleStack: string, d: BookDesign) => string> = {
   classico: () => `
 .chapter-head{text-align:center}
 .chapter-label{font-variant:small-caps;letter-spacing:.18em;font-size:.95em;margin-bottom:.8em}
@@ -454,13 +462,12 @@ const CHAPTER_CSS: Record<BookDesign['chapterStyle'], (titleStack: string) => st
 .chapter-label{font-size:1em;letter-spacing:.1em;margin-bottom:.4em}
 .chapter-title{font-size:1.3em;font-style:italic}
 .chapter-orn{display:none}`,
-  ornamentado: () => `
+  ornamentado: (_t, d) => `
 .chapter-head{text-align:center}
-.chapter-head::before{content:"❦";display:block;font-size:1.6em;margin-bottom:.5em;color:#555}
 .chapter-label{font-variant:small-caps;letter-spacing:.22em;font-size:.95em;margin-bottom:.6em}
 .chapter-title{font-size:1.8em;line-height:1.2;letter-spacing:.03em}
 .chapter-orn{margin:1em auto 0;width:60%;height:.8em;border-bottom:.6pt solid #888;position:relative}
-.chapter-orn::after{content:"✦";position:absolute;left:50%;bottom:-.62em;transform:translateX(-50%);background:#fff;padding:0 .4em;font-size:.8em;color:#666}`,
+.chapter-orn::after{content:${d.dividerSymbol.trim() ? cssString(d.dividerSymbol.trim()) : 'none'};position:absolute;left:50%;bottom:-.62em;transform:translateX(-50%);background:#fff;padding:0 .4em;font-size:.8em;color:#666}`,
   manuscrito: () => `
 .chapter-head{text-align:center}
 .chapter-label{text-transform:uppercase;letter-spacing:.05em;margin-bottom:1em}

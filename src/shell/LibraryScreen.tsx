@@ -292,7 +292,7 @@ function Welcome({ onChoose }: { onChoose: (hiddenViews: View[]) => void }) {
         <button type="button" className="welcome-option" onClick={() => onChoose(['rpg'])}>
           <Feather size={16} aria-hidden="true" /> Escrever histórias
         </button>
-        <button type="button" className="welcome-option" onClick={() => onChoose(['organizar', 'conhecimento'])}>
+        <button type="button" className="welcome-option" onClick={() => onChoose(['organizar', 'conhecimento', 'livro'])}>
           <Dices size={16} aria-hidden="true" /> Mestrar RPG
         </button>
         <button type="button" className="welcome-option" onClick={() => onChoose([])}>

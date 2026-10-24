@@ -379,7 +379,7 @@ export const BOOK_BODY_FONTS = ['literata', 'garamond', 'crimson', 'lora', 'bask
 export const BOOK_TITLE_FONTS = ['igual', 'young', 'cinzel', 'playfair', 'garamond', 'sans'] as const
 export const BOOK_CHAPTER_STYLES = ['classico', 'moderno', 'minimalista', 'ornamentado', 'manuscrito'] as const
 export const BOOK_CHAPTER_LABELS = ['capitulo-numero', 'capitulo-extenso', 'numero', 'romano', 'nenhum'] as const
-export const BOOK_SCENE_BREAKS = ['asterismo', 'asteriscos', 'floral', 'traco', 'linha', 'espaco'] as const
+export const BOOK_SCENE_BREAKS = ['asterismo', 'asteriscos', 'floral', 'traco', 'linha', 'espaco', 'simbolo'] as const
 export const BOOK_HEADERS = ['nada', 'titulo-autor', 'titulo-capitulo'] as const
 export const BOOK_PAGE_NUMBERS = ['rodape-centro', 'rodape-externo', 'topo-externo', 'nenhum'] as const
 
@@ -419,6 +419,12 @@ export const bookDesignSchema = z.object({
   dropCap: z.boolean().default(true),
   smallCapsLead: z.boolean().default(true),
   sceneBreak: z.enum(BOOK_SCENE_BREAKS).default('asterismo'),
+  /** Símbolo escolhido para a quebra de cena (quando `sceneBreak` é "simbolo"). */
+  sceneBreakSymbol: z.string().max(12).default('✦'),
+  /** Ornamento acima do título de cada capítulo (vazio = nenhum). */
+  ornament: z.string().max(12).default(''),
+  /** Símbolo no meio do floreio sob o título (estilo ornamentado; vazio = só a linha). */
+  dividerSymbol: z.string().max(12).default('✦'),
   header: z.enum(BOOK_HEADERS).default('titulo-autor'),
   pageNumbers: z.enum(BOOK_PAGE_NUMBERS).default('rodape-centro'),
   toc: z.boolean().default(true),

@@ -30,12 +30,22 @@ test('diagramar o livro: modelo, capa do autor, prévia paginada com sumário', 
   await expect(designer.getByRole('img', { name: 'Capa escolhida' })).toBeVisible()
   await expect(preview.locator('.cover img')).toBeVisible({ timeout: 30_000 })
 
-  // Fica guardado no universo.
+  // Símbolos à escolha: ornamento do capítulo e quebra de cena personalizada.
+  await designer.locator('summary', { hasText: /^Capítulos$/ }).click()
+  await designer.getByRole('radiogroup', { name: 'Ornamento acima do capítulo' }).getByRole('radio', { name: '⚜' }).click()
+  await expect(preview.locator('.chapter-ornament', { hasText: '⚜' }).first()).toBeVisible({ timeout: 30_000 })
+  await designer.locator('summary', { hasText: /^Quebra de cena$/ }).click()
+  await designer.getByRole('radio', { name: 'Outro símbolo…' }).click()
+  await designer.getByRole('textbox', { name: 'Símbolo da quebra de cena: outro símbolo' }).fill('🜂')
+  await expect(preview.locator('.scene-break', { hasText: '🜂' }).first()).toBeVisible({ timeout: 30_000 })
+
+  // Fica guardado no universo; e o livro tem lugar próprio no menu.
   await designer.getByRole('button', { name: 'Fechar' }).click()
-  await page.getByRole('button', { name: 'Ajustes e dados' }).click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Livros' }).click()
-  await page.getByRole('button', { name: 'Diagramar o livro' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await expect(page.getByRole('img', { name: /^Capa de / })).toBeVisible()
+  await page.getByRole('button', { name: 'Diagramar e gerar PDF' }).click()
   await expect(designer.getByRole('img', { name: 'Capa escolhida' })).toBeVisible()
   await designer.locator('summary', { hasText: /^Capítulos$/ }).click()
   await expect(designer.getByRole('radio', { name: 'Capítulo Um' })).toHaveAttribute('aria-checked', 'true')
+  await expect(designer.getByRole('radiogroup', { name: 'Ornamento acima do capítulo' }).getByRole('radio', { name: '⚜' })).toHaveAttribute('aria-checked', 'true')
 })

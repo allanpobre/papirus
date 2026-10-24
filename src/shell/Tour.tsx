@@ -26,6 +26,11 @@ const STEPS: Step[] = [
     title: 'Escrever',
     body: 'Escreva aqui. Nomes de fichas ficam sublinhados. Selecione um trecho e aparece uma barra para criar ficha, guardar um fato ou comentar. Nada vira ficha sozinho.',
   },
+  {
+    target: '[data-tour="nav-livro"]',
+    title: 'Livro',
+    body: 'Quando quiser ver o livro pronto: você escolhe a capa, o Papirus diagrama o miolo (fontes, capítulos, ornamentos) e gera o PDF. Também exporta Word e EPUB.',
+  },
   { target: '[data-tour="margem"]', view: 'escrever', title: 'A margem', body: 'Mostra quem aparece no parágrafo, nomes novos que talvez mereçam ficha e perguntas de continuidade. Dá para fechar.' },
   { target: '[data-tour="nav-fichas"]', title: 'Fichas', body: 'Personagens, lugares, facções, objetos e o que mais você inventar. Com segredos, campos livres e relações.' },
   { target: '[data-tour="nav-timeline"]', title: 'Relações, Timeline e Atlas', body: 'O mundo desenhado a partir do que você registra: o grafo de relações, a linha do tempo com calendário próprio e os mapas.' },
