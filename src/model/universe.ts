@@ -48,6 +48,8 @@ export function createUniverse(name = 'Meu universo'): Universe {
     systems: [],
     sheets: [],
     tables: [],
+    trash: [],
+    history: [],
     settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [] },
     dailyStart: {},
     createdAt: t,

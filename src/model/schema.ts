@@ -370,6 +370,33 @@ export const universeSettingsSchema = z.object({
   calendarMonths: z.array(z.object({ name: z.string(), days: z.number().int().positive() })).default([]),
 })
 
+/** Algo apagado, guardado por 30 dias. `records` traz o item e o que saiu junto (relações, fatos…). */
+export const trashItemSchema = z.object({
+  id,
+  /** Coleção do item principal. */
+  kind: z.string(),
+  label: z.string(),
+  records: z.record(z.string(), z.array(z.looseObject({ id }))),
+  deletedAt: z.string(),
+  /** Quem apagou (nome curto da conta). `null` = sem conta. */
+  by: z.string().nullable(),
+})
+
+/** Uma linha do histórico: quem mudou o quê. Edições seguidas no mesmo item viram uma só. */
+export const historyEntrySchema = z.object({
+  id,
+  action: z.enum(['criou', 'editou', 'apagou', 'recuperou', 'voltou']),
+  kind: z.string(),
+  recordId: z.string(),
+  label: z.string(),
+  at: z.string(),
+  /** Início da sequência de edições (para juntar as seguintes). */
+  since: z.string(),
+  by: z.string().nullable(),
+  /** Como o item estava antes (só nas entradas mais recentes, para voltar atrás). */
+  before: z.looseObject({ id }).nullable().default(null),
+})
+
 export const universeSchema = z.object({
   id,
   name: z.string(),
@@ -391,6 +418,8 @@ export const universeSchema = z.object({
   systems: z.array(gameSystemSchema).default([]),
   sheets: z.array(sheetSchema).default([]),
   tables: z.array(randomTableSchema).default([]),
+  trash: z.array(trashItemSchema).default([]),
+  history: z.array(historyEntrySchema).default([]),
   settings: universeSettingsSchema,
   /** Total de palavras no início de cada dia (AAAA-MM-DD), para metas diárias. */
   dailyStart: z.record(z.string(), z.number()),
@@ -451,4 +480,6 @@ export type CollectionKey =
   | 'systems'
   | 'sheets'
   | 'tables'
+export type TrashItem = z.infer<typeof trashItemSchema>
+export type HistoryEntry = z.infer<typeof historyEntrySchema>
 export type RecordOf<K extends CollectionKey> = Universe[K][number]

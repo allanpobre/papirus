@@ -2,6 +2,8 @@ import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, 
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
+import { purgeTrash, track } from '../logic/history'
+import { useAccount } from '../account/auth'
 import type { Universe } from '../model/schema'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
@@ -93,7 +95,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   // Registra o total de palavras no início do dia, para a meta diária.
   useEffect(() => {
-    if (!readOnly) write(withDailyStart)
+    if (!readOnly) write((u) => purgeTrash(withDailyStart(u)))
   }, [write, readOnly])
 
   // Repetir uma nova tentativa de salvar se a anterior falhou.
@@ -121,14 +123,21 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   // Só leitura: nenhuma mudança passa (e um aviso explica, no máximo a cada poucos segundos).
   const lastBlocked = useRef(0)
+  // Cada mudança feita aqui passa pela lixeira e pelo histórico, com o nome de quem fez.
+  const account = useAccount()
+  const me = useRef<string | null>(null)
+  useEffect(() => {
+    me.current = account.user?.email ? shortName(account.user.email) : null
+  }, [account.user?.email])
+  const tracked = useCallback((change: (u: Universe) => Universe) => write((u) => track(u, change(u), me.current)), [write])
   const update = useMemo(() => {
-    if (!readOnly) return write
+    if (!readOnly) return tracked
     return () => {
       if (Date.now() - lastBlocked.current < 4000) return
       lastBlocked.current = Date.now()
       toast(source.kind === 'link' ? 'Você está lendo pelo link: aqui nada pode ser mudado.' : 'Este universo foi compartilhado só para ver. Peça a quem é dono para poder editar.')
     }
-  }, [readOnly, write, toast, source.kind])
+  }, [readOnly, tracked, toast, source.kind])
   useReadOnlyInputs(readOnly)
 
   const applyRemote = useCallback(
