@@ -27,6 +27,10 @@ const QUESTION_LABEL: Record<QuestionType, string> = {
   'apos-fim': 'Aparece depois da morte ou do fim registrado',
   'antes-inicio': 'Aparece antes do nascimento ou do início',
   'fatos-divergentes': 'Fatos estabelecidos que se contradizem',
+  'descricao-divergente': 'Olhos ou cabelo de cores diferentes (no texto ou na ficha)',
+  'morto-reaparece': 'Personagem que morreu e aparece numa cena depois',
+  'nome-parecido': 'Nome escrito quase igual a outro (erro de digitação?)',
+  'data-impossivel': 'Datas impossíveis (fim antes do começo, dia fora do calendário)',
 }
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })

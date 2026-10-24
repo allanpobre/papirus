@@ -2,7 +2,7 @@ import { codexSnapshot } from '../share/snapshot'
 import { describe, expect, it } from 'vitest'
 import { universeSchema } from '../model/schema'
 import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
-import { insert, manuscriptOrder, draftRevelation } from '../model/universe'
+import { addScene, addStory, createUniverse, draftEntity, draftFact, draftRevelation, insert, manuscriptOrder, updateScene } from '../model/universe'
 import { codexFor, codexMarkdown, factSentence } from './codex'
 import { continuityQuestions, isOpen } from './continuity'
 import { DiceError, roll } from './dice'
@@ -36,7 +36,8 @@ describe('continuidade', () => {
   it('pergunta sobre presença em dois lugares no mesmo dia', () => {
     const q = qs.find((x) => x.type === 'presenca-dupla' && x.entityId === find('Kael').id)
     expect(q?.text).toMatch(/Kael está em Ostria .* e em Vale das Brumas/)
-    expect(qs.some((x) => x.type === 'presenca-dupla' && x.entityId === find('Mira').id)).toBe(true)
+    // Mira está em Ostria e na Torre de Marfim, que fica em Ostria: não é estar em dois lugares.
+    expect(qs.some((x) => x.type === 'presenca-dupla' && x.entityId === find('Mira').id)).toBe(false)
   })
 
   it('pergunta sobre fatos estabelecidos que divergem', () => {
@@ -270,5 +271,60 @@ describe('palavras por dia', () => {
       { day: '2026-10-22', words: 30 },
       { day: '2026-10-23', words: 20 },
     ])
+  })
+})
+
+describe('continuidade: o que o texto e as fichas dizem', () => {
+  const base = () => {
+    let u = createUniverse('Teste')
+    let story
+    ;[u, story] = addStory(u, 'Livro')
+    let kael
+    ;[u, kael] = insert(u, 'entities', { ...draftEntity('personagem', 'Kael'), fields: [{ key: 'Olhos', value: 'Verdes' }] })
+    const scene = (title: string, text: string, presentIds: string[] = []) => {
+      let s
+      ;[u, s] = addScene(u, story.id, title)
+      u = updateScene(u, s.id, { text, presentIds })
+      return s
+    }
+    return { get u() { return u }, set u(v) { u = v }, kael, scene }
+  }
+
+  it('olhos que mudam de cor entre a ficha e o texto', () => {
+    const t = base()
+    t.scene('Um', 'Kael olhou para o mar com seus olhos muito azuis. Mira riu.')
+    const q = continuityQuestions(t.u).filter((x) => x.type === 'descricao-divergente')
+    expect(q).toHaveLength(1)
+    expect(q[0].text).toContain('Os olhos de Kael aparecem de jeitos diferentes: verdes na ficha, azuis em “Um”')
+  })
+
+  it('quem morreu e aparece depois', () => {
+    const t = base()
+    const a = t.scene('A batalha', 'Kael caiu.')
+    t.scene('Depois', 'Kael abriu a porta.', [t.kael.id])
+    ;[t.u] = insert(t.u, 'facts', draftFact({ subjectId: t.kael.id, predicate: 'morreu', value: 'na batalha', sourceSceneId: a.id, canon: 'estabelecido' }))
+    const q = continuityQuestions(t.u).filter((x) => x.type === 'morto-reaparece')
+    expect(q.map((x) => x.text)).toEqual(['Kael morre em “A batalha”, mas está em “Depois”, depois. Lembrança, fantasma, ou a morte foi falsa?'])
+  })
+
+  it('nome escrito quase igual', () => {
+    const t = base()
+    t.scene('Um', 'Kael chegou. Kael sentou. Kael falou. Depois, Kale saiu.')
+    const q = continuityQuestions(t.u).filter((x) => x.type === 'nome-parecido')
+    expect(q).toHaveLength(1)
+    expect(q[0].text).toContain('“Kale” aparece uma vez')
+  })
+
+  it('datas impossíveis', () => {
+    const t = base()
+    t.u = { ...t.u, entities: t.u.entities.map((e) => ({ ...e, startYear: 300, endYear: 200 })) }
+    const q = continuityQuestions(t.u).filter((x) => x.type === 'data-impossivel')
+    expect(q[0].text).toContain('termina em 200')
+  })
+
+  it('pode ser desligado', () => {
+    const t = base()
+    t.scene('Um', 'Kael tinha olhos azuis.')
+    expect(continuityQuestions(t.u, { 'descricao-divergente': false }).filter((x) => x.type === 'descricao-divergente')).toHaveLength(0)
   })
 })
