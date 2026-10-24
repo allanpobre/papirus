@@ -3807,4 +3807,19 @@ code {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 600;
+/* Num ponto da história: quem entra nesta cena chega sem atraso e com destaque. */
+.node.is-new > circle:not(.node-ring) {
+  stroke: var(--violet);
+  stroke-width: 3;
+  animation-delay: 0ms;
+}
+
+.node.is-new .node-label {
+  fill: var(--violet);
+  font-weight: 700;
+}
+
+.graph-change-new {
+  background: var(--violet-soft);
+  color: var(--violet);
 }
