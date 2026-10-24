@@ -203,7 +203,7 @@ test('captura um fato a partir de uma fala, como afirmação de personagem', asy
 test('busca global encontra uma ficha pelo apelido, sem acento', async ({ page }) => {
   await openSample(page)
   await page.keyboard.press('ControlOrMeta+k')
-  await page.getByRole('combobox', { name: 'Buscar no universo' }).fill('homem palido')
+  await page.getByRole('combobox', { name: 'Buscar no universo' }).fill('principe perdido')
   await page.keyboard.press('Enter')
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Vaelor')
 })

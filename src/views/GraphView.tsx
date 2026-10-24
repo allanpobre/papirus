@@ -276,6 +276,29 @@ export default function GraphView() {
             {scene.storyId && <span className="muted"> · {byId(universe, 'stories', scene.storyId)?.title}</span>}
             {scene.date && <span className="muted"> · {formatDate(universe, scene.date)}</span>}
           </p>
+          {(() => {
+            // O que muda nesta cena em relação à anterior: é isso que o mapa anima.
+            const i = Math.min(sceneIndex, scenes.length - 1)
+            const prev = i > 0 ? scenes[i - 1] : null
+            const scoped = universe.relations.filter((r) => r.scope.kind !== 'geral')
+            const starts = scoped.filter((r) => activeAt(r, scene) && (!prev || !activeAt(r, prev)))
+            const ends = prev ? scoped.filter((r) => !activeAt(r, scene) && activeAt(r, prev)) : []
+            if (!starts.length && !ends.length) return <p className="graph-changes muted small">Nada muda nesta cena.</p>
+            return (
+              <ul className="graph-changes small" aria-label="O que muda nesta cena">
+                {starts.map((r) => (
+                  <li key={`s-${r.id}`} className="graph-change-start">
+                    <span aria-hidden="true">+</span> {relationSentence(universe, r)}
+                  </li>
+                ))}
+                {ends.map((r) => (
+                  <li key={`e-${r.id}`} className="graph-change-end">
+                    <span aria-hidden="true">−</span> {relationSentence(universe, r)} <span className="muted">(deixa de valer)</span>
+                  </li>
+                ))}
+              </ul>
+            )
+          })()}
         </div>
       )}
 

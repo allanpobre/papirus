@@ -91,6 +91,9 @@ export default function HomeView() {
                 <button type="button" className="btn btn-ghost" onClick={newScene}>
                   <Plus size={16} /> Nova cena
                 </button>
+                <button type="button" className="btn btn-ghost" title="O livro cena a cena, com o caderno do leitor (sem spoiler)" onClick={openReader}>
+                  <BookOpen size={16} /> {source.kind === 'proprio' || source.kind === 'editar' ? 'Ler como leitor' : 'Ler como livro'}
+                </button>
               </div>
             </>
           ) : (
@@ -196,9 +199,6 @@ export default function HomeView() {
         </button>
         <button type="button" className="btn btn-ghost" onClick={openSearch}>
           <Search size={16} /> Buscar em tudo
-        </button>
-        <button type="button" className="btn btn-ghost" onClick={openReader}>
-          <BookOpen size={16} /> {source.kind === 'proprio' || source.kind === 'editar' ? 'Prévia do leitor' : 'Ler como livro'}
         </button>
         {source.kind === 'proprio' && (
           <button type="button" className="btn btn-ghost" onClick={openShare}>

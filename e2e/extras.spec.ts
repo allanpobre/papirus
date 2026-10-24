@@ -263,7 +263,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
   await nav(page, 'Fichas').click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
   await page.getByRole('combobox', { name: 'Nova relação' }).fill('envenenou')
-  await page.getByRole('combobox', { name: 'Com' }).fill('Vaelor')
+  await page.getByRole('combobox', { name: 'Com', exact: true }).fill('Vaelor')
   await page.getByRole('option', { name: /^Vaelor/ }).first().click()
   await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
 
@@ -281,7 +281,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
 
   // No grafo: a linha tracejada de quem está por trás; no ponto da história (359), a relação ainda não vale.
   await nav(page, 'Relações').click()
-  await expect(page.locator('.edge-via')).toHaveCount(2)
+  await expect(page.locator('.edge-via')).toHaveCount(3)
   await page.locator('.node', { hasText: 'Kael' }).click()
   await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toContainText('Kael envenenou Vaelor, a mando de Mira · a partir de 360 DC')
   await page.getByRole('radio', { name: 'Num ponto da história' }).click()
@@ -289,7 +289,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
   const envenenou = page.locator('.edge.off')
   await expect(envenenou).not.toHaveCount(0)
   await page.getByRole('button', { name: 'Tocar a história' }).click()
-  await expect(page.getByText(/^2\/4/)).toBeVisible({ timeout: 4000 })
+  await expect(page.getByText(/^2\/9/)).toBeVisible({ timeout: 4000 })
 })
 
 test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', async ({ page }) => {
@@ -305,6 +305,8 @@ test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', asy
   await page.mouse.move(box.x + 20, box.y - 80, { steps: 8 })
   await page.mouse.up()
   expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('')
+  // O arrasto leva o mapa para longe: enquadra de novo antes do duplo clique.
+  await page.getByRole('button', { name: 'Enquadrar' }).click()
   await page.locator('.node', { hasText: 'Kael' }).dblclick({ force: true })
   expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('')
   await nav(page, 'Relações').click()

@@ -2,7 +2,7 @@ import { expect, test } from './fixtures.ts'
 
 test('Ctrl+K: ações além da busca', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await expect(page.getByRole('button', { name: 'Prévia do leitor' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ler como leitor' })).toBeVisible()
   await page.keyboard.press('Control+k')
   const input = page.getByRole('combobox', { name: 'Buscar no universo' })
   await input.fill('nova cena')
