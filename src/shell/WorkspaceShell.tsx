@@ -42,6 +42,7 @@ const RpgView = lazy(() => import('../views/rpg/RpgView'))
 const InboxView = lazy(() => import('../views/InboxView'))
 const ArchivistView = lazy(() => import('../views/ArchivistView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
+const BookView = lazy(() => import('../views/BookView'))
 const BookDesigner = lazy(() => import('../book/BookDesigner'))
 
 const STATUS_LABEL: Record<SaveStatus, string> = {
@@ -521,6 +522,8 @@ function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | 
       return <HomeView />
     case 'escrever':
       return <WriteView />
+    case 'livro':
+      return <BookView />
     case 'fichas':
       return <EntitiesView />
     case 'relacoes':

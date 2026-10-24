@@ -496,7 +496,7 @@ function formatBytes(n: number): string {
 /** Áreas escondidas por perfil de uso. */
 const PRESETS: Record<'escrita' | 'rpg', View[]> = {
   escrita: ['rpg'],
-  rpg: ['organizar', 'conhecimento'],
+  rpg: ['organizar', 'conhecimento', 'livro'],
 }
 
 function CalendarEditor() {

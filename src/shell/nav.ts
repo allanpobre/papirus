@@ -1,5 +1,6 @@
 import {
   BookMarked,
+  BookOpenText,
   CalendarRange,
   Dices,
   Feather,
@@ -23,7 +24,13 @@ export interface NavItem {
 
 export const NAV: { group: string; items: NavItem[] }[] = [
   { group: '', items: [{ view: 'inicio', label: 'Início', icon: House }] },
-  { group: 'Escrita', items: [{ view: 'escrever', label: 'Escrever', icon: Feather }] },
+  {
+    group: 'Escrita',
+    items: [
+      { view: 'escrever', label: 'Escrever', icon: Feather },
+      { view: 'livro', label: 'Livro', icon: BookOpenText },
+    ],
+  },
   {
     group: 'Mundo',
     items: [

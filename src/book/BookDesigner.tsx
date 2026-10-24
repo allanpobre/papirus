@@ -31,7 +31,11 @@ const BREAKS: { value: BookDesign['sceneBreak']; label: string }[] = [
   { value: 'traco', label: '—' },
   { value: 'linha', label: 'Linha' },
   { value: 'espaco', label: 'Espaço' },
+  { value: 'simbolo', label: 'Outro símbolo…' },
 ]
+
+/** Símbolos para ornamentos e quebras de cena. Dá para digitar qualquer outro. */
+const SYMBOLS = ['❦', '❧', '☙', '⁂', '✦', '✧', '❖', '◆', '◇', '✶', '✷', '✺', '❂', '❁', '✿', '❀', '⚜', '✠', '☽', '☾', '★', '☆', '✥', '※', '⁕', '§', '⸙', '•', '• • •', '~ ~ ~', '— ✦ —', '❧ ❦ ☙']
 const BODY: { value: BookDesign['bodyFont']; key: keyof typeof BOOK_FONTS }[] = [
   { value: 'garamond', key: 'garamond' },
   { value: 'crimson', key: 'crimson' },
@@ -344,12 +348,19 @@ export default function BookDesigner({ onClose }: { onClose: () => void }) {
             {choices('chapterLabel', 'Número', LABELS)}
             {toggle('chapterTitles', 'Mostrar o título da cena')}
             <Field label="Fonte dos títulos">{(id) => <Select id={id} value={design.titleFont} onChange={(v) => set({ titleFont: v })} options={TITLE} />}</Field>
+            <SymbolPicker label="Ornamento acima do capítulo" value={design.ornament} allowNone onChange={(v) => set({ ornament: v })} />
+            {design.chapterStyle === 'ornamentado' && (
+              <SymbolPicker label="Símbolo no floreio sob o título" value={design.dividerSymbol} allowNone onChange={(v) => set({ dividerSymbol: v })} />
+            )}
             {toggle('chapterRecto', 'Todo capítulo começa numa página da direita')}
             {toggle('dropCap', 'Letra capitular (primeira letra grande)')}
             {toggle('smallCapsLead', 'Primeiras palavras em versalete')}
           </Section>
 
-          <Section title="Quebra de cena">{choices('sceneBreak', 'Quebra de cena', BREAKS)}</Section>
+          <Section title="Quebra de cena">
+            {choices('sceneBreak', 'Quebra de cena', BREAKS)}
+            {design.sceneBreak === 'simbolo' && <SymbolPicker label="Símbolo da quebra de cena" value={design.sceneBreakSymbol} onChange={(v) => set({ sceneBreakSymbol: v })} />}
+          </Section>
 
           <Section title="Cabeçalho e números">
             {choices('header', 'Cabeçalho', [
@@ -419,5 +430,31 @@ function Range({ label, min, max, step, value, unit = '', onChange }: { label: s
       </span>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
     </label>
+  )
+}
+
+/** Escolher um símbolo da galeria, ou digitar outro (qualquer caractere, até emoji). */
+function SymbolPicker({ label, value, onChange, allowNone }: { label: string; value: string; onChange: (v: string) => void; allowNone?: boolean }) {
+  const custom = value && !SYMBOLS.includes(value)
+  return (
+    <div className="book-symbols" role="group" aria-label={label}>
+      <span className="field-label">{label}</span>
+      <div className="book-symbol-grid" role="radiogroup" aria-label={label}>
+        {allowNone && (
+          <button type="button" role="radio" aria-checked={!value} className="book-symbol-none" onClick={() => onChange('')}>
+            Nenhum
+          </button>
+        )}
+        {SYMBOLS.map((s) => (
+          <button key={s} type="button" role="radio" aria-checked={value === s} aria-label={s} className={[...s].length > 2 ? 'book-symbol-wide' : undefined} onClick={() => onChange(s)}>
+            {s}
+          </button>
+        ))}
+      </div>
+      <label className="book-symbol-custom">
+        <span className="muted tiny">Outro:</span>
+        <input className="input input-sm" maxLength={12} value={custom ? value : ''} placeholder="digite ou cole" aria-label={`${label}: outro símbolo`} onChange={(e) => onChange(e.target.value)} />
+      </label>
+    </div>
   )
 }
