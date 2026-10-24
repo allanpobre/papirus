@@ -6,6 +6,11 @@ test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async
   const leitor = page.getByRole('dialog', { name: 'Modo leitor' })
 
   await expect(leitor.getByRole('heading', { name: 'A chegada' })).toBeVisible()
+  // Com tudo: quadro ao fim da cena e caderno aberto.
+  await leitor.getByRole('button', { name: 'Como ler' }).click()
+  await leitor.getByRole('radio', { name: 'Com tudo' }).click()
+  await page.keyboard.press('Escape')
+  await leitor.getByRole('button', { name: /^Caderno/ }).click()
   const caderno = leitor.getByRole('complementary', { name: 'Caderno do leitor' })
   await expect(caderno.getByRole('button', { name: /^Kael/ })).toBeVisible()
   await expect(caderno.getByRole('button', { name: /^Mira/ })).toBeVisible()
@@ -21,9 +26,9 @@ test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async
   // Próxima cena: Ilsa entra, e o leitor descobre algo sobre a Mira.
   await leitor.getByRole('button', { name: 'Próxima cena' }).click()
   await expect(leitor.getByRole('heading', { name: 'A Torre fechada' })).toBeVisible()
-  const found = leitor.getByRole('region', { name: 'Nesta cena você descobriu' })
+  const found = leitor.getByRole('region', { name: 'Novo no caderno' })
   await expect(found).toContainText('Ilsa')
-  await expect(found).toContainText('Você descobriu sobre Mira')
+  await expect(found).toContainText('Sobre Mira')
   await expect(caderno).toContainText('Foi criada por Ilsa')
 
   // Clicar num nome no texto abre a ficha no caderno.
@@ -42,6 +47,30 @@ test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async
   await expect(leitor).toHaveCount(0)
   await page.getByRole('button', { name: 'Ler como leitor' }).click()
   await expect(leitor.getByRole('heading', { name: 'A Torre fechada' })).toBeVisible()
+})
+
+test('como ler: discreto por padrão, e dá para ficar só com o texto', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await page.getByRole('button', { name: 'Ler como leitor' }).click()
+  const leitor = page.getByRole('dialog', { name: 'Modo leitor' })
+  await leitor.getByRole('button', { name: 'Próxima cena' }).click()
+  // Discreto: nada de quadro explicando a cena; só um aviso pequeno e o +N no caderno.
+  await expect(leitor.getByRole('region', { name: 'Novo no caderno' })).toHaveCount(0)
+  await expect(leitor.getByRole('button', { name: /anotaç(ão|ões) novas? no caderno/ })).toBeVisible()
+  await expect(leitor.getByRole('complementary', { name: 'Caderno do leitor' })).toHaveCount(0)
+  await expect(leitor.locator('.leitor-text').getByRole('button', { name: 'Ilsa' }).first()).toBeVisible()
+
+  await leitor.getByRole('button', { name: 'Como ler' }).click()
+  await leitor.getByRole('radio', { name: 'Só o texto' }).click()
+  await page.keyboard.press('Escape')
+  await expect(leitor.getByRole('button', { name: /^Caderno/ })).toHaveCount(0)
+  await expect(leitor.locator('.leitor-text').getByRole('button')).toHaveCount(0)
+  await expect(leitor.getByRole('button', { name: /no caderno/ })).toHaveCount(0)
+
+  // A escolha fica guardada.
+  await leitor.getByRole('button', { name: 'Voltar ao universo' }).click()
+  await page.getByRole('button', { name: 'Ler como leitor' }).click()
+  await expect(leitor.getByRole('button', { name: /^Caderno/ })).toHaveCount(0)
 })
 
 test('ficha: marcar um trecho para revelar a partir de uma cena', async ({ page }) => {
