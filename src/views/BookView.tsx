@@ -1,4 +1,5 @@
-import { BookOpen, BookOpenText, Copy, FileDown, Palette, Plus, Printer, Trash2 } from 'lucide-react'
+import { BookOpen, BookOpenText, Copy, FileDown, Palette, Plus, Printer, SpellCheck, Trash2 } from 'lucide-react'
+import { ReviewDialog } from '../book/ReviewDialog'
 import { useMemo, useState } from 'react'
 import { BOOK_FONTS } from '../export/bookFonts'
 import { BODY_FONT_KEY, PAGE_SIZES, bookContent, bookTitle } from '../export/bookDesign'
@@ -6,6 +7,9 @@ import { addBook, removeBook, shelf, storiesOutsideBooks } from '../export/shelf
 import type { BookRecord } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { ShelfPublish } from '../social/ShelfPublish'
+import { SocialDialog } from '../social/SocialDialog'
+import { useShelfSync } from '../social/useShelfSync'
 import { BookCard } from './BookCard'
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
@@ -15,11 +19,15 @@ const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'm
  * Cada livro tem capa, histórias e diagramação próprias; dá para copiar o estilo de outro.
  */
 export default function BookView() {
-  const { universe, update, openBookDesigner, openReader, readOnly, toast } = useWorkspace()
+  const { universe, update, openBookDesigner, openReader, readOnly, toast, source, prefs } = useWorkspace()
+  const shelfStatus = useShelfSync()
+  const [socialOpen, setSocialOpen] = useState(false)
   const books = useMemo(() => shelf(universe), [universe])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = books.find((b) => b.id === selectedId) ?? books[0] ?? null
   const [adding, setAdding] = useState(false)
+  const [reviewing, setReviewing] = useState<string | null>(null)
+  const reviewBookRecord = books.find((b) => b.id === reviewing)
   const [newTitle, setNewTitle] = useState('')
   const [styleFrom, setStyleFrom] = useState<string>('')
   const hasText = universe.scenes.some((s) => s.text.trim())
@@ -111,7 +119,12 @@ export default function BookView() {
       )}
 
       {selected ? (
-        <BookHero book={selected} hasText={hasText} />
+        <>
+          <BookHero book={selected} hasText={hasText} />
+          {!readOnly && source.kind === 'proprio' && (
+            <ShelfPublish book={selected} title={bookTitle(universe, selected)} status={shelfStatus} onSocial={() => setSocialOpen(true)} />
+          )}
+        </>
       ) : (
         <section className="book-hero" aria-label="Seu livro">
           <span className="book-hero-cover is-empty" aria-hidden="true">
@@ -158,6 +171,8 @@ export default function BookView() {
       </ul>
 
       {!readOnly && <BookCard />}
+      {socialOpen && <SocialDialog publicUrl={prefs.publicUrl} onClose={() => setSocialOpen(false)} />}
+      {reviewBookRecord && <ReviewDialog design={reviewBookRecord} title={bookTitle(universe, reviewBookRecord)} onClose={() => setReviewing(null)} />}
     </div>
   )
 
@@ -191,6 +206,20 @@ export default function BookView() {
             )}
             <button type="button" className="btn btn-ghost" disabled={!chapters} onClick={openReader}>
               <BookOpen size={16} /> Ler como leitor
+            </button>
+            {!readOnly && (
+              <button type="button" className="btn btn-ghost" disabled={!chapters} title="Repetições, frases longas, aspas, travessões…" onClick={() => setReviewing(book.id)}>
+                <SpellCheck size={16} /> Revisar
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={!chapters}
+              title="E-book com a mesma capa e estilo"
+              onClick={() => void import('../book/epubDownload').then((m) => m.downloadEpub(universe, book))}
+            >
+              <FileDown size={16} /> E-book
             </button>
             {!readOnly && (
               <button

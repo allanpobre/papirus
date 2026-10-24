@@ -5,6 +5,7 @@ import { downloadText, fileNameFor } from '../export/download'
 import { BOOK_PRESETS, PAGE_SIZES, bookTitle, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
 import { BOOK_FONTS, fontFaces } from '../export/bookFonts'
 import { shelf, styleOf, updateBook } from '../export/shelf'
+import { downloadEpub } from './epubDownload'
 import type { BookDesign } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
@@ -221,6 +222,14 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
         </div>
         <button type="button" className="btn btn-sm btn-ghost book-panel-toggle" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
           {panelOpen ? 'Ver páginas' : 'Opções'}
+        </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-ghost"
+          title="E-book com a mesma capa, fontes e estilo (Kindle, Kobo, Apple Livros, Google Play Livros)"
+          onClick={() => void downloadEpub(universe, design).then(() => toast('E-book baixado. No Kindle, use “Enviar para o Kindle” com o arquivo EPUB.'))}
+        >
+          <BookOpen size={15} /> E-book (EPUB)
         </button>
         <button type="button" className="btn btn-sm btn-ghost" onClick={download} title="Arquivo com o livro pronto: abra no navegador e imprima em PDF">
           <Download size={15} /> Baixar para imprimir

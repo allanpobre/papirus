@@ -6,7 +6,7 @@ export type SettingsCategory = 'aparencia' | 'universo' | 'escrita' | 'menu' | '
 /** Categorias dos Ajustes. As palavras ajudam a busca a achar o que a pessoa procura. */
 export const SETTINGS_CATEGORIES: { id: SettingsCategory; label: string; icon: LucideIcon; words: string }[] = [
   { id: 'aparencia', label: 'Aparência', icon: Palette, words: 'tema claro escuro cor cores destaque fonte letra tamanho largura página visual' },
-  { id: 'universo', label: 'Universo', icon: Globe, words: 'nome descrição ano rótulo calendário meses dias meta palavras e se ramo realidade alternativa' },
+  { id: 'universo', label: 'Universo', icon: Globe, words: 'nome descrição ano rótulo calendário meses dias meta palavras e se ramo realidade alternativa campos sugeridos ficha modelo' },
   { id: 'escrita', label: 'Escrita', icon: Feather, words: 'destacar nomes detecção margem barra formatação continuidade perguntas editor' },
   { id: 'menu', label: 'Menu e ajuda', icon: PanelLeft, words: 'menu áreas esconder mostrar tour tutorial atalhos teclado ajuda' },
   { id: 'dados', label: 'Dados e backup', icon: HardDrive, words: 'backup baixar importar exportar json markdown pasta computador snapshot armazenamento salvar' },

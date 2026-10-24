@@ -4,6 +4,8 @@ import { AccountDialog } from '../account/AccountDialog'
 import { useAccount } from '../account/auth'
 import type { Accent } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
+import { ENTITY_KINDS } from '../model/schema'
+import { kindLabel } from '../model/labels'
 
 const ACCENTS: { id: Accent; label: string }[] = [
   { id: 'viridiana', label: 'Viridiana' },
@@ -55,5 +57,54 @@ export function AccountCard() {
       </div>
       {open && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setOpen(false)} />}
     </section>
+  )
+}
+
+/** Campos sugeridos por tipo de ficha: toda ficha nova do tipo já nasce com eles. */
+export function FieldTemplatesCard() {
+  const { universe, update } = useWorkspace()
+  const templates = universe.settings.fieldTemplates ?? {}
+  const kinds = [...new Set([...ENTITY_KINDS, ...universe.entities.map((e) => e.kind), ...Object.keys(templates)])]
+  const setKind = (kind: string, text: string) =>
+    update((u) => {
+      const list = text
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean)
+      const next = { ...(u.settings.fieldTemplates ?? {}) }
+      if (list.length) next[kind] = list
+      else delete next[kind]
+      return { ...u, settings: { ...u.settings, fieldTemplates: next }, updatedAt: new Date().toISOString() }
+    })
+  return (
+    <section className="settings-card">
+      <h2 className="section-title">Campos sugeridos nas fichas</h2>
+      <p className="muted small">Toda ficha nova do tipo já nasce com estes campos, vazios. Separe por vírgula. Fichas que já existem não mudam.</p>
+      <div className="field-templates">
+        {kinds.map((k) => (
+          <label key={k} className="field-template-row">
+            <span className="field-label">{kindLabel(k)}</span>
+            <FieldTemplateInput value={(templates[k] ?? []).join(', ')} onCommit={(v) => setKind(k, v)} placeholder="Ex.: Idade, Objetivo, Medo" />
+          </label>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/** Guarda ao sair do campo (enquanto digita, vírgulas soltas não viram campos vazios). */
+function FieldTemplateInput({ value, onCommit, placeholder }: { value: string; onCommit: (v: string) => void; placeholder: string }) {
+  const [draft, setDraft] = useState<string | null>(null)
+  return (
+    <input
+      className="input"
+      value={draft ?? value}
+      placeholder={placeholder}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        if (draft !== null && draft !== value) onCommit(draft)
+        setDraft(null)
+      }}
+    />
   )
 }

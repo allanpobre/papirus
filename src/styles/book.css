@@ -289,3 +289,352 @@
 .book-symbol-grid .book-symbol-wide {
   grid-column: span 2;
 }
+
+/* Revisão */
+.review {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.review-ok {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.review-group {
+  padding: 0.4rem 0.7rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.review-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+
+.review-group > :not(summary) {
+  margin-top: 0.4rem;
+}
+
+.review-count {
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.review-list {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-item {
+  display: grid;
+  gap: 0.1rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.review-item:hover {
+  border-color: var(--accent);
+}
+
+.review-where {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.review-excerpt {
+  color: var(--ink-2);
+  font-family: var(--font-text);
+  font-style: italic;
+}
+
+/* ---------------------------------------------------------------- perfil, amigos e estante */
+
+.shelf-publish {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 44rem;
+  margin: 1.5rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.shelf-publish-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.shelf-publish p {
+  margin: 0;
+}
+
+.shelf-publish .segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.shelf-publish-blurb {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.social {
+  display: grid;
+  gap: 1rem;
+}
+
+.social-back {
+  justify-self: start;
+}
+
+.social-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  margin-left: 0.35rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.72rem;
+}
+
+.social-form {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 30rem;
+}
+
+.social-form > .btn {
+  justify-self: start;
+}
+
+.social-field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.social-invalid {
+  color: var(--danger);
+}
+
+.social-photo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.social-photo label.btn {
+  cursor: pointer;
+}
+
+.social-handle-input {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.social-handle-input > span {
+  color: var(--ink-2);
+}
+
+.social-avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.social-avatar-empty {
+  display: inline-grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-display);
+}
+
+.social-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.social-h {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0;
+  font-size: 0.95rem;
+}
+
+.social-find {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.social-find .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.social-list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.social-person {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+}
+
+.social-person-open {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.social-person-name {
+  display: grid;
+}
+
+.social-person-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.social-profile-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.social-profile-head > div:nth-child(2) {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.social-profile-head p {
+  margin: 0.15rem 0;
+}
+
+.social-profile-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.social-bio {
+  white-space: pre-line;
+}
+
+.social-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.social-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.social-book {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.social-book-cover {
+  flex: none;
+  width: 84px;
+  height: 126px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: var(--shadow-1);
+}
+
+.social-book-cover.book-hero-placeholder {
+  height: 126px;
+  padding: 0.4rem;
+}
+
+.social-book-cover .book-hero-placeholder-title {
+  font-size: 0.8rem;
+}
+
+.social-book-info {
+  display: grid;
+  align-content: start;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.social-book-title {
+  font-family: var(--font-display);
+}
+
+.social-book-blurb {
+  margin: 0.2rem 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.social-book-read {
+  justify-self: start;
+  margin-top: 0.3rem;
+}
+
+.social > .segmented {
+  justify-self: start;
+}

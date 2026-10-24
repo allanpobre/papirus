@@ -140,14 +140,14 @@ interface DocNode {
   content?: DocNode[]
 }
 
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+export const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 /** Texto para dentro de content: "…" no CSS. */
-const cssString = (s: string) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ')}"`
+export const cssString = (s: string) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ')}"`
 
 function inline(nodes: DocNode[] = []): string {
   return nodes
     .map((n) => {
-      if (n.type === 'hardBreak') return '<br>'
+      if (n.type === 'hardBreak') return '<br/>'
       if (n.type !== 'text' || !n.text) return n.content ? inline(n.content) : ''
       let html = esc(n.text)
       for (const m of n.marks ?? []) {
@@ -213,14 +213,14 @@ function body(doc: SceneDoc, d: BookDesign, startOfChapter: boolean): string {
   return out.join('\n')
 }
 
-const sceneBreak = (d: BookDesign) =>
+export const sceneBreak = (d: BookDesign) =>
   d.sceneBreak === 'linha'
-    ? '<hr class="scene-break line">'
+    ? '<hr class="scene-break line"/>'
     : d.sceneBreak === 'espaco'
       ? '<div class="scene-break space"></div>'
       : `<p class="scene-break">${esc(d.sceneBreak === 'simbolo' ? d.sceneBreakSymbol.trim() || '✦' : SCENE_BREAK[d.sceneBreak])}</p>`
 
-const paragraphs = (text: string) =>
+export const paragraphs = (text: string) =>
   text
     .split(/\n{2,}|\n/)
     .map((p) => p.trim())
@@ -284,7 +284,7 @@ export function buildBook(universe: Universe, design: BookDesign): { title: stri
   const year = d.year.trim() || String(new Date().getFullYear())
   const sections: string[] = []
 
-  if (d.cover) sections.push(`<section class="cover"><img src="${esc(d.cover)}" alt=""></section>`)
+  if (d.cover) sections.push(`<section class="cover"><img src="${esc(d.cover)}" alt=""/></section>`)
   sections.push(
     `<section class="title-page"><h1 class="book-title">${esc(title)}</h1>${d.subtitle.trim() ? `<p class="subtitle">${esc(d.subtitle)}</p>` : ''}${
       d.author.trim() ? `<p class="author">${esc(d.author)}</p>` : ''
@@ -326,7 +326,7 @@ export function buildBook(universe: Universe, design: BookDesign): { title: stri
 
   if (d.acknowledgments.trim()) sections.push(`<section class="back-matter"><h2>Agradecimentos</h2>${paragraphs(d.acknowledgments)}</section>`)
   if (d.aboutAuthor.trim()) sections.push(`<section class="back-matter"><h2>${d.author.trim() ? `Sobre ${esc(d.author.trim())}` : 'Sobre o autor'}</h2>${paragraphs(d.aboutAuthor)}</section>`)
-  if (d.backCover) sections.push(`<section class="cover back-cover"><img src="${esc(d.backCover)}" alt=""></section>`)
+  if (d.backCover) sections.push(`<section class="cover back-cover"><img src="${esc(d.backCover)}" alt=""/></section>`)
 
   return { title, html: sections.join('\n'), css: bookCss(d, title), chapters: all.length, words }
 }
@@ -430,7 +430,7 @@ ul,ol{margin:.6em 0 .6em 1.4em;padding:0}
 `
 }
 
-function fontFamily(key: BookDesign['bodyFont'] | Exclude<BookDesign['titleFont'], 'igual'>): string {
+export function fontFamily(key: BookDesign['bodyFont'] | Exclude<BookDesign['titleFont'], 'igual'>): string {
   const map: Record<string, string> = {
     literata: 'Literata Book',
     garamond: 'EB Garamond Book',
@@ -446,7 +446,7 @@ function fontFamily(key: BookDesign['bodyFont'] | Exclude<BookDesign['titleFont'
   return map[key]
 }
 
-const CHAPTER_CSS: Record<BookDesign['chapterStyle'], (titleStack: string, d: BookDesign) => string> = {
+export const CHAPTER_CSS: Record<BookDesign['chapterStyle'], (titleStack: string, d: BookDesign) => string> = {
   classico: () => `
 .chapter-head{text-align:center}
 .chapter-label{font-variant:small-caps;letter-spacing:.18em;font-size:.95em;margin-bottom:.8em}

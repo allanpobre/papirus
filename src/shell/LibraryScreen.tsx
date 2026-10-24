@@ -1,4 +1,4 @@
-import { BookOpen, Cloud, Dices, Eye, Feather, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, ShieldCheck, Sparkles, Sun, Trash2, Users } from 'lucide-react'
+import { BookOpen, CircleUser, Cloud, Dices, Eye, Feather, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, ShieldCheck, Sparkles, Sun, Trash2, Users } from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
@@ -9,11 +9,13 @@ import { migrate } from '../model/migrations'
 import { sampleUniverse } from '../model/sample'
 import type { Universe } from '../model/schema'
 import { createUniverse, newId } from '../model/universe'
+import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../model/templates'
 import type { Library, LibraryEntry } from '../persistence/repository'
 import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistence/folder'
 import type { usePrefs } from '../state/prefs'
 import type { View } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { SocialDialog } from '../social/SocialDialog'
 import { Brand } from './Brand'
 
 interface Props {
@@ -30,8 +32,12 @@ const dateFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyl
 
 export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onChanged, onOpenShared }: Props) {
   const [name, setName] = useState('')
+  const [template, setTemplate] = useState<UniverseTemplate['id']>('branco')
   const [error, setError] = useState<string | null>(null)
   const [accountOpen, setAccountOpen] = useState(false)
+  // Link de perfil (?perfil=fulano) abre direto a estante dessa pessoa.
+  const [profileHandle, setProfileHandle] = useState<string | undefined>(() => new URLSearchParams(location.search).get('perfil') ?? undefined)
+  const [socialOpen, setSocialOpen] = useState(!!profileHandle)
   const fileRef = useRef<HTMLInputElement>(null)
   const { prefs: p, setPref } = prefs
   const dark = p.theme === 'escuro' || (p.theme === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches)
@@ -124,7 +130,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         className="library-new"
         onSubmit={(e) => {
           e.preventDefault()
-          onCreated(createUniverse(name.trim() || 'Novo universo'))
+          onCreated(applyTemplate(createUniverse(name.trim() || 'Novo universo'), template))
           setName('')
         }}
       >
@@ -136,6 +142,15 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <Plus size={18} /> Criar universo
         </button>
       </form>
+      <div className="library-templates" role="radiogroup" aria-label="Começar como">
+        <span className="library-templates-label">Começar como:</span>
+        {UNIVERSE_TEMPLATES.map((t) => (
+          <button key={t.id} type="button" role="radio" aria-checked={template === t.id} className="welcome-option" title={t.hint} onClick={() => setTemplate(t.id)}>
+            {t.label}
+          </button>
+        ))}
+        <p className="tiny muted library-templates-hint">{UNIVERSE_TEMPLATES.find((t) => t.id === template)?.hint} Nada é escrito por você; tudo pode mudar depois.</p>
+      </div>
 
       <div className="library-alt">
         <button type="button" className="btn btn-ghost" onClick={() => onCreated(sampleUniverse())}>
@@ -193,6 +208,11 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <button type="button" className="btn-icon" aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'} onClick={() => setPref('theme', dark ? 'claro' : 'escuro')}>
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+          {account.server && (
+            <button type="button" className="btn-icon" aria-label="Perfil e amigos" title="Perfil e amigos" onClick={() => setSocialOpen(true)}>
+              <CircleUser size={18} />
+            </button>
+          )}
           <AccountButton onClick={() => setAccountOpen(true)} />
         </div>
       </header>
@@ -278,6 +298,20 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         </main>
       )}
 
+      {socialOpen && (
+        <SocialDialog
+          publicUrl={p.publicUrl}
+          initialHandle={profileHandle}
+          onAccount={() => setAccountOpen(true)}
+          onClose={() => {
+            setSocialOpen(false)
+            if (profileHandle) {
+              history.replaceState(null, '', location.pathname)
+              setProfileHandle(undefined)
+            }
+          }}
+        />
+      )}
       {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
     </div>
   )

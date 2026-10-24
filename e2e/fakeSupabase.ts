@@ -4,6 +4,7 @@ import type { BrowserContext, Route } from '@playwright/test'
  * Um Supabase de mentira, compartilhado entre vários navegadores (contextos), com as
  * regras de supabase/contas.sql e supabase/compartilhar.sql: cada um vê o que é seu,
  * quem pode editar altera o universo do dono, quem só vê lê a cópia de leitura.
+ * Também supabase/social.sql: perfis, amizades e a estante (privado/amigos/público).
  */
 export const SERVER = 'https://papirus-teste.supabase.co'
 
@@ -20,7 +21,13 @@ export const PEOPLE = {
 export const PASSWORD = 'segredo123'
 
 export function createFakeSupabase() {
-  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [] }
+  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [] }
+  const friends = (a: unknown, b: unknown) =>
+    tables.papirus_friendships.some((f) => f.status === 'aceita' && ((f.requester === a && f.addressee === b) || (f.requester === b && f.addressee === a)))
+  /** Tabelas que quem não tem conta também lê (o que é público). */
+  const PUBLIC_READ = new Set(['papirus_profiles', 'papirus_shelf'])
+  /** Coluna do dono de cada linha (quem pode escrever). */
+  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner' }
   const userOf = (route: Route) => {
     const auth = route.request().headers()['authorization'] ?? ''
     try {
@@ -35,7 +42,11 @@ export function createFakeSupabase() {
 
   /** O RLS: o que cada pessoa enxerga em cada tabela. */
   const visible = (table: string, me: (typeof PEOPLE)['ana'] | null, r: Row, write = false) => {
+    if (table === 'papirus_shelf') return write ? r.owner === me?.id : r.owner === me?.id || r.visibility === 'publico' || (!!me && r.visibility === 'amigos' && friends(r.owner, me.id))
+    if (table === 'papirus_profiles')
+      return write ? r.user_id === me?.id : !!me || tables.papirus_shelf.some((x) => x.owner === r.user_id && x.visibility === 'publico')
     if (!me) return false
+    if (table === 'papirus_friendships') return r.requester === me.id || r.addressee === me.id
     if (table === 'papirus_universes') return r.user_id === me.id || roleOf(me, r.user_id, r.id) === 'editar'
     if (table === 'papirus_shares') return r.owner_id === me.id || (!write && roleOf(me, r.owner_id, r.universe_id) !== null)
     return r.owner_id === me.id || r.email === me.email
@@ -44,6 +55,18 @@ export function createFakeSupabase() {
   const matches = (params: URLSearchParams, r: Row) => {
     for (const [k, v] of params) {
       if (['select', 'on_conflict', 'columns', 'order', 'limit'].includes(k)) continue
+      if (k === 'or') {
+        // or=(a.eq.1,b.eq.2)
+        const any = v
+          .slice(1, -1)
+          .split(',')
+          .some((cond) => {
+            const [col, op, ...rest] = cond.split('.')
+            return op === 'eq' && String(r[col]) === rest.join('.')
+          })
+        if (!any) return false
+        continue
+      }
       if (v.startsWith('eq.')) {
         const want = v.slice(3)
         const have = r[k]
@@ -96,6 +119,10 @@ export function createFakeSupabase() {
       }
 
       const table = tables[path]
+      if (table && !me && req.method() === 'GET' && PUBLIC_READ.has(path)) {
+        const select = url.searchParams.get('select')
+        return route.fulfill({ headers: cors, json: table.filter((r) => visible(path, null, r) && matches(url.searchParams, r)).map((r) => pick(r, select)) })
+      }
       if (!table || !me) return route.fulfill({ status: 401, headers: cors, json: { message: 'permission denied' } })
       const select = url.searchParams.get('select')
       const prefer = req.headers()['prefer'] ?? ''
@@ -110,22 +137,46 @@ export function createFakeSupabase() {
 
       if (req.method() === 'POST') {
         const body = req.postDataJSON() as Row | Row[]
-        const keys: Record<string, string[]> = { papirus_universes: ['user_id', 'id'], papirus_shares: ['owner_id', 'universe_id'], papirus_members: ['owner_id', 'universe_id', 'email'] }
+        const keys: Record<string, string[]> = {
+          papirus_universes: ['user_id', 'id'],
+          papirus_shares: ['owner_id', 'universe_id'],
+          papirus_members: ['owner_id', 'universe_id', 'email'],
+          papirus_profiles: ['user_id'],
+          papirus_friendships: ['requester', 'addressee'],
+          papirus_shelf: ['owner', 'id'],
+        }
+        const written: Row[] = []
         for (const raw of Array.isArray(body) ? body : [body]) {
           const r: Row = { ...raw }
-          if (path === 'papirus_universes') r.user_id ??= me.id
-          else r.owner_id ??= me.id
+          const ownerCol = OWNER[path] ?? 'owner_id'
+          r[ownerCol] ??= me.id
+          if (path === 'papirus_profiles') {
+            if (!/^[a-z0-9_.]{3,24}$/.test(String(r.handle))) return route.fulfill({ status: 400, headers: cors, json: { code: '23514', message: 'violates check constraint "papirus_profiles_handle_check"' } })
+            if (table.some((x) => x.handle === r.handle && x.user_id !== r.user_id))
+              return route.fulfill({ status: 409, headers: cors, json: { code: '23505', message: 'duplicate key value violates unique constraint "papirus_profiles_handle_key"' } })
+            Object.assign(r, { name: r.name ?? '', bio: r.bio ?? '', avatar: r.avatar ?? null })
+          }
+          if (path === 'papirus_friendships') {
+            if (r.status !== 'pendente' || r.requester === r.addressee) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
+            if (table.some((x) => x.requester === r.addressee && x.addressee === r.requester))
+              return route.fulfill({ status: 409, headers: cors, json: { code: '23505', message: 'duplicate key value violates unique constraint "papirus_friendships_pair"' } })
+            r.created_at ??= new Date().toISOString()
+          }
           if (path === 'papirus_members') r.created_at ??= new Date().toISOString()
           if (path === 'papirus_shares') Object.assign(r, { show_secrets: r.show_secrets ?? false, link_token: r.link_token ?? null, updated_at: new Date().toISOString() })
-          if ((path === 'papirus_universes' ? r.user_id : r.owner_id) !== me.id) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
+          if (r[ownerCol] !== me.id) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
           const existing = table.find((x) => keys[path].every((k) => x[k] === r[k]))
           if (existing) {
             if (prefer.includes('ignore-duplicates')) continue
             if (prefer.includes('merge-duplicates')) Object.assign(existing, r)
             else return route.fulfill({ status: 409, headers: cors, json: { code: '23505', message: 'duplicate key value violates unique constraint' } })
-          } else table.push(r)
+            written.push(existing)
+          } else {
+            table.push(r)
+            written.push(r)
+          }
         }
-        return route.fulfill({ status: 201, headers: cors, body: '' })
+        return prefer.includes('return=representation') ? reply(written, 201) : route.fulfill({ status: 201, headers: cors, body: '' })
       }
 
       if (req.method() === 'PATCH') {
@@ -134,6 +185,9 @@ export function createFakeSupabase() {
         if (path === 'papirus_members') {
           // Só o dono muda papéis.
           for (const r of hit) if (r.owner_id === me.id) Object.assign(r, changes)
+        } else if (path === 'papirus_friendships') {
+          // Só quem recebeu aceita, e só o status muda.
+          for (const r of hit) if (r.addressee === me.id) r.status = changes.status
         } else for (const r of hit) Object.assign(r, changes)
         return prefer.includes('return=representation') ? reply(hit) : route.fulfill({ status: 204, headers: cors, body: '' })
       }

@@ -368,6 +368,8 @@ export const universeSettingsSchema = z.object({
   ignoredNames: z.array(z.string()),
   /** Meses do calendário do universo. Vazio = só o ano e o dia do ano. */
   calendarMonths: z.array(z.object({ name: z.string(), days: z.number().int().positive() })).default([]),
+  /** Campos sugeridos por tipo de ficha: toda ficha nova daquele tipo já nasce com eles (vazios). */
+  fieldTemplates: z.record(z.string(), z.array(z.string())).default({}),
 })
 
 /**
@@ -430,6 +432,10 @@ export const bookDesignSchema = z.object({
   toc: z.boolean().default(true),
   /** Histórias viram "partes" com página própria (quando há mais de uma). */
   parts: z.boolean().default(true),
+  /** Sinopse de contracapa: vai na estante do perfil (e no e-book). */
+  blurb: z.string().max(2000).default(''),
+  /** Na estante do perfil: ninguém vê, amigos ou todo mundo. */
+  shelfVisibility: z.enum(['privado', 'amigos', 'publico']).default('privado'),
 })
 
 /** Um livro da estante: a diagramação com um id (um universo pode ter vários: série, contos…). */

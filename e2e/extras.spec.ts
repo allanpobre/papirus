@@ -342,3 +342,16 @@ test('arrastar o grafo por cima de nomes e de texto selecionado não inicia o "a
   }
   expect(await page.evaluate(() => (window as unknown as { drags: number }).drags)).toBe(0)
 })
+
+test('modelo de universo: fantasia já traz o Livro I e campos sugeridos nas fichas', async ({ page }) => {
+  await page.goto('/app/')
+  await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Eldra')
+  await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Fantasia' }).click()
+  await page.getByRole('button', { name: 'Criar universo' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Fichas' }).click()
+  await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Kael')
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('textbox', { name: 'Campo' }).first()).toHaveValue('Idade')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Escrever' }).click()
+  await expect(page.locator('.write-tree')).toContainText('Capítulo 1')
+})

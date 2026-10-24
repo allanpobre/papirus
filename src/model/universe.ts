@@ -52,7 +52,7 @@ export function createUniverse(name = 'Meu universo'): Universe {
     history: [],
     book: null,
     books: [],
-    settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [] },
+    settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [], fieldTemplates: {} },
     dailyStart: {},
     createdAt: t,
     updatedAt: t,
@@ -70,7 +70,14 @@ export function insert<K extends CollectionKey>(
   draft: Draft<K>,
 ): [Universe, RecordOf<K>] {
   const t = now()
-  const record = { ...draft, id: newId(), createdAt: t, updatedAt: t } as RecordOf<K>
+  let filled = draft
+  // Ficha nova sem campos: ganha os campos sugeridos para o tipo dela (modelos de universo).
+  if (key === 'entities') {
+    const e = draft as Draft<'entities'>
+    const keys = universe.settings.fieldTemplates?.[e.kind] ?? []
+    if (!e.fields.length && keys.length) filled = { ...e, fields: keys.map((k) => ({ key: k, value: '' })) } as unknown as Draft<K>
+  }
+  const record = { ...filled, id: newId(), createdAt: t, updatedAt: t } as RecordOf<K>
   const list = universe[key] as RecordOf<K>[]
   return [{ ...universe, [key]: [...list, record], updatedAt: t }, record]
 }

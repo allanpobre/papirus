@@ -22,7 +22,7 @@ function materialize(u: Universe): Universe {
 }
 
 /** O que é estilo (vai junto ao copiar o estilo de outro livro da série). O resto é conteúdo de cada livro. */
-const CONTENT_KEYS = ['storyIds', 'title', 'subtitle', 'cover', 'backCover', 'dedication', 'epigraph', 'epigraphSource', 'acknowledgments'] as const
+const CONTENT_KEYS = ['storyIds', 'title', 'subtitle', 'cover', 'backCover', 'dedication', 'epigraph', 'epigraphSource', 'acknowledgments', 'blurb', 'shelfVisibility'] as const
 
 export function styleOf(b: BookDesign): Partial<BookDesign> {
   const out: Partial<BookDesign> = { ...b }

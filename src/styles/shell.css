@@ -1268,3 +1268,28 @@
     grid-column: 1 / -1;
   }
 }
+
+.library-templates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+
+.library-templates-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.library-templates .welcome-option[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+  color: var(--accent);
+}
+
+.library-templates-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
