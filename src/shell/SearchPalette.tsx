@@ -1,5 +1,6 @@
 import { BookMarked, CalendarRange, Dices, Feather, Lightbulb, Plus, Sprout, BookOpen, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { commands, matchCommands } from './commands'
 import { searchUniverse, type SearchKind, type SearchResult } from '../logic/search'
 import { byId, draftEntity, insert } from '../model/universe'
 import { useWorkspace, type View } from '../state/workspace'
@@ -30,9 +31,12 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
   const { universe, go, update, peek } = ws
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
+  const actions = useMemo(() => matchCommands(commands(ws), query).slice(0, 6), [ws, query])
   const results = useMemo(() => searchUniverse(universe, query, 20), [universe, query])
-  const canCreate = query.trim().length > 0
-  const total = results.length + (canCreate ? 1 : 0)
+  const canCreate = query.trim().length > 0 && !ws.readOnly
+  const total = actions.length + results.length + (canCreate ? 1 : 0)
+  // Índices: primeiro as ações, depois os resultados, por fim "Criar ficha".
+  const resultAt = (i: number) => results[i - actions.length]
 
   const open = (r: SearchResult) => {
     onClose()
@@ -81,7 +85,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
             aria-expanded={total > 0}
             aria-controls="palette-results"
             aria-activedescendant={total ? `palette-${active}` : undefined}
-            placeholder="Buscar fichas, cenas, eventos, fatos…"
+            placeholder="Buscar ou fazer: fichas, cenas, “nova cena”, “tema”…"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -97,18 +101,45 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                 setActive((a) => Math.max(a - 1, 0))
               } else if (e.key === 'Enter' && total) {
                 e.preventDefault()
-                if (active < results.length) {
-                  if (e.shiftKey && results[active].kind === 'ficha') {
+                if (active < actions.length) {
+                  onClose()
+                  actions[active].run(ws)
+                } else if (active < actions.length + results.length) {
+                  const r = resultAt(active)
+                  if (e.shiftKey && r.kind === 'ficha') {
                     onClose()
-                    peek(results[active].id)
-                  } else open(results[active])
+                    peek(r.id)
+                  } else open(r)
                 } else create()
               }
             }}
           />
         </div>
         <ul id="palette-results" role="listbox" className="palette-results">
-          {results.map((r, i) => {
+          {actions.map((c, i) => {
+            const Icon = c.icon
+            return (
+              <li
+                key={c.id}
+                id={`palette-${i}`}
+                role="option"
+                aria-selected={i === active}
+                className={`palette-action${i === active ? ' active' : ''}`}
+                onMouseMove={(e) => (e.movementX || e.movementY) && active !== i && setActive(i)}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  onClose()
+                  c.run(ws)
+                }}
+              >
+                <Icon size={16} aria-hidden="true" />
+                <span className="palette-title">{c.title}</span>
+                <span className="palette-kind">Ação</span>
+              </li>
+            )
+          })}
+          {results.map((r, j) => {
+            const i = j + actions.length
             const Icon = ICON[r.kind]
             return (
               <li
@@ -132,11 +163,11 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
           })}
           {canCreate && (
             <li
-              id={`palette-${results.length}`}
+              id={`palette-${total - 1}`}
               role="option"
-              aria-selected={active === results.length}
-              className={active === results.length ? 'active' : undefined}
-              onMouseMove={(e) => (e.movementX || e.movementY) && active !== results.length && setActive(results.length)}
+              aria-selected={active === total - 1}
+              className={active === total - 1 ? 'active' : undefined}
+              onMouseMove={(e) => (e.movementX || e.movementY) && active !== total - 1 && setActive(total - 1)}
               onMouseDown={(e) => {
                 e.preventDefault()
                 create()
@@ -146,7 +177,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
               <span className="palette-title">Criar ficha “{query.trim()}”</span>
             </li>
           )}
-          {!query && <li className="palette-hint">Digite para buscar. Enter abre; Shift+Enter espia uma ficha.</li>}
+          {!query && <li className="palette-hint">Digite para buscar no universo ou achar uma ação (“nova cena”, “tema”, “lixeira”…). Enter abre; Shift+Enter espia uma ficha.</li>}
         </ul>
       </div>
     </div>
