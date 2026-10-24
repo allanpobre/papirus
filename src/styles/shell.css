@@ -1395,3 +1395,137 @@
     justify-content: center;
   }
 }
+
+/* Nada da tela inicial rola para o lado (alguns navegadores deslocavam a página). */
+.library {
+  overflow-x: clip;
+}
+
+/* ---------------------------------------------------------------- entrar e criar conta */
+
+.account-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.account-hero p {
+  margin: 0;
+}
+
+.account-tabs {
+  display: flex;
+  width: 100%;
+}
+
+.account-tabs button {
+  flex: 1;
+  padding-block: 0.45rem;
+}
+
+.account-steps {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+}
+
+.account-steps li {
+  flex: 1;
+  padding-top: 0.4rem;
+  border-top: 3px solid var(--line);
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  counter-increment: passo;
+}
+
+.account-steps li::before {
+  content: counter(passo) '. ';
+}
+
+.account-steps li[aria-current='step'] {
+  border-color: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.account-password {
+  position: relative;
+  display: block;
+}
+
+.account-password .input {
+  width: 100%;
+  padding-right: 2.6rem;
+}
+
+.account-eye {
+  position: absolute;
+  top: 50%;
+  right: 0.3rem;
+  transform: translateY(-50%);
+}
+
+.account-form .input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.account-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.account-submit {
+  flex: 1;
+  justify-content: center;
+}
+
+.account-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+}
+
+.account-done {
+  align-items: center;
+  text-align: center;
+}
+
+.account-done h3 {
+  margin: 0;
+}
+
+.account-done-icon {
+  color: var(--accent);
+}
+
+.account-btn-avatar {
+  position: relative;
+  display: inline-flex;
+}
+
+.account-btn-avatar .social-avatar {
+  width: 24px;
+  height: 24px;
+}
+
+.account-btn.signed:has(.account-btn-avatar) {
+  padding-left: 0.3rem;
+}
+
+.account-btn-warn {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  padding: 1px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--danger);
+}
+
+.rail .account-btn .account-btn-label {
+  min-width: 0;
+}

@@ -638,3 +638,31 @@
 .social > .segmented {
   justify-self: start;
 }
+
+.social-me {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.social-me-text {
+  display: grid;
+  min-width: 0;
+}
+
+.social-me-text > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social > .social-tabs {
+  display: flex;
+  justify-self: stretch;
+}
+
+.social-tabs button {
+  flex: 1;
+  padding-block: 0.4rem;
+}

@@ -96,8 +96,9 @@ const back = () => location.origin + location.pathname
 export const signIn = (server: ServerConfig, email: string, password: string) => run(server, (sb) => sb.auth.signInWithPassword({ email, password }))
 
 /** Cria a conta. Devolve `true` se o servidor pede confirmação por e-mail antes de entrar. */
-export async function signUp(server: ServerConfig, email: string, password: string): Promise<boolean> {
-  const data = await run(server, (sb) => sb.auth.signUp({ email, password, options: { emailRedirectTo: back() } }))
+export async function signUp(server: ServerConfig, email: string, password: string, profile?: { handle: string; name: string; bio: string }): Promise<boolean> {
+  // O perfil vai junto na conta e vira perfil de verdade no primeiro acesso (sem foto: é pequeno de propósito).
+  const data = await run(server, (sb) => sb.auth.signUp({ email, password, options: { emailRedirectTo: back(), data: profile } }))
   return !data.session
 }
 

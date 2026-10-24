@@ -106,6 +106,7 @@ export async function saveProfile(sb: SupabaseClient, myId: string, p: Pick<Prof
       .upsert({ user_id: myId, handle, name: p.name.trim().slice(0, 80), bio: p.bio.trim().slice(0, 600), avatar: p.avatar }, { onConflict: 'user_id' })
       .select(PROFILE_COLS),
   ) as Profile[]
+  setMyProfileCache(myId, rows[0])
   return rows[0]
 }
 
@@ -249,4 +250,52 @@ export function profileLink(publicUrl: string, handle: string): string {
   const url = new URL(base.pathname.replace(/\/app\/?$/, '/').replace(/\/?$/, '/') + 'app/', base)
   url.searchParams.set('perfil', handle)
   return url.toString()
+}
+
+// ─── Meu perfil, guardado para o botão da conta ──────────────────────
+
+type MineState = { userId: string; profile: Profile | null } | null
+let mine: MineState = null
+const mineListeners = new Set<() => void>()
+let loading: string | null = null
+
+export function setMyProfileCache(userId: string, profile: Profile | null) {
+  mine = { userId, profile }
+  for (const l of mineListeners) l()
+}
+
+export function subscribeMyProfile(cb: () => void) {
+  mineListeners.add(cb)
+  return () => {
+    mineListeners.delete(cb)
+  }
+}
+
+export const getMyProfileCache = (): MineState => mine
+
+/** Busca meu perfil uma vez por conta (servidor sem social.sql: fica sem perfil, sem erro). */
+export async function loadMyProfile(sb: SupabaseClient, userId: string) {
+  if (mine?.userId === userId || loading === userId) return
+  loading = userId
+  try {
+    setMyProfileCache(userId, await myProfile(sb, userId))
+  } catch {
+    setMyProfileCache(userId, null)
+  } finally {
+    loading = null
+  }
+}
+
+/** O que a pessoa preencheu ao criar a conta (fica na conta até virar perfil). */
+export interface ProfileDraft {
+  handle: string
+  name: string
+  bio: string
+}
+
+export function draftFromMetadata(meta: unknown): ProfileDraft | null {
+  const m = (meta ?? {}) as Record<string, unknown>
+  const handle = typeof m.handle === 'string' ? cleanHandle(m.handle) : ''
+  if (!isHandle(handle)) return null
+  return { handle, name: typeof m.name === 'string' ? m.name : '', bio: typeof m.bio === 'string' ? m.bio : '' }
 }

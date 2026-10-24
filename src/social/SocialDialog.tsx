@@ -1,13 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { ArrowLeft, BookOpen, Camera, Check, Copy, Globe, LogIn, Search, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, Camera, Check, Cloud, Copy, Globe, LogIn, LogOut, RefreshCw, Search, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { authClient, useAccount } from '../account/auth'
+import { authClient, signOut, useAccount } from '../account/auth'
+import { syncLibrary, useCloudStatus } from '../account/useCloud'
+import type { Library } from '../persistence/repository'
 import { anonClient } from '../share/server'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { Modal } from '../ui/Modal'
 import {
   acceptFriend,
   cleanHandle,
+  draftFromMetadata,
   isHandle,
   myFriends,
   myProfile,
@@ -16,15 +19,17 @@ import {
   removeFriend,
   requestFriend,
   saveProfile,
+  setMyProfileCache,
   shelfOf,
   shrinkAvatar,
   suggestHandle,
   type FriendEntry,
   type Profile,
+  type ProfileDraft,
   type ShelfRow,
 } from './social'
 
-type Tab = 'perfil' | 'amigos'
+type Tab = 'perfil' | 'amigos' | 'conta'
 
 interface Props {
   onClose: () => void
@@ -34,16 +39,21 @@ interface Props {
   initialHandle?: string
   /** Endereço público do app (para o link do perfil). */
   publicUrl?: string
+  initialTab?: Tab
+  /** Biblioteca deste navegador (para "Sincronizar agora"). */
+  library?: Library | null
+  onSynced?: () => void
 }
 
 /**
- * Perfil, amigos e a estante de cada um. Tudo opcional: só aparece para quem tem conta,
- * e cada livro só vai para a estante se o autor escolher.
+ * A conta num lugar só: perfil, amigos (e a estante de cada um) e a sincronização.
+ * Tudo opcional: cada livro só vai para a estante se o autor escolher.
  */
-export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '' }: Props) {
+export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab = 'perfil', library = null, onSynced }: Props) {
   const { user, server } = useAccount()
-  const [tab, setTab] = useState<Tab>('perfil')
+  const [tab, setTab] = useState<Tab>(initialTab)
   const [me, setMe] = useState<Profile | null>(null)
+  const [draft, setDraft] = useState<ProfileDraft | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [friends, setFriends] = useState<FriendEntry[]>([])
   const [viewing, setViewing] = useState<Profile | null>(null)
@@ -63,13 +73,26 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
     void (async () => {
       try {
         const sb = await client()
-        const [p, list, start] = await Promise.all([
+        let [p, list, start] = await Promise.all([
           userId ? myProfile(sb, userId) : null,
           userId ? myFriends(sb, userId) : [],
           initialHandle && nonce === 0 ? profileByHandle(sb, initialHandle) : null,
         ])
+        // Perfil preenchido ao criar a conta (antes de confirmar o e-mail): vira perfil agora.
+        if (userId && !p) {
+          const { data } = await sb.auth.getUser()
+          const d = draftFromMetadata(data.user?.user_metadata)
+          if (d) {
+            try {
+              p = await saveProfile(sb, userId, { ...d, avatar: null })
+            } catch {
+              if (!off) setDraft(d)
+            }
+          }
+        }
         if (off) return
         setMe(p)
+        if (userId) setMyProfileCache(userId, p)
         setFriends(list)
         if (start) setViewing(start)
         else if (initialHandle && nonce === 0) setError(`Não achei @${cleanHandle(initialHandle)}, ou a estante não está aberta para você.`)
@@ -158,72 +181,148 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
   }
 
   const incoming = friends.filter((f) => f.status === 'pendente' && !f.outgoing)
+  const tabs: [Tab, string][] = [
+    ['perfil', 'Perfil'],
+    ['amigos', 'Amigos'],
+    ['conta', 'Conta'],
+  ]
 
   return (
-    <Modal title="Perfil e amigos" size="lg" onClose={onClose}>
+    <Modal title="Sua conta" size="lg" onClose={onClose}>
       <div className="social">
+        <header className="social-me">
+          <Avatar p={me ?? { avatar: null, name: draft?.name ?? '', handle: user.email ?? '?' }} size={48} />
+          <div className="social-me-text">
+            <strong>{me ? me.name || `@${me.handle}` : 'Sem perfil ainda'}</strong>
+            <span className="muted tiny">
+              {me?.name && `@${me.handle} · `}
+              {user.email}
+            </span>
+          </div>
+        </header>
+        <div className="segmented social-tabs" role="tablist" aria-label="Seções da conta">
+          {tabs.map(([t, label]) => (
+            <button key={t} type="button" role="tab" aria-selected={tab === t} aria-checked={tab === t} onClick={() => setTab(t)}>
+              {label}
+              {t === 'amigos' && incoming.length > 0 && (
+                <span className="social-badge" aria-label={`${incoming.length} pedidos`}>
+                  {incoming.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
         {error && <p className="notice notice-error small" role="alert">{error}</p>}
-        {!loaded ? (
+
+        {tab === 'conta' ? (
+          <AccountPanel library={library} onSynced={onSynced} onClose={onClose} />
+        ) : !loaded ? (
           <p className="muted small">Carregando…</p>
         ) : !me ? (
           <>
-            <p className="small">Crie seu perfil para aparecer para amigos. Só o @ é obrigatório; ele é como as pessoas te acham.</p>
-            <ProfileForm initial={{ handle: suggestHandle(user.email ?? ''), name: '', bio: '', avatar: null }} busy={busy} submitLabel="Criar perfil" onSave={(p) => void act(async (sb) => void (await saveProfile(sb, user.id, p)))} />
+            <p className="small">
+              {tab === 'amigos' ? 'Para adicionar amigos, crie seu perfil primeiro. ' : ''}Só o @ é obrigatório: é como as pessoas te acham. Nome, foto e o resto, se quiser.
+            </p>
+            <ProfileForm
+              initial={{ handle: draft?.handle ?? suggestHandle(user.email ?? ''), name: draft?.name ?? '', bio: draft?.bio ?? '', avatar: null }}
+              busy={busy}
+              submitLabel="Criar perfil"
+              onSave={(p) => void act(async (sb) => void (await saveProfile(sb, user.id, p)))}
+            />
+          </>
+        ) : tab === 'perfil' ? (
+          <>
+            <ProfileForm key={me.handle + me.name + me.bio + (me.avatar?.length ?? 0)} initial={me} busy={busy} submitLabel="Salvar perfil" onSave={(p) => void act(async (sb) => void (await saveProfile(sb, user.id, p)))} />
+            <div className="social-row">
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setViewing(me)}>
+                <BookOpen size={15} /> Ver como os outros veem
+              </button>
+              <CopyLink url={profileLink(publicUrl, me.handle)} />
+            </div>
+            <p className="muted tiny">
+              Seus livros entram na estante pela página Livro de cada universo: “Só eu”, “Amigos” ou “Todo mundo”. O link do perfil sem conta só mostra o que for “Todo mundo”.
+            </p>
           </>
         ) : (
-          <>
-            <div className="segmented" role="tablist" aria-label="Seções">
-              <button type="button" role="tab" aria-selected={tab === 'perfil'} aria-checked={tab === 'perfil'} onClick={() => setTab('perfil')}>
-                Meu perfil
-              </button>
-              <button type="button" role="tab" aria-selected={tab === 'amigos'} aria-checked={tab === 'amigos'} onClick={() => setTab('amigos')}>
-                Amigos{incoming.length > 0 && <span className="social-badge" aria-label={`${incoming.length} pedidos`}>{incoming.length}</span>}
-              </button>
-            </div>
-
-            {tab === 'perfil' ? (
-              <>
-                <ProfileForm key={me.handle + me.name + me.bio} initial={me} busy={busy} submitLabel="Salvar perfil" onSave={(p) => void act(async (sb) => void (await saveProfile(sb, user.id, p)))} />
-                <div className="social-row">
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setViewing(me)}>
-                    <BookOpen size={15} /> Ver como os outros veem
-                  </button>
-                  <CopyLink url={profileLink(publicUrl, me.handle)} />
-                </div>
-                <p className="muted tiny">
-                  Seus livros entram na estante pela página Livros de cada universo: “Só eu”, “Amigos” ou “Todo mundo”. O link do perfil sem conta só mostra o que for “Todo mundo”.
-                </p>
-              </>
-            ) : (
-              <FriendsTab
-                friends={friends}
-                busy={busy}
-                onFind={async (handle) => {
-                  setError(null)
-                  try {
-                    const p = await profileByHandle(await client(), handle)
-                    if (p) setViewing(p)
-                    else setError(`Ninguém com @${cleanHandle(handle)} (ainda).`)
-                  } catch (err) {
-                    setError(err instanceof Error ? err.message : String(err))
-                  }
-                }}
-                onOpen={setViewing}
-                onAccept={(f) => void act((sb) => acceptFriend(sb, user.id, f.other.user_id))}
-                onRemove={(f) => void act((sb) => removeFriend(sb, user.id, f.other.user_id))}
-              />
-            )}
-          </>
+          <FriendsTab
+            friends={friends}
+            busy={busy}
+            onFind={async (handle) => {
+              setError(null)
+              try {
+                const p = await profileByHandle(await client(), handle)
+                if (p) setViewing(p)
+                else setError(`Ninguém com @${cleanHandle(handle)} (ainda).`)
+              } catch (err) {
+                setError(err instanceof Error ? err.message : String(err))
+              }
+            }}
+            onOpen={setViewing}
+            onAccept={(f) => void act((sb) => acceptFriend(sb, user.id, f.other.user_id))}
+            onRemove={(f) => void act((sb) => removeFriend(sb, user.id, f.other.user_id))}
+          />
         )}
       </div>
     </Modal>
   )
 }
 
-function Avatar({ p, size = 40 }: { p: Pick<Profile, 'avatar' | 'name' | 'handle'>; size?: number }) {
+const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+/** Nuvem e sair. */
+function AccountPanel({ library, onSynced, onClose }: { library: Library | null; onSynced?: () => void; onClose: () => void }) {
+  const { user, server } = useAccount()
+  const cloud = useCloudStatus()
+  const [error, setError] = useState<string | null>(null)
+  if (!user || !server) return null
+  return (
+    <div className="account">
+      <p className="small">Seus universos são salvos neste navegador e na sua conta. Ao entrar em outro aparelho, eles aparecem lá.</p>
+      <p className="small muted" role="status">
+        <Cloud size={14} aria-hidden="true" />{' '}
+        {cloud.state === 'sincronizando'
+          ? 'Sincronizando…'
+          : cloud.state === 'erro'
+            ? `Não sincronizou: ${cloud.error}`
+            : cloud.at
+              ? `Sincronizado às ${timeFmt.format(new Date(cloud.at))}${cloud.report?.conflicts ? `. ${cloud.report.conflicts} universo(s) mudaram nos dois lugares: a versão da nuvem ficou como cópia.` : '.'}`
+              : 'Ainda não sincronizou nesta visita.'}
+      </p>
+      {library && (
+        <button type="button" className="btn btn-ghost btn-sm account-signout" disabled={cloud.state === 'sincronizando'} onClick={() => void syncLibrary(library, server, user.id).then(() => onSynced?.())}>
+          <RefreshCw size={14} /> Sincronizar agora
+        </button>
+      )}
+      <button
+        type="button"
+        className="btn account-signout"
+        onClick={async () => {
+          try {
+            await signOut(server)
+            onClose()
+            goToLanding()
+          } catch (err) {
+            setError(err instanceof Error ? err.message : String(err))
+          }
+        }}
+      >
+        <LogOut size={16} /> Sair da conta
+      </button>
+      {error && <p className="notice notice-error small" role="alert">{error}</p>}
+      <p className="muted tiny">Ao sair, você volta para a apresentação do Papirus. Os universos continuam neste navegador; nada é apagado.</p>
+    </div>
+  )
+}
+
+/** Volta para a página de apresentação (quando o app está em …/app/). */
+function goToLanding() {
+  if (/\/app\/?$/.test(location.pathname)) location.assign(new URL('../', location.href).toString())
+}
+
+export function Avatar({ p, size = 40 }: { p: Pick<Profile, 'avatar' | 'name' | 'handle'>; size?: number }) {
   const initial = (p.name || p.handle || '?').trim().charAt(0).toUpperCase()
   return p.avatar ? (
-    <img className="social-avatar" src={p.avatar} alt="" width={size} height={size} />
+    <img className="social-avatar" src={p.avatar} alt="" width={size} height={size} style={{ width: size, height: size }} />
   ) : (
     <span className="social-avatar social-avatar-empty" style={{ width: size, height: size, fontSize: size * 0.42 }} aria-hidden="true">
       {initial}

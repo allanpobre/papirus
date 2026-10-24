@@ -318,13 +318,14 @@ body,
 
 /* Faixa da mesa de RPG: sempre escura, nos dois temas. */
 .lp-band {
-  --band-bg: #121a17;
-  --band-ink: #e5ece8;
-  --band-ink-2: #b4c2bb;
-  --band-line: #2a3632;
-  --band-accent: #6fd0ae;
+  /* Escura nos dois temas, tingida pela cor de destaque escolhida no app. */
+  --band-bg: color-mix(in srgb, var(--accent) 12%, #0e1110);
+  --band-ink: #e8ebe9;
+  --band-ink-2: #bcc3bf;
+  --band-line: color-mix(in srgb, var(--accent) 22%, #262b29);
+  --band-accent: color-mix(in srgb, var(--accent) 55%, #fff);
   background:
-    radial-gradient(700px 360px at 85% 10%, rgb(111 208 174 / 12%), transparent 60%),
+    radial-gradient(700px 360px at 85% 10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
     var(--band-bg);
   color: var(--band-ink);
   border-block: 1px solid var(--line);

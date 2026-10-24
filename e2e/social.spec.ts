@@ -29,7 +29,8 @@ async function createProfile(dialog: ReturnType<Page['getByRole']>, handle: stri
   await dialog.getByRole('textbox', { name: '@ (como te acham)' }).fill(handle)
   await dialog.getByRole('textbox', { name: 'Nome' }).fill(name)
   await dialog.getByRole('button', { name: 'Criar perfil' }).click()
-  await expect(dialog.getByRole('tab', { name: 'Meu perfil' })).toBeVisible()
+  await expect(dialog.getByRole('tab', { name: 'Perfil' })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Salvar perfil' })).toBeVisible()
 }
 
 test('social: perfil, pedido de amizade, estante para amigos e para todo mundo', async ({ page, browser }) => {
@@ -53,7 +54,7 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   expect(Object.keys(fake.tables.papirus_shelf[0])).not.toContain('text')
 
   await page.getByRole('button', { name: 'Ver meu perfil' }).click()
-  const anaSocial = page.getByRole('dialog', { name: 'Perfil e amigos' })
+  const anaSocial = page.getByRole('dialog', { name: 'Sua conta' })
   await expect(anaSocial.getByRole('textbox', { name: '@ (como te acham)' })).toHaveValue('ana')
   await createProfile(anaSocial, '@Ana Ribeiro', 'Ana Ribeiro')
   expect(fake.tables.papirus_profiles[0].handle).toBe('ana_ribeiro')
@@ -63,8 +64,8 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   const bia = await newPerson(browser, fake)
   await bia.goto('/app/')
   await signIn(bia, 'bia@exemplo.com')
-  await bia.getByRole('button', { name: 'Perfil e amigos' }).click()
-  const biaSocial = bia.getByRole('dialog', { name: 'Perfil e amigos' })
+  await bia.getByRole('button', { name: 'Conta: bia@exemplo.com' }).click()
+  const biaSocial = bia.getByRole('dialog', { name: 'Sua conta' })
   await biaSocial.getByRole('textbox', { name: '@ (como te acham)' }).fill('ana_ribeiro')
   await biaSocial.getByRole('button', { name: 'Criar perfil' }).click()
   await expect(biaSocial.getByRole('alert')).toContainText('Esse @ já é de outra pessoa')
@@ -87,7 +88,7 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   await anaSocial.getByRole('button', { name: 'Fechar' }).click()
 
   // Agora Bia vê o livro na estante da Ana, com a sinopse.
-  await bia.getByRole('button', { name: 'Perfil e amigos' }).click()
+  await bia.getByRole('button', { name: 'Conta: bia@exemplo.com' }).click()
   await biaSocial.getByRole('tab', { name: 'Amigos' }).click()
   await biaSocial.getByRole('region', { name: 'Amigos' }).getByRole('button', { name: 'Estante' }).click()
   const anaShelf = bia.getByRole('list', { name: 'Estante de @ana_ribeiro' })
@@ -109,4 +110,42 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   // "Só eu" tira da estante.
   await visibility.getByRole('radio', { name: 'Só eu' }).click()
   await expect.poll(() => fake.tables.papirus_shelf.length).toBe(0)
+})
+
+test('criar conta: senha repetida e, depois, o perfil já pronto', async ({ page }) => {
+  const fake = createFakeSupabase()
+  await fake.attach(page.context())
+  await page.goto('/app/')
+  await page.getByRole('button', { name: 'Entrar' }).first().click()
+  const dialog = page.getByRole('dialog', { name: 'Entrar no Papirus' })
+  await dialog.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
+  await dialog.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
+  await dialog.getByRole('button', { name: 'Pronto' }).click()
+  await dialog.getByRole('tab', { name: 'Criar conta' }).click()
+  await expect(dialog.getByRole('listitem').filter({ hasText: 'Acesso' })).toHaveAttribute('aria-current', 'step')
+
+  await dialog.getByRole('textbox', { name: 'E-mail' }).fill('Dani.Souza@exemplo.com')
+  await dialog.getByLabel('Senha', { exact: true }).fill('segredo123')
+  await dialog.getByLabel('Repita a senha').fill('segredo12')
+  await expect(dialog.getByText('As duas senhas não são iguais.')).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Continuar' })).toBeDisabled()
+  await dialog.getByRole('button', { name: 'Ver o que digitei' }).click()
+  await expect(dialog.getByLabel('Senha', { exact: true })).toHaveAttribute('type', 'text')
+  await dialog.getByLabel('Repita a senha').fill('segredo123')
+  await dialog.getByRole('button', { name: 'Continuar' }).click()
+
+  // Passo 2: o perfil.
+  await expect(dialog.getByRole('listitem').filter({ hasText: 'Seu perfil' })).toHaveAttribute('aria-current', 'step')
+  await expect(dialog.getByRole('textbox', { name: '@ (como te acham)' })).toHaveValue('dani.souza')
+  await dialog.getByRole('textbox', { name: 'Nome', exact: true }).fill('Dani Souza')
+  await dialog.getByRole('textbox', { name: 'Sobre você' }).fill('Escrevo fantasia e mestro aos sábados.')
+  await dialog.getByRole('button', { name: 'Criar conta' }).click()
+
+  // Entra direto, com o perfil criado.
+  const hub = page.getByRole('dialog', { name: 'Sua conta' })
+  await expect(hub).toContainText('Dani Souza')
+  await expect(hub).toContainText('@dani.souza')
+  expect(fake.tables.papirus_profiles.map((p) => `${p.handle}|${p.name}|${p.bio}`)).toEqual(['dani.souza|Dani Souza|Escrevo fantasia e mestro aos sábados.'])
+  await hub.getByRole('button', { name: 'Fechar' }).click()
+  await expect(page.getByRole('button', { name: 'Conta: dani.souza@exemplo.com' })).toContainText('@dani.souza')
 })
