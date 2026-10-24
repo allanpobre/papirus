@@ -3633,3 +3633,61 @@ code {
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* Lixeira e histórico */
+.history-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.4rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.8rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  font-size: 0.9rem;
+}
+
+.history-text {
+  display: grid;
+  flex: 1 1 240px;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.with-reveal {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.with-reveal > .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.with-reveal > select {
+  flex: 0 1 180px;
+}
+
+.reveal-chip {
+  flex: none;
+  color: var(--violet);
+  white-space: nowrap;
+}

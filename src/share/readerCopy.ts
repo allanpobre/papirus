@@ -21,6 +21,9 @@ export function readerCopy(universe: Universe, showSecrets: boolean): Universe {
   const base: Universe = {
     ...universe,
     inbox: [],
+    // Lixeira e histórico guardam versões antigas (inclusive o que era secreto).
+    trash: [],
+    history: [],
     groups: universe.groups.map((g) => ({ ...g, share: null })),
   }
   if (showSecrets) return base

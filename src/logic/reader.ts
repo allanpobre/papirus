@@ -1,4 +1,4 @@
-import { kindLabel } from '../model/labels'
+import { formatYear, kindLabel } from '../model/labels'
 import type { Entity, Fact, Relation, Scene, Universe } from '../model/schema'
 import { byId, manuscriptOrder } from '../model/universe'
 import { playerTag, factSentence } from './codex'
@@ -45,6 +45,17 @@ export interface ReaderBook {
   entities: Map<string, Entity>
   facts: ReaderItem[]
   relations: ReaderItem[]
+  events: ReaderEvent[]
+}
+
+export interface ReaderEvent {
+  at: number
+  id: string
+  year: number
+  when: string
+  title: string
+  description: string
+  entityIds: string[]
 }
 
 const isSecret = (canon: string) => canon === 'secreto'
@@ -86,7 +97,35 @@ export function readerBook(universe: Universe): ReaderBook {
     relations[relations.length - 1].text = relationText(universe, r, at, first)
   }
 
-  return { scenes, first, inScene, entities, facts: facts.sort((a, b) => a.at - b.at), relations: relations.sort((a, b) => a.at - b.at) }
+  // Eventos da linha do tempo: entram quando tudo que está ligado a eles já apareceu.
+  const suffix = universe.settings.calendarSuffix
+  const events: ReaderEvent[] = []
+  for (const ev of universe.events) {
+    if (isSecret(ev.canon)) continue
+    const ids = [...ev.entityIds, ev.placeId].filter((x): x is string => Boolean(x))
+    if (ids.some((id) => !entities.has(id))) continue
+    const seen = ids.map((id) => first.get(id))
+    if (seen.some((x) => x === undefined)) continue
+    events.push({
+      at: Math.max(0, ...(seen as number[])),
+      id: ev.id,
+      year: ev.year,
+      when: ev.endYear !== null ? `${formatYear(ev.year, suffix)} – ${formatYear(ev.endYear, suffix)}` : formatYear(ev.year, suffix),
+      title: ev.title,
+      description: ev.description,
+      entityIds: ids,
+    })
+  }
+
+  return {
+    scenes,
+    first,
+    inScene,
+    entities,
+    facts: facts.sort((a, b) => a.at - b.at),
+    relations: relations.sort((a, b) => a.at - b.at),
+    events: events.sort((a, b) => a.year - b.year),
+  }
 }
 
 function factAt(f: Fact, seenAt: (id: string | null) => number | null, sceneIndex: Map<string, number>): number | null {

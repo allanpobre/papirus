@@ -18,7 +18,7 @@ const STEPS: Step[] = [
   },
   { target: '[data-tour="menu"]', title: 'O menu', body: 'Cada área do seu mundo fica aqui. Não usa alguma? Esconda em Ajustes → Áreas do menu. Nada é apagado.' },
   { target: '[data-tour="universos"]', title: 'Seus universos', body: 'Clique aqui para voltar à lista de universos: criar outro, abrir o exemplo ou trocar de mundo.' },
-  { target: '[data-tour="busca"]', title: 'Buscar em tudo', body: `Procura em fichas, cenas, fatos, eventos e sessões. Atalho: ${modKey} K, de qualquer lugar.` },
+  { target: '[data-tour="busca"]', title: 'Buscar em tudo', body: `Procura em fichas, cenas, fatos, eventos e sessões, e faz ações: “nova cena”, “tema escuro”, “lixeira”. Atalho: ${modKey} K, de qualquer lugar.` },
   { target: '[data-tour="continuar"]', view: 'inicio', title: 'Início', body: 'Onde você parou, as palavras do dia e o que pede atenção. Cada universo abre aqui.' },
   {
     target: '[data-tour="editor"]',

@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, BookOpen, NotebookPen, RotateCcw, Sparkles, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { MentionMatcher } from '../logic/detection'
-import { discoveries, readerBook, readerEntities, type ReaderEntity, type ReaderItem } from '../logic/reader'
+import { discoveries, readerBook, readerEntities, readerText, type ReaderEntity, type ReaderItem } from '../logic/reader'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { Universe } from '../model/schema'
 import { byId } from '../model/universe'
@@ -20,7 +20,7 @@ interface Progress {
   furthest: number
 }
 
-type Tab = 'quem' | 'descobertas' | 'relacoes'
+type Tab = 'quem' | 'descobertas' | 'relacoes' | 'linha'
 
 /**
  * Modo leitor: o livro cena a cena e, ao lado, o caderno do leitor, que se preenche
@@ -300,6 +300,7 @@ function Notebook({
   const [confirmRestart, setConfirmRestart] = useState(false)
   const facts = book.facts.filter((f) => f.at <= furthest)
   const relations = book.relations.filter((r) => r.at <= furthest)
+  const events = book.events.filter((e) => e.at <= furthest)
   const passages = useMemo(() => {
     const out: ReaderItem[] = []
     for (let i = 0; i <= furthest; i++) out.push(...discoveries(book, i).items.filter((x) => x.kind === 'trecho'))
@@ -325,6 +326,7 @@ function Notebook({
             ['quem', `Quem é quem (${known.length})`],
             ['descobertas', `Descobertas (${timeline.length})`],
             ['relacoes', `Ligações (${relations.length})`],
+            ['linha', `Linha do tempo (${events.length})`],
           ] as [Tab, string][]
         ).map(([t, label]) => (
           <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
@@ -408,6 +410,27 @@ function Notebook({
             <p className="muted small">Nada descoberto ainda. Continue lendo.</p>
           ))}
 
+        {tab === 'linha' &&
+          (events.length ? (
+            <ol className="leitor-timeline leitor-years">
+              {events.map((ev) => {
+                const text = readerText(ev.description, furthest, book.scenes)
+                return (
+                  <li key={ev.id} className={ev.at === current ? 'is-new' : undefined}>
+                    <span className="leitor-year tabular">{ev.when}</span>
+                    <span className="small">
+                      <strong>{ev.title}</strong>
+                      {text && <span className="muted"> — {text}</span>}
+                    </span>
+                  </li>
+                )
+              })}
+            </ol>
+          ) : (
+            <p className="muted small">Nenhum acontecimento ainda. Eles entram quando quem participou deles aparece na história.</p>
+          ))}
+
+        {tab === 'relacoes' && relations.length > 1 && <MiniGraph known={known} relations={relations} current={current} onPick={(id) => { setSelected(id); setTab('quem') }} />}
         {tab === 'relacoes' &&
           (relations.length ? (
             <ul className="leitor-timeline">
@@ -448,5 +471,40 @@ function Notebook({
         )}
       </div>
     </aside>
+  )
+}
+
+/** O mapa das ligações conhecidas: cresce conforme a leitura. */
+function MiniGraph({ known, relations, current, onPick }: { known: ReaderEntity[]; relations: ReaderItem[]; current: number; onPick: (id: string) => void }) {
+  const linked = new Set(relations.flatMap((r) => r.entityIds))
+  const nodes = known.filter((e) => linked.has(e.entity.id))
+  const W = 320
+  const H = 240
+  const pos = new Map(
+    nodes.map((e, i) => {
+      const a = (i / nodes.length) * Math.PI * 2 - Math.PI / 2
+      return [e.entity.id, { x: W / 2 + Math.cos(a) * (W / 2 - 52), y: H / 2 + Math.sin(a) * (H / 2 - 26) }]
+    }),
+  )
+  return (
+    <svg className="leitor-graph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Mapa com ${nodes.length} fichas e ${relations.length} ligações`}>
+      {relations.map((r, i) => {
+        const a = pos.get(r.entityIds[0])
+        const b = pos.get(r.entityIds[1])
+        if (!a || !b) return null
+        return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={r.at === current ? 'is-new' : undefined} pathLength={1} />
+      })}
+      {nodes.map((e) => {
+        const p = pos.get(e.entity.id)!
+        return (
+          <g key={e.entity.id} transform={`translate(${p.x} ${p.y})`} className={e.first === current ? 'is-new' : undefined} onClick={() => onPick(e.entity.id)}>
+            <circle r={7} />
+            <text y={-11} textAnchor="middle">
+              {e.entity.name.length > 16 ? `${e.entity.name.slice(0, 15)}…` : e.entity.name}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
   )
 }

@@ -1,3 +1,4 @@
+import { HistoryCard, TrashCard } from './HistoryCards'
 import { Camera, Compass, Search, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
@@ -265,6 +266,9 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           )}
         </section>
         )}
+
+        {show('historico') && <TrashCard />}
+        {show('historico') && <HistoryCard />}
 
         {show('livros') && <BookCard />}
 
