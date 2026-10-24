@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, BookOpen, NotebookPen, RotateCcw, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, NotebookPen, RotateCcw, SlidersHorizontal, Sparkles, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { MentionMatcher } from '../logic/detection'
 import { discoveries, readerBook, readerEntities, readerText, type ReaderEntity, type ReaderItem } from '../logic/reader'
@@ -21,6 +21,37 @@ interface Progress {
 }
 
 type Tab = 'quem' | 'descobertas' | 'relacoes' | 'linha'
+
+/** Ajudas de leitura: o leitor escolhe quanto o Papirus aparece. Nada é obrigatório. */
+interface Aids {
+  /** Nomes no texto abrem a ficha no caderno. */
+  nomes: boolean
+  /** Ao fim da cena, um quadro com o que entrou no caderno. */
+  resumo: boolean
+  /** Aviso discreto (+3) quando o caderno ganha algo. */
+  novidades: boolean
+  /** O caderno existe. Desligado: só o texto. */
+  caderno: boolean
+}
+const PRESETS = {
+  texto: { nomes: false, resumo: false, novidades: false, caderno: false },
+  discreto: { nomes: true, resumo: false, novidades: true, caderno: true },
+  tudo: { nomes: true, resumo: true, novidades: true, caderno: true },
+} satisfies Record<string, Aids>
+type Preset = keyof typeof PRESETS
+const PRESET_LABEL: Record<Preset, string> = { texto: 'Só o texto', discreto: 'Discreto', tudo: 'Com tudo' }
+const presetOf = (a: Aids): Preset | null =>
+  (Object.keys(PRESETS) as Preset[]).find((k) => (Object.keys(a) as (keyof Aids)[]).every((x) => PRESETS[k][x] === a[x])) ?? null
+
+function loadAids(): Aids {
+  try {
+    const saved = JSON.parse(recall('leitor-ajudas') ?? 'null') as Partial<Aids> | null
+    if (saved) return { ...PRESETS.discreto, ...saved }
+  } catch {
+    // Preferência ilegível: usa o padrão.
+  }
+  return PRESETS.discreto
+}
 
 /**
  * Modo leitor: o livro cena a cena e, ao lado, o caderno do leitor, que se preenche
@@ -45,7 +76,15 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
   const { current, furthest } = progress
   const [tab, setTab] = useState<Tab>('quem')
   const [selected, setSelected] = useState<string | null>(null)
-  const [notebookOpen, setNotebookOpen] = useState(() => !matchMedia('(max-width: 900px)').matches)
+  const [aids, setAidsState] = useState<Aids>(loadAids)
+  const setAids = (a: Aids) => {
+    setAidsState(a)
+    remember('leitor-ajudas', JSON.stringify(a))
+    if (!a.caderno) setNotebookOpen(false)
+  }
+  const [aidsOpen, setAidsOpen] = useState(false)
+  // O caderno começa aberto só para quem quer tudo (e tem tela larga); nos outros casos, abre quando pedir.
+  const [notebookOpen, setNotebookOpen] = useState(() => presetOf(loadAids()) === 'tudo' && !matchMedia('(max-width: 900px)').matches)
   const [fresh, setFresh] = useState(0)
   const pageRef = useRef<HTMLDivElement>(null)
 
@@ -55,7 +94,10 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
 
   const known = useMemo(() => readerEntities(book, furthest), [book, furthest])
   const knownIds = useMemo(() => new Set(known.map((e) => e.entity.id)), [known])
-  const matcher = useMemo(() => new MentionMatcher([...book.entities.values()].filter((e) => knownIds.has(e.id))), [book, knownIds])
+  const matcher = useMemo(
+    () => new MentionMatcher(aids.nomes && aids.caderno ? [...book.entities.values()].filter((e) => knownIds.has(e.id)) : []),
+    [book, knownIds, aids.nomes, aids.caderno],
+  )
   const found = useMemo(() => discoveries(book, current), [book, current])
 
   const go = (i: number) => {
@@ -133,9 +175,16 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
         <div className="leitor-progress" role="progressbar" aria-label="Quanto já leu" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
           <span style={{ width: `${pct}%` }} />
         </div>
+        <div className="leitor-aids-wrap">
+          <button type="button" className="btn btn-sm btn-ghost" aria-expanded={aidsOpen} aria-controls="leitor-ajudas" onClick={() => setAidsOpen(!aidsOpen)}>
+            <SlidersHorizontal size={15} /> Como ler
+          </button>
+          {aidsOpen && <AidsPanel aids={aids} onChange={setAids} onClose={() => setAidsOpen(false)} />}
+        </div>
+        {aids.caderno && (
         <button
           type="button"
-          className={`btn btn-sm leitor-caderno-btn${fresh ? ' has-new' : ''}`}
+          className={`btn btn-sm leitor-caderno-btn${fresh && aids.novidades ? ' has-new' : ''}`}
           aria-expanded={notebookOpen}
           aria-controls="leitor-caderno"
           onClick={() => {
@@ -144,12 +193,13 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
           }}
         >
           <NotebookPen size={15} /> Caderno
-          {fresh > 0 && (
+          {fresh > 0 && aids.novidades && (
             <span className="leitor-new-count" aria-label={`${fresh} novidades`}>
               +{fresh}
             </span>
           )}
         </button>
+        )}
       </header>
 
       <div className="leitor-body">
@@ -159,21 +209,26 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
             <h1 className="leitor-title">{scene.title || 'Sem título'}</h1>
             <SceneText doc={scene.doc as DocNode} matcher={matcher} onName={openCard} />
 
-            {(found.entities.length > 0 || found.items.length > 0) && (
-              <section className="leitor-found" aria-label="Nesta cena você descobriu">
+            {aids.caderno && !aids.resumo && aids.novidades && found.entities.length + found.items.length > 0 && (
+              <button type="button" className="leitor-found-quiet" onClick={() => { setNotebookOpen(true); setFresh(0) }}>
+                <NotebookPen size={13} aria-hidden="true" /> {found.entities.length + found.items.length} {found.entities.length + found.items.length === 1 ? 'anotação nova' : 'anotações novas'} no caderno
+              </button>
+            )}
+            {aids.caderno && aids.resumo && (found.entities.length > 0 || found.items.length > 0) && (
+              <section className="leitor-found" aria-label="Novo no caderno">
                 <h2>
-                  <Sparkles size={15} aria-hidden="true" /> Nesta cena
+                  <Sparkles size={15} aria-hidden="true" /> Novo no caderno
                 </h2>
                 <div className="leitor-found-list">
                   {found.entities.map((e, i) => (
                     <button key={e.id} type="button" className="leitor-found-card is-person" style={{ animationDelay: `${i * 90}ms` }} onClick={() => openCard(e.id)}>
-                      <span className="leitor-found-kind">Novo no caderno · {kindLabel(e.kind)}</span>
+                      <span className="leitor-found-kind">{kindLabel(e.kind)}</span>
                       <strong>{e.name}</strong>
                     </button>
                   ))}
                   {found.items.map((it, i) => (
                     <div key={`${it.kind}-${i}`} className="leitor-found-card" style={{ animationDelay: `${(found.entities.length + i) * 90}ms` }}>
-                      <span className="leitor-found-kind">{it.kind === 'trecho' ? `Você descobriu sobre ${it.tag}` : it.kind === 'relacao' ? 'Ligação' : 'Você descobriu'}</span>
+                      <span className="leitor-found-kind">{it.kind === 'trecho' ? `Sobre ${it.tag}` : it.kind === 'relacao' ? 'Ligação' : 'Anotado'}</span>
                       <span>
                         {it.text}
                         {it.kind === 'fato' && it.tag && <em className="muted"> ({it.tag})</em>}
@@ -203,7 +258,7 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
           </article>
         </div>
 
-        {notebookOpen && (
+        {notebookOpen && aids.caderno && (
           <Notebook
             known={known}
             book={book}
@@ -506,5 +561,44 @@ function MiniGraph({ known, relations, current, onPick }: { known: ReaderEntity[
         )
       })}
     </svg>
+  )
+}
+
+/** "Como ler": quanto o Papirus aparece durante a leitura. */
+function AidsPanel({ aids, onChange, onClose }: { aids: Aids; onChange: (a: Aids) => void; onClose: () => void }) {
+  const preset = presetOf(aids)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onDown = (e: PointerEvent) => !(e.target as HTMLElement).closest('.leitor-aids-wrap') && onClose()
+    addEventListener('keydown', onKey)
+    addEventListener('pointerdown', onDown)
+    return () => {
+      removeEventListener('keydown', onKey)
+      removeEventListener('pointerdown', onDown)
+    }
+  }, [onClose])
+  const toggle = (k: keyof Aids, label: string, hint: string) => (
+    <label className="check leitor-aid">
+      <input type="checkbox" checked={aids[k]} disabled={k !== 'caderno' && !aids.caderno} onChange={(e) => onChange({ ...aids, [k]: e.target.checked })} />
+      <span>
+        {label}
+        <span className="muted tiny">{hint}</span>
+      </span>
+    </label>
+  )
+  return (
+    <div id="leitor-ajudas" className="leitor-aids" role="group" aria-label="Como ler">
+      <div className="segmented" role="radiogroup" aria-label="Ajudas de leitura">
+        {(Object.keys(PRESETS) as Preset[]).map((k) => (
+          <button key={k} type="button" role="radio" aria-checked={preset === k} onClick={() => onChange(PRESETS[k])}>
+            {PRESET_LABEL[k]}
+          </button>
+        ))}
+      </div>
+      {toggle('caderno', 'Caderno do leitor', 'Quem é quem, o que já se sabe, ligações e linha do tempo, só até onde você leu.')}
+      {toggle('nomes', 'Nomes no texto abrem o caderno', 'Os nomes ganham um sublinhado leve.')}
+      {toggle('novidades', 'Avisar quando o caderno ganha algo', 'Um “+2” no botão do caderno, sem interromper.')}
+      {toggle('resumo', 'Quadro ao fim de cada cena', 'Mostra o que entrou no caderno com aquela cena.')}
+    </div>
   )
 }
