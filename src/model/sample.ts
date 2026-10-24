@@ -39,9 +39,13 @@ const textOf = (paragraphs: string[]) => paragraphs.filter((p) => p !== '---').j
  */
 /** Descrição do universo de exemplo; também serve para reconhecê-lo (se o autor mudar, vira dele). */
 export const SAMPLE_DESCRIPTION =
-  'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.'
+  'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido, um regente com medo e uma herdeira que não sabe quem é.'
 
-export const isSample = (u: Universe) => u.description === SAMPLE_DESCRIPTION
+/** Descrições de versões antigas do exemplo: ao abrir, o exemplo é trocado pelo atual. */
+const OLD_SAMPLE_DESCRIPTIONS = ['Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.']
+
+export const isSample = (u: Universe) => u.description === SAMPLE_DESCRIPTION || OLD_SAMPLE_DESCRIPTIONS.includes(u.description)
+export const isOutdatedSample = (u: Universe) => OLD_SAMPLE_DESCRIPTIONS.includes(u.description)
 
 export function sampleUniverse(): Universe {
   let u = createUniverse('Exemplo — As Cinzas de Ostria')

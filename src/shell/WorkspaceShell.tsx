@@ -1,4 +1,4 @@
-import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings, Users } from 'lucide-react'
+import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings, Users, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { withDailyStart } from '../logic/stats'
@@ -73,6 +73,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const readOnly = isReadOnly(source)
   const [shareOpen, setShareOpen] = useState(false)
   const [readerOpen, setReaderOpen] = useState(false)
+  const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [remoteRev, setRemoteRev] = useState<Record<string, number>>({})
   const { prefs, setPref } = prefsApi
@@ -383,19 +384,29 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
         <main id="conteudo" className="stage" tabIndex={-1}>
           {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
-          {isSample(universe) && (
+          {isSample(universe) && !sampleNoteClosed && (
             <div className="sample-banner" role="status">
-              <span>
-                <strong>Você está no mundo de exemplo.</strong> Mexa à vontade: nada aqui é seu de verdade.
+              <span className="sample-banner-text">
+                <strong>Mundo de exemplo</strong>
+                <span className="sample-banner-more"> · mexa à vontade, nada aqui é seu</span>
               </span>
-              <button type="button" className="btn btn-sm" onClick={() => setReaderOpen(true)}>
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => setReaderOpen(true)}>
                 <BookOpen size={14} /> Ler como livro
               </button>
-              <button type="button" className="btn btn-sm btn-primary" onClick={() => void ws.closeUniverse()}>
-                Criar o meu universo
+              <button type="button" className="btn btn-sm btn-ghost" aria-label="Sair do exemplo" onClick={() => void ws.closeUniverse()}>
+                Sair
               </button>
-              <button type="button" className="btn btn-sm btn-ghost" onClick={() => void ws.closeUniverse()}>
-                Sair do exemplo
+              <button
+                type="button"
+                className="btn-icon btn-sm"
+                aria-label="Esconder este aviso"
+                title="Esconder este aviso"
+                onClick={() => {
+                  remember('exemplo-aviso', 'fechado')
+                  setSampleNoteClosed(true)
+                }}
+              >
+                <X size={14} />
               </button>
             </div>
           )}

@@ -14,7 +14,7 @@ test('escrever no celular: barra acima do teclado, sem menu flutuante por cima d
   await expect(dock).toBeVisible()
   // O menu de baixo sai enquanto escreve.
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeHidden()
-  await expect(page.getByText('Você está no mundo de exemplo.')).toBeHidden()
+  await expect(page.getByText('Mundo de exemplo', { exact: true })).toBeHidden()
   const viewport = page.viewportSize()!
   // Depois da animação de entrada, encostada embaixo da tela.
   await expect.poll(async () => Math.round(((await dock.boundingBox())?.y ?? 0) + ((await dock.boundingBox())?.height ?? 0))).toBe(viewport.height)
@@ -39,5 +39,5 @@ test('escrever no celular: barra acima do teclado, sem menu flutuante por cima d
   await page.getByRole('button', { name: 'Fechar o teclado' }).tap()
   await expect(dock).toBeHidden()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
-  await expect(page.getByText('Você está no mundo de exemplo.')).toBeVisible()
+  await expect(page.getByText('Mundo de exemplo', { exact: true })).toBeVisible()
 })

@@ -67,7 +67,7 @@ test('ficha: marcar um trecho para revelar a partir de uma cena', async ({ page 
 test('relações mudam ao longo da história do exemplo', async ({ page }) => {
   await page.goto('/app/?exemplo')
   await page.getByRole('button', { name: 'Relações' }).first().click()
-  await page.getByRole('radio', { name: 'Num ponto da história' }).click()
+  await page.getByRole('button', { name: /Ver cena a cena/ }).click()
   const slider = page.getByRole('slider', { name: 'Cena' })
   const changes = page.getByRole('list', { name: 'O que muda nesta cena' })
   await slider.fill('0')
