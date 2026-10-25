@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { MentionMatcher } from '../logic/detection'
 import type { SceneDoc } from '../model/schema'
 import { sceneExtensions } from './extensions'
+import { keyKindOf, playKey, unlockAudio } from './keySounds'
 import { PhoneDock } from './PhoneDock'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
@@ -73,10 +74,23 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
       scrollMargin: { top: 16, bottom: 96, left: 0, right: 0 },
       scrollThreshold: { top: 16, bottom: 96, left: 0, right: 0 },
       attributes: { 'aria-label': 'Texto da cena', class: 'scene-text', spellcheck: 'true', lang: 'pt-BR' },
-      handleKeyDown: (_view, event) => {
-        const sound = cb.current.keySound
-        if (sound !== 'nenhum' && !event.ctrlKey && !event.metaKey && !event.altKey) void import('./keySounds').then((m) => m.playKey(sound, event.key))
-        return false
+      handleDOMEvents: {
+        // O áudio só pode ser ligado no próprio toque ou tecla (regra dos navegadores).
+        keydown: () => {
+          if (cb.current.keySound !== 'nenhum') unlockAudio()
+          return false
+        },
+        pointerdown: () => {
+          if (cb.current.keySound !== 'nenhum') unlockAudio()
+          return false
+        },
+        // O que entrou no texto diz o tipo de tecla, inclusive no teclado do celular (que não diz qual tecla foi).
+        beforeinput: (_view, event) => {
+          const sound = cb.current.keySound
+          const kind = sound !== 'nenhum' ? keyKindOf(event as InputEvent) : null
+          if (sound !== 'nenhum' && kind) playKey(sound, kind)
+          return false
+        },
       },
       handleClick: (_view, _pos, event) => {
         const commented = (event.target as HTMLElement).closest('[data-comment]')?.getAttribute('data-comment')
