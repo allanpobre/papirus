@@ -1322,3 +1322,39 @@ body.escrevendo-no-celular .backup-banner,
 body.escrevendo-no-celular .shared-banner {
   display: none;
 }
+
+/* Sprint de escrita */
+.sprint {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sprint .link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sprint.is-running {
+  padding: 0.1rem 0.3rem 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--accent-faint);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sprint-options {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}

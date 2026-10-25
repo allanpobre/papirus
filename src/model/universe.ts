@@ -332,6 +332,25 @@ export function saveSceneVersion(universe: Universe, sceneId: string, name: stri
   return patch(universe, 'scenes', sceneId, { versions: [version, ...scene.versions] })
 }
 
+export const AUTO_VERSION_PREFIX = 'Guardada sozinha'
+const AUTO_VERSIONS_KEPT = 14
+
+/**
+ * Na primeira mudança do dia numa cena, guarda como ela estava (uma versão por dia, as 14 últimas).
+ * Assim dá para ver como a cena era ontem sem ter lembrado de guardar.
+ */
+export function autoVersion(universe: Universe, sceneId: string, today = new Date()): Universe {
+  const scene = byId(universe, 'scenes', sceneId)
+  if (!scene || !scene.text.trim()) return universe
+  const day = today.toLocaleDateString('pt-BR')
+  const name = `${AUTO_VERSION_PREFIX} em ${day}`
+  if (scene.versions.some((v) => v.name === name)) return universe
+  const autos = scene.versions.filter((v) => v.name.startsWith(AUTO_VERSION_PREFIX))
+  const drop = new Set(autos.slice(AUTO_VERSIONS_KEPT - 1).map((v) => v.id))
+  const version = { id: newId(), name, at: today.toISOString(), doc: scene.doc, text: scene.text }
+  return patch(universe, 'scenes', sceneId, { versions: [version, ...scene.versions.filter((v) => !drop.has(v.id))] })
+}
+
 /** Troca o texto da cena por uma versão, guardando antes o texto atual. */
 export function restoreSceneVersion(universe: Universe, sceneId: string, versionId: string): Universe {
   const scene = byId(universe, 'scenes', sceneId)

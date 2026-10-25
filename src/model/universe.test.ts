@@ -144,3 +144,19 @@ describe('ordem do manuscrito', () => {
     void a
   })
 })
+
+describe('versão automática do dia', () => {
+  it('guarda uma vez por dia, antes da primeira mudança, e só as 14 últimas', async () => {
+    const { autoVersion, AUTO_VERSION_PREFIX } = await import('./universe')
+    let u = createUniverse('T')
+    let s
+    ;[u, s] = addScene(u, null, 'Um')
+    u = updateScene(u, s.id, { text: 'texto de ontem' })
+    u = autoVersion(u, s.id, new Date('2026-10-01T10:00:00'))
+    u = autoVersion(u, s.id, new Date('2026-10-01T18:00:00'))
+    expect(u.scenes[0].versions).toHaveLength(1)
+    expect(u.scenes[0].versions[0].text).toBe('texto de ontem')
+    for (let d = 2; d <= 20; d++) u = autoVersion(u, s.id, new Date(`2026-10-${String(d).padStart(2, '0')}T10:00:00`))
+    expect(u.scenes[0].versions.filter((v) => v.name.startsWith(AUTO_VERSION_PREFIX))).toHaveLength(14)
+  })
+})
