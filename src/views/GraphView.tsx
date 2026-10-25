@@ -234,11 +234,11 @@ export default function GraphView() {
       </header>
 
       {hasFamily && (
-        <div className="segmented graph-mode" role="tablist" aria-label="Como ver">
-          <button type="button" role="tab" aria-selected={mode === 'ligacoes'} aria-checked={mode === 'ligacoes'} onClick={() => setMode('ligacoes')}>
+        <div className="segmented graph-mode" role="radiogroup" aria-label="Como ver">
+          <button type="button" role="radio" aria-checked={mode === 'ligacoes'} onClick={() => setMode('ligacoes')}>
             Ligações
           </button>
-          <button type="button" role="tab" aria-selected={mode === 'familia'} aria-checked={mode === 'familia'} onClick={() => setMode('familia')}>
+          <button type="button" role="radio" aria-checked={mode === 'familia'} onClick={() => setMode('familia')}>
             Árvore da família
           </button>
         </div>

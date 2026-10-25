@@ -7,6 +7,7 @@ import type { Universe } from '../model/schema'
 import { byId } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { MiniGraph } from '../ui/MiniGraph'
+import { CommentFab, CommentSheet, useSelectedQuote, type SendComment } from './ReaderComment'
 
 interface DocNode {
   type: string
@@ -81,7 +82,25 @@ function loadAids(): Aids {
  * conforme a leitura (quem apareceu, o que se descobriu), sem spoiler.
  * O progresso fica salvo neste navegador.
  */
-export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar o modo leitor', footer }: { universe: Universe; storageKey: string; onClose?: () => void; closeLabel?: string; footer?: ReactNode }) {
+export function ReaderView({
+  universe,
+  storageKey,
+  onClose,
+  closeLabel = 'Fechar o modo leitor',
+  footer,
+  onComment,
+  commenterName,
+}: {
+  universe: Universe
+  storageKey: string
+  onClose?: () => void
+  closeLabel?: string
+  footer?: ReactNode
+  /** Leitor beta: mandar comentários para quem escreveu. */
+  onComment?: SendComment
+  /** Nome de quem está com conta (sem perguntar). */
+  commenterName?: string
+}) {
   const book = useMemo(() => readerBook(universe), [universe])
   const total = book.scenes.length
   const [progress, setProgress] = useState<Progress>(() => {
@@ -111,6 +130,8 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
   const [notebookOpen, setNotebookOpen] = useState(() => presetOf(loadAids()) === 'tudo' && !matchMedia('(max-width: 900px)').matches)
   const [fresh, setFresh] = useState(0)
   const pageRef = useRef<HTMLDivElement>(null)
+  const selectedQuote = useSelectedQuote(pageRef, Boolean(onComment))
+  const [commenting, setCommenting] = useState<{ quote: string } | null>(null)
   const [look, setLookState] = useState<Look>(loadLook)
   const setLook = (l: Look) => {
     setLookState(l)
@@ -321,6 +342,11 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
                 <span className="leitor-end">Fim, por enquanto.</span>
               )}
             </nav>
+            {onComment && (
+              <button type="button" className="link-btn small leitor-comment-scene" onClick={() => setCommenting({ quote: '' })}>
+                Comentar esta cena para quem escreveu
+              </button>
+            )}
             {footer}
           </article>
         </div>
@@ -344,6 +370,10 @@ export function ReaderView({ universe, storageKey, onClose, closeLabel = 'Fechar
           />
         )}
       </div>
+      {onComment && selectedQuote && !commenting && <CommentFab onClick={() => setCommenting({ quote: selectedQuote })} />}
+      {onComment && commenting && (
+        <CommentSheet sceneId={scene.id} sceneTitle={scene.title || 'Sem título'} quote={commenting.quote} onSend={onComment} signedName={commenterName} onClose={() => setCommenting(null)} />
+      )}
     </div>
   )
 }

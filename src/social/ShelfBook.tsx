@@ -89,6 +89,7 @@ export function ShelfBook({
               type="button"
               className={`btn btn-sm${wants ? ' social-want-on' : ' btn-ghost'}`}
               aria-pressed={wants}
+              title="Guarda o livro e avisa você quando sair capítulo novo"
               disabled={busy}
               onClick={() => (me ? void act((sb) => setWantToRead(sb, me, book.owner, book.id, !wants)) : onAccount?.())}
             >

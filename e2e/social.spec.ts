@@ -105,6 +105,18 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   expect(fake.tables.papirus_shelf_reactions).toHaveLength(1)
   await anaProfile.getByRole('button', { name: 'Fechar' }).click()
 
+  // Quem quer ler fica sabendo quando sai capítulo novo.
+  await bia.getByRole('button', { name: 'Conta: bia@exemplo.com' }).click()
+  await biaSocial.getByRole('tab', { name: /Avisos/ }).click()
+  await expect(biaSocial.getByText('Carregando…')).toHaveCount(0)
+  await expect(biaSocial).not.toContainText('capítulo novo')
+  await biaSocial.getByRole('button', { name: 'Fechar' }).click()
+  fake.tables.papirus_shelf[0].chapters = Number(fake.tables.papirus_shelf[0].chapters) + 1
+  await bia.getByRole('button', { name: 'Conta: bia@exemplo.com' }).click()
+  await biaSocial.getByRole('tab', { name: /Avisos/ }).click()
+  await expect(biaSocial.getByRole('list', { name: 'Avisos' })).toContainText('publicou 1 capítulo novo de “A Maré”')
+  await biaSocial.getByRole('button', { name: 'Fechar' }).click()
+
   // Ana vê os avisos, abre o comentário no livro dela e apaga.
   await page.getByRole('button', { name: 'Ver meu perfil' }).click()
   await anaSocial.getByRole('tab', { name: /Avisos/ }).click()

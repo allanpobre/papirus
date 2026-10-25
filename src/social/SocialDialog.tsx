@@ -263,7 +263,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             onOpen={(n) => {
               if (n.kind === 'pedido') return setTab('amigos')
               setFocusBook(n.book?.id)
-              setViewing(n.kind === 'livro-amigo' ? n.who : me)
+              setViewing(n.kind === 'livro-amigo' || n.kind === 'capitulo-novo' ? n.who : me)
             }}
           />
         ) : !loaded ? (
@@ -322,6 +322,7 @@ const NOTICE_TEXT: Record<Notice['kind'], (n: Notice) => string> = {
   comentario: (n) => `comentou em “${n.book?.title}”.`,
   'quero-ler': (n) => `quer ler “${n.book?.title}”.`,
   'livro-amigo': (n) => `pôs “${n.book?.title}” na estante.`,
+  'capitulo-novo': (n) => `publicou ${n.text} de “${n.book?.title}”.`,
 }
 const ago = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
 const when = (iso: string) => {

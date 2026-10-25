@@ -10,6 +10,7 @@ import type { Scene } from '../../model/schema'
 import { byId, entityName, updateScene } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { CanonBadge } from '../../ui/bits'
+import { BetaReadersSection } from './BetaReaders'
 import { QuestionCard } from './QuestionCard'
 
 interface Props {
@@ -73,6 +74,7 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
         </button>
       )}
       <CommentsSection scene={scene} focused={focusedComment ?? null} onRemoveMark={onRemoveCommentMark} />
+      <BetaReadersSection sceneId={scene.id} />
 
       {here.length > 0 && (
         <section className="margin-section margin-here">

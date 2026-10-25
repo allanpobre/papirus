@@ -345,7 +345,7 @@ export async function deleteComment(sb: SupabaseClient, id: string) {
 
 // ─── Avisos: o que aconteceu desde a última vez ───────────────────────
 
-export type NoticeKind = 'pedido' | 'comentario' | 'quero-ler' | 'livro-amigo'
+export type NoticeKind = 'pedido' | 'comentario' | 'quero-ler' | 'livro-amigo' | 'capitulo-novo'
 
 export interface Notice {
   kind: NoticeKind
@@ -366,6 +366,26 @@ export function noticesSeenAt(userId: string): string {
   }
 }
 
+// Livros que marquei "Quero ler": quantos capítulos tinham, e quando notei capítulos novos.
+const chaptersKey = (userId: string) => `papirus:capitulos-vistos:${userId}`
+type ChapterSeen = { n: number; news?: { at: string; added: number } }
+
+function chaptersSeen(userId: string): Record<string, ChapterSeen> {
+  try {
+    return (JSON.parse(localStorage.getItem(chaptersKey(userId)) ?? '{}') as Record<string, ChapterSeen>) ?? {}
+  } catch {
+    return {}
+  }
+}
+
+function saveChaptersSeen(userId: string, seen: Record<string, ChapterSeen>) {
+  try {
+    localStorage.setItem(chaptersKey(userId), JSON.stringify(seen))
+  } catch {
+    // Sem armazenamento: sem aviso de capítulo novo.
+  }
+}
+
 export function markNoticesSeen(userId: string) {
   try {
     localStorage.setItem(seenKey(userId), new Date().toISOString())
@@ -380,17 +400,31 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
   const since = new Date(Date.now() - 30 * 86400_000).toISOString()
   const friends = await myFriends(sb, myId)
   const friendIds = friends.filter((f) => f.status === 'aceita').map((f) => f.other.user_id)
-  const [mine, comments, reactions, friendBooks] = await Promise.all([
+  const [mine, comments, reactions, friendBooks, following] = await Promise.all([
     sb.from('papirus_shelf').select('id,title').eq('owner', myId),
     sb.from('papirus_shelf_comments').select('id,owner,book_id,author,body,created_at').eq('owner', myId).gte('created_at', since),
     sb.from('papirus_shelf_reactions').select('owner,book_id,user_id,created_at').eq('owner', myId).gte('created_at', since),
     friendIds.length ? sb.from('papirus_shelf').select('owner,id,title,created_at').in('owner', friendIds).gte('created_at', since) : Promise.resolve({ data: [], error: null }),
+    sb.from('papirus_shelf_reactions').select('owner,book_id').eq('user_id', myId).neq('owner', myId),
   ])
+  // Livros que sigo ("Quero ler"): quantos capítulos têm agora.
+  const follows = ((following.error ? [] : following.data) ?? []) as { owner: string; book_id: string }[]
+  const followed = follows.length
+    ? (((
+        await sb
+          .from('papirus_shelf')
+          .select('owner,id,title,chapters')
+          .in('id', [...new Set(follows.map((f) => f.book_id))])
+      ).data ?? []) as { owner: string; id: string; title: string; chapters: number }[]).filter((b) => follows.some((f) => f.owner === b.owner && f.book_id === b.id))
+    : []
   const titles = new Map(((mine.data ?? []) as { id: string; title: string }[]).map((b) => [b.id, b.title]))
   const cs = ((comments.error ? [] : comments.data) ?? []) as ShelfComment[]
   const rs = ((reactions.error ? [] : reactions.data) ?? []) as Reaction[]
   const fb = ((friendBooks.error ? [] : friendBooks.data) ?? []) as { owner: string; id: string; title: string; created_at: string }[]
-  const people = await profilesByIds(sb, [...new Set([...cs.map((c) => c.author), ...rs.map((r) => r.user_id), ...fb.map((b) => b.owner)])].filter((id) => id !== myId))
+  const people = await profilesByIds(
+    sb,
+    [...new Set([...cs.map((c) => c.author), ...rs.map((r) => r.user_id), ...fb.map((b) => b.owner), ...followed.map((b) => b.owner)])].filter((id) => id !== myId),
+  )
   const out: Notice[] = []
   for (const f of friends) if (f.status === 'pendente' && !f.outgoing) out.push({ kind: 'pedido', at: new Date().toISOString(), who: f.other })
   for (const c of cs) {
@@ -405,6 +439,20 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
     const who = people.get(b.owner)
     if (who) out.push({ kind: 'livro-amigo', at: b.created_at, who, book: { owner: b.owner, id: b.id, title: b.title } })
   }
+  const seen = chaptersSeen(myId)
+  const next: Record<string, ChapterSeen> = {}
+  const now = new Date().toISOString()
+  for (const b of followed) {
+    const key = `${b.owner}/${b.id}`
+    // Livro que passei a seguir agora começa a contar daqui.
+    const before = seen[key] ?? { n: b.chapters }
+    const news = b.chapters > before.n ? { at: now, added: b.chapters - before.n } : before.news
+    next[key] = { n: b.chapters, ...(news && news.at >= since ? { news } : {}) }
+    const who = people.get(b.owner)
+    if (news && news.at >= since && who)
+      out.push({ kind: 'capitulo-novo', at: news.at, who, book: { owner: b.owner, id: b.id, title: b.title }, text: news.added === 1 ? '1 capítulo novo' : `${news.added} capítulos novos` })
+  }
+  saveChaptersSeen(myId, next)
   return out.sort((a, b) => b.at.localeCompare(a.at))
 }
 
