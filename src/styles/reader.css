@@ -817,3 +817,57 @@ button.leitor-found-card {
   max-height: calc(100dvh - 120px);
   overflow-y: auto;
 }
+
+/* Leitor beta: comentar um trecho ou a cena. */
+.leitor-comment-scene {
+  display: block;
+  margin: 1.25rem auto 0;
+}
+.leitor-comment-fab {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  box-shadow: var(--shadow-lg, 0 6px 20px rgb(0 0 0 / 0.18));
+}
+.leitor-comment {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(560px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+  z-index: 41;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 30px rgb(0 0 0 / 0.18);
+  font-family: var(--font-ui, system-ui, sans-serif);
+}
+.leitor-comment header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.leitor-comment form {
+  display: grid;
+  gap: 0.5rem;
+}
+.leitor-comment form > .btn {
+  justify-self: start;
+}
+.leitor-comment-quote {
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+  font-style: italic;
+  max-height: 6rem;
+  overflow: auto;
+}

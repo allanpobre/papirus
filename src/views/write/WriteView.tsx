@@ -15,6 +15,8 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SceneEditor, type SelectionInfo } from '../../editor/SceneEditor'
+import { ageIn, ageLabel } from '../../logic/age'
+import { SprintButton } from './Sprint'
 import { downloadText, fileNameFor } from '../../export/download'
 import { sceneToMarkdown } from '../../export/markdown'
 import { continuityQuestions, isOpen } from '../../logic/continuity'
@@ -27,6 +29,7 @@ import { KIND_LABEL, SCENE_STATUS_LABEL } from '../../model/labels'
 import { ENTITY_KINDS, SCENE_STATUSES, type Scene, type SceneStatus } from '../../model/schema'
 import {
   addScene,
+  autoVersion,
   byId,
   draftEntity,
   draftInbox,
@@ -173,7 +176,8 @@ export default function WriteView() {
   const openSceneId = scene?.id
   const onChange = useCallback(
     (doc: Scene['doc'], text: string) => {
-      if (openSceneId) update((u) => updateScene(u, openSceneId, { doc, text }))
+      // Antes da primeira mudança do dia, a cena guarda como estava (Versões → "Guardada sozinha").
+      if (openSceneId) update((u) => updateScene(autoVersion(u, openSceneId), openSceneId, { doc, text }))
     },
     [openSceneId, update],
   )
@@ -391,6 +395,16 @@ export default function WriteView() {
                   </div>
                   <div className="field-wide">
                     <EntityMultiPicker label="Elenco presente" value={scene.presentIds} onChange={(ids) => set({ presentIds: ids })} />
+                    {(() => {
+                      const ages = [scene.povId, ...scene.presentIds]
+                        .filter((id, i, all): id is string => Boolean(id) && all.indexOf(id) === i)
+                        .flatMap((id) => {
+                          const e = byId(universe, 'entities', id)
+                          const age = e ? ageIn(e, scene.date?.year) : null
+                          return e && age !== null ? [`${e.name}, ${ageLabel(age)}`] : []
+                        })
+                      return ages.length ? <p className="muted tiny scene-ages">Idades nesta cena: {ages.join(' · ')}</p> : null
+                    })()}
                   </div>
                   <Field label="Sinopse" wide>
                     {(id) => (
@@ -445,6 +459,7 @@ export default function WriteView() {
               </>
             )}
           </span>
+          {!ws.readOnly && <SprintButton />}
           {sceneQuestions.filter(isOpen).length > 0 && !marginVisible && (
             <button type="button" className="link-btn" onClick={() => setDialog({ kind: 'review' })}>
               {sceneQuestions.filter(isOpen).length} perguntas

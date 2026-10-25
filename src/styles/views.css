@@ -4236,3 +4236,228 @@ button.arc-dot {
 .arc-moment-revela svg {
   color: var(--violet);
 }
+
+/* Quadro de cenas: arrastar */
+.cork-handle {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+}
+
+.cork-handle:hover,
+.cork-handle:focus-visible {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.cork-card .cork-title {
+  margin-left: 1.4rem;
+}
+
+.corkboard.is-dragging,
+.corkboard.is-dragging * {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.cork-card.is-dragged {
+  opacity: 0.45;
+}
+
+.cork-card.drop-before {
+  box-shadow: -4px 0 0 var(--accent);
+}
+
+.cork-drop-end {
+  min-height: 60px;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  list-style: none;
+}
+
+.cork-group.is-target > .section-title {
+  color: var(--accent);
+}
+
+@media (pointer: coarse) {
+  .cork-handle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .cork-card .cork-title {
+    margin-left: 1.9rem;
+  }
+}
+
+/* Árvore da família */
+.graph-mode {
+  align-self: flex-start;
+  margin-bottom: 0.6rem;
+}
+
+.family-wrap {
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.family {
+  display: block;
+  max-width: none;
+}
+
+.family path,
+.family line {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1.6;
+}
+
+.family .family-casal {
+  stroke: var(--accent);
+  stroke-width: 2.4;
+}
+
+.family .family-irmaos {
+  stroke-dasharray: 5 4;
+}
+
+.family .family-avos {
+  stroke-dasharray: 2 4;
+}
+
+.family-node {
+  cursor: pointer;
+}
+
+.family-node rect {
+  fill: var(--paper);
+  stroke: var(--line-strong);
+  stroke-width: 1.2;
+}
+
+.family-node:hover rect,
+.family-node:focus-visible rect {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.family-node:focus {
+  outline: none;
+}
+
+.family-name {
+  fill: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.family-years {
+  fill: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.family-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.5rem;
+  margin: 0.6rem 0 0;
+}
+
+.family-key {
+  display: inline-block;
+  width: 22px;
+  height: 0;
+  border-top: 2px solid var(--line-strong);
+}
+
+.family-key-casal {
+  border-top: 2.4px solid var(--accent);
+}
+
+.family-key-irmaos {
+  border-top-style: dashed;
+}
+
+/* Atlas: caminho de um personagem */
+.atlas-route-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.atlas-route-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.4rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: parada;
+}
+
+.atlas-route-list li {
+  counter-increment: parada;
+}
+
+.atlas-route-list li::before {
+  content: counter(parada) '. ';
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.atlas-route-list li:not(:last-child)::after {
+  content: ' →';
+  color: var(--muted);
+}
+
+.atlas-route {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.atlas-route polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-dasharray: 8 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 30%));
+}
+
+.atlas-route-stop {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: -34px 0 0 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 700 11px/1 var(--font-ui);
+  pointer-events: none;
+}

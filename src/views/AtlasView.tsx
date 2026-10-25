@@ -1,6 +1,7 @@
 import { ImagePlus, MapPin, Minus, Plus, Trash2, X } from 'lucide-react'
 import { tabListKeys } from '../ui/keys'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { rangeText, routeOn } from '../logic/route'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
 import { byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
@@ -146,6 +147,13 @@ function MapCanvas({ map }: { map: AtlasMap }) {
 
   const kinds = [...new Set(map.pins.map((p) => byId(universe, 'entities', p.entityId)?.kind).filter(Boolean) as string[])]
   const visible = map.pins.filter((p) => !hiddenKinds.has(byId(universe, 'entities', p.entityId)?.kind ?? ''))
+  // Caminho de um personagem pelas cenas.
+  const [traveler, setTraveler] = useState('')
+  const travelers = useMemo(
+    () => universe.entities.filter((e) => e.kind === 'personagem' && routeOn(universe, map, e.id).length > 0).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    [universe, map],
+  )
+  const route = useMemo(() => (traveler ? routeOn(universe, map, traveler) : []), [universe, map, traveler])
   const pin = selectedPin ? map.pins.find((p) => p.id === selectedPin) : undefined
   const pinEntity = pin ? byId(universe, 'entities', pin.entityId) : undefined
 
@@ -177,6 +185,19 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             ))}
           </span>
         )}
+        {travelers.length > 0 && (
+          <label className="atlas-route-pick">
+            <span className="small">Caminho de</span>
+            <select className="input input-sm" value={traveler} onChange={(e) => setTraveler(e.target.value)}>
+              <option value="">ninguém</option>
+              {travelers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <ConfirmButton
           className="btn btn-ghost btn-sm"
           question="Apagar este mapa e seus marcadores?"
@@ -187,6 +208,15 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         </ConfirmButton>
       </div>
 
+      {route.length > 0 && (
+        <ol className="atlas-route-list small" aria-label="Caminho, na ordem das cenas">
+          {route.map((r, i) => (
+            <li key={i}>
+              <strong>{r.place}</strong> <span className="muted">(cena{r.scenes.length > 1 ? 's' : ''} {rangeText(r.scenes)})</span>
+            </li>
+          ))}
+        </ol>
+      )}
       <div className="atlas-scroll">
         <div
           ref={imgRef}
@@ -203,6 +233,16 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           }}
           onPointerUp={() => (dragging.current = null)}
         >
+          {route.length > 1 && (
+            <svg className="atlas-route" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points={route.map((r) => `${r.x * 1000},${r.y * 1000}`).join(' ')} vectorEffect="non-scaling-stroke" />
+            </svg>
+          )}
+          {route.map((r, i) => (
+            <span key={`r${i}`} className="atlas-route-stop" style={{ left: `${r.x * 100}%`, top: `${r.y * 100}%` }} aria-hidden="true">
+              {i + 1}
+            </span>
+          ))}
           {visible.map((p) => {
             const e = byId(universe, 'entities', p.entityId)
             return (

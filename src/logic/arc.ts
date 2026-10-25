@@ -20,6 +20,8 @@ export interface ArcStep {
   n: number
   presence: Presence
   moments: ArcMoment[]
+  /** Ano da cena, se tiver data. */
+  year: number | null
 }
 
 export interface Arc {
@@ -80,7 +82,7 @@ export function characterArc(universe: Universe, entityId: string): Arc {
       if (f) moments.push({ kind: 'sabe', text: `${KNOW_VERB[k.state]}: ${factSentence(universe, f)}` })
     }
     for (const text of reveals.get(i) ?? []) moments.push({ kind: 'revela', text })
-    return { sceneId: scene.id, title: scene.title || 'Sem título', n: i + 1, presence, moments }
+    return { sceneId: scene.id, title: scene.title || 'Sem título', n: i + 1, presence, moments, year: scene.date?.year ?? null }
   })
 
   const shown = steps.filter((s) => s.presence)

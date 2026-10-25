@@ -98,3 +98,64 @@ revoke all on function public.papirus_my_email(), public.papirus_role(uuid, uuid
 grant execute on function public.papirus_my_email(), public.papirus_role(uuid, uuid), public.papirus_share_data(uuid, uuid, jsonb, text) to authenticated;
 revoke all on function public.papirus_link_get(text) from public;
 grant execute on function public.papirus_link_get(text) to anon, authenticated;
+
+-- ─── Leitores beta: comentários em trechos do texto ──────────────────
+-- Quem lê pelo link (ou foi convidado) seleciona um trecho e comenta. Só quem é dono do universo
+-- lê os comentários, marca como resolvido ou apaga. Desligar o compartilhamento apaga tudo junto.
+
+create table if not exists public.papirus_feedback (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null,
+  universe_id uuid not null,
+  scene_id text not null check (length(scene_id) <= 64),
+  quote text not null default '' check (length(quote) <= 600),
+  body text not null check (length(trim(body)) between 1 and 2000),
+  author_name text not null default '' check (length(author_name) <= 60),
+  author_id uuid,
+  resolved boolean not null default false,
+  created_at timestamptz not null default now(),
+  foreign key (owner_id, universe_id) references public.papirus_shares (owner_id, universe_id) on delete cascade
+);
+create index if not exists papirus_feedback_universe on public.papirus_feedback (owner_id, universe_id, created_at);
+
+alter table public.papirus_feedback enable row level security;
+drop policy if exists "dono lê os comentários" on public.papirus_feedback;
+drop policy if exists "dono resolve" on public.papirus_feedback;
+drop policy if exists "dono apaga" on public.papirus_feedback;
+create policy "dono lê os comentários" on public.papirus_feedback for select to authenticated using (owner_id = auth.uid());
+create policy "dono resolve" on public.papirus_feedback for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+create policy "dono apaga" on public.papirus_feedback for delete to authenticated using (owner_id = auth.uid());
+
+-- Comentar: pelo link de leitura (token), ou como convidado do universo. Ninguém escreve direto na tabela.
+create or replace function public.papirus_feedback_add(token text, o uuid, u uuid, scene text, q text, b text, n text) returns uuid
+language plpgsql security definer set search_path = '' as $$
+declare
+  so uuid;
+  su uuid;
+  new_id uuid;
+begin
+  if token is not null and length(token) >= 32 then
+    select s.owner_id, s.universe_id into so, su from public.papirus_shares s where s.link_token = token;
+  elsif o is not null and u is not null and public.papirus_role(o, u) is not null then
+    so := o;
+    su := u;
+  end if;
+  if so is null then
+    raise exception 'sem permissão para comentar';
+  end if;
+  if (select count(*) from public.papirus_feedback f where f.owner_id = so and f.universe_id = su) >= 3000 then
+    raise exception 'este livro já recebeu comentários demais';
+  end if;
+  insert into public.papirus_feedback (owner_id, universe_id, scene_id, quote, body, author_name, author_id)
+  values (so, su, left(scene, 64), left(coalesce(q, ''), 600), left(b, 2000), left(coalesce(n, ''), 60), auth.uid())
+  returning id into new_id;
+  return new_id;
+end
+$$;
+
+revoke all on public.papirus_feedback from anon;
+grant select, delete on public.papirus_feedback to authenticated;
+revoke update on public.papirus_feedback from authenticated;
+grant update (resolved) on public.papirus_feedback to authenticated;
+revoke all on function public.papirus_feedback_add(text, uuid, uuid, text, text, text, text) from public;
+grant execute on function public.papirus_feedback_add(text, uuid, uuid, text, text, text, text) to anon, authenticated;

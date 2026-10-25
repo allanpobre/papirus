@@ -5,6 +5,7 @@ import { Library, type LibraryEntry } from './persistence/repository'
 import { memoryStore, openBestStore, requestPersistentStorage } from './persistence/storage'
 import { fetchByLink, openShared, parseReadLink, shortName, type SharedWithMe } from './share/sharing'
 import { ReaderView } from './reader/ReaderView'
+import { commentSender } from './share/feedback'
 import type { LiveSource } from './share/useLiveSync'
 import { authClient } from './account/auth'
 import { LibraryScreen } from './shell/LibraryScreen'
@@ -198,6 +199,7 @@ export default function App() {
         <ReaderView
           universe={opened.universe}
           storageKey={opened.book.key}
+          onComment={commentSender(opened.source ?? { kind: 'proprio' }, opened.universe.id, null)}
           footer={
             <p className="leitor-made muted tiny">
               Compartilhado {opened.book.ownerEmail ? `por ${shortName(opened.book.ownerEmail)} ` : ''}com o <a href="../">Papirus</a>. O caderno guarda só o que você já leu.

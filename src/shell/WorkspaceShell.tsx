@@ -25,6 +25,8 @@ import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
 import { readerCopy } from '../share/readerCopy'
 import { ReaderView } from '../reader/ReaderView'
+import type { SendComment } from '../reader/ReaderComment'
+import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { NAV, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -508,7 +510,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           document.body,
         )}
       {readerOpen &&
-        createPortal(<ReaderOverlay universe={universe} preview={source.kind === 'proprio' || source.kind === 'editar'} onClose={() => setReaderOpen(false)} />, document.body)}
+        createPortal(
+          <ReaderOverlay
+            universe={universe}
+            preview={source.kind === 'proprio' || source.kind === 'editar'}
+            onComment={commentSender(source, universe.id, account.server)}
+            commenterName={account.user?.email ? shortName(account.user.email) : undefined}
+            onClose={() => setReaderOpen(false)}
+          />,
+          document.body,
+        )}
     </WorkspaceContext.Provider>
   )
 }
@@ -676,7 +687,19 @@ function SharedBanner({ source, onLeave, onRead }: { source: LiveSource; onLeave
 }
 
 /** O modo leitor por cima da área de trabalho. Para o autor, é a prévia do que o leitor vê. */
-function ReaderOverlay({ universe, preview, onClose }: { universe: Universe; preview: boolean; onClose: () => void }) {
+function ReaderOverlay({
+  universe,
+  preview,
+  onClose,
+  onComment,
+  commenterName,
+}: {
+  universe: Universe
+  preview: boolean
+  onClose: () => void
+  onComment?: SendComment
+  commenterName?: string
+}) {
   const [copy] = useState(() => readerCopy(universe, false))
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
@@ -684,6 +707,8 @@ function ReaderOverlay({ universe, preview, onClose }: { universe: Universe; pre
         universe={copy}
         storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}`}
         onClose={onClose}
+        onComment={onComment}
+        commenterName={commenterName}
         closeLabel={preview ? 'Voltar ao universo' : 'Fechar o modo leitor'}
         footer={
           preview ? (

@@ -332,6 +332,25 @@ export function saveSceneVersion(universe: Universe, sceneId: string, name: stri
   return patch(universe, 'scenes', sceneId, { versions: [version, ...scene.versions] })
 }
 
+export const AUTO_VERSION_PREFIX = 'Guardada sozinha'
+const AUTO_VERSIONS_KEPT = 14
+
+/**
+ * Na primeira mudança do dia numa cena, guarda como ela estava (uma versão por dia, as 14 últimas).
+ * Assim dá para ver como a cena era ontem sem ter lembrado de guardar.
+ */
+export function autoVersion(universe: Universe, sceneId: string, today = new Date()): Universe {
+  const scene = byId(universe, 'scenes', sceneId)
+  if (!scene || !scene.text.trim()) return universe
+  const day = today.toLocaleDateString('pt-BR')
+  const name = `${AUTO_VERSION_PREFIX} em ${day}`
+  if (scene.versions.some((v) => v.name === name)) return universe
+  const autos = scene.versions.filter((v) => v.name.startsWith(AUTO_VERSION_PREFIX))
+  const drop = new Set(autos.slice(AUTO_VERSIONS_KEPT - 1).map((v) => v.id))
+  const version = { id: newId(), name, at: today.toISOString(), doc: scene.doc, text: scene.text }
+  return patch(universe, 'scenes', sceneId, { versions: [version, ...scene.versions.filter((v) => !drop.has(v.id))] })
+}
+
 /** Troca o texto da cena por uma versão, guardando antes o texto atual. */
 export function restoreSceneVersion(universe: Universe, sceneId: string, versionId: string): Universe {
   const scene = byId(universe, 'scenes', sceneId)
@@ -352,6 +371,22 @@ export function moveScene(universe: Universe, sceneId: string, direction: -1 | 1
   return patch(patch(universe, 'scenes', scene.id, { order: other.order }), 'scenes', other.id, {
     order: scene.order,
   })
+}
+
+/** Põe a cena numa história (ou nas soltas), antes de outra cena (ou no fim, com `beforeId` nulo). */
+export function placeScene(universe: Universe, sceneId: string, storyId: string | null, beforeId: string | null): Universe {
+  const scene = byId(universe, 'scenes', sceneId)
+  if (!scene || beforeId === sceneId) return universe
+  const list = scenesOf(universe, storyId).filter((s) => s.id !== sceneId)
+  const at = beforeId ? list.findIndex((s) => s.id === beforeId) : -1
+  list.splice(at >= 0 ? at : list.length, 0, scene)
+  const order = new Map(list.map((s, i) => [s.id, i]))
+  const stamp = now()
+  return {
+    ...universe,
+    scenes: universe.scenes.map((s) => (order.has(s.id) ? { ...s, order: order.get(s.id)!, ...(s.id === sceneId ? { storyId, updatedAt: stamp } : {}) } : s)),
+    updatedAt: stamp,
+  }
 }
 
 /** Move a cena para outra história (ou para as cenas soltas), no fim da lista. */

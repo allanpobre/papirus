@@ -1,0 +1,75 @@
+import { createFakeSupabase, PASSWORD, SERVER } from './fakeSupabase.ts'
+import { expect, test, type Page } from './fixtures.ts'
+
+async function signIn(page: Page, email: string) {
+  await page.getByRole('button', { name: 'Entrar' }).first().click()
+  const dialog = page.getByRole('dialog', { name: 'Entrar no Papirus' })
+  await dialog.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
+  await dialog.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
+  await dialog.getByRole('button', { name: 'Pronto' }).click()
+  await dialog.getByRole('textbox', { name: 'E-mail' }).fill(email)
+  await dialog.getByLabel('Senha').fill(PASSWORD)
+  await dialog.getByRole('button', { name: 'Entrar', exact: true }).click()
+  const mine = page.getByRole('dialog', { name: 'Sua conta' })
+  await expect(mine).toContainText(email)
+  await mine.getByRole('button', { name: 'Fechar' }).click()
+}
+
+test('leitores beta: quem lê pelo link comenta um trecho e a cena; a autora vê na margem e resolve', async ({ page, browser }) => {
+  test.setTimeout(90_000)
+  const fake = createFakeSupabase()
+  await fake.attach(page.context())
+
+  await page.goto('/app/')
+  await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Ostria')
+  await page.getByRole('button', { name: 'Criar universo' }).click()
+  await page.getByRole('button', { name: 'Começar a escrever' }).click()
+  await page.getByRole('textbox', { name: 'Texto da cena' }).click()
+  await page.keyboard.type('Era noite em Ostria e o farol estava apagado.')
+  await expect(page.getByRole('status').first()).toHaveText('Salvo')
+  await signIn(page, 'ana@exemplo.com')
+
+  await page.getByRole('button', { name: 'Compartilhar', exact: true }).first().click()
+  const share = page.getByRole('dialog', { name: 'Compartilhar' })
+  await share.getByRole('button', { name: 'Começar a compartilhar' }).click()
+  await share.getByRole('button', { name: 'Criar link de leitura' }).click()
+  const bookLink = await share.getByRole('textbox', { name: 'Link de leitura' }).inputValue()
+  await share.getByRole('button', { name: 'Fechar' }).click()
+
+  // A leitora, sem conta, abre o livro e comenta.
+  const context = await browser.newContext()
+  await context.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
+  await fake.attach(context)
+  const reader = await context.newPage()
+  await reader.goto(`/app/${new URL(bookLink).search}`)
+  await reader.getByText('Era noite em Ostria').click({ clickCount: 3 })
+  await reader.getByRole('button', { name: 'Comentar o trecho' }).click()
+  const sheet = reader.getByRole('dialog', { name: 'Comentar para quem escreveu' })
+  await expect(sheet.locator('blockquote')).toContainText('o farol estava apagado')
+  await sheet.getByRole('textbox', { name: 'Seu comentário' }).fill('Que começo bonito!')
+  await sheet.getByRole('textbox', { name: 'Seu nome' }).fill('Caio')
+  await sheet.getByRole('button', { name: 'Enviar para quem escreveu' }).click()
+  await expect(sheet).toContainText('Enviado. Obrigado!')
+  await sheet.getByRole('button', { name: 'Fechar' }).click()
+
+  await reader.getByRole('button', { name: 'Comentar esta cena para quem escreveu' }).click()
+  await expect(sheet.getByRole('textbox', { name: 'Seu nome' })).toHaveValue('Caio')
+  await sheet.getByRole('textbox', { name: 'Seu comentário' }).fill('Fiquei com vontade de saber do farol.')
+  await sheet.getByRole('button', { name: 'Enviar para quem escreveu' }).click()
+  await expect(sheet).toContainText('Enviado')
+  expect(fake.tables.papirus_feedback).toHaveLength(2)
+
+  // A autora vê os dois na margem da cena e marca um como resolvido.
+  await page.reload()
+  const margin = page.getByRole('complementary', { name: 'Margem viva' })
+  const beta = margin.locator('.beta-readers')
+  await expect(beta).toContainText('Que começo bonito!')
+  await expect(beta).toContainText('Caio')
+  await expect(beta.locator('blockquote')).toContainText('o farol estava apagado')
+  await expect(beta.locator('.beta-count')).toHaveText('2')
+  await beta.getByRole('button', { name: 'Resolvido' }).first().click()
+  await expect(beta.locator('.beta-count')).toHaveText('1')
+  expect(fake.tables.papirus_feedback.filter((f) => f.resolved)).toHaveLength(1)
+  await beta.getByRole('button', { name: 'Apagar o comentário' }).first().click()
+  await expect(beta.locator('.beta-item')).toHaveCount(1)
+})

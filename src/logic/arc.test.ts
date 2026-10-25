@@ -23,3 +23,14 @@ describe('arco do personagem', () => {
     expect(characterArc(u, teoria.id).first?.n).toBe(12)
   })
 })
+
+describe('idade', () => {
+  it('pela data da cena e o nascimento na ficha', async () => {
+    const { ageIn, ageLabel } = await import('./age')
+    expect(ageIn({ startYear: 1738, endYear: null }, 1783)).toBe(45)
+    expect(ageIn({ startYear: 1738, endYear: 1787 }, 1790)).toBeNull()
+    expect(ageIn({ startYear: 1738, endYear: null }, 1700)).toBeNull()
+    expect(ageIn({ startYear: null, endYear: null }, 1783)).toBeNull()
+    expect(ageLabel(1)).toBe('1 ano')
+  })
+})

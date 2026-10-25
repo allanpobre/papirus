@@ -21,7 +21,7 @@ export const PEOPLE = {
 export const PASSWORD = 'segredo123'
 
 export function createFakeSupabase() {
-  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [] }
+  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [], papirus_feedback: [] }
   const friends = (a: unknown, b: unknown) =>
     tables.papirus_friendships.some((f) => f.status === 'aceita' && ((f.requester === a && f.addressee === b) || (f.requester === b && f.addressee === a)))
   /** Tabelas que quem não tem conta também lê (o que é público). */
@@ -94,6 +94,8 @@ export function createFakeSupabase() {
         const want = v.slice(3)
         const have = r[k]
         if (k === 'updated_at' ? Date.parse(String(have)) !== Date.parse(want) : String(have) !== want) return false
+      } else if (v.startsWith('neq.')) {
+        if (String(r[k]) === v.slice(4)) return false
       } else if (v.startsWith('gte.')) {
         if (!(String(r[k]) >= v.slice(4))) return false
       } else if (v.startsWith('in.(')) {
@@ -140,6 +142,14 @@ export function createFakeSupabase() {
         const { token } = req.postDataJSON() as { token: string }
         const s = tables.papirus_shares.find((x) => x.link_token && x.link_token === token)
         return route.fulfill({ headers: cors, json: s ? [{ universe_id: s.universe_id, name: s.name, owner_email: s.owner_email, data: s.data, updated_at: s.updated_at }] : [] })
+      }
+      if (path === 'rpc/papirus_feedback_add') {
+        const { token, o, u, scene, q, b, n } = req.postDataJSON() as Record<string, string | null>
+        const s = token ? tables.papirus_shares.find((x) => x.link_token && x.link_token === token) : tables.papirus_shares.find((x) => x.owner_id === o && x.universe_id === u && roleOf(me, o, u))
+        if (!s) return route.fulfill({ status: 400, headers: cors, json: { message: 'sem permissão para comentar' } })
+        if (!b?.trim()) return route.fulfill({ status: 400, headers: cors, json: { message: 'comentário vazio' } })
+        tables.papirus_feedback.push({ id: crypto.randomUUID(), owner_id: s.owner_id, universe_id: s.universe_id, scene_id: scene, quote: q ?? '', body: b, author_name: n ?? '', resolved: false, created_at: new Date().toISOString() })
+        return route.fulfill({ status: 204, headers: cors, body: '' })
       }
       if (path === 'rpc/papirus_share_data') {
         const { o, u, d, n } = req.postDataJSON() as { o: string; u: string; d: unknown; n: string }
