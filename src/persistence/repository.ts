@@ -1,3 +1,4 @@
+import { isLocalOnly } from '../model/sample'
 import { migrate } from '../model/migrations'
 import { CURRENT_SCHEMA_VERSION, type SavedFile, type Universe } from '../model/schema'
 import type { KeyValueStore } from './storage'
@@ -176,6 +177,8 @@ export interface LibraryEntry {
   name: string
   updatedAt: string
   words: number
+  /** Universo de exemplo: fica só neste aparelho. */
+  sample?: boolean
 }
 
 /** Índice dos universos guardados neste navegador. */
@@ -210,6 +213,7 @@ export class Library {
       name: universe.name,
       updatedAt: universe.updatedAt,
       words: countWords(universe),
+      ...(isLocalOnly(universe) ? { sample: true } : {}),
     }
     const i = list.findIndex((e) => e.id === universe.id)
     if (i >= 0) list[i] = entry
@@ -260,8 +264,20 @@ export class Library {
   }
 }
 
+// Contagem por cena, guardada enquanto a cena não muda: ao digitar, só a cena aberta é recontada.
+const sceneWords = new WeakMap<Universe['scenes'][number], number>()
+
 export function countWords(universe: Universe): number {
-  return universe.scenes.reduce((n, s) => n + wordCount(s.text), 0)
+  let n = 0
+  for (const s of universe.scenes) {
+    let w = sceneWords.get(s)
+    if (w === undefined) {
+      w = wordCount(s.text)
+      sceneWords.set(s, w)
+    }
+    n += w
+  }
+  return n
 }
 
 export function wordCount(text: string): number {

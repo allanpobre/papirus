@@ -4,6 +4,7 @@ import { shelf } from '../export/shelf'
 import { DEFAULT_PUBLIC_URL } from '../share/server'
 import { getShare, readLink } from '../share/sharing'
 import { useWorkspace } from '../state/workspace'
+import { isLocalOnly } from '../model/sample'
 import { syncShelf } from './social'
 
 export type ShelfSyncState = { state: 'parado' } | { state: 'enviando' } | { state: 'ok'; shown: number } | { state: 'erro'; error: string }
@@ -16,7 +17,7 @@ export function useShelfSync(): ShelfSyncState {
   const { universe, source, prefs } = useWorkspace()
   const { user, server } = useAccount()
   const [status, setStatus] = useState<ShelfSyncState>({ state: 'parado' })
-  const mine = source.kind === 'proprio'
+  const mine = source.kind === 'proprio' && !isLocalOnly(universe)
   const userId = user?.id
   // Nada à mostra e nada para tirar: não precisa nem falar com o servidor.
   const anyVisible = shelf(universe).some((b) => b.shelfVisibility !== 'privado')

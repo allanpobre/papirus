@@ -47,6 +47,8 @@ import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
 import { Field, Select, YearInput } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
+import { useSettled } from '../../ui/useSettled'
+import { MoreMenu } from '../../ui/MoreMenu'
 import { EntityMultiPicker, EntityPicker } from '../../ui/EntityPicker'
 import { FactDialog, type FactDraft } from '../../ui/FactDialog'
 import { Modal } from '../../ui/Modal'
@@ -120,16 +122,19 @@ export default function WriteView() {
     [namesKey, prefs.detection],
   )
 
+  // As contas pesadas esperam uma pausa na digitação (no celular, cada tecla ficava lenta).
+  const calm = useSettled(universe)
+  const openId = scene?.id
   const questions = useMemo(
-    () => continuityQuestions(universe, prefs.continuity).filter((q) => !scene || q.sceneIds.includes(scene.id) || q.sceneId === null),
-    [universe, prefs.continuity, scene],
+    () => continuityQuestions(calm, prefs.continuity).filter((q) => !openId || q.sceneIds.includes(openId) || q.sceneId === null),
+    [calm, prefs.continuity, openId],
   )
   const sceneQuestions = questions.filter((q) => scene && q.sceneIds.includes(scene.id))
 
+  const calmScene = openId ? calm.scenes.find((s) => s.id === openId) : undefined
   const candidates = useMemo(
-    () => (prefs.discovery && scene ? findCandidates(scene.text, universe.entities, universe.settings.ignoredNames).length : 0),
-    // Recalcula após pausas: o texto da cena só muda no estado quando o editor avisa.
-    [prefs.discovery, scene, universe.entities, universe.settings.ignoredNames],
+    () => (prefs.discovery && calmScene ? findCandidates(calmScene.text, calm.entities, calm.settings.ignoredNames).length : 0),
+    [prefs.discovery, calmScene, calm.entities, calm.settings.ignoredNames],
   )
 
   useEffect(() => {
@@ -279,34 +284,55 @@ export default function WriteView() {
             <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
               <SlidersHorizontal size={15} /> Detalhes da cena
             </button>
-            <button type="button" className="btn-icon" title="Versões da cena" aria-label="Versões da cena" onClick={() => setDialog({ kind: 'versions' })}>
-              <History size={17} />
-            </button>
-            <button type="button" className="btn-icon" title="Ler a história" aria-label="Ler" onClick={() => setDialog({ kind: 'reading' })}>
-              <BookOpen size={17} />
-            </button>
-            <button
-              type="button"
-              className="btn-icon"
-              title="Exportar cena (Markdown)"
-              aria-label="Exportar cena"
-              onClick={() => downloadText(fileNameFor(scene.title, 'md'), sceneToMarkdown(scene))}
-            >
-              <Download size={17} />
-            </button>
-            <ConfirmButton
-              className="btn-icon"
-              title="Apagar cena"
-              question="Apagar esta cena?"
-              confirmLabel="Apagar cena"
-              onConfirm={() => {
-                const next = order.find((s) => s.id !== scene.id)
-                undoable(`Cena “${scene.title || 'Sem título'}” apagada`, (u) => removeScene(u, scene.id))
-                setSceneId(next?.id ?? null)
-              }}
-            >
-              <Trash2 size={17} aria-label="Apagar cena" />
-            </ConfirmButton>
+            <MoreMenu label="Mais ações da cena">
+              {(close) => (
+                <>
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      setDialog({ kind: 'versions' })
+                    }}
+                  >
+                    <History size={16} /> Versões da cena
+                  </button>
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      setDialog({ kind: 'reading' })
+                    }}
+                  >
+                    <BookOpen size={16} /> Ler
+                  </button>
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      downloadText(fileNameFor(scene.title, 'md'), sceneToMarkdown(scene))
+                    }}
+                  >
+                    <Download size={16} /> Exportar cena
+                  </button>
+                  <ConfirmButton
+                    className="more-menu-item more-menu-danger"
+                    question="Apagar esta cena?"
+                    confirmLabel="Apagar cena"
+                    onConfirm={() => {
+                      close()
+                      const next = order.find((s) => s.id !== scene.id)
+                      undoable(`Cena “${scene.title || 'Sem título'}” apagada`, (u) => removeScene(u, scene.id))
+                      setSceneId(next?.id ?? null)
+                    }}
+                  >
+                    <Trash2 size={16} /> Apagar cena
+                  </ConfirmButton>
+                </>
+              )}
+            </MoreMenu>
             <button
               type="button"
               className="btn-icon"
@@ -336,12 +362,25 @@ export default function WriteView() {
             <label htmlFor="scene-title" className="sr-only">
               Título da cena
             </label>
-            <input
+            <textarea
+              key={scene.id}
               id="scene-title"
               className="scene-title"
+              rows={1}
               value={scene.title}
               placeholder="Sem título"
-              onChange={(e) => set({ title: e.target.value })}
+              // O título quebra a linha em vez de ser cortado; Enter não cria parágrafo.
+              ref={growTitle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  e.currentTarget.blur()
+                }
+              }}
+              onChange={(e) => {
+                growTitle(e.currentTarget)
+                set({ title: e.target.value.replace(/\n/g, ' ') })
+              }}
             />
 
             {metaOpen && (
@@ -545,6 +584,13 @@ export default function WriteView() {
       )}
     </div>
   )
+}
+
+/** O título cresce em altura para caber inteiro (no celular, títulos longos quebram a linha). */
+function growTitle(el: HTMLTextAreaElement | null) {
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
 }
 
 function LinkDialog({ sel, onClose, onLink }: { sel: SelectionInfo; onClose: () => void; onLink: (id: string, alias: boolean) => void }) {

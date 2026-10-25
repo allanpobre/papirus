@@ -60,6 +60,63 @@
   gap: 0.15rem;
 }
 
+/* Ações menos usadas, atrás do "⋯". */
+.more-menu {
+  position: relative;
+}
+
+.more-menu-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  min-width: 12rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-2, 0 8px 24px rgb(0 0 0 / 0.15));
+}
+
+.more-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.more-menu-item:hover,
+.more-menu-item:focus-visible {
+  background: var(--surface-2, var(--bg));
+}
+
+.more-menu-item svg {
+  color: var(--ink-2);
+}
+
+.more-menu-danger,
+.more-menu-danger svg {
+  color: var(--danger, #b3261e);
+}
+
+.more-menu-pop .confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.4rem;
+}
+
 .page-scroll {
   flex: 1;
   min-height: 0;
@@ -101,7 +158,11 @@
 }
 
 .scene-title {
+  display: block;
   width: 100%;
+  resize: none;
+  overflow: hidden;
+  field-sizing: content;
   border: 0;
   background: transparent;
   font-family: var(--font-display);
@@ -1186,7 +1247,6 @@ body:has([role='dialog']) .bubble-wrap {
 
   .write-bar-actions {
     flex-wrap: nowrap;
-    overflow-x: auto;
     min-width: 0;
   }
 

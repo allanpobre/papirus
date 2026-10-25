@@ -1,3 +1,4 @@
+import { isLocalOnly } from '../model/sample'
 import { Globe, Lock, Users } from 'lucide-react'
 import { useAccount } from '../account/auth'
 import { updateBook } from '../export/shelf'
@@ -15,7 +16,7 @@ const HINT: Record<ShelfVisibility, string> = {
 
 /** Mostrar (ou não) este livro na estante do perfil. Só a vitrine vai: capa, título, sinopse, números. */
 export function ShelfPublish({ book, title, status, onSocial }: { book: BookRecord; title: string; status: ShelfSyncState; onSocial?: () => void }) {
-  const { update } = useWorkspace()
+  const { update, universe } = useWorkspace()
   const { user } = useAccount()
   const set = (changes: Partial<BookRecord>) => update((u) => updateBook(u, book.id, changes))
 
@@ -24,7 +25,9 @@ export function ShelfPublish({ book, title, status, onSocial }: { book: BookReco
       <h2 id="estante-perfil" className="shelf-publish-title">
         Na estante do seu perfil
       </h2>
-      {!user ? (
+      {isLocalOnly(universe) ? (
+        <p className="muted small">No exemplo, não: ele fica só neste aparelho. Nos seus universos, “{title}” pode aparecer no seu perfil, para amigos ou para todo mundo.</p>
+      ) : !user ? (
         <p className="muted small">Com uma conta, você pode mostrar “{title}” no seu perfil, para amigos ou para todo mundo. O texto do livro não vai junto.</p>
       ) : (
         <>

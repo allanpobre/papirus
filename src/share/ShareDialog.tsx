@@ -1,3 +1,4 @@
+import { isLocalOnly } from '../model/sample'
 import { Copy, Eye, Link2, LogIn, Pencil, Trash2, Users } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { authClient, useAccount } from '../account/auth'
@@ -76,6 +77,15 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
     }
   }, [userId, server, universe.id])
 
+  if (isLocalOnly(universe)) {
+    return (
+      <Modal title="Compartilhar" size="sm" onClose={onClose}>
+        <div className="share">
+          <p className="small">O exemplo é só para conhecer o Papirus: fica neste aparelho e não pode ser compartilhado. Crie um universo seu para mandar a outras pessoas.</p>
+        </div>
+      </Modal>
+    )
+  }
   if (!user || !server) {
     return (
       <Modal title="Compartilhar" size="sm" onClose={onClose}>

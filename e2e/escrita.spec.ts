@@ -92,6 +92,7 @@ test('separador de cena e exportação em Markdown', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Título da cena' }).fill('Duas partes')
 
   const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Mais ações da cena' }).click()
   await page.getByRole('button', { name: 'Exportar cena' }).click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toBe('duas-partes.md')
@@ -123,6 +124,7 @@ test('apagar uma cena pede confirmação e pode ser desfeito', async ({ page }) 
   await page.keyboard.type('Algo importante')
   await page.getByRole('textbox', { name: 'Título da cena' }).fill('Importante')
 
+  await page.getByRole('button', { name: 'Mais ações da cena' }).click()
   await page.getByRole('button', { name: 'Apagar cena' }).click()
   await page.getByRole('button', { name: 'Cancelar' }).click()
   await expect(tree(page).getByRole('button', { name: /Importante/ })).toBeVisible()
@@ -329,6 +331,7 @@ test('versões: guarda, compara e volta para uma versão anterior da cena', asyn
   await newUniverse(page)
   await startWriting(page)
   await page.keyboard.type('Era noite em Ostria.')
+  await page.getByRole('button', { name: 'Mais ações da cena' }).click()
   await page.getByRole('button', { name: 'Versões da cena' }).click()
   await page.getByRole('textbox', { name: 'Nome da versão' }).fill('Noite')
   await page.getByRole('button', { name: 'Guardar texto atual' }).click()
@@ -337,6 +340,7 @@ test('versões: guarda, compara e volta para uma versão anterior da cena', asyn
   await editor(page).click()
   await page.keyboard.press('ControlOrMeta+a')
   await page.keyboard.type('Era madrugada em Ostria.')
+  await page.getByRole('button', { name: 'Mais ações da cena' }).click()
   await page.getByRole('button', { name: 'Versões da cena' }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.locator('del')).toHaveText('noite')
@@ -345,12 +349,14 @@ test('versões: guarda, compara e volta para uma versão anterior da cena', asyn
   await dialog.getByRole('button', { name: 'Voltar', exact: true }).click()
 
   await expect(editor(page)).toHaveText('Era noite em Ostria.')
+  await page.getByRole('button', { name: 'Mais ações da cena' }).click()
   await page.getByRole('button', { name: 'Versões da cena' }).click()
   await expect(page.getByRole('dialog').getByText('Antes de voltar para “Noite”')).toBeVisible()
 })
 
 test('leitura: ensaio mostra um parágrafo por vez', async ({ page }) => {
   await openSample(page)
+  await page.getByRole('button', { name: 'Mais ações da cena' }).click()
   await page.getByRole('button', { name: 'Ler', exact: true }).click()
   const reading = page.getByRole('dialog', { name: /Leitura/ })
   await expect(reading.getByText('Era noite em Ostria')).toBeVisible()

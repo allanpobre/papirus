@@ -1,4 +1,26 @@
-import { BookOpen, Cloud, Coffee, Dices, Eye, Feather, FileText, FileUp, FolderOpen, LogOut, Moon, Pencil, Plus, Rocket, Search, ShieldCheck, Sparkles, Sun, Trash2, Users, Wand2 } from 'lucide-react'
+import {
+  BookOpen,
+  Cloud,
+  Coffee,
+  Dices,
+  Eye,
+  FileText,
+  FileUp,
+  FolderOpen,
+  LogOut,
+  Moon,
+  Pencil,
+  Plus,
+  Rocket,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Sun,
+  Trash2,
+  Users,
+  Wand2,
+} from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
@@ -28,9 +50,19 @@ interface Props {
   onOpenShared: (item: SharedWithMe) => void
 }
 
-const TEMPLATE_ICON: Record<UniverseTemplate['id'], typeof Plus> = { branco: FileText, fantasia: Wand2, ficcao: Rocket, misterio: Search, realista: Coffee, rpg: Dices }
+const TEMPLATE_ICON: Record<UniverseTemplate['id'], typeof Plus> = {
+  branco: FileText,
+  fantasia: Wand2,
+  ficcao: Rocket,
+  misterio: Search,
+  realista: Coffee,
+  rpg: Dices,
+}
 
-const dateFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
+const dateFmt = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+})
 
 export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onChanged, onOpenShared }: Props) {
   const [name, setName] = useState('')
@@ -86,7 +118,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
               {item.role === 'editar' ? <Pencil size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
               <span className="library-name">{item.name || 'Sem nome'}</span>
               <span className="library-meta">
-                <span className={`share-tag${item.role === 'editar' ? ' share-tag-edit' : ''}`}>compartilhado por {shortName(item.owner_email) || 'alguém'} · {item.role === 'editar' ? 'pode editar' : 'só leitura'}</span>
+                <span className={`share-tag${item.role === 'editar' ? ' share-tag-edit' : ''}`}>
+                  compartilhado por {shortName(item.owner_email) || 'alguém'} · {item.role === 'editar' ? 'pode editar' : 'só leitura'}
+                </span>
               </span>
             </button>
             <ConfirmButton
@@ -126,53 +160,127 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   }
 
   const chosen = UNIVERSE_TEMPLATES.find((t) => t.id === template) ?? UNIVERSE_TEMPLATES[0]
-  const start = (
-    <>
-      <form
-        className={`start-card${first ? '' : ' start-card-compact'}`}
-        onSubmit={(e) => {
-          e.preventDefault()
-          onCreated(applyTemplate(createUniverse(name.trim() || 'Novo universo'), template))
-          setName('')
-        }}
-      >
-        {!first && <h2 className="start-card-title">Novo universo</h2>}
-        <label htmlFor="novo-universo" className={first ? 'start-label' : 'sr-only'}>
-          Nome do novo universo
-        </label>
-        <input id="novo-universo" className="input input-lg" placeholder={first ? 'Ex.: As Cinzas de Ostria' : 'Nome do novo universo'} value={name} onChange={(e) => setName(e.target.value)} />
-        <p className="start-label" id="comecar-como">
-          Começar como
-        </p>
-        <div className="start-templates" role="radiogroup" aria-labelledby="comecar-como">
-          {UNIVERSE_TEMPLATES.map((t) => {
-            const Icon = TEMPLATE_ICON[t.id]
-            return (
-              <button key={t.id} type="button" role="radio" aria-checked={template === t.id} aria-label={t.label} className="start-template" title={t.hint} onClick={() => setTemplate(t.id)}>
-                <Icon size={18} aria-hidden="true" />
-                <span className="start-template-name">{t.label}</span>
-                <span className="start-template-short">{t.short}</span>
-              </button>
-            )
-          })}
-        </div>
-        <p className="tiny muted start-hint">{chosen.hint} Nada é escrito por você; tudo pode mudar depois.</p>
+  // Na primeira vez, o tipo escolhido arruma o menu (dá para mudar em Ajustes).
+  const menuFor = (t: UniverseTemplate['id']): View[] | null => (t === 'rpg' ? ['organizar', 'conhecimento', 'livro'] : t === 'branco' ? null : ['rpg'])
+  const menuNote = !p.onboarded && menuFor(template) ? (template === 'rpg' ? ' O menu começa só com o que é de mesa.' : ' A mesa de RPG fica fora do menu.') + ' Dá para mudar em Ajustes.' : ''
+  const [creating, setCreating] = useState(false)
+  const sampleEntry = entries.find((e) => e.sample)
+  const own = entries.filter((e) => e !== sampleEntry)
+  const openSample = () => (sampleEntry ? onOpen(sampleEntry.id) : void sampleUniverse().then(onCreated))
+
+  const form = (
+    <form
+      className="start-card"
+      aria-label="Novo universo"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (!p.onboarded) {
+          setPref('hiddenViews', menuFor(template) ?? [])
+          setPref('onboarded', true)
+        }
+        onCreated(applyTemplate(createUniverse(name.trim() || 'Novo universo'), template))
+        setName('')
+      }}
+    >
+      {!first && <h2 className="start-card-title">Novo universo</h2>}
+      <label htmlFor="novo-universo" className={first ? 'start-label' : 'sr-only'}>
+        Nome do novo universo
+      </label>
+      <div className="start-row">
+        <input id="novo-universo" className="input input-lg" placeholder={first ? 'Ex.: As Cinzas de Ostria' : 'Nome'} autoFocus={!first} value={name} onChange={(e) => setName(e.target.value)} />
         <button type="submit" className="btn btn-primary btn-lg start-submit">
           <Plus size={18} /> Criar universo
         </button>
-      </form>
+      </div>
+      <p className="start-label" id="comecar-como">
+        Começar como
+      </p>
+      <div className="start-chips" role="radiogroup" aria-labelledby="comecar-como">
+        {UNIVERSE_TEMPLATES.map((t) => {
+          const Icon = TEMPLATE_ICON[t.id]
+          return (
+            <button key={t.id} type="button" role="radio" aria-checked={template === t.id} aria-label={t.label} className="start-chip" onClick={() => setTemplate(t.id)}>
+              <Icon size={15} aria-hidden="true" /> {t.label}
+            </button>
+          )
+        })}
+      </div>
+      <p className="tiny muted start-hint">
+        {chosen.hint}
+        {menuNote}
+      </p>
+    </form>
+  )
 
+  const sampleCard = (
+    <section className={`sample-card${sampleEntry || !first ? ' sample-card-slim' : ''}`} aria-labelledby="exemplo-titulo">
+      <span className="sample-cover" aria-hidden="true">
+        <Sparkles size={20} />
+      </span>
+      <div className="sample-body">
+        <h2 id="exemplo-titulo" className="sample-title">
+          {sampleEntry ? sampleEntry.name : 'Conhecer pelo exemplo'}
+        </h2>
+        <p className="small muted">
+          {sampleEntry
+            ? `${sampleEntry.words.toLocaleString('pt-BR')} palavras. Fica só neste aparelho e não conta nas suas metas.`
+            : 'O Alienista, de Machado de Assis, já montado: fichas, relações, mapa e linha do tempo. Fica só neste aparelho; mexa à vontade.'}
+        </p>
+        <div className="sample-actions">
+          <button type="button" className={`btn btn-sm${first ? ' btn-primary' : ''}`} onClick={openSample}>
+            {sampleEntry ? (
+              <>
+                <BookOpen size={15} /> Continuar o exemplo
+              </>
+            ) : (
+              <>
+                <Sparkles size={15} /> Abrir um universo de exemplo
+              </>
+            )}
+          </button>
+          {sampleEntry && (
+            <>
+              <ConfirmButton
+                className="btn btn-ghost btn-sm"
+                title="Recomeçar o exemplo"
+                question="Desfazer o que você mexeu no exemplo e abrir de novo, como novo?"
+                confirmLabel="Recomeçar"
+                onConfirm={async () => {
+                  await library.remove(sampleEntry.id)
+                  onCreated(await sampleUniverse())
+                }}
+              >
+                <RotateCcw size={15} /> Recomeçar
+              </ConfirmButton>
+              <ConfirmButton
+                className="btn btn-ghost btn-sm"
+                title="Tirar o exemplo"
+                question="Tirar o exemplo daqui? Dá para abrir de novo quando quiser."
+                confirmLabel="Tirar"
+                onConfirm={async () => {
+                  await library.remove(sampleEntry.id)
+                  onChanged()
+                }}
+              >
+                <Trash2 size={15} /> Tirar
+              </ConfirmButton>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+
+  const start = (
+    <>
       <div className="library-alt">
-        <button type="button" className="btn btn-ghost" onClick={() => void sampleUniverse().then(onCreated)}>
-          <Sparkles size={16} /> Abrir um universo de exemplo
-        </button>
-        <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
-          <FileUp size={16} /> Importar backup (.json)
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}>
+          <FileUp size={15} /> Importar backup (.json)
         </button>
         {supportsFolders() && (
           <button
             type="button"
-            className="btn btn-ghost"
+            className="btn btn-ghost btn-sm"
             onClick={async () => {
               setError(null)
               try {
@@ -187,7 +295,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
               }
             }}
           >
-            <FolderOpen size={16} /> Abrir de uma pasta
+            <FolderOpen size={15} /> Abrir de uma pasta
           </button>
         )}
         <input
@@ -250,11 +358,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <main className="library-main">
           <section className="library-hero">
             <h1>Comece seu primeiro universo</h1>
-            <p className="lede">Dê um nome ao seu mundo e comece a escrever. Fichas, linha do tempo e mesa de RPG vêm quando você quiser.</p>
+            <p className="lede">Dê um nome e comece a escrever. O resto aparece quando você precisar.</p>
           </section>
           {sharedList}
+          {form}
+          {sampleCard}
           {start}
-          {!p.onboarded && <Welcome onChoose={(hidden) => { setPref('hiddenViews', hidden); setPref('onboarded', true) }} />}
           <p className="landing-note small">
             <ShieldCheck size={15} aria-hidden="true" /> Sem cadastro: tudo fica neste navegador. Com uma conta (opcional), seus universos aparecem em todos os seus aparelhos.{' '}
             <a href="../">O que é o Papirus?</a>
@@ -267,88 +376,70 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             {account.user ? (
               <p className="library-cloud small" role="status">
                 <Cloud size={14} aria-hidden="true" />{' '}
-                {cloud.state === 'sincronizando'
-                  ? 'Sincronizando com a sua conta…'
-                  : cloud.state === 'erro'
-                    ? `Não sincronizou: ${cloud.error}`
-                    : `Na sua conta (${account.user.email}).`}
+                {cloud.state === 'sincronizando' ? 'Sincronizando com a sua conta…' : cloud.state === 'erro' ? `Não sincronizou: ${cloud.error}` : `Na sua conta (${account.user.email}).`}
               </p>
             ) : (
               <p className="lede">Tudo fica guardado neste navegador. Entre numa conta para levar seus universos para outros aparelhos, ou exporte um backup de vez em quando.</p>
             )}
           </section>
 
-          {!p.onboarded && <Welcome onChoose={(hidden) => { setPref('hiddenViews', hidden); setPref('onboarded', true) }} />}
-
-
-          <ul className="library-list" aria-label="Universos">
-            {entries.map((e) => (
-              <li key={e.id} className="library-item">
-                <button type="button" className="library-open" onClick={() => onOpen(e.id)}>
-                  <BookOpen size={20} aria-hidden="true" />
-                  <span className="library-name">{e.name || 'Sem nome'}</span>
-                  <span className="library-meta">
-                    {e.words.toLocaleString('pt-BR')} palavras · {dateFmt.format(new Date(e.updatedAt))}
-                    {account.user && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
-                    {account.user && mine.has(e.id) && (
-                      <>
-                        {' '}
-                        <span className="share-tag">compartilhado</span>
-                      </>
-                    )}
-                  </span>
-                </button>
-                <ConfirmButton
-                  className="btn-icon"
-                  title={`Apagar ${e.name}`}
-                  question={account.user ? 'Apagar de vez este universo, aqui e na sua conta?' : 'Apagar de vez este universo e seus snapshots?'}
-                  confirmLabel="Apagar universo"
-                  onConfirm={async () => {
-                    await library.remove(e.id)
-                    if (account.user && account.server && synced[e.id]) {
-                      try {
-                        const sb = await authClient(account.server)
-                        if (mine.has(e.id)) await stopSharing(sb, account.user.id, e.id)
-                        await removeFromCloud(sb, account.user.id, e.id)
-                      } catch (err) {
-                        setError(`Apagado aqui, mas não na conta: ${err instanceof Error ? err.message : String(err)}`)
+          {own.length > 0 && (
+            <ul className="library-list" aria-label="Universos">
+              {own.map((e) => (
+                <li key={e.id} className="library-item">
+                  <button type="button" className="library-open" onClick={() => onOpen(e.id)}>
+                    <BookOpen size={20} aria-hidden="true" />
+                    <span className="library-name">{e.name || 'Sem nome'}</span>
+                    <span className="library-meta">
+                      {e.words.toLocaleString('pt-BR')} palavras · {dateFmt.format(new Date(e.updatedAt))}
+                      {account.user && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
+                      {account.user && mine.has(e.id) && (
+                        <>
+                          {' '}
+                          <span className="share-tag">compartilhado</span>
+                        </>
+                      )}
+                    </span>
+                  </button>
+                  <ConfirmButton
+                    className="btn-icon"
+                    title={`Apagar ${e.name}`}
+                    question={account.user ? 'Apagar de vez este universo, aqui e na sua conta?' : 'Apagar de vez este universo e seus snapshots?'}
+                    confirmLabel="Apagar universo"
+                    onConfirm={async () => {
+                      await library.remove(e.id)
+                      if (account.user && account.server && synced[e.id]) {
+                        try {
+                          const sb = await authClient(account.server)
+                          if (mine.has(e.id)) await stopSharing(sb, account.user.id, e.id)
+                          await removeFromCloud(sb, account.user.id, e.id)
+                        } catch (err) {
+                          setError(`Apagado aqui, mas não na conta: ${err instanceof Error ? err.message : String(err)}`)
+                        }
                       }
-                    }
-                    onChanged()
-                  }}
-                >
-                  <Trash2 size={16} aria-label={`Apagar ${e.name}`} />
-                </ConfirmButton>
-              </li>
-            ))}
-          </ul>
+                      onChanged()
+                    }}
+                  >
+                    <Trash2 size={16} aria-label={`Apagar ${e.name}`} />
+                  </ConfirmButton>
+                </li>
+              ))}
+            </ul>
+          )}
           {sharedList}
+          {creating || own.length === 0 ? (
+            form
+          ) : (
+            <button type="button" className="btn library-new" onClick={() => setCreating(true)}>
+              <Plus size={18} /> Novo universo
+            </button>
+          )}
+          {sampleCard}
           {start}
         </main>
       )}
 
       {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
     </div>
-  )
-}
-
-/** Primeira visita: como a pessoa vai usar o Papirus, para ajustar o menu. Pode ser mudado depois. */
-function Welcome({ onChoose }: { onChoose: (hiddenViews: View[]) => void }) {
-  return (
-    <section className="welcome" aria-label="Boas-vindas">
-      <p className="welcome-title">Vou usar para:</p>
-      <div className="welcome-options">
-        <button type="button" className="welcome-option" onClick={() => onChoose(['rpg'])}>
-          <Feather size={16} aria-hidden="true" /> Escrever histórias
-        </button>
-        <button type="button" className="welcome-option" onClick={() => onChoose(['organizar', 'conhecimento', 'livro'])}>
-          <Dices size={16} aria-hidden="true" /> Mestrar RPG
-        </button>
-        <button type="button" className="welcome-option" onClick={() => onChoose([])}>
-          <BookOpen size={16} aria-hidden="true" /> Os dois
-        </button>
-      </div>
-      <p className="muted tiny">Só arruma o menu. Tudo continua disponível e dá para mudar em Ajustes.</p>
-    </section>
   )
 }

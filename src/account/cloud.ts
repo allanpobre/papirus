@@ -136,6 +136,8 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
   const synced = syncedMap(userId)
 
   for (const [id, entry] of local) {
+    // O exemplo fica só neste aparelho.
+    if (entry.sample) continue
     const row = cloud.get(id)
     const last = synced[id]
     const localChanged = !last || time(entry.updatedAt) !== time(last)

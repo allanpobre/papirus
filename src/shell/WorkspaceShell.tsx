@@ -1,6 +1,6 @@
 import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings, Users, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { withDailyStart } from '../logic/stats'
 import { purgeTrash, track } from '../logic/history'
 import { addBook, shelf } from '../export/shelf'
@@ -14,7 +14,7 @@ import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
-import { isSample } from '../model/sample'
+import { isLocalOnly, isSample } from '../model/sample'
 import { wordsToday } from '../logic/stats'
 import { recordToday } from '../social/dailyWords'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
@@ -90,7 +90,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   useCodexSync(universe, prefs)
   // Palavras de hoje deste universo, para os desafios de escrita (somam todos os universos).
   useEffect(() => {
-    if (readOnly) return
+    // Palavras do exemplo não contam para a meta nem para os desafios.
+    if (readOnly || isLocalOnly(universe)) return
     const t = setTimeout(() => recordToday(universe.id, wordsToday(universe)), 1500)
     return () => clearTimeout(t)
   }, [universe, readOnly])
@@ -324,6 +325,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             onGo={go}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
+            onShare={source.kind === 'proprio' ? () => setShareOpen(true) : undefined}
+            extras={
+              <>
+                <AccountButton onClick={() => setAccountOpen(true)} />
+                <ThemeToggle prefs={prefs} setPref={setPref} />
+              </>
+            }
           />
         ) : (
         <nav className="rail" aria-label="Áreas" data-tour="menu">
@@ -472,6 +480,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         {tourOpen && (
           <Tour
             onGo={go}
+            hidden={prefs.hiddenViews}
             onClose={() => {
               setTourOpen(false)
               setPref('tourDone', true)
@@ -590,6 +599,8 @@ function PhoneNav({
   onGo,
   onSearch,
   onLibrary,
+  onShare,
+  extras,
 }: {
   items: NavItem[]
   current: View
@@ -598,6 +609,9 @@ function PhoneNav({
   onGo: (v: View) => void
   onSearch: () => void
   onLibrary: () => void
+  onShare?: () => void
+  /** Conta e tema, no fim do "Mais". */
+  extras: ReactNode
 }) {
   const [open, setOpen] = useState(false)
   // A área aberta sempre aparece entre os atalhos.
@@ -646,6 +660,22 @@ function PhoneNav({
                   </button>
                 )
               })}
+            </div>
+            <div className="rail-more-foot">
+              {onShare && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  data-tour="compartilhar"
+                  onClick={() => {
+                    setOpen(false)
+                    onShare()
+                  }}
+                >
+                  <Users size={16} aria-hidden="true" /> Compartilhar
+                </button>
+              )}
+              {extras}
             </div>
           </div>
         </>
