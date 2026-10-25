@@ -160,3 +160,80 @@ revoke insert, update, delete on public.papirus_shelf_reactions, public.papirus_
 grant select, insert, delete on public.papirus_shelf_reactions, public.papirus_shelf_comments to authenticated;
 revoke update on public.papirus_shelf_reactions, public.papirus_shelf_comments from authenticated;
 grant execute on function public.papirus_book_visible(uuid, text) to authenticated, anon;
+
+-- ─── Desafios de escrita com amigos ──────────────────────────────────
+-- Quem cria escolhe a meta diária e quantos dias dura. Amigos de quem criou veem o desafio e podem entrar.
+-- O placar (palavras por dia de cada um) só aparece para quem participa. Cada um só escreve as próprias palavras.
+
+create table if not exists public.papirus_challenges (
+  id uuid primary key default gen_random_uuid(),
+  owner uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  title text not null check (length(trim(title)) between 1 and 80),
+  daily_goal integer not null check (daily_goal between 50 and 20000),
+  starts_on date not null,
+  ends_on date not null,
+  created_at timestamptz not null default now(),
+  check (ends_on >= starts_on and ends_on - starts_on <= 92)
+);
+
+create table if not exists public.papirus_challenge_members (
+  challenge_id uuid not null references public.papirus_challenges (id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  joined_at timestamptz not null default now(),
+  primary key (challenge_id, user_id)
+);
+
+create table if not exists public.papirus_challenge_days (
+  challenge_id uuid not null,
+  user_id uuid not null default auth.uid(),
+  day date not null,
+  words integer not null default 0 check (words between 0 and 200000),
+  primary key (challenge_id, user_id, day),
+  foreign key (challenge_id, user_id) references public.papirus_challenge_members (challenge_id, user_id) on delete cascade
+);
+
+-- Participa? (security definer: a regra de quem vê os membros usa esta função sem cair em laço)
+create or replace function public.papirus_in_challenge(c uuid, u uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.papirus_challenge_members m where m.challenge_id = c and m.user_id = u)
+$$;
+
+alter table public.papirus_challenges enable row level security;
+alter table public.papirus_challenge_members enable row level security;
+alter table public.papirus_challenge_days enable row level security;
+
+drop policy if exists "ver desafios" on public.papirus_challenges;
+drop policy if exists "criar desafio" on public.papirus_challenges;
+drop policy if exists "mudar desafio" on public.papirus_challenges;
+drop policy if exists "apagar desafio" on public.papirus_challenges;
+create policy "ver desafios" on public.papirus_challenges for select to authenticated
+  using (owner = auth.uid() or public.papirus_are_friends(owner, auth.uid()) or public.papirus_in_challenge(id, auth.uid()));
+create policy "criar desafio" on public.papirus_challenges for insert to authenticated with check (owner = auth.uid());
+create policy "mudar desafio" on public.papirus_challenges for update to authenticated using (owner = auth.uid()) with check (owner = auth.uid());
+create policy "apagar desafio" on public.papirus_challenges for delete to authenticated using (owner = auth.uid());
+
+drop policy if exists "ver participantes" on public.papirus_challenge_members;
+drop policy if exists "entrar no desafio" on public.papirus_challenge_members;
+drop policy if exists "sair do desafio" on public.papirus_challenge_members;
+create policy "ver participantes" on public.papirus_challenge_members for select to authenticated
+  using (exists (select 1 from public.papirus_challenges c where c.id = challenge_id));
+create policy "entrar no desafio" on public.papirus_challenge_members for insert to authenticated
+  with check (user_id = auth.uid() and exists (select 1 from public.papirus_challenges c where c.id = challenge_id));
+create policy "sair do desafio" on public.papirus_challenge_members for delete to authenticated using (user_id = auth.uid());
+
+drop policy if exists "ver placar" on public.papirus_challenge_days;
+drop policy if exists "marcar palavras" on public.papirus_challenge_days;
+drop policy if exists "corrigir palavras" on public.papirus_challenge_days;
+create policy "ver placar" on public.papirus_challenge_days for select to authenticated using (public.papirus_in_challenge(challenge_id, auth.uid()));
+create policy "marcar palavras" on public.papirus_challenge_days for insert to authenticated
+  with check (user_id = auth.uid() and public.papirus_in_challenge(challenge_id, auth.uid()));
+create policy "corrigir palavras" on public.papirus_challenge_days for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+revoke all on public.papirus_challenges, public.papirus_challenge_members, public.papirus_challenge_days from anon;
+grant select, insert, update, delete on public.papirus_challenges to authenticated;
+grant select, insert, delete on public.papirus_challenge_members to authenticated;
+grant select, insert on public.papirus_challenge_days to authenticated;
+revoke update on public.papirus_challenge_days from authenticated;
+grant update (words) on public.papirus_challenge_days to authenticated;
+revoke all on function public.papirus_in_challenge(uuid, uuid) from public, anon;
+grant execute on function public.papirus_in_challenge(uuid, uuid) to authenticated;

@@ -153,7 +153,7 @@ test('cria ficha a partir de uma seleção e a vê na margem e nas Fichas', asyn
   await page.getByRole('button', { name: /^Kael/ }).click()
   const ficha = page.getByRole('region', { name: 'Ficha' })
   await expect(ficha.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Kael')
-  await expect(ficha.getByRole('button', { name: 'Nova cena' })).toBeVisible()
+  await expect(ficha.getByRole('button', { name: 'Nova cena', exact: true })).toBeVisible()
 })
 
 test('a revisão encontra nomes novos e cria fichas sem interromper a escrita', async ({ page }) => {

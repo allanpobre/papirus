@@ -33,8 +33,10 @@ export function ArcCard({ entity }: { entity: Entity }) {
       ) : (
         <>
           <p className="small arc-summary">
-            Em {arc.present} {arc.present === 1 ? 'cena' : 'cenas'}
-            {arc.mentioned > 0 && `, citado em mais ${arc.mentioned}`}. Entra em “{arc.first.title}”
+            {arc.present > 0
+              ? `Em ${arc.present} ${arc.present === 1 ? 'cena' : 'cenas'}${arc.mentioned > 0 ? `, citado em mais ${arc.mentioned}` : ''}.`
+              : `Só citado, em ${arc.mentioned} ${arc.mentioned === 1 ? 'cena' : 'cenas'}.`}{' '}
+            {arc.present > 0 ? 'Entra' : 'Aparece'} em “{arc.first.title}”
             {arc.last && arc.last !== arc.first && `; última vez em “${arc.last.title}”`}.
             {arc.longestAbsence >= 2 && ` Fica ${arc.longestAbsence} cenas seguidas fora.`}
           </p>
