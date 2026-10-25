@@ -1,10 +1,10 @@
-import { PanelsTopLeft } from 'lucide-react'
+import { GripVertical, PanelsTopLeft } from 'lucide-react'
 import { tabListKeys } from '../ui/keys'
 import { useMemo, useState } from 'react'
 import { longestAbsence, presenceMatrix } from '../logic/stats'
 import { SCENE_STATUS_LABEL, SEED_STATUS_LABEL } from '../model/labels'
 import { SCENE_STATUSES, type SceneStatus } from '../model/schema'
-import { byId, entityName, manuscriptOrder, updateScene } from '../model/universe'
+import { byId, entityName, manuscriptOrder, moveScene, placeScene, updateScene } from '../model/universe'
 import { countWords } from '../persistence/repository'
 import { useWorkspace } from '../state/workspace'
 import { Empty, Select } from '../ui/bits'
@@ -54,17 +54,69 @@ function Corkboard() {
     ...universe.stories.map((s) => ({ id: s.id, title: s.title || 'Sem título' })),
     { id: null as string | null, title: 'Cenas soltas' },
   ]
+  // Arrastar pela alça (mouse ou dedo): mostra onde a cena vai cair e solta lá.
+  const [drag, setDrag] = useState<{ id: string; story: string | null; before: string | null } | null>(null)
+  const target = (x: number, y: number): { story: string | null; before: string | null } | null => {
+    const el = document.elementFromPoint(x, y)
+    const card = el?.closest<HTMLElement>('[data-scene]')
+    const group = el?.closest<HTMLElement>('[data-group]')
+    if (!group) return null
+    const story = group.dataset.group === '' ? null : group.dataset.group!
+    if (!card) return { story, before: null }
+    const box = card.getBoundingClientRect()
+    const after = x > box.left + box.width / 2
+    const next = after ? (card.nextElementSibling as HTMLElement | null)?.dataset.scene ?? null : card.dataset.scene!
+    return { story, before: next }
+  }
+  const drop = () => {
+    if (drag) update((u) => placeScene(u, drag.id, drag.story, drag.before))
+    setDrag(null)
+  }
   return (
-    <div className="corkboard">
+    <div className={`corkboard${drag ? ' is-dragging' : ''}`}>
+      <p className="muted tiny">Arraste pela alça ⠿ para mudar a ordem, ou para outra história. No teclado: setas na alça.</p>
       {groups.map((g) => {
         const scenes = universe.scenes.filter((s) => s.storyId === g.id).sort((a, b) => a.order - b.order)
-        if (!scenes.length && g.id === null) return null
+        if (!scenes.length && g.id === null && !drag) return null
         return (
-          <section key={g.id ?? 'soltas'} className="cork-group">
+          <section key={g.id ?? 'soltas'} className={`cork-group${drag && drag.story === g.id ? ' is-target' : ''}`} data-group={g.id ?? ''}>
             <h2 className="section-title">{g.title}</h2>
             <ol className="cork-cards">
               {scenes.map((s, i) => (
-                <li key={s.id} className={`cork-card status-${s.status}`}>
+                <li
+                  key={s.id}
+                  data-scene={s.id}
+                  className={`cork-card status-${s.status}${drag?.id === s.id ? ' is-dragged' : ''}${drag && drag.story === g.id && drag.before === s.id && drag.id !== s.id ? ' drop-before' : ''}`}
+                >
+                  <button
+                    type="button"
+                    className="cork-handle"
+                    aria-label={`Mover “${s.title || 'Sem título'}” (setas mudam a posição)`}
+                    title="Arraste para mudar a ordem"
+                    onPointerDown={(e) => {
+                      e.preventDefault()
+                      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+                      setDrag({ id: s.id, story: g.id, before: scenes[i + 1]?.id ?? null })
+                    }}
+                    onPointerMove={(e) => {
+                      if (!drag) return
+                      const t = target(e.clientX, e.clientY)
+                      if (t && (t.story !== drag.story || t.before !== drag.before)) setDrag({ ...drag, ...t })
+                    }}
+                    onPointerUp={drop}
+                    onPointerCancel={() => setDrag(null)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        e.preventDefault()
+                        update((u) => moveScene(u, s.id, -1))
+                      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        e.preventDefault()
+                        update((u) => moveScene(u, s.id, 1))
+                      }
+                    }}
+                  >
+                    <GripVertical size={16} aria-hidden="true" />
+                  </button>
                   <span className="cork-num">{i + 1}</span>
                   <button type="button" className="cork-title" onClick={() => go('escrever', s.id)}>
                     {s.title || 'Sem título'}
@@ -85,6 +137,7 @@ function Corkboard() {
                   />
                 </li>
               ))}
+              {drag && drag.story === g.id && drag.before === null && <li className="cork-drop-end" aria-hidden="true" />}
             </ol>
           </section>
         )

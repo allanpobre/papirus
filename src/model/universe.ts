@@ -373,6 +373,22 @@ export function moveScene(universe: Universe, sceneId: string, direction: -1 | 1
   })
 }
 
+/** Põe a cena numa história (ou nas soltas), antes de outra cena (ou no fim, com `beforeId` nulo). */
+export function placeScene(universe: Universe, sceneId: string, storyId: string | null, beforeId: string | null): Universe {
+  const scene = byId(universe, 'scenes', sceneId)
+  if (!scene || beforeId === sceneId) return universe
+  const list = scenesOf(universe, storyId).filter((s) => s.id !== sceneId)
+  const at = beforeId ? list.findIndex((s) => s.id === beforeId) : -1
+  list.splice(at >= 0 ? at : list.length, 0, scene)
+  const order = new Map(list.map((s, i) => [s.id, i]))
+  const stamp = now()
+  return {
+    ...universe,
+    scenes: universe.scenes.map((s) => (order.has(s.id) ? { ...s, order: order.get(s.id)!, ...(s.id === sceneId ? { storyId, updatedAt: stamp } : {}) } : s)),
+    updatedAt: stamp,
+  }
+}
+
 /** Move a cena para outra história (ou para as cenas soltas), no fim da lista. */
 export function moveSceneTo(universe: Universe, sceneId: string, storyId: string | null): Universe {
   return patch(universe, 'scenes', sceneId, { storyId, order: nextOrder(universe, storyId) })

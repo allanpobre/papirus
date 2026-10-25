@@ -160,3 +160,23 @@ describe('versão automática do dia', () => {
     expect(u.scenes[0].versions.filter((v) => v.name.startsWith(AUTO_VERSION_PREFIX))).toHaveLength(14)
   })
 })
+
+describe('pôr a cena em outro lugar', () => {
+  it('antes de outra cena, no fim, ou em outra história', async () => {
+    const { placeScene, scenesOf } = await import('./universe')
+    let u = createUniverse('T')
+    let a, b, c, st
+    ;[u, st] = addStory(u, 'Livro')
+    ;[u, a] = addScene(u, st.id, 'A')
+    ;[u, b] = addScene(u, st.id, 'B')
+    ;[u, c] = addScene(u, st.id, 'C')
+    const titles = () => scenesOf(u, st.id).map((s) => s.title).join('')
+    u = placeScene(u, c.id, st.id, a.id)
+    expect(titles()).toBe('CAB')
+    u = placeScene(u, c.id, st.id, null)
+    expect(titles()).toBe('ABC')
+    u = placeScene(u, b.id, null, null)
+    expect(titles()).toBe('AC')
+    expect(scenesOf(u, null).map((s) => s.title)).toEqual(['B'])
+  })
+})

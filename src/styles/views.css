@@ -4236,3 +4236,67 @@ button.arc-dot {
 .arc-moment-revela svg {
   color: var(--violet);
 }
+
+/* Quadro de cenas: arrastar */
+.cork-handle {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+}
+
+.cork-handle:hover,
+.cork-handle:focus-visible {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.cork-card .cork-title {
+  margin-left: 1.4rem;
+}
+
+.corkboard.is-dragging,
+.corkboard.is-dragging * {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.cork-card.is-dragged {
+  opacity: 0.45;
+}
+
+.cork-card.drop-before {
+  box-shadow: -4px 0 0 var(--accent);
+}
+
+.cork-drop-end {
+  min-height: 60px;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  list-style: none;
+}
+
+.cork-group.is-target > .section-title {
+  color: var(--accent);
+}
+
+@media (pointer: coarse) {
+  .cork-handle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .cork-card .cork-title {
+    margin-left: 1.9rem;
+  }
+}
