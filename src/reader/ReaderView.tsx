@@ -7,6 +7,7 @@ import type { Universe } from '../model/schema'
 import { byId } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { MiniGraph } from '../ui/MiniGraph'
+import { ChapterReactions, type ReactionsApi } from './ChapterReactions'
 import { CommentFab, CommentSheet, useSelectedQuote, type SendComment } from './ReaderComment'
 
 interface DocNode {
@@ -90,6 +91,7 @@ export function ReaderView({
   footer,
   onComment,
   commenterName,
+  reactions,
 }: {
   universe: Universe
   storageKey: string
@@ -100,6 +102,8 @@ export function ReaderView({
   onComment?: SendComment
   /** Nome de quem está com conta (sem perguntar). */
   commenterName?: string
+  /** Lendo pela estante: reações no fim de cada capítulo. */
+  reactions?: ReactionsApi
 }) {
   const book = useMemo(() => readerBook(universe), [universe])
   const total = book.scenes.length
@@ -327,6 +331,7 @@ export function ReaderView({
               </section>
             )}
 
+            {reactions && <ChapterReactions sceneId={scene.id} api={reactions} />}
             <nav className="leitor-nav" aria-label="Cenas">
               <button type="button" className="btn btn-ghost" disabled={current === 0} onClick={() => go(current - 1)}>
                 <ArrowLeft size={16} /> Anterior

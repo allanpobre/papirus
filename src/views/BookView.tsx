@@ -9,7 +9,7 @@ import { useWorkspace } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { ShelfPublish } from '../social/ShelfPublish'
 import { SocialDialog } from '../social/SocialDialog'
-import { useShelfSync } from '../social/useShelfSync'
+import { useShelfStatus } from '../social/useShelfSync'
 import { BookCard } from './BookCard'
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
@@ -20,7 +20,7 @@ const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'm
  */
 export default function BookView() {
   const { universe, update, openBookDesigner, openReader, readOnly, toast, source, prefs } = useWorkspace()
-  const shelfStatus = useShelfSync()
+  const shelfStatus = useShelfStatus()
   const [socialOpen, setSocialOpen] = useState(false)
   const books = useMemo(() => shelf(universe), [universe])
   const [selectedId, setSelectedId] = useState<string | null>(null)

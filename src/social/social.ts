@@ -1,3 +1,5 @@
+import { friendsActivity } from './activity'
+import { syncShelfTexts } from './shelfText'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BookRecord, Universe } from '../model/schema'
 import { bookContent, bookTitle } from '../export/bookDesign'
@@ -203,18 +205,33 @@ export async function syncShelf(sb: SupabaseClient, myId: string, universe: Univ
   })
   const keep = new Set(rows.map((r) => r.id))
   const changed = rows.filter((r) => sent.get(`${myId}|${r.id}`) !== JSON.stringify(r))
+  const prefix = `${universe.id}:`
+  const before = new Map(
+    (check(await sb.from('papirus_shelf').select('id,chapters').eq('owner', myId)) as { id: string; chapters: number }[]).filter((r) => r.id.startsWith(prefix)).map((r) => [r.id, r.chapters]),
+  )
   if (changed.length) {
     check(await sb.from('papirus_shelf').upsert(changed.map((r) => ({ ...r, owner: myId, updated_at: new Date().toISOString() })), { onConflict: 'owner,id' }))
     for (const r of changed) sent.set(`${myId}|${r.id}`, JSON.stringify(r))
+    // Capítulos novos num livro que já estava na estante: os amigos ficam sabendo.
+    const grew = changed.flatMap((r) => {
+      const was = before.get(r.id)
+      return was !== undefined && r.chapters > was ? [{ kind: 'capitulos', book_id: r.id, title: r.title, n: r.chapters - was }] : []
+    })
+    if (grew.length) await sb.from('papirus_activity').insert(grew)
   }
   // Tira o que não está mais à mostra (livro privado, apagado…).
-  const prefix = `${universe.id}:`
-  const listed = (check(await sb.from('papirus_shelf').select('id').eq('owner', myId)) as { id: string }[]).map((r) => r.id).filter((id) => id.startsWith(prefix))
-  const gone = listed.filter((id) => !keep.has(id))
+  const gone = [...before.keys()].filter((id) => !keep.has(id))
   if (gone.length) {
     check(await sb.from('papirus_shelf').delete().eq('owner', myId).in('id', gone))
     for (const id of gone) sent.delete(`${myId}|${id}`)
   }
+  // O texto dos livros que podem ser lidos ali mesmo (servidor sem a tabela: só a vitrine).
+  await syncShelfTexts(
+    sb,
+    myId,
+    universe,
+    books.filter((b) => keep.has(shelfId(universe.id, b.id))).map((b) => ({ shelfId: shelfId(universe.id, b.id), book: b })),
+  ).catch(() => undefined)
   return rows.length
 }
 
@@ -345,7 +362,7 @@ export async function deleteComment(sb: SupabaseClient, id: string) {
 
 // ─── Avisos: o que aconteceu desde a última vez ───────────────────────
 
-export type NoticeKind = 'pedido' | 'comentario' | 'quero-ler' | 'livro-amigo' | 'capitulo-novo'
+export type NoticeKind = 'pedido' | 'comentario' | 'quero-ler' | 'livro-amigo' | 'capitulo-novo' | 'capitulos' | 'meta' | 'sequencia' | 'reacao'
 
 export interface Notice {
   kind: NoticeKind
@@ -354,6 +371,8 @@ export interface Notice {
   /** Livro envolvido (comentário, quero ler, livro novo de amigo). */
   book?: { owner: string; id: string; title: string }
   text?: string
+  /** Quantos (capítulos, palavras, dias). */
+  n?: number
 }
 
 const seenKey = (userId: string) => `papirus:avisos-vistos:${userId}`
@@ -400,13 +419,16 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
   const since = new Date(Date.now() - 30 * 86400_000).toISOString()
   const friends = await myFriends(sb, myId)
   const friendIds = friends.filter((f) => f.status === 'aceita').map((f) => f.other.user_id)
-  const [mine, comments, reactions, friendBooks, following] = await Promise.all([
+  const [mine, comments, reactions, friendBooks, following, activity, chapterRs] = await Promise.all([
     sb.from('papirus_shelf').select('id,title').eq('owner', myId),
     sb.from('papirus_shelf_comments').select('id,owner,book_id,author,body,created_at').eq('owner', myId).gte('created_at', since),
     sb.from('papirus_shelf_reactions').select('owner,book_id,user_id,created_at').eq('owner', myId).gte('created_at', since),
     friendIds.length ? sb.from('papirus_shelf').select('owner,id,title,created_at').in('owner', friendIds).gte('created_at', since) : Promise.resolve({ data: [], error: null }),
     sb.from('papirus_shelf_reactions').select('owner,book_id').eq('user_id', myId).neq('owner', myId),
+    friendsActivity(sb, friendIds, since),
+    sb.from('papirus_chapter_reactions').select('book_id,user_id,emoji,created_at').eq('owner', myId).neq('user_id', myId).gte('created_at', since),
   ])
+  const crs = ((chapterRs.error ? [] : chapterRs.data) ?? []) as { book_id: string; user_id: string; emoji: string; created_at: string }[]
   // Livros que sigo ("Quero ler"): quantos capítulos têm agora.
   const follows = ((following.error ? [] : following.data) ?? []) as { owner: string; book_id: string }[]
   const followed = follows.length
@@ -423,7 +445,9 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
   const fb = ((friendBooks.error ? [] : friendBooks.data) ?? []) as { owner: string; id: string; title: string; created_at: string }[]
   const people = await profilesByIds(
     sb,
-    [...new Set([...cs.map((c) => c.author), ...rs.map((r) => r.user_id), ...fb.map((b) => b.owner), ...followed.map((b) => b.owner)])].filter((id) => id !== myId),
+    [...new Set([...cs.map((c) => c.author), ...rs.map((r) => r.user_id), ...fb.map((b) => b.owner), ...followed.map((b) => b.owner), ...activity.map((a) => a.actor), ...crs.map((r) => r.user_id)])].filter(
+      (id) => id !== myId,
+    ),
   )
   const out: Notice[] = []
   for (const f of friends) if (f.status === 'pendente' && !f.outgoing) out.push({ kind: 'pedido', at: new Date().toISOString(), who: f.other })
@@ -439,6 +463,18 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
     const who = people.get(b.owner)
     if (who) out.push({ kind: 'livro-amigo', at: b.created_at, who, book: { owner: b.owner, id: b.id, title: b.title } })
   }
+  // O que os amigos andam fazendo.
+  for (const a of activity) {
+    const who = people.get(a.actor)
+    if (!who) continue
+    if (a.kind === 'capitulos' && a.book_id) out.push({ kind: 'capitulos', at: a.created_at, who, book: { owner: a.actor, id: a.book_id, title: a.title }, n: a.n })
+    else if (a.kind !== 'capitulos') out.push({ kind: a.kind, at: a.created_at, who, n: a.n })
+  }
+  for (const r of crs) {
+    const who = people.get(r.user_id)
+    if (who) out.push({ kind: 'reacao', at: r.created_at, who, book: { owner: myId, id: r.book_id, title: titles.get(r.book_id) ?? 'seu livro' }, text: r.emoji })
+  }
+  const friendSet = new Set(friendIds)
   const seen = chaptersSeen(myId)
   const next: Record<string, ChapterSeen> = {}
   const now = new Date().toISOString()
@@ -449,7 +485,8 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
     const news = b.chapters > before.n ? { at: now, added: b.chapters - before.n } : before.news
     next[key] = { n: b.chapters, ...(news && news.at >= since ? { news } : {}) }
     const who = people.get(b.owner)
-    if (news && news.at >= since && who)
+    // Livro de amigo: o aviso vem da atividade dele (sem repetir).
+    if (news && news.at >= since && who && !friendSet.has(b.owner))
       out.push({ kind: 'capitulo-novo', at: news.at, who, book: { owner: b.owner, id: b.id, title: b.title }, text: news.added === 1 ? '1 capítulo novo' : `${news.added} capítulos novos` })
   }
   saveChaptersSeen(myId, next)

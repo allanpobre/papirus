@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { Bookmark, BookmarkCheck, BookOpen, Globe, MessageCircle, Send, Trash2, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { ShelfReader } from './ShelfReader'
+import { readableBooks } from './shelfText'
 import { addComment, deleteComment, profilesByIds, setWantToRead, shelfActivity, shelfOf, type Profile, type Reaction, type ShelfComment, type ShelfRow } from './social'
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short' })
@@ -20,6 +22,7 @@ export function ShelfBook({
   onChanged,
   onAccount,
   open: startOpen = false,
+  canRead = false,
 }: {
   book: ShelfRow
   /** Quem está vendo (null = sem conta). */
@@ -32,7 +35,10 @@ export function ShelfBook({
   onAccount?: () => void
   /** Começa com os comentários abertos (vindo de um aviso). */
   open?: boolean
+  /** O texto está na estante: dá para ler ali mesmo. */
+  canRead?: boolean
 }) {
+  const [reading, setReading] = useState(false)
   const [open, setOpen] = useState(startOpen)
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -56,6 +62,7 @@ export function ShelfBook({
 
   return (
     <li className="social-book" id={`livro-${book.id}`}>
+      {reading && <ShelfReader book={book} me={me} client={client} onClose={() => setReading(false)} onAccount={onAccount} />}
       {book.cover ? (
         <img className="social-book-cover" src={book.cover} alt={`Capa de ${book.title}`} />
       ) : (
@@ -73,10 +80,16 @@ export function ShelfBook({
         </span>
         {book.blurb && <p className="small social-book-blurb">{book.blurb}</p>}
         <div className="social-book-actions">
-          {readable && (
-            <a className="btn btn-sm btn-primary" href={book.read_link!}>
+          {canRead ? (
+            <button type="button" className="btn btn-sm btn-primary" onClick={() => setReading(true)}>
               <BookOpen size={15} /> Ler
-            </a>
+            </button>
+          ) : (
+            readable && (
+              <a className="btn btn-sm btn-primary" href={book.read_link!}>
+                <BookOpen size={15} /> Ler
+              </a>
+            )
           )}
           {isOwner ? (
             reactions.length > 0 && (
@@ -186,7 +199,7 @@ export function OwnerShelf({
   onAccount?: () => void
   empty: string
 }) {
-  const [data, setData] = useState<{ books: ShelfRow[]; reactions: Reaction[]; comments: ShelfComment[]; people: Map<string, Profile> } | null>(null)
+  const [data, setData] = useState<{ books: ShelfRow[]; reactions: Reaction[]; comments: ShelfComment[]; people: Map<string, Profile>; texts: Set<string> } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [nonce, setNonce] = useState(0)
   useEffect(() => {
@@ -194,9 +207,9 @@ export function OwnerShelf({
     void (async () => {
       try {
         const sb = await client()
-        const [books, act] = await Promise.all([shelfOf(sb, ownerId), shelfActivity(sb, ownerId)])
+        const [books, act, texts] = await Promise.all([shelfOf(sb, ownerId), shelfActivity(sb, ownerId), readableBooks(sb, ownerId)])
         const people = await profilesByIds(sb, [...new Set(act.comments.map((c) => c.author))])
-        if (!off) setData({ books, ...act, people })
+        if (!off) setData({ books, ...act, people, texts })
       } catch (err) {
         if (!off) setError(err instanceof Error ? err.message : String(err))
       }
@@ -232,6 +245,7 @@ export function OwnerShelf({
           onChanged={() => setNonce((n) => n + 1)}
           onAccount={onAccount}
           open={focusBook === b.id}
+          canRead={data.texts.has(b.id)}
         />
       ))}
     </ul>

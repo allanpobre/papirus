@@ -45,7 +45,16 @@ export function AccountDialog({
   const [checkEmail, setCheckEmail] = useState<string | null>(null)
   const [showServer, setShowServer] = useState(!server)
 
-  if (user && server) return <SocialDialog library={library} onSynced={onSynced} publicUrl={prefs.publicUrl} onClose={onClose} />
+  if (user && server)
+    return (
+      <SocialDialog
+        library={library}
+        onSynced={onSynced}
+        publicUrl={prefs.publicUrl}
+        onClose={onClose}
+        shareProgress={{ on: prefs.shareProgress, set: (on) => setPref('shareProgress', on) }}
+      />
+    )
 
   const act = async (fn: () => Promise<void>) => {
     setBusy(true)

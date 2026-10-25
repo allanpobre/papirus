@@ -38,6 +38,8 @@ export interface Prefs {
   focusParagraph: boolean
   /** Som ao digitar (só no editor). */
   keySound: 'nenhum' | 'suave' | 'maquina'
+  /** Contar aos amigos quando bater a meta do dia (e os dias seguidos). */
+  shareProgress: boolean
 }
 
 export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite' | 'rosa' | 'turquesa' | 'terracota'
@@ -72,6 +74,7 @@ export const DEFAULT_PREFS: Prefs = {
   typewriter: false,
   focusParagraph: false,
   keySound: 'nenhum',
+  shareProgress: true,
 }
 
 const KEY = 'papirus:prefs'

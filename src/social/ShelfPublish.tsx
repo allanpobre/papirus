@@ -1,10 +1,12 @@
 import { isLocalOnly } from '../model/sample'
 import { Globe, Lock, Users } from 'lucide-react'
-import { useAccount } from '../account/auth'
+import { useEffect, useState } from 'react'
+import { authClient, useAccount } from '../account/auth'
+import { CHAPTER_EMOJIS, chapterReactions, tally, type ChapterReaction } from './chapterReactions'
 import { updateBook } from '../export/shelf'
 import type { BookRecord } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
-import { VISIBILITY_LABEL, type ShelfVisibility } from './social'
+import { shelfId, VISIBILITY_LABEL, type ShelfVisibility } from './social'
 import type { ShelfSyncState } from './useShelfSync'
 
 const ICON = { privado: Lock, amigos: Users, publico: Globe } as const
@@ -42,9 +44,16 @@ export function ShelfPublish({ book, title, status, onSocial }: { book: BookReco
             })}
           </div>
           <p className="muted tiny">
-            {HINT[book.shelfVisibility]} Vai só a vitrine: capa, título, sinopse e números. O texto não.
-            {book.shelfVisibility !== 'privado' && ' Se o universo tiver link de leitura, quem vê pode abrir o livro. Voltar para “Só eu” apaga os comentários e os “quero ler” deste livro.'}
+            {HINT[book.shelfVisibility]} {book.shelfReadable && book.shelfVisibility !== 'privado' ? 'Vão a vitrine e o texto (sem o que é secreto).' : 'Vai só a vitrine: capa, título, sinopse e números.'}
+            {book.shelfVisibility !== 'privado' && ' Voltar para “Só eu” apaga os comentários, os “quero ler” e as reações deste livro.'}
           </p>
+          {book.shelfVisibility !== 'privado' && (
+            <label className="toggle small">
+              <input type="checkbox" role="switch" checked={book.shelfReadable} onChange={(e) => set({ shelfReadable: e.target.checked })} />
+              <span className="toggle-track" aria-hidden="true" />
+              <span>Deixar ler o livro ali mesmo: quem vê lê, reage a cada capítulo e continua de onde parou</span>
+            </label>
+          )}
           {book.shelfVisibility !== 'privado' && (
             <label className="shelf-publish-blurb">
               <span className="field-label">Sinopse (contracapa)</span>
@@ -65,8 +74,51 @@ export function ShelfPublish({ book, title, status, onSocial }: { book: BookReco
               </button>
             )}
           </p>
+          {book.shelfVisibility !== 'privado' && book.shelfReadable && <ReactionSummary bookId={shelfId(universe.id, book.id)} />}
         </>
       )}
+    </section>
+  )
+}
+
+/** Para quem escreveu: como os leitores reagiram a cada capítulo. */
+function ReactionSummary({ bookId }: { bookId: string }) {
+  const { universe } = useWorkspace()
+  const { user, server } = useAccount()
+  const [list, setList] = useState<ChapterReaction[] | null>(null)
+  useEffect(() => {
+    if (!user || !server) return
+    let off = false
+    void authClient(server)
+      .then((sb) => chapterReactions(sb, user.id, bookId))
+      .then((r) => !off && setList(r))
+      .catch(() => undefined)
+    return () => {
+      off = true
+    }
+  }, [user, server, bookId])
+  if (!list?.length) return null
+  const counts = tally(list)
+  const rows = [...counts]
+    .map(([sceneId, c]) => ({ sceneId, c, total: Object.values(c).reduce((n, v) => n + (v ?? 0), 0), title: universe.scenes.find((s) => s.id === sceneId)?.title || 'Capítulo' }))
+    .sort((a, b) => b.total - a.total)
+  return (
+    <section className="reaction-summary" aria-label="Reações dos leitores">
+      <h3 className="section-label">Reações dos leitores</h3>
+      <ul>
+        {rows.map((r) => (
+          <li key={r.sceneId}>
+            <span className="small">{r.title}</span>
+            <span className="reaction-summary-emojis small">
+              {CHAPTER_EMOJIS.filter((e) => r.c[e]).map((e) => (
+                <span key={e}>
+                  {e} {r.c[e]}
+                </span>
+              ))}
+            </span>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

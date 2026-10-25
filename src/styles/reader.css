@@ -871,3 +871,46 @@ button.leitor-found-card {
   max-height: 6rem;
   overflow: auto;
 }
+
+/* Reações no fim do capítulo (lendo pela estante). */
+.leitor-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 2rem 0 0.5rem;
+}
+.leitor-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 40px;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.leitor-reaction .tabular {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.leitor-reaction[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+.leitor-reaction:active {
+  transform: scale(0.94);
+}
+.leitor-loading {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+  height: 100%;
+  padding: 1rem;
+}

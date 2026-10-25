@@ -15,9 +15,11 @@ import './styles/book.css'
 import App from './App.tsx'
 import PlayerApp from './player/PlayerApp.tsx'
 import { readPlayerLink } from './share/server'
+import { startPwa } from './pwa'
 
 // Link de jogador (?mesa=…): só o Codex, sem biblioteca nem dados deste navegador.
 const player = readPlayerLink(location.search)
+if (!player) startPwa()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>{player ? <PlayerApp id={player.id} server={player.server} /> : <App />}</StrictMode>,

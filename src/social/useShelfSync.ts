@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { authClient, useAccount } from '../account/auth'
 import { shelf } from '../export/shelf'
 import { DEFAULT_PUBLIC_URL } from '../share/server'
@@ -49,5 +49,28 @@ export function useShelfSync(): ShelfSyncState {
     }
   }, [mine, userId, server, touched, universe, prefs.publicUrl])
 
+  useEffect(() => {
+    current = status
+    listeners.forEach((l) => l())
+  }, [status])
   return status
+}
+
+// O estado fica visível para a página Livro (a sincronização roda o tempo todo, na área de trabalho).
+let current: ShelfSyncState = { state: 'parado' }
+const listeners = new Set<() => void>()
+export function useShelfStatus(): ShelfSyncState {
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
+    },
+    () => current,
+  )
+}
+
+/** Mantém a estante em dia enquanto o universo está aberto (capítulos novos chegam aos amigos). */
+export function ShelfSync() {
+  useShelfSync()
+  return null
 }

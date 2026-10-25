@@ -1,3 +1,4 @@
+import { InstallButton } from '../ui/InstallButton'
 import { HistoryCard, TrashCard } from './HistoryCards'
 import { Camera, Compass, Search, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -180,6 +181,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             <button type="button" className="btn btn-ghost btn-sm" onClick={ws.startTour}>
               <Compass size={14} /> Refazer o tour
             </button>
+            <InstallButton />
           </div>
         </section>
         )}

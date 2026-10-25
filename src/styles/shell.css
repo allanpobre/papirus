@@ -1535,3 +1535,4 @@
 .rail .account-btn .account-btn-label {
   min-width: 0;
 }
+.install-help { flex-basis: 100%; margin: 0.2rem 0 0; }
