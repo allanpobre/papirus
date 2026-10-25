@@ -7,6 +7,7 @@ import type { Library } from '../persistence/repository'
 import { anonClient } from '../share/server'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { Modal } from '../ui/Modal'
+import { ChallengesTab } from './ChallengesTab'
 import { OwnerShelf } from './ShelfBook'
 import {
   acceptFriend,
@@ -34,7 +35,7 @@ import {
   type ProfileDraft,
 } from './social'
 
-type Tab = 'avisos' | 'perfil' | 'amigos' | 'conta'
+type Tab = 'avisos' | 'perfil' | 'amigos' | 'desafios' | 'conta'
 
 interface Props {
   onClose: () => void
@@ -215,6 +216,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
     ['avisos', 'Avisos'],
     ['perfil', 'Perfil'],
     ['amigos', 'Amigos'],
+    ['desafios', 'Desafios'],
     ['conta', 'Conta'],
   ]
 
@@ -252,6 +254,8 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
 
         {tab === 'conta' ? (
           <AccountPanel library={library} onSynced={onSynced} onClose={onClose} />
+        ) : tab === 'desafios' && me ? (
+          <ChallengesTab myId={user.id} client={client} />
         ) : tab === 'avisos' && me ? (
           <NoticeList
             notices={notices}

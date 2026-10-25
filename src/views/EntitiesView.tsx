@@ -24,6 +24,7 @@ import {
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, CanonSelect, EditorialBadge, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
 import { Fold } from '../ui/Fold'
+import { ArcCard } from './ArcCard'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { SecretTextarea } from '../ui/SecretText'
 import { RevealPicker } from '../ui/RevealPicker'
@@ -250,6 +251,8 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
           </Fold>
 
           <RelationsSection entity={e} outgoing={outgoing} incoming={incoming} />
+
+          {universe.scenes.length > 0 && <ArcCard entity={e} />}
 
           <section className="entity-section">
             <div className="section-head">

@@ -15,6 +15,8 @@ import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspac
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
 import { isSample } from '../model/sample'
+import { wordsToday } from '../logic/stats'
+import { recordToday } from '../social/dailyWords'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { Tour } from './Tour'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
@@ -84,6 +86,12 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const { prefs, setPref } = prefsApi
   const folder = useFolderSync(library, repo, universe, status)
   useCodexSync(universe, prefs)
+  // Palavras de hoje deste universo, para os desafios de escrita (somam todos os universos).
+  useEffect(() => {
+    if (readOnly) return
+    const t = setTimeout(() => recordToday(universe.id, wordsToday(universe)), 1500)
+    return () => clearTimeout(t)
+  }, [universe, readOnly])
   const [accountOpen, setAccountOpen] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
   // Primeira vez num universo: o tour começa sozinho (dá para pular e refazer).

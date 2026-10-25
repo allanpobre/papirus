@@ -18,6 +18,7 @@ import { daysInYear } from '../logic/calendar'
 import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
+import { WikiCard } from './WikiCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
 import { matches, SETTINGS_CATEGORIES, type SettingsCategory } from './settingsCategories'
@@ -27,6 +28,10 @@ const QUESTION_LABEL: Record<QuestionType, string> = {
   'apos-fim': 'Aparece depois da morte ou do fim registrado',
   'antes-inicio': 'Aparece antes do nascimento ou do início',
   'fatos-divergentes': 'Fatos estabelecidos que se contradizem',
+  'descricao-divergente': 'Olhos ou cabelo de cores diferentes (no texto ou na ficha)',
+  'morto-reaparece': 'Personagem que morreu e aparece numa cena depois',
+  'nome-parecido': 'Nome escrito quase igual a outro (erro de digitação?)',
+  'data-impossivel': 'Datas impossíveis (fim antes do começo, dia fora do calendário)',
 }
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
@@ -206,6 +211,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                   options={[
                     { value: 'serifa', label: 'Serifada (Literata)' },
                     { value: 'sem-serifa', label: 'Sem serifa' },
+                    { value: 'maquina', label: 'Máquina de escrever (Plex Mono)' },
                   ]}
                 />
               )}
@@ -238,6 +244,25 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <Toggle label="Destacar nomes de fichas conhecidas" checked={prefs.detection} onChange={(v) => setPref('detection', v)} />
           <Toggle label="Procurar nomes ainda não cadastrados" checked={prefs.discovery} onChange={(v) => setPref('discovery', v)} />
           <Toggle label="Mostrar a margem viva" checked={prefs.margin} onChange={(v) => setPref('margin', v)} />
+          <Toggle label="Modo máquina de escrever: a linha em que você escreve fica no meio da tela" checked={prefs.typewriter} onChange={(v) => setPref('typewriter', v)} />
+          <Toggle label="Destacar só o parágrafo atual (os outros ficam claros)" checked={prefs.focusParagraph} onChange={(v) => setPref('focusParagraph', v)} />
+          <Field label="Som ao digitar">
+            {(id) => (
+              <Select<Prefs['keySound']>
+                id={id}
+                value={prefs.keySound}
+                onChange={(v) => {
+                  setPref('keySound', v)
+                  if (v !== 'nenhum') void import('../editor/keySounds').then((m) => m.playKey(v, 'a'))
+                }}
+                options={[
+                  { value: 'nenhum', label: 'Nenhum' },
+                  { value: 'suave', label: 'Teclado suave' },
+                  { value: 'maquina', label: 'Máquina de escrever (com sininho no Enter)' },
+                ]}
+              />
+            )}
+          </Field>
           <Toggle label="Mostrar a barra de formatação" checked={prefs.toolbar} onChange={(v) => setPref('toolbar', v)} />
           <p className="muted tiny">Tudo é opcional. Desligado, o Papirus vira um editor silencioso.</p>
         </section>
@@ -271,6 +296,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         {show('historico') && <HistoryCard />}
 
         {show('livros') && <BookCard />}
+        {show('livros') && <WikiCard />}
 
         {show('conta') && <AccountCard />}
         {show('conta') && <ServerCard />}

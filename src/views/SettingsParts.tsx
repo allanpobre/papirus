@@ -14,6 +14,9 @@ const ACCENTS: { id: Accent; label: string }[] = [
   { id: 'violeta', label: 'Violeta' },
   { id: 'ocre', label: 'Ocre' },
   { id: 'grafite', label: 'Grafite' },
+  { id: 'rosa', label: 'Rosa' },
+  { id: 'turquesa', label: 'Turquesa' },
+  { id: 'terracota', label: 'Terracota' },
 ]
 
 /** Cor de destaque: botões, links, item ativo do menu. */

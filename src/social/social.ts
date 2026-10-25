@@ -425,3 +425,114 @@ export function subscribeNoticeCount(cb: () => void) {
     noticeListeners.delete(cb)
   }
 }
+
+// ─── Desafios de escrita ─────────────────────────────────────────────
+
+export interface Challenge {
+  id: string
+  owner: string
+  title: string
+  daily_goal: number
+  starts_on: string
+  ends_on: string
+}
+
+export interface ChallengeDay {
+  challenge_id: string
+  user_id: string
+  day: string
+  words: number
+}
+
+export interface ChallengeBoard {
+  challenge: Challenge
+  /** Faço parte? */
+  joined: boolean
+  members: { profile: Profile; today: number; total: number; daysHit: number; streak: number }[]
+}
+
+const CHALLENGE_COLS = 'id,owner,title,daily_goal,starts_on,ends_on'
+
+/** Dias entre duas datas (AAAA-MM-DD), contando os dois. */
+export const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86400_000) + 1
+export const addDays = (day: string, n: number) => new Date(Date.parse(`${day}T00:00:00Z`) + n * 86400_000).toISOString().slice(0, 10)
+
+/** Sequência de dias seguidos batendo a meta, terminando hoje (ou ontem, se hoje ainda não bateu). */
+export function streakOf(days: Map<string, number>, goal: number, today: string): number {
+  let day = (days.get(today) ?? 0) >= goal ? today : addDays(today, -1)
+  let n = 0
+  while ((days.get(day) ?? 0) >= goal) {
+    n++
+    day = addDays(day, -1)
+  }
+  return n
+}
+
+/** Desafios que posso ver (meus, de amigos, ou em que estou), com o placar dos que participo. */
+export async function challengeBoards(sb: SupabaseClient, myId: string, today: string): Promise<ChallengeBoard[]> {
+  const challenges = check(await sb.from('papirus_challenges').select(CHALLENGE_COLS).gte('ends_on', addDays(today, -14)).order('starts_on', { ascending: false })) as Challenge[]
+  if (!challenges?.length) return []
+  const ids = challenges.map((c) => c.id)
+  const [members, days] = await Promise.all([
+    sb.from('papirus_challenge_members').select('challenge_id,user_id').in('challenge_id', ids),
+    sb.from('papirus_challenge_days').select('challenge_id,user_id,day,words').in('challenge_id', ids),
+  ])
+  const mem = check(members) as { challenge_id: string; user_id: string }[]
+  const ds = check(days) as ChallengeDay[]
+  const people = await profilesByIds(sb, [...new Set(mem.map((m) => m.user_id))])
+  return challenges.map((c) => {
+    const here = mem.filter((m) => m.challenge_id === c.id)
+    const rows = here.flatMap((m) => {
+      const profile = people.get(m.user_id)
+      if (!profile) return []
+      const mine = new Map(ds.filter((d) => d.challenge_id === c.id && d.user_id === m.user_id).map((d) => [d.day, d.words]))
+      const total = [...mine.values()].reduce((a, b) => a + b, 0)
+      return [{ profile, today: mine.get(today) ?? 0, total, daysHit: [...mine.values()].filter((w) => w >= c.daily_goal).length, streak: streakOf(mine, c.daily_goal, today) }]
+    })
+    rows.sort((a, b) => b.total - a.total || b.today - a.today)
+    return { challenge: c, joined: here.some((m) => m.user_id === myId), members: rows }
+  })
+}
+
+export async function createChallenge(sb: SupabaseClient, myId: string, c: { title: string; daily_goal: number; days: number }, today: string): Promise<string> {
+  const title = c.title.trim()
+  if (!title) throw new SocialError('Dê um nome ao desafio.')
+  const rows = check(
+    await sb
+      .from('papirus_challenges')
+      .insert({ owner: myId, title: title.slice(0, 80), daily_goal: Math.round(c.daily_goal), starts_on: today, ends_on: addDays(today, c.days - 1) })
+      .select(CHALLENGE_COLS),
+  ) as Challenge[]
+  await joinChallenge(sb, myId, rows[0].id)
+  return rows[0].id
+}
+
+export async function joinChallenge(sb: SupabaseClient, myId: string, challengeId: string) {
+  check(await sb.from('papirus_challenge_members').insert({ challenge_id: challengeId, user_id: myId }))
+}
+
+export async function leaveChallenge(sb: SupabaseClient, myId: string, challengeId: string) {
+  check(await sb.from('papirus_challenge_members').delete().eq('challenge_id', challengeId).eq('user_id', myId))
+}
+
+export async function deleteChallenge(sb: SupabaseClient, challengeId: string) {
+  check(await sb.from('papirus_challenges').delete().eq('id', challengeId))
+}
+
+/** Manda as palavras de hoje para os desafios em andamento de que participo. Devolve em quantos. */
+export async function pushChallengeWords(sb: SupabaseClient, myId: string, today: string, words: number): Promise<number> {
+  const mine = await sb.from('papirus_challenge_members').select('challenge_id').eq('user_id', myId)
+  if (mine.error || !mine.data?.length) return 0
+  const ids = (mine.data as { challenge_id: string }[]).map((m) => m.challenge_id)
+  const active = (check(await sb.from('papirus_challenges').select(CHALLENGE_COLS).in('id', ids)) as Challenge[]).filter((c) => c.starts_on <= today && c.ends_on >= today)
+  if (!active.length) return 0
+  check(
+    await sb
+      .from('papirus_challenge_days')
+      .upsert(
+        active.map((c) => ({ challenge_id: c.id, user_id: myId, day: today, words })),
+        { onConflict: 'challenge_id,user_id,day' },
+      ),
+  )
+  return active.length
+}

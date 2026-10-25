@@ -3,7 +3,9 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import type { Library } from '../persistence/repository'
 import type { Prefs } from '../state/prefs'
 import { BrandMark } from '../shell/Brand'
-import { cleanHandle, getMyProfileCache, getNoticeCount, isHandle, loadMyProfile, loadNotices, noticesSeenAt, saveProfile, setNoticeCount, subscribeMyProfile, subscribeNoticeCount, suggestHandle, unseenCount } from '../social/social'
+import { cleanHandle, getMyProfileCache, getNoticeCount, isHandle, loadMyProfile, loadNotices, noticesSeenAt, saveProfile, setNoticeCount, subscribeMyProfile, pushChallengeWords, subscribeNoticeCount, suggestHandle, unseenCount } from '../social/social'
+import { todayTotal } from '../social/dailyWords'
+import { todayKey } from '../logic/stats'
 import { Avatar, SocialDialog } from '../social/SocialDialog'
 import { Field } from '../ui/bits'
 import { Modal } from '../ui/Modal'
@@ -327,17 +329,23 @@ export function AccountButton({ onClick, compact = false }: { onClick: () => voi
     const check = async () => {
       if (document.hidden) return
       try {
-        const list = await loadNotices(await authClient(server), userId)
+        const sb = await authClient(server)
+        const list = await loadNotices(sb, userId)
         if (!off) setNoticeCount(unseenCount(list, noticesSeenAt(userId)))
+        // Palavras de hoje para os desafios de escrita em andamento.
+        await pushChallengeWords(sb, userId, todayKey(), todayTotal()).catch(() => 0)
       } catch {
         // Sem a parte social no servidor: sem avisos.
       }
     }
     void check()
     const t = setInterval(() => void check(), 180_000)
+    const onVisible = () => !document.hidden && void check()
+    document.addEventListener('visibilitychange', onVisible)
     return () => {
       off = true
       clearInterval(t)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [userId, server, hasProfile])
 

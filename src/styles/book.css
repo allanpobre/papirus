@@ -916,3 +916,135 @@
     height: 138px;
   }
 }
+
+/* ---------------------------------------------------------------- desafios de escrita */
+
+.challenges {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.challenges > p {
+  margin: 0;
+}
+
+.challenge-new {
+  justify-self: start;
+}
+
+.challenge-form {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.challenge-form .segmented {
+  justify-self: start;
+}
+
+.challenge-board {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.challenge-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.challenge-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.challenge-head p {
+  margin: 0.1rem 0 0;
+}
+
+.challenge-rank {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challenge-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-s);
+}
+
+.challenge-row.is-me {
+  background: var(--accent-faint);
+}
+
+.challenge-pos {
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.challenge-pos svg {
+  color: var(--ochre);
+}
+
+.challenge-who {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.challenge-bar {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.challenge-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 60%, var(--surface));
+}
+
+.challenge-bar > span.is-done {
+  background: var(--accent);
+}
+
+.challenge-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--ochre);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.social-tabs {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 480px) {
+  .social-tabs button {
+    padding-inline: 0.25rem;
+    font-size: 0.78rem;
+  }
+}

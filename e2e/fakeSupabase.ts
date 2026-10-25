@@ -21,13 +21,13 @@ export const PEOPLE = {
 export const PASSWORD = 'segredo123'
 
 export function createFakeSupabase() {
-  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [] }
+  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [] }
   const friends = (a: unknown, b: unknown) =>
     tables.papirus_friendships.some((f) => f.status === 'aceita' && ((f.requester === a && f.addressee === b) || (f.requester === b && f.addressee === a)))
   /** Tabelas que quem não tem conta também lê (o que é público). */
   const PUBLIC_READ = new Set(['papirus_profiles', 'papirus_shelf', 'papirus_shelf_reactions', 'papirus_shelf_comments'])
   /** Coluna do dono de cada linha (quem pode escrever). */
-  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author' }
+  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author', papirus_challenges: 'owner', papirus_challenge_members: 'user_id', papirus_challenge_days: 'user_id' }
   // Contas: as de sempre e as criadas no teste (com o que foi preenchido ao criar).
   const accounts: { id: string; email: string; password: string; meta: Record<string, unknown> }[] = Object.values(PEOPLE).map((p) => ({ ...p, password: PASSWORD, meta: {} }))
   const session = (a: (typeof accounts)[number]) => {
@@ -52,7 +52,15 @@ export function createFakeSupabase() {
     const b = tables.papirus_shelf.find((x) => x.owner === owner && x.id === bookId)
     return !!b && (b.owner === me?.id || b.visibility === 'publico' || (!!me && b.visibility === 'amigos' && friends(b.owner, me.id)))
   }
+  const inChallenge = (c: unknown, u: unknown) => tables.papirus_challenge_members.some((m) => m.challenge_id === c && m.user_id === u)
+  const challengeVisible = (me: { id: string } | null, id: unknown) => {
+    const c = tables.papirus_challenges.find((x) => x.id === id)
+    return !!c && !!me && (c.owner === me.id || friends(c.owner, me.id) || inChallenge(c.id, me.id))
+  }
   const visible = (table: string, me: (typeof PEOPLE)['ana'] | null, r: Row, write = false) => {
+    if (table === 'papirus_challenges') return write ? r.owner === me?.id : challengeVisible(me, r.id)
+    if (table === 'papirus_challenge_members') return write ? r.user_id === me?.id : challengeVisible(me, r.challenge_id)
+    if (table === 'papirus_challenge_days') return write ? r.user_id === me?.id : !!me && inChallenge(r.challenge_id, me.id)
     if (table === 'papirus_shelf_reactions' || table === 'papirus_shelf_comments') {
       if (write) return table === 'papirus_shelf_reactions' ? r.user_id === me?.id : r.author === me?.id || r.owner === me?.id
       return bookVisible(me, r.owner, r.book_id)
@@ -169,6 +177,9 @@ export function createFakeSupabase() {
           papirus_shelf: ['owner', 'id'],
           papirus_shelf_reactions: ['owner', 'book_id', 'user_id'],
           papirus_shelf_comments: ['id'],
+          papirus_challenges: ['id'],
+          papirus_challenge_members: ['challenge_id', 'user_id'],
+          papirus_challenge_days: ['challenge_id', 'user_id', 'day'],
         }
         const written: Row[] = []
         for (const raw of Array.isArray(body) ? body : [body]) {
@@ -186,6 +197,11 @@ export function createFakeSupabase() {
             if (path === 'papirus_shelf_comments') r.id ??= crypto.randomUUID()
             r.created_at ??= new Date().toISOString()
           }
+          if (path === 'papirus_challenges') Object.assign(r, { id: r.id ?? crypto.randomUUID(), created_at: new Date().toISOString() })
+          if (path === 'papirus_challenge_members' && !challengeVisible(me, r.challenge_id))
+            return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
+          if (path === 'papirus_challenge_days' && !inChallenge(r.challenge_id, me.id))
+            return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
           if (path === 'papirus_shelf' && !table.some((x) => x.owner === r.owner && x.id === r.id)) r.created_at ??= new Date().toISOString()
           if (path === 'papirus_friendships') {
             if (r.status !== 'pendente' || r.requester === r.addressee) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
@@ -226,6 +242,12 @@ export function createFakeSupabase() {
       if (req.method() === 'DELETE') {
         const hit = table.filter((r) => matches(url.searchParams, r) && (path === 'papirus_universes' ? r.user_id === me.id : visible(path, me, r, true)))
         tables[path] = table.filter((r) => !hit.includes(r))
+        if (path === 'papirus_challenges') {
+          tables.papirus_challenge_members = tables.papirus_challenge_members.filter((m) => !hit.some((c) => c.id === m.challenge_id))
+          tables.papirus_challenge_days = tables.papirus_challenge_days.filter((d) => !hit.some((c) => c.id === d.challenge_id))
+        }
+        if (path === 'papirus_challenge_members')
+          tables.papirus_challenge_days = tables.papirus_challenge_days.filter((d) => !hit.some((m) => m.challenge_id === d.challenge_id && m.user_id === d.user_id))
         if (path === 'papirus_shelf')
           for (const t of ['papirus_shelf_reactions', 'papirus_shelf_comments']) tables[t] = tables[t].filter((x) => !hit.some((b) => b.owner === x.owner && b.id === x.book_id))
         if (path === 'papirus_shares') tables.papirus_members = tables.papirus_members.filter((m) => !hit.some((s) => s.owner_id === m.owner_id && s.universe_id === m.universe_id))

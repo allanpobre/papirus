@@ -160,6 +160,29 @@
   line-height: 1.7;
 }
 
+.font-maquina .scene-text {
+  font-family: var(--font-mono);
+  font-size: calc(var(--editor-size, 19px) * 0.9);
+  line-height: 1.8;
+  hyphens: manual;
+}
+
+/* Modo máquina de escrever: espaço no fim para a última linha também chegar ao meio da tela. */
+.typewriter .scene-text {
+  padding-bottom: 45vh;
+}
+
+/* Só o parágrafo atual em destaque. */
+.focus-paragraph .scene-text:focus-within > *:not(.is-current) {
+  opacity: 0.32;
+  transition: opacity 0.25s;
+}
+
+.focus-paragraph .scene-text > .is-current {
+  opacity: 1;
+  transition: opacity 0.25s;
+}
+
 .scene-text p {
   margin: 0 0 0.9em;
 }

@@ -1,6 +1,7 @@
 import { Placeholder } from '@tiptap/extensions'
 import StarterKit from '@tiptap/starter-kit'
 import { Comment } from './comment'
+import { CurrentBlock } from './currentBlock'
 import { DialogueDash, ProseBulletList } from './dialogue'
 import { Detection, Mention } from './mention'
 
@@ -27,5 +28,6 @@ export const baseExtensions = [
 export const sceneExtensions = [
   ...baseExtensions,
   Detection,
+  CurrentBlock,
   Placeholder.configure({ placeholder: 'Escreva. O resto pode esperar.' }),
 ]
