@@ -1,6 +1,7 @@
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
 import { authClient, useAccount } from '../account/auth'
+import { isLocalOnly } from '../model/sample'
 import { cloudStamp, download, setSynced, syncedMap, upload, uploadIfUnchanged } from '../account/cloud'
 import { reportCloud } from '../account/useCloud'
 import type { Universe } from '../model/schema'
@@ -75,7 +76,8 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
   const userEmail = account.user?.email ?? ''
   const server = source.kind === 'link' ? source.server : account.server
   const ownerId = source.kind === 'proprio' ? userId : source.kind === 'link' ? null : source.ownerId
-  const active = source.kind === 'link' || Boolean(userId && server)
+  // O exemplo fica só neste aparelho: não vai para a conta.
+  const active = source.kind === 'link' || Boolean(userId && server && !(source.kind === 'proprio' && isLocalOnly(universe)))
   const started = useRef(false)
 
   const run = useRef<() => Promise<void>>(async () => {})

@@ -221,7 +221,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         <div
           ref={imgRef}
           className={`atlas-image${placing !== null ? ' placing' : ''}`}
-          style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: `url(${map.image})` }}
+          style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: `url("${map.image}")` }}
           onClick={(e) => {
             if (placing === null || (e.target as Element).closest('.pin')) return
             setPending(coords(e))

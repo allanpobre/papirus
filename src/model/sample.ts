@@ -1,6 +1,8 @@
 import { draftSheet } from '../rpg/sheets'
 import { systemFromTemplate } from '../rpg/systems'
+import { addBook, updateBook } from '../export/shelf'
 import { docFromParagraphs } from './doc'
+import { ITAGUAI_MAP, ITAGUAI_MAP_H, ITAGUAI_MAP_W } from './sampleMap'
 import type { Universe } from './schema'
 import {
   addScene,
@@ -42,6 +44,8 @@ const OLD_SAMPLE_DESCRIPTIONS = [
 const TEST_SAMPLE_DESCRIPTION = 'Exemplo de fantasia (base dos testes). Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.'
 
 export const isSample = (u: Universe) => [SAMPLE_DESCRIPTION, TEST_SAMPLE_DESCRIPTION, ...OLD_SAMPLE_DESCRIPTIONS].includes(u.description)
+/** O exemplo fica só neste aparelho: sem conta, estante, compartilhar ou metas. O de testes não (é a base dos testes disso). */
+export const isLocalOnly = (u: Universe) => isSample(u) && u.description !== TEST_SAMPLE_DESCRIPTION
 export const isOutdatedSample = (u: Universe) => OLD_SAMPLE_DESCRIPTIONS.includes(u.description)
 
 /**
@@ -95,6 +99,9 @@ export function buildSample(chapters: { titulo: string; paragrafos: string[] }[]
     fields: [{ key: 'Quem frequenta', value: 'Os loucos de Itaguaí, segundo a teoria do momento' }],
   })
   const ruaNova = ent('lugar', 'Rua Nova', { summary: 'A rua mais bela de Itaguaí naquele tempo. Ali fica a Casa Verde.', parentId: itaguai.id })
+  const botica = ent('lugar', 'Botica de Crispim Soares', { aliases: ['a botica'], summary: 'Onde o boticário ouve tudo e não decide nada.', parentId: itaguai.id })
+  const casaCamara = ent('lugar', 'Casa da Câmara', { summary: 'Onde os vereadores se reúnem. Porfírio a toma depois da revolta.', parentId: itaguai.id })
+  const matriz = ent('lugar', 'Igreja Matriz', { summary: 'A igreja do padre Lopes, no largo.', parentId: itaguai.id })
   const rio = ent('lugar', 'Rio de Janeiro', {
     summary: 'Sede do governo. D. Evarista sonhava conhecê-lo.',
     description: '[a partir de "O terror"]Ela volta encantada: o Passeio Público, a rua das Belas Noites, o chafariz das Marrecas.[/a partir]',
@@ -239,11 +246,11 @@ export function buildSample(chapters: { titulo: string; paragrafos: string[] }[]
     { place: itaguai.id, year: 1783, present: [bacamarte.id, evarista.id, crispim.id, lopes.id, camara.id, casaVerde.id], synopsis: 'Bacamarte volta a Itaguaí, casa-se e convence a câmara a construir a Casa Verde.' },
     { place: casaVerde.id, year: 1783, present: [bacamarte.id, crispim.id, lopes.id, casaVerde.id], synopsis: 'Os loucos chegam de toda parte. O alienista classifica cada caso.' },
     { place: itaguai.id, year: 1784, day: 120, present: [bacamarte.id, evarista.id, crispim.id, cesaria.id, rio.id], synopsis: 'D. Evarista definha; o marido lhe dá o Rio de Janeiro.' },
-    { place: itaguai.id, year: 1784, day: 140, present: [bacamarte.id, crispim.id, lopes.id, cesaria.id, teoria1.id], synopsis: 'A teoria nova: a loucura é um continente.' },
+    { place: matriz.id, year: 1784, day: 140, present: [bacamarte.id, crispim.id, lopes.id, cesaria.id, teoria1.id], synopsis: 'A teoria nova: a loucura é um continente.' },
     { place: itaguai.id, year: 1784, day: 160, present: [bacamarte.id, costa.id, prima.id, mateus.id, martim.id, gil.id, coelho.id, porfirio.id, evarista.id, lopes.id, crispim.id, cesaria.id, rio.id], synopsis: 'Costa, a prima, o albardeiro, Martim Brito: a Casa Verde se enche, e a vila tem medo.' },
     { place: ruaNova.id, year: 1784, day: 170, present: [porfirio.id, freitas.id, presidente.id, camara.id, canjicas.id, evarista.id, benedita.id, bacamarte.id], synopsis: 'O barbeiro leva trezentas pessoas à porta da Casa Verde.' },
-    { place: itaguai.id, year: 1784, day: 170, present: [porfirio.id, canjicas.id, dragoes.id, camara.id, freitas.id, presidente.id, lopes.id], synopsis: 'Os dragões mudam de lado. Porfírio toma a câmara.' },
-    { place: itaguai.id, year: 1784, day: 171, present: [crispim.id, cesaria.id, porfirio.id], synopsis: 'Crispim Soares entre o amigo e o vencedor.' },
+    { place: casaCamara.id, year: 1784, day: 170, present: [porfirio.id, canjicas.id, dragoes.id, camara.id, freitas.id, presidente.id, lopes.id], synopsis: 'Os dragões mudam de lado. Porfírio toma a câmara.' },
+    { place: botica.id, year: 1784, day: 171, present: [crispim.id, cesaria.id, porfirio.id], synopsis: 'Crispim Soares entre o amigo e o vencedor.' },
     { place: casaVerde.id, year: 1784, day: 171, present: [bacamarte.id, porfirio.id], synopsis: 'O barbeiro propõe um acordo; o alienista vê dois casos.' },
     { place: casaVerde.id, year: 1784, day: 180, present: [pina.id, porfirio.id, freitas.id, crispim.id, presidente.id, evarista.id, lopes.id, camara.id, canjicas.id], synopsis: 'A ordem volta, e a Casa Verde recolhe quem quer, até D. Evarista.' },
     { place: casaVerde.id, year: 1785, present: [bacamarte.id, camara.id, casaVerde.id], synopsis: 'Quatro quintos da vila estão na Casa Verde. O alienista solta todos.' },
@@ -443,6 +450,41 @@ export function buildSample(chapters: { titulo: string; paragrafos: string[] }[]
     [rLidera.id, s2.id],
   ] as const) {
     ;[u] = insert(u, 'revelations', draftRevelation(grupo.id, 'relacao', id, session))
+  }
+
+  // ─── Atlas: a vila desenhada, com os lugares marcados ─────────────
+  {
+    const pin = (entityId: string, x: number, y: number, label: string) => ({ id: crypto.randomUUID(), entityId, x, y, label })
+    ;[u] = insert(u, 'maps', {
+      name: 'Vila de Itaguaí',
+      image: ITAGUAI_MAP,
+      width: ITAGUAI_MAP_W,
+      height: ITAGUAI_MAP_H,
+      pins: [
+        pin(itaguai.id, 0.47, 0.47, 'Itaguaí'),
+        pin(casaVerde.id, 0.79, 0.23, 'Casa Verde'),
+        pin(ruaNova.id, 0.66, 0.37, 'Rua Nova'),
+        pin(matriz.id, 0.38, 0.33, 'Igreja Matriz'),
+        pin(casaCamara.id, 0.56, 0.6, 'Casa da Câmara'),
+        pin(botica.id, 0.35, 0.6, 'Botica'),
+        pin(rio.id, 0.92, 0.41, 'Rio de Janeiro'),
+      ],
+    })
+  }
+
+  // ─── Livro: pronto na estante, para ver a diagramação ─────────────────
+  {
+    let book
+    ;[u, book] = addBook(u, { title: 'O Alienista' })
+    u = updateBook(u, book.id, {
+      author: 'Machado de Assis',
+      year: '1882',
+      epigraph: 'A ciência é o meu emprego único; Itaguaí é o meu universo.',
+      epigraphSource: 'Simão Bacamarte',
+      blurb: 'Um médico abre um hospício numa vila do Brasil colonial e começa a achar loucos por toda parte. Até não sobrar ninguém, a não ser ele.',
+      chapterStyle: 'ornamentado',
+      ornament: '❦',
+    })
   }
 
   // ─── Inbox ───────────────────────────────────────────────────────────

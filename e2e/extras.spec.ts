@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) })
-const welcome = (page: Page) => page.getByRole('region', { name: 'Boas-vindas' })
 
 async function openSample(page: Page) {
   // O exemplo de fantasia (pequeno, com tudo): a base destes testes.
@@ -36,11 +35,16 @@ async function selectText(page: Page, text: string) {
   }, text)
 }
 
-test('primeira vez: a escolha arruma o menu, e dá para mostrar tudo de novo', async ({ page }) => {
+test('primeira vez: o tipo do universo arruma o menu, e dá para mostrar tudo de novo', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem('jaFoi')) localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true }))
+    sessionStorage.setItem('jaFoi', '1')
+  })
   await page.goto('/app/')
-  await welcome(page).getByRole('button', { name: /Escrever histórias/ }).click()
-  await expect(welcome(page)).toHaveCount(0)
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Mar')
+  await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Fantasia' }).click()
+  await expect(page.getByText('A mesa de RPG fica fora do menu.')).toBeVisible()
+  await page.getByRole('button', { name: 'Criar universo' }).click()
   await expect(nav(page, 'Escrever')).toBeVisible()
   await expect(nav(page, 'RPG')).toHaveCount(0)
 

@@ -7,11 +7,12 @@ import { mentionIdsInDoc } from '../../logic/doc'
 import { knowledgeAt } from '../../logic/knowledge'
 import { KNOWLEDGE_LABEL, SEED_STATUS_LABEL } from '../../model/labels'
 import type { Scene } from '../../model/schema'
-import { byId, entityName, updateScene } from '../../model/universe'
+import { entityName, updateScene } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { CanonBadge } from '../../ui/bits'
 import { BetaReadersSection } from './BetaReaders'
 import { QuestionCard } from './QuestionCard'
+import { useSettled } from '../../ui/useSettled'
 
 interface Props {
   scene: Scene
@@ -40,19 +41,25 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
     return [...new Set(matcher.find(paragraph).map((m) => m.entityId))]
   }, [matcher, paragraph])
 
+  // Quem é citado na cena inteira: recalcula depois de uma pausa na digitação.
+  // O texto espera a pausa; POV e presentes mudam na hora.
+  const calmText = useSettled(scene.text)
+  const calmDoc = useSettled(scene.doc)
+  const entities = universe.entities
+  const { povId, presentIds, placeId } = scene
   const cast = useMemo(() => {
-    const mentioned = new Set([...(matcher?.find(scene.text).map((m) => m.entityId) ?? []), ...mentionIdsInDoc(scene.doc)])
-    const ids = new Set([scene.povId, ...scene.presentIds, ...mentioned].filter(Boolean) as string[])
-    ids.delete(scene.placeId ?? '')
+    const mentioned = new Set([...(matcher?.find(calmText).map((m) => m.entityId) ?? []), ...mentionIdsInDoc(calmDoc)])
+    const ids = new Set([povId, ...presentIds, ...mentioned].filter(Boolean) as string[])
+    ids.delete(placeId ?? '')
     return [...ids]
-      .map((id) => byId(universe, 'entities', id))
+      .map((id) => entities.find((e) => e.id === id))
       .filter((e) => e !== undefined)
       .map((e) => ({
         entity: e,
-        role: scene.povId === e.id ? 'POV' : scene.presentIds.includes(e.id) ? 'presente' : 'mencionado',
+        role: povId === e.id ? 'POV' : presentIds.includes(e.id) ? 'presente' : 'mencionado',
       }))
       .sort((a, b) => (a.role === b.role ? a.entity.name.localeCompare(b.entity.name, 'pt') : a.role === 'POV' ? -1 : b.role === 'POV' ? 1 : a.role === 'presente' ? -1 : 1))
-  }, [matcher, scene, universe])
+  }, [matcher, calmText, calmDoc, entities, povId, presentIds, placeId])
 
   const povKnows = useMemo(() => (scene.povId ? knowledgeAt(universe, scene.povId, scene.id) : []), [universe, scene.povId, scene.id])
   const facts = universe.facts.filter((f) => f.sourceSceneId === scene.id)
