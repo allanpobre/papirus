@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SceneEditor, type SelectionInfo } from '../../editor/SceneEditor'
+import { ageIn, ageLabel } from '../../logic/age'
 import { downloadText, fileNameFor } from '../../export/download'
 import { sceneToMarkdown } from '../../export/markdown'
 import { continuityQuestions, isOpen } from '../../logic/continuity'
@@ -391,6 +392,16 @@ export default function WriteView() {
                   </div>
                   <div className="field-wide">
                     <EntityMultiPicker label="Elenco presente" value={scene.presentIds} onChange={(ids) => set({ presentIds: ids })} />
+                    {(() => {
+                      const ages = [scene.povId, ...scene.presentIds]
+                        .filter((id, i, all): id is string => Boolean(id) && all.indexOf(id) === i)
+                        .flatMap((id) => {
+                          const e = byId(universe, 'entities', id)
+                          const age = e ? ageIn(e, scene.date?.year) : null
+                          return e && age !== null ? [`${e.name}, ${ageLabel(age)}`] : []
+                        })
+                      return ages.length ? <p className="muted tiny scene-ages">Idades nesta cena: {ages.join(' · ')}</p> : null
+                    })()}
                   </div>
                   <Field label="Sinopse" wide>
                     {(id) => (

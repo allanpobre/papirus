@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, Eye, Lightbulb, Link2, Unlink, UserPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { ageIn, ageLabel } from '../logic/age'
 import { characterArc, type ArcMomentKind } from '../logic/arc'
 import type { Entity } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
@@ -39,6 +40,12 @@ export function ArcCard({ entity }: { entity: Entity }) {
             {arc.present > 0 ? 'Entra' : 'Aparece'} em “{arc.first.title}”
             {arc.last && arc.last !== arc.first && `; última vez em “${arc.last.title}”`}.
             {arc.longestAbsence >= 2 && ` Fica ${arc.longestAbsence} cenas seguidas fora.`}
+            {(() => {
+              const first = ageIn(entity, arc.first.year)
+              const last = arc.last ? ageIn(entity, arc.last.year) : null
+              if (first === null) return null
+              return last !== null && last !== first ? ` Tem ${ageLabel(first)} quando entra e ${ageLabel(last)} na última cena.` : ` Tem ${ageLabel(first)} quando entra.`
+            })()}
           </p>
           <div className="arc-strip" role="list" aria-label={`Onde ${name} aparece, cena a cena`}>
             {arc.steps.map((s) => (
