@@ -886,9 +886,18 @@
   justify-content: flex-start;
 }
 
+/* Recolhido, a faixa de baixo é uma coluna: o botão da conta é só o avatar (sem esticar na altura). */
+.shell.rail-collapsed .rail-bottom {
+  flex-wrap: nowrap;
+}
+
 .shell.rail-collapsed .rail-bottom .account-btn {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  min-height: 0;
   justify-content: center;
-  padding-inline: 0;
+  padding: 0;
 }
 
 .landing-note a {
