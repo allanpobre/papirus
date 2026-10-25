@@ -1,3 +1,5 @@
+import { FamilyTree } from './FamilyTree'
+import { familyLinks } from '../logic/family'
 import { Maximize, Minus, Network, Pause, Play, Plus, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { forceLayout, neighborhood, type GraphEdge, type Point } from '../logic/graph'
@@ -192,6 +194,8 @@ export default function GraphView() {
   const highlight = focus ? new Set([focus, ...focusEdges.flatMap((e) => [e.from, e.to, ...(e.relation ? [e.relation.fromId, e.relation.toId] : [])])]) : null
   const selRelations = sel ? universe.relations.filter((r) => r.fromId === sel.id || r.toId === sel.id || r.via.some((v) => v.entityId === sel.id)) : []
 
+  const hasFamily = useMemo(() => familyLinks(universe).length > 0, [universe])
+  const [mode, setMode] = useState<'ligacoes' | 'familia'>('ligacoes')
   const zoom = (f: number) => setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, v.k * f)) }))
 
   return (
@@ -229,6 +233,20 @@ export default function GraphView() {
         </div>
       </header>
 
+      {hasFamily && (
+        <div className="segmented graph-mode" role="tablist" aria-label="Como ver">
+          <button type="button" role="tab" aria-selected={mode === 'ligacoes'} aria-checked={mode === 'ligacoes'} onClick={() => setMode('ligacoes')}>
+            Ligações
+          </button>
+          <button type="button" role="tab" aria-selected={mode === 'familia'} aria-checked={mode === 'familia'} onClick={() => setMode('familia')}>
+            Árvore da família
+          </button>
+        </div>
+      )}
+      {mode === 'familia' && hasFamily ? (
+        <FamilyTree />
+      ) : (
+        <>
       <div className="graph-bar">
         <div className="filter-chips" aria-label="Tipos visíveis">
           {kinds.map((k) => (
@@ -553,6 +571,8 @@ export default function GraphView() {
       <p className="muted small graph-hint">
         Arraste para mover, role para aproximar, passe o mouse ou clique numa ficha para destacar, duplo clique para abrir. Linhas tracejadas: quem está por trás de uma relação.
       </p>
+        </>
+      )}
     </div>
   )
 }
