@@ -47,17 +47,46 @@ function bell(c: AudioContext) {
   osc.stop(t + 1)
 }
 
-/** Toca o som de uma tecla. Teclas de controle (setas, Shift…) não fazem som. */
-export function playKey(kind: 'suave' | 'maquina', key: string) {
-  if (key.length !== 1 && key !== 'Enter' && key !== 'Backspace' && key !== 'Tab') return
+/**
+ * Liga o áudio. Navegadores (sobretudo no celular) só deixam tocar som se o áudio for ligado
+ * no próprio toque ou tecla: chame isto direto no evento, sem esperar nada antes.
+ */
+export function unlockAudio() {
+  const c = audio()
+  if (c && c.state === 'suspended') void c.resume()
+}
+
+export type KeyKind = 'letra' | 'espaco' | 'enter' | 'apagar'
+
+/** O tipo de tecla a partir do que o texto recebeu (funciona também com o teclado do celular). */
+export function keyKindOf(e: InputEvent): KeyKind | null {
+  switch (e.inputType) {
+    case 'insertParagraph':
+    case 'insertLineBreak':
+      return 'enter'
+    case 'deleteContentBackward':
+    case 'deleteContentForward':
+    case 'deleteWordBackward':
+      return 'apagar'
+    case 'insertText':
+    case 'insertReplacementText':
+    case 'insertCompositionText':
+      return e.data === ' ' ? 'espaco' : 'letra'
+    default:
+      return null
+  }
+}
+
+/** Toca o som de uma tecla. */
+export function playKey(kind: 'suave' | 'maquina', key: KeyKind) {
   const c = audio()
   if (!c) return
   if (c.state === 'suspended') void c.resume()
   if (kind === 'maquina') {
-    click(c, key === ' ' ? 900 : 2600, key === ' ' ? 0.35 : 0.28, 0.05)
+    click(c, key === 'espaco' ? 900 : 2600, key === 'espaco' ? 0.35 : 0.28, 0.05)
     click(c, 180, 0.18, 0.04)
-    if (key === 'Enter') bell(c)
+    if (key === 'enter') bell(c)
   } else {
-    click(c, key === ' ' ? 1200 : 3400, 0.08, 0.025)
+    click(c, key === 'espaco' ? 1200 : 3400, 0.08, 0.025)
   }
 }

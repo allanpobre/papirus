@@ -18,6 +18,7 @@ import { daysInYear } from '../logic/calendar'
 import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
+import { playKey, unlockAudio } from '../editor/keySounds'
 import { WikiCard } from './WikiCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
@@ -253,7 +254,11 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 value={prefs.keySound}
                 onChange={(v) => {
                   setPref('keySound', v)
-                  if (v !== 'nenhum') void import('../editor/keySounds').then((m) => m.playKey(v, 'a'))
+                  if (v !== 'nenhum') {
+                    unlockAudio()
+                    playKey(v, 'letra')
+                    setTimeout(() => playKey(v, 'enter'), 180)
+                  }
                 }}
                 options={[
                   { value: 'nenhum', label: 'Nenhum' },

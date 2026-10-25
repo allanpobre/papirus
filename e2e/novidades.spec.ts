@@ -113,3 +113,77 @@ test('desafio de escrita: Ana cria, escreve, e a amiga entra e vê o placar', as
   await expect(biaBoard).toContainText('Você')
   await expect(biaBoard.getByRole('listitem').first()).toContainText('Ana')
 })
+
+test('som ao digitar: toca em letras, espaço e Enter (pelo texto que entra, como no teclado do celular)', async ({ page }) => {
+  // Troca o áudio do navegador por um contador de sons.
+  await page.addInitScript(() => {
+    const w = window as unknown as { sons: string[]; AudioContext: unknown }
+    w.sons = []
+    class FakeParam {
+      value = 0
+      setValueAtTime() {}
+      exponentialRampToValueAtTime() {}
+    }
+    class FakeNode {
+      connect(n: unknown) {
+        return n
+      }
+    }
+    class FakeSource extends FakeNode {
+      buffer: unknown = null
+      playbackRate = new FakeParam()
+      start() {
+        w.sons.push('clique')
+      }
+      stop() {}
+    }
+    class FakeOsc extends FakeNode {
+      type = ''
+      frequency = new FakeParam()
+      start() {
+        w.sons.push('sino')
+      }
+      stop() {}
+    }
+    w.AudioContext = class {
+      state = 'suspended'
+      sampleRate = 8000
+      currentTime = 0
+      destination = {}
+      resume() {
+        this.state = 'running'
+        return Promise.resolve()
+      }
+      createBuffer(_c: number, n: number) {
+        return { getChannelData: () => new Float32Array(n) }
+      }
+      createBufferSource() {
+        return new FakeSource()
+      }
+      createOscillator() {
+        return new FakeOsc()
+      }
+      createBiquadFilter() {
+        return Object.assign(new FakeNode(), { type: '', frequency: new FakeParam(), Q: new FakeParam() })
+      }
+      createGain() {
+        return Object.assign(new FakeNode(), { gain: new FakeParam() })
+      }
+    }
+  })
+  await page.goto('/app/?exemplo=ostria')
+  await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Escrita' }).click()
+  await page.getByRole('combobox', { name: 'Som ao digitar' }).selectOption('maquina')
+  // Escolher já toca uma amostra.
+  await expect.poll(() => page.evaluate(() => (window as unknown as { sons: string[] }).sons.length)).toBeGreaterThan(0)
+  await page.evaluate(() => ((window as unknown as { sons: string[] }).sons = []))
+  await nav(page, 'Escrever').click()
+  await page.getByRole('textbox', { name: 'Texto da cena' }).click()
+  await page.keyboard.press('End')
+  await page.keyboard.type('Oi a')
+  await page.keyboard.press('Enter')
+  const sons = await page.evaluate(() => (window as unknown as { sons: string[] }).sons)
+  expect(sons.filter((s) => s === 'clique').length).toBeGreaterThanOrEqual(10)
+  expect(sons).toContain('sino')
+})
