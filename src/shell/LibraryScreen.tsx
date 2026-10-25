@@ -1,3 +1,4 @@
+import { InstallButton } from '../ui/InstallButton'
 import {
   BookOpen,
   Cloud,
@@ -274,6 +275,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const start = (
     <>
       <div className="library-alt">
+        <InstallButton />
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}>
           <FileUp size={15} /> Importar backup (.json)
         </button>

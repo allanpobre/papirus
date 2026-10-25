@@ -436,6 +436,8 @@ export const bookDesignSchema = z.object({
   blurb: z.string().max(2000).default(''),
   /** Na estante do perfil: ninguém vê, amigos ou todo mundo. */
   shelfVisibility: z.enum(['privado', 'amigos', 'publico']).default('privado'),
+  /** Quem vê o livro na estante também pode ler o texto ali (sem o que é secreto). */
+  shelfReadable: z.boolean().default(false),
 })
 
 /** Um livro da estante: a diagramação com um id (um universo pode ter vários: série, contos…). */

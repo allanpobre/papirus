@@ -237,3 +237,86 @@ revoke update on public.papirus_challenge_days from authenticated;
 grant update (words) on public.papirus_challenge_days to authenticated;
 revoke all on function public.papirus_in_challenge(uuid, uuid) from public, anon;
 grant execute on function public.papirus_in_challenge(uuid, uuid) to authenticated;
+
+-- ─── Ler direto da estante ───────────────────────────────────────────
+-- Quando a pessoa deixa, o texto do livro (sem o que é secreto) vai junto da vitrine.
+-- Quem vê o livro na estante pode ler; só quem é dono escreve. Sair da estante apaga o texto.
+
+create table if not exists public.papirus_shelf_text (
+  owner uuid not null default auth.uid(),
+  book_id text not null,
+  data jsonb not null check (octet_length(data::text) <= 6000000),
+  updated_at timestamptz not null default now(),
+  primary key (owner, book_id),
+  foreign key (owner, book_id) references public.papirus_shelf (owner, id) on delete cascade
+);
+
+alter table public.papirus_shelf_text enable row level security;
+drop policy if exists "ler o livro" on public.papirus_shelf_text;
+drop policy if exists "dono põe o texto" on public.papirus_shelf_text;
+drop policy if exists "dono muda o texto" on public.papirus_shelf_text;
+drop policy if exists "dono tira o texto" on public.papirus_shelf_text;
+create policy "ler o livro" on public.papirus_shelf_text for select to authenticated, anon using (public.papirus_book_visible(owner, book_id));
+create policy "dono põe o texto" on public.papirus_shelf_text for insert to authenticated with check (owner = auth.uid());
+create policy "dono muda o texto" on public.papirus_shelf_text for update to authenticated using (owner = auth.uid()) with check (owner = auth.uid());
+create policy "dono tira o texto" on public.papirus_shelf_text for delete to authenticated using (owner = auth.uid());
+grant select on public.papirus_shelf_text to anon;
+revoke insert, update, delete on public.papirus_shelf_text from anon;
+grant select, insert, update, delete on public.papirus_shelf_text to authenticated;
+
+-- ─── Reações por capítulo ────────────────────────────────────────────
+-- Quem lê deixa uma reação no fim de cada capítulo (uma por pessoa; dá para trocar ou tirar).
+
+create table if not exists public.papirus_chapter_reactions (
+  owner uuid not null,
+  book_id text not null,
+  scene_id text not null check (length(scene_id) <= 64),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  emoji text not null check (emoji in ('❤️', '😮', '😂', '😢', '🔥')),
+  created_at timestamptz not null default now(),
+  primary key (owner, book_id, scene_id, user_id),
+  foreign key (owner, book_id) references public.papirus_shelf (owner, id) on delete cascade
+);
+create index if not exists papirus_chapter_reactions_book on public.papirus_chapter_reactions (owner, book_id);
+
+alter table public.papirus_chapter_reactions enable row level security;
+drop policy if exists "ver reações" on public.papirus_chapter_reactions;
+drop policy if exists "reagir" on public.papirus_chapter_reactions;
+drop policy if exists "trocar reação" on public.papirus_chapter_reactions;
+drop policy if exists "tirar reação" on public.papirus_chapter_reactions;
+create policy "ver reações" on public.papirus_chapter_reactions for select to authenticated, anon using (public.papirus_book_visible(owner, book_id));
+create policy "reagir" on public.papirus_chapter_reactions for insert to authenticated
+  with check (user_id = auth.uid() and public.papirus_book_visible(owner, book_id));
+create policy "trocar reação" on public.papirus_chapter_reactions for update to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid() and public.papirus_book_visible(owner, book_id));
+create policy "tirar reação" on public.papirus_chapter_reactions for delete to authenticated using (user_id = auth.uid());
+grant select on public.papirus_chapter_reactions to anon;
+revoke insert, update, delete on public.papirus_chapter_reactions from anon;
+grant select, insert, update, delete on public.papirus_chapter_reactions to authenticated;
+
+-- ─── O que os amigos andam fazendo ───────────────────────────────────
+-- Cada um registra o próprio: capítulos novos, meta do dia batida, dias seguidos escrevendo.
+-- Só os amigos (e a própria pessoa) veem. Some sozinho depois de 60 dias.
+
+create table if not exists public.papirus_activity (
+  id uuid primary key default gen_random_uuid(),
+  actor uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  kind text not null check (kind in ('capitulos', 'meta', 'sequencia')),
+  book_id text check (length(book_id) <= 200),
+  title text not null default '' check (length(title) <= 200),
+  n integer not null default 0 check (n between 0 and 100000),
+  created_at timestamptz not null default now()
+);
+create index if not exists papirus_activity_actor on public.papirus_activity (actor, created_at desc);
+
+alter table public.papirus_activity enable row level security;
+drop policy if exists "amigos veem a atividade" on public.papirus_activity;
+drop policy if exists "registrar a própria atividade" on public.papirus_activity;
+drop policy if exists "apagar a própria atividade" on public.papirus_activity;
+create policy "amigos veem a atividade" on public.papirus_activity for select to authenticated
+  using ((actor = auth.uid() or public.papirus_are_friends(actor, auth.uid())) and created_at > now() - interval '60 days');
+create policy "registrar a própria atividade" on public.papirus_activity for insert to authenticated
+  with check (actor = auth.uid() and created_at > now() - interval '1 minute');
+create policy "apagar a própria atividade" on public.papirus_activity for delete to authenticated using (actor = auth.uid());
+revoke all on public.papirus_activity from anon;
+grant select, insert, delete on public.papirus_activity to authenticated;

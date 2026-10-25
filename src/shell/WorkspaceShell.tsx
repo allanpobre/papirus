@@ -4,7 +4,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type
 import { withDailyStart } from '../logic/stats'
 import { purgeTrash, track } from '../logic/history'
 import { addBook, shelf } from '../export/shelf'
-import { useAccount } from '../account/auth'
+import { authClient, useAccount } from '../account/auth'
 import type { Universe } from '../model/schema'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
@@ -17,6 +17,8 @@ import { useCodexSync } from '../share/useCodexSync'
 import { isLocalOnly, isSample } from '../model/sample'
 import { wordsToday } from '../logic/stats'
 import { recordToday } from '../social/dailyWords'
+import { progressToShare, shareProgress } from '../social/activity'
+import { ShelfSync } from '../social/useShelfSync'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { Tour } from './Tour'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
@@ -142,6 +144,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const lastBlocked = useRef(0)
   // Cada mudança feita aqui passa pela lixeira e pelo histórico, com o nome de quem fez.
   const account = useAccount()
+  // Meta do dia batida: os amigos ficam sabendo (uma vez por dia; dá para desligar no perfil).
+  const goal = universe.settings.dailyWordGoal
+  const userId = account.user?.id
+  const accountServer = account.server
+  useEffect(() => {
+    if (!userId || !accountServer || !prefs.shareProgress || readOnly || isLocalOnly(universe)) return
+    const t = setTimeout(() => {
+      if (progressToShare(userId, goal)) void authClient(accountServer).then((sb) => shareProgress(sb, userId, goal)).catch(() => undefined)
+    }, 3000)
+    return () => clearTimeout(t)
+  }, [universe, userId, accountServer, goal, prefs.shareProgress, readOnly])
   const me = useRef<string | null>(null)
   useEffect(() => {
     me.current = account.user?.email ? shortName(account.user.email) : null
@@ -312,6 +325,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   return (
     <WorkspaceContext.Provider value={ws}>
+      <ShelfSync />
       <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || bookOpen !== null || undefined}>
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo

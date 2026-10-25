@@ -49,13 +49,15 @@ interface Props {
   /** Biblioteca deste navegador (para "Sincronizar agora"). */
   library?: Library | null
   onSynced?: () => void
+  /** Contar aos amigos quando bater a meta (fica nas preferências deste aparelho). */
+  shareProgress?: { on: boolean; set: (on: boolean) => void }
 }
 
 /**
  * A conta num lugar só: perfil, amigos (e a estante de cada um) e a sincronização.
  * Tudo opcional: cada livro só vai para a estante se o autor escolher.
  */
-export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab, library = null, onSynced }: Props) {
+export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab, library = null, onSynced, shareProgress }: Props) {
   const { user, server } = useAccount()
   // Com avisos novos, abre neles.
   const [tab, setTabState] = useState<Tab>(() => initialTab ?? (getNoticeCount() > 0 ? 'avisos' : 'perfil'))
@@ -213,7 +215,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
   const incoming = friends.filter((f) => f.status === 'pendente' && !f.outgoing)
   const newNotices = notices ? unseenCount(notices, seenAt) : 0
   const tabs: [Tab, string][] = [
-    ['avisos', 'Avisos'],
+    ['avisos', 'Novidades'],
     ['perfil', 'Perfil'],
     ['amigos', 'Amigos'],
     ['desafios', 'Desafios'],
@@ -263,7 +265,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             onOpen={(n) => {
               if (n.kind === 'pedido') return setTab('amigos')
               setFocusBook(n.book?.id)
-              setViewing(n.kind === 'livro-amigo' || n.kind === 'capitulo-novo' ? n.who : me)
+              setViewing(n.kind === 'comentario' || n.kind === 'quero-ler' || n.kind === 'reacao' ? me : n.who)
             }}
           />
         ) : !loaded ? (
@@ -292,6 +294,13 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             <p className="muted tiny">
               Seus livros entram na estante pela página Livro de cada universo: “Só eu”, “Amigos” ou “Todo mundo”. O link do perfil sem conta só mostra o que for “Todo mundo”.
             </p>
+            {shareProgress && (
+              <label className="toggle small">
+                <input type="checkbox" role="switch" checked={shareProgress.on} onChange={(e) => shareProgress.set(e.target.checked)} />
+                <span className="toggle-track" aria-hidden="true" />
+                <span>Contar aos amigos quando eu bater a meta do dia</span>
+              </label>
+            )}
           </>
         ) : (
           <FriendsTab
@@ -323,6 +332,10 @@ const NOTICE_TEXT: Record<Notice['kind'], (n: Notice) => string> = {
   'quero-ler': (n) => `quer ler “${n.book?.title}”.`,
   'livro-amigo': (n) => `pôs “${n.book?.title}” na estante.`,
   'capitulo-novo': (n) => `publicou ${n.text} de “${n.book?.title}”.`,
+  capitulos: (n) => `publicou ${n.n === 1 ? '1 capítulo novo' : `${n.n} capítulos novos`} de “${n.book?.title}”.`,
+  meta: (n) => `bateu a meta do dia: ${(n.n ?? 0).toLocaleString('pt-BR')} palavras.`,
+  sequencia: (n) => `está há ${n.n} dias seguidos batendo a meta.`,
+  reacao: (n) => `reagiu ${n.text} a um capítulo de “${n.book?.title}”.`,
 }
 const ago = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
 const when = (iso: string) => {
@@ -336,9 +349,9 @@ const when = (iso: string) => {
 
 function NoticeList({ notices, seenAt, onOpen }: { notices: Notice[] | null; seenAt: string; onOpen: (n: Notice) => void }) {
   if (!notices) return <p className="muted small">Carregando…</p>
-  if (!notices.length) return <p className="muted small">Nada de novo nos últimos 30 dias. Pedidos de amizade, comentários e “quero ler” nos seus livros, e livros novos de amigos aparecem aqui.</p>
+  if (!notices.length) return <p className="muted small">Nada de novo nos últimos 30 dias. Aqui aparecem os pedidos de amizade, o que dizem dos seus livros (comentários, “quero ler”, reações) e o que os amigos andam fazendo: livros e capítulos novos, metas batidas.</p>
   return (
-    <ul className="social-list social-notices" aria-label="Avisos">
+    <ul className="social-list social-notices" aria-label="Novidades">
       {notices.map((n, i) => {
         const fresh = n.kind === 'pedido' || n.at > seenAt
         return (
@@ -349,7 +362,7 @@ function NoticeList({ notices, seenAt, onOpen }: { notices: Notice[] | null; see
                 <span className="small">
                   <strong>{n.who.name || `@${n.who.handle}`}</strong> {NOTICE_TEXT[n.kind](n)}
                 </span>
-                {n.text && <span className="small muted social-notice-quote">“{n.text}”</span>}
+                {n.kind === 'comentario' && n.text && <span className="small muted social-notice-quote">“{n.text}”</span>}
                 <span className="tiny muted">{n.kind === 'pedido' ? 'Esperando sua resposta' : when(n.at)}</span>
               </span>
               {fresh && <span className="social-dot" aria-label="novo" />}
