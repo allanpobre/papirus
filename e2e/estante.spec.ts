@@ -72,6 +72,20 @@ test('estante: ler ali mesmo, reagir a um capítulo, e capítulo novo chega aos 
   await expect.poll(() => fake.tables.papirus_chapter_reactions.length).toBe(0)
   await reading.getByRole('button', { name: 'Demais' }).click()
   await expect.poll(() => fake.tables.papirus_chapter_reactions.map((r) => r.emoji)).toEqual(['🔥'])
+  // Comentário só para a Ana, num trecho; e um comentário público sobre o livro.
+  await reading.locator('.leitor-text p').first().click({ clickCount: 3 })
+  await reading.getByRole('button', { name: 'Comentar o trecho' }).click()
+  const sheet = reading.getByRole('dialog', { name: 'Comentar para quem escreveu' })
+  await expect(sheet.getByRole('textbox', { name: 'Seu nome' })).toHaveCount(0)
+  await sheet.getByRole('textbox', { name: 'Seu comentário' }).fill('Esse começo me pegou.')
+  await sheet.getByRole('button', { name: 'Enviar para quem escreveu' }).click()
+  await expect(sheet).toContainText('Enviado')
+  await sheet.getByRole('button', { name: 'Fechar' }).click()
+  expect(fake.tables.papirus_feedback.map((f) => `${f.author_name}|${f.via}`)).toEqual(['Bia|estante'])
+  await reading.getByRole('button', { name: 'Comentar o livro' }).click()
+  await reading.getByRole('textbox', { name: 'Comentário sobre o livro' }).fill('Estou amando!')
+  await reading.getByRole('button', { name: 'Enviar', exact: true }).click()
+  await expect(reading.getByRole('region', { name: 'Comentários sobre A Maré' })).toContainText('Estou amando!')
   await reading.getByRole('button', { name: 'Voltar à estante' }).click()
 
   // Ana vê a reação nas novidades e no resumo do livro.
@@ -85,6 +99,8 @@ test('estante: ler ali mesmo, reagir a um capítulo, e capítulo novo chega aos 
 
   // Ana escreve uma cena nova: os amigos ficam sabendo do capítulo novo.
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Escrever', exact: true }).click()
+  // O comentário da Bia aparece na margem da primeira cena.
+  await expect(page.getByRole('complementary', { name: 'Margem viva' }).locator('.beta-readers')).toContainText('Esse começo me pegou.')
   await page.getByRole('complementary', { name: 'Manuscrito' }).getByRole('button', { name: 'Nova cena', exact: true }).first().click()
   await page.getByRole('textbox', { name: 'Texto da cena' }).click()
   await page.keyboard.type('A maré voltou mais cedo naquela noite.')

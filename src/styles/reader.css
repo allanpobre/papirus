@@ -914,3 +914,17 @@ button.leitor-found-card {
   height: 100%;
   padding: 1rem;
 }
+.leitor-book-comments {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1.25rem auto 0;
+  max-width: 34rem;
+  width: 100%;
+  font-family: var(--font-ui, system-ui, sans-serif);
+}
+.leitor-book-comments .social-comment-list,
+.leitor-book-comments .social-comment-form {
+  width: 100%;
+}

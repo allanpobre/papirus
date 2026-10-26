@@ -100,8 +100,9 @@ revoke all on function public.papirus_link_get(text) from public;
 grant execute on function public.papirus_link_get(text) to anon, authenticated;
 
 -- ─── Leitores beta: comentários em trechos do texto ──────────────────
--- Quem lê pelo link (ou foi convidado) seleciona um trecho e comenta. Só quem é dono do universo
--- lê os comentários, marca como resolvido ou apaga. Desligar o compartilhamento apaga tudo junto.
+-- Quem lê pelo link (ou foi convidado, ou lê pela estante) seleciona um trecho e comenta. Só quem é
+-- dono do universo lê os comentários, marca como resolvido ou apaga. Desligar o compartilhamento apaga
+-- os que vieram pelo link; os da estante ficam (a função de comentar pela estante está em social.sql).
 
 create table if not exists public.papirus_feedback (
   id uuid primary key default gen_random_uuid(),
@@ -114,9 +115,32 @@ create table if not exists public.papirus_feedback (
   author_id uuid,
   resolved boolean not null default false,
   created_at timestamptz not null default now(),
-  foreign key (owner_id, universe_id) references public.papirus_shares (owner_id, universe_id) on delete cascade
+  via text not null default 'link' check (via in ('link', 'estante')),
+  foreign key (owner_id) references auth.users (id) on delete cascade
 );
 create index if not exists papirus_feedback_universe on public.papirus_feedback (owner_id, universe_id, created_at);
+
+-- Versões antigas deste script prendiam cada comentário a um compartilhamento; agora pode vir da estante.
+alter table public.papirus_feedback add column if not exists via text not null default 'link';
+alter table public.papirus_feedback drop constraint if exists papirus_feedback_owner_id_universe_id_fkey;
+alter table public.papirus_feedback drop constraint if exists papirus_feedback_via_check;
+alter table public.papirus_feedback add constraint papirus_feedback_via_check check (via in ('link', 'estante'));
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'papirus_feedback_owner_id_fkey') then
+    alter table public.papirus_feedback add constraint papirus_feedback_owner_id_fkey foreign key (owner_id) references auth.users (id) on delete cascade;
+  end if;
+end $$;
+
+-- Desligar o compartilhamento apaga os comentários que vieram por ele.
+create or replace function public.papirus_feedback_share_gone() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  delete from public.papirus_feedback f where f.owner_id = old.owner_id and f.universe_id = old.universe_id and f.via = 'link';
+  return old;
+end
+$$;
+drop trigger if exists papirus_feedback_share_gone on public.papirus_shares;
+create trigger papirus_feedback_share_gone after delete on public.papirus_shares for each row execute function public.papirus_feedback_share_gone();
 
 alter table public.papirus_feedback enable row level security;
 drop policy if exists "dono lê os comentários" on public.papirus_feedback;
