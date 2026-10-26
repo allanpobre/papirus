@@ -1,6 +1,8 @@
 import { InstallButton } from '../ui/InstallButton'
+import { OficinaPage } from '../oficina/OficinaPage'
 import {
   BookOpen,
+  GraduationCap,
   Cloud,
   Coffee,
   Dices,
@@ -70,6 +72,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const [template, setTemplate] = useState<UniverseTemplate['id']>('branco')
   const [error, setError] = useState<string | null>(null)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [oficinaOpen, setOficinaOpen] = useState(false)
   // Link de perfil (?perfil=fulano) abre direto a estante dessa pessoa.
   const [profileHandle, setProfileHandle] = useState<string | undefined>(() => new URLSearchParams(location.search).get('perfil') ?? undefined)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -275,6 +278,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const start = (
     <>
       <div className="library-alt">
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setOficinaOpen(true)}>
+          <GraduationCap size={15} /> Oficina de escrita
+        </button>
         <InstallButton />
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}>
           <FileUp size={15} /> Importar backup (.json)
@@ -442,6 +448,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       )}
 
       {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
+      {oficinaOpen && <OficinaPage onClose={() => setOficinaOpen(false)} />}
     </div>
   )
 }
