@@ -349,7 +349,7 @@ export function ReaderView({
             </nav>
             {onComment && (
               <button type="button" className="link-btn small leitor-comment-scene" onClick={() => setCommenting({ quote: '' })}>
-                Comentar esta cena para quem escreveu
+                Comentar só para quem escreveu
               </button>
             )}
             {footer}

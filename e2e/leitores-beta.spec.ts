@@ -52,7 +52,7 @@ test('leitores beta: quem lê pelo link comenta um trecho e a cena; a autora vê
   await expect(sheet).toContainText('Enviado. Obrigado!')
   await sheet.getByRole('button', { name: 'Fechar' }).click()
 
-  await reader.getByRole('button', { name: 'Comentar esta cena para quem escreveu' }).click()
+  await reader.getByRole('button', { name: 'Comentar só para quem escreveu' }).click()
   await expect(sheet.getByRole('textbox', { name: 'Seu nome' })).toHaveValue('Caio')
   await sheet.getByRole('textbox', { name: 'Seu comentário' }).fill('Fiquei com vontade de saber do farol.')
   await sheet.getByRole('button', { name: 'Enviar para quem escreveu' }).click()

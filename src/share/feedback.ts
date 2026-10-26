@@ -19,7 +19,9 @@ export interface Feedback {
 export class FeedbackError extends Error {}
 
 const explain = (m: string) =>
-  /papirus_feedback/.test(m) && /(does not exist|schema cache|not find)/i.test(m)
+  /papirus_feedback_from_shelf/.test(m) && /(does not exist|schema cache|not find)/i.test(m)
+    ? 'O servidor ainda não recebe comentários pela estante. Rode de novo os scripts supabase/compartilhar.sql e supabase/social.sql.'
+    : /papirus_feedback/.test(m) && /(does not exist|schema cache|not find)/i.test(m)
     ? 'O servidor ainda não recebe comentários de leitores. Rode de novo o script supabase/compartilhar.sql.'
     : /sem permissão/i.test(m)
       ? 'Este link não aceita mais comentários (talvez tenha sido desligado).'
@@ -29,11 +31,17 @@ const explain = (m: string) =>
           ? 'Sem conexão. Tente de novo em instantes.'
           : m
 
-export type FeedbackTarget = { token: string } | { ownerId: string; universeId: string }
+export type FeedbackTarget = { token: string } | { ownerId: string; universeId: string } | { shelf: { ownerId: string; bookId: string } }
 
 export async function sendFeedback(sb: SupabaseClient, to: FeedbackTarget, f: { sceneId: string; quote: string; body: string; name: string }) {
   const body = f.body.trim()
   if (!body) throw new FeedbackError('Escreva o comentário antes de enviar.')
+  if ('shelf' in to) {
+    // Lendo pela estante: o nome vem do perfil de quem comenta.
+    const { error } = await sb.rpc('papirus_feedback_from_shelf', { o: to.shelf.ownerId, book: to.shelf.bookId, scene: f.sceneId, q: f.quote.trim().slice(0, 600), b: body.slice(0, 2000) })
+    if (error) throw new FeedbackError(explain(error.message))
+    return
+  }
   const { error } = await sb.rpc('papirus_feedback_add', {
     token: 'token' in to ? to.token : null,
     o: 'ownerId' in to ? to.ownerId : null,

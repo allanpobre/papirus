@@ -154,6 +154,13 @@ export function createFakeSupabase() {
         tables.papirus_feedback.push({ id: crypto.randomUUID(), owner_id: s.owner_id, universe_id: s.universe_id, scene_id: scene, quote: q ?? '', body: b, author_name: n ?? '', resolved: false, created_at: new Date().toISOString() })
         return route.fulfill({ status: 204, headers: cors, body: '' })
       }
+      if (path === 'rpc/papirus_feedback_from_shelf') {
+        const { o, book, scene, q, b } = req.postDataJSON() as Record<string, string>
+        if (!me || !bookVisible(me, o, book)) return route.fulfill({ status: 400, headers: cors, json: { message: 'sem permissão para comentar' } })
+        const p = tables.papirus_profiles.find((x) => x.user_id === me.id)
+        tables.papirus_feedback.push({ id: crypto.randomUUID(), owner_id: o, universe_id: book.split(':')[0], scene_id: scene, quote: q ?? '', body: b, author_name: p ? p.name || `@${p.handle}` : '', resolved: false, via: 'estante', created_at: new Date().toISOString() })
+        return route.fulfill({ status: 204, headers: cors, body: '' })
+      }
       if (path === 'rpc/papirus_share_data') {
         const { o, u, d, n } = req.postDataJSON() as { o: string; u: string; d: unknown; n: string }
         if (!me || !(o === me.id || roleOf(me, o, u) === 'editar')) return route.fulfill({ status: 400, headers: cors, json: { message: 'sem permissão' } })

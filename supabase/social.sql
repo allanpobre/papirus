@@ -320,3 +320,43 @@ create policy "registrar a própria atividade" on public.papirus_activity for in
 create policy "apagar a própria atividade" on public.papirus_activity for delete to authenticated using (actor = auth.uid());
 revoke all on public.papirus_activity from anon;
 grant select, insert, delete on public.papirus_activity to authenticated;
+
+-- ─── Comentar para o autor, lendo pela estante ───────────────────────
+-- Quem pode ver o livro na estante (e tem conta) manda um comentário que só o autor vê, na margem
+-- do Escrever. Usa a tabela de leitores beta (rode também supabase/compartilhar.sql).
+
+create or replace function public.papirus_feedback_from_shelf(o uuid, book text, scene text, q text, b text) returns uuid
+language plpgsql security definer set search_path = '' as $$
+declare
+  me uuid := auth.uid();
+  su uuid;
+  who text;
+  new_id uuid;
+begin
+  if me is null then
+    raise exception 'entre na sua conta para comentar';
+  end if;
+  if not exists (
+    select 1 from public.papirus_shelf s
+    where s.owner = o and s.id = book
+      and (s.owner = me or s.visibility = 'publico' or (s.visibility = 'amigos' and public.papirus_are_friends(o, me)))
+  ) then
+    raise exception 'sem permissão para comentar';
+  end if;
+  begin
+    su := split_part(book, ':', 1)::uuid;
+  exception when others then
+    raise exception 'livro inválido';
+  end;
+  if (select count(*) from public.papirus_feedback f where f.owner_id = o and f.universe_id = su) >= 3000 then
+    raise exception 'este livro já recebeu comentários demais';
+  end if;
+  select coalesce(nullif(p.name, ''), '@' || p.handle) into who from public.papirus_profiles p where p.user_id = me;
+  insert into public.papirus_feedback (owner_id, universe_id, scene_id, quote, body, author_name, author_id, via)
+  values (o, su, left(scene, 64), left(coalesce(q, ''), 600), left(b, 2000), left(coalesce(who, ''), 60), me, 'estante')
+  returning id into new_id;
+  return new_id;
+end
+$$;
+revoke all on function public.papirus_feedback_from_shelf(uuid, text, text, text, text) from public, anon;
+grant execute on function public.papirus_feedback_from_shelf(uuid, text, text, text, text) to authenticated;
