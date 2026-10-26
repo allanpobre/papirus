@@ -4644,3 +4644,18 @@ button.arc-dot {
     bottom: 1.5rem;
   }
 }
+
+/* Início: dica do dia, vinda da Oficina. */
+.home-tip .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.home-tip-title {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+.home-tip p.small {
+  margin: 0.3rem 0 0.4rem;
+}

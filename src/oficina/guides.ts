@@ -260,3 +260,13 @@ export function guessGuide(fieldTemplates: Record<string, string[]>): GuideId {
   if (/O que deseja|O que a machucou/.test(all)) return 'realismo'
   return 'fundamentos'
 }
+
+/** Uma dica por dia (muda à meia-noite), do gênero do universo ou dos fundamentos. */
+export function tipOfTheDay(genre: GuideId, day = new Date()): { guide: Guide; title: string; text: string } {
+  const pool = [genre, 'fundamentos'].flatMap((id) => {
+    const g = GUIDES.find((x) => x.id === id)!
+    return g.works.map((w) => ({ guide: g, title: w.title, text: w.text }))
+  })
+  const n = Math.floor(new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime() / 86_400_000)
+  return pool[n % pool.length]
+}

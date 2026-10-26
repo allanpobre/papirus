@@ -1,4 +1,4 @@
-import { BookMarked, BookOpen, Compass, Dices, Feather, Inbox, Library, Lightbulb, Plus, Search, Sprout, Users } from 'lucide-react'
+import { ArrowRight, BookMarked, BookOpen, Compass, Dices, Feather, GraduationCap, Inbox, Library, Lightbulb, Plus, Search, Sprout, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { continuityQuestions, isOpen } from '../logic/continuity'
 import { wordsToday } from '../logic/stats'
@@ -7,6 +7,7 @@ import { addScene, byId, manuscriptOrder } from '../model/universe'
 import { countWords, wordCount } from '../persistence/repository'
 import { recall } from '../state/prefs'
 import { DeadlineLine, WritingCalendar } from './WritingCalendar'
+import { guessGuide, tipOfTheDay } from '../oficina/guides'
 import { useWorkspace } from '../state/workspace'
 
 const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -124,6 +125,8 @@ export default function HomeView() {
           </p>
         </section>
 
+        <TipCard />
+
         <section className="home-card" aria-label="Pede atenção">
           <h2 className="section-title">Pede atenção</h2>
           {attention.length ? (
@@ -211,3 +214,21 @@ function lastLines(text: string, size = 240): string {
 }
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+/** Dica do dia, tirada da Oficina (e o caminho até ela). */
+function TipCard() {
+  const { universe, go } = useWorkspace()
+  const [tip] = useState(() => tipOfTheDay(guessGuide(universe.settings.fieldTemplates)))
+  return (
+    <section className="home-card home-tip" aria-label="Dica do dia">
+      <p className="eyebrow">
+        <GraduationCap size={13} aria-hidden="true" /> Dica do dia · {tip.guide.label}
+      </p>
+      <p className="home-tip-title">{tip.title}</p>
+      <p className="small">{tip.text}</p>
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('oficina')}>
+        Ver mais na Oficina <ArrowRight size={14} />
+      </button>
+    </section>
+  )
+}
