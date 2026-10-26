@@ -1183,3 +1183,21 @@ input[type='radio'] {
     min-height: 36px;
   }
 }
+
+/* Quando uma tela quebra: a mensagem no lugar dela. */
+.error-boundary {
+  max-width: 34rem;
+  margin: 3rem auto;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  color: var(--ink);
+}
+.error-boundary pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0.6rem;
+  border-radius: var(--radius);
+  background: var(--surface-2, var(--bg));
+}
