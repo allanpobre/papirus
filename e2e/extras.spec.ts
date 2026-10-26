@@ -51,12 +51,12 @@ test('primeira vez: o tipo do universo arruma o menu, e dá para mostrar tudo de
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Menu e ajuda' }).click()
   await page.getByRole('button', { name: 'Só RPG' }).click()
-  await expect(nav(page, 'Organizar')).toHaveCount(0)
+  await expect(nav(page, 'Estrutura')).toHaveCount(0)
   await expect(nav(page, 'RPG')).toBeVisible()
   await page.getByRole('button', { name: 'Mostrar tudo' }).click()
-  await expect(nav(page, 'Organizar')).toBeVisible()
+  await expect(nav(page, 'Estrutura')).toBeVisible()
   await page.reload()
-  await expect(nav(page, 'Organizar')).toBeVisible()
+  await expect(nav(page, 'Estrutura')).toBeVisible()
 })
 
 test('lembra do backup depois de uma semana, e o adiamento vale', async ({ page }) => {
@@ -219,8 +219,8 @@ test('no celular, o menu "Mais" leva a todas as áreas e a página não rola de 
   await page.setViewportSize({ width: 390, height: 844 })
   await openSample(page)
   await page.getByRole('button', { name: 'Mais' }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Conhecimento' }).click()
-  await expect(page.getByRole('heading', { name: 'Conhecimento' })).toBeVisible()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Quem sabe o quê' }).click()
+  await expect(page.getByRole('heading', { name: 'Quem sabe o quê' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   await page.getByRole('button', { name: 'Mais' }).click()
   await page.keyboard.press('Escape')
@@ -358,4 +358,26 @@ test('modelo de universo: fantasia já traz o Livro I e campos sugeridos nas fic
   await expect(page.getByRole('textbox', { name: 'Campo' }).first()).toHaveValue('Idade')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Escrever' }).click()
   await expect(page.locator('.write-tree')).toContainText('Capítulo 1')
+})
+
+test.describe('no celular', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true })
+
+  test('dá para escolher os atalhos da barra de baixo, e a Oficina tem destaque no Mais', async ({ page }) => {
+    await page.goto('/app/?exemplo=ostria')
+    const bar = page.getByRole('navigation', { name: 'Áreas' })
+    await expect(bar.getByRole('button', { name: 'RPG', exact: true })).toHaveCount(0)
+    await bar.getByRole('button', { name: 'Mais', exact: true }).click()
+    const mais = page.getByRole('group', { name: 'Todas as áreas' })
+    await expect(mais.getByRole('button', { name: /Oficina/ })).toContainText('Dicas, livros e exercícios')
+    await mais.getByRole('button', { name: 'Escolher atalhos' }).click()
+    await mais.getByRole('button', { name: 'RPG' }).click()
+    await expect(mais.getByRole('button', { name: 'RPG' })).toHaveAttribute('aria-pressed', 'true')
+    await mais.getByRole('button', { name: 'Pronto' }).click()
+    await page.keyboard.press('Escape')
+    await expect(bar.getByRole('button', { name: 'RPG', exact: true })).toBeVisible()
+    // Fica guardado.
+    await page.reload()
+    await expect(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'RPG', exact: true })).toBeVisible()
+  })
 })

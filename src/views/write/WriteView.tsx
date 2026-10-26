@@ -224,7 +224,7 @@ export default function WriteView() {
     keep: (sel: SelectionInfo) => {
       if (!sel.text) return
       update((u) => insert(u, 'inbox', draftInbox(sel.text, 'captura', scene?.title ?? ''))[0])
-      toast('Trecho guardado na Inbox')
+      toast('Trecho guardado em Ideias')
     },
     openEntity: (id: string) => peek(id),
     comment: (sel: SelectionInfo) => sel.text && setDialog({ kind: 'comment', sel }),

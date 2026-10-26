@@ -6,11 +6,13 @@ import {
   Feather,
   GraduationCap,
   House,
+  Inbox,
   Lightbulb,
   MapIcon,
+  MessageCircleQuestion,
   Network,
   PanelsTopLeft,
-  ScrollText,
+  Settings,
   Sprout,
   type LucideIcon,
 } from 'lucide-react'
@@ -21,6 +23,8 @@ export interface NavItem {
   view: View
   label: string
   icon: LucideIcon
+  /** Outras palavras que acham a área na busca (nomes antigos, sinônimos). */
+  words?: string
 }
 
 export const NAV: { group: string; items: NavItem[] }[] = [
@@ -29,6 +33,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     group: 'Escrita',
     items: [
       { view: 'escrever', label: 'Escrever', icon: Feather },
+      { view: 'organizar', label: 'Estrutura', icon: PanelsTopLeft, words: 'organizar quadro de cenas cortiça ritmo presença' },
       { view: 'livro', label: 'Livro', icon: BookOpenText },
     ],
   },
@@ -37,20 +42,31 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     items: [
       { view: 'fichas', label: 'Fichas', icon: BookMarked },
       { view: 'relacoes', label: 'Relações', icon: Network },
-      { view: 'timeline', label: 'Timeline', icon: CalendarRange },
+      { view: 'timeline', label: 'Linha do tempo', icon: CalendarRange, words: 'timeline eventos calendário' },
       { view: 'atlas', label: 'Atlas', icon: MapIcon },
     ],
   },
   {
-    group: 'Narrativa',
+    group: 'Trama',
     items: [
-      { view: 'tramas', label: 'Tramas', icon: Sprout },
-      { view: 'conhecimento', label: 'Conhecimento', icon: Lightbulb },
-      { view: 'organizar', label: 'Organizar', icon: PanelsTopLeft },
-      { view: 'archivist', label: 'Archivist', icon: ScrollText },
+      { view: 'tramas', label: 'Pistas e mistérios', icon: Sprout, words: 'tramas sementes setup payoff' },
+      { view: 'conhecimento', label: 'Quem sabe o quê', icon: Lightbulb, words: 'conhecimento segredos fatos' },
     ],
   },
   { group: 'Mesa', items: [{ view: 'rpg', label: 'RPG', icon: Dices }] },
-  { group: 'Aprender', items: [{ view: 'oficina', label: 'Oficina', icon: GraduationCap }] },
 ]
 
+/** Ferramentas, no fim do menu (a Oficina tem um cartão próprio). */
+export const TOOLS: NavItem[] = [
+  { view: 'inbox', label: 'Ideias', icon: Inbox, words: 'inbox caixa de entrada anotações captura' },
+  { view: 'archivist', label: 'Perguntar ao mundo', icon: MessageCircleQuestion, words: 'archivist ia inteligência artificial pergunta' },
+  { view: 'oficina', label: 'Oficina', icon: GraduationCap, words: 'dicas escrita gêneros exercícios curiosidades aprender' },
+]
+
+export const CONFIG_ITEM: NavItem = { view: 'config', label: 'Ajustes e dados', icon: Settings, words: 'configurações preferências backup' }
+
+/** Todas as áreas, na ordem do menu. */
+export const ALL_ITEMS: NavItem[] = [...NAV.flatMap((g) => g.items), ...TOOLS, CONFIG_ITEM]
+
+/** Atalhos da barra de baixo no celular, se a pessoa não escolher outros. */
+export const DEFAULT_SHORTCUTS: View[] = ['inicio', 'escrever', 'livro', 'fichas']

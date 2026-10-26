@@ -63,7 +63,7 @@ export async function askArchivist(config: ArchivistConfig, context: string, que
       outputTokens: response.usage.output_tokens,
     }
   } catch (error) {
-    if (error instanceof Anthropic.AuthenticationError) throw new ArchivistError('A chave de API foi recusada. Confira a chave nos ajustes do Archivist.')
+    if (error instanceof Anthropic.AuthenticationError) throw new ArchivistError('A chave de API foi recusada. Confira a chave nos ajustes de Perguntar ao mundo.')
     if (error instanceof Anthropic.PermissionDeniedError) throw new ArchivistError('Esta chave não tem permissão para usar o modelo escolhido.')
     if (error instanceof Anthropic.RateLimitError) throw new ArchivistError('Limite de uso atingido. Espere um pouco e tente de novo.')
     if (error instanceof Anthropic.BadRequestError) throw new ArchivistError(`A API recusou o pedido: ${error.message}`)

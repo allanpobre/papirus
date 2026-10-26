@@ -1550,3 +1550,85 @@ body:has(.rail-phone) .toasts {
   min-width: 0;
 }
 .install-help { flex-basis: 100%; margin: 0.2rem 0 0; }
+
+/* A Oficina no menu: um cartão com cor, que diz o que é. */
+.oficina-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  margin: 0.35rem 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface) 80%);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.oficina-card:hover,
+.oficina-card:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.oficina-card-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+}
+
+.oficina-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.oficina-card-text strong {
+  font-size: 0.9rem;
+}
+
+.oficina-card-text span {
+  font-size: 0.74rem;
+  color: var(--ink-2);
+}
+
+.oficina-card.is-compact {
+  justify-content: center;
+  padding: 0.35rem;
+  border-color: transparent;
+  background: none;
+}
+
+.rail-more .oficina-card {
+  margin: 0.4rem 0 0.5rem;
+  padding: 0.7rem;
+}
+
+.rail-more-hint {
+  margin: 0.4rem 0.2rem;
+  color: var(--ink-2);
+}
+
+.rail-more-item.is-pinned {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+  color: var(--ink);
+}
+
+.rail-more-pin {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--accent);
+}

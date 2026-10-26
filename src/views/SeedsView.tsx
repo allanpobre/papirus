@@ -24,7 +24,7 @@ export default function SeedsView() {
   return (
     <div className="view seeds-view">
       <header className="view-head view-head-wide">
-        <h1>Tramas e mistérios</h1>
+        <h1>Pistas e mistérios</h1>
         <form
           className="quick-create"
           onSubmit={(e) => {

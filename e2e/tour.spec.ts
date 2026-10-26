@@ -13,7 +13,7 @@ test('tour na primeira vez: destaca as partes, pode ser pulado e refeito', async
   expect(violations.map((v) => v.id)).toEqual([])
 
   await tour.getByRole('button', { name: 'Rápido' }).click()
-  await expect(page.getByRole('dialog', { name: 'O menu' })).toContainText('1 de 11')
+  await expect(page.getByRole('dialog', { name: 'O menu' })).toContainText('1 de 12')
   await expect(page.locator('.tour-spot')).toBeVisible()
   await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('dialog', { name: 'Seus universos' })).toBeVisible()

@@ -54,7 +54,7 @@ export default function HomeView() {
 
   const attention = [
     questions.length > 0 && { icon: Lightbulb, text: `${questions.length} ${questions.length === 1 ? 'pergunta' : 'perguntas'} de continuidade`, go: () => go('escrever') },
-    inbox > 0 && { icon: Inbox, text: `${inbox} ${inbox === 1 ? 'ideia' : 'ideias'} na Inbox`, go: () => go('inbox') },
+    inbox > 0 && { icon: Inbox, text: `${inbox} ${inbox === 1 ? 'ideia' : 'ideias'} esperando em Ideias`, go: () => go('inbox') },
     drafts > 0 && { icon: BookMarked, text: `${drafts} ${drafts === 1 ? 'ficha' : 'fichas'} em rascunho`, go: () => go('fichas') },
     openSeeds > 0 && { icon: Sprout, text: `${openSeeds} ${openSeeds === 1 ? 'trama aberta' : 'tramas abertas'}`, go: () => go('tramas') },
   ].filter(Boolean) as { icon: typeof Inbox; text: string; go: () => void }[]

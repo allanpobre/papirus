@@ -23,7 +23,7 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
     await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
-    for (const area of ['Início', 'Escrever', 'Fichas', 'Relações', 'Timeline', 'Atlas', 'Tramas', 'Conhecimento', 'Organizar', 'Archivist', 'RPG', 'Inbox', 'Ajustes e dados']) {
+    for (const area of ['Início', 'Escrever', 'Estrutura', 'Fichas', 'Relações', 'Linha do tempo', 'Atlas', 'Pistas e mistérios', 'Quem sabe o quê', 'RPG', 'Ideias', 'Perguntar ao mundo', 'Ajustes e dados']) {
       const button = nav(page, area)
       if (!(await button.count())) continue
       await button.click()

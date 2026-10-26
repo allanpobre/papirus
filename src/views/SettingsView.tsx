@@ -15,7 +15,7 @@ import { recall, remember, type Prefs } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { Field, Kbd, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
-import { NAV } from '../shell/nav'
+import { NAV, TOOLS } from '../shell/nav'
 import { daysInYear } from '../logic/calendar'
 import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
@@ -179,7 +179,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <h2 className="section-title">Áreas do menu</h2>
           <p className="muted small">Esconda o que você não usa. Tudo continua acessível pela busca, e nada é apagado.</p>
           <div className="area-toggles">
-            {[...NAV.flatMap((g) => g.items), { view: 'inbox' as const, label: 'Inbox' }].map((item) => (
+            {[...NAV.flatMap((g) => g.items), ...TOOLS].map((item) => (
               <Toggle
                 key={item.view}
                 label={item.label}
@@ -502,7 +502,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <h2 className="section-title">Atalhos</h2>
           <dl className="shortcuts">
             <div><dt><Kbd>{modKey}</Kbd> <Kbd>K</Kbd></dt><dd>Buscar em tudo</dd></div>
-            <div><dt><Kbd>{modKey}</Kbd> <Kbd>Shift</Kbd> <Kbd>I</Kbd></dt><dd>Capturar ideia na Inbox</dd></div>
+            <div><dt><Kbd>{modKey}</Kbd> <Kbd>Shift</Kbd> <Kbd>I</Kbd></dt><dd>Anotar uma ideia</dd></div>
             <div><dt><Kbd>{modKey}</Kbd> <Kbd>Shift</Kbd> <Kbd>F</Kbd></dt><dd>Modo foco</dd></div>
             <div><dt><Kbd>{modKey}</Kbd> + clique</dt><dd>Espiar a ficha de um nome no texto</dd></div>
             <div><dt><Kbd>---</Kbd></dt><dd>Separador de cena</dd></div>

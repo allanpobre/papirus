@@ -4,7 +4,7 @@ import { useWorkspace } from '../state/workspace'
 import { Modal } from '../ui/Modal'
 import { modKey } from '../ui/keys'
 
-/** Captura rápida para a Inbox, de qualquer lugar (Ctrl/⌘+Shift+I). */
+/** Captura rápida para Ideias, de qualquer lugar (Ctrl/⌘+Shift+I). */
 export function CaptureDialog({ onClose }: { onClose: () => void }) {
   const { update, toast } = useWorkspace()
   const [text, setText] = useState('')
@@ -12,7 +12,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   const save = () => {
     if (!text.trim()) return onClose()
     update((u) => insert(u, 'inbox', draftInbox(text.trim()))[0])
-    toast('Guardado na Inbox')
+    toast('Guardado em Ideias')
     onClose()
   }
 
@@ -28,7 +28,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
             Cancelar
           </button>
           <button type="button" className="btn btn-primary" onClick={save}>
-            Guardar na Inbox
+            Guardar em Ideias
           </button>
         </>
       }

@@ -37,13 +37,13 @@ export default function InboxView() {
       update((u) => chunks.reduce((acc, c, i) => insert(acc, 'inbox', draftInbox(c, 'arquivo', chunks.length > 1 ? `${file.name} (${i + 1}/${chunks.length})` : file.name))[0], u))
       count += chunks.length
     }
-    if (count) toast(`${count} ${count === 1 ? 'item importado' : 'itens importados'} para a Inbox`)
+    if (count) toast(`${count} ${count === 1 ? 'item importado' : 'itens importados'} para Ideias`)
   }
 
   return (
     <div className="view inbox-view">
       <header className="view-head view-head-wide">
-        <h1>Inbox</h1>
+        <h1>Ideias</h1>
         <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
           <FileUp size={16} /> Importar .txt ou .md
         </button>
@@ -109,7 +109,7 @@ export default function InboxView() {
       </div>
 
       {items.length === 0 ? (
-        <Empty icon={<InboxIcon size={32} />} title={filter === 'aberto' ? 'Inbox vazia.' : 'Nada aqui.'} />
+        <Empty icon={<InboxIcon size={32} />} title={filter === 'aberto' ? 'Nenhuma ideia esperando.' : 'Nada aqui.'} />
       ) : (
         <ul className="inbox-list">
           {items.map((i) => (
@@ -188,7 +188,7 @@ function InboxCard({ item }: { item: InboxItem }) {
           onClick={() => {
             let id = ''
             update((u) => {
-              const [next, s] = addScene(u, null, item.sourceName || 'Da Inbox')
+              const [next, s] = addScene(u, null, item.sourceName || 'De Ideias')
               id = s.id
               const paragraphs = item.text.split(/\n{2,}|\n/).map((p) => p.trim()).filter(Boolean)
               return patch(updateScene(next, s.id, { doc: docFromParagraphs(paragraphs), text: paragraphs.join('\n\n') }), 'inbox', item.id, { status: 'processado' })
