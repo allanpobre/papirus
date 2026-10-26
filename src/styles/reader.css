@@ -928,3 +928,29 @@ button.leitor-found-card {
 .leitor-book-comments .social-comment-form {
   width: 100%;
 }
+
+/* Ouvir o capítulo: a barrinha embaixo e o parágrafo que está sendo lido. */
+.leitor-voz {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem 0.3rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  font-family: var(--font-ui, system-ui, sans-serif);
+  white-space: nowrap;
+}
+.leitor-text .is-speaking {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 12%, transparent);
+  transition: background 0.3s;
+}

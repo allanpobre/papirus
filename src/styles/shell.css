@@ -637,6 +637,11 @@
 
 /* Primeira vez: escolha compacta */
 /* Menu do celular */
+/* No celular, os avisos ficam acima da barra de baixo (o "Desfazer" não fica escondido). */
+body:has(.rail-phone) .toasts {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
 .rail-phone {
   justify-content: space-around;
   overflow: visible;

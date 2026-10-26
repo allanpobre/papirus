@@ -8,6 +8,7 @@ import { byId } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { MiniGraph } from '../ui/MiniGraph'
 import { ChapterReactions, type ReactionsApi } from './ChapterReactions'
+import { ReadAloudBar, ReadAloudButton, useReadAloud } from './ReadAloud'
 import { CommentFab, CommentSheet, useSelectedQuote, type SendComment } from './ReaderComment'
 
 interface DocNode {
@@ -185,6 +186,13 @@ export function ReaderView({
     pageRef.current?.scrollTo({ top: 0 })
   }
 
+  // Ouvir: no fim do capítulo, vai para o próximo (e continua lendo).
+  const voice = useReadAloud(pageRef, String(current), () => {
+    if (current >= total - 1) return false
+    go(current + 1)
+    return true
+  })
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
@@ -252,6 +260,7 @@ export function ReaderView({
         <div className="leitor-progress" role="progressbar" aria-label="Quanto já leu" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
           <span style={{ width: `${pct}%` }} />
         </div>
+        <ReadAloudButton onStart={voice.start} />
         <div className="leitor-aids-wrap">
           <button type="button" className="btn btn-sm btn-ghost" aria-expanded={aidsOpen} aria-controls="leitor-ajudas" onClick={() => setAidsOpen(!aidsOpen)}>
             <SlidersHorizontal size={15} /> Como ler
@@ -375,6 +384,7 @@ export function ReaderView({
           />
         )}
       </div>
+      <ReadAloudBar voice={voice} />
       {onComment && selectedQuote && !commenting && <CommentFab onClick={() => setCommenting({ quote: selectedQuote })} />}
       {onComment && commenting && (
         <CommentSheet sceneId={scene.id} sceneTitle={scene.title || 'Sem título'} quote={commenting.quote} onSend={onComment} signedName={commenterName} onClose={() => setCommenting(null)} />

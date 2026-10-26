@@ -18,6 +18,7 @@ export type View =
   | 'conhecimento'
   | 'organizar'
   | 'archivist'
+  | 'oficina'
   | 'rpg'
   | 'inbox'
   | 'config'

@@ -370,6 +370,8 @@ export const universeSettingsSchema = z.object({
   calendarMonths: z.array(z.object({ name: z.string(), days: z.number().int().positive() })).default([]),
   /** Campos sugeridos por tipo de ficha: toda ficha nova daquele tipo já nasce com eles (vazios). */
   fieldTemplates: z.record(z.string(), z.array(z.string())).default({}),
+  /** Meta com prazo: chegar a tantas palavras (no universo todo) até a data (AAAA-MM-DD). */
+  deadline: z.object({ words: z.number().int().positive(), date: z.string() }).nullable().default(null),
 })
 
 /**
