@@ -66,7 +66,7 @@ const DEEP: Step[] = [
   { view: 'organizar', title: 'Organizar', body: 'O quadro de cenas, como fichas de cortiça. Arraste pela alça para mudar a ordem ou passar uma cena para outra história.' },
   { view: 'livro', title: 'Livro', body: 'Escolha capa, fonte e estilo: o Papirus diagrama e gera PDF, Word ou EPUB. Daqui o livro também vai para a sua estante, para amigos ou para todo mundo.' },
   { view: 'rpg', title: 'Mesa de RPG', body: 'Sessões, fichas de jogo, iniciativa, dados e o Codex: o que os jogadores já descobriram, ao vivo no celular deles.' },
-  { view: 'oficina', title: 'Oficina', body: 'Dicas de escrita por gênero, livros para estudar, curiosidades e exercícios. Cada exercício vira uma cena para você praticar.' },
+  { target: '[data-tour="nav-oficina"]', title: 'Oficina', body: 'Uma página à parte com dicas de escrita por gênero, livros para estudar, curiosidades e exercícios. Cada exercício vira uma cena para você praticar.' },
   { view: 'inbox', title: 'Inbox', body: `Ideias rápidas esperam aqui até você decidir o que fazer. Anote de qualquer lugar com ${modKey} Shift I.` },
   {
     target: '[data-tour="compartilhar"]',

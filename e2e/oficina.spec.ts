@@ -2,20 +2,47 @@ import { expect, test, type Page } from './fixtures.ts'
 
 const nav = (page: Page, name: string | RegExp) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name })
 
-test('Oficina: abre no gênero do universo, e o exercício vira uma cena', async ({ page }) => {
+test('Oficina: página à parte, com o gênero do universo, cartas que viram, exercício que vira cena e o voltar do aparelho', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Mar')
   await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Fantasia' }).click()
   await page.getByRole('button', { name: 'Criar universo' }).click()
   await nav(page, 'Oficina').click()
-  await expect(page.getByRole('radio', { name: 'Fantasia' })).toHaveAttribute('aria-checked', 'true')
-  await expect(page.getByRole('region', { name: 'Curiosidades' })).toContainText('Tolkien')
-  await page.getByRole('radio', { name: 'Mistério' }).click()
-  await expect(page.getByRole('region', { name: 'Livros para estudar' })).toContainText('E Não Sobrou Nenhum')
-  await page.getByRole('region', { name: 'Experimente' }).getByRole('button', { name: 'Escrever este exercício' }).first().click()
+  const oficina = page.getByRole('dialog', { name: 'Oficina' })
+  await expect(oficina.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
+  await expect(oficina.getByRole('button', { name: /^Fantasia.*o seu universo/ })).toBeVisible()
+
+  // Um gênero; o "voltar" do aparelho volta para a capa e depois fecha.
+  await oficina.getByRole('button', { name: /^Mistério/ }).click()
+  await expect(oficina.getByRole('heading', { name: 'Mistério', level: 1 })).toBeVisible()
+  await expect(oficina.getByRole('region', { name: 'Livros para estudar' })).toContainText('E Não Sobrou Nenhum')
+  const carta = oficina.getByRole('button', { name: 'Você sabia? Curiosidade 1' })
+  await carta.click()
+  await expect(oficina.getByRole('button', { name: /Agatha Christie é, segundo o Guinness/ })).toHaveAttribute('aria-pressed', 'true')
+  await page.goBack()
+  await expect(oficina.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
+  await page.goBack()
+  await expect(oficina).toHaveCount(0)
+
+  // De novo, até o exercício: vira uma cena e a Oficina fecha.
+  await nav(page, 'Oficina').click()
+  await oficina.getByRole('button', { name: /^Mistério/ }).click()
+  await oficina.getByRole('region', { name: 'Experimente' }).getByRole('button', { name: 'Escrever este exercício' }).first().click()
+  await expect(oficina).toHaveCount(0)
   await expect(page.getByRole('textbox', { name: 'Título da cena' })).toHaveValue('Exercício: Três pistas')
   await page.getByRole('button', { name: 'Detalhes da cena' }).click()
   await expect(page.getByRole('region', { name: 'Detalhes da cena' })).toContainText('três detalhes')
+})
+
+test('Oficina também abre pela tela de universos', async ({ page }) => {
+  await page.goto('/app/')
+  await page.getByRole('button', { name: 'Oficina de escrita' }).click()
+  const oficina = page.getByRole('dialog', { name: 'Oficina' })
+  await oficina.getByRole('button', { name: /^Terror/ }).click()
+  await expect(oficina.getByRole('region', { name: 'Experimente' })).toContainText('Abra um universo')
+  await oficina.getByRole('button', { name: 'Fechar a Oficina' }).click()
+  await expect(oficina).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Comece seu primeiro universo' })).toBeVisible()
 })
 
 test('meta com prazo e calendário de escrita no Início', async ({ page }) => {
@@ -86,5 +113,5 @@ test('a dica do dia no Início leva à Oficina', async ({ page }) => {
   const tip = page.getByRole('region', { name: 'Dica do dia' })
   await expect(tip).toBeVisible()
   await tip.getByRole('button', { name: 'Ver mais na Oficina' }).click()
-  await expect(page.getByRole('heading', { name: 'Oficina', level: 1 })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Oficina' })).toBeVisible()
 })

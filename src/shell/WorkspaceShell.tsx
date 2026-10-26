@@ -6,7 +6,8 @@ import { purgeTrash, track } from '../logic/history'
 import { addBook, shelf } from '../export/shelf'
 import { authClient, useAccount } from '../account/auth'
 import { syncedMap } from '../account/cloud'
-import type { Universe } from '../model/schema'
+import type { Scene, Universe } from '../model/schema'
+import { addScene, updateScene } from '../model/universe'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
@@ -22,6 +23,8 @@ import { progressToShare, shareProgress } from '../social/activity'
 import { ShelfSync } from '../social/useShelfSync'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { Tour } from './Tour'
+import { OficinaPage } from '../oficina/OficinaPage'
+import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
 import { ShareDialog } from '../share/ShareDialog'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
@@ -49,7 +52,6 @@ const OrganizeView = lazy(() => import('../views/OrganizeView'))
 const RpgView = lazy(() => import('../views/rpg/RpgView'))
 const InboxView = lazy(() => import('../views/InboxView'))
 const ArchivistView = lazy(() => import('../views/ArchivistView'))
-const OficinaView = lazy(() => import('../views/OficinaView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
 const BookView = lazy(() => import('../views/BookView'))
 const BookDesigner = lazy(() => import('../book/BookDesigner'))
@@ -84,6 +86,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const readOnly = isReadOnly(source)
   const [shareOpen, setShareOpen] = useState(false)
   const [readerOpen, setReaderOpen] = useState(false)
+  // A Oficina é uma página à parte, por cima da área de trabalho.
+  const [oficinaOpen, setOficinaOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState<string | null>(null)
   const closeBook = useCallback(() => setBookOpen(null), [])
   const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
@@ -107,7 +111,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     const t = setTimeout(() => setTourOpen(true), 700)
     return () => clearTimeout(t)
   }, [prefs.tourDone, source.kind])
-  const [nav, setNav] = useState<Nav>(() => ({ view: (recall(`vista:${initial.id}`) as View) || 'inicio' }))
+  const [nav, setNav] = useState<Nav>(() => {
+    const last = recall(`vista:${initial.id}`) as View | null
+    return { view: last && last !== 'oficina' ? last : 'inicio' }
+  })
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
@@ -130,6 +137,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   const go = useCallback(
     (view: View, id: string | null = null) => {
+      if (view === 'oficina') return setOficinaOpen(true)
       setNav({ view, id })
       remember(`vista:${initial.id}`, view)
     },
@@ -337,7 +345,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   return (
     <WorkspaceContext.Provider value={ws}>
       <ShelfSync />
-      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || bookOpen !== null || undefined}>
+      <div className={`shell${collapsed ? ' rail-collapsed' : ''}`} data-view={nav.view} inert={readerOpen || oficinaOpen || bookOpen !== null || undefined}>
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
@@ -554,6 +562,26 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </Suspense>,
           document.body,
         )}
+      {oficinaOpen && (
+        <OficinaPage
+          genre={guessGuide(universe.settings.fieldTemplates)}
+          onClose={() => setOficinaOpen(false)}
+          onPractice={
+            readOnly
+              ? undefined
+              : (title, prompt) => {
+                  // O exercício vira uma cena solta, com o enunciado na sinopse.
+                  let created: Scene | undefined
+                  update((u) => {
+                    const [next, sc] = addScene(u, null, `Exercício: ${title}`)
+                    created = sc
+                    return updateScene(next, sc.id, { synopsis: prompt })
+                  })
+                  if (created) go('escrever', created.id)
+                }
+          }
+        />
+      )}
       {readerOpen &&
         createPortal(
           <ReaderOverlay
@@ -620,8 +648,6 @@ function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | 
       return <InboxView />
     case 'archivist':
       return <ArchivistView />
-    case 'oficina':
-      return <OficinaView />
     case 'config':
       // A categoria pedida (ex.: "conta") abre os Ajustes já nela.
       return <SettingsView key={navId ?? ''} onOpenOther={onOpenOther} />
