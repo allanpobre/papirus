@@ -44,7 +44,11 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
     return () => removeEventListener('popstate', onPop)
   }, [onClose])
 
-  useEffect(() => scroller.current?.scrollTo({ top: 0 }), [open])
+  // Corpo com chaves: algumas extensões fazem scrollTo devolver um número, e o React
+  // tentaria chamar esse número como limpeza do efeito ("1 is not a function").
+  useEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = 0
+  }, [open])
 
   const choose = (id: GuideId) => {
     history.pushState({ oficina: id }, '')

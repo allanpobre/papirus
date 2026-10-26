@@ -115,3 +115,22 @@ test('a dica do dia no Início leva à Oficina', async ({ page }) => {
   await tip.getByRole('button', { name: 'Ver mais na Oficina' }).click()
   await expect(page.getByRole('dialog', { name: 'Oficina' })).toBeVisible()
 })
+
+test('Oficina funciona mesmo quando o navegador (ou uma extensão) muda o scrollTo', async ({ page }) => {
+  // Algumas extensões de rolagem suave fazem scrollTo devolver um número; isso derrubava o app.
+  await page.addInitScript(() => {
+    const original = Element.prototype.scrollTo
+    Element.prototype.scrollTo = function (this: Element, ...args: unknown[]) {
+      ;(original as (...a: unknown[]) => void).apply(this, args)
+      return 1 as unknown as undefined
+    }
+  })
+  await page.goto('/app/')
+  await page.getByRole('button', { name: 'Oficina de escrita' }).click()
+  const oficina = page.getByRole('dialog', { name: 'Oficina' })
+  await oficina.getByRole('button', { name: /^Fantasia/ }).click()
+  await expect(oficina.getByRole('heading', { name: 'Fantasia', level: 1 })).toBeVisible()
+  await page.goBack()
+  await expect(oficina.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
+  await expect(page.getByText('O Papirus encontrou um erro.')).toHaveCount(0)
+})
