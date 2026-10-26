@@ -4620,3 +4620,27 @@ button.arc-dot {
     padding: 1rem;
   }
 }
+
+/* Movendo um marcador: uma barrinha no lugar do cartão, para o mapa ficar livre. */
+.atlas-moving {
+  position: fixed;
+  left: 50%;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 0.4rem 0.4rem 0.4rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-2, 0 6px 20px rgb(0 0 0 / 0.18));
+}
+@media (min-width: 761px) {
+  .atlas-moving {
+    bottom: 1.5rem;
+  }
+}

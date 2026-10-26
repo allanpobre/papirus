@@ -130,16 +130,26 @@ export default function AtlasView() {
 }
 
 function MapCanvas({ map }: { map: AtlasMap }) {
-  const { universe, update, peek, go, undoable } = useWorkspace()
+  const { universe, update, peek, go, undoable, toast } = useWorkspace()
   const [zoom, setZoom] = useState(1)
   const [placing, setPlacing] = useState<string | null>(null)
   const [pending, setPending] = useState<{ x: number; y: number } | null>(null)
   const [selectedPin, setSelectedPin] = useState<string | null>(null)
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(new Set())
   const imgRef = useRef<HTMLDivElement>(null)
-  const dragging = useRef<string | null>(null)
+  // Arrastar (só com o mouse, e só depois de mexer uns pixels: um clique não move).
+  const dragging = useRef<{ id: string; x: number; y: number; moved: boolean; before: AtlasMap['pins'] } | null>(null)
+  // Mover pelo toque: escolhe "Mover" no cartão e toca no lugar novo.
+  const [moving, setMoving] = useState<string | null>(null)
 
   const setPins = (pins: AtlasMap['pins']) => update((u) => patch(u, 'maps', map.id, { pins }))
+  // Depois de mover, dá para voltar: o aviso traz "Desfazer".
+  const movedToast = (before: AtlasMap['pins']) => toast('Marcador movido', { action: { label: 'Desfazer', run: () => setPins(before) } })
+  const finishDrag = () => {
+    const d = dragging.current
+    dragging.current = null
+    if (d?.moved) movedToast(d.before)
+  }
   const coords = (e: React.PointerEvent | React.MouseEvent) => {
     const r = imgRef.current!.getBoundingClientRect()
     return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) }
@@ -220,18 +230,32 @@ function MapCanvas({ map }: { map: AtlasMap }) {
       <div className="atlas-scroll">
         <div
           ref={imgRef}
-          className={`atlas-image${placing !== null ? ' placing' : ''}`}
+          className={`atlas-image${placing !== null || moving ? ' placing' : ''}`}
           style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: `url("${map.image}")` }}
           onClick={(e) => {
-            if (placing === null || (e.target as Element).closest('.pin')) return
+            if ((e.target as Element).closest('.pin')) return
+            if (moving) {
+              const before = map.pins
+              const c = coords(e)
+              setPins(map.pins.map((p) => (p.id === moving ? { ...p, ...c } : p)))
+              setMoving(null)
+              // Fecha o cartão para ver o marcador no lugar novo.
+              setSelectedPin(null)
+              movedToast(before)
+              return
+            }
+            if (placing === null) return
             setPending(coords(e))
           }}
           onPointerMove={(e) => {
-            if (!dragging.current) return
+            const d = dragging.current
+            if (!d) return
+            if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return
+            d.moved = true
             const c = coords(e)
-            setPins(map.pins.map((p) => (p.id === dragging.current ? { ...p, ...c } : p)))
+            setPins(map.pins.map((p) => (p.id === d.id ? { ...p, ...c } : p)))
           }}
-          onPointerUp={() => (dragging.current = null)}
+          onPointerUp={finishDrag}
         >
           {route.length > 1 && (
             <svg className="atlas-route" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
@@ -254,11 +278,14 @@ function MapCanvas({ map }: { map: AtlasMap }) {
                 aria-label={`${p.label || e?.name || 'Marcador'}${e ? `, ${kindLabel(e.kind)}` : ''}`}
                 onPointerDown={(ev) => {
                   ev.stopPropagation()
-                  ;(ev.currentTarget as Element).setPointerCapture?.(ev.pointerId)
-                  dragging.current = p.id
                   setSelectedPin(p.id)
+                  if (moving !== p.id) setMoving(null)
+                  // No toque, só seleciona (arrastar sem querer era fácil demais).
+                  if (ev.pointerType !== 'mouse') return
+                  ;(ev.currentTarget as Element).setPointerCapture?.(ev.pointerId)
+                  dragging.current = { id: p.id, x: ev.clientX, y: ev.clientY, moved: false, before: map.pins }
                 }}
-                onPointerUp={() => (dragging.current = null)}
+                onPointerUp={finishDrag}
               >
                 <MapPin size={22} aria-hidden="true" />
                 <span className="pin-label">{p.label || e?.name || '?'}</span>
@@ -286,9 +313,25 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         </div>
       </div>
 
-      {pin && (
+      {pin && moving === pin.id && (
+        <div className="atlas-moving" role="status">
+          <span className="small">Toque no mapa onde “{pin.label || pinEntity?.name || 'o marcador'}” deve ficar.</span>
+          <button type="button" className="btn btn-sm btn-ghost" onClick={() => setMoving(null)}>
+            Cancelar
+          </button>
+        </div>
+      )}
+      {pin && moving !== pin.id && (
         <aside className="atlas-panel" aria-label="Marcador">
-          <button type="button" className="btn-icon graph-panel-close" aria-label="Fechar o cartão" onClick={() => setSelectedPin(null)}>
+          <button
+            type="button"
+            className="btn-icon graph-panel-close"
+            aria-label="Fechar o cartão"
+            onClick={() => {
+              setSelectedPin(null)
+              setMoving(null)
+            }}
+          >
             <X size={16} />
           </button>
           <span className="eyebrow">{pinEntity ? kindLabel(pinEntity.kind) : 'Marcador'}</span>
@@ -310,11 +353,21 @@ function MapCanvas({ map }: { map: AtlasMap }) {
                 </button>
               </>
             )}
-            <button type="button" className="btn btn-sm btn-ghost" onClick={() => { setPins(map.pins.filter((p) => p.id !== pin.id)); setSelectedPin(null) }}>
+            <button type="button" className="btn btn-sm btn-ghost" onClick={() => setMoving(pin.id)}>
+              Mover
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-ghost"
+              onClick={() => {
+                undoable('Marcador removido', (u) => patch(u, 'maps', map.id, { pins: map.pins.filter((p) => p.id !== pin.id) }))
+                setSelectedPin(null)
+              }}
+            >
               Remover marcador
             </button>
           </div>
-          <p className="muted tiny">Arraste o marcador para movê-lo.</p>
+          <p className="muted tiny">Para mudar de lugar: “Mover” e toque no mapa (com o mouse, dá para arrastar).</p>
         </aside>
       )}
     </div>
