@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Coffee, Ghost, GraduationCap, Heart, Lightbulb, PenLine, Rocket, Search, Sparkles, Wand2, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { GUIDES, tipOfTheDay, type Guide, type GuideId } from './guides'
 
 /** Cor e ícone de cada gênero (a capa da Oficina e o topo de cada guia). */
@@ -79,6 +80,7 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
             <X size={18} />
           </button>
         </header>
+        <ErrorBoundary key={open ?? 'capa'} label="A Oficina não conseguiu abrir esta página." onReset={() => history.back()}>
         {guide ? (
           <GuidePage
             key={guide.id}
@@ -94,6 +96,7 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
         ) : (
           <Cover genre={genre} onChoose={choose} />
         )}
+        </ErrorBoundary>
       </div>
     </div>,
     document.body,

@@ -25,8 +25,7 @@
   max-width: 960px;
   margin: 0 auto;
   padding: max(0.7rem, env(safe-area-inset-top, 0px)) 16px 0.7rem;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(8px);
+  background: var(--bg);
 }
 
 .oficina-brand {
@@ -216,13 +215,13 @@
   position: absolute;
   right: 0.9rem;
   top: 50%;
-  translate: 0 -50%;
+  transform: translateY(-50%);
   color: var(--muted);
-  transition: translate 0.2s ease, color 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .oficina-genre:hover .oficina-genre-go {
-  translate: 4px -50%;
+  transform: translate(4px, -50%);
   color: var(--g);
 }
 
@@ -406,29 +405,21 @@
   gap: 0.8rem;
 }
 
-/* Carta que vira ao tocar. */
+/* Carta que vira ao tocar (troca de lado com um esmaecer; sem 3D, que deixa alguns celulares com a tela preta). */
 .oficina-fact {
   width: 100%;
   min-height: 170px;
   padding: 0;
   border: 0;
   background: none;
-  perspective: 900px;
   cursor: pointer;
   font: inherit;
   color: inherit;
 }
 
 .oficina-fact-inner {
-  position: relative;
   display: grid;
   min-height: 170px;
-  transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1);
-}
-
-.oficina-fact.is-flipped .oficina-fact-inner {
-  transform: rotateY(180deg);
 }
 
 .oficina-fact-front,
@@ -440,8 +431,9 @@
   gap: 0.4rem;
   padding: 1rem;
   border-radius: var(--radius-l);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
 }
 
 .oficina-fact-front {
@@ -450,7 +442,6 @@
   color: #fff;
   font-family: var(--font-display);
   font-size: 1.2rem;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--g) 30%, transparent);
 }
 
 .oficina-fact-n {
@@ -460,12 +451,23 @@
 }
 
 .oficina-fact-back {
-  transform: rotateY(180deg);
+  opacity: 0;
+  transform: scale(0.96);
   border: 1px solid color-mix(in srgb, var(--g) 35%, var(--line));
   background: var(--surface);
   font-size: 0.92rem;
   line-height: 1.5;
   text-align: left;
+}
+
+.oficina-fact.is-flipped .oficina-fact-front {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.oficina-fact.is-flipped .oficina-fact-back {
+  opacity: 1;
+  transform: none;
 }
 
 .oficina-ex {
@@ -558,7 +560,8 @@
     transition: none;
   }
 
-  .oficina-fact-inner {
+  .oficina-fact-front,
+  .oficina-fact-back {
     transition: none;
   }
 }
