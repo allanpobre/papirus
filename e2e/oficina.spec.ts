@@ -80,3 +80,11 @@ test('ouvir o livro: lê em voz alta e segue para o capítulo seguinte', async (
   await leitor.getByRole('button', { name: 'Parar de ouvir' }).click()
   await expect(leitor.getByRole('group', { name: 'Leitura em voz alta' })).toHaveCount(0)
 })
+
+test('a dica do dia no Início leva à Oficina', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  const tip = page.getByRole('region', { name: 'Dica do dia' })
+  await expect(tip).toBeVisible()
+  await tip.getByRole('button', { name: 'Ver mais na Oficina' }).click()
+  await expect(page.getByRole('heading', { name: 'Oficina', level: 1 })).toBeVisible()
+})
