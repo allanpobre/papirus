@@ -1,15 +1,15 @@
 import { BookMarked, BookOpen, Compass, Dices, Feather, Inbox, Library, Lightbulb, Plus, Search, Sprout, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { continuityQuestions, isOpen } from '../logic/continuity'
-import { wordsByDay, wordsToday } from '../logic/stats'
+import { wordsToday } from '../logic/stats'
 import { kindLabel, SESSION_STATUS_LABEL } from '../model/labels'
 import { addScene, byId, manuscriptOrder } from '../model/universe'
 import { countWords, wordCount } from '../persistence/repository'
 import { recall } from '../state/prefs'
+import { DeadlineLine, WritingCalendar } from './WritingCalendar'
 import { useWorkspace } from '../state/workspace'
 
 const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
-const shortDay = new Intl.DateTimeFormat('pt-BR', { weekday: 'narrow' })
 const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 /** Início do universo: onde parei, o dia de escrita, o que pede atenção e atalhos. */
@@ -26,8 +26,6 @@ export default function HomeView() {
   const total = countWords(universe)
   const today = wordsToday(universe)
   const goal = universe.settings.dailyWordGoal
-  const week = wordsByDay(universe, 7)
-  const weekMax = Math.max(goal || 0, ...week.map((d) => d.words), 1)
   const questions = useMemo(() => continuityQuestions(universe, prefs.continuity).filter(isOpen), [universe, prefs.continuity])
   const inbox = universe.inbox.filter((i) => i.status === 'aberto').length
   const drafts = universe.entities.filter((e) => e.editorial === 'rascunho').length
@@ -119,18 +117,8 @@ export default function HomeView() {
               <span style={{ width: `${Math.min(100, (today / goal) * 100)}%` }} />
             </span>
           )}
-          {week.every((d) => d.words === 0) ? (
-            <p className="muted small">O gráfico da semana aparece aqui conforme você escreve.</p>
-          ) : (
-          <div className="home-week" role="img" aria-label={`Últimos 7 dias: ${week.map((d) => d.words).join(', ')} palavras`}>
-            {week.map((d) => (
-              <span key={d.day} className="home-week-day">
-                <span className="home-week-bar" style={{ height: `${Math.max(3, (d.words / weekMax) * 100)}%` }} data-empty={d.words === 0 || undefined} />
-                <span className="home-week-label">{shortDay.format(new Date(d.day + 'T12:00'))}</span>
-              </span>
-            ))}
-          </div>
-          )}
+          <DeadlineLine universe={universe} />
+          <WritingCalendar universe={universe} />
           <p className="muted small tabular">
             {total.toLocaleString('pt-BR')} palavras · {scenes.length} {scenes.length === 1 ? 'cena' : 'cenas'} · {universe.entities.length} fichas · {universe.facts.length} fatos
           </p>

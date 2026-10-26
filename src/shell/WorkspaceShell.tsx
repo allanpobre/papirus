@@ -5,6 +5,7 @@ import { withDailyStart } from '../logic/stats'
 import { purgeTrash, track } from '../logic/history'
 import { addBook, shelf } from '../export/shelf'
 import { authClient, useAccount } from '../account/auth'
+import { syncedMap } from '../account/cloud'
 import type { Universe } from '../model/schema'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
@@ -48,6 +49,7 @@ const OrganizeView = lazy(() => import('../views/OrganizeView'))
 const RpgView = lazy(() => import('../views/rpg/RpgView'))
 const InboxView = lazy(() => import('../views/InboxView'))
 const ArchivistView = lazy(() => import('../views/ArchivistView'))
+const OficinaView = lazy(() => import('../views/OficinaView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
 const BookView = lazy(() => import('../views/BookView'))
 const BookDesigner = lazy(() => import('../book/BookDesigner'))
@@ -227,13 +229,22 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const backupInfo = prefs.backups[initial.id] ?? {}
   const lastBackup = Date.parse(backupInfo.last ?? universe.createdAt)
   const hasContent = universe.scenes.some((s) => s.text.trim()) || universe.entities.length > 0
-  const needsBackup =
-    source.kind === 'proprio' &&
-    hasContent &&
-    folder.state !== 'ok' &&
-    folder.state !== 'escrevendo' &&
-    openedAt - lastBackup > 7 * 24 * 3600 * 1000 &&
-    (!backupInfo.snoozeUntil || openedAt > Date.parse(backupInfo.snoozeUntil))
+  // Na conta (já sincronizado), a cópia na nuvem é o backup.
+  const inCloud = Boolean(account.user && syncedMap(account.user.id)[initial.id])
+  const backupDue =
+    source.kind === 'proprio' && !isLocalOnly(universe) && hasContent && !inCloud && folder.state !== 'ok' && folder.state !== 'escrevendo' && openedAt - lastBackup > 7 * 24 * 3600 * 1000
+  const needsBackup = backupDue && !prefs.autoBackup && (!backupInfo.snoozeUntil || openedAt > Date.parse(backupInfo.snoozeUntil))
+  // Backup automático: uma vez por semana, ao abrir, o arquivo baixa sozinho.
+  const autoDone = useRef(false)
+  useEffect(() => {
+    if (!backupDue || !prefs.autoBackup || autoDone.current) return
+    const t = setTimeout(() => {
+      autoDone.current = true
+      downloadBackup()
+      toast('Backup da semana baixado (veja em Downloads).')
+    }, 2500)
+    return () => clearTimeout(t)
+  }, [backupDue, prefs.autoBackup, downloadBackup, toast])
 
   const ws: Workspace = useMemo(
     () => ({
@@ -466,6 +477,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               <button type="button" className="btn btn-sm btn-primary" onClick={downloadBackup}>
                 Baixar backup
               </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-ghost"
+                onClick={() => {
+                  downloadBackup()
+                  setPref('autoBackup', true)
+                  toast('Pronto: toda semana o backup baixa sozinho. Dá para desligar em Ajustes → Seus dados.')
+                }}
+              >
+                Baixar toda semana sozinho
+              </button>
               {folder.supported && (
                 <button type="button" className="btn btn-sm btn-ghost" onClick={() => void folder.connect()}>
                   Salvar numa pasta
@@ -598,6 +620,8 @@ function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | 
       return <InboxView />
     case 'archivist':
       return <ArchivistView />
+    case 'oficina':
+      return <OficinaView />
     case 'config':
       // A categoria pedida (ex.: "conta") abre os Ajustes já nela.
       return <SettingsView key={navId ?? ''} onOpenOther={onOpenOther} />

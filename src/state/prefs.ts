@@ -40,6 +40,8 @@ export interface Prefs {
   keySound: 'nenhum' | 'suave' | 'maquina'
   /** Contar aos amigos quando bater a meta do dia (e os dias seguidos). */
   shareProgress: boolean
+  /** Baixar o backup sozinho, uma vez por semana, ao abrir um universo com novidades. */
+  autoBackup: boolean
 }
 
 export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite' | 'rosa' | 'turquesa' | 'terracota'
@@ -75,6 +77,7 @@ export const DEFAULT_PREFS: Prefs = {
   focusParagraph: false,
   keySound: 'nenhum',
   shareProgress: true,
+  autoBackup: false,
 }
 
 const KEY = 'papirus:prefs'

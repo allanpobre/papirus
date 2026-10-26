@@ -16,10 +16,10 @@ export function wordsToday(universe: Universe): number {
 export function withDailyStart(universe: Universe): Universe {
   const key = todayKey()
   if (universe.dailyStart[key] !== undefined) return universe
-  // Guarda só os últimos 60 dias.
+  // Guarda os últimos 140 dias com registro (o calendário de escrita mostra 16 semanas).
   const kept = Object.entries(universe.dailyStart)
     .sort(([a], [b]) => b.localeCompare(a))
-    .slice(0, 59)
+    .slice(0, 139)
   return { ...universe, dailyStart: { ...Object.fromEntries(kept), [key]: countWords(universe) } }
 }
 

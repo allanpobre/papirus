@@ -4,6 +4,7 @@ import {
   CalendarRange,
   Dices,
   Feather,
+  GraduationCap,
   House,
   Lightbulb,
   MapIcon,
@@ -50,5 +51,6 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     ],
   },
   { group: 'Mesa', items: [{ view: 'rpg', label: 'RPG', icon: Dices }] },
+  { group: 'Aprender', items: [{ view: 'oficina', label: 'Oficina', icon: GraduationCap }] },
 ]
 

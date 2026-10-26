@@ -1,3 +1,4 @@
+import { todayKey } from '../logic/stats'
 import { InstallButton } from '../ui/InstallButton'
 import { HistoryCard, TrashCard } from './HistoryCards'
 import { Camera, Compass, Search, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
@@ -146,6 +147,28 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 />
               )}
             </Field>
+            <Field label="Meta do livro: palavras" hint="Total que quer ter no universo. Vazio = sem prazo">
+              {(id) => (
+                <input
+                  id={id}
+                  className="input"
+                  inputMode="numeric"
+                  value={settings.deadline?.words || ''}
+                  placeholder="Ex.: 60000"
+                  onChange={(e) => {
+                    const words = Math.max(0, Math.trunc(Number(e.target.value.replace(/\D/g, '')) || 0))
+                    setSetting('deadline', words ? { words, date: settings.deadline?.date ?? defaultDeadline() } : null)
+                  }}
+                />
+              )}
+            </Field>
+            {settings.deadline && (
+              <Field label="Até" hint="O Papirus calcula quantas palavras por dia faltam">
+                {(id) => (
+                  <input id={id} className="input" type="date" value={settings.deadline!.date} onChange={(e) => e.target.value && setSetting('deadline', { ...settings.deadline!, date: e.target.value })} />
+                )}
+              </Field>
+            )}
           </div>
           <CalendarEditor />
         </section>
@@ -348,6 +371,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             />
           </div>
           <p className="muted small">{lastBackup ? `Último backup baixado: ${dateFmt.format(new Date(lastBackup))}.` : 'Nenhum backup baixado deste universo ainda.'}</p>
+          <Toggle label="Baixar o backup sozinho toda semana (ao abrir o universo)" checked={prefs.autoBackup} onChange={(v) => setPref('autoBackup', v)} />
           {storage && (
             <p className="muted small storage-line">
               <HardDrive size={14} aria-hidden="true" /> {formatBytes(storage.usage)} usados
@@ -630,4 +654,11 @@ function FolderCard() {
       )}
     </section>
   )
+}
+
+/** Prazo sugerido ao criar a meta do livro: daqui a três meses. */
+function defaultDeadline(): string {
+  const d = new Date()
+  d.setMonth(d.getMonth() + 3)
+  return todayKey(d)
 }

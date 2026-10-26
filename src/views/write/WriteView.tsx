@@ -20,6 +20,7 @@ import { SprintButton } from './Sprint'
 import { downloadText, fileNameFor } from '../../export/download'
 import { sceneToMarkdown } from '../../export/markdown'
 import { continuityQuestions, isOpen } from '../../logic/continuity'
+import { deadlinePlan } from '../../logic/deadline'
 import { findCandidates, MentionMatcher } from '../../logic/detection'
 import { dayToMonth, formatDate, monthToDay, type Months } from '../../logic/calendar'
 import { isDialogue } from '../../logic/doc'
@@ -251,7 +252,9 @@ export default function WriteView() {
 
   const words = wordCount(scene.text)
   const today = wordsToday(universe)
-  const goal = universe.settings.dailyWordGoal
+  // Com meta do livro, a meta de hoje é o que o prazo pede (se for mais que a meta diária).
+  const plan = deadlinePlan(universe)
+  const goal = Math.max(universe.settings.dailyWordGoal, plan?.perDay ?? 0)
   const set = (changes: Parameters<typeof updateScene>[2]) => update((u) => updateScene(u, scene.id, changes))
 
   return (

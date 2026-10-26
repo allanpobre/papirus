@@ -52,7 +52,7 @@ export function createUniverse(name = 'Meu universo'): Universe {
     history: [],
     book: null,
     books: [],
-    settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [], fieldTemplates: {} },
+    settings: { calendarSuffix: '', dailyWordGoal: 0, ignoredNames: [], calendarMonths: [], fieldTemplates: {}, deadline: null },
     dailyStart: {},
     createdAt: t,
     updatedAt: t,
