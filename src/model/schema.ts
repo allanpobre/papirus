@@ -109,6 +109,8 @@ export const entitySchema = z.object({
   startYear: z.number().nullable(),
   endYear: z.number().nullable(),
   fields: z.array(entityFieldSchema),
+  /** Retrato ou imagem da ficha ("img:…"). */
+  image: z.string().nullable().optional(),
   ...timestamps,
 })
 
@@ -372,6 +374,8 @@ export const universeSettingsSchema = z.object({
   fieldTemplates: z.record(z.string(), z.array(z.string())).default({}),
   /** Meta com prazo: chegar a tantas palavras (no universo todo) até a data (AAAA-MM-DD). */
   deadline: z.object({ words: z.number().int().positive(), date: z.string() }).nullable().default(null),
+  /** Capa do universo ("img:…"): no Início e na lista de universos. */
+  cover: z.string().nullable().optional(),
 })
 
 /**

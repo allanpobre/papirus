@@ -5083,3 +5083,203 @@ button.arc-dot {
     gap: 1.2rem;
   }
 }
+
+/* Imagens nas fichas: na lista, no topo da ficha (editar), na leitura e no "espiar". */
+.entity-row-pic {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  align-self: center;
+}
+.portrait-edit {
+  position: relative;
+  flex: none;
+}
+.portrait-btn {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 1.5px dashed var(--line-strong, var(--line));
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+  overflow: hidden;
+}
+.portrait-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.has-image .portrait-btn {
+  border-style: solid;
+  border-color: var(--line);
+}
+.portrait-btn img,
+.portrait-btn .picture-empty {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.portrait-remove {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-2);
+}
+.reader-portrait {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 340px;
+  object-fit: cover;
+  border-radius: calc(var(--radius-l) - 4px);
+}
+.peek-portrait {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: var(--radius-l);
+  margin-bottom: 0.4rem;
+}
+@media (max-width: 860px) {
+  .reader-portrait {
+    max-height: 300px;
+    aspect-ratio: auto;
+  }
+  .portrait-btn {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Início com capa: a imagem ao fundo, escurecida embaixo para o texto ler bem. */
+.home-hero.has-cover {
+  min-height: 300px;
+  justify-content: flex-end;
+  border-color: transparent;
+  color: #fff;
+  background: #1c1b19;
+}
+.home-hero.has-cover > * {
+  z-index: 2;
+}
+.home-hero > .home-hero-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.home-hero.has-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.78), rgb(0 0 0 / 0.35) 55%, rgb(0 0 0 / 0.12));
+  pointer-events: none;
+}
+.home-hero.has-cover .eyebrow,
+.home-hero.has-cover .home-desc,
+.home-hero.has-cover .home-quick-btn,
+.home-hero.has-cover .btn-ghost {
+  color: rgb(255 255 255 / 0.88);
+}
+.home-hero.has-cover h1 {
+  color: #fff;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.35);
+}
+.home-hero.has-cover .home-chip {
+  background: rgb(0 0 0 / 0.35);
+  border-color: rgb(255 255 255 / 0.2);
+  color: #fff;
+}
+.home-hero.has-cover .home-ring {
+  background:
+    radial-gradient(closest-side, #2a2926 64%, transparent 66%),
+    conic-gradient(#fff calc(var(--p) * 1%), rgb(255 255 255 / 0.25) 0);
+}
+.home-hero.has-cover .home-quick-btn:hover,
+.home-hero.has-cover .btn-ghost:hover {
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
+}
+
+/* Capa nos Ajustes. */
+.cover-field {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.cover-field-img {
+  width: 120px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Imagem dentro da cena (editor e leituras). */
+.scene-figure {
+  margin: 1.4em auto;
+  text-align: center;
+}
+.scene-figure img {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  margin: 0 auto;
+  border-radius: 6px;
+}
+.scene-figure.is-loading {
+  min-height: 160px;
+  background: var(--surface-2);
+  border-radius: 6px;
+}
+.scene-figure.is-missing::after {
+  content: 'Imagem que não está neste aparelho';
+  display: block;
+  padding: 2rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.ProseMirror .scene-figure.ProseMirror-selectednode img {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Ajustes → Imagens: uso da conta. */
+.images-quota {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0.6rem;
+}
+
+/* Codex dos jogadores: retrato ao lado da ficha revelada. */
+.codex-entry.has-portrait::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+.codex-portrait {
+  float: right;
+  width: 84px;
+  height: 104px;
+  margin: 0 0 0.5rem 0.8rem;
+  border-radius: 10px;
+  object-fit: cover;
+}

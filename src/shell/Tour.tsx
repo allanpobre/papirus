@@ -28,7 +28,7 @@ const QUICK: Step[] = [
     body: 'Escreva aqui. Nomes de fichas ficam sublinhados. Selecione um trecho e aparece uma barra para criar ficha, guardar um fato ou comentar. Nada vira ficha sozinho.',
   },
   { target: '[data-tour="margem"]', view: 'escrever', title: 'A margem', body: 'Mostra quem aparece no parágrafo, nomes novos que talvez mereçam ficha e perguntas de continuidade. Dá para fechar.' },
-  { target: '[data-tour="nav-fichas"]', title: 'Fichas', body: 'Personagens, lugares, facções, objetos e o que mais você inventar. Com segredos, campos livres e relações.' },
+  { target: '[data-tour="nav-fichas"]', title: 'Fichas', body: 'Personagens, lugares, facções, objetos e o que mais você inventar. Com retrato, segredos, campos livres e relações. Dá para ler como uma página de enciclopédia.' },
   { target: '[data-tour="nav-livro"]', title: 'Livro', body: 'Quando quiser ver o livro pronto: você escolhe a capa, o Papirus diagrama e gera o PDF. Também exporta Word e EPUB.' },
   { target: '[data-tour="nav-oficina"]', title: 'Oficina', body: 'Dicas de escrita por gênero, livros para estudar, curiosidades e exercícios que viram cena. Abre numa página à parte.' },
   { target: '[data-tour="conta"]', title: 'Conta (opcional)', body: 'Sem conta, tudo fica neste navegador. Com conta, seus universos aparecem em todos os seus aparelhos, e você ganha perfil, amigos e desafios.' },

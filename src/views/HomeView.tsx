@@ -1,4 +1,6 @@
-import { ArrowRight, BookMarked, BookOpen, Compass, Dices, Feather, GraduationCap, Inbox, Library, Lightbulb, Plus, Search, Sprout, Users } from 'lucide-react'
+import { ArrowRight, BookMarked, BookOpen, Compass, Dices, Feather, GraduationCap, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Sprout, Users, X } from 'lucide-react'
+import { Picture } from '../images/Picture'
+import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useState } from 'react'
 import { continuityQuestions, isOpen } from '../logic/continuity'
 import { wordsByDay, wordsToday } from '../logic/stats'
@@ -17,7 +19,10 @@ const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', 
 
 /** Início do universo: onde parei, o dia de escrita, o que pede atenção e atalhos. */
 export default function HomeView() {
-  const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, startTour, source, openShare, openReader } = useWorkspace()
+  const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, startTour, source, openShare, openReader, readOnly, toast } = useWorkspace()
+  const cover = universe.settings.cover ?? null
+  const setCover = (ref: string | null) => update((u) => ({ ...u, settings: { ...u.settings, cover: ref } }))
+  const coverPicker = useImagePicker('capa', (ref) => setCover(ref), (m) => toast(m, { tone: 'erro' }))
   const scenes = useMemo(() => manuscriptOrder(universe), [universe])
   const [todayLabel] = useState(() => capitalize(longDate.format(new Date())))
   const lastId = recall(`cena:${universe.id}`)
@@ -81,10 +86,14 @@ export default function HomeView() {
 
   return (
     <div className="view home">
-      <header className="home-hero">
-        <span className="home-hero-mark" aria-hidden="true">
-          {(universe.name || 'P').trim().charAt(0).toUpperCase()}
-        </span>
+      <header className={`home-hero${cover ? ' has-cover' : ''}`}>
+        {cover ? (
+          <Picture value={cover} className="home-hero-cover" />
+        ) : (
+          <span className="home-hero-mark" aria-hidden="true">
+            {(universe.name || 'P').trim().charAt(0).toUpperCase()}
+          </span>
+        )}
         <div className="home-top">
           <p className="eyebrow">
             {greeting()} · {todayLabel}
@@ -120,6 +129,19 @@ export default function HomeView() {
           <button type="button" className="home-quick-btn" aria-label="Fazer o tour" onClick={startTour}>
             <Compass size={15} aria-hidden="true" /> Tour
           </button>
+          {!readOnly && (
+            <>
+              {coverPicker.field}
+              <button type="button" className="home-quick-btn" aria-label={cover ? 'Trocar a capa do universo' : 'Pôr uma capa no universo'} onClick={coverPicker.open} disabled={coverPicker.busy}>
+                {coverPicker.busy ? <Loader2 size={15} className="spin" aria-hidden="true" /> : <ImagePlus size={15} aria-hidden="true" />} Capa
+              </button>
+              {cover && (
+                <button type="button" className="home-quick-btn" aria-label="Tirar a capa do universo" title="Tirar a capa" onClick={() => setCover(null)}>
+                  <X size={15} aria-hidden="true" />
+                </button>
+              )}
+            </>
+          )}
         </div>
       </header>
 

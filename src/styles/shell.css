@@ -1632,3 +1632,13 @@ body:has(.rail-phone) .toasts {
   right: 6px;
   color: var(--accent);
 }
+
+/* Capa do universo na lista. */
+.library-cover {
+  grid-row: span 2;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+}

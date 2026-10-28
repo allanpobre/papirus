@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ostriaUniverse } from '../model/sampleOstria'
+import { createUniverse, draftEntity, insert } from '../model/universe'
 import { buildWiki } from './wiki'
 
 describe('wiki do mundo', () => {
@@ -21,5 +22,15 @@ describe('wiki do mundo', () => {
     expect(html).not.toContain('Tem os mesmos olhos cinzentos do retrato')
     expect(html).not.toContain('<h2>Cassian</h2>')
     expect(entries).toBeLessThan(buildWiki(ostriaUniverse(), { upTo: null }).entries)
+  })
+})
+
+describe('wiki com retratos', () => {
+  it('põe o retrato da ficha dentro do arquivo quando a imagem está pronta', () => {
+    const ref = `img:${'c'.repeat(32)}`
+    const [u] = insert(createUniverse('W'), 'entities', { ...draftEntity('personagem', 'Mira'), image: ref })
+    const { html } = buildWiki(u, { upTo: null, images: new Map([[ref, 'data:image/webp;base64,AAAA']]) })
+    expect(html).toContain('<img class="portrait" src="data:image/webp;base64,AAAA"')
+    expect(buildWiki(u, { upTo: null }).html).not.toContain('class="portrait"')
   })
 })

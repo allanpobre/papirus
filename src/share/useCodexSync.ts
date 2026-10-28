@@ -3,6 +3,7 @@ import type { Universe } from '../model/schema'
 import type { Prefs } from '../state/prefs'
 import { BUILD_SERVER, isConfigured, publishCodex, type ServerConfig } from './server'
 import { codexSnapshot, sameContent, type CodexSnapshot } from './snapshot'
+import { imageDataUrl, imageThumbDataUrl } from '../images/resolve'
 
 export type SyncState = { state: 'publicando' | 'ok' | 'erro'; at?: string; error?: string }
 
@@ -30,7 +31,21 @@ export const serverFrom = (prefs: Prefs): ServerConfig | null => (isConfigured(p
 export async function publishNow(server: ServerConfig, groupId: string, share: { id: string; key: string }, snapshot: CodexSnapshot) {
   setState(groupId, { state: 'publicando' })
   try {
-    const at = await publishCodex(server, share.id, share.key, snapshot)
+    // Os jogadores não têm conta: as imagens dos mapas vão dentro do Codex.
+    const maps = await Promise.all(snapshot.maps.map(async (m) => ({ ...m, image: (await imageDataUrl(m.image)) ?? '' })))
+    // Retratos: miniaturas pequenas, para o Codex continuar leve no celular dos jogadores.
+    const sections = await Promise.all(
+      snapshot.sections.map(async (sec) => ({
+        ...sec,
+        entries: await Promise.all(
+          sec.entries.map(async ({ image, ...e }) => {
+            const thumb = image ? await imageThumbDataUrl(image) : null
+            return thumb ? { ...e, image: thumb } : e
+          }),
+        ),
+      })),
+    )
+    const at = await publishCodex(server, share.id, share.key, { ...snapshot, maps, sections })
     setState(groupId, { state: 'ok', at })
     return true
   } catch (err) {

@@ -6,6 +6,7 @@ import { BOOK_PRESETS, PAGE_SIZES, bookTitle, buildBook, defaultDesign, fontsOf,
 import { BOOK_FONTS, fontFaces } from '../export/bookFonts'
 import { shelf, styleOf, updateBook } from '../export/shelf'
 import { downloadEpub } from './epubDownload'
+import { prepareBookImages } from '../images/bookImages'
 import type { BookDesign } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
@@ -103,7 +104,16 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
     if (!record) onClose()
   }, [record, onClose])
 
-  const book = useMemo(() => buildBook(universe, design), [universe, design])
+  // Imagens das cenas: preparadas antes de montar (o livro é montado de uma vez).
+  const [imagesReady, setImagesReady] = useState(0)
+  useEffect(() => {
+    let off = false
+    void prepareBookImages(universe).then(() => !off && setImagesReady((n) => n + 1))
+    return () => {
+      off = true
+    }
+  }, [universe])
+  const book = useMemo(() => buildBook(universe, design), [universe, design, imagesReady]) // eslint-disable-line react-hooks/exhaustive-deps
   const fonts = useMemo(() => fontFaces(fontsOf(design)), [design])
   const [spreads, setSpreads] = useState(() => !matchMedia('(max-width: 900px)').matches)
   const [zoom, setZoom] = useState(() => (matchMedia('(max-width: 900px)').matches ? 0.6 : 0.8))

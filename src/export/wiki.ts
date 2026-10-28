@@ -14,6 +14,8 @@ import { readerCopy } from '../share/readerCopy'
  * Com `upTo`, mostra só o que o leitor já sabe até aquela cena (sem spoiler).
  */
 export interface WikiOptions {
+  /** Imagens das fichas já prontas (referência → data URL), para irem dentro do arquivo. */
+  images?: Map<string, string>
   /** Posição da última cena lida (0 = primeira); `null` = tudo que não é segredo. */
   upTo: number | null
 }
@@ -28,7 +30,7 @@ interface WikiEntry {
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const anchor = (id: string) => `f-${id.slice(0, 12)}`
 
-export function buildWiki(universe: Universe, { upTo }: WikiOptions): { html: string; entries: number } {
+export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { html: string; entries: number } {
   const safe = readerCopy(universe, false)
   const scenes = manuscriptOrder(safe)
   let entries: WikiEntry[]
@@ -91,7 +93,7 @@ export function buildWiki(universe: Universe, { upTo }: WikiOptions): { html: st
     const fs = facts.filter((f) => f.ids.includes(e.id))
     const search = [e.name, ...e.aliases, kindLabel(e.kind)].join(' ')
     return `<article class="entry" id="${anchor(e.id)}" data-search="${esc(search.toLowerCase())}">
-<header><p class="kind">${esc(kindLabel(e.kind))}</p><h2>${esc(e.name)}</h2>${e.aliases.length ? `<p class="aliases">Também: ${e.aliases.map(esc).join(', ')}</p>` : ''}</header>
+${e.image && images?.get(e.image) ? `<img class="portrait" src="${images.get(e.image)}" alt=""/>` : ''}<header><p class="kind">${esc(kindLabel(e.kind))}</p><h2>${esc(e.name)}</h2>${e.aliases.length ? `<p class="aliases">Também: ${e.aliases.map(esc).join(', ')}</p>` : ''}</header>
 ${summary.trim() ? `<p class="summary">${linked(summary, e.id)}</p>` : ''}
 ${description.trim() ? paras(description, e.id) : ''}
 ${fields.length ? `<dl>${fields.map((f) => `<dt>${esc(f.key)}</dt><dd>${linked(f.value, e.id)}</dd>`).join('')}</dl>` : ''}
@@ -126,6 +128,7 @@ nav h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--
 main{display:grid;gap:16px;min-width:0}.entry{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px 20px;scroll-margin-top:12px}
 .entry h2{margin:0;font-size:1.5rem;line-height:1.2}.kind{margin:0;color:var(--muted);font:12px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
 .aliases,.meta{color:var(--muted);font-size:.95rem;margin:.3rem 0}.summary{font-style:italic}
+.portrait{float:right;width:160px;max-width:40%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;margin:0 0 10px 16px}.entry::after{content:'';display:block;clear:both}
 h3{font:600 13px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
 dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:12px 0}dt{color:var(--muted);font:14px/1.6 system-ui,sans-serif}dd{margin:0}
 ul{margin:0;padding-left:1.2rem}.timeline{list-style:none;padding:0;margin:0;display:grid;gap:8px}.when{color:var(--muted);font:13px system-ui,sans-serif}

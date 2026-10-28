@@ -31,6 +31,9 @@ import { useCloudStatus } from '../account/useCloud'
 import { useEffect, useRef, useState } from 'react'
 import { leaveShared, mySharedIds, sharedWithMe, shortName, stopSharing, type SharedWithMe } from '../share/sharing'
 import { migrate } from '../model/migrations'
+import { restoreEmbeddedImages } from '../images/backup'
+import { setImageServer } from '../images/resolve'
+import { Picture } from '../images/Picture'
 import { sampleUniverse } from '../model/sample'
 import type { Universe } from '../model/schema'
 import { createUniverse, newId } from '../model/universe'
@@ -89,6 +92,10 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const userId = account.user?.id
   const userEmail = account.user?.email
   const accountServer = account.server
+  // Capas que não estão neste aparelho vêm do servidor da conta.
+  useEffect(() => {
+    setImageServer(accountServer)
+  }, [accountServer])
   const [sharedNonce, setSharedNonce] = useState(0)
   useEffect(() => {
     if (!userId || !userEmail || !accountServer) return
@@ -153,7 +160,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const importFile = async (file: File) => {
     setError(null)
     try {
-      const file_ = migrate(JSON.parse(await file.text()))
+      const raw: unknown = JSON.parse(await file.text())
+      const file_ = migrate(raw)
+      await restoreEmbeddedImages(raw)
       let u = file_.universe
       // Importar nunca sobrescreve: se o ID já existe, vira uma cópia.
       if (entries.some((e) => e.id === u.id)) u = { ...u, id: newId(), name: `${u.name} (importado)` }
@@ -396,7 +405,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
               {own.map((e) => (
                 <li key={e.id} className="library-item">
                   <button type="button" className="library-open" onClick={() => onOpen(e.id)}>
-                    <BookOpen size={20} aria-hidden="true" />
+                    {e.cover ? <Picture value={e.cover} className="library-cover" /> : <BookOpen size={20} aria-hidden="true" />}
                     <span className="library-name">{e.name || 'Sem nome'}</span>
                     <span className="library-meta">
                       {e.words.toLocaleString('pt-BR')} palavras · {dateFmt.format(new Date(e.updatedAt))}

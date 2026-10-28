@@ -1,10 +1,12 @@
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
-import { Bold, BookmarkPlus, Italic, Link2, MessageSquarePlus, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
+import { Bold, BookmarkPlus, ImagePlus, Italic, Link2, MessageSquarePlus, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { MentionMatcher } from '../logic/detection'
 import type { SceneDoc } from '../model/schema'
 import { sceneExtensions } from './extensions'
+import { sceneImageError } from './image'
+import { addImage } from '../images/add'
 import { keyKindOf, playKey, unlockAudio } from './keySounds'
 import { PhoneDock } from './PhoneDock'
 import { useMediaQuery } from '../ui/useMediaQuery'
@@ -157,8 +159,32 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
     return { text: editor.state.doc.textBetween(from, to, ' ').trim(), from, to, paragraph: $from.parent.textContent }
   }
 
+  // Imagem na cena: escolhida do aparelho, encolhida e posta onde está o cursor.
+  const imageInput = useRef<HTMLInputElement>(null)
+  const pickImage = () => imageInput.current?.click()
+  const imageField = (
+    <input
+      ref={imageInput}
+      type="file"
+      accept="image/*"
+      hidden
+      aria-label="Imagem para a cena"
+      onChange={(e) => {
+        const f = e.target.files?.[0]
+        e.target.value = ''
+        if (!f) return
+        void addImage(f, 'cena')
+          .then(({ ref }) => {
+            if (!editor.isDestroyed) editor.chain().focus().insertSceneImage(ref).run()
+          })
+          .catch((err: unknown) => sceneImageError(err instanceof Error ? err.message : 'Não foi possível usar esta imagem.'))
+      }}
+    />
+  )
+
   return (
     <div className="scene-editor">
+      {imageField}
       {showToolbar && !touch && (
         <div className="format-bar" role="toolbar" aria-label="Formatação">
           <button type="button" className="btn-icon" aria-pressed={active.bold} title="Negrito (Ctrl+B)" aria-label="Negrito" onClick={() => editor.chain().focus().toggleBold().run()}>
@@ -182,10 +208,13 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
           >
             <SeparatorHorizontal size={16} />
           </button>
+          <button type="button" className="btn-icon" title="Imagem (ou cole/arraste uma imagem no texto)" aria-label="Imagem" onClick={pickImage}>
+            <ImagePlus size={16} />
+          </button>
         </div>
       )}
 
-      {touch && <PhoneDock editor={editor} actions={actions} selection={selection} />}
+      {touch && <PhoneDock editor={editor} actions={actions} selection={selection} pickImage={pickImage} />}
       {!touch && (
       <BubbleMenu
         editor={editor}

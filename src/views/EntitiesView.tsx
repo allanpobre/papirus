@@ -1,5 +1,7 @@
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, BookOpen, PenLine, Plus, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, ImagePlus, Loader2, PenLine, Plus, Trash2, X } from 'lucide-react'
+import { Picture } from '../images/Picture'
+import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
 import { factSentence } from '../logic/codex'
 import { fold, snippet } from '../logic/text'
@@ -114,7 +116,7 @@ export default function EntitiesView() {
             {list.map((e) => (
               <li key={e.id}>
                 <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
-                  <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />
+                  {e.image ? <Picture value={e.image} className="entity-row-pic" /> : <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />}
                   <span className="entity-row-name">{e.name || 'Sem nome'}</span>
                   <span className="entity-row-kind">{kindLabel(e.kind)}</span>
                   {e.summary && <span className="entity-row-summary">{e.summary}</span>}
@@ -138,6 +140,25 @@ export default function EntitiesView() {
           </Empty>
         )}
       </section>
+    </div>
+  )
+}
+
+/** O retrato (ou imagem) da ficha: toque para escolher; com imagem, dá para trocar ou tirar. */
+function PortraitButton({ entity: e, onChange }: { entity: Entity; onChange: (image: string | null) => void }) {
+  const { toast } = useWorkspace()
+  const picker = useImagePicker('retrato', (ref) => onChange(ref), (m) => toast(m, { tone: 'erro' }))
+  return (
+    <div className={`portrait-edit${e.image ? ' has-image' : ''}`}>
+      {picker.field}
+      <button type="button" className="portrait-btn" onClick={picker.open} disabled={picker.busy} aria-label={e.image ? 'Trocar a imagem da ficha' : 'Escolher uma imagem para a ficha'} title={e.image ? 'Trocar a imagem' : 'Pôr uma imagem (retrato, foto do lugar…)'}>
+        {e.image ? <Picture value={e.image} alt={`Imagem de ${e.name}`} /> : picker.busy ? <Loader2 size={20} className="spin" /> : <ImagePlus size={20} />}
+      </button>
+      {e.image && (
+        <button type="button" className="portrait-remove" aria-label="Tirar a imagem da ficha" title="Tirar a imagem" onClick={() => onChange(null)}>
+          <X size={12} />
+        </button>
+      )}
     </div>
   )
 }
@@ -179,6 +200,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
         <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => go('fichas', null)}>
           <ArrowLeft size={18} />
         </button>
+        <PortraitButton entity={e} onChange={(image) => set({ image })} />
         <div className="entity-title-wrap">
           <label htmlFor="entity-name" className="sr-only">
             Nome

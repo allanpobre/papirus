@@ -1,6 +1,7 @@
 import { strToU8 as encode, zipSync, type Zippable } from 'fflate'
 import type { BookDesign, Universe } from '../model/schema'
 import { BOOK_FONTS, type BookFontKey } from './bookFonts'
+import { dataUrlBytes, epubImageFiles } from './epubImages'
 import { CHAPTER_CSS, bookContent, bookTitle, esc, fontFamily, fontsOf, numberWords, paragraphs } from './bookDesign'
 
 /**
@@ -37,14 +38,7 @@ export async function loadEpubFonts(d: BookDesign): Promise<EpubFont[]> {
 }
 
 /** Imagem em data URL → bytes e tipo. */
-function image(dataUrl: string | null): { data: Uint8Array; type: string; ext: string } | null {
-  const m = dataUrl?.match(/^data:(image\/(png|jpe?g|webp|gif));base64,(.+)$/)
-  if (!m) return null
-  const bin = atob(m[3])
-  const data = new Uint8Array(bin.length)
-  for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i)
-  return { data, type: m[1], ext: m[2] === 'jpeg' ? 'jpg' : m[2] }
-}
+const image = dataUrlBytes
 
 const xhtml = (title: string, body: string, cls = '') =>
   `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="pt-BR" lang="pt-BR"><head><meta charset="UTF-8"/><title>${esc(title)}</title><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body${cls ? ` class="${cls}"` : ''}>${body}</body></html>`
@@ -60,6 +54,7 @@ p{margin:0;${d.justify ? 'text-align:justify;' : 'text-align:left;'}orphans:2;wi
 ${d.paragraph === 'recuo' ? '.chapter-body p + p{text-indent:1.5em}.chapter-body p.after-break{text-indent:0}' : '.chapter-body p{margin-bottom:.7em}'}
 em{font-style:italic}strong{font-weight:600}
 blockquote{margin:1em 1.5em;font-style:italic}
+.scene-figure{margin:1.2em 0;text-align:center;page-break-inside:avoid}.scene-figure img{max-width:100%;height:auto}
 .cover-page{margin:0;padding:0;text-align:center}
 .cover-page img{max-width:100%;max-height:100%;height:auto}
 .title-page{text-align:center;margin-top:25%}
@@ -167,7 +162,9 @@ export function designedEpub(universe: Universe, d: BookDesign, opts: { fonts?: 
         .join('')}</navMap></ncx>`,
     ),
   }
-  for (const p of pages) files[`OEBPS/${p.file}`] = strToU8(xhtml(p.title, p.body, p.cls))
+  const pics = epubImageFiles()
+  for (const p of pages) files[`OEBPS/${p.file}`] = strToU8(xhtml(p.title, pics.take(p.body), p.cls))
+  Object.assign(files, pics.files)
   if (cover) files[`OEBPS/imagens/capa.${cover.ext}`] = cover.data
   fonts.forEach((f, i) => (files[`OEBPS/fontes/f${i}.woff2`] = f.data))
 
@@ -177,6 +174,7 @@ export function designedEpub(universe: Universe, d: BookDesign, opts: { fonts?: 
     '<item id="css" href="estilo.css" media-type="text/css"/>',
     ...(cover ? [`<item id="capa-img" href="imagens/capa.${cover.ext}" media-type="${cover.type}" properties="cover-image"/>`] : []),
     ...fonts.map((_, i) => `<item id="f${i}" href="fontes/f${i}.woff2" media-type="font/woff2"/>`),
+    ...pics.items,
     ...pages.map((p) => `<item id="${p.id}" href="${p.file}" media-type="application/xhtml+xml"/>`),
   ].join('')
   const navIndex = pages.findIndex((p) => p.id.startsWith('c') || p.id.startsWith('parte'))

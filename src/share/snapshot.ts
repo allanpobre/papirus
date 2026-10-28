@@ -16,7 +16,7 @@ export interface CodexSnapshot {
   group: string
   at: string
   party: { name: string; player: string; fields: [string, string][]; attrs: [string, number][] }[]
-  sections: { title: string; entries: { name: string; summary: string; description: string; depth: 'nome' | 'resumo' | 'completo'; fresh?: boolean }[] }[]
+  sections: { title: string; entries: { name: string; summary: string; description: string; depth: 'nome' | 'resumo' | 'completo'; fresh?: boolean; image?: string }[] }[]
   events: { when: string; title: string; year?: number; fresh?: boolean }[]
   /** Ligações reveladas, pelo nome (opcional: retratos antigos não têm). */
   relations?: { from: string; to: string; text: string; fresh?: boolean }[]
@@ -54,6 +54,8 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
           fresh: codex.fresh.has(entity.id),
           summary: depth === 'nome' ? '' : unmarkReveals(stripSecrets(entity.summary)),
           description: depth === 'completo' ? unmarkReveals(stripSecrets(entity.description)) : '',
+          // O retrato aparece quando a mesa já sabe mais que o nome.
+          ...(depth !== 'nome' && entity.image ? { image: entity.image } : {}),
         })),
     })),
     events: codex.events.map((e) => ({
