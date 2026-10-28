@@ -12,6 +12,7 @@ import { byId, entityName, manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
+import { PageHelp } from '../ui/PageTour'
 
 const W = 1200
 const H = 800
@@ -202,6 +203,7 @@ export default function GraphView() {
     <div className="view graph-view">
       <header className="view-head view-head-wide">
         <h1>Relações</h1>
+        <PageHelp tour="relacoes" />
         <div className="graph-controls">
           <EntityPicker
             label="Centrar em"

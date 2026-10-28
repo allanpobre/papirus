@@ -186,7 +186,7 @@ export function Landing() {
             <li>
               <span className="lp-step-n">1</span>
               <h3>Escreva a cena</h3>
-              <p>Um editor limpo, sem distrações. Os nomes que você já conhece aparecem sublinhados; os novos ficam como sugestão, nunca viram ficha sozinhos.</p>
+              <p>Um editor limpo, sem distrações. Os nomes que você já conhece aparecem sublinhados. Os novos, o Papirus conta no botão Revisar da margem, como sugestão: nunca viram ficha sozinhos.</p>
               <StepScreen n={1} />
             </li>
             <li>

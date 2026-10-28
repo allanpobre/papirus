@@ -61,6 +61,7 @@ import { ManuscriptTree } from './ManuscriptTree'
 import { ReadingMode } from './ReadingMode'
 import { ReviewDialog } from './ReviewDialog'
 import { VersionsDialog } from './VersionsDialog'
+import { PageHelp } from '../../ui/PageTour'
 
 type Dialog =
   | { kind: 'link'; sel: SelectionInfo }
@@ -244,6 +245,7 @@ export default function WriteView() {
     return (
       <div className="view write-empty">
         <div className="write-welcome">
+          <PageHelp tour="escrever-vazio" className="write-welcome-help" />
           <Feather size={36} aria-hidden="true" />
           <h1>Uma página em branco.</h1>
           <p>Comece por uma cena solta. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>
@@ -289,6 +291,7 @@ export default function WriteView() {
             {scene.date && <span className="muted small">· {formatDate(universe, scene.date)}</span>}
           </div>
           <div className="write-bar-actions">
+            <PageHelp tour="escrever" />
             <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
               <SlidersHorizontal size={15} /> Detalhes da cena
             </button>

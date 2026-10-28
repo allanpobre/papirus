@@ -45,7 +45,7 @@ export function TreinoHistory({ cloud, onClose, onRedo, onDeleted }: { cloud: Tr
     const tries = attemptsOf(list, open)
     const best = recordOf(list, open)
     return (
-      <Modal title="Treino" size="md" onClose={onClose}>
+      <Modal title="Treino" size="md" onClose={onClose} help="treinos">
         <div className="treino-detail">
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setOpenId(null)}>
             <ArrowLeft size={15} /> Todos os treinos
@@ -100,7 +100,7 @@ export function TreinoHistory({ cloud, onClose, onRedo, onDeleted }: { cloud: Tr
   }
 
   return (
-    <Modal title="Seus treinos" size="md" onClose={onClose}>
+    <Modal title="Seus treinos" size="md" onClose={onClose} help="treinos">
       <div className="treino-history">
         <dl className="treino-stats">
           <div>

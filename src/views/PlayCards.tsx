@@ -51,7 +51,7 @@ export function ProgressSection() {
         </span>
       </button>
       {open && (
-        <Modal title="Medalhas" size="sm" onClose={() => setOpen(false)}>
+        <Modal title="Medalhas" size="sm" onClose={() => setOpen(false)} help="medalhas">
           <ul className="play-medal-list">
             {MEDALS.map((m) => {
               const has = got.includes(m)

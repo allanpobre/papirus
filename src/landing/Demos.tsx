@@ -1,4 +1,4 @@
-import { Check, Dices, Eye, Flame, GraduationCap, Heart, Lightbulb, Lock, PenLine, Radio, Search, Sparkles, Swords, Timer, Trophy, Zap } from 'lucide-react'
+import { Check, Dices, Eye, Flame, GraduationCap, Heart, Lightbulb, Lock, PenLine, Radio, ScanSearch, Search, Sparkles, Swords, Timer, Trophy, Zap } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 /** Quem pede menos movimento vê cada demonstração parada no último passo. */
@@ -780,11 +780,12 @@ export function StepScreen({ n }: { n: 1 | 2 | 3 }) {
           <PenLine size={11} /> A chegada
         </p>
         <p className="lp-mini-text">
-          Era noite em <u>Ostria</u> quando <u>Kael</u> viu o navio. Ao lado dele, <i className="lp-mini-cand">Ilsa</i> não disse nada.
+          Era noite em <u>Ostria</u> quando <u>Kael</u> viu o navio. Ao lado dele, Ilsa não disse nada.
           <span className="lp-mini-caret" />
         </p>
-        <p className="lp-mini-chip">
-          <Sparkles size={11} /> 1 nome novo
+        {/* Como no app: o nome novo não é marcado no texto; a margem conta no botão Revisar. */}
+        <p className="lp-mini-review">
+          <ScanSearch size={12} /> Revisar <span className="lp-mini-chip">1 nome novo</span>
         </p>
       </div>
     )

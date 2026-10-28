@@ -1,5 +1,6 @@
 import type { Browser } from '@playwright/test'
 import { createFakeSupabase, PASSWORD, SERVER } from './fakeSupabase.ts'
+import { runPageTour } from './pageTour.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 type Fake = ReturnType<typeof createFakeSupabase>
@@ -56,6 +57,9 @@ test('compartilhar: convidar para editar, as mudanças chegam, o link só lê e 
   const link = await share.getByRole('textbox', { name: 'Link de leitura' }).inputValue()
   expect(link).toContain('?ler=')
   expect(link).not.toContain('modo=livro')
+  // O (?) da janela explica cada parte.
+  const ajuda = await runPageTour(page, 'Compartilhar')
+  expect(ajuda.filter((s) => s.spot).map((s) => s.title)).toEqual(['Convidar', 'Quem tem acesso', 'Link de leitura', 'Segredos'])
   await share.getByRole('button', { name: 'Fechar' }).click()
   expect(fake.tables.papirus_members).toHaveLength(1)
 

@@ -923,6 +923,11 @@ button.chip:hover {
   gap: 0.8rem;
 }
 
+/* Quem rola é a janela: nada dentro dela encolhe (abas com rolagem própria sumiam, espremidas). */
+.modal-body > * {
+  flex-shrink: 0;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;

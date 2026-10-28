@@ -60,6 +60,7 @@ import type { View } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { ProfilePage } from '../social/ProfilePage'
 import { Brand } from './Brand'
+import { PageHelp } from '../ui/PageTour'
 
 interface Props {
   library: Library
@@ -638,6 +639,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <Brand />
         )}
         <div className="library-top-actions">
+          <PageHelp key={sector} tour={`hub-${sector}`} />
           <button type="button" className="btn-icon" aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'} onClick={() => setPref('theme', dark ? 'claro' : 'escuro')}>
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>

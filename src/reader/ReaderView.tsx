@@ -11,6 +11,7 @@ import { ChapterReactions, type ReactionsApi } from './ChapterReactions'
 import { ReadAloudBar, ReadAloudButton, useReadAloud } from './ReadAloud'
 import { CommentFab, CommentSheet, useSelectedQuote, type SendComment } from './ReaderComment'
 import { Picture } from '../images/Picture'
+import { PageHelp } from '../ui/PageTour'
 
 interface DocNode {
   type: string
@@ -288,6 +289,7 @@ export function ReaderView({
           )}
         </button>
         )}
+        <PageHelp tour="leitor" />
       </header>
 
       <div className="leitor-body">

@@ -28,6 +28,7 @@ import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
 import { matches, SETTINGS_CATEGORIES, type SettingsCategory } from './settingsCategories'
+import { PageHelp } from '../ui/PageTour'
 
 const QUESTION_LABEL: Record<QuestionType, string> = {
   'presenca-dupla': 'Personagem em dois lugares no mesmo dia',
@@ -101,6 +102,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
     <div className="view settings-view">
       <header className="view-head">
         <h1>Ajustes e dados</h1>
+        <PageHelp tour="config" />
       </header>
 
       <div className="settings-layout">

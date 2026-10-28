@@ -41,7 +41,7 @@ export function PhysicalRollDialog({
 
   const label = `${who ? `${who} · ` : ''}${outcome.label}`
   return (
-    <Modal title="Quanto saiu no dado?" size="sm" onClose={onClose}>
+    <Modal title="Quanto saiu no dado?" size="sm" onClose={onClose} help="dado-fisico">
       <form
         className="physical-roll"
         onSubmit={(e) => {

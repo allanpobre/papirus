@@ -28,6 +28,7 @@ import { SessionsTab } from './SessionsTab'
 import { SheetsTab } from './SheetsTab'
 import { SystemsTab } from './SystemsTab'
 import { TableTab } from './TableTab'
+import { PageHelp } from '../../ui/PageTour'
 
 export type RpgTab = 'mesa' | 'mestre' | 'sessoes' | 'personagens' | 'sistemas' | 'codex' | 'dados'
 
@@ -222,6 +223,7 @@ export default function RpgView() {
           )}
         </div>
         <div className="mesa-actions">
+          <PageHelp tour={`rpg-${tab}`} />
           <div className="mesa-dice-mode" role="radiogroup" aria-label="Dados">
             <span className="mesa-dice-label">Dados</span>
             {(

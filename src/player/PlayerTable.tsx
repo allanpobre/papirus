@@ -248,7 +248,7 @@ function RollSheet({
   const pick = (r: CodexRoll) => onPick({ roll: r, name: r.name, kind: r.kind, expression: r.expression, target: r.target, critFrom: r.critFrom })
 
   return (
-    <Modal title={me ? `Rolar como ${me}` : 'Rolar'} size="sm" onClose={onClose}>
+    <Modal title={me ? `Rolar como ${me}` : 'Rolar'} size="sm" onClose={onClose} help="rolar">
       <div className="player-sheet">
         <div className="segmented" role="radiogroup" aria-label="Dados">
           {(

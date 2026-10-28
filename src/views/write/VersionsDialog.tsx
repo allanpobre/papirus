@@ -19,7 +19,7 @@ export function VersionsDialog({ scene, onClose, onRestored }: { scene: Scene; o
   const stats = diffStats(parts)
 
   return (
-    <Modal title={`Versões de “${scene.title || 'Sem título'}”`} onClose={onClose} size="lg">
+    <Modal title={`Versões de “${scene.title || 'Sem título'}”`} onClose={onClose} size="lg" help="versoes">
       <form
         className="inline-fields"
         onSubmit={(e) => {

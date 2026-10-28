@@ -69,7 +69,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
         )}
       </section>
 
-      <section className="gm-card">
+      <section className="gm-card" data-tour="gm-sistema">
         <h2 className="section-title">Sistema da mesa</h2>
         <Select
           label="Sistema da mesa"
@@ -96,7 +96,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
         </button>
       </section>
 
-      <section className="gm-card">
+      <section className="gm-card" data-tour="gm-grupo">
         <h2 className="section-title">Grupo ({party.length})</h2>
         {party.length === 0 ? (
           <p className="muted small">Nenhum personagem de jogador ainda.</p>
@@ -130,7 +130,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
         </button>
       </section>
 
-      <section className="gm-card">
+      <section className="gm-card" data-tour="gm-segredos">
         <h2 className="section-title">
           <EyeOff size={15} aria-hidden="true" /> Segredos ainda guardados
         </h2>
@@ -170,7 +170,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
         </button>
       </section>
 
-      <section className="gm-card">
+      <section className="gm-card" data-tour="gm-misterios">
         <h2 className="section-title">Mistérios em jogo</h2>
         {mysteries.length === 0 ? (
           <p className="muted small">Nenhum mistério aberto.</p>
@@ -188,7 +188,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
         )}
       </section>
 
-      <section className="gm-card">
+      <section className="gm-card" data-tour="gm-mesas">
         <h2 className="section-title">Mesas</h2>
         <ul className="plain-list">
           {universe.groups.map((g) => (

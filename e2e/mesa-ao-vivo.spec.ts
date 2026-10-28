@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { fakeRealtime } from './fakeRealtime.ts'
+import { runPageTour } from './pageTour.ts'
 import { expect, test, type BrowserContext, type Page } from './fixtures.ts'
 
 const SERVER = 'https://papirus-teste.supabase.co'
@@ -109,6 +110,8 @@ test('combate na mesa: em quem, acerta ou erra pela CA, e o dano sai da vida do 
 })
 
 test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', async ({ page, context, baseURL }) => {
+  // Três páginas, dois tours e a checagem de acessibilidade: leva mais que o normal.
+  test.setTimeout(90_000)
   await fakeCodex(context)
   await fakeRealtime(context, SERVER)
   const init = await combat(page, baseURL!)
@@ -127,6 +130,9 @@ test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', 
   await taren.getByRole('region', { name: 'Quem é você na mesa?' }).getByRole('button', { name: 'Taren' }).click()
   await expect(taren.getByRole('status').filter({ hasText: 'Sua vez, Taren!' })).toBeVisible()
   await expect(taren.locator('.player-live')).toHaveText(/ao vivo/)
+  // O (?) do Codex explica o que o jogador vê e como rola.
+  const ajuda = await runPageTour(taren, 'Codex')
+  expect(ajuda.filter((s) => s.spot).map((s) => s.title)).toEqual(expect.arrayContaining(['Ao vivo', 'Combate', 'O grupo', 'Rolar']))
 
   // Ilmar, em outra aba (o mesmo aparelho lembra quem é: aqui ele troca), só acompanha.
   const ilmar = await context.newPage()
@@ -138,6 +144,8 @@ test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', 
   await expect(ilmar.locator('.player-live')).toHaveText(/ao vivo/)
 
   await taren.getByRole('button', { name: 'Rolar como Taren' }).click()
+  const rolar = await runPageTour(taren, 'Rolar')
+  expect(rolar.every((s) => s.spot)).toBe(true)
   await taren.getByRole('dialog', { name: 'Rolar como Taren' }).getByRole('button', { name: 'Atacar com Espada longa' }).click()
   await taren.getByRole('dialog', { name: 'Espada longa: em quem?' }).getByRole('button', { name: /^Bandido/ }).click()
   const quanto = taren.getByRole('dialog', { name: 'Quanto saiu no dado?' })

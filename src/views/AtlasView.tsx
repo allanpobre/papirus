@@ -11,6 +11,7 @@ import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
+import { PageHelp } from '../ui/PageTour'
 
 /** Um pergaminho em branco, para posicionar lugares sem ter um mapa desenhado. */
 function blankParchment(): { data: string; width: number; height: number } {
@@ -65,6 +66,7 @@ export default function AtlasView() {
     <div className="view atlas-view">
       <header className="view-head view-head-wide">
         <h1>Atlas</h1>
+        <PageHelp tour="atlas" />
         <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys} aria-label="Mapas">
           {universe.maps.map((m) => (
             <button key={m.id} type="button" role="tab" className="tab" aria-selected={m.id === map?.id} tabIndex={m.id === map?.id ? 0 : -1} onClick={() => setMapId(m.id)}>

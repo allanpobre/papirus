@@ -69,7 +69,7 @@ export function TreinoPlacar({ onClose, onAccount }: { onClose: () => void; onAc
   const hidden = me && (vis === 'ninguem' || vis === null || (escopo === 'todos' && vis !== 'todos'))
 
   return (
-    <Modal title="Placar dos treinos" size="md" onClose={onClose}>
+    <Modal title="Placar dos treinos" size="md" onClose={onClose} help="placar">
       <div className="placar">
         <div className="placar-switches">
           <div className="segmented" role="radiogroup" aria-label="Placar de quem">

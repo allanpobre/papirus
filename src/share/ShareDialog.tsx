@@ -154,7 +154,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
   }
 
   return (
-    <Modal title="Compartilhar" size="md" onClose={onClose}>
+    <Modal title="Compartilhar" size="md" onClose={onClose} help="compartilhar">
       <div className="share">
         {share === undefined ? (
           <p className="muted small" aria-busy="true">

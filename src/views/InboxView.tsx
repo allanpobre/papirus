@@ -10,6 +10,7 @@ import { Empty, Select} from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { FactDialog } from '../ui/FactDialog'
 import { modKey } from '../ui/keys'
+import { PageHelp } from '../ui/PageTour'
 
 /** Tamanho máximo de cada item vindo de arquivo; arquivos maiores viram vários itens. */
 const CHUNK = 6000
@@ -44,6 +45,7 @@ export default function InboxView() {
     <div className="view inbox-view">
       <header className="view-head view-head-wide">
         <h1>Ideias</h1>
+        <PageHelp tour="inbox" />
         <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
           <FileUp size={16} /> Importar .txt ou .md
         </button>
