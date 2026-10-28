@@ -56,8 +56,10 @@ test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a m
 
   // De volta ao início: a campanha está no setor RPG, e um livro novo não tem a mesa no menu.
   await nav(page, 'RPG').click()
-  await page.getByRole('button', { name: 'Suas campanhas' }).click()
+  await page.getByRole('button', { name: 'Campanhas', exact: true }).click()
   await expect(page.getByRole('button', { name: /Continuar a campanha/ })).toContainText('Mar')
+  // O cartão da campanha vem nas cores do tema da mesa (Tormenta: tempestade).
+  await expect(page.locator('.hub-continue.is-themed')).toBeVisible()
   await setores.getByRole('button', { name: 'Escrita' }).click()
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Livro')
   await page.getByRole('button', { name: 'Criar universo' }).click()
@@ -376,7 +378,7 @@ test.describe('no celular', () => {
     await expect(bar.getByRole('button', { name: 'RPG', exact: true })).toHaveCount(0)
     await bar.getByRole('button', { name: 'Mais', exact: true }).click()
     const mais = page.getByRole('group', { name: 'Todas as áreas' })
-    await expect(mais.getByRole('button', { name: /Oficina/ })).toContainText('Dicas, livros e exercícios')
+    await expect(mais.getByRole('button', { name: /^Oficina/ })).toContainText('Dicas, livros e exercícios')
     await mais.getByRole('button', { name: 'Escolher atalhos' }).click()
     await mais.getByRole('button', { name: 'RPG' }).click()
     await expect(mais.getByRole('button', { name: 'RPG' })).toHaveAttribute('aria-pressed', 'true')

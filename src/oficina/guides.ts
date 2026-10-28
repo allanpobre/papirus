@@ -1,11 +1,32 @@
+import { CRAFT_GUIDES } from './craft'
+
 /**
  * Oficina: guias curtos de escrita por gênero, com livros para estudar, curiosidades
  * e exercícios. Os livros aparecem por descrição (sem citar trechos de obras protegidas).
  */
-export type GuideId = 'fundamentos' | 'fantasia' | 'ficcao' | 'misterio' | 'romance' | 'terror' | 'realismo'
+export type GuideId =
+  | 'fundamentos'
+  | 'fantasia'
+  | 'ficcao'
+  | 'misterio'
+  | 'romance'
+  | 'terror'
+  | 'realismo'
+  | 'personagem'
+  | 'estrutura'
+  | 'dialogo'
+  | 'ritmo'
+  | 'revisao'
+  | 'mestrar'
+  | 'aventuras'
+
+/** As prateleiras da Oficina: gêneros, técnicas de escrita e guias para quem mestra. */
+export type GuideSection = 'genero' | 'tecnica' | 'mestre'
 
 export interface Guide {
   id: GuideId
+  /** Sem valor: gênero. */
+  section?: GuideSection
   label: string
   lede: string
   /** O que quem lê o gênero espera encontrar. */
@@ -17,7 +38,7 @@ export interface Guide {
   exercises: { title: string; prompt: string }[]
 }
 
-export const GUIDES: Guide[] = [
+const GENRE_GUIDES: Guide[] = [
   {
     id: 'fundamentos',
     label: 'Fundamentos',
@@ -251,6 +272,11 @@ export const GUIDES: Guide[] = [
   },
 ]
 
+/** Todos os guias: gêneros, técnicas e os de quem mestra. */
+export const GUIDES: Guide[] = [...GENRE_GUIDES, ...CRAFT_GUIDES]
+
+export const sectionOf = (g: Guide): GuideSection => g.section ?? 'genero'
+
 /** O guia que combina com o universo (pelos campos do modelo escolhido ao criar). */
 export function guessGuide(fieldTemplates: Record<string, string[]>): GuideId {
   const all = Object.values(fieldTemplates).flat().join('|')
@@ -263,7 +289,9 @@ export function guessGuide(fieldTemplates: Record<string, string[]>): GuideId {
 
 /** Uma dica por dia (muda à meia-noite), do gênero do universo ou dos fundamentos. */
 export function tipOfTheDay(genre: GuideId, day = new Date()): { guide: Guide; title: string; text: string } {
-  const pool = [genre, 'fundamentos'].flatMap((id) => {
+  // Para quem mestra, as dicas vêm dos guias da mesa.
+  const ids: GuideId[] = genre === 'mestrar' || genre === 'aventuras' ? ['mestrar', 'aventuras'] : [genre, 'fundamentos']
+  const pool = ids.flatMap((id) => {
     const g = GUIDES.find((x) => x.id === id)!
     return g.works.map((w) => ({ guide: g, title: w.title, text: w.text }))
   })

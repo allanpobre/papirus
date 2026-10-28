@@ -1265,3 +1265,22 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
     grid-column: span 1;
   }
 }
+
+/* A saída da mesa: um "voltar" com nome, à vista também no celular. */
+.mesa-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.35rem -0.35rem;
+  padding: 0.3rem 0.6rem 0.3rem 0.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.mesa-back:hover {
+  background: var(--accent-faint);
+}

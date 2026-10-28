@@ -707,9 +707,20 @@ body:has(.rail-phone) .toasts {
   text-align: left;
 }
 
-.rail-more-universe span:first-of-type {
+.rail-more-universe {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.rail-more-universe-text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rail-more-universe-text > * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2104,4 +2115,29 @@ body:has(.rail-phone) .toasts {
 .hub-oficina .hub-tab[aria-current='page'] {
   background: var(--ochre);
   color: #fff;
+}
+
+/* Mesas no setor RPG: cada cartão com as cores do tema da sua mesa. */
+.library-item.is-themed {
+  background: linear-gradient(100deg, var(--accent-faint), var(--surface) 65%);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.library-item.is-themed + .library-item.is-themed {
+  border-top: 1px solid var(--line);
+}
+
+.library-item.is-themed .library-open > svg {
+  color: var(--accent);
+}
+
+.hub-continue.is-themed {
+  border-color: var(--line);
+  background:
+    radial-gradient(600px 220px at 100% 0%, var(--accent-soft), transparent 70%),
+    var(--surface);
+}
+
+.hub-note {
+  margin: -0.3rem 0 0.7rem;
 }

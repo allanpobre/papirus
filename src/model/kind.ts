@@ -13,8 +13,8 @@ export function universeKind(u: Universe): UniverseKind {
   return u.groups.length > 0 && u.scenes.every((s) => !s.text.trim()) ? 'campanha' : 'escrita'
 }
 
-/** O que uma campanha esconde do menu: a parte de escrever o livro. */
-export const CAMPAIGN_HIDDEN: View[] = ['escrever', 'organizar', 'livro', 'conhecimento', 'oficina']
+/** O que uma campanha esconde do menu: a parte de escrever o livro. (A Oficina fica: tem guias para mestres.) */
+export const CAMPAIGN_HIDDEN: View[] = ['escrever', 'organizar', 'livro', 'conhecimento']
 
 /** Atalhos da barra de baixo no celular, numa campanha. */
 export const CAMPAIGN_SHORTCUTS: View[] = ['rpg', 'fichas', 'atlas', 'timeline']

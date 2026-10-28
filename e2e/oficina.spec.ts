@@ -161,3 +161,30 @@ test('desafio do dia: vira cena, 100 palavras e está feito, com comemoração e
   await expect(medalhas.getByRole('listitem').filter({ hasText: 'Topei o desafio' })).toHaveClass(/is-got/)
   await expect(medalhas.getByRole('listitem').filter({ hasText: 'Hábito de escritor' })).not.toHaveClass(/is-got/)
 })
+
+test('Oficina: técnicas, guias de mestre, gerador de ideias e exercícios feitos', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Oficina/ }).click()
+  const oficina = page.getByRole('dialog', { name: 'Oficina' })
+  await expect(oficina.getByRole('heading', { name: 'Técnicas' })).toBeVisible()
+  await expect(oficina.getByRole('heading', { name: 'Para mestres de RPG' })).toBeVisible()
+
+  // O gerador sorteia e guarda a ideia nas Ideias do universo.
+  const ideias = oficina.getByRole('region', { name: 'Gerador de ideias' })
+  await ideias.getByRole('radio', { name: 'Para a mesa' }).click()
+  await expect(ideias.getByText('Quem pede')).toBeVisible()
+  await ideias.getByRole('button', { name: 'Guardar em Ideias' }).click()
+  await expect(ideias.getByRole('button', { name: 'Guardada em Ideias' })).toBeDisabled()
+
+  // Um guia de mestre: os títulos são da mesa, e o exercício fica marcado como feito.
+  await oficina.getByRole('button', { name: /^Mestrar/ }).click()
+  await expect(oficina.getByRole('heading', { name: 'Para a próxima sessão' })).toBeVisible()
+  await oficina.getByRole('button', { name: 'Marcar como feito' }).first().click()
+  await expect(oficina.getByRole('button', { name: 'Feito', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await oficina.getByRole('button', { name: 'Todos os gêneros' }).click()
+  await expect(oficina.getByRole('status')).toContainText('1 exercício feito')
+  await expect(oficina.getByRole('button', { name: /^Mestrar/ })).toContainText('1/3 feitos')
+  await oficina.getByRole('button', { name: 'Fechar a Oficina' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Ideias/ }).click()
+  await expect(page.getByText(/pede ao grupo para/)).toBeVisible()
+})

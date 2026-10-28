@@ -502,6 +502,153 @@
   border-color: var(--g);
 }
 
+/* Prateleiras da capa: gêneros, técnicas e mestres. */
+.oficina-shelf-section {
+  margin-top: 2rem;
+}
+
+.oficina-shelf-section .oficina-h {
+  margin-bottom: 0.2rem;
+}
+
+.oficina-section-lede {
+  margin: 0 0 0.9rem;
+  color: var(--ink-2);
+  font-size: 0.92rem;
+}
+
+.oficina-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.9rem 0 0;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.oficina-genre-done {
+  grid-column: 2;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+  color: var(--ok);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.oficina-genre-tag + .oficina-genre-done {
+  margin-top: 0.2rem;
+}
+
+/* Gerador de ideias: um cartão que se sorteia de novo, peça por peça. */
+.oficina-ideas {
+  margin-top: 1.6rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(500px 200px at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    var(--surface);
+  animation: oficina-rise 0.5s 0.1s ease-out both;
+}
+
+.oficina-ideas-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.oficina-ideas-top .oficina-h {
+  margin: 0;
+}
+
+.oficina-idea {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.oficina-idea > div {
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  animation: oficina-flip 0.45s calc(var(--i) * 0.08s) ease-out both;
+  transform-origin: top center;
+}
+
+/* Cada peça da ideia vira como uma carta. */
+@keyframes oficina-flip {
+  from {
+    opacity: 0;
+    transform: perspective(600px) rotateX(-75deg);
+  }
+}
+
+.oficina-idea dt {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.oficina-idea dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-text);
+  font-size: 1.02rem;
+  line-height: 1.4;
+}
+
+.oficina-ideas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.oficina-dice {
+  animation: oficina-roll 0.5s ease-out;
+}
+
+@keyframes oficina-roll {
+  from {
+    transform: rotate(-200deg) scale(0.7);
+  }
+}
+
+/* Exercícios: marcar como feito. */
+.oficina-ex-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.oficina-ex .oficina-ex-actions .btn-primary {
+  margin-top: 0;
+}
+
+.oficina-done-btn.is-on {
+  color: var(--ok);
+}
+
+.oficina-ex li.is-done {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--line));
+}
+
 /* Aparece ao rolar. */
 [data-reveal] {
   opacity: 0;
