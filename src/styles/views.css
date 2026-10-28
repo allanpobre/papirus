@@ -4880,3 +4880,206 @@ button.arc-dot {
 .play-medal-emoji {
   font-size: 1.5rem;
 }
+
+/* Fichas: alternar entre ler e editar. */
+.mode-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.mode-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+.mode-switch button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+
+/* Fichas: a página de leitura, como uma enciclopédia do mundo. */
+.entity-reader {
+  gap: 1.1rem;
+}
+.reader-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.reader-head-space {
+  flex: 1;
+}
+.reader-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.reader-title .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+.reader-title h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.reader-lede {
+  margin: 0.3rem 0 0;
+  max-width: 40em;
+  font-family: var(--font-text);
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.reader-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 290px);
+  grid-template-areas: 'text box';
+  gap: 2rem;
+  align-items: start;
+}
+.reader-text {
+  grid-area: text;
+  min-width: 0;
+  max-width: 40em;
+  font-family: var(--font-text);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+.reader-text > p {
+  margin: 0 0 1em;
+}
+.reader-text section {
+  margin-top: 1.6rem;
+}
+.reader-text h2 {
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.3rem;
+}
+.reader-text ul,
+.reader-text ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+.reader-text li + li {
+  margin-top: 0.35rem;
+}
+.reader-text .appearances {
+  padding-left: 0;
+  font-family: var(--font-ui, inherit);
+}
+.reader-text .mini-timeline {
+  padding-left: 0.9rem;
+}
+.reader-text .secret-mark svg {
+  vertical-align: -1px;
+}
+.reader-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.reader-link:hover {
+  text-decoration-color: currentColor;
+}
+.reader-infobox {
+  grid-area: box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface-2);
+  font-size: 0.9rem;
+}
+.reader-infobox dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.reader-infobox dt,
+.reader-infobox-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.reader-infobox dd,
+.reader-infobox p {
+  margin: 0.1rem 0 0;
+}
+.reader-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.reader-pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 48%;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m, 10px);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+}
+.reader-pager-btn > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.reader-pager-btn strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reader-pager-btn.is-next {
+  margin-left: auto;
+  text-align: right;
+}
+.reader-pager-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+@media (max-width: 860px) {
+  .reader-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'box' 'text';
+    gap: 1.2rem;
+  }
+}

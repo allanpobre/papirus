@@ -1,9 +1,7 @@
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, Plus, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, PenLine, Plus, Trash2, X } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { factSentence } from '../logic/codex'
-import { MentionMatcher } from '../logic/detection'
-import { mentionIdsInDoc } from '../logic/doc'
 import { fold, snippet } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
 import { RelationDetails } from './RelationDetails'
@@ -22,7 +20,10 @@ import {
   remove,
   removeEntity,
 } from '../model/universe'
+import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
+import { appearancesOf } from '../logic/appearances'
+import { EntityReader } from './EntityReader'
 import { CanonBadge, CanonSelect, EditorialBadge, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
 import { Fold } from '../ui/Fold'
 import { ArcCard } from './ArcCard'
@@ -33,7 +34,13 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
 
 export default function EntitiesView() {
-  const { universe, update, nav, go } = useWorkspace()
+  const { universe, update, nav, go, readOnly } = useWorkspace()
+  // Ler ou editar: a escolha fica lembrada; quem só pode ler, lê.
+  const [mode, setMode] = useState<'ler' | 'editar'>(() => (readOnly || recall('ficha-modo') === 'ler' ? 'ler' : 'editar'))
+  const changeMode = (m: 'ler' | 'editar') => {
+    setMode(m)
+    remember('ficha-modo', m)
+  }
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState<string>('todos')
   const [newName, setNewName] = useState('')
@@ -120,7 +127,11 @@ export default function EntitiesView() {
 
       <section className="split-detail" aria-label="Ficha">
         {selected ? (
-          <EntityDetail key={selected.id} entity={selected} />
+          mode === 'ler' || readOnly ? (
+            <EntityReader key={selected.id} entity={selected} order={list} modeSwitch={!readOnly && <ModeSwitch mode="ler" onChange={changeMode} />} />
+          ) : (
+            <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" onChange={changeMode} />} />
+          )
         ) : (
           <Empty icon={<BookMarked size={32} />} title="Escolha uma ficha">
             <p>Fichas podem ser mínimas: um nome basta. O resto vem quando for útil.</p>
@@ -131,7 +142,21 @@ export default function EntitiesView() {
   )
 }
 
-function EntityDetail({ entity: e }: { entity: Entity }) {
+/** Alternar entre ler a ficha como uma página e editá-la. */
+function ModeSwitch({ mode, onChange }: { mode: 'ler' | 'editar'; onChange: (m: 'ler' | 'editar') => void }) {
+  return (
+    <div className="mode-switch" role="group" aria-label="Modo da ficha">
+      <button type="button" aria-pressed={mode === 'ler'} onClick={() => onChange('ler')}>
+        <BookOpen size={15} aria-hidden="true" /> Ler
+      </button>
+      <button type="button" aria-pressed={mode === 'editar'} onClick={() => onChange('editar')}>
+        <PenLine size={15} aria-hidden="true" /> Editar
+      </button>
+    </div>
+  )
+}
+
+function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: React.ReactNode }) {
   const { universe, update, go, peek, undoable } = useWorkspace()
   const [factFor, setFactFor] = useState<boolean>(false)
   const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
@@ -146,21 +171,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
   const events = universe.events.filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id).sort((a, b) => a.year - b.year)
   const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id))
 
-  const appearances = useMemo(() => {
-    const matcher = new MentionMatcher([e])
-    return manuscriptOrder(universe)
-      .map((s) => {
-        const found = matcher.find(s.text)
-        const roles = [
-          s.povId === e.id && 'POV',
-          s.presentIds.includes(e.id) && 'presente',
-          s.placeId === e.id && 'local',
-          (found.length > 0 || mentionIdsInDoc(s.doc).has(e.id)) && 'mencionado',
-        ].filter(Boolean) as string[]
-        return { scene: s, roles, found }
-      })
-      .filter((a) => a.roles.length > 0)
-  }, [universe, e])
+  const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
 
   return (
     <article className="entity">
@@ -179,6 +190,7 @@ function EntityDetail({ entity: e }: { entity: Entity }) {
             <EditorialBadge editorial={e.editorial} />
           </div>
         </div>
+        {modeSwitch}
         <ConfirmButton
           className="btn-icon"
           title="Apagar ficha"
