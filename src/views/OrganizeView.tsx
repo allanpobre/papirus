@@ -8,6 +8,7 @@ import { byId, entityName, manuscriptOrder, moveScene, placeScene, updateScene }
 import { countWords } from '../persistence/repository'
 import { useWorkspace } from '../state/workspace'
 import { Empty, Select } from '../ui/bits'
+import { PageHelp } from '../ui/PageTour'
 
 type Tab = 'quadro' | 'presenca' | 'ritmo'
 
@@ -19,6 +20,7 @@ export default function OrganizeView() {
     <div className="view organize-view">
       <header className="view-head view-head-wide">
         <h1>Estrutura</h1>
+        <PageHelp tour="organizar" />
         <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys}>
           {(
             [

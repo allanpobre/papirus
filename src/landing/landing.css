@@ -3584,9 +3584,16 @@ body,
   text-underline-offset: 3px;
 }
 
-.lp-mini-cand {
-  font-style: normal;
-  border-bottom: 1.5px dashed var(--ochre-line);
+.lp-mini-review {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.3rem 0.2rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.74rem !important;
+  font-weight: 650;
 }
 
 .lp-mini-caret {
@@ -3600,7 +3607,6 @@ body,
 }
 
 .lp-mini-chip {
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;

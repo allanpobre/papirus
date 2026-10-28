@@ -9,6 +9,7 @@ import { CanonBadge, CanonSelect, Empty, Field, Select, YearInput } from '../ui/
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityMultiPicker, EntityPicker } from '../ui/EntityPicker'
 import { Modal } from '../ui/Modal'
+import { PageHelp } from '../ui/PageTour'
 
 export default function TimelineView() {
   const { universe, update, nav, go, undoable } = useWorkspace()
@@ -71,6 +72,7 @@ export default function TimelineView() {
     <div className="view timeline-view">
       <header className="view-head view-head-wide">
         <h1>Linha do tempo</h1>
+        <PageHelp tour="timeline" />
         <form className="quick-create" onSubmit={create}>
           <label htmlFor="novo-evento" className="sr-only">
             Novo evento

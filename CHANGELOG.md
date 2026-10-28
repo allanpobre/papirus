@@ -1,5 +1,13 @@
 # Novidades
 
+## 1.2.0 — 28 de outubro de 2026
+
+**Ajuda em cada tela.** No alto de cada tela há um botão (?) que mostra, parte por parte, como aquela tela funciona: destaca cada pedaço e explica para que serve, sem mexer em nada. Vale para todas as áreas do universo, cada aba da mesa, o início do app (Escrita, RPG e Oficina), os guias da Oficina, o treino, o modo leitor, a diagramação do livro e o Codex dos jogadores.
+
+- O tour do Escrever e o tour principal explicam os nomes novos: o Papirus não os marca no texto; o botão Revisar, na margem, conta quantos nomes com maiúscula ainda não têm ficha e abre a lista para criar a ficha, juntar como apelido ou ignorar. No celular, a margem abre pelo botão no alto da página.
+- O tour principal termina mostrando o (?).
+- Na apresentação, a telinha do primeiro passo da escrita mostra os nomes novos como o app mostra: no botão Revisar, sem marca no texto.
+
 ## 1.1.0 — 28 de outubro de 2026
 
 A mesa agora corre nos dois sentidos: o mestre faz as contas do combate, e os jogadores rolam pelo celular.

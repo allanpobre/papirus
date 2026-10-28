@@ -11,6 +11,7 @@ import { ShelfPublish } from '../social/ShelfPublish'
 import { SocialDialog } from '../social/SocialDialog'
 import { useShelfStatus } from '../social/useShelfSync'
 import { BookCard } from './BookCard'
+import { PageHelp } from '../ui/PageTour'
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
 
@@ -49,6 +50,7 @@ export default function BookView() {
     <div className="view book-view">
       <header className="view-head">
         <h1>Livros</h1>
+        <PageHelp tour="livro" />
         {!readOnly && (
           <button
             type="button"
@@ -198,7 +200,7 @@ export default function BookView() {
           <p className="book-hero-spec small">
             {PAGE_SIZES[book.pageSize].label.replace(/ \(.*/, '')} · {BOOK_FONTS[BODY_FONT_KEY[book.bodyFont]].label} · capítulos em estilo {STYLE_LABEL[book.chapterStyle]}
           </p>
-          <div className="book-hero-actions">
+          <div className="book-hero-actions" data-tour="livro-acoes">
             {!readOnly && (
               <button type="button" className="btn btn-primary btn-lg" disabled={!hasText} onClick={() => openBookDesigner(book.id)}>
                 <Printer size={18} /> Diagramar e gerar PDF

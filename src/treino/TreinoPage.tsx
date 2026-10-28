@@ -8,6 +8,7 @@ import { wordCount } from '../persistence/repository'
 import { recall, remember } from '../state/prefs'
 import { celebrate } from '../ui/Confetti'
 import { useBackLayer } from '../ui/useBackLayer'
+import { PageHelp } from '../ui/PageTour'
 import {
   addTreino,
   attemptsOf,
@@ -251,6 +252,7 @@ export function TreinoPage({
             <span className="treino-brand">
               <Timer size={18} aria-hidden="true" /> Treino de escrita
             </span>
+            {phase === 'preparar' && <PageHelp tour="treino" />}
             <button type="button" className="btn-icon" aria-label="Fechar o treino" onClick={onClose}>
               <X size={18} />
             </button>

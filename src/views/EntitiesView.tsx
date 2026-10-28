@@ -34,6 +34,7 @@ import { SecretTextarea } from '../ui/SecretText'
 import { RevealPicker } from '../ui/RevealPicker'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
+import { PageHelp } from '../ui/PageTour'
 
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly } = useWorkspace()
@@ -83,6 +84,7 @@ export default function EntitiesView() {
       <section className="split-list" aria-label="Lista de fichas">
         <header className="view-head">
           <h1>Fichas</h1>
+          <PageHelp tour="fichas" />
           <span className="muted">{universe.entities.length}</span>
         </header>
         <form className="quick-create" onSubmit={create}>

@@ -11,6 +11,7 @@ import { useBackLayer } from '../ui/useBackLayer'
 import type { BookDesign } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
+import { PageHelp } from '../ui/PageTour'
 
 type Key = keyof BookDesign
 
@@ -232,6 +233,7 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
             {pages === null ? 'paginando…' : `${pages} páginas`}
           </span>
         </div>
+        <PageHelp tour="diagramar" />
         <button type="button" className="btn btn-sm btn-ghost book-panel-toggle" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
           {panelOpen ? 'Ver páginas' : 'Opções'}
         </button>

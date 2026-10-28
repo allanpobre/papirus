@@ -15,6 +15,7 @@ import { docFromParagraphs } from '../model/doc'
 import { guessGuide, tipOfTheDay } from '../oficina/guides'
 import { ALL_ITEMS } from '../shell/nav'
 import { useWorkspace, type View } from '../state/workspace'
+import { PageHelp } from '../ui/PageTour'
 
 const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -100,9 +101,12 @@ export default function HomeView() {
           <p className="eyebrow">
             {greeting()} · {todayLabel}
           </p>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => void closeUniverse()}>
-            <Library size={15} /> Seus universos
-          </button>
+          <span className="home-top-actions">
+            <PageHelp tour="inicio" />
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => void closeUniverse()}>
+              <Library size={15} /> Seus universos
+            </button>
+          </span>
         </div>
         <h1>{universe.name || 'Sem nome'}</h1>
         {universe.description && <p className="home-desc">{universe.description}</p>}

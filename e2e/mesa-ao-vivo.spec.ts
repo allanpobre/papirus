@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { fakeRealtime } from './fakeRealtime.ts'
+import { runPageTour } from './pageTour.ts'
 import { expect, test, type BrowserContext, type Page } from './fixtures.ts'
 
 const SERVER = 'https://papirus-teste.supabase.co'
@@ -127,6 +128,9 @@ test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', 
   await taren.getByRole('region', { name: 'Quem é você na mesa?' }).getByRole('button', { name: 'Taren' }).click()
   await expect(taren.getByRole('status').filter({ hasText: 'Sua vez, Taren!' })).toBeVisible()
   await expect(taren.locator('.player-live')).toHaveText(/ao vivo/)
+  // O (?) do Codex explica o que o jogador vê e como rola.
+  const ajuda = await runPageTour(taren, 'Codex')
+  expect(ajuda.filter((s) => s.spot).map((s) => s.title)).toEqual(expect.arrayContaining(['Ao vivo', 'Combate', 'O grupo', 'Rolar']))
 
   // Ilmar, em outra aba (o mesmo aparelho lembra quem é: aqui ele troca), só acompanha.
   const ilmar = await context.newPage()

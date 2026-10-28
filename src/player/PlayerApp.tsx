@@ -6,6 +6,7 @@ import { recall, remember } from '../state/prefs'
 import { PlayerTable, type FeedRoll } from './PlayerTable'
 import { CodexDoc } from '../views/rpg/CodexDoc'
 import { useMesaSector } from '../rpg/useMesaSector'
+import { PageHelp } from '../ui/PageTour'
 import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../styles/mesa.css'
@@ -106,6 +107,7 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
         <span className={`player-live${live ? ' on' : ''}`} title={live ? 'Recebendo na hora' : 'Atualiza a cada 20 segundos'}>
           <Radio size={13} aria-hidden="true" /> {live ? 'ao vivo' : 'atualiza sozinho'}
         </span>
+        <PageHelp tour="codex-jogador" />
         <button type="button" className="btn-icon" aria-label={dark ? 'Tema claro' : 'Tema escuro'} onClick={toggleTheme}>
           {dark ? <Sun size={16} /> : <Moon size={16} />}
         </button>

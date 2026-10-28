@@ -61,6 +61,7 @@ import { ManuscriptTree } from './ManuscriptTree'
 import { ReadingMode } from './ReadingMode'
 import { ReviewDialog } from './ReviewDialog'
 import { VersionsDialog } from './VersionsDialog'
+import { PageHelp } from '../../ui/PageTour'
 
 type Dialog =
   | { kind: 'link'; sel: SelectionInfo }
@@ -289,6 +290,7 @@ export default function WriteView() {
             {scene.date && <span className="muted small">· {formatDate(universe, scene.date)}</span>}
           </div>
           <div className="write-bar-actions">
+            <PageHelp tour="escrever" />
             <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
               <SlidersHorizontal size={15} /> Detalhes da cena
             </button>

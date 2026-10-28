@@ -1,6 +1,6 @@
 # Papirus
 
-**Versão 1.1.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
+**Versão 1.2.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
 
 Escrita, mesa de RPG e oficina num app só. Para quem escreve histórias, mestra campanhas e constrói mundos.
 
@@ -14,7 +14,7 @@ O app abre num início com três setores. Cada um tem a sua cara (cores, letras 
 
 ### Escrita
 
-- **Editor de cenas** limpo, com modo foco, máquina de escrever, som de teclas e meta do dia. Os nomes das fichas aparecem sublinhados; nomes novos viram sugestão, nunca ficha sozinhos.
+- **Editor de cenas** limpo, com modo foco, máquina de escrever, som de teclas e meta do dia. Os nomes das fichas aparecem sublinhados; os nomes novos aparecem contados no botão Revisar da margem, como sugestão, e nunca viram ficha sozinhos.
 - **Selecione e guarde:** um trecho vira ficha, fato (com quem disse e se é verdade), comentário ou ideia.
 - **O mundo:** fichas de qualquer tipo (com retrato e leitura como enciclopédia), relações em grafo, linha do tempo com calendário próprio e atlas sobre a imagem do seu mapa.
 - **Trama:** pistas e mistérios, quem sabe o quê, segredos e trechos que o leitor só vê a partir de certa cena.
@@ -51,6 +51,8 @@ Perfil com @, amigos, estante (cada livro decide quem lê: só você, amigos ou 
 - **Perguntar ao mundo (opcional):** perguntas sobre a sua lore com a API do Claude, usando a sua chave. Só vai o que for relevante, e você vê o que será enviado.
 
 Todas as automações podem ser desligadas em **Ajustes e dados**, e o menu esconde o que você não usa.
+
+**Ajuda:** um tour rápido ou completo na primeira vez, e em cada tela um botão (?) que explica aquela tela, parte por parte.
 
 ## Conta e nuvem (opcional)
 

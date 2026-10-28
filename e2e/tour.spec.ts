@@ -13,7 +13,7 @@ test('tour na primeira vez: destaca as partes, pode ser pulado e refeito', async
   expect(violations.map((v) => v.id)).toEqual([])
 
   await tour.getByRole('button', { name: 'Rápido' }).click()
-  await expect(page.getByRole('dialog', { name: 'O menu' })).toContainText('1 de 12')
+  await expect(page.getByRole('dialog', { name: 'O menu' })).toContainText('1 de 13')
   await expect(page.locator('.tour-spot')).toBeVisible()
   await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('dialog', { name: 'Seus universos' })).toBeVisible()
@@ -42,9 +42,9 @@ test('tour na primeira vez: destaca as partes, pode ser pulado e refeito', async
   for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('dialog', { name: 'Relações' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Relações' }).first()).toBeVisible()
-  for (let i = 0; i < 30 && !(await page.getByRole('button', { name: 'Começar' }).count()); i++) await page.keyboard.press('ArrowRight')
+  for (let i = 0; i < 30 && !(await page.getByRole('button', { name: 'Começar', exact: true }).count()); i++) await page.keyboard.press('ArrowRight')
   await expect(page.getByRole('dialog', { name: 'Pronto!' })).toBeVisible()
-  await page.getByRole('button', { name: 'Começar' }).click()
+  await page.getByRole('button', { name: 'Começar', exact: true }).click()
   await expect(page.locator('.tour')).toHaveCount(0)
 })
 

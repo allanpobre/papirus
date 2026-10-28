@@ -34,6 +34,7 @@ import { GUIDES, sectionOf, tipOfTheDay, type Guide, type GuideId, type GuideSec
 import { rollIdea, type Idea, type IdeaMode } from './ideas'
 import { useOficinaSector } from './useOficinaSector'
 import { exerciseKey, markRead, toggleDone, useOficinaProgress } from './progress'
+import { PageHelp } from '../ui/PageTour'
 
 /** Cor e ícone de cada gênero (a capa da Oficina e o topo de cada guia). */
 const LOOK: Record<GuideId, { icon: LucideIcon; color: string }> = {
@@ -128,6 +129,7 @@ export function OficinaPage({
               <GraduationCap size={18} aria-hidden="true" /> Oficina
             </span>
           )}
+          <PageHelp key={guide ? 'guia' : 'capa'} tour={guide ? 'oficina-guia' : 'oficina'} className="oficina-help" />
           <button type="button" className="btn-icon" aria-label="Fechar a Oficina" onClick={close}>
             <X size={18} />
           </button>

@@ -2138,3 +2138,33 @@ body:has(.rail-phone) .toasts {
 .hub-note {
   margin: -0.3rem 0 0.7rem;
 }
+
+/* O (?) de cada tela: abre o tour só dela. Discreto, perto do título. */
+.page-help {
+  flex: none;
+  align-self: center;
+  color: var(--muted);
+}
+
+.page-help:hover,
+.page-help:focus-visible {
+  color: var(--accent);
+}
+
+.view-head-wide > h1:has(+ .page-help) {
+  margin-right: 0;
+}
+
+.view-head-wide > .page-help {
+  margin-right: auto;
+}
+
+.home-top-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.oficina-help {
+  margin-left: auto;
+}

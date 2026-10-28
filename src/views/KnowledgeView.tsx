@@ -12,6 +12,7 @@ import { CanonBadge, EditorialBadge, Empty, Field, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
+import { PageHelp } from '../ui/PageTour'
 
 type Tab = 'fatos' | 'leitor' | 'pov' | 'divergencias'
 
@@ -21,6 +22,7 @@ export default function KnowledgeView() {
     <div className="view knowledge-view">
       <header className="view-head view-head-wide">
         <h1>Quem sabe o quê</h1>
+        <PageHelp tour="conhecimento" />
         <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys}>
           {(
             [

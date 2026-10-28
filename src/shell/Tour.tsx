@@ -3,6 +3,7 @@ import { useBackLayer } from '../ui/useBackLayer'
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
+import { findTarget, placeCard } from '../ui/tourLayout'
 
 /** Um passo do tour: o que destacar (seletor) e o que dizer. Sem alvo, o balão fica no centro. */
 interface Step {
@@ -28,12 +29,18 @@ const QUICK: Step[] = [
     title: 'Escrever',
     body: 'Escreva aqui. Nomes de fichas ficam sublinhados. Selecione um trecho e aparece uma barra para criar ficha, guardar um fato ou comentar. Nada vira ficha sozinho.',
   },
-  { target: '[data-tour="margem"]', view: 'escrever', title: 'A margem', body: 'Mostra quem aparece no parágrafo, nomes novos que talvez mereçam ficha e perguntas de continuidade. Dá para fechar.' },
+  {
+    target: '[data-tour="margem"]',
+    view: 'escrever',
+    title: 'A margem',
+    body: 'Mostra quem aparece no parágrafo, comentários e perguntas de continuidade. E os nomes novos: o Papirus não os marca no texto; o botão Revisar, aqui na margem, conta quantos nomes com maiúscula ainda não têm ficha (“1 nome novo”) e abre a lista para criar a ficha, juntar como apelido ou ignorar. No celular, a margem abre pelo botão no alto da página.',
+  },
   { target: '[data-tour="nav-fichas"]', title: 'Fichas', body: 'Personagens, lugares, facções, objetos e o que mais você inventar. Com retrato, segredos, campos livres e relações. Dá para ler como uma página de enciclopédia.' },
   { target: '[data-tour="nav-livro"]', title: 'Livro', body: 'Quando quiser ver o livro pronto: você escolhe a capa, o Papirus diagrama e gera o PDF. Também exporta Word e EPUB.' },
   { target: '[data-tour="nav-oficina"]', title: 'Oficina', body: 'Dicas de escrita por gênero, livros para estudar, curiosidades e exercícios que viram cena. Abre numa página à parte.' },
   { target: '[data-tour="conta"]', title: 'Conta (opcional)', body: 'Sem conta, tudo fica neste navegador. Com conta, seus universos aparecem em todos os seus aparelhos, e você ganha perfil, amigos e desafios.' },
   { target: '[data-tour="salvo"]', title: 'Salvo sozinho', body: 'Cada mudança é salva na hora. Daqui a uma semana, o Papirus lembra você de fazer um backup.' },
+  { target: '[data-tour="ajuda"]', view: 'inicio', title: 'Ajuda em cada tela', body: 'Este (?) aparece no alto de cada tela. Ele mostra, parte por parte, como aquela tela funciona.' },
   { title: 'Pronto!', body: 'É isso. Comece por “Continuar escrevendo” no Início. Quando tiver um tempinho, faça o tour completo: ele mostra cada área.' },
 ]
 
@@ -78,21 +85,12 @@ const DEEP: Step[] = [
   QUICK[9],
   { target: '[data-tour="nav-config"]', title: 'Ajustes', body: 'Aparência (tema, cor, fonte de máquina de escrever, som ao digitar), calendário, metas, menu e backup. Tem busca: escreva “tema” ou “backup”.' },
   QUICK[10],
-  { title: 'Pronto!', body: 'Agora você conhece tudo. Nada disso é obrigatório: use só o que ajudar a sua história.' },
+  QUICK[11],
+  { title: 'Pronto!', body: 'Agora você conhece tudo. Nada disso é obrigatório: use só o que ajudar a sua história. E em cada tela, o (?) explica só ela.' },
 ]
 
 export type TourMode = 'rapido' | 'completo'
 
-const GAP = 12
-const CARD_W = 330
-
-function findTarget(step: Step): HTMLElement | null {
-  if (!step.target) return null
-  const el = document.querySelector<HTMLElement>(step.target)
-  if (!el) return null
-  const r = el.getBoundingClientRect()
-  return r.width > 0 && r.height > 0 ? el : null
-}
 
 export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; onClose: () => void; hidden?: View[] }) {
   const [mode, setMode] = useState<TourMode | null>(null)
@@ -132,7 +130,7 @@ export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; 
     let tries = 0
     let frame = 0
     const locate = () => {
-      const el = findTarget(step)
+      const el = findTarget(step.target)
       if (!el && step.target) {
         if (tries++ < 20) {
           frame = window.setTimeout(locate, 50)
@@ -152,7 +150,7 @@ export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; 
 
   useEffect(() => {
     const onResize = () => {
-      const el = findTarget(step)
+      const el = findTarget(step.target)
       setRect(el ? el.getBoundingClientRect() : null)
     }
     addEventListener('resize', onResize)
@@ -178,26 +176,9 @@ export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; 
     return () => removeEventListener('keydown', onKey)
   }, [index, move, finish, mode, choose, STEPS.length])
 
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  const w = Math.min(CARD_W, vw - 24)
-  let pos: { left: number; top: number }
   // Só a área (sem alvo): o balão fica embaixo, para a área aparecer atrás.
   const docked = !rect && Boolean(step.view)
-  if (docked) {
-    pos = { left: (vw - w) / 2, top: vh - cardH - 16 }
-  } else if (!rect) {
-    pos = { left: (vw - w) / 2, top: Math.max(12, (vh - cardH) / 2) }
-  } else if (rect.right + GAP + w < vw - 12 && rect.width < vw / 2) {
-    pos = { left: rect.right + GAP, top: rect.top + rect.height / 2 - cardH / 2 }
-  } else if (rect.bottom + GAP + cardH < vh - 12) {
-    pos = { left: rect.left + rect.width / 2 - w / 2, top: rect.bottom + GAP }
-  } else if (rect.top - GAP - cardH > 12) {
-    pos = { left: rect.left + rect.width / 2 - w / 2, top: rect.top - GAP - cardH }
-  } else {
-    pos = { left: (vw - w) / 2, top: Math.max(12, vh - cardH - 12) }
-  }
-  pos = { left: Math.max(12, Math.min(pos.left, vw - w - 12)), top: Math.max(12, Math.min(pos.top, vh - cardH - 12)) }
+  const { width: w, ...pos } = placeCard(rect, cardH, docked)
 
   const last = index === STEPS.length - 1
   const pad = 6
