@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/react'
+import { useBackLayer } from '../../ui/useBackLayer'
 import {
   BookOpen,
   Download,
@@ -89,6 +90,9 @@ export default function WriteView() {
   const [narrowMargin, setNarrowMargin] = useState(false)
   const marginVisible = narrow ? narrowMargin : prefs.margin
   const [metaOpen, setMetaOpen] = useState(false)
+  // No celular, o manuscrito abre por cima do texto: o "voltar" do aparelho fecha. O modo foco também sai com "voltar".
+  useBackLayer(() => setTreeOpen(false), phone && treeOpen && !focus)
+  useBackLayer(() => setFocus(false), focus)
   // Muda quando o texto da cena é trocado por fora (ex.: voltar a uma versão), para remontar o editor.
   const [editorNonce, setEditorNonce] = useState(0)
   const [focusedComment, setFocusedComment] = useState<string | null>(null)

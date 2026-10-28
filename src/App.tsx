@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { isOutdatedSample, sampleFor, sampleUniverse } from './model/sample'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
@@ -13,6 +13,7 @@ import { WorkspaceShell } from './shell/WorkspaceShell'
 import { accountServer, startAccount, useAccount } from './account/auth'
 import { syncLibrary } from './account/useCloud'
 import { recall, remember, usePrefs } from './state/prefs'
+import { backState, leavePage, navigateTo, onBackNavigate } from './shell/backStack'
 
 interface Opened {
   universe: Universe
@@ -63,6 +64,7 @@ export default function App() {
     try {
       const sb = await authClient(account.server)
       const { universe, stamp } = await openShared(sb, item)
+      navigateTo({ u: universe.id })
       setOpened({
         universe,
         recovered: false,
@@ -75,7 +77,15 @@ export default function App() {
     }
   }, [account.server])
 
-  const open = useCallback(async (lib: Library, id: string) => {
+  /** Abre um universo. `step`: novo passo no "voltar" (vindo da lista), troca o atual (ao iniciar) ou nenhum (veio do próprio "voltar"). */
+  // "Voltar" do aparelho entre a lista de universos e um universo (dentro do universo, quem cuida é a área de trabalho).
+  const openedId = opened?.universe.id ?? null
+  const openedRef = useRef<string | null>(null)
+  useEffect(() => {
+    openedRef.current = openedId
+  }, [openedId])
+
+  const open = useCallback(async (lib: Library, id: string, step: 'novo' | 'trocar' | 'nenhum' = 'novo') => {
     try {
       const repo = lib.repository(id)
       let universe = await repo.load()
@@ -87,6 +97,7 @@ export default function App() {
         await lib.touch(universe)
       }
       remember('ultimo-universo', id)
+      if (step !== 'nenhum') navigateTo({ u: id }, step === 'trocar')
       setOpened({ universe, recovered: repo.recoveredFromEmergency, nonce: Date.now() })
     } catch (err) {
       // Nunca sobrescreve dados que não conseguimos ler.
@@ -136,12 +147,14 @@ export default function App() {
           await lib.repository(sample.id).save(sample)
           await lib.touch(sample)
           setEntries(await lib.list())
-          await open(lib, sample.id)
+          await open(lib, sample.id, 'trocar')
           return
         }
-        const last = recall('ultimo-universo')
+        // O Android fechou o app em segundo plano (ou a página recarregou): volta para o mesmo universo.
+        const back = backState()
+        const last = back.u && list.some((e) => e.id === back.u) ? back.u : recall('ultimo-universo')
         // Link de perfil (?perfil=) mostra a página da pessoa, não o último universo.
-        if (last && list.some((e) => e.id === last) && !new URLSearchParams(location.search).has('perfil')) await open(lib, last)
+        if (last && list.some((e) => e.id === last) && !new URLSearchParams(location.search).has('perfil')) await open(lib, last, 'trocar')
         void requestPersistentStorage()
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err))
@@ -151,6 +164,30 @@ export default function App() {
       cancelled = true
     }
   }, [open])
+
+  // "Voltar" para a lista de universos, ou para outro universo aberto antes.
+  useEffect(() => {
+    if (!library) return
+    return onBackNavigate((p) => {
+      if (p.u === openedRef.current) return
+      if (p.u === null) {
+        remember('ultimo-universo', null)
+        setOpened(null)
+        // A área de trabalho grava o que faltava ao fechar; a lista é lida de novo depois.
+        void refresh(library)
+        setTimeout(() => void refresh(library), 600)
+        return
+      }
+      const id = p.u
+      void library.list().then((list) => {
+        if (list.some((e) => e.id === id)) void open(library, id, 'nenhum')
+        else {
+          setOpened(null)
+          void refresh(library)
+        }
+      })
+    })
+  }, [library, open, refresh])
 
   if (error) {
     return (
@@ -220,10 +257,11 @@ export default function App() {
       prefsApi={prefsApi}
       onClose={async () => {
         if (opened.source?.kind === 'link') {
-          location.href = location.pathname
+          leavePage(location.pathname)
           return
         }
         remember('ultimo-universo', null)
+        navigateTo({ u: null })
         setOpened(null)
         await refresh(library)
       }}

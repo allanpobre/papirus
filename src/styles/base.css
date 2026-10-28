@@ -10,6 +10,12 @@ body,
   height: 100%;
 }
 
+/* Puxar a tela para baixo no topo não recarrega a página no meio da escrita. */
+html,
+body {
+  overscroll-behavior-y: contain;
+}
+
 body {
   margin: 0;
   background: var(--bg);

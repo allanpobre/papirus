@@ -1,4 +1,5 @@
 import { BookMarked, CalendarRange, Dices, Feather, Lightbulb, Plus, Sprout, BookOpen, Search } from 'lucide-react'
+import { useBackLayer } from '../ui/useBackLayer'
 import { useMemo, useState } from 'react'
 import { commands, matchCommands } from './commands'
 import { searchUniverse, type SearchKind, type SearchResult } from '../logic/search'
@@ -28,6 +29,7 @@ const KIND_LABEL: Record<SearchKind, string> = {
 /** Busca em todo o universo (Ctrl/⌘+K). Enter abre; sem resultado, oferece criar ficha. */
 export function SearchPalette({ onClose }: { onClose: () => void }) {
   const ws = useWorkspace()
+  useBackLayer(onClose)
   const { universe, go, update, peek } = ws
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)

@@ -1,4 +1,5 @@
 import { MessageSquarePlus, Send, X } from 'lucide-react'
+import { useBackLayer } from '../ui/useBackLayer'
 import { useEffect, useState } from 'react'
 import { recall, remember } from '../state/prefs'
 
@@ -25,6 +26,7 @@ export function useSelectedQuote(container: React.RefObject<HTMLElement | null>,
 }
 
 export function CommentSheet({ sceneId, sceneTitle, quote, onSend, onClose, signedName }: { sceneId: string; sceneTitle: string; quote: string; onSend: SendComment; onClose: () => void; signedName?: string }) {
+  useBackLayer(onClose)
   const [body, setBody] = useState('')
   const [name, setName] = useState(() => signedName ?? recall('nome-leitor') ?? '')
   const [state, setState] = useState<'escrevendo' | 'enviando' | 'enviado'>('escrevendo')

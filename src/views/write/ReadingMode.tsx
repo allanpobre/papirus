@@ -4,6 +4,7 @@ import { isDialogue } from '../../logic/doc'
 import type { Scene } from '../../model/schema'
 import { recall, remember } from '../../state/prefs'
 import { Picture } from '../../images/Picture'
+import { useBackLayer } from '../../ui/useBackLayer'
 
 interface DocNode {
   type: string
@@ -64,6 +65,7 @@ function inline(n: DocNode): ReactNode {
  * Marcadores ficam guardados neste navegador.
  */
 export function ReadingMode({ title, scenes, startSceneId, onClose }: { title: string; scenes: Scene[]; startSceneId: string; onClose: () => void }) {
+  useBackLayer(onClose)
   const blocks = useMemo(() => toBlocks(scenes), [scenes])
   const [mode, setMode] = useState<'continua' | 'ensaio'>('continua')
   const [step, setStep] = useState(() => Math.max(0, blocks.findIndex((b) => b.sceneId === startSceneId)))

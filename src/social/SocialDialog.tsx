@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { leavePage } from '../shell/backStack'
 import { ArrowLeft, BookOpen, Camera, Check, Cloud, Copy, LogIn, LogOut, RefreshCw, Search, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { authClient, signOut, useAccount } from '../account/auth'
@@ -423,7 +424,7 @@ function AccountPanel({ library, onSynced, onClose }: { library: Library | null;
 
 /** Volta para a página de apresentação (quando o app está em …/app/). */
 function goToLanding() {
-  if (/\/app\/?$/.test(location.pathname)) location.assign(new URL('../', location.href).toString())
+  if (/\/app\/?$/.test(location.pathname)) leavePage(new URL('../', location.href).toString())
 }
 
 export function Avatar({ p, size = 40 }: { p: Pick<Profile, 'avatar' | 'name' | 'handle'>; size?: number }) {
