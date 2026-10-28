@@ -95,7 +95,7 @@ test('sistema próprio: criar do zero, adicionar atributo e testar a fórmula', 
   // A mesa passa a usar o sistema.
   await page.getByRole('tab', { name: 'Painel do mestre' }).click()
   await page.getByRole('combobox', { name: 'Sistema da mesa' }).selectOption({ label: 'Meu sistema' })
-  await expect(page.locator('.rpg-view .view-head')).toContainText('Meu sistema')
+  await expect(page.locator('.rpg-view .mesa-hero')).toContainText('Meu sistema')
 })
 
 test('tabela aleatória sorteia uma das opções', async ({ page }) => {
@@ -119,4 +119,20 @@ test('Codex: revelar uma ligação coloca no mapa dos jogadores, marcada como no
   await page.getByRole('button', { name: 'Revelar', exact: true }).click()
   await expect(codex.getByRole('img', { name: /^Mapa com 5 fichas e 4 ligações/ })).toBeVisible()
   await expect(codex.getByText('Kael protege Homem Pálido')).toBeVisible()
+})
+
+test('a mesa é outro setor: o app muda de clima ao entrar e volta ao sair', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
+  const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  const before = await bg()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^RPG/ }).click()
+  await expect(page.getByRole('heading', { name: 'Mesa de RPG', level: 1 })).toBeVisible()
+  await expect(page.locator('body')).toHaveAttribute('data-sector', 'mesa')
+  expect(await bg()).not.toBe(before)
+  await expect(page.getByRole('tablist', { name: 'Mesa de RPG' }).getByRole('tab')).toHaveCount(7)
+  await page.getByRole('button', { name: 'Voltar à escrita' }).click()
+  await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
+  await expect(page.locator('body')).not.toHaveAttribute('data-sector', 'mesa')
+  expect(await bg()).toBe(before)
 })

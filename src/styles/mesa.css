@@ -1,0 +1,352 @@
+/*
+ * A Mesa de RPG é outro setor do Papirus: ao entrar, o app inteiro muda de clima
+ * (madeira escura, pergaminho, luz de vela) e os títulos ganham letras de pedra.
+ * As cores são as mesmas variáveis do resto do app: tudo se adapta sozinho.
+ */
+body[data-sector='mesa'] {
+  --bg: #15110d;
+  --surface: #1e1914;
+  --surface-2: #272018;
+  --surface-3: #31291f;
+  --inverse-bg: #efe2c8;
+  --inverse-fg: #15110d;
+  --paper: #221c16;
+  --ink: #f2e7d3;
+  --ink-2: #d9c8aa;
+  --muted: #b09f82;
+  --line: #3b3228;
+  --line-strong: #5d4e3d;
+
+  --accent: #e3a94e;
+  --accent-hover: #f2bf6a;
+  --accent-ink: #1a1207;
+  --accent-soft: #3f2f17;
+  --accent-faint: #2b2216;
+
+  --ochre: #e7bd66;
+  --ochre-soft: #3d311b;
+  --ochre-line: #a8833a;
+  --danger: #f09a86;
+  --danger-soft: #42221c;
+  --ok: #9ad18f;
+  --ok-soft: #22331f;
+  --violet: #c7aef2;
+  --violet-soft: #30273f;
+  --wine: #eb9ab7;
+  --wine-soft: #40222f;
+  --sky: #98c4ea;
+  --sky-soft: #1f2e3c;
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 35%);
+  --shadow-2: 0 12px 32px rgb(0 0 0 / 55%), 0 2px 8px rgb(0 0 0 / 35%);
+  --shadow-page: 0 1px 0 rgb(0 0 0 / 25%), 0 18px 44px -20px rgb(0 0 0 / 70%);
+  --font-display: 'Cinzel', 'Young Serif', Georgia, serif;
+
+  color-scheme: dark;
+}
+
+/* O fundo da mesa: madeira escura, com a luz da vela vindo de cima. */
+body[data-sector='mesa'] .shell {
+  background:
+    radial-gradient(90% 60% at 50% -10%, rgb(227 169 78 / 13%), transparent 60%),
+    repeating-linear-gradient(97deg, rgb(255 255 255 / 1.2%) 0 2px, transparent 2px 9px),
+    var(--bg);
+}
+
+body[data-sector='mesa'] .rail {
+  background: linear-gradient(180deg, #1b1611, #15110d);
+  border-color: var(--line);
+}
+
+/* Cabeçalho do setor. */
+.mesa-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(227 169 78 / 16%), transparent 55%),
+    linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%), var(--shadow-1);
+}
+
+.mesa-emblem {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--ochre-line);
+  background: radial-gradient(circle at 35% 30%, #4a3720, #1c1610 70%);
+  color: var(--accent);
+  box-shadow: 0 0 0 4px rgb(227 169 78 / 8%), 0 0 24px rgb(227 169 78 / 18%);
+}
+
+.mesa-hero-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mesa-kicker {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mesa-hero h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-shadow: 0 2px 18px rgb(227 169 78 / 20%);
+}
+
+.mesa-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  margin-top: 0.35rem;
+}
+
+.mesa-system {
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+
+.mesa-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: rgb(227 169 78 / 14%);
+  border: 1px solid rgb(227 169 78 / 35%);
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.mesa-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff9b3d;
+  box-shadow: 0 0 0 0 rgb(255 155 61 / 60%);
+  animation: mesa-ember 1.8s ease-out infinite;
+}
+
+@keyframes mesa-ember {
+  to {
+    box-shadow: 0 0 0 9px rgb(255 155 61 / 0%);
+  }
+}
+
+.mesa-exit {
+  align-self: start;
+}
+
+/* O painel do setor: cada parte da mesa é uma peça grande, com ícone. */
+.mesa-tabs {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+  border: 0;
+  padding: 0;
+  margin: 0.2rem 0 0.4rem;
+}
+
+.mesa-tab.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 74px;
+  padding: 0.65rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  text-align: center;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.mesa-tab.tab svg {
+  color: var(--muted);
+}
+
+.mesa-tab.tab:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.mesa-tab.tab[aria-selected='true'] {
+  border-color: var(--ochre-line);
+  background: linear-gradient(180deg, rgb(227 169 78 / 16%), rgb(227 169 78 / 6%));
+  color: var(--ink);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.mesa-tab.tab[aria-selected='true'] svg {
+  color: var(--accent);
+}
+
+/* Títulos dentro da mesa com a mesma pedra do cabeçalho. */
+.rpg-view .section-title,
+.rpg-view h2 {
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+
+@media (max-width: 900px) {
+  .mesa-tabs {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: -0.2rem;
+    padding: 0 0.2rem 0.2rem;
+  }
+  .mesa-tab.tab {
+    flex: 0 0 auto;
+    min-width: 92px;
+    min-height: 66px;
+  }
+}
+
+@media (max-width: 560px) {
+  .mesa-hero {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 0.9rem;
+    gap: 0.7rem;
+  }
+  .mesa-emblem {
+    width: 44px;
+    height: 44px;
+  }
+  .mesa-exit {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+/* A porta: duas folhas de madeira que se abrem ao entrar. */
+.mesa-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.mesa-gate-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.5%;
+  background:
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 18%) 0 2px, transparent 2px 46px),
+    linear-gradient(180deg, #3a2b1c, #24190f);
+  box-shadow: inset 0 0 60px rgb(0 0 0 / 55%);
+  animation: mesa-door 1.15s cubic-bezier(0.7, 0, 0.2, 1) 0.35s both;
+}
+
+.mesa-gate-left {
+  left: 0;
+  border-right: 2px solid #5a4126;
+}
+
+.mesa-gate-right {
+  right: 0;
+  border-left: 2px solid #5a4126;
+  --dir: 1;
+}
+
+.mesa-gate-left {
+  --dir: -1;
+}
+
+@keyframes mesa-door {
+  to {
+    transform: translateX(calc(var(--dir) * 102%));
+  }
+}
+
+.mesa-gate-sign {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f2e7d3;
+  text-align: center;
+  animation: mesa-sign 1.15s ease 0.15s both;
+}
+
+.mesa-gate-emblem {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1px solid #a8833a;
+  background: radial-gradient(circle at 35% 30%, #4a3720, #1c1610 70%);
+  color: #e3a94e;
+  box-shadow: 0 0 40px rgb(227 169 78 / 35%);
+}
+
+.mesa-gate-title {
+  font-family: 'Cinzel', 'Young Serif', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 6vw, 2.6rem);
+  letter-spacing: 0.08em;
+}
+
+.mesa-gate-sub {
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b09f82;
+}
+
+@keyframes mesa-sign {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mesa-gate {
+    display: none;
+  }
+  .mesa-live-dot {
+    animation: none;
+  }
+}
