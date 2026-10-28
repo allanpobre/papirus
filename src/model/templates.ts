@@ -7,13 +7,18 @@ import { addScene, addStory, draftGroup, draftSeed, draftSession, insert } from 
  * Nada é escrito pelo autor: só estrutura (uma história, a primeira cena), calendário
  * e campos sugeridos por tipo de ficha. Tudo pode ser mudado ou apagado depois.
  */
+/** Escolhas extras na criação (ex.: o sistema da campanha de RPG). */
+export interface TemplateOptions {
+  system?: string
+}
+
 export interface UniverseTemplate {
   id: 'branco' | 'fantasia' | 'ficcao' | 'misterio' | 'realista' | 'rpg'
   label: string
   /** Duas ou três palavras para o cartão. */
   short: string
   hint: string
-  apply: (u: Universe) => Universe
+  apply: (u: Universe, options?: TemplateOptions) => Universe
 }
 
 const months = (names: string[], days = 30) => names.map((name) => ({ name, days }))
@@ -130,11 +135,11 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
     id: 'rpg',
     label: 'Campanha de RPG',
     short: 'Mesa d20 e sessão 1',
-    hint: 'Uma mesa com sistema estilo d20, a sessão 1 e uma tabela de rumores.',
-    apply: (u) => {
+    hint: 'Uma mesa com o sistema escolhido, a sessão 1 e uma tabela de rumores.',
+    apply: (u, options) => {
       u = { ...u, settings: { ...u.settings, calendarSuffix: 'DC', fieldTemplates: { ...FANTASY_FIELDS, personagem: ['Classe', 'Jogador', 'Objetivo', 'Ganchos', 'Segredo'] } } }
       let system
-      ;[u, system] = insert(u, 'systems', systemFromTemplate('d20-5e'))
+      ;[u, system] = insert(u, 'systems', systemFromTemplate(options?.system ?? 'd20-5e'))
       let group
       ;[u, group] = insert(u, 'groups', draftGroup('Minha mesa', system.id))
       ;[u] = insert(u, 'sessions', { ...draftSession(1, group.id), title: 'Sessão 1', prep: 'Onde a história começa? Quem os jogadores encontram primeiro?' })
@@ -145,7 +150,7 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
 ]
 
 /** Aplica o modelo escolhido a um universo novo. */
-export function applyTemplate(u: Universe, id: UniverseTemplate['id']): Universe {
+export function applyTemplate(u: Universe, id: UniverseTemplate['id'], options?: TemplateOptions): Universe {
   const t = UNIVERSE_TEMPLATES.find((x) => x.id === id)
-  return t ? t.apply(u) : u
+  return t ? t.apply(u, options) : u
 }

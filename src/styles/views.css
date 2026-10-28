@@ -5283,3 +5283,82 @@ button.arc-dot {
   border-radius: 10px;
   object-fit: cover;
 }
+
+/* Codex: a ficha de cada personagem, para consultar no celular. */
+.codex-pc-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.codex-pc-head h4,
+.codex-pc-head p {
+  margin: 0;
+}
+.codex-pc-portrait {
+  width: 52px;
+  height: 64px;
+  flex: none;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.codex-pc-vitals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  margin-top: 0.5rem;
+}
+.codex-pc-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 7rem;
+  flex: 1;
+}
+.codex-pc-pool-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+.codex-pc-value {
+  align-self: flex-end;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+.codex-pc-conditions {
+  margin: 0.4rem 0 0;
+  color: var(--danger);
+}
+.codex-pc-more {
+  margin-top: 0.5rem;
+}
+.codex-pc-more summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--accent);
+}
+.codex-pc-more h5 {
+  margin: 0.7rem 0 0.25rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.codex-pc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.92rem;
+}
+.codex-pc-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.codex-pc-abilities li {
+  flex-direction: column;
+}

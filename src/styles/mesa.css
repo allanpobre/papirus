@@ -507,19 +507,65 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
 }
 
 @media (max-width: 560px) {
+  /* No celular, o cabeçalho cabe em pouco espaço: título, mesa e uma linha de botões. */
   .mesa-hero {
     grid-template-columns: auto minmax(0, 1fr);
-    padding: 0.9rem;
-    gap: 0.7rem;
+    padding: 0.7rem 0.8rem;
+    gap: 0.35rem 0.6rem;
   }
   .mesa-emblem {
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
+  }
+  .mesa-emblem svg {
+    width: 20px;
+    height: 20px;
+  }
+  .mesa-kicker {
+    display: none;
+  }
+  .mesa-hero h1 {
+    font-size: 1.45rem;
+  }
+  .mesa-hero-meta {
+    margin-top: 0.1rem;
+    gap: 0.3rem 0.6rem;
   }
   .mesa-actions {
     grid-column: 1 / -1;
-    justify-self: start;
+    justify-self: stretch;
+    flex-wrap: nowrap;
+    align-items: center;
   }
+  .mesa-act-label,
+  .mesa-dice-label {
+    display: none;
+  }
+  .mesa-dice-mode {
+    margin-right: auto;
+  }
+  .mesa-tab.tab {
+    min-height: 56px;
+    padding: 0.45rem 0.4rem;
+    min-width: 84px;
+  }
+}
+
+/* Dano ou cura com valor: o cartão do recurso ocupa a linha toda enquanto pergunta. */
+.sp-pool:has(.sp-pool-adjust) {
+  grid-column: 1 / -1;
+}
+
+.pc-value {
+  margin-left: auto;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.pc-value strong {
+  color: var(--ink);
 }
 
 /* A porta: duas folhas de madeira que se abrem ao entrar. */
@@ -714,4 +760,508 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
 .physical-roll-error {
   color: var(--danger);
   font-size: 0.9rem;
+}
+
+/* ---------------------------------------------------------- Ficha de jogo */
+.sheet-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.sheet-top-space {
+  flex: 1;
+}
+.sp {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.sp-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+.sp-portrait {
+  width: 96px;
+  height: 120px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface-2);
+  color: var(--muted);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.sp-portrait img,
+.sp-portrait .picture-empty {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sp-portrait-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  height: 100%;
+}
+.sp-initial {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--accent);
+}
+.sp-who {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.sp-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.sp-identity {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.sp-player {
+  margin: 0;
+}
+.sp-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+.sp-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.sp-value-abbr {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.sp-value strong {
+  font-size: 1.15rem;
+}
+
+/* Vida e recursos: número grande, − e + do tamanho de um dedo. */
+.sp-pools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+.sp-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.sp-pool-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 0.3rem;
+}
+.sp-pool-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.sp-pool-btn:active {
+  transform: scale(0.94);
+}
+.sp-pool-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.1rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+}
+.sp-pool-abbr {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.sp-pool-num strong {
+  font-size: 1.9rem;
+  line-height: 1.05;
+}
+.sp-pool-num span {
+  color: var(--muted);
+  font-size: 1rem;
+}
+.sp-pool-bar {
+  display: block;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.sp-pool-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+.sp-pool.is-low .sp-pool-bar span {
+  background: var(--danger);
+}
+.sp-pool.is-low strong {
+  color: var(--danger);
+}
+.sp-pool-adjust {
+  display: flex;
+  gap: 0.3rem;
+}
+.sp-pool-adjust .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Condições: só as ativas, e um botão para pôr outra. */
+.sp-conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.sp-condition {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--line));
+  background: var(--danger-soft);
+  color: var(--ink);
+}
+.sp-condition-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-style: dashed;
+}
+.sp-init {
+  align-self: flex-start;
+}
+
+.sp-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.sp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.sp-h {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+}
+.sp-hint {
+  margin-left: 0.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+/* Atributos: peças para tocar e rolar. */
+.sp-attrs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.45rem;
+}
+.sp-attr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.5rem 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.sp-attr:hover,
+.sp-skill:hover,
+.sp-roll:hover {
+  border-color: var(--accent);
+}
+.sp-attr:active,
+.sp-skill:active,
+.sp-roll:active {
+  transform: scale(0.97);
+}
+.sp-attr-abbr {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.sp-attr-value {
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+.sp-attr-mod {
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+/* Perícias: o bônus total à direita, as treinadas em destaque. */
+.sp-toggle {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.sp-toggle button {
+  padding: 0.2rem 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+}
+.sp-toggle button[aria-checked='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.sp-search {
+  position: relative;
+  display: block;
+}
+.sp-search svg {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+.sp-search .input {
+  width: 100%;
+  padding-left: 1.9rem;
+}
+.sp-skills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.35rem;
+}
+.sp-skill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: var(--ink-2);
+  text-align: left;
+}
+.sp-skill.is-trained {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--accent-faint);
+  color: var(--ink);
+  font-weight: 600;
+}
+.sp-skill-name {
+  flex: 1;
+  min-width: 0;
+}
+.sp-skill-attr {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.sp-skill-bonus {
+  min-width: 2.4rem;
+  text-align: right;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Ataques, poderes e itens. */
+.sp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.sp-attack,
+.sp-item,
+.sp-ability {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+}
+.sp-item-name {
+  flex: 1;
+  min-width: 8rem;
+  font-weight: 600;
+}
+.sp-roll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 38px;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sp-roll-damage {
+  color: var(--accent);
+}
+.sp-crit {
+  font-variant-numeric: tabular-nums;
+}
+.sp-remove {
+  color: var(--muted);
+}
+.sp-ability details {
+  flex: 1;
+  min-width: 10rem;
+}
+.sp-ability summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  list-style: none;
+}
+.sp-ability summary::-webkit-details-marker {
+  display: none;
+}
+.sp-cost {
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+.sp-ability-text {
+  margin: 0.35rem 0;
+  white-space: pre-wrap;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+.sp-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.sp-qty .tabular {
+  min-width: 1.6rem;
+  text-align: center;
+  font-weight: 700;
+}
+.sp-add {
+  display: flex;
+  gap: 0.35rem;
+}
+.sp-add .input {
+  flex: 1;
+}
+.sp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* Modo Editar: valores fixos e listas editáveis. */
+.resource-value {
+  grid-template-columns: auto 1fr auto;
+}
+.edit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.edit-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 5rem minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+.edit-list-wide {
+  grid-column: 1 / -2;
+}
+
+@media (max-width: 560px) {
+  .sp-hero {
+    gap: 0.8rem;
+  }
+  .sp-portrait {
+    width: 84px;
+    height: 104px;
+  }
+  .sp-pools {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sp-pool-row {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+  }
+  .sp-pool-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .sp-pool-num strong {
+    font-size: 1.6rem;
+  }
+  .sp-attrs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .edit-list-row {
+    grid-template-columns: minmax(0, 1fr) 4.5rem auto;
+  }
+  .edit-list-row > :nth-child(3),
+  .edit-list-row > :nth-child(4) {
+    grid-column: span 1;
+  }
 }

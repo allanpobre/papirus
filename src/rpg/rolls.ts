@@ -78,6 +78,8 @@ export interface RollOutcome {
   target?: number
   /** Rolado num dado físico (a pessoa disse o que saiu). */
   physical?: boolean
+  /** Margem de crítico do d20 (ataques "19/x2"). */
+  critFrom?: number
   expression: string
   result: DiceRoll
   /** Leitura do resultado conforme o sistema (ex.: "3 sucessos", "Sucesso difícil"). */
@@ -86,11 +88,11 @@ export interface RollOutcome {
 }
 
 /** Rola e interpreta o resultado segundo o modo do sistema. */
-export function resolveRoll(system: GameSystem, label: string, expression: string, target?: number, random?: () => number): RollOutcome {
-  return { ...readRoll(system, label, expression, target, random), name: label, target }
+export function resolveRoll(system: GameSystem, label: string, expression: string, target?: number, random?: () => number, critFrom?: number): RollOutcome {
+  return { ...readRoll(system, label, expression, target, random, critFrom), name: label, target, ...(critFrom && critFrom < 20 ? { critFrom } : {}) }
 }
 
-function readRoll(system: GameSystem, label: string, expression: string, target?: number, random?: () => number): RollOutcome {
+function readRoll(system: GameSystem, label: string, expression: string, target?: number, random?: () => number, critFrom = 20): RollOutcome {
   const result = roll(expression, random)
   if (system.resolution === 'sucessos') {
     const dice = result.parts.flatMap((p) => p.kept)
@@ -122,15 +124,38 @@ function readRoll(system: GameSystem, label: string, expression: string, target?
     label,
     expression: result.expression,
     result,
-    verdict: natural === 20 ? '20 natural' : natural === 1 ? '1 natural' : null,
-    tone: natural === 20 ? 'critico' : natural === 1 ? 'desastre' : 'neutro',
+    verdict: natural === 20 ? '20 natural' : natural !== null && natural >= critFrom ? 'Crítico' : natural === 1 ? '1 natural' : null,
+    tone: natural !== null && natural >= Math.min(20, critFrom) ? 'critico' : natural === 1 ? 'desastre' : 'neutro',
   }
+}
+
+/** A rolagem de uma perícia, já com os valores da ficha (ex.: "1d20+3+2"). */
+export function skillExpression(system: GameSystem, sheet: Sheet, skillId: string): string {
+  const skill = system.skills.find((s) => s.id === skillId)
+  return expandFormula(system.skillFormula, { system, sheet, attributeId: skill?.attributeId, skillValue: sheet.skills[skillId] ?? 0 })
+}
+
+/** A rolagem de um atributo, já com os valores da ficha. */
+export function attributeExpression(system: GameSystem, sheet: Sheet, attributeId: string): string {
+  return expandFormula(system.attributeFormula, { system, sheet, attributeId })
+}
+
+/**
+ * O que mostrar ao lado de uma perícia: com um dado só, o bônus a somar ("+5", o que importa
+ * para quem rola o dado de verdade); com mais dados, a rolagem toda ("3d20kh1+5").
+ */
+export function bonusLabel(expression: string): string {
+  const terms = expression.replace(/\s+/g, '').match(/[+-]?[^+-]+/g) ?? []
+  const dice = terms.filter((t) => /d/i.test(t))
+  if (dice.length !== 1 || !/^\+?1?d\d+$/i.test(dice[0])) return expression
+  const bonus = terms.filter((t) => !/d/i.test(t)).reduce((n, t) => n + Number(t), 0)
+  return bonus >= 0 ? `+${bonus}` : String(bonus)
 }
 
 export function rollSkill(system: GameSystem, sheet: Sheet, skillId: string, random?: () => number): RollOutcome {
   const skill = system.skills.find((s) => s.id === skillId)
   const value = sheet.skills[skillId] ?? 0
-  const expr = expandFormula(system.skillFormula, { system, sheet, attributeId: skill?.attributeId, skillValue: value })
+  const expr = skillExpression(system, sheet, skillId)
   return resolveRoll(system, skill?.name ?? 'Perícia', expr, system.resolution === 'abaixo' ? value : undefined, random)
 }
 
@@ -147,7 +172,7 @@ export function rollInitiative(system: GameSystem, sheet: Sheet | null, random?:
 
 /** Refaz a conta de uma rolagem com o que saiu nos dados físicos. */
 export function physicalRoll(system: GameSystem, o: RollOutcome, faces: number[]): RollOutcome {
-  const out = resolveRoll(system, o.name ?? o.label, o.expression, o.target, physicalRandom(o.expression, faces))
+  const out = resolveRoll(system, o.name ?? o.label, o.expression, o.target, physicalRandom(o.expression, faces), o.critFrom)
   return { ...out, physical: true }
 }
 

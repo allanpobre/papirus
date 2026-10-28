@@ -4,7 +4,7 @@ import { roll } from '../../logic/dice'
 import type { Session } from '../../model/schema'
 import { byId, newId, patch } from '../../model/universe'
 import { rollInitiative } from '../../rpg/rolls'
-import { adjustResource } from '../../rpg/sheets'
+import { adjustResource, isPool } from '../../rpg/sheets'
 import { useWorkspace } from '../../state/workspace'
 import { useRpg } from './rpgContext'
 
@@ -19,7 +19,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
   const [value, setValue] = useState('')
   const list = [...session.initiative].sort((a, b) => b.value - a.value)
   const turn = list.length ? session.turn % list.length : 0
-  const main = system?.resources[0]
+  const main = system?.resources.find(isPool)
   const set = (c: Partial<Session>) => update((u) => patch(u, 'sessions', session.id, c))
 
   const rollFor = (sheetId: string | null) => {
