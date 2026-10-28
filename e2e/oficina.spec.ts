@@ -36,13 +36,16 @@ test('Oficina: página à parte, com o gênero do universo, cartas que viram, ex
 
 test('Oficina também abre pela tela de universos', async ({ page }) => {
   await page.goto('/app/')
-  await page.getByRole('button', { name: 'Oficina de escrita' }).click()
+  // A Oficina é um setor do início, ao lado de Escrita e RPG.
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  await page.getByRole('button', { name: /^Terror/ }).click()
   const oficina = page.getByRole('dialog', { name: 'Oficina' })
-  await oficina.getByRole('button', { name: /^Terror/ }).click()
   await expect(oficina.getByRole('region', { name: 'Experimente' })).toContainText('Abra um universo')
-  await oficina.getByRole('button', { name: 'Fechar a Oficina' }).click()
+  await page.goBack()
   await expect(oficina).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Comece seu primeiro universo' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
 })
 
 test('meta com prazo e calendário de escrita no Início', async ({ page }) => {
@@ -126,12 +129,12 @@ test('Oficina funciona mesmo quando o navegador (ou uma extensão) muda o scroll
     }
   })
   await page.goto('/app/')
-  await page.getByRole('button', { name: 'Oficina de escrita' }).click()
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  await page.getByRole('button', { name: /^Fantasia/ }).click()
   const oficina = page.getByRole('dialog', { name: 'Oficina' })
-  await oficina.getByRole('button', { name: /^Fantasia/ }).click()
   await expect(oficina.getByRole('heading', { name: 'Fantasia', level: 1 })).toBeVisible()
   await page.goBack()
-  await expect(oficina.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
   await expect(page.getByText('O Papirus encontrou um erro.')).toHaveCount(0)
 })
 

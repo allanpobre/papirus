@@ -1,3 +1,4 @@
+import { CAMPAIGN_HIDDEN } from '../model/kind'
 import { todayKey } from '../logic/stats'
 import { InstallButton } from '../ui/InstallButton'
 import { HistoryCard, TrashCard } from './HistoryCards'
@@ -19,7 +20,6 @@ import { Field, Kbd, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { NAV, TOOLS } from '../shell/nav'
 import { daysInYear } from '../logic/calendar'
-import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
 import { playKey, unlockAudio } from '../editor/keySounds'
@@ -191,26 +191,43 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
 {show('menu') && (
         <section className="settings-card">
-          <h2 className="section-title">Áreas do menu</h2>
-          <p className="muted small">Esconda o que você não usa. Tudo continua acessível pela busca, e nada é apagado.</p>
+          <h2 className="section-title">Tipo e menu</h2>
+          <p className="muted small" id="tipo-universo">
+            Este universo é
+          </p>
+          <div className="segmented" role="radiogroup" aria-labelledby="tipo-universo">
+            {(
+              [
+                ['escrita', 'Escrita'],
+                ['campanha', 'Campanha de RPG'],
+              ] as const
+            ).map(([k, label]) => (
+              <button key={k} type="button" role="radio" aria-checked={ws.kind === k} onClick={() => setSetting('kind', k)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="muted small">
+            {ws.kind === 'campanha'
+              ? 'Fica no setor RPG do início e abre na mesa. O menu mostra o que serve para o mestre.'
+              : 'Fica no setor Escrita do início e abre no Início do universo.'}
+          </p>
+          <p className="muted small">Esconda o que você não usa (vale para todos os universos deste tipo). Tudo continua acessível pela busca, e nada é apagado.</p>
           <div className="area-toggles">
             {[...NAV.flatMap((g) => g.items), ...TOOLS].map((item) => (
               <Toggle
                 key={item.view}
                 label={item.label}
-                checked={!prefs.hiddenViews.includes(item.view)}
-                onChange={(v) => setPref('hiddenViews', v ? prefs.hiddenViews.filter((x) => x !== item.view) : [...prefs.hiddenViews, item.view])}
+                checked={!ws.hiddenViews.includes(item.view)}
+                onChange={(v) => ws.setHiddenViews(v ? ws.hiddenViews.filter((x) => x !== item.view) : [...ws.hiddenViews, item.view])}
               />
             ))}
           </div>
           <div className="inline-fields">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPref('hiddenViews', PRESETS.escrita)}>
-              Só escrita
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => ws.setHiddenViews(ws.kind === 'campanha' ? CAMPAIGN_HIDDEN : ['rpg'])}>
+              Voltar ao padrão
             </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPref('hiddenViews', PRESETS.rpg)}>
-              Só RPG
-            </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPref('hiddenViews', [])}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => ws.setHiddenViews([])}>
               Mostrar tudo
             </button>
           </div>
@@ -570,11 +587,6 @@ function formatBytes(n: number): string {
 }
 
 /** Áreas escondidas por perfil de uso. */
-const PRESETS: Record<'escrita' | 'rpg', View[]> = {
-  escrita: ['rpg'],
-  rpg: ['organizar', 'conhecimento', 'livro'],
-}
-
 function CalendarEditor() {
   const { universe, update } = useWorkspace()
   const months = universe.settings.calendarMonths

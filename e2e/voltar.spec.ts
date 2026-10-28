@@ -74,7 +74,7 @@ test('voltar entre a lista de universos e o universo, e reabrir no mesmo lugar',
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await page.getByRole('button', { name: 'Seus universos' }).click()
-  await expect(page.getByRole('heading', { name: 'Seus universos' })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Setores' })).toBeVisible()
   await page.goBack()
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
 

@@ -12,7 +12,8 @@ import { LibraryScreen } from './shell/LibraryScreen'
 import { WorkspaceShell } from './shell/WorkspaceShell'
 import { accountServer, startAccount, useAccount } from './account/auth'
 import { syncLibrary } from './account/useCloud'
-import { recall, remember, usePrefs } from './state/prefs'
+import { remember, usePrefs } from './state/prefs'
+import type { View } from './state/workspace'
 import { backState, leavePage, navigateTo, onBackNavigate } from './shell/backStack'
 
 interface Opened {
@@ -85,7 +86,7 @@ export default function App() {
     openedRef.current = openedId
   }, [openedId])
 
-  const open = useCallback(async (lib: Library, id: string, step: 'novo' | 'trocar' | 'nenhum' = 'novo') => {
+  const open = useCallback(async (lib: Library, id: string, step: 'novo' | 'trocar' | 'nenhum' = 'novo', view?: View) => {
     try {
       const repo = lib.repository(id)
       let universe = await repo.load()
@@ -97,7 +98,7 @@ export default function App() {
         await lib.touch(universe)
       }
       remember('ultimo-universo', id)
-      if (step !== 'nenhum') navigateTo({ u: id }, step === 'trocar')
+      if (step !== 'nenhum') navigateTo(view ? { u: id, view } : { u: id }, step === 'trocar')
       setOpened({ universe, recovered: repo.recoveredFromEmergency, nonce: Date.now() })
     } catch (err) {
       // Nunca sobrescreve dados que não conseguimos ler.
@@ -151,10 +152,10 @@ export default function App() {
           return
         }
         // O Android fechou o app em segundo plano (ou a página recarregou): volta para o mesmo universo.
+        // Abrir o app de novo começa no início, com os setores e o "continuar" de cada um.
         const back = backState()
-        const last = back.u && list.some((e) => e.id === back.u) ? back.u : recall('ultimo-universo')
         // Link de perfil (?perfil=) mostra a página da pessoa, não o último universo.
-        if (last && list.some((e) => e.id === last) && !new URLSearchParams(location.search).has('perfil')) await open(lib, last, 'trocar')
+        if (back.u && list.some((e) => e.id === back.u) && !new URLSearchParams(location.search).has('perfil')) await open(lib, back.u, 'trocar')
         void requestPersistentStorage()
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err))
@@ -217,7 +218,7 @@ export default function App() {
         library={library}
         entries={entries}
         prefs={prefsApi}
-        onOpen={(id) => void open(library, id)}
+        onOpen={(id, view) => void open(library, id, 'novo', view)}
         onCreated={async (u) => {
           await library.repository(u.id).save(u)
           await library.touch(u)

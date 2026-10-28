@@ -321,7 +321,7 @@ test('adota um save da primeira versão do Papirus sem perder o texto', async ({
     )
   })
   await page.goto('/app/')
-  await page.getByRole('button', { name: /^Meu universo/ }).click()
+  await page.getByRole('button', { name: /Meu universo/ }).click()
   // O Início já mostra o trecho; "Continuar escrevendo" abre a cena.
   await expect(page.getByText('Escrito na versão 1.')).toBeVisible()
   await page.getByRole('button', { name: 'Continuar escrevendo' }).click()
