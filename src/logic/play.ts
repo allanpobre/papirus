@@ -81,8 +81,11 @@ export function promptOfTheDay(day = todayKey()): string {
 // ─── Desafios aceitos (por dia): qual cena, em qual universo ─────────────
 
 export interface ChallengeRecord {
-  universeId: string
-  sceneId: string
+  /** Desafio aceito como cena num universo. */
+  universeId?: string
+  sceneId?: string
+  /** Ou feito como treino (sprint), sem universo. */
+  treinoId?: string
   done?: boolean
 }
 

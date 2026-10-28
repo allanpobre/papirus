@@ -2039,7 +2039,7 @@ body:has(.rail-phone) .toasts {
 }
 
 .hub-sector > * {
-  animation: hub-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: hub-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
 }
 
 .hub-sector > :nth-child(2) {
@@ -2108,14 +2108,11 @@ body:has(.rail-phone) .toasts {
 /* Oficina: luz quente de bancada, em ocre. */
 .hub-oficina {
   background:
-    radial-gradient(1000px 460px at 15% -10%, var(--ochre-soft), transparent 65%),
+    radial-gradient(1000px 460px at 15% -10%, var(--accent-soft), transparent 65%),
     var(--bg);
 }
 
-.hub-oficina .hub-tab[aria-current='page'] {
-  background: var(--ochre);
-  color: #fff;
-}
+
 
 /* Mesas no setor RPG: cada cartão com as cores do tema da sua mesa. */
 .library-item.is-themed {

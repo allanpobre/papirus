@@ -1,11 +1,8 @@
-import { useEffect } from 'react'
 // O clima da mesa (cores e letras de pedra) vale onde quer que o setor seja ligado.
 import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../styles/mesa.css'
-
-/** Quantos lugares pedem o clima da mesa agora (a campanha inteira e a tela da mesa). */
-let holders = 0
+import { useSectorClimate } from '../ui/sectorClimate'
 
 /**
  * Entrar na mesa: o app inteiro muda de clima (o tema da mesa, em claro ou escuro), como
@@ -13,24 +10,5 @@ let holders = 0
  * todo fica no clima; a tela da mesa só ajusta o tema do grupo aberto.
  */
 export function useMesaSector(theme: string | null, dark: boolean, enabled = true) {
-  useEffect(() => {
-    if (!enabled) return
-    const b = document.body.dataset
-    b.sector = 'mesa'
-    if (theme) b.mesaTema = theme
-    else delete b.mesaTema
-    b.mesaModo = dark ? 'escuro' : 'claro'
-  }, [theme, dark, enabled])
-  useEffect(() => {
-    if (!enabled) return
-    holders++
-    return () => {
-      holders--
-      if (holders > 0) return
-      const b = document.body.dataset
-      delete b.sector
-      delete b.mesaTema
-      delete b.mesaModo
-    }
-  }, [enabled])
+  useSectorClimate(enabled ? { sector: 'mesa', ...(theme ? { mesaTema: theme } : {}), mesaModo: dark ? 'escuro' : 'claro' } : null)
 }

@@ -1,3 +1,45 @@
+/*
+ * O clima da Oficina: luz âmbar de bancada, em claro ou escuro. Vale para o app inteiro
+ * enquanto a Oficina está aberta (no início do app ou por cima de um universo).
+ */
+body[data-sector='oficina'] {
+  --accent-hover: color-mix(in srgb, var(--accent) 82%, var(--ink));
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  --accent-faint: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  --inverse-bg: var(--ink);
+  --inverse-fg: var(--bg);
+}
+body[data-sector='oficina'][data-oficina-modo='escuro'] {
+  --bg: #13110d;
+  --surface: #1b1813;
+  --surface-2: #221e17;
+  --surface-3: #2c271e;
+  --paper: #1e1a14;
+  --ink: #f3ede2;
+  --ink-2: #d4cab8;
+  --muted: #a39883;
+  --line: #342e24;
+  --line-strong: #50473a;
+  --accent: #eaab3d;
+  --accent-ink: #1d1405;
+  color-scheme: dark;
+}
+body[data-sector='oficina'][data-oficina-modo='claro'] {
+  --bg: #f4eee3;
+  --surface: #fbf8f2;
+  --surface-2: #f4efe5;
+  --surface-3: #e9e1d2;
+  --paper: #fffdf8;
+  --ink: #241d13;
+  --ink-2: #4e4433;
+  --muted: #786b55;
+  --line: #e3d9c7;
+  --line-strong: #c6b79c;
+  --accent: #a96508;
+  --accent-ink: #ffffff;
+  color-scheme: light;
+}
+
 /* Oficina: uma página à parte, com cara de revista. Cada gênero tem uma cor (--g). */
 .oficina-page {
   position: fixed;

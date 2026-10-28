@@ -4,7 +4,8 @@ import type { BrowserContext, Route } from '@playwright/test'
  * Um Supabase de mentira, compartilhado entre vários navegadores (contextos), com as
  * regras de supabase/contas.sql e supabase/compartilhar.sql: cada um vê o que é seu,
  * quem pode editar altera o universo do dono, quem só vê lê a cópia de leitura.
- * Também supabase/social.sql: perfis, amizades e a estante (privado/amigos/público).
+ * Também supabase/social.sql: perfis, amizades e a estante (privado/amigos/público),
+ * e supabase/treinos.sql: cada um vê e apaga só os próprios treinos.
  */
 export const SERVER = 'https://papirus-teste.supabase.co'
 
@@ -21,7 +22,7 @@ export const PEOPLE = {
 export const PASSWORD = 'segredo123'
 
 export function createFakeSupabase() {
-  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [], papirus_feedback: [], papirus_shelf_text: [], papirus_chapter_reactions: [], papirus_activity: [] }
+  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [], papirus_feedback: [], papirus_shelf_text: [], papirus_chapter_reactions: [], papirus_activity: [], papirus_treinos: [] }
   const images = new Map<string, { owner: string; body: Buffer; type: string; at: string }>()
   const QUOTA = 100 * 1024 * 1024
   const usage = (owner: string) => [...images.values()].filter((v) => v.owner === owner).reduce((n, v) => n + v.body.length, 0)
@@ -30,7 +31,7 @@ export function createFakeSupabase() {
   /** Tabelas que quem não tem conta também lê (o que é público). */
   const PUBLIC_READ = new Set(['papirus_profiles', 'papirus_shelf', 'papirus_shelf_reactions', 'papirus_shelf_comments', 'papirus_shelf_text', 'papirus_chapter_reactions'])
   /** Coluna do dono de cada linha (quem pode escrever). */
-  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author', papirus_challenges: 'owner', papirus_challenge_members: 'user_id', papirus_challenge_days: 'user_id', papirus_shelf_text: 'owner', papirus_chapter_reactions: 'user_id', papirus_activity: 'actor' }
+  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author', papirus_challenges: 'owner', papirus_challenge_members: 'user_id', papirus_challenge_days: 'user_id', papirus_shelf_text: 'owner', papirus_chapter_reactions: 'user_id', papirus_activity: 'actor', papirus_treinos: 'user_id' }
   // Contas: as de sempre e as criadas no teste (com o que foi preenchido ao criar).
   const accounts: { id: string; email: string; password: string; meta: Record<string, unknown> }[] = Object.values(PEOPLE).map((p) => ({ ...p, password: PASSWORD, meta: {} }))
   const session = (a: (typeof accounts)[number]) => {
@@ -77,6 +78,7 @@ export function createFakeSupabase() {
     if (!me) return false
     if (table === 'papirus_friendships') return r.requester === me.id || r.addressee === me.id
     if (table === 'papirus_universes') return r.user_id === me.id || roleOf(me, r.user_id, r.id) === 'editar'
+    if (table === 'papirus_treinos') return r.user_id === me.id
     if (table === 'papirus_shares') return r.owner_id === me.id || (!write && roleOf(me, r.owner_id, r.universe_id) !== null)
     return r.owner_id === me.id || r.email === me.email
   }
@@ -245,6 +247,7 @@ export function createFakeSupabase() {
           papirus_shelf_text: ['owner', 'book_id'],
           papirus_chapter_reactions: ['owner', 'book_id', 'scene_id', 'user_id'],
           papirus_activity: ['id'],
+          papirus_treinos: ['user_id', 'id'],
         }
         const written: Row[] = []
         for (const raw of Array.isArray(body) ? body : [body]) {
