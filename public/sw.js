@@ -1,7 +1,8 @@
 // Papirus offline: guarda o app depois da primeira visita, para abrir sem internet.
 // Páginas: rede primeiro (pega versão nova), cache se estiver offline.
 // Arquivos (js, css, fontes, ícones): cache primeiro; os nomes mudam a cada versão.
-const CACHE = 'papirus-v1'
+// v2: marca e ícones novos (os nomes dos ícones não mudam, então o cache antigo sai).
+const CACHE = 'papirus-v2'
 
 self.addEventListener('install', () => self.skipWaiting())
 
