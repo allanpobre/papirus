@@ -2606,6 +2606,70 @@ code {
   flex-wrap: wrap;
 }
 
+/* Campo com segredos e spoilers: o texto de verdade fica num fundo, por trás do campo
+   transparente, com as marcas apagadas e os trechos pintados. */
+.marked-field {
+  position: relative;
+  display: grid;
+}
+
+.marked-field > * {
+  grid-area: 1 / 1;
+}
+
+.marked-backdrop {
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  pointer-events: none;
+  height: auto;
+}
+
+.marked-input {
+  position: relative;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--ink);
+}
+
+.marked-input::placeholder {
+  color: var(--ink-3);
+}
+
+.marked-input::selection {
+  color: transparent;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.mk-tag {
+  color: var(--ink-3);
+  opacity: 0.55;
+}
+
+.mk-secret {
+  background: var(--wine-soft);
+  border-radius: 3px;
+}
+
+.mk-reveal {
+  background: var(--sky-soft);
+  border-radius: 3px;
+}
+
+.mk-secret.mk-reveal {
+  background: linear-gradient(var(--wine-soft), var(--wine-soft)), var(--sky-soft);
+}
+
+.mk-legend {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  vertical-align: -0.05em;
+}
+
 .secret-mark {
   padding: 0 0.15em;
   border-radius: 3px;
