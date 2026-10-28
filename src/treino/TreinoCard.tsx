@@ -1,10 +1,11 @@
-import { Check, Flame, History, Play, Timer } from 'lucide-react'
+import { Check, Flame, History, Play, Timer, Trophy } from 'lucide-react'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { promptOfTheDay } from '../logic/play'
 import { todayKey } from '../logic/stats'
 import { hasDraft, TreinoPage, type TreinoStart } from './TreinoPage'
 import { TreinoHistory } from './TreinoHistory'
+import { TreinoPlacar } from './TreinoPlacar'
 import { scoreOf, treinoStreak, unitLabel, useTreinos, type Treino } from './treino'
 import { syncTreinosNow, useTreinoSync } from './useTreinoSync'
 
@@ -12,11 +13,12 @@ import { syncTreinosNow, useTreinoSync } from './useTreinoSync'
  * O treino de hoje: a proposta do dia num sprint com tempo e mínimo. Fica no início do
  * app (setor Escrita) e no Início de cada universo; dentro de um universo, o texto pode virar cena.
  */
-export function TreinoCard({ onKeepScene, compact = false }: { onKeepScene?: (t: Treino) => void; compact?: boolean }) {
+export function TreinoCard({ onKeepScene, onAccount, compact = false }: { onKeepScene?: (t: Treino) => void; onAccount?: () => void; compact?: boolean }) {
   const list = useTreinos()
   const cloud = useTreinoSync()
   const [running, setRunning] = useState<TreinoStart | null>(null)
   const [history, setHistory] = useState(false)
+  const [placar, setPlacar] = useState(false)
   const day = todayKey()
   const prompt = promptOfTheDay(day)
   const today = list.filter((t) => t.day === day && t.daily && t.prompt === prompt)
@@ -49,6 +51,9 @@ export function TreinoCard({ onKeepScene, compact = false }: { onKeepScene?: (t:
         <button type="button" className="btn btn-sm btn-ghost" onClick={() => setHistory(true)}>
           <History size={14} /> Seus treinos{list.length ? ` (${list.length})` : ''}
         </button>
+        <button type="button" className="btn btn-sm btn-ghost" onClick={() => setPlacar(true)}>
+          <Trophy size={14} /> Placar
+        </button>
       </div>
       {!best && <p className="muted tiny">Sprint com tempo e um mínimo de palavras ou caracteres. Cada tentativa fica guardada para refazer depois.</p>}
 
@@ -75,6 +80,20 @@ export function TreinoCard({ onKeepScene, compact = false }: { onKeepScene?: (t:
               setHistory(false)
               setRunning({ prompt: t.prompt, daily: t.prompt === prompt, setup: { minutes: t.minutes, target: t.target, unit: t.unit } })
             }}
+          />,
+          document.body,
+        )}
+      {placar &&
+        createPortal(
+          <TreinoPlacar
+            onClose={() => setPlacar(false)}
+            onAccount={
+              onAccount &&
+              (() => {
+                setPlacar(false)
+                onAccount()
+              })
+            }
           />,
           document.body,
         )}

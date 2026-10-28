@@ -47,3 +47,25 @@ describe('treinos de escrita', () => {
     expect(treinos().map((x) => x.id)).toEqual(['outro-aparelho'])
   })
 })
+
+describe('placar', () => {
+  it('a semana começa na segunda e o mês no dia 1', async () => {
+    const { periodStart } = await import('./placar')
+    // 28/10/2026 é uma quarta-feira.
+    expect(periodStart('semana', new Date(2026, 9, 28))).toBe('2026-10-26')
+    expect(periodStart('semana', new Date(2026, 10, 1))).toBe('2026-10-26')
+    expect(periodStart('mes', new Date(2026, 9, 28))).toBe('2026-10-01')
+  })
+
+  it('pontos: minutos com o mínimo batido, até 60 por dia, sem texto colado', async () => {
+    const { localPoints } = await import('./placar')
+    const list = [
+      t({ id: '1', minutes: 15, seconds: 900 }),
+      t({ id: '2', minutes: 45, seconds: 2700, words: 900 }),
+      t({ id: '3', minutes: 5, seconds: 61, words: 400 }),
+      t({ id: '4', minutes: 5, seconds: 300, done: false }),
+      t({ id: '5', day: '2026-10-27', minutes: 0, seconds: 600, words: 200 }),
+    ]
+    expect(localPoints(list, '2026-10-26', '2026-10-28')).toBe(70)
+  })
+})
