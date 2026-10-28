@@ -25,3 +25,19 @@ test('links antigos de jogadores e retornos de login vão para o app', async ({ 
   await page.goto('/#error_description=teste&error=x')
   await expect(page).toHaveURL(/\/app\/#error_description=teste/)
 })
+
+test('a apresentação mostra os três setores, a mesa nova e o gerador da Oficina', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Cada parte com a sua cara. O mesmo caderno por trás.' })).toBeAttached()
+  for (const name of ['Escrita', 'Mesa de RPG', 'Oficina']) await expect(page.locator('.lp-sector-name', { hasText: name })).toBeAttached()
+  await expect(page.getByRole('list', { name: 'Temas da mesa' }).getByRole('listitem')).toHaveCount(6)
+
+  const ideia = page.getByRole('figure', { name: 'Gerador de ideias da Oficina' })
+  await ideia.scrollIntoViewIfNeeded()
+  await ideia.getByRole('radio', { name: 'Mesa' }).click()
+  await expect(ideia.getByText('Quem pede')).toBeVisible()
+  await ideia.getByRole('button', { name: 'Sortear outra' }).click()
+  await expect(ideia.getByText('A complicação')).toBeVisible()
+  // As barras do celular seguem a cor da página.
+  await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', /^#[0-9a-f]{6}$/)
+})

@@ -1,6 +1,18 @@
 import {
   ArrowRight,
-  BookDown,
+  Bell,
+  BookOpenCheck,
+  Check,
+  Feather,
+  Flame,
+  GraduationCap,
+  Headphones,
+  ImageIcon,
+  Palette,
+  Printer,
+  Target,
+  Trophy,
+  Users,
   BookMarked,
   CalendarRange,
   Dices,
@@ -21,6 +33,8 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BrandMark } from '../shell/Brand'
+import { rollIdea, type IdeaMode } from '../oficina/ideas'
+import { MESA_THEMES } from '../rpg/themes'
 
 const APP = 'app/'
 
@@ -85,9 +99,10 @@ export function Landing() {
           <span>Papirus</span>
         </a>
         <nav className="lp-links" aria-label="Seções">
-          <a href="#escrever">Para quem escreve</a>
-          <a href="#mestrar">Para quem mestra</a>
-          <a href="#principios">Princípios</a>
+          <a href="#escrever">Escrita</a>
+          <a href="#mestrar">Mesa de RPG</a>
+          <a href="#oficina">Oficina</a>
+          <a href="#juntos">Amigos</a>
         </nav>
         <div className="lp-nav-actions">
           <button type="button" className="btn-icon" aria-label={theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'} onClick={toggleTheme}>
@@ -102,12 +117,12 @@ export function Landing() {
       <main id="conteudo">
         <section className="lp-hero">
           <div className="lp-hero-copy">
-            <p className="lp-eyebrow">Para quem escreve histórias e para quem mestra RPG</p>
+            <p className="lp-eyebrow">Escrita, mesa de RPG e oficina, num app só</p>
             <h1>
               Seu mundo, escrito e jogado <em>no mesmo caderno.</em>
             </h1>
             <p className="lp-lede">
-              Escreva como sempre. O Papirus percebe os nomes, guarda fichas, datas, segredos e mentiras, e na mesa mostra aos jogadores só o que você revelar. Nada é obrigatório.
+              Escreva como sempre. O Papirus percebe os nomes, guarda fichas, datas, segredos e mentiras. Na mesa, organiza as fichas e mostra aos jogadores só o que você revelar. E na Oficina, ensina um pouco por dia. Nada é obrigatório.
             </p>
             <div className="lp-ctas">
               <a className="btn btn-primary btn-lg" href={APP}>
@@ -130,6 +145,32 @@ export function Landing() {
             </ul>
           </div>
           <Manuscript />
+        </section>
+
+        <section className="lp-section" id="setores" aria-labelledby="setores-titulo">
+          <p className="lp-eyebrow">Três setores</p>
+          <h2 id="setores-titulo">Cada parte com a sua cara. O mesmo caderno por trás.</h2>
+          <div className="lp-sectors">
+            {SECTORS.map(({ id, icon: Icon, name, title, items, href }) => (
+              <a key={id} className={`lp-sector lp-sector-${id}`} href={href}>
+                <span className="lp-sector-icon" aria-hidden="true">
+                  <Icon size={22} />
+                </span>
+                <span className="lp-sector-name">{name}</span>
+                <span className="lp-sector-title">{title}</span>
+                <ul>
+                  {items.map((t) => (
+                    <li key={t}>
+                      <Check size={14} aria-hidden="true" /> {t}
+                    </li>
+                  ))}
+                </ul>
+                <span className="lp-sector-go">
+                  Saber mais <ArrowRight size={15} aria-hidden="true" />
+                </span>
+              </a>
+            ))}
+          </div>
         </section>
 
         <section className="lp-section" id="escrever" aria-labelledby="escrever-titulo">
@@ -160,24 +201,67 @@ export function Landing() {
               <p className="lp-eyebrow">Para quem mestra</p>
               <h2 id="mestrar-titulo">O mesmo mundo, agora na mesa.</h2>
               <p className="lp-lede">
-                Use qualquer sistema, ou crie o seu. Prepare sessões, role iniciativa e controle a vida do grupo pelo tablet. O que os jogadores descobrem vai para o Codex deles, ao vivo no celular de cada um.
+                O RPG de verdade acontece na mesa, com dados de verdade. O Papirus é o ajudante: guarda as fichas, faz as contas e leva ao celular de cada jogador o que o grupo já descobriu.
               </p>
               <ul className="lp-checks">
                 <li>
-                  <Dices size={18} aria-hidden="true" /> D&amp;D 5e, Tormenta 20, Ordem Paranormal, d100, parada de dados ou regras suas
+                  <Dices size={18} aria-hidden="true" /> Role os seus dados e diga o que saiu: o app soma o bônus, vê o crítico e calcula o dano. Esqueceu os dados? Ele rola.
                 </li>
                 <li>
-                  <Swords size={18} aria-hidden="true" /> “Na mesa”: iniciativa, grupo, dados, tabelas e registro numa tela só
+                  <Swords size={18} aria-hidden="true" /> Ficha feita para jogar: PV e PM com um toque, ataques, poderes que gastam PM, condições e inventário
                 </li>
                 <li>
-                  <Radio size={18} aria-hidden="true" /> Codex ao vivo: cada revelação chega aos jogadores em segundos
+                  <Palette size={18} aria-hidden="true" /> Cada mesa com o clima do gênero, escolhido pelo mestre; cada jogador escolhe claro ou escuro
+                </li>
+                <li>
+                  <Radio size={18} aria-hidden="true" /> Codex ao vivo: revelações, mapa e a ficha completa de cada personagem no celular dos jogadores
                 </li>
                 <li>
                   <EyeOff size={18} aria-hidden="true" /> Segredos ficam com você; uma mentira aparece só como “segundo fulano”
                 </li>
               </ul>
+              <p className="lp-systems">D&amp;D 5e · Tormenta 20 · Ordem Paranormal · Call of Cthulhu · parada de dados · ou as suas regras</p>
+              <ul className="lp-themes" aria-label="Temas da mesa">
+                {MESA_THEMES.map((t) => (
+                  <li key={t.id} style={{ '--t-bg': t.dark[0], '--t-card': t.dark[1], '--t-accent': t.dark[2] } as React.CSSProperties}>
+                    <span className="lp-theme-dot" aria-hidden="true" />
+                    <span>
+                      <strong>{t.name}</strong> {t.genre}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
             <Phone />
+          </div>
+        </section>
+
+        <section className="lp-section lp-oficina" id="oficina" aria-labelledby="oficina-titulo">
+          <div className="lp-oficina-copy">
+            <p className="lp-eyebrow">Oficina</p>
+            <h2 id="oficina-titulo">Aprenda escrevendo. Um pouco por dia.</h2>
+            <p className="lp-lede">Guias curtos de gêneros e técnicas, e guias para quem mestra: o que funciona, armadilhas, livros para estudar, curiosidades e exercícios que viram cena com um toque.</p>
+            <ul className="lp-shelf" aria-label="Guias da Oficina">
+              {SHELF.map((g) => (
+                <li key={g}>{g}</li>
+              ))}
+            </ul>
+          </div>
+          <IdeaDemo />
+        </section>
+
+        <section className="lp-section" id="juntos" aria-labelledby="juntos-titulo">
+          <p className="lp-eyebrow">Com os amigos</p>
+          <h2 id="juntos-titulo">Escrever é sozinho. Ler pode ser junto.</h2>
+          <p className="lp-lede">Com uma conta (opcional), você ganha um perfil, adiciona amigos e decide, livro por livro, quem pode ler: só você, os amigos ou todo mundo.</p>
+          <div className="lp-features lp-together">
+            {TOGETHER.map(({ icon: Icon, title, text }) => (
+              <article key={title} className="lp-feature">
+                <Icon size={20} aria-hidden="true" />
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -241,15 +325,108 @@ export function Landing() {
 }
 
 const FEATURES = [
-  { icon: BookMarked, title: 'Fichas', text: 'Personagens, lugares, facções e o que mais você inventar, com campos livres e seções que recolhem.' },
+  { icon: BookMarked, title: 'Fichas', text: 'Personagens, lugares, facções e o que mais você inventar, com retrato, campos livres e um modo de leitura como enciclopédia.' },
   { icon: Network, title: 'Relações', text: 'Quem é filho, rival ou criador de quem, num grafo que você navega. Uma relação pode ter vários nomes.' },
   { icon: CalendarRange, title: 'Linha do tempo', text: 'Eras, eventos e cenas datadas, com um calendário próprio: “12 de Neblina de 359 DC”.' },
   { icon: MapIcon, title: 'Atlas', text: 'Suba a imagem do seu mapa e marque os lugares. Revele à mesa só os marcadores que ela conhece.' },
-  { icon: EyeOff, title: 'Segredos e mentiras', text: 'Trechos secretos nas fichas e fatos falsos com quem os contou, separados do que é verdade.' },
-  { icon: MessageSquareText, title: 'Comentários e versões', text: 'Notas presas ao texto, versões de cada cena para comparar e voltar atrás.' },
-  { icon: BookDown, title: 'Livros', text: 'Importe um .docx ou .md e ele vira cenas. Exporte em Word, EPUB ou Markdown.' },
+  { icon: EyeOff, title: 'Segredos e spoilers', text: 'Trechos secretos nas fichas, fatos falsos com quem os contou e partes que o leitor só vê depois de certa cena.' },
+  { icon: ImageIcon, title: 'Imagens', text: 'Capa do universo, retratos, mapas e imagens nas cenas, encolhidas sozinhas para não pesar.' },
+  { icon: Headphones, title: 'Ler e ouvir', text: 'Leia como livro, com um caderno que não dá spoiler, ou ouça o texto em voz alta para revisar.' },
+  { icon: Printer, title: 'Livro pronto', text: 'Importe .docx ou .md. Exporte em Word, EPUB ou um PDF diagramado para imprimir.' },
+  { icon: Target, title: 'Metas e calendário', text: 'Meta do dia, meta com prazo e um calendário de quanto você escreveu, com a sequência de dias.' },
+  { icon: MessageSquareText, title: 'Comentários e versões', text: 'Notas presas ao texto e versões de cada cena para comparar e voltar atrás.' },
+  { icon: WifiOff, title: 'Instala e funciona offline', text: 'Vira app no celular e no computador e abre sem internet. Backup em arquivo, numa pasta ou na conta.' },
   { icon: ScrollText, title: 'Perguntar ao mundo (opcional)', text: 'Pergunte à sua lore com IA, usando a sua chave. Ele só lê o que você manda e nunca muda nada.' },
 ]
+
+const SECTORS = [
+  {
+    id: 'escrita',
+    icon: Feather,
+    name: 'Escrita',
+    title: 'Escreva e veja o mundo crescer',
+    items: ['Editor que reconhece os nomes', 'Fichas, relações, linha do tempo e mapas', 'Modo leitor, áudio, Word, EPUB e PDF', 'Amigos, estante e desafios'],
+    href: '#escrever',
+  },
+  {
+    id: 'mesa',
+    icon: Dices,
+    name: 'Mesa de RPG',
+    title: 'Mestre com dados de verdade',
+    items: ['Dado físico primeiro; o app faz as contas', 'Ficha de jogo com ataques e poderes', 'Seis climas, um para cada gênero', 'Codex ao vivo no celular dos jogadores'],
+    href: '#mestrar',
+  },
+  {
+    id: 'oficina',
+    icon: GraduationCap,
+    name: 'Oficina',
+    title: 'Aprenda um pouco por dia',
+    items: ['Gêneros, técnicas e guias de mestre', 'Exercícios que viram cena', 'Gerador de ideias e de ganchos', 'Dica do dia e o seu progresso'],
+    href: '#oficina',
+  },
+] as const
+
+const SHELF = ['Fundamentos', 'Fantasia', 'Ficção científica', 'Mistério', 'Romance', 'Terror', 'Drama e realismo', 'Personagem', 'Estrutura', 'Diálogo', 'Ritmo e tensão', 'Revisão', 'Mestrar', 'Aventuras e vilões']
+
+const TOGETHER = [
+  { icon: BookOpenCheck, title: 'Estante', text: 'Publique um livro para os amigos (ou para todo mundo) e eles leem direto no navegador.' },
+  { icon: Bell, title: 'Novidades', text: 'Quem pôs livro novo na estante, quem bateu a meta, quem pediu amizade.' },
+  { icon: Users, title: 'Leitores beta', text: 'Mande um link de leitura e receba comentários presos ao trecho e reações por capítulo.' },
+  { icon: Trophy, title: 'Desafios', text: 'Uma proposta por dia e desafios entre amigos. Medalhas para quem gosta.' },
+  { icon: Flame, title: 'Sequência', text: 'Dias seguidos escrevendo, contados só se você quiser contar.' },
+]
+
+/** O gerador de ideias da Oficina, para experimentar aqui mesmo. */
+function IdeaDemo() {
+  const [mode, setMode] = useState<IdeaMode>('escrita')
+  const [idea, setIdea] = useState(() => rollIdea('escrita'))
+  const [n, setN] = useState(0)
+  const roll = (m: IdeaMode = mode) => {
+    setIdea(rollIdea(m))
+    setN((x) => x + 1)
+  }
+  return (
+    <figure className="lp-idea" aria-label="Gerador de ideias da Oficina">
+      <div className="lp-idea-top">
+        <span>
+          <Sparkles size={16} aria-hidden="true" /> Gerador de ideias
+        </span>
+        <span className="lp-idea-modes" role="radiogroup" aria-label="Ideia para">
+          {(
+            [
+              ['escrita', 'Escrever'],
+              ['mesa', 'Mesa'],
+            ] as const
+          ).map(([m, label]) => (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={mode === m}
+              onClick={() => {
+                setMode(m)
+                roll(m)
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </span>
+      </div>
+      <dl key={n} aria-live="polite">
+        {idea.parts.map((p, i) => (
+          <div key={p.label} style={{ '--i': i } as React.CSSProperties}>
+            <dt>{p.label}</dt>
+            <dd>{p.text}</dd>
+          </div>
+        ))}
+      </dl>
+      <button type="button" className="btn btn-primary" onClick={() => roll()}>
+        <Dices size={16} key={n} className={n ? 'lp-dice' : undefined} /> Sortear outra
+      </button>
+    </figure>
+  )
+}
 
 type Seg = { t: string; kind?: 'name' | 'fact' }
 

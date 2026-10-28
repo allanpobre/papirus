@@ -5,6 +5,7 @@ import '@fontsource/young-serif/400.css'
 import '@fontsource/ibm-plex-mono/400.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { followThemeColor } from './ui/themeColor'
 import './styles/tokens.css'
 import './styles/base.css'
 import './styles/shell.css'
@@ -24,6 +25,9 @@ import { Confetti } from './ui/Confetti'
 // Link de jogador (?mesa=…): só o Codex, sem biblioteca nem dados deste navegador.
 const player = readPlayerLink(location.search)
 if (!player) startPwa()
+
+// As barras do celular na cor da tela, e não no verde fixo.
+followThemeColor()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
