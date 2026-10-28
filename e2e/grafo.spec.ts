@@ -30,7 +30,7 @@ test.describe('no celular', () => {
   test('um dedo move, dois dedos dão zoom, e a página não rola', async ({ page }) => {
     await page.goto('/app/')
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-    await page.getByRole('button', { name: 'Mais' }).click()
+    await page.getByRole('button', { name: 'Mais', exact: true }).click()
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Relações' }).click()
     await page.locator('.node').first().waitFor()
     const box = (await page.locator('.graph').boundingBox())!
@@ -55,7 +55,7 @@ test.describe('no celular', () => {
 test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mais' }).click()
+  await page.getByRole('button', { name: 'Mais', exact: true }).click()
   await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Relações' }).click()
   const card = page.getByRole('complementary', { name: 'Ficha selecionada' })
   const node = page.locator('.node').first()

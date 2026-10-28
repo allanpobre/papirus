@@ -1,15 +1,16 @@
 import { ArrowRight, BookMarked, BookOpen, Compass, Dices, Feather, GraduationCap, Inbox, Library, Lightbulb, Plus, Search, Sprout, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { continuityQuestions, isOpen } from '../logic/continuity'
-import { wordsToday } from '../logic/stats'
+import { wordsByDay, wordsToday } from '../logic/stats'
 import { kindLabel, SESSION_STATUS_LABEL } from '../model/labels'
 import { addScene, byId, manuscriptOrder } from '../model/universe'
 import { countWords, wordCount } from '../persistence/repository'
 import { recall } from '../state/prefs'
-import { DeadlineLine, WritingCalendar } from './WritingCalendar'
+import { currentStreak, DeadlineLine, WritingCalendar } from './WritingCalendar'
 import { DailyChallengeCard, ProgressSection } from './PlayCards'
 import { guessGuide, tipOfTheDay } from '../oficina/guides'
-import { useWorkspace } from '../state/workspace'
+import { ALL_ITEMS } from '../shell/nav'
+import { useWorkspace, type View } from '../state/workspace'
 
 const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -41,7 +42,7 @@ export default function HomeView() {
     ...universe.entities.map((e) => ({ kind: 'ficha' as const, id: e.id, title: e.name || 'Sem nome', detail: kindLabel(e.kind), at: e.updatedAt })),
   ]
     .sort((a, b) => b.at.localeCompare(a.at))
-    .slice(0, 6)
+    .slice(0, 4)
 
   const newScene = () => {
     let id = ''
@@ -60,20 +61,69 @@ export default function HomeView() {
     openSeeds > 0 && { icon: Sprout, text: `${openSeeds} ${openSeeds === 1 ? 'trama aberta' : 'tramas abertas'}`, go: () => go('tramas') },
   ].filter(Boolean) as { icon: typeof Inbox; text: string; go: () => void }[]
 
+  const streak = currentStreak(wordsByDay(universe, 120))
+  const goalPct = goal > 0 ? Math.min(100, (today / goal) * 100) : 0
+  const shown = (v: View) => !prefs.hiddenViews.includes(v)
+  const doors = (
+    [
+      ['escrever', `${scenes.length} ${scenes.length === 1 ? 'cena' : 'cenas'}`],
+      ['livro', `${total.toLocaleString('pt-BR')} palavras`],
+      ['fichas', `${universe.entities.length} ${universe.entities.length === 1 ? 'ficha' : 'fichas'}`],
+      ['atlas', universe.maps.length ? `${universe.maps.length} ${universe.maps.length === 1 ? 'mapa' : 'mapas'}` : 'Desenhe o mundo'],
+      ['timeline', `${universe.events.length} ${universe.events.length === 1 ? 'evento' : 'eventos'}`],
+      ['relacoes', `${universe.relations.length} ${universe.relations.length === 1 ? 'laço' : 'laços'}`],
+      ['tramas', openSeeds ? `${openSeeds} em aberto` : 'Plante pistas'],
+      showRpg ? ['rpg', `${universe.sessions.length} ${universe.sessions.length === 1 ? 'sessão' : 'sessões'}`] : ['inbox', inbox ? `${inbox} esperando` : 'Guarde ideias'],
+    ] as [View, string][]
+  )
+    .filter(([v]) => shown(v))
+    .map(([v, detail]) => ({ ...ALL_ITEMS.find((i) => i.view === v)!, detail }))
+
   return (
     <div className="view home">
-      <header className="home-head">
+      <header className="home-hero">
+        <span className="home-hero-mark" aria-hidden="true">
+          {(universe.name || 'P').trim().charAt(0).toUpperCase()}
+        </span>
         <div className="home-top">
-          <p className="eyebrow">{todayLabel}</p>
+          <p className="eyebrow">
+            {greeting()} · {todayLabel}
+          </p>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => void closeUniverse()}>
             <Library size={15} /> Seus universos
           </button>
         </div>
         <h1>{universe.name || 'Sem nome'}</h1>
         {universe.description && <p className="home-desc">{universe.description}</p>}
+        <div className="home-chips">
+          <span className="home-chip" title={goal > 0 ? `Meta do dia: ${goal.toLocaleString('pt-BR')} palavras` : undefined}>
+            {goal > 0 && <span className="home-ring" style={{ '--p': goalPct } as React.CSSProperties} aria-hidden="true" />}
+            <span>
+              <strong className="tabular">{today.toLocaleString('pt-BR')}</strong>
+              {goal > 0 ? ` de ${goal.toLocaleString('pt-BR')}` : ` ${today === 1 ? 'palavra' : 'palavras'}`} hoje
+            </span>
+          </span>
+          <span className="home-chip">{streak > 0 ? `🔥 ${streak} ${streak === 1 ? 'dia seguido' : 'dias seguidos'}` : '🔥 Comece uma sequência'}</span>
+        </div>
+        <div className="home-quick">
+          <button type="button" className="home-quick-btn" aria-label="Anotar uma ideia" onClick={openCapture}>
+            <Lightbulb size={15} aria-hidden="true" /> Ideia
+          </button>
+          <button type="button" className="home-quick-btn" aria-label="Buscar em tudo" onClick={openSearch}>
+            <Search size={15} aria-hidden="true" /> Buscar
+          </button>
+          {source.kind === 'proprio' && (
+            <button type="button" className="home-quick-btn" aria-label="Compartilhar" onClick={openShare}>
+              <Users size={15} aria-hidden="true" /> Compartilhar
+            </button>
+          )}
+          <button type="button" className="home-quick-btn" aria-label="Fazer o tour" onClick={startTour}>
+            <Compass size={15} aria-hidden="true" /> Tour
+          </button>
+        </div>
       </header>
 
-      <div className="home-grid">
+      <div className="home-layout">
         <section className="home-card home-continue" aria-label="Continuar" data-tour="continuar">
           {last ? (
             <>
@@ -108,100 +158,88 @@ export default function HomeView() {
           )}
         </section>
 
-        <section className="home-card home-day" aria-label="Escrita da semana">
-          <p className="eyebrow">Hoje</p>
-          <p className="home-today">
-            <strong className="tabular">{today.toLocaleString('pt-BR')}</strong> {today === 1 ? 'palavra' : 'palavras'}
-            {goal > 0 && <span className="muted"> de {goal.toLocaleString('pt-BR')}</span>}
-          </p>
-          {goal > 0 && (
-            <span className="resource-bar home-goal" aria-hidden="true">
-              <span style={{ width: `${Math.min(100, (today / goal) * 100)}%` }} />
-            </span>
-          )}
+        <div className="home-challenge">
+          <DailyChallengeCard />
+        </div>
+
+        <nav className="home-doors" aria-label="O seu mundo">
+          <h2 className="section-title">O seu mundo</h2>
+          <ul>
+            {doors.map((d) => (
+              <li key={d.view}>
+                <button type="button" className="home-door" onClick={() => go(d.view)}>
+                  <span className="home-door-icon" aria-hidden="true">
+                    <d.icon size={20} />
+                  </span>
+                  <span className="home-door-label">{d.label}</span>
+                  <span className="home-door-detail muted small">{d.detail}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <section className="home-card home-day" aria-label="Seu ritmo">
+          <p className="eyebrow">Seu ritmo</p>
           <DeadlineLine universe={universe} />
           <WritingCalendar universe={universe} />
           <ProgressSection />
-          <p className="muted small tabular">
-            {total.toLocaleString('pt-BR')} palavras · {scenes.length} {scenes.length === 1 ? 'cena' : 'cenas'} · {universe.entities.length} fichas · {universe.facts.length} fatos
-          </p>
         </section>
 
-        <DailyChallengeCard />
-        <TipCard />
+        <div className="home-side">
+          <TipCard />
 
-        <section className="home-card" aria-label="Pede atenção">
-          <h2 className="section-title">Pede atenção</h2>
-          {attention.length ? (
-            <ul className="home-list">
-              {attention.map((a) => (
-                <li key={a.text}>
-                  <button type="button" className="home-row" onClick={a.go}>
-                    <a.icon size={16} aria-hidden="true" /> {a.text}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted small">Nada pendente. Bom momento para escrever.</p>
-          )}
-          {showRpg && (
-            <div className="home-session">
-              <h3 className="section-label">
-                <Dices size={14} aria-hidden="true" /> Mesa
-              </h3>
-              {nextSession ? (
-                <button type="button" className="home-row" onClick={() => go('rpg', nextSession.id)}>
-                  {nextSession.title} <span className="muted small">· {SESSION_STATUS_LABEL[nextSession.status]}</span>
-                </button>
-              ) : (
-                <button type="button" className="home-row" onClick={() => go('rpg')}>
-                  Planejar a próxima sessão
-                </button>
+          {(attention.length > 0 || showRpg) && (
+            <section className="home-card" aria-label="Pede atenção">
+              <h2 className="section-title">Pede atenção</h2>
+              {attention.length > 0 && (
+                <ul className="home-list">
+                  {attention.map((a) => (
+                    <li key={a.text}>
+                      <button type="button" className="home-row" onClick={a.go}>
+                        <a.icon size={16} aria-hidden="true" /> {a.text}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
-            </div>
+              {showRpg && (
+                <div className={attention.length ? 'home-session' : undefined}>
+                  <h3 className="section-label">
+                    <Dices size={14} aria-hidden="true" /> Mesa
+                  </h3>
+                  {nextSession ? (
+                    <button type="button" className="home-row" onClick={() => go('rpg', nextSession.id)}>
+                      {nextSession.title} <span className="muted small">· {SESSION_STATUS_LABEL[nextSession.status]}</span>
+                    </button>
+                  ) : (
+                    <button type="button" className="home-row" onClick={() => go('rpg')}>
+                      Planejar a próxima sessão
+                    </button>
+                  )}
+                </div>
+              )}
+            </section>
           )}
-        </section>
 
-        <section className="home-card" aria-label="Mexido por último">
-          <h2 className="section-title">Mexido por último</h2>
-          {recent.length ? (
-            <ul className="home-list">
-              {recent.map((r) => (
-                <li key={r.kind + r.id}>
-                  <button type="button" className="home-row" onClick={() => (r.kind === 'cena' ? go('escrever', r.id) : peek(r.id))}>
-                    <span className="home-row-title">{r.title}</span>
-                    <span className="muted small">
-                      {r.kind === 'cena' ? 'Cena' : r.detail} · {when.format(new Date(r.at))}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted small">Ainda nada.</p>
+          {recent.length > 0 && (
+            <section className="home-card" aria-label="Mexido por último">
+              <h2 className="section-title">Mexido por último</h2>
+              <ul className="home-list">
+                {recent.map((r) => (
+                  <li key={r.kind + r.id}>
+                    <button type="button" className="home-row" onClick={() => (r.kind === 'cena' ? go('escrever', r.id) : peek(r.id))}>
+                      <span className="home-row-title">{r.title}</span>
+                      <span className="muted small">
+                        {r.kind === 'cena' ? 'Cena' : r.detail} · {when.format(new Date(r.at))}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
-        </section>
-      </div>
-
-      <div className="home-actions">
-        <button type="button" className="btn btn-ghost" onClick={openCapture}>
-          <Lightbulb size={16} /> Anotar uma ideia
-        </button>
-        <button type="button" className="btn btn-ghost" onClick={() => go('fichas')}>
-          <BookMarked size={16} /> Fichas
-        </button>
-        <button type="button" className="btn btn-ghost" onClick={openSearch}>
-          <Search size={16} /> Buscar em tudo
-        </button>
-        {source.kind === 'proprio' && (
-          <button type="button" className="btn btn-ghost" onClick={openShare}>
-            <Users size={16} /> Compartilhar
-          </button>
-        )}
-        <button type="button" className="btn btn-ghost" onClick={startTour}>
-          <Compass size={16} /> Fazer o tour
-        </button>
+        </div>
       </div>
     </div>
   )
@@ -217,6 +255,10 @@ function lastLines(text: string, size = 240): string {
 }
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+function greeting(h = new Date().getHours()) {
+  return h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite'
+}
 
 /** Dica do dia, tirada da Oficina (e o caminho até ela). */
 function TipCard() {
