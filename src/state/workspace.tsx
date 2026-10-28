@@ -5,6 +5,7 @@ import type { FolderSync } from '../persistence/useFolderSync'
 import type { SaveStatus } from '../persistence/useUniverse'
 import type { LiveSource, Presence } from '../share/useLiveSync'
 import type { Prefs } from './prefs'
+import type { UniverseKind } from '../model/kind'
 
 export type View =
   | 'inicio'
@@ -81,6 +82,12 @@ export interface Workspace {
   openReader: () => void
   /** Abre a diagramação do livro (PDF para imprimir). */
   openBookDesigner: (bookId?: string) => void
+  /** Escrita ou campanha: decide o menu e a tela de abertura. */
+  kind: UniverseKind
+  /** Áreas escondidas do menu neste universo. */
+  hiddenViews: View[]
+  /** Muda as áreas escondidas (vale para todos os universos deste tipo). */
+  setHiddenViews: (views: View[]) => void
 }
 
 export const WorkspaceContext = createContext<Workspace | null>(null)

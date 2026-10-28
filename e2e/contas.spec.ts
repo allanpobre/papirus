@@ -88,6 +88,6 @@ test('conta opcional: entrar, levar os universos para a nuvem e sair sem perder 
   // Volta para a apresentação; o app abre de novo sem conta.
   await expect(page).not.toHaveURL(/\/app\/$/)
   await page.goto('/app/')
-  await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()
-  await expect(page.getByRole('list', { name: 'Universos' }).getByRole('button', { name: /^Ostria/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Entrar', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Continuar escrevendo Ostria/ })).toBeVisible()
 })

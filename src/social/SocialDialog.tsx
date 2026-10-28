@@ -36,7 +36,7 @@ import {
   type ProfileDraft,
 } from './social'
 
-type Tab = 'avisos' | 'perfil' | 'amigos' | 'desafios' | 'conta'
+export type SocialTab = 'avisos' | 'perfil' | 'amigos' | 'desafios' | 'conta'
 
 interface Props {
   onClose: () => void
@@ -46,7 +46,7 @@ interface Props {
   initialHandle?: string
   /** Endereço público do app (para o link do perfil). */
   publicUrl?: string
-  initialTab?: Tab
+  initialTab?: SocialTab
   /** Biblioteca deste navegador (para "Sincronizar agora"). */
   library?: Library | null
   onSynced?: () => void
@@ -61,11 +61,11 @@ interface Props {
 export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab, library = null, onSynced, shareProgress }: Props) {
   const { user, server } = useAccount()
   // Com avisos novos, abre neles.
-  const [tab, setTabState] = useState<Tab>(() => initialTab ?? (getNoticeCount() > 0 ? 'avisos' : 'perfil'))
+  const [tab, setTabState] = useState<SocialTab>(() => initialTab ?? (getNoticeCount() > 0 ? 'avisos' : 'perfil'))
   const [notices, setNotices] = useState<Notice[] | null>(null)
   const [seenAt] = useState(() => (user ? noticesSeenAt(user.id) : ''))
   const [focusBook, setFocusBook] = useState<string | undefined>()
-  const setTab = (t: Tab) => {
+  const setTab = (t: SocialTab) => {
     setTabState(t)
     if (t === 'avisos' && user) markNoticesSeen(user.id)
   }
@@ -215,7 +215,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
 
   const incoming = friends.filter((f) => f.status === 'pendente' && !f.outgoing)
   const newNotices = notices ? unseenCount(notices, seenAt) : 0
-  const tabs: [Tab, string][] = [
+  const tabs: [SocialTab, string][] = [
     ['avisos', 'Novidades'],
     ['perfil', 'Perfil'],
     ['amigos', 'Amigos'],

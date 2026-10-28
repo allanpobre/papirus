@@ -35,28 +35,34 @@ async function selectText(page: Page, text: string) {
   }, text)
 }
 
-test('primeira vez: o tipo do universo arruma o menu, e dá para mostrar tudo de novo', async ({ page }) => {
-  await page.addInitScript(() => {
-    if (!sessionStorage.getItem('jaFoi')) localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true }))
-    sessionStorage.setItem('jaFoi', '1')
-  })
+test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a mesa; dá para mostrar tudo', async ({ page }) => {
   await page.goto('/app/')
-  await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Mar')
-  await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Fantasia' }).click()
-  await expect(page.getByText('A mesa de RPG fica fora do menu.')).toBeVisible()
-  await page.getByRole('button', { name: 'Criar universo' }).click()
-  await expect(nav(page, 'Escrever')).toBeVisible()
-  await expect(nav(page, 'RPG')).toHaveCount(0)
+  const setores = page.getByRole('navigation', { name: 'Setores' })
+  await setores.getByRole('button', { name: 'RPG' }).click()
+  await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Mar')
+  await page.getByRole('button', { name: 'Criar campanha' }).click()
+  await expect(page.locator('.mesa-hero')).toBeVisible()
+  await expect(nav(page, 'RPG')).toBeVisible()
+  await expect(nav(page, 'Escrever')).toHaveCount(0)
 
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Menu e ajuda' }).click()
-  await page.getByRole('button', { name: 'Só RPG' }).click()
-  await expect(nav(page, 'Estrutura')).toHaveCount(0)
-  await expect(nav(page, 'RPG')).toBeVisible()
   await page.getByRole('button', { name: 'Mostrar tudo' }).click()
-  await expect(nav(page, 'Estrutura')).toBeVisible()
+  await expect(nav(page, 'Escrever')).toBeVisible()
   await page.reload()
-  await expect(nav(page, 'Estrutura')).toBeVisible()
+  await expect(nav(page, 'Escrever')).toBeVisible()
+  await page.getByRole('button', { name: 'Voltar ao padrão' }).click()
+  await expect(nav(page, 'Escrever')).toHaveCount(0)
+
+  // De volta ao início: a campanha está no setor RPG, e um livro novo não tem a mesa no menu.
+  await nav(page, 'RPG').click()
+  await page.getByRole('button', { name: 'Suas campanhas' }).click()
+  await expect(page.getByRole('button', { name: /Continuar a campanha/ })).toContainText('Mar')
+  await setores.getByRole('button', { name: 'Escrita' }).click()
+  await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Livro')
+  await page.getByRole('button', { name: 'Criar universo' }).click()
+  await expect(nav(page, 'Escrever')).toBeVisible()
+  await expect(nav(page, 'RPG')).toHaveCount(0)
 })
 
 test('lembra do backup depois de uma semana, e o adiamento vale', async ({ page }) => {

@@ -137,7 +137,7 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
     short: 'Mesa d20 e sessão 1',
     hint: 'Uma mesa com o sistema escolhido, a sessão 1 e uma tabela de rumores.',
     apply: (u, options) => {
-      u = { ...u, settings: { ...u.settings, calendarSuffix: 'DC', fieldTemplates: { ...FANTASY_FIELDS, personagem: ['Classe', 'Jogador', 'Objetivo', 'Ganchos', 'Segredo'] } } }
+      u = { ...u, settings: { ...u.settings, kind: 'campanha', calendarSuffix: 'DC', fieldTemplates: { ...FANTASY_FIELDS, personagem: ['Classe', 'Jogador', 'Objetivo', 'Ganchos', 'Segredo'] } } }
       let system
       ;[u, system] = insert(u, 'systems', systemFromTemplate(options?.system ?? 'd20-5e'))
       let group

@@ -20,13 +20,24 @@ const LOOK: Record<GuideId, { icon: LucideIcon; color: string }> = {
  * A Oficina numa página própria, por cima de tudo: a capa com os gêneros e, ao escolher
  * um, o guia. O "voltar" do aparelho volta para a capa e depois fecha.
  */
-export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; onClose: () => void; onPractice?: (title: string, prompt: string) => void }) {
-  const [open, setOpen] = useState<GuideId | null>(null)
+export function OficinaPage({
+  genre,
+  start,
+  onClose,
+  onPractice,
+}: {
+  genre?: GuideId
+  /** Abre direto neste gênero (a capa já está atrás, no início do app): voltar fecha. */
+  start?: GuideId
+  onClose: () => void
+  onPractice?: (title: string, prompt: string) => void
+}) {
+  const [open, setOpen] = useState<GuideId | null>(start ?? null)
   const scroller = useRef<HTMLDivElement>(null)
 
   // A Oficina e o gênero aberto são passos do "voltar" do aparelho: volta para a capa e depois fecha.
   useBackLayer(onClose)
-  useBackLayer(() => setOpen(null), open !== null)
+  useBackLayer(() => setOpen(null), open !== null && !start)
 
   // Corpo com chaves: algumas extensões fazem scrollTo devolver um número, e o React
   // tentaria chamar esse número como limpeza do efeito ("1 is not a function").
@@ -35,18 +46,18 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
   }, [open])
 
   const choose = (id: GuideId) => setOpen(id)
-  const back = () => setOpen(null)
+  const back = () => (start ? onClose() : setOpen(null))
   const close = () => onClose()
   // Esc fecha (ou volta para a capa, se estiver num gênero).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (open) setOpen(null)
+      if (open && !start) setOpen(null)
       else onClose()
     }
     addEventListener('keydown', onKey)
     return () => removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open, onClose, start])
 
   const guide = open ? GUIDES.find((g) => g.id === open) : null
   return createPortal(
@@ -55,7 +66,7 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
         <header className="oficina-top">
           {guide ? (
             <button type="button" className="btn btn-ghost btn-sm" onClick={back}>
-              <ArrowLeft size={16} /> Todos os gêneros
+              <ArrowLeft size={16} /> {start ? 'Voltar' : 'Todos os gêneros'}
             </button>
           ) : (
             <span className="oficina-brand">
@@ -81,7 +92,7 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
             }
           />
         ) : (
-          <Cover genre={genre} onChoose={choose} />
+          <OficinaCover genre={genre} onChoose={choose} />
         )}
         </ErrorBoundary>
       </div>
@@ -90,7 +101,7 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
   )
 }
 
-function Cover({ genre, onChoose }: { genre?: GuideId; onChoose: (id: GuideId) => void }) {
+export function OficinaCover({ genre, onChoose }: { genre?: GuideId; onChoose: (id: GuideId) => void }) {
   const [tip] = useState(() => tipOfTheDay(genre ?? 'fundamentos'))
   // A etiqueta só aparece quando dá para saber o gênero do universo.
   const mine = genre && genre !== 'fundamentos' ? genre : null

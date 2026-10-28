@@ -1,4 +1,4 @@
-import { ArrowRight, BookMarked, BookOpen, Compass, Dices, Feather, GraduationCap, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Sprout, Users, X } from 'lucide-react'
+import { ArrowRight, BookMarked, BookOpen, Dices, Feather, GraduationCap, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Sprout, Users, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useState } from 'react'
@@ -19,7 +19,7 @@ const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', 
 
 /** Início do universo: onde parei, o dia de escrita, o que pede atenção e atalhos. */
 export default function HomeView() {
-  const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, startTour, source, openShare, openReader, readOnly, toast } = useWorkspace()
+  const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, source, openShare, openReader, readOnly, toast, hiddenViews } = useWorkspace()
   const cover = universe.settings.cover ?? null
   const setCover = (ref: string | null) => update((u) => ({ ...u, settings: { ...u.settings, cover: ref } }))
   const coverPicker = useImagePicker('capa', (ref) => setCover(ref), (m) => toast(m, { tone: 'erro' }))
@@ -38,7 +38,7 @@ export default function HomeView() {
   const inbox = universe.inbox.filter((i) => i.status === 'aberto').length
   const drafts = universe.entities.filter((e) => e.editorial === 'rascunho').length
   const openSeeds = universe.seeds.filter((s) => s.status !== 'resolvida' && s.status !== 'abandonada').length
-  const showRpg = !prefs.hiddenViews.includes('rpg') && universe.groups.length > 0
+  const showRpg = !hiddenViews.includes('rpg') && universe.groups.length > 0
   const nextSession = universe.sessions
     .filter((s) => s.status !== 'encerrada')
     .sort((a, b) => (a.status === 'em-andamento' ? -1 : b.status === 'em-andamento' ? 1 : a.playedOn.localeCompare(b.playedOn)))[0]
@@ -68,7 +68,7 @@ export default function HomeView() {
 
   const streak = currentStreak(wordsByDay(universe, 120))
   const goalPct = goal > 0 ? Math.min(100, (today / goal) * 100) : 0
-  const shown = (v: View) => !prefs.hiddenViews.includes(v)
+  const shown = (v: View) => !hiddenViews.includes(v)
   const doors = (
     [
       ['escrever', `${scenes.length} ${scenes.length === 1 ? 'cena' : 'cenas'}`],
@@ -126,9 +126,6 @@ export default function HomeView() {
               <Users size={15} aria-hidden="true" /> Compartilhar
             </button>
           )}
-          <button type="button" className="home-quick-btn" aria-label="Fazer o tour" onClick={startTour}>
-            <Compass size={15} aria-hidden="true" /> Tour
-          </button>
           {!readOnly && (
             <>
               {coverPicker.field}

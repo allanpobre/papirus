@@ -40,6 +40,7 @@ import { ReaderView } from '../reader/ReaderView'
 import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
+import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
@@ -122,7 +123,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     const back = backState()
     if (back.u === initial.id && back.view && back.view !== 'oficina') return { view: back.view, id: back.id ?? null }
     const last = recall(`vista:${initial.id}`) as View | null
-    return { view: last && last !== 'oficina' ? last : 'inicio' }
+    return { view: last && last !== 'oficina' ? last : firstView(initial) }
   })
   const navRef = useRef(nav)
   // O passo atual do histórico passa a ser este universo, nesta tela.
@@ -313,6 +314,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     return () => clearTimeout(t)
   }, [backupDue, prefs.autoBackup, downloadBackup, toast])
 
+  const kind = universeKind(universe)
+  const hidden = useMemo(() => hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), [universe, prefs.menus, prefs.hiddenViews])
   const ws: Workspace = useMemo(
     () => ({
       universe,
@@ -356,8 +359,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           })
         setBookOpen(id ?? null)
       },
+      kind,
+      hiddenViews: hidden,
+      setHiddenViews: (views: View[]) => setPref('menus', { ...prefs.menus, [kind]: views }),
     }),
-    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
+    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev, kind, hidden],
   )
 
   // Arrastar texto selecionado sem querer inicia o "arrastar e soltar" do navegador, e alguns
@@ -399,7 +405,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [mediumOpen, setMediumOpen] = useState(false)
   const collapsed = medium ? !mediumOpen : prefs.railCollapsed
   const phone = useMediaQuery('(max-width: 760px)')
-  const visibleItems = ALL_ITEMS.filter((item) => item.view === 'config' || !prefs.hiddenViews.includes(item.view) || nav.view === item.view)
+  const visibleItems = ALL_ITEMS.filter((item) => item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view)
 
   return (
     <WorkspaceContext.Provider value={ws}>
@@ -415,8 +421,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
-            shortcuts={prefs.phoneShortcuts}
-            onShortcuts={(v) => setPref('phoneShortcuts', v)}
+            shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
+            defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
+            onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
             onShare={source.kind === 'proprio' ? () => setShareOpen(true) : undefined}
@@ -454,9 +461,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </button>
 
           <div className="rail-groups">
-            {NAV.map((g) => {
+            {(kind === 'campanha' ? [NAV[0], ...NAV.filter((g) => g.group === 'Mesa'), ...NAV.slice(1).filter((g) => g.group !== 'Mesa')] : NAV).map((g) => {
               // Áreas escondidas somem do menu, mas a aberta continua visível.
-              const items = g.items.filter((item) => !prefs.hiddenViews.includes(item.view) || nav.view === item.view)
+              const items = g.items.filter((item) => !hidden.includes(item.view) || nav.view === item.view)
               if (!items.length) return null
               return (
                 <div key={g.group} className="rail-group">
@@ -468,10 +475,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               )
             })}
             <div className="rail-group rail-group-end">
-              {TOOLS.filter((t) => t.view !== 'oficina' && (!prefs.hiddenViews.includes(t.view) || nav.view === t.view)).map((t) => (
+              {TOOLS.filter((t) => t.view !== 'oficina' && (!hidden.includes(t.view) || nav.view === t.view)).map((t) => (
                 <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
               ))}
-              {!prefs.hiddenViews.includes('oficina') && <OficinaCard compact={collapsed} onClick={() => go('oficina')} />}
+              {!hidden.includes('oficina') && <OficinaCard compact={collapsed} onClick={() => go('oficina')} />}
               <RailButton item={CONFIG_ITEM} active={nav.view === 'config'} onClick={() => go('config')} />
             </div>
           </div>
@@ -577,7 +584,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         {tourOpen && (
           <Tour
             onGo={tourGo}
-            hidden={prefs.hiddenViews}
+            hidden={hidden}
             onClose={() => {
               setTourOpen(false)
               setPref('tourDone', true)
@@ -732,6 +739,7 @@ function PhoneNav({
   inboxCount,
   universeName,
   shortcuts: chosen,
+  defaults,
   onShortcuts,
   onGo,
   onSearch,
@@ -745,6 +753,8 @@ function PhoneNav({
   universeName: string
   /** Atalhos escolhidos para a barra (até 4). */
   shortcuts: View[]
+  /** Os atalhos padrão deste tipo de universo. */
+  defaults: View[]
   onShortcuts: (v: View[]) => void
   onGo: (v: View) => void
   onSearch: () => void
@@ -759,7 +769,7 @@ function PhoneNav({
   const [editing, setEditing] = useState(false)
   const byView = (v: View) => items.find((i) => i.view === v)
   // Os escolhidos (que estão visíveis), completados com os padrões até 4.
-  const picked = [...chosen, ...DEFAULT_SHORTCUTS].filter((v, i, all) => all.indexOf(v) === i && byView(v)).slice(0, 4)
+  const picked = [...chosen, ...defaults].filter((v, i, all) => all.indexOf(v) === i && byView(v)).slice(0, 4)
   // A área aberta sempre aparece entre os atalhos.
   const views = picked.includes(current) || !byView(current) ? picked : [...picked.slice(0, 3), current]
   const shortcuts = views.map(byView).filter((i): i is NavItem => Boolean(i))

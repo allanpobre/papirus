@@ -7,6 +7,10 @@ async function newUniverseWithTable(page: Page) {
   await page.goto('/app/')
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Campanha')
   await page.getByRole('button', { name: 'Criar universo' }).click()
+  // Num livro, a mesa fica fora do menu até a pessoa pedir.
+  await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Menu e ajuda' }).click()
+  await page.getByRole('button', { name: 'Mostrar tudo' }).click()
   await nav(page, 'RPG').click()
   await page.getByRole('textbox', { name: 'Nome da mesa' }).fill('Mesa de domingo')
   await page.getByRole('button', { name: 'Criar mesa' }).click()
@@ -187,12 +191,11 @@ test('o mestre escolhe o tema da mesa pelo gênero; claro ou escuro segue cada p
 
 test('campanha de Tormenta: criar, montar a ficha e jogar com dado físico', async ({ page }) => {
   await page.goto('/app/')
-  await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Arton')
-  await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Campanha de RPG' }).click()
-  await page.getByRole('radio', { name: 'Tormenta 20' }).click()
-  await page.getByRole('button', { name: 'Criar universo' }).click()
-  // O Início de uma campanha mostra a mesa primeiro.
-  await page.getByRole('button', { name: 'Abrir a mesa' }).click()
+  // O RPG é um setor à parte: a campanha nasce ali e abre direto na mesa.
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'RPG' }).click()
+  await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Arton')
+  await expect(page.getByRole('radio', { name: 'Tormenta 20' })).toHaveAttribute('aria-checked', 'true')
+  await page.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(page.locator('.mesa-hero')).toContainText('Estilo Tormenta 20')
   await expect(page.locator('body')).toHaveAttribute('data-mesa-tema', 'tempestade')
 

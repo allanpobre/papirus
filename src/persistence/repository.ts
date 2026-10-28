@@ -1,3 +1,4 @@
+import { universeKind, type UniverseKind } from '../model/kind'
 import { isLocalOnly } from '../model/sample'
 import { migrate } from '../model/migrations'
 import { CURRENT_SCHEMA_VERSION, type SavedFile, type Universe } from '../model/schema'
@@ -181,6 +182,12 @@ export interface LibraryEntry {
   sample?: boolean
   /** Capa do universo ("img:…"), para a lista de universos. */
   cover?: string
+  /** Setor: escrita ou campanha (entradas antigas, sem isto, são de escrita até a próxima gravação). */
+  kind?: UniverseKind
+  /** Tem uma mesa de RPG (campanha, ou universo de escrita com mesa). */
+  sessions?: number
+  /** Personagens de jogadores (fichas de jogo). */
+  sheets?: number
 }
 
 /** Índice dos universos guardados neste navegador. */
@@ -204,6 +211,20 @@ export class Library {
   async list(): Promise<LibraryEntry[]> {
     await this.adoptLegacy()
     const list = ((await this.store.get(LIBRARY_KEY)) as LibraryEntry[] | undefined) ?? []
+    // Entradas de antes dos setores: descobre uma vez se cada universo é escrita ou campanha.
+    const missing = list.filter((e) => !e.kind)
+    if (missing.length) {
+      for (const e of missing) {
+        try {
+          const u = await this.repository(e.id).load()
+          e.kind = u ? universeKind(u) : 'escrita'
+          if (u?.groups.length) Object.assign(e, { sessions: u.sessions.length, sheets: u.sheets.length })
+        } catch {
+          e.kind = 'escrita'
+        }
+      }
+      await this.store.set(LIBRARY_KEY, list)
+    }
     return [...list].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   }
 
@@ -217,6 +238,8 @@ export class Library {
       words: countWords(universe),
       ...(isLocalOnly(universe) ? { sample: true } : {}),
       ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
+      kind: universeKind(universe),
+      ...(universe.groups.length ? { sessions: universe.sessions.length, sheets: universe.sheets.length } : {}),
     }
     const i = list.findIndex((e) => e.id === universe.id)
     if (i >= 0) list[i] = entry

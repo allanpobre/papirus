@@ -1,4 +1,4 @@
-import { CalendarDays, Crown, Dices, Eye, Feather, Palette, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
+import { CalendarDays, Crown, Dices, Eye, Feather, Library, Palette, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
 import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../../styles/mesa.css'
@@ -117,7 +117,7 @@ interface TrayRoll {
 }
 
 export default function RpgView() {
-  const { universe, update, nav, go, prefs, readOnly } = useWorkspace()
+  const { universe, update, nav, go, prefs, readOnly, kind, closeUniverse } = useWorkspace()
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const dark = prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark)
   const [picking, setPicking] = useState(false)
@@ -241,9 +241,15 @@ export default function RpgView() {
               <Palette size={15} /> <span className="mesa-act-label">Tema</span>
             </button>
           )}
-          <button type="button" className="btn btn-ghost btn-sm" aria-label="Voltar à escrita" title="Voltar à escrita" onClick={() => go('inicio')}>
-            <Feather size={15} /> <span className="mesa-act-label">Voltar à escrita</span>
-          </button>
+          {kind === 'campanha' ? (
+            <button type="button" className="btn btn-ghost btn-sm" aria-label="Suas campanhas" title="Suas campanhas" onClick={() => closeUniverse()}>
+              <Library size={15} /> <span className="mesa-act-label">Campanhas</span>
+            </button>
+          ) : (
+            <button type="button" className="btn btn-ghost btn-sm" aria-label="Voltar à escrita" title="Voltar à escrita" onClick={() => go('inicio')}>
+              <Feather size={15} /> <span className="mesa-act-label">Voltar à escrita</span>
+            </button>
+          )}
         </div>
         {picking && group && (
           <ThemePicker

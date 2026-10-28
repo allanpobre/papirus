@@ -1364,7 +1364,7 @@ body:has(.rail-phone) .toasts {
   height: 2.6rem;
   border-radius: var(--radius);
   background: var(--accent);
-  color: var(--on-accent, #fff);
+  color: var(--accent-ink);
 }
 
 .sample-body {
@@ -1584,7 +1584,7 @@ body:has(.rail-phone) .toasts {
   height: 32px;
   border-radius: 9px;
   background: var(--accent);
-  color: var(--on-accent, #fff);
+  color: var(--accent-ink);
 }
 
 .oficina-card-text {
@@ -1641,4 +1641,260 @@ body:has(.rail-phone) .toasts {
   border-radius: 10px;
   object-fit: cover;
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+}
+
+/* Início do app: três setores (Escrita, RPG, Oficina). No computador, as abas ficam no topo;
+   no celular, numa barra embaixo, ao alcance do polegar. */
+.hub .library-top {
+  gap: 1rem;
+}
+
+.hub-tabs {
+  position: sticky;
+  top: 0.6rem;
+  z-index: 5;
+  width: fit-content;
+  margin: 0 auto;
+  box-shadow: var(--shadow-1);
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.hub-tab {
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0 1.05rem;
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-weight: 600;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.hub-tab:hover {
+  color: var(--ink);
+}
+
+.hub-tab[aria-current='page'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.hub .library-main {
+  padding-block: 1.6rem 4rem;
+}
+
+.hub-main-wide {
+  max-width: 1100px;
+  padding-block: 0 4rem;
+}
+
+.hub-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hub-hero h1 {
+  font-size: clamp(1.9rem, 5vw, 2.7rem);
+  line-height: 1.12;
+}
+
+.hub-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hub-h {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.hub-continue {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 4px);
+  background:
+    radial-gradient(600px 200px at 100% 0%, var(--accent-faint), transparent 70%),
+    var(--surface);
+  box-shadow: var(--shadow-1);
+  text-align: left;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.hub-continue:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+
+.hub-continue-cover {
+  flex: none;
+  width: 76px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: var(--shadow-1);
+}
+
+.hub-continue-blank {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--ink)));
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+}
+
+.hub-continue-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hub-continue-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.hub-continue-go {
+  flex: none;
+  color: var(--accent);
+}
+
+.hub-social,
+.hub-player {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.hub-social > .small,
+.hub-player > .small {
+  margin-bottom: 0.7rem;
+}
+
+.hub-player > .small {
+  margin-bottom: 0;
+}
+
+.hub-social-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.hub-social-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.hub-social-btn:hover {
+  border-color: var(--accent);
+}
+
+.hub-social-btn .rail-badge {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.45rem;
+}
+
+/* O setor de RPG usa as letras de pedra e o clima da mesa. */
+.hub-rpg .hub-hero h1 {
+  font-family: var(--font-display);
+}
+
+@media (max-width: 760px) {
+  .hub .library-top {
+    padding-block: 0.6rem;
+  }
+
+  .hub-tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    justify-content: space-around;
+    padding: 0.35rem max(8px, env(safe-area-inset-left, 0px)) calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    width: auto;
+    margin: 0;
+    top: auto;
+    box-shadow: none;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .hub-tab {
+    flex: 1;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-height: 52px;
+    padding: 0.3rem 0;
+    border-radius: 14px;
+    font-size: 0.75rem;
+  }
+
+  .hub-tab[aria-current='page'] {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .hub .library-main {
+    padding-block: 1.1rem calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .hub-main-wide {
+    padding-block: 0 calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .hub-social-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.hub-main-wide .oficina-cover {
+  width: 100%;
+  padding: 0;
 }

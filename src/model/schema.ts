@@ -386,6 +386,8 @@ export const universeSettingsSchema = z.object({
   deadline: z.object({ words: z.number().int().positive(), date: z.string() }).nullable().default(null),
   /** Capa do universo ("img:…"): no Início e na lista de universos. */
   cover: z.string().nullable().optional(),
+  /** Escrita ou campanha de RPG: o setor em que o universo fica. Sem valor, o Papirus deduz. */
+  kind: z.enum(['escrita', 'campanha']).optional(),
 })
 
 /**

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { QuestionType } from '../logic/continuity'
 import type { View } from './workspace'
+import { CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 
 /** Preferências deste navegador (não fazem parte do universo). */
 export interface Prefs {
@@ -18,8 +19,12 @@ export interface Prefs {
   toolbar: boolean
   continuity: Record<QuestionType, boolean>
   railCollapsed: boolean
-  /** Áreas escondidas do menu (continuam acessíveis pela busca e por links). */
+  /** Áreas escondidas do menu de antes dos setores (vale como ponto de partida para a escrita). */
   hiddenViews: View[]
+  /** Áreas escondidas do menu, por tipo de universo (continuam acessíveis pela busca e por links). */
+  menus: Partial<Record<UniverseKind, View[]>>
+  /** O setor aberto no início do app. */
+  sector: 'escrita' | 'rpg' | 'oficina'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
   /** Último backup baixado e "lembrar depois", por universo (ISO). */
@@ -46,6 +51,8 @@ export interface Prefs {
   autoBackup: boolean
   /** Os atalhos da barra de baixo no celular (até 4). */
   phoneShortcuts: View[]
+  /** Os atalhos da barra de baixo numa campanha. */
+  campaignShortcuts: View[]
 }
 
 export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite' | 'rosa' | 'turquesa' | 'terracota'
@@ -71,6 +78,8 @@ export const DEFAULT_PREFS: Prefs = {
   },
   railCollapsed: false,
   hiddenViews: [],
+  menus: {},
+  sector: 'escrita',
   onboarded: false,
   backups: {},
   server: { url: '', anonKey: '' },
@@ -84,6 +93,7 @@ export const DEFAULT_PREFS: Prefs = {
   celebrate: true,
   autoBackup: false,
   phoneShortcuts: ['inicio', 'escrever', 'livro', 'fichas'],
+  campaignShortcuts: CAMPAIGN_SHORTCUTS,
 }
 
 const KEY = 'papirus:prefs'
