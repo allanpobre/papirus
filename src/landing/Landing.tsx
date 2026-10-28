@@ -148,6 +148,7 @@ export function Landing() {
           <Manuscript />
         </section>
 
+        <div className="lp-zone lp-zone-setores">
         <section className="lp-section" id="setores" aria-labelledby="setores-titulo">
           <p className="lp-eyebrow">Três setores</p>
           <h2 id="setores-titulo">Cada parte com a sua cara. O mesmo caderno por trás.</h2>
@@ -173,9 +174,13 @@ export function Landing() {
             ))}
           </div>
         </section>
+        </div>
 
+        <div className="lp-zone lp-zone-escrita">
         <section className="lp-section" id="escrever" aria-labelledby="escrever-titulo">
-          <p className="lp-eyebrow">Para quem escreve</p>
+          <p className="lp-eyebrow">
+            <Feather size={14} aria-hidden="true" /> Escrita · para quem escreve
+          </p>
           <h2 id="escrever-titulo">Escreva primeiro. O resto se organiza quando você quiser.</h2>
           <ol className="lp-steps">
             <li>
@@ -195,11 +200,14 @@ export function Landing() {
             </li>
           </ol>
         </section>
+        </div>
 
         <section className="lp-band lp-mesa" id="mestrar" aria-labelledby="mestrar-titulo">
           <div className="lp-band-inner">
             <div className="lp-band-copy">
-              <p className="lp-eyebrow">Para quem mestra</p>
+              <p className="lp-eyebrow">
+                <Dices size={14} aria-hidden="true" /> Mesa de RPG · para quem mestra
+              </p>
               <h2 id="mestrar-titulo">O mesmo mundo, agora na mesa.</h2>
               <p className="lp-lede">
                 O RPG de verdade acontece na mesa, com dados de verdade. O Papirus é o ajudante: guarda as fichas, faz as contas e leva ao celular de cada jogador o que o grupo já descobriu.
@@ -239,16 +247,12 @@ export function Landing() {
           </div>
         </section>
 
-        <section className="lp-section lp-inside" id="telas" aria-labelledby="telas-titulo">
-          <p className="lp-eyebrow">Por dentro</p>
-          <h2 id="telas-titulo">Veja como é usar.</h2>
-          <ScreensShowcase />
-        </section>
-
         <section className="lp-oficina-band" id="oficina" aria-labelledby="oficina-titulo">
           <div className="lp-section lp-oficina">
           <div className="lp-oficina-copy">
-            <p className="lp-eyebrow">Oficina</p>
+            <p className="lp-eyebrow">
+              <GraduationCap size={14} aria-hidden="true" /> Oficina · para aprender
+            </p>
             <h2 id="oficina-titulo">Aprenda escrevendo. Um pouco por dia.</h2>
             <p className="lp-lede">Guias curtos de gêneros e técnicas, e guias para quem mestra: o que funciona, armadilhas, livros para estudar, curiosidades e exercícios que viram cena com um toque.</p>
             <ul className="lp-shelf" aria-label="Guias da Oficina">
@@ -261,8 +265,20 @@ export function Landing() {
           </div>
         </section>
 
+        <div className="lp-zone lp-zone-telas">
+        <section className="lp-section lp-inside" id="telas" aria-labelledby="telas-titulo">
+          <p className="lp-eyebrow">Por dentro</p>
+          <h2 id="telas-titulo">Veja como é usar, setor por setor.</h2>
+          <p className="lp-lede">Três partes separadas, cada uma com as suas telas. Escolha um setor.</p>
+          <ScreensShowcase />
+        </section>
+        </div>
+
+        <div className="lp-zone lp-zone-amigos">
         <section className="lp-section" id="juntos" aria-labelledby="juntos-titulo">
-          <p className="lp-eyebrow">Com os amigos</p>
+          <p className="lp-eyebrow">
+            <Users size={14} aria-hidden="true" /> Com os amigos
+          </p>
           <h2 id="juntos-titulo">Escrever é sozinho. Ler pode ser junto.</h2>
           <p className="lp-lede">Com uma conta (opcional), você ganha um perfil, adiciona amigos e decide, livro por livro, quem pode ler: só você, os amigos ou todo mundo.</p>
           <div className="lp-features lp-together">
@@ -275,7 +291,9 @@ export function Landing() {
             ))}
           </div>
         </section>
+        </div>
 
+        <div className="lp-zone lp-zone-tudo">
         <section className="lp-section" aria-labelledby="tudo-titulo">
           <h2 id="tudo-titulo">Tudo o que um mundo precisa</h2>
           <div className="lp-features">
@@ -288,7 +306,9 @@ export function Landing() {
             ))}
           </div>
         </section>
+        </div>
 
+        <div className="lp-zone lp-zone-principios">
         <section className="lp-section lp-principles" id="principios" aria-labelledby="principios-titulo">
           <p className="lp-eyebrow">Princípios</p>
           <h2 id="principios-titulo">O mundo é seu. O Papirus só ajuda.</h2>
@@ -307,7 +327,9 @@ export function Landing() {
             </blockquote>
           </div>
         </section>
+        </div>
 
+        <div className="lp-zone lp-zone-final">
         <section className="lp-final" aria-labelledby="final-titulo">
           <h2 id="final-titulo">Abra o caderno.</h2>
           <p>Leva dez segundos: dê um nome ao seu mundo e comece a escrever.</p>
@@ -320,6 +342,7 @@ export function Landing() {
             </a>
           </div>
         </section>
+        </div>
       </main>
 
       <footer className="lp-footer">
@@ -385,6 +408,7 @@ const TOGETHER = [
   { icon: Users, title: 'Leitores beta', text: 'Mande um link de leitura e receba comentários presos ao trecho e reações por capítulo.' },
   { icon: Trophy, title: 'Desafios', text: 'Uma proposta por dia e desafios entre amigos. Medalhas para quem gosta.' },
   { icon: Flame, title: 'Sequência', text: 'Dias seguidos escrevendo, contados só se você quiser contar.' },
+  { icon: Trophy, title: 'Placar dos treinos', text: 'Entre amigos ou de todo mundo, na semana ou no mês. Só números: o texto nunca aparece.' },
 ]
 
 /** O gerador de ideias da Oficina, para experimentar aqui mesmo. */
