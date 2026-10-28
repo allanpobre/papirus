@@ -315,7 +315,7 @@ export function Landing() {
         <span className="lp-brand">
           <BrandMark size={20} /> Papirus
         </span>
-        <span className="muted small">Feito para escritores e mestres. Código aberto.</span>
+        <span className="muted small">Feito para escritores e mestres. Código aberto. Versão {__APP_VERSION__}.</span>
         <a className="lp-footer-link" href="https://github.com/allanpobre/papirus" target="_blank" rel="noreferrer">
           <ExternalLink size={16} aria-hidden="true" /> Código no GitHub
         </a>

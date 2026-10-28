@@ -5,3 +5,6 @@ interface ImportMetaEnv {
   /** Endereço público onde o Papirus está publicado (para os links dos jogadores). */
   readonly VITE_PAPIRUS_PUBLIC_URL?: string
 }
+
+/** Versão do Papirus (do package.json). */
+declare const __APP_VERSION__: string
