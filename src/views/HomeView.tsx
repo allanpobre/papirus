@@ -5,11 +5,13 @@ import { useMemo, useState } from 'react'
 import { continuityQuestions, isOpen } from '../logic/continuity'
 import { wordsByDay, wordsToday } from '../logic/stats'
 import { kindLabel, SESSION_STATUS_LABEL } from '../model/labels'
-import { addScene, byId, manuscriptOrder } from '../model/universe'
+import { addScene, byId, manuscriptOrder, updateScene } from '../model/universe'
 import { countWords, wordCount } from '../persistence/repository'
 import { recall } from '../state/prefs'
 import { currentStreak, DeadlineLine, WritingCalendar } from './WritingCalendar'
-import { DailyChallengeCard, ProgressSection } from './PlayCards'
+import { ProgressSection } from './PlayCards'
+import { TreinoCard } from '../treino/TreinoCard'
+import { docFromParagraphs } from '../model/doc'
 import { guessGuide, tipOfTheDay } from '../oficina/guides'
 import { ALL_ITEMS } from '../shell/nav'
 import { useWorkspace, type View } from '../state/workspace'
@@ -195,7 +197,21 @@ export default function HomeView() {
         </section>
 
         <div className="home-challenge">
-          <DailyChallengeCard />
+          <TreinoCard
+            onKeepScene={
+              readOnly
+                ? undefined
+                : (t) => {
+                    // O texto do treino vira uma cena solta, com a proposta na sinopse.
+                    const paragraphs = t.text.split(/\n+/).map((p) => p.trim()).filter(Boolean)
+                    update((u) => {
+                      const [next, sc] = addScene(u, null, `Treino: ${t.prompt.slice(0, 48)}${t.prompt.length > 48 ? '…' : ''}`)
+                      return updateScene(next, sc.id, { synopsis: t.prompt, doc: docFromParagraphs(paragraphs), text: paragraphs.join('\n\n') })
+                    })
+                    toast('O treino virou uma cena (em Escrever, fora dos capítulos).')
+                  }
+            }
+          />
         </div>
 
         <nav className="home-doors" aria-label="O seu mundo">

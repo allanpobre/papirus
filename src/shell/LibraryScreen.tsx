@@ -4,6 +4,7 @@ import type { GuideId } from '../oficina/guides'
 import { SocialDialog, type SocialTab } from '../social/SocialDialog'
 import { getNoticeCount } from '../social/social'
 import { useMesaSector } from '../rpg/useMesaSector'
+import { useOficinaSector } from '../oficina/useOficinaSector'
 import {
   BookOpen,
   GraduationCap,
@@ -51,6 +52,7 @@ import { createUniverse, newId } from '../model/universe'
 import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../model/templates'
 import { SYSTEM_TEMPLATES } from '../rpg/systems'
 import { MESA_THEMES } from '../rpg/themes'
+import { TreinoCard } from '../treino/TreinoCard'
 import type { Library, LibraryEntry } from '../persistence/repository'
 import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistence/folder'
 import type { usePrefs } from '../state/prefs'
@@ -539,6 +541,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         )}
       </section>
       {writing[0] && continueCard(writing[0], 'Continuar escrevendo')}
+      <TreinoCard compact />
       {writing.length > 1 && (
         <section aria-labelledby="universos-titulo">
           <h2 id="universos-titulo" className="hub-h">
@@ -612,7 +615,10 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   )
 
   const oficina = (
-    <OficinaCover onChoose={(id) => setOficinaOpen(id)} />
+    <>
+      <OficinaClimate />
+      <OficinaCover onChoose={(id) => setOficinaOpen(id)} />
+    </>
   )
 
   const SECTORS = [
@@ -674,6 +680,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {oficinaOpen && <OficinaPage start={oficinaOpen} onClose={() => setOficinaOpen(null)} />}
     </div>
   )
+}
+
+/** A Oficina também: luz âmbar de bancada. */
+function OficinaClimate() {
+  useOficinaSector()
+  return null
 }
 
 /** O setor de RPG muda o clima da tela, como a mesa. */

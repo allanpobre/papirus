@@ -2636,7 +2636,7 @@ code {
 }
 
 .marked-input::placeholder {
-  color: var(--ink-3);
+  color: var(--muted);
 }
 
 .marked-input::selection {
@@ -2645,7 +2645,7 @@ code {
 }
 
 .mk-tag {
-  color: var(--ink-3);
+  color: var(--muted);
   opacity: 0.55;
 }
 

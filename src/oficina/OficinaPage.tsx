@@ -32,6 +32,7 @@ import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { useBackLayer } from '../ui/useBackLayer'
 import { GUIDES, sectionOf, tipOfTheDay, type Guide, type GuideId, type GuideSection } from './guides'
 import { rollIdea, type Idea, type IdeaMode } from './ideas'
+import { useOficinaSector } from './useOficinaSector'
 import { exerciseKey, markRead, toggleDone, useOficinaProgress } from './progress'
 
 /** Cor e ícone de cada gênero (a capa da Oficina e o topo de cada guia). */
@@ -90,6 +91,7 @@ export function OficinaPage({
 
   // A Oficina e o gênero aberto são passos do "voltar" do aparelho: volta para a capa e depois fecha.
   useBackLayer(onClose)
+  useOficinaSector()
   useBackLayer(() => setOpen(null), open !== null && !start)
 
   // Corpo com chaves: algumas extensões fazem scrollTo devolver um número, e o React
