@@ -1,60 +1,61 @@
 /*
  * A Mesa de RPG é outro setor do Papirus: ao entrar, o app inteiro muda de clima
- * (madeira escura, pergaminho, luz de vela) e os títulos ganham letras de pedra.
+ * (noite de tempestade: preto azulado, carmesim e dourado) e os títulos ganham letras de pedra.
  * As cores são as mesmas variáveis do resto do app: tudo se adapta sozinho.
  */
 body[data-sector='mesa'] {
-  --bg: #15110d;
-  --surface: #1e1914;
-  --surface-2: #272018;
-  --surface-3: #31291f;
-  --inverse-bg: #efe2c8;
-  --inverse-fg: #15110d;
-  --paper: #221c16;
-  --ink: #f2e7d3;
-  --ink-2: #d9c8aa;
-  --muted: #b09f82;
-  --line: #3b3228;
-  --line-strong: #5d4e3d;
+  /* Noite de tempestade: preto azulado, carmesim (a Tormenta) e dourado para o que brilha. */
+  --bg: #0d0f15;
+  --surface: #151821;
+  --surface-2: #1b1f2a;
+  --surface-3: #242936;
+  --inverse-bg: #eceef5;
+  --inverse-fg: #0d0f15;
+  --paper: #181b25;
+  --ink: #eceef5;
+  --ink-2: #c4c9d7;
+  --muted: #949bae;
+  --line: #2a2f3c;
+  --line-strong: #434a5b;
 
-  --accent: #e3a94e;
-  --accent-hover: #f2bf6a;
-  --accent-ink: #1a1207;
-  --accent-soft: #3f2f17;
-  --accent-faint: #2b2216;
+  --accent: #f0536f;
+  --accent-hover: #ff7189;
+  --accent-ink: #19060b;
+  --accent-soft: #3b1721;
+  --accent-faint: #251419;
 
-  --ochre: #e7bd66;
-  --ochre-soft: #3d311b;
-  --ochre-line: #a8833a;
-  --danger: #f09a86;
-  --danger-soft: #42221c;
-  --ok: #9ad18f;
-  --ok-soft: #22331f;
-  --violet: #c7aef2;
-  --violet-soft: #30273f;
-  --wine: #eb9ab7;
-  --wine-soft: #40222f;
-  --sky: #98c4ea;
-  --sky-soft: #1f2e3c;
+  --ochre: #e9c463;
+  --ochre-soft: #352c17;
+  --ochre-line: #9c7f3a;
+  --danger: #ff8a7a;
+  --danger-soft: #401f1c;
+  --ok: #8fd6a0;
+  --ok-soft: #1c3124;
+  --violet: #b9a6f5;
+  --violet-soft: #2a2542;
+  --wine: #ef9cc0;
+  --wine-soft: #3d2131;
+  --sky: #93c3f0;
+  --sky-soft: #1c2b3d;
 
-  --shadow-1: 0 1px 2px rgb(0 0 0 / 35%);
-  --shadow-2: 0 12px 32px rgb(0 0 0 / 55%), 0 2px 8px rgb(0 0 0 / 35%);
-  --shadow-page: 0 1px 0 rgb(0 0 0 / 25%), 0 18px 44px -20px rgb(0 0 0 / 70%);
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-2: 0 12px 32px rgb(0 0 0 / 60%), 0 2px 8px rgb(0 0 0 / 40%);
+  --shadow-page: 0 1px 0 rgb(0 0 0 / 25%), 0 18px 44px -20px rgb(0 0 0 / 75%);
   --font-display: 'Cinzel', 'Young Serif', Georgia, serif;
 
   color-scheme: dark;
 }
 
-/* O fundo da mesa: madeira escura, com a luz da vela vindo de cima. */
+/* O céu da mesa: escuro, com o brilho vermelho da tempestade lá em cima. */
 body[data-sector='mesa'] .shell {
   background:
-    radial-gradient(90% 60% at 50% -10%, rgb(227 169 78 / 13%), transparent 60%),
-    repeating-linear-gradient(97deg, rgb(255 255 255 / 1.2%) 0 2px, transparent 2px 9px),
+    radial-gradient(70% 45% at 70% -12%, rgb(240 83 111 / 14%), transparent 65%),
+    radial-gradient(50% 35% at 10% -10%, rgb(120 90 220 / 10%), transparent 70%),
     var(--bg);
 }
 
 body[data-sector='mesa'] .rail {
-  background: linear-gradient(180deg, #1b1611, #15110d);
+  background: #10121a;
   border-color: var(--line);
 }
 
@@ -69,7 +70,7 @@ body[data-sector='mesa'] .rail {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-l);
   background:
-    radial-gradient(120% 140% at 0% 0%, rgb(227 169 78 / 16%), transparent 55%),
+    radial-gradient(120% 160% at 0% 0%, rgb(240 83 111 / 16%), transparent 55%),
     linear-gradient(180deg, var(--surface-2), var(--surface));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%), var(--shadow-1);
 }
@@ -80,10 +81,10 @@ body[data-sector='mesa'] .rail {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 1px solid var(--ochre-line);
-  background: radial-gradient(circle at 35% 30%, #4a3720, #1c1610 70%);
+  border: 1px solid rgb(240 83 111 / 55%);
+  background: radial-gradient(circle at 35% 30%, #3a1a24, #12141c 70%);
   color: var(--accent);
-  box-shadow: 0 0 0 4px rgb(227 169 78 / 8%), 0 0 24px rgb(227 169 78 / 18%);
+  box-shadow: 0 0 0 4px rgb(240 83 111 / 10%), 0 0 26px rgb(240 83 111 / 25%);
 }
 
 .mesa-hero-text {
@@ -108,7 +109,7 @@ body[data-sector='mesa'] .rail {
   font-size: clamp(1.6rem, 4vw, 2.3rem);
   letter-spacing: 0.04em;
   color: var(--ink);
-  text-shadow: 0 2px 18px rgb(227 169 78 / 20%);
+  text-shadow: 0 2px 22px rgb(240 83 111 / 28%);
 }
 
 .mesa-hero-meta {
@@ -130,8 +131,8 @@ body[data-sector='mesa'] .rail {
   gap: 0.4rem;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: rgb(227 169 78 / 14%);
-  border: 1px solid rgb(227 169 78 / 35%);
+  background: rgb(240 83 111 / 14%);
+  border: 1px solid rgb(240 83 111 / 40%);
   color: var(--ink);
   font-size: 0.82rem;
 }
@@ -140,14 +141,14 @@ body[data-sector='mesa'] .rail {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ff9b3d;
-  box-shadow: 0 0 0 0 rgb(255 155 61 / 60%);
+  background: #ff5a74;
+  box-shadow: 0 0 0 0 rgb(255 90 116 / 60%);
   animation: mesa-ember 1.8s ease-out infinite;
 }
 
 @keyframes mesa-ember {
   to {
-    box-shadow: 0 0 0 9px rgb(255 155 61 / 0%);
+    box-shadow: 0 0 0 9px rgb(255 90 116 / 0%);
   }
 }
 
@@ -196,8 +197,8 @@ body[data-sector='mesa'] .rail {
 }
 
 .mesa-tab.tab[aria-selected='true'] {
-  border-color: var(--ochre-line);
-  background: linear-gradient(180deg, rgb(227 169 78 / 16%), rgb(227 169 78 / 6%));
+  border-color: rgb(240 83 111 / 60%);
+  background: linear-gradient(180deg, rgb(240 83 111 / 18%), rgb(240 83 111 / 6%));
   color: var(--ink);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
@@ -260,20 +261,22 @@ body[data-sector='mesa'] .rail {
   bottom: 0;
   width: 50.5%;
   background:
-    repeating-linear-gradient(90deg, rgb(0 0 0 / 18%) 0 2px, transparent 2px 46px),
-    linear-gradient(180deg, #3a2b1c, #24190f);
-  box-shadow: inset 0 0 60px rgb(0 0 0 / 55%);
+    radial-gradient(80% 60% at 50% 40%, rgb(240 83 111 / 10%), transparent 70%),
+    linear-gradient(180deg, #171a24, #0b0d12);
+  box-shadow: inset 0 0 80px rgb(0 0 0 / 60%);
   animation: mesa-door 1.15s cubic-bezier(0.7, 0, 0.2, 1) 0.35s both;
 }
 
 .mesa-gate-left {
   left: 0;
-  border-right: 2px solid #5a4126;
+  border-right: 1px solid rgb(240 83 111 / 70%);
+  box-shadow: inset -12px 0 30px -18px rgb(240 83 111 / 80%), inset 0 0 80px rgb(0 0 0 / 60%);
 }
 
 .mesa-gate-right {
   right: 0;
-  border-left: 2px solid #5a4126;
+  border-left: 1px solid rgb(240 83 111 / 70%);
+  box-shadow: inset 12px 0 30px -18px rgb(240 83 111 / 80%), inset 0 0 80px rgb(0 0 0 / 60%);
   --dir: 1;
 }
 
@@ -293,7 +296,7 @@ body[data-sector='mesa'] .rail {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  color: #f2e7d3;
+  color: #eceef5;
   text-align: center;
   animation: mesa-sign 1.15s ease 0.15s both;
 }
@@ -304,10 +307,10 @@ body[data-sector='mesa'] .rail {
   width: 76px;
   height: 76px;
   border-radius: 50%;
-  border: 1px solid #a8833a;
-  background: radial-gradient(circle at 35% 30%, #4a3720, #1c1610 70%);
-  color: #e3a94e;
-  box-shadow: 0 0 40px rgb(227 169 78 / 35%);
+  border: 1px solid rgb(240 83 111 / 60%);
+  background: radial-gradient(circle at 35% 30%, #3a1a24, #12141c 70%);
+  color: #f0536f;
+  box-shadow: 0 0 44px rgb(240 83 111 / 40%);
 }
 
 .mesa-gate-title {
@@ -321,7 +324,7 @@ body[data-sector='mesa'] .rail {
   font-size: 0.85rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #b09f82;
+  color: #949bae;
 }
 
 @keyframes mesa-sign {
