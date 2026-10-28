@@ -389,6 +389,26 @@ test.describe('no celular', () => {
     await page.reload()
     await expect(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'RPG', exact: true })).toBeVisible()
   })
+
+  test('a mesa de um livro também é um setor: a barra vira de mestre até voltar à escrita', async ({ page }) => {
+    await page.goto('/app/?exemplo=ostria')
+    const bar = page.getByRole('navigation', { name: 'Áreas' })
+    await expect(bar.getByRole('button', { name: 'Escrever', exact: true })).toBeVisible()
+    await bar.getByRole('button', { name: 'Mais', exact: true }).click()
+    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'RPG', exact: true }).click()
+    // Na mesa: atalhos de mestre e o clima da mesa, também nas fichas.
+    await expect(bar.getByRole('button', { name: 'Escrever', exact: true })).toHaveCount(0)
+    await expect(bar.getByRole('button', { name: 'Atlas', exact: true })).toBeVisible()
+    await bar.getByRole('button', { name: 'Fichas', exact: true }).click()
+    await expect(page.locator('body')).toHaveAttribute('data-sector', 'mesa')
+    await page.reload()
+    await expect(bar.getByRole('button', { name: 'Atlas', exact: true })).toBeVisible()
+    // "Voltar à escrita" no Mais devolve o livro.
+    await bar.getByRole('button', { name: 'Mais', exact: true }).click()
+    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Voltar à escrita/ }).click()
+    await expect(bar.getByRole('button', { name: 'Escrever', exact: true })).toBeVisible()
+    await expect(page.locator('body')).not.toHaveAttribute('data-sector', 'mesa')
+  })
 })
 
 test('uma falha que ninguém tratou aparece num aviso (e falta de internet não)', async ({ page }) => {

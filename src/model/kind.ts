@@ -35,3 +35,16 @@ export function hiddenViewsFor(u: Universe, menus: Partial<Record<UniverseKind, 
 
 /** A tela em que o universo abre pela primeira vez. */
 export const firstView = (u: Universe): View => (universeKind(u) === 'campanha' ? 'rpg' : 'inicio')
+
+/** Telas que são só de escrever: abrir uma delas tira o livro do "setor da mesa". */
+export const WRITING_ONLY: View[] = ['inicio', 'escrever', 'livro', 'organizar', 'conhecimento']
+
+/**
+ * Num universo de escrita, entrar na mesa é entrar noutro setor: o menu e o clima passam
+ * a ser da mesa (também nas fichas e no mapa) até a pessoa voltar para uma tela de escrita.
+ */
+export function mesaModeAfter(current: boolean, view: View): boolean {
+  if (view === 'rpg') return true
+  if (WRITING_ONLY.includes(view)) return false
+  return current
+}

@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, Feather, ChevronsLeft, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { withDailyStart } from '../logic/stats'
@@ -44,7 +44,7 @@ import { WritingGate } from './WritingGate'
 import { MesaGate } from '../views/rpg/MesaGate'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { mesaTheme } from '../rpg/themes'
-import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS } from '../model/kind'
+import { firstView, hiddenViewsFor, mesaModeAfter, universeKind, CAMPAIGN_SHORTCUTS } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
@@ -321,11 +321,34 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [backupDue, prefs.autoBackup, downloadBackup, toast])
 
   const kind = universeKind(universe)
+  // Num livro, a mesa também é um setor: ao entrar nela, o menu e o clima ficam de mesa até voltar à escrita.
+  const [bookMesa, setBookMesa] = useState(() => {
+    try {
+      return nav.view === 'rpg' || (nav.view !== 'inicio' && sessionStorage.getItem(`papirus:setor-mesa:${initial.id}`) === '1')
+    } catch {
+      return nav.view === 'rpg'
+    }
+  })
+  const [seenView, setSeenView] = useState(nav.view)
+  if (seenView !== nav.view) {
+    setSeenView(nav.view)
+    setBookMesa(mesaModeAfter(bookMesa, nav.view))
+  }
+  useEffect(() => {
+    try {
+      if (bookMesa) sessionStorage.setItem(`papirus:setor-mesa:${initial.id}`, '1')
+      else sessionStorage.removeItem(`papirus:setor-mesa:${initial.id}`)
+    } catch {
+      // Sem armazenamento: só não lembra depois de recarregar.
+    }
+  }, [bookMesa, initial.id])
+  /** Menu, atalhos e clima de mesa: numa campanha sempre; num livro, enquanto estiver na mesa. */
+  const mesaSector = kind === 'campanha' || bookMesa
   // Numa campanha, o universo inteiro fica no clima da mesa (o tema do grupo aberto).
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const campaignGroup = universe.groups.find((g) => g.id === recall(`rpg-grupo:${universe.id}`)) ?? universe.groups[0]
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
-  useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), kind === 'campanha')
+  useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaSector)
   const hidden = useMemo(() => hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), [universe, prefs.menus, prefs.hiddenViews])
   const ws: Workspace = useMemo(
     () => ({
@@ -432,9 +455,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
-            shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
-            defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
-            onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
+            shortcuts={mesaSector ? prefs.campaignShortcuts : prefs.phoneShortcuts}
+            defaults={mesaSector ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
+            onShortcuts={(v) => setPref(mesaSector ? 'campaignShortcuts' : 'phoneShortcuts', v)}
+            onBackToWriting={kind === 'escrita' && bookMesa ? () => go('inicio') : undefined}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
             onShare={source.kind === 'proprio' ? () => setShareOpen(true) : undefined}
@@ -472,7 +496,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </button>
 
           <div className="rail-groups">
-            {(kind === 'campanha' ? [NAV[0], ...NAV.filter((g) => g.group === 'Mesa'), ...NAV.slice(1).filter((g) => g.group !== 'Mesa')] : NAV).map((g) => {
+            {(mesaSector ? [NAV[0], ...NAV.filter((g) => g.group === 'Mesa'), ...NAV.slice(1).filter((g) => g.group !== 'Mesa')] : NAV).map((g) => {
               // Áreas escondidas somem do menu, mas a aberta continua visível.
               const items = g.items.filter((item) => !hidden.includes(item.view) || nav.view === item.view)
               if (!items.length) return null
@@ -759,6 +783,7 @@ function PhoneNav({
   shortcuts: chosen,
   defaults,
   onShortcuts,
+  onBackToWriting,
   onGo,
   onSearch,
   onLibrary,
@@ -774,6 +799,8 @@ function PhoneNav({
   /** Os atalhos padrão deste tipo de universo. */
   defaults: View[]
   onShortcuts: (v: View[]) => void
+  /** Na mesa de um livro: sair do setor da mesa e voltar à escrita. */
+  onBackToWriting?: () => void
   onGo: (v: View) => void
   onSearch: () => void
   onLibrary: () => void
@@ -846,6 +873,22 @@ function PhoneNav({
                 <span className="muted tiny">Sair de “{universeName || 'Sem nome'}” · Escrita, RPG e Oficina</span>
               </span>
             </button>
+            {onBackToWriting && (
+              <button
+                type="button"
+                className="rail-more-universe"
+                onClick={() => {
+                  setOpen(false)
+                  onBackToWriting()
+                }}
+              >
+                <Feather size={16} aria-hidden="true" />
+                <span className="rail-more-universe-text">
+                  <strong>Voltar à escrita</strong>
+                  <span className="muted tiny">Sair da mesa e voltar ao livro</span>
+                </span>
+              </button>
+            )}
             {oficina && !editing && <OficinaCard onClick={() => choose('oficina')} />}
             {editing && <p className="small rail-more-hint">Toque para pôr ou tirar da barra de baixo (até 4; o novo entra no lugar do último).</p>}
             <div className="rail-more-grid">
