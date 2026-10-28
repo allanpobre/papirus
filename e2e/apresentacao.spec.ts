@@ -42,19 +42,25 @@ test('a apresentação mostra os três setores, a mesa nova e o gerador da Ofici
   await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', /^#[0-9a-f]{6}$/)
 })
 
-test('a apresentação mostra a mesa dos dois lados e as telas por dentro', async ({ page }) => {
+test('a apresentação mostra a mesa dos dois lados e as telas de cada setor', async ({ page }) => {
   await page.goto('/')
   const duo = page.getByRole('figure', { name: /o mestre no tablet e um jogador no celular/ })
   await duo.scrollIntoViewIfNeeded()
-  // O mestre revela e o Codex do jogador recebe (o ciclo leva uns 10 segundos).
-  await expect(duo.getByText('Revelado ao grupo')).toBeVisible({ timeout: 15_000 })
+  // O mestre revela o fato e o Codex do jogador recebe (o ciclo leva uns 10 segundos).
+  await expect(duo.getByText('Revelado', { exact: true })).toBeVisible({ timeout: 15_000 })
   await expect(duo.getByText('Novidades do mestre')).toBeVisible()
 
-  const telas = page.getByRole('tablist', { name: 'Telas do Papirus' })
-  await expect(telas.getByRole('tab')).toHaveCount(4)
-  await telas.getByRole('tab', { name: 'Placar' }).click()
-  await expect(page.getByRole('tabpanel')).toContainText('pontos por minutos com o mínimo batido')
-  // Escolher uma aba para de girar sozinho.
+  // Por dentro: cada setor com as suas telas.
+  const setores = page.getByRole('group', { name: 'Setor' })
+  await expect(setores.getByRole('button')).toHaveCount(3)
+  await expect(page.getByRole('tablist', { name: 'Telas: Escrita' }).getByRole('tab')).toHaveCount(4)
+  await setores.getByRole('button', { name: 'Mesa de RPG' }).click()
+  const mesa = page.getByRole('tablist', { name: 'Telas: Mesa de RPG' })
+  await expect(mesa.getByRole('tab')).toHaveText(['Painel do mestre', 'Ficha de jogo', 'Registro'])
+  await mesa.getByRole('tab', { name: 'Registro' }).click()
+  await expect(page.getByRole('tabpanel')).toBeVisible()
+  await expect(page.getByText('cada rolagem (do dado de verdade ou do app) entra no registro', { exact: false })).toBeVisible()
+  // Escolher uma tela para de girar sozinho.
   await page.waitForTimeout(8500)
-  await expect(telas.getByRole('tab', { name: 'Placar' })).toHaveAttribute('aria-selected', 'true')
+  await expect(mesa.getByRole('tab', { name: 'Registro' })).toHaveAttribute('aria-selected', 'true')
 })
