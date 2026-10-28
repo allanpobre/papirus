@@ -4540,3 +4540,125 @@ button.arc-dot {
 .home-tip p.small {
   margin: 0.3rem 0 0.4rem;
 }
+
+/* Sugerir nomes (fichas). */
+.name-ideas {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: -0.2rem 0 0.4rem;
+}
+.name-ideas .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+/* Desafio do dia e progresso (Início). */
+.play-challenge .eyebrow,
+.play-progress .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.play-prompt {
+  margin: 0.3rem 0 0.6rem;
+  font-family: var(--font-text);
+  font-size: 1.08rem;
+  line-height: 1.5;
+}
+.play-challenge .resource-bar {
+  margin-bottom: 0.5rem;
+}
+.play-challenge.is-done {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: linear-gradient(135deg, var(--accent-faint), var(--surface) 70%);
+}
+.play-done {
+  margin: 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+.play-level {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.4rem 0 0.5rem;
+}
+.play-level-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+}
+.play-progress {
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+.play-streak {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0.4rem;
+  color: var(--muted);
+}
+.play-streak.is-on {
+  color: #d9622b;
+  font-weight: 600;
+}
+.play-medals {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.play-medals:hover {
+  border-color: var(--accent);
+}
+.play-medals-row {
+  display: flex;
+  gap: 0.15rem;
+  font-size: 1.15rem;
+}
+.play-medal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.play-medal-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  opacity: 0.6;
+}
+.play-medal-list li.is-got {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: var(--accent-faint);
+}
+.play-medal-list li > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+}
+.play-medal-emoji {
+  font-size: 1.5rem;
+}

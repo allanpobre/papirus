@@ -54,7 +54,7 @@ export function WritingCalendar({ universe }: { universe: Universe }) {
         ))}
       </div>
       <p className="muted small">
-        {streak > 0 ? `${streak} ${streak === 1 ? 'dia seguido' : 'dias seguidos'} escrevendo` : 'Escreva hoje para começar uma sequência'}
+        {streak > 0 ? `🔥 ${streak} ${streak === 1 ? 'dia seguido' : 'dias seguidos'} escrevendo` : 'Escreva hoje para acender a chama'}
         {best > streak && ` · melhor: ${best}`} · {active} {active === 1 ? 'dia' : 'dias'} com escrita
       </p>
     </div>

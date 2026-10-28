@@ -134,3 +134,27 @@ test('Oficina funciona mesmo quando o navegador (ou uma extensão) muda o scroll
   await expect(oficina.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
   await expect(page.getByText('O Papirus encontrou um erro.')).toHaveCount(0)
 })
+
+test('desafio do dia: vira cena, 100 palavras e está feito, com comemoração e medalha', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  const card = page.getByRole('region', { name: 'Desafio de hoje' })
+  await expect(card).toBeVisible()
+  const prompt = (await card.locator('.play-prompt').innerText()).trim()
+  // Espera o app registrar as medalhas que já existiam (sem comemorar as antigas).
+  await page.waitForTimeout(2500)
+  await card.getByRole('button', { name: 'Escrever agora' }).click()
+  await expect(page.getByRole('textbox', { name: 'Título da cena' })).toHaveValue(/^Desafio de \d\d\/\d\d$/)
+  await page.getByRole('button', { name: 'Detalhes da cena' }).click()
+  await expect(page.getByRole('region', { name: 'Detalhes da cena' })).toContainText(prompt.slice(0, 30))
+  await page.getByRole('textbox', { name: 'Texto da cena' }).click()
+  await page.keyboard.insertText(Array.from({ length: 105 }, (_, i) => `palavra${i}`).join(' '))
+  await expect(page.getByText('🎲 Desafio do dia feito!')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('Nova medalha: Topei o desafio')).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Início' }).click()
+  await expect(page.getByRole('region', { name: 'Desafio de hoje' })).toContainText('Feito!')
+  // As medalhas, com as que faltam.
+  await page.getByRole('button', { name: /Medalhas: \d+ de \d+/ }).click()
+  const medalhas = page.getByRole('dialog', { name: 'Medalhas' })
+  await expect(medalhas.getByRole('listitem').filter({ hasText: 'Topei o desafio' })).toHaveClass(/is-got/)
+  await expect(medalhas.getByRole('listitem').filter({ hasText: 'Hábito de escritor' })).not.toHaveClass(/is-got/)
+})

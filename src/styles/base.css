@@ -1201,3 +1201,48 @@ input[type='radio'] {
   border-radius: var(--radius);
   background: var(--surface-2, var(--bg));
 }
+
+/* Aviso de falha que ninguém tratou (fica acima de tudo, embaixo da tela). */
+.global-error {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + 72px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 0.5rem 0.5rem 0.5rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--danger, #b3261e) 40%, var(--line));
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+/* Confete (comemorações). */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti span {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  to {
+    top: 105%;
+    transform: translateX(40px) rotate(540deg);
+    opacity: 0.7;
+  }
+}

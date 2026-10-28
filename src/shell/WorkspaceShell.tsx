@@ -23,6 +23,7 @@ import { progressToShare, shareProgress } from '../social/activity'
 import { ShelfSync } from '../social/useShelfSync'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { Tour } from './Tour'
+import { usePlay } from './usePlay'
 import { OficinaPage } from '../oficina/OficinaPage'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
@@ -154,6 +155,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const lastBlocked = useRef(0)
   // Cada mudança feita aqui passa pela lixeira e pelo histórico, com o nome de quem fez.
   const account = useAccount()
+  // Desafio do dia, meta e medalhas: comemora o que for novo.
+  usePlay(universe, library, readOnly, prefs.celebrate, toast)
   // Meta do dia batida: os amigos ficam sabendo (uma vez por dia; dá para desligar no perfil).
   const goal = universe.settings.dailyWordGoal
   const userId = account.user?.id

@@ -272,6 +272,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <Toggle label="Mostrar a margem viva" checked={prefs.margin} onChange={(v) => setPref('margin', v)} />
           <Toggle label="Modo máquina de escrever: a linha em que você escreve fica no meio da tela" checked={prefs.typewriter} onChange={(v) => setPref('typewriter', v)} />
           <Toggle label="Destacar só o parágrafo atual (os outros ficam claros)" checked={prefs.focusParagraph} onChange={(v) => setPref('focusParagraph', v)} />
+          <Toggle label="Comemorar meta batida, desafio do dia e medalhas novas" checked={prefs.celebrate} onChange={(v) => setPref('celebrate', v)} />
           <Field label="Som ao digitar">
             {(id) => (
               <Select<Prefs['keySound']>
