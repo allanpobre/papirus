@@ -1,6 +1,9 @@
-import { Dices, Users, X } from 'lucide-react'
+import { CalendarDays, Crown, Dices, Eye, Feather, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
+import '@fontsource/cinzel/400.css'
+import '@fontsource/cinzel/600.css'
+import '../../styles/mesa.css'
 import { tabListKeys } from '../../ui/keys'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { draftGroup, insert, newId, patch } from '../../model/universe'
 import { describeOutcome, type RollOutcome } from '../../rpg/rolls'
 import { recall, remember } from '../../state/prefs'
@@ -17,15 +20,49 @@ import { TableTab } from './TableTab'
 
 export type RpgTab = 'mesa' | 'mestre' | 'sessoes' | 'personagens' | 'sistemas' | 'codex' | 'dados'
 
-const TABS: [RpgTab, string][] = [
-  ['mestre', 'Painel do mestre'],
-  ['mesa', 'Na mesa'],
-  ['sessoes', 'Sessões'],
-  ['personagens', 'Personagens'],
-  ['codex', 'Revelações e Codex'],
-  ['dados', 'Dados e tabelas'],
-  ['sistemas', 'Sistemas'],
+const TABS: [RpgTab, string, LucideIcon][] = [
+  ['mestre', 'Painel do mestre', Crown],
+  ['mesa', 'Na mesa', Swords],
+  ['sessoes', 'Sessões', CalendarDays],
+  ['personagens', 'Personagens', Users],
+  ['codex', 'Revelações e Codex', Eye],
+  ['dados', 'Dados e tabelas', Dices],
+  ['sistemas', 'Sistemas', Settings2],
 ]
+
+/** Entrar na mesa: o app inteiro muda de clima (cores, letras), como outro setor da casa. */
+function useSector() {
+  useEffect(() => {
+    document.body.dataset.sector = 'mesa'
+    return () => {
+      delete document.body.dataset.sector
+    }
+  }, [])
+}
+
+/** A porta da mesa: abre ao entrar vindo de outra tela (não ao reabrir o app, nem para quem prefere menos movimento). */
+function Gate({ name }: { name: string }) {
+  const [show, setShow] = useState(() => performance.now() > 2500 && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+  useEffect(() => {
+    if (!show) return
+    const t = setTimeout(() => setShow(false), 1300)
+    return () => clearTimeout(t)
+  }, [show])
+  if (!show) return null
+  return (
+    <div className="mesa-gate" aria-hidden="true">
+      <span className="mesa-gate-door mesa-gate-left" />
+      <span className="mesa-gate-door mesa-gate-right" />
+      <span className="mesa-gate-sign">
+        <span className="mesa-gate-emblem">
+          <Dices size={34} />
+        </span>
+        <span className="mesa-gate-title">Mesa de RPG</span>
+        <span className="mesa-gate-sub">{name}</span>
+      </span>
+    </div>
+  )
+}
 
 interface TrayRoll {
   id: string
@@ -35,7 +72,8 @@ interface TrayRoll {
 }
 
 export default function RpgView() {
-  const { universe, update, nav } = useWorkspace()
+  const { universe, update, nav, go } = useWorkspace()
+  useSector()
   const [tab, setTab] = useState<RpgTab>(() => (nav.view === 'rpg' && nav.id ? 'sessoes' : ((recall('rpg-aba') as RpgTab) || 'mestre')))
   const [groupId, setGroupId] = useState<string | null>(() => recall(`rpg-grupo:${universe.id}`) ?? universe.groups[0]?.id ?? null)
   const [groupName, setGroupName] = useState('')
@@ -78,34 +116,52 @@ export default function RpgView() {
 
   return (
     <div className={`view rpg-view${tab === 'mesa' ? ' rpg-at-table' : ''}`}>
-      <header className="view-head view-head-wide">
-        <h1>Mesa de RPG</h1>
-        {universe.groups.length > 0 && (
-          <label className="inline-label">
-            <Users size={15} aria-hidden="true" />
-            <span className="sr-only">Mesa</span>
-            <select
-              className="input select input-sm"
-              value={group?.id ?? ''}
-              onChange={(e) => {
-                setGroupId(e.target.value)
-                remember(`rpg-grupo:${universe.id}`, e.target.value)
-              }}
-            >
-              {universe.groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-            <span className="muted small">{system ? system.name : 'sem sistema'}</span>
-          </label>
-        )}
+      <Gate name={universe.name || 'Sem nome'} />
+      <header className="mesa-hero">
+        <span className="mesa-emblem" aria-hidden="true">
+          <Dices size={26} />
+        </span>
+        <div className="mesa-hero-text">
+          <p className="mesa-kicker">{universe.name || 'Sem nome'} · setor da mesa</p>
+          <h1>Mesa de RPG</h1>
+          {universe.groups.length > 0 && (
+            <div className="mesa-hero-meta">
+              <label className="inline-label">
+                <Users size={15} aria-hidden="true" />
+                <span className="sr-only">Mesa</span>
+                <select
+                  className="input select input-sm"
+                  value={group?.id ?? ''}
+                  onChange={(e) => {
+                    setGroupId(e.target.value)
+                    remember(`rpg-grupo:${universe.id}`, e.target.value)
+                  }}
+                >
+                  {universe.groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span className="mesa-system">{system ? system.name : 'sem sistema'}</span>
+              {activeSession && (
+                <span className="mesa-live" role="status">
+                  <span className="mesa-live-dot" aria-hidden="true" /> Sessão em andamento: {activeSession.title || 'sem título'}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <button type="button" className="btn btn-ghost btn-sm mesa-exit" onClick={() => go('inicio')}>
+          <Feather size={15} /> Voltar à escrita
+        </button>
       </header>
-      <div className="tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Mesa de RPG">
-        {TABS.map(([t, label]) => (
-          <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => choose(t)}>
-            {label}
+      <div className="tabs mesa-tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Mesa de RPG">
+        {TABS.map(([t, label, Icon]) => (
+          <button key={t} type="button" role="tab" className="tab mesa-tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => choose(t)}>
+            <Icon size={18} aria-hidden="true" />
+            <span>{label}</span>
           </button>
         ))}
       </div>
