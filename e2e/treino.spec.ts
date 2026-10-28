@@ -125,3 +125,51 @@ test('treinos vão para a nuvem e aparecem no outro aparelho; apagar some dos do
   await c.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: /Seus treinos/ }).click()
   await expect(c.getByRole('dialog', { name: 'Seus treinos' })).toContainText('Nenhum treino ainda')
 })
+
+test('placar dos treinos: amigos e todo mundo, e cada um escolhe quem vê os pontos', async ({ browser }) => {
+  const fake = createFakeSupabase()
+  const d = new Date()
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  fake.tables.papirus_profiles.push(
+    { user_id: PEOPLE.ana.id, handle: 'ana', name: 'Ana', bio: '', avatar: null, placar: 'amigos' },
+    { user_id: PEOPLE.bia.id, handle: 'bia', name: 'Bia', bio: '', avatar: null, placar: 'amigos' },
+    { user_id: PEOPLE.caio.id, handle: 'caio', name: 'Caio', bio: '', avatar: null, placar: 'todos' },
+  )
+  fake.tables.papirus_friendships.push({ requester: PEOPLE.ana.id, addressee: PEOPLE.bia.id, status: 'aceita' })
+  const row = (user: string, minutes: number) => ({ user_id: user, id: crypto.randomUUID(), day: today, prompt: 'P', daily: true, minutes, target: 10, unit: 'palavras', words: 300, chars: 1500, seconds: minutes * 60, done: true, text: '', at: new Date().toISOString(), ranked: true })
+  fake.tables.papirus_treinos.push(row(PEOPLE.bia.id, 30), row(PEOPLE.caio.id, 15))
+
+  const a = await device(browser, fake)
+  await a.clock.install()
+  await a.goto('/app/')
+  await signIn(a, PEOPLE.ana.email)
+  const card = a.getByRole('region', { name: 'Treino de hoje' })
+  await card.getByRole('button', { name: 'Começar o treino' }).click()
+  const treino = a.getByRole('dialog', { name: 'Treino de escrita' })
+  await treino.getByRole('button', { name: /^Aquecimento/ }).click()
+  await treino.getByRole('button', { name: /^Começar/ }).click()
+  await treino.getByRole('textbox', { name: 'Texto do treino' }).fill(words(120))
+  await a.clock.runFor(120_000)
+  await a.clock.resume()
+  await treino.getByRole('button', { name: 'Terminar' }).click()
+  await expect(treino.getByText('Mínimo batido!')).toBeVisible()
+  await expect.poll(() => fake.tables.papirus_treinos.filter((t) => t.user_id === PEOPLE.ana.id).length).toBe(1)
+  await treino.getByRole('button', { name: 'Fechar o treino' }).click()
+
+  await card.getByRole('button', { name: 'Placar' }).click()
+  const placar = a.getByRole('dialog', { name: 'Placar dos treinos' })
+  const linhas = placar.getByRole('list', { name: 'Placar' }).getByRole('listitem')
+  // Entre amigos: a Bia (30) e você (5). O Caio não é amigo.
+  await expect(linhas).toHaveCount(2)
+  await expect(linhas.first()).toContainText('Bia')
+  await expect(linhas.nth(1)).toContainText('Você')
+  await expect(linhas.nth(1)).toContainText('5')
+  // Todo mundo: o Caio aparece (escolheu "todo mundo"); a Bia não; a sua linha só você vê.
+  await placar.getByRole('radio', { name: 'Todo mundo' }).first().click()
+  await expect(linhas).toHaveCount(2)
+  await expect(linhas.first()).toContainText('Caio')
+  await expect(placar.getByText('Só você vê a sua linha aqui.', { exact: false })).toBeVisible()
+  await placar.getByRole('radiogroup', { name: 'Quem vê os seus pontos' }).getByRole('radio', { name: 'Todo mundo' }).click()
+  await expect(placar.getByText('Só você vê a sua linha aqui.', { exact: false })).toHaveCount(0)
+  await expect.poll(() => fake.tables.papirus_profiles.find((p) => p.user_id === PEOPLE.ana.id)?.placar).toBe('todos')
+})

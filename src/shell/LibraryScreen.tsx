@@ -541,7 +541,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         )}
       </section>
       {writing[0] && continueCard(writing[0], 'Continuar escrevendo')}
-      <TreinoCard compact />
+      <TreinoCard compact onAccount={() => setAccountOpen(true)} />
       {writing.length > 1 && (
         <section aria-labelledby="universos-titulo">
           <h2 id="universos-titulo" className="hub-h">

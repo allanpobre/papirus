@@ -185,6 +185,34 @@ export function createFakeSupabase() {
         if (!me) return route.fulfill({ status: 401, headers: cors, json: { message: 'permission denied for function papirus_image_usage' } })
         return route.fulfill({ headers: cors, json: usage(me.id) })
       }
+      if (path === 'rpc/papirus_placar_treinos') {
+        // As regras de supabase/treinos.sql: só o conferido, até 60 pontos por dia, quem cada um deixou ver.
+        if (!me) return route.fulfill({ status: 401, headers: cors, json: { message: 'permission denied for function papirus_placar_treinos' } })
+        const { escopo, desde } = req.postDataJSON() as { escopo: string; desde: string }
+        const days = new Map<string, Map<string, { pts: number; words: number; n: number }>>()
+        for (const t of tables.papirus_treinos) {
+          if (!t.ranked || String(t.day) < desde) continue
+          const u = String(t.user_id)
+          const byDay = days.get(u) ?? new Map()
+          const d = byDay.get(String(t.day)) ?? { pts: 0, words: 0, n: 0 }
+          d.pts = Math.min(60, d.pts + (Number(t.minutes) > 0 ? Number(t.minutes) : Math.floor(Number(t.seconds) / 60)))
+          d.words += Number(t.words)
+          d.n++
+          byDay.set(String(t.day), d)
+          days.set(u, byDay)
+        }
+        const rows = [...days.entries()]
+          .map(([u, byDay]) => {
+            const p = tables.papirus_profiles.find((x) => x.user_id === u)
+            const v = [...byDay.values()]
+            return p && { user_id: u, handle: p.handle, name: p.name ?? '', placar: p.placar ?? 'amigos', pontos: v.reduce((a, x) => a + x.pts, 0), dias: v.length, treinos: v.reduce((a, x) => a + x.n, 0), palavras: v.reduce((a, x) => a + x.words, 0) }
+          })
+          .filter((r): r is NonNullable<typeof r> => !!r)
+          .filter((r) => r.user_id === me.id || (escopo === 'amigos' && r.placar !== 'ninguem' && friends(r.user_id, me.id)) || (escopo === 'todos' && r.placar === 'todos'))
+          .sort((a, b) => b.pontos - a.pontos || b.dias - a.dias)
+        const out = rows.map((r) => ({ posicao: 1 + rows.filter((x) => x.pontos > r.pontos || (x.pontos === r.pontos && x.dias > r.dias)).length, user_id: r.user_id, handle: r.handle, name: r.name, pontos: r.pontos, dias: r.dias, treinos: r.treinos, palavras: r.palavras }))
+        return route.fulfill({ headers: cors, json: out })
+      }
       if (path === 'rpc/papirus_link_get') {
         const { token } = req.postDataJSON() as { token: string }
         const s = tables.papirus_shares.find((x) => x.link_token && x.link_token === token)
@@ -258,7 +286,7 @@ export function createFakeSupabase() {
             if (!/^[a-z0-9_.]{3,24}$/.test(String(r.handle))) return route.fulfill({ status: 400, headers: cors, json: { code: '23514', message: 'violates check constraint "papirus_profiles_handle_check"' } })
             if (table.some((x) => x.handle === r.handle && x.user_id !== r.user_id))
               return route.fulfill({ status: 409, headers: cors, json: { code: '23505', message: 'duplicate key value violates unique constraint "papirus_profiles_handle_key"' } })
-            Object.assign(r, { name: r.name ?? '', bio: r.bio ?? '', avatar: r.avatar ?? null })
+            Object.assign(r, { name: r.name ?? '', bio: r.bio ?? '', avatar: r.avatar ?? null, placar: r.placar ?? 'amigos' })
           }
           if (path === 'papirus_shelf_reactions' || path === 'papirus_shelf_comments') {
             if (!bookVisible(me, r.owner, r.book_id)) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
@@ -266,6 +294,11 @@ export function createFakeSupabase() {
             r.created_at ??= new Date().toISOString()
           }
           if (path === 'papirus_challenges') Object.assign(r, { id: r.id ?? crypto.randomUUID(), created_at: new Date().toISOString() })
+          if (path === 'papirus_treinos') {
+            // O gatilho que confere cada treino (sem recontar o texto aqui).
+            const sec = Number(r.seconds)
+            r.ranked = !!r.done && sec >= 60 && Number(r.words) * 60 <= sec * 150 && (Number(r.minutes) === 0 || sec <= Number(r.minutes) * 60 + 5)
+          }
           if (path === 'papirus_activity') Object.assign(r, { id: crypto.randomUUID(), created_at: new Date().toISOString(), book_id: r.book_id ?? null, title: r.title ?? '', n: r.n ?? 0 })
           if ((path === 'papirus_shelf_text' || path === 'papirus_chapter_reactions') && !tables.papirus_shelf.some((b) => b.owner === r.owner && b.id === r.book_id))
             return route.fulfill({ status: 409, headers: cors, json: { code: '23503', message: 'violates foreign key constraint' } })
