@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BrandMark } from '../shell/Brand'
+import { MesaDemo, ScreensShowcase } from './Demos'
 import { rollIdea, type IdeaMode } from '../oficina/ideas'
 import { MESA_THEMES } from '../rpg/themes'
 
@@ -195,7 +196,7 @@ export function Landing() {
           </ol>
         </section>
 
-        <section className="lp-band" id="mestrar" aria-labelledby="mestrar-titulo">
+        <section className="lp-band lp-mesa" id="mestrar" aria-labelledby="mestrar-titulo">
           <div className="lp-band-inner">
             <div className="lp-band-copy">
               <p className="lp-eyebrow">Para quem mestra</p>
@@ -232,11 +233,20 @@ export function Landing() {
                 ))}
               </ul>
             </div>
-            <Phone />
+          </div>
+          <div className="lp-band-demo">
+            <MesaDemo />
           </div>
         </section>
 
-        <section className="lp-section lp-oficina" id="oficina" aria-labelledby="oficina-titulo">
+        <section className="lp-section lp-inside" id="telas" aria-labelledby="telas-titulo">
+          <p className="lp-eyebrow">Por dentro</p>
+          <h2 id="telas-titulo">Veja como é usar.</h2>
+          <ScreensShowcase />
+        </section>
+
+        <section className="lp-oficina-band" id="oficina" aria-labelledby="oficina-titulo">
+          <div className="lp-section lp-oficina">
           <div className="lp-oficina-copy">
             <p className="lp-eyebrow">Oficina</p>
             <h2 id="oficina-titulo">Aprenda escrevendo. Um pouco por dia.</h2>
@@ -248,6 +258,7 @@ export function Landing() {
             </ul>
           </div>
           <IdeaDemo />
+          </div>
         </section>
 
         <section className="lp-section" id="juntos" aria-labelledby="juntos-titulo">
@@ -505,42 +516,6 @@ function Manuscript() {
           <span>Vaelor tem olhos cinzentos, segundo Mira</span>
         </p>
       </aside>
-    </figure>
-  )
-}
-
-/** Um celular com o Codex dos jogadores. */
-function Phone() {
-  return (
-    <figure className="lp-phone" aria-label="Exemplo: o Codex no celular de um jogador">
-      <div className="lp-phone-screen">
-        <div className="lp-phone-top">
-          <span>As Cinzas de Ostria</span>
-          <span className="lp-live">
-            <Radio size={11} aria-hidden="true" /> ao vivo
-          </span>
-        </div>
-        <p className="lp-phone-new">Novidades do mestre</p>
-        <p className="lp-phone-title">Codex</p>
-        <p className="lp-phone-sub">Mesa de sexta</p>
-        <p className="lp-phone-kind">Personagens</p>
-        <p className="lp-phone-entry">
-          <strong>Kael</strong>
-          Contrabandista do porto. Desconfia de todo mundo, menos da irmã.
-        </p>
-        <p className="lp-phone-entry">
-          <strong>Vaelor</strong>
-          <em>Ainda pouco se sabe.</em>
-        </p>
-        <p className="lp-phone-kind">Linha do tempo</p>
-        <p className="lp-phone-entry lp-phone-new-item">
-          <strong>341 DC</strong> A Queda
-        </p>
-        <p className="lp-phone-kind">O que sabemos</p>
-        <p className="lp-phone-entry">
-          Vaelor tem olhos cinzentos <em>(segundo Mira)</em>
-        </p>
-      </div>
     </figure>
   )
 }
