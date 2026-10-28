@@ -21,6 +21,10 @@ export function draftSheet(
     conditions: [],
     fields: Object.fromEntries((system?.fields ?? []).map((f) => [f, ''])),
     notes: '',
+    image: null,
+    attacks: [],
+    abilities: [],
+    inventory: [],
     ...fields,
   }
 }
@@ -39,3 +43,24 @@ export function attributeOf(system: GameSystem, sheet: Sheet, attributeId: strin
 
 /** Primeiro recurso do sistema (normalmente a vida), para mostrar na iniciativa. */
 export const mainResource = (system: GameSystem | undefined) => system?.resources[0]
+
+type ResourceDef = GameSystem['resources'][number]
+
+/**
+ * Recurso que sobe e desce no jogo (vida, mana, sanidade), com barra, dano e cura.
+ * Os outros (Defesa, CA, deslocamento) são um valor fixo da ficha.
+ */
+export const isPool = (r: ResourceDef) => !/^(def|ca|desl)/i.test(r.abbr.trim()) && !/defesa|armadura|deslocamento/i.test(r.name)
+
+/** Recurso gasto por poderes e magias: PM, PE, mana… (ou o segundo que sobe e desce). */
+export function costResource(system: GameSystem | undefined): ResourceDef | undefined {
+  const pools = (system?.resources ?? []).filter(isPool)
+  return pools.find((r) => /^(pm|pe|mp)$/i.test(r.abbr.trim()) || /mana|esfor[cç]o|magia/i.test(r.name)) ?? pools[1]
+}
+
+/** Margem de crítico de "19/x2", "18-20" ou "19" (20 quando não dá para ler, ou só "x3"). */
+export function critFrom(critical: string): number {
+  const m = critical.trim().match(/^(\d{1,2})(?!\d)/)
+  const n = m ? Number(m[1]) : 20
+  return n >= 2 && n <= 20 ? n : 20
+}

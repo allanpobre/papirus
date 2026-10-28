@@ -18,20 +18,7 @@ export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
           <h3 className="codex-kind">O grupo</h3>
           <div className="codex-party">
             {codex.party.map((s, i) => (
-              <div key={i} className="codex-pc">
-                <h4>{s.name}</h4>
-                {s.player && <p className="muted small">{s.player}</p>}
-                {s.fields.length > 0 && <p className="small">{s.fields.map(([k, v]) => `${k}: ${v}`).join(' · ')}</p>}
-                {s.attrs.length > 0 && (
-                  <p className="codex-attrs">
-                    {s.attrs.map(([abbr, v]) => (
-                      <span key={abbr}>
-                        <strong>{abbr}</strong> {v}
-                      </span>
-                    ))}
-                  </p>
-                )}
-              </div>
+              <PartyCard key={i} s={s} />
             ))}
           </div>
         </section>
@@ -142,5 +129,101 @@ function CodexMap({ m }: { m: CodexSnapshot['maps'][number] }) {
         ))}
       </div>
     </section>
+  )
+}
+
+/** Um personagem no Codex: o essencial à vista e a ficha toda para consultar (o mestre é quem muda). */
+function PartyCard({ s }: { s: CodexSnapshot['party'][number] }) {
+  const more = (s.skills?.length ?? 0) + (s.attacks?.length ?? 0) + (s.abilities?.length ?? 0) + (s.inventory?.length ?? 0) > 0 || s.attrs.length > 0
+  return (
+    <div className="codex-pc">
+      <div className="codex-pc-head">
+        {s.image && <Picture value={s.image} alt={`Retrato de ${s.name}`} className="codex-pc-portrait" />}
+        <div>
+          <h4>{s.name}</h4>
+          {s.player && <p className="muted small">{s.player}</p>}
+          {s.fields.length > 0 && <p className="small">{s.fields.map(([, v]) => v).join(' · ')}</p>}
+        </div>
+      </div>
+      {((s.pools?.length ?? 0) > 0 || (s.values?.length ?? 0) > 0) && (
+        <div className="codex-pc-vitals">
+          {s.pools?.map(([abbr, cur, max]) => (
+            <span key={abbr} className="codex-pc-pool">
+              <span className="codex-pc-pool-label">
+                <strong>{abbr}</strong> <span className="tabular">{cur}/{max}</span>
+              </span>
+              <span className="resource-bar" aria-hidden="true">
+                <span style={{ width: `${max > 0 ? Math.max(0, Math.min(100, (cur / max) * 100)) : 0}%` }} />
+              </span>
+            </span>
+          ))}
+          {s.values?.map(([abbr, v]) => (
+            <span key={abbr} className="codex-pc-value">
+              {abbr} <strong className="tabular">{v}</strong>
+            </span>
+          ))}
+        </div>
+      )}
+      {(s.conditions?.length ?? 0) > 0 && <p className="codex-pc-conditions small">{s.conditions!.join(' · ')}</p>}
+      {more && (
+        <details className="codex-pc-more">
+          <summary>Ficha completa</summary>
+          {s.attrs.length > 0 && (
+            <p className="codex-attrs">
+              {s.attrs.map(([abbr, v]) => (
+                <span key={abbr}>
+                  <strong>{abbr}</strong> {v}
+                </span>
+              ))}
+            </p>
+          )}
+          {(s.skills?.length ?? 0) > 0 && (
+            <>
+              <h5>Perícias</h5>
+              <ul className="codex-pc-list">
+                {s.skills!.map(([name, bonus]) => (
+                  <li key={name}>
+                    {name} <strong className="tabular">{bonus}</strong>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {(s.attacks?.length ?? 0) > 0 && (
+            <>
+              <h5>Ataques</h5>
+              <ul className="codex-pc-list">
+                {s.attacks!.map((a) => (
+                  <li key={a.name}>
+                    {a.name} <strong className="tabular">{[a.test, a.damage, a.critical].filter(Boolean).join(' · ')}</strong>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {(s.abilities?.length ?? 0) > 0 && (
+            <>
+              <h5>Poderes e magias</h5>
+              <ul className="codex-pc-list codex-pc-abilities">
+                {s.abilities!.map((a) => (
+                  <li key={a.name}>
+                    <span>
+                      {a.name} {a.cost && <strong>{a.cost}</strong>}
+                    </span>
+                    {a.text && <span className="muted small">{a.text}</span>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {(s.inventory?.length ?? 0) > 0 && (
+            <>
+              <h5>Inventário</h5>
+              <p className="small">{s.inventory!.map(([n, q]) => (q > 1 ? `${q} × ${n}` : n)).join(' · ')}</p>
+            </>
+          )}
+        </details>
+      )}
+    </div>
   )
 }

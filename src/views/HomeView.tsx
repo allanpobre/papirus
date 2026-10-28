@@ -168,6 +168,23 @@ export default function HomeView() {
                 </button>
               </div>
             </>
+          ) : showRpg ? (
+            <>
+              {/* Campanha sem texto ainda: a mesa vem primeiro. */}
+              <p className="eyebrow">
+                <Dices size={13} aria-hidden="true" /> {universe.groups[0].name} · sua mesa
+              </p>
+              <h2>{nextSession ? nextSession.title || 'Próxima sessão' : 'Nenhuma sessão marcada'}</h2>
+              {nextSession?.prep ? <p className="home-excerpt">{nextSession.prep}</p> : <p className="muted">Fichas dos personagens, sessões, dados e o Codex dos jogadores estão na mesa.</p>}
+              <div className="inline-fields">
+                <button type="button" className="btn btn-primary" onClick={() => go('rpg', nextSession?.id ?? null)}>
+                  <Dices size={16} /> Abrir a mesa
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={newScene}>
+                  <Feather size={16} /> Começar a escrever
+                </button>
+              </div>
+            </>
           ) : (
             <>
               <p className="eyebrow">Primeira página</p>

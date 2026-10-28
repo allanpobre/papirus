@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Sheet } from '../model/schema'
-import { describeOutcome, expandFormula, modifier, physicalRoll, resolveRoll, rollAttribute, rollInitiative, rollSkill } from './rolls'
-import { adjustResource, draftSheet } from './sheets'
+import { bonusLabel, describeOutcome, expandFormula, modifier, physicalRoll, resolveRoll, rollAttribute, rollInitiative, rollSkill } from './rolls'
+import { adjustResource, costResource, critFrom, draftSheet, isPool } from './sheets'
 import { makeSystem, SYSTEM_TEMPLATES } from './systems'
 
 const sheetOf = (system: ReturnType<typeof makeSystem>, changes: Partial<Sheet> = {}): Sheet => ({
@@ -132,5 +132,34 @@ describe('dado físico', () => {
     const f = physicalRoll(sys, o, [25])
     expect(f.label).toBe('Esconder (60)')
     expect(f.verdict).toBe('Sucesso difícil')
+  })
+})
+
+describe('ficha de jogo', () => {
+  it('mostra o bônus a somar quando é um dado só, e a rolagem toda quando são vários', () => {
+    expect(bonusLabel('1d20+3+4')).toBe('+7')
+    expect(bonusLabel('d20-1')).toBe('-1')
+    expect(bonusLabel('3d20kh1+5')).toBe('3d20kh1+5')
+    expect(bonusLabel('1d100')).toBe('+0')
+  })
+
+  it('lê a margem de crítico e separa o que sobe e desce do que é valor fixo', () => {
+    expect(critFrom('19/x2')).toBe(19)
+    expect(critFrom('18-20')).toBe(18)
+    expect(critFrom('x3')).toBe(20)
+    expect(critFrom('')).toBe(20)
+    const t20 = makeSystem('t20')
+    expect(t20.resources.filter(isPool).map((r) => r.abbr)).toEqual(['PV', 'PM'])
+    expect(costResource(t20)?.abbr).toBe('PM')
+    expect(makeSystem('d20-5e').resources.filter((r) => !isPool(r)).map((r) => r.abbr)).toEqual(['CA'])
+  })
+
+  it('ataque com margem 19 é crítico no 19, também no dado físico', () => {
+    const sys = makeSystem('t20')
+    const o = resolveRoll(sys, 'Espada', '1d20+7', undefined, () => 18.5 / 20, 19)
+    expect(o.result.total).toBe(26)
+    expect(o.tone).toBe('critico')
+    expect(physicalRoll(sys, o, [18]).tone).toBe('neutro')
+    expect(physicalRoll(sys, o, [19]).verdict).toBe('Crítico')
   })
 })

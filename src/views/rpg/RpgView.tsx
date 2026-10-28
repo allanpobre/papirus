@@ -75,9 +75,19 @@ function ThemePicker({ value, suggested, onChange, onClose, dark }: { value: str
   )
 }
 
-/** A porta da mesa: abre ao entrar vindo de outra tela (não ao reabrir o app, nem para quem prefere menos movimento). */
+/** A porta da mesa: abre ao chegar vindo de outra tela (não ao reabrir o app, nem de novo logo em seguida, nem para quem prefere menos movimento). */
 function Gate({ name }: { name: string }) {
-  const [show, setShow] = useState(() => performance.now() > 2500 && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [show, setShow] = useState(() => {
+    if (performance.now() < 2500 || matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+    // Uma vez na chegada; voltar logo depois (de Ajustes, das fichas…) não repete a porta.
+    try {
+      const last = Number(sessionStorage.getItem('papirus:porta-da-mesa') ?? 0)
+      sessionStorage.setItem('papirus:porta-da-mesa', String(Date.now()))
+      return Date.now() - last > 10 * 60 * 1000
+    } catch {
+      return true
+    }
+  })
   useEffect(() => {
     if (!show) return
     const t = setTimeout(() => setShow(false), 1300)
@@ -227,12 +237,12 @@ export default function RpgView() {
             ))}
           </div>
           {group && !readOnly && (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPicking(true)}>
-              <Palette size={15} /> Tema
+            <button type="button" className="btn btn-ghost btn-sm" aria-label="Tema da mesa" title="Tema da mesa" onClick={() => setPicking(true)}>
+              <Palette size={15} /> <span className="mesa-act-label">Tema</span>
             </button>
           )}
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('inicio')}>
-            <Feather size={15} /> Voltar à escrita
+          <button type="button" className="btn btn-ghost btn-sm" aria-label="Voltar à escrita" title="Voltar à escrita" onClick={() => go('inicio')}>
+            <Feather size={15} /> <span className="mesa-act-label">Voltar à escrita</span>
           </button>
         </div>
         {picking && group && (

@@ -275,6 +275,14 @@ export const sheetSchema = z.object({
   conditions: z.array(z.string()),
   fields: z.record(z.string(), z.string()),
   notes: z.string(),
+  /** Retrato do personagem ("img:…"). Sem retrato próprio, vale o da ficha do mundo ligada. */
+  image: z.string().nullable().optional(),
+  /** Ataques: bônus do teste, dano (dados, pode usar {FOR}…) e margem de crítico ("19/x2"). */
+  attacks: z.array(z.object({ id, name: z.string(), bonus: z.number(), damage: z.string(), critical: z.string() })).default([]),
+  /** Poderes, magias e habilidades, com custo no recurso de mana/esforço. */
+  abilities: z.array(z.object({ id, name: z.string(), cost: z.number(), text: z.string() })).default([]),
+  /** O que o personagem carrega. */
+  inventory: z.array(z.object({ id, name: z.string(), qty: z.number() })).default([]),
   ...timestamps,
 })
 

@@ -4,7 +4,7 @@ import { DiceError, roll } from '../../logic/dice'
 import type { RandomTable, Sheet } from '../../model/schema'
 import { draftSession, insert, patch } from '../../model/universe'
 import { resolveRoll, rollAttribute } from '../../rpg/rolls'
-import { adjustResource } from '../../rpg/sheets'
+import { adjustResource, isPool } from '../../rpg/sheets'
 import { makeSystem } from '../../rpg/systems'
 import { useWorkspace } from '../../state/workspace'
 import { InitiativeTracker } from './InitiativeTracker'
@@ -101,9 +101,16 @@ function PartyCards() {
             <div className="pc-card-head">
               <strong>{s.name}</strong>
               {s.player && <span className="muted tiny">{s.player}</span>}
+              {system?.resources
+                .filter((d) => !isPool(d))
+                .map((d) => (
+                  <span key={d.id} className="pc-value" title={d.name}>
+                    {d.abbr} <strong className="tabular">{(s.resources[d.id] ?? { current: d.default }).current}</strong>
+                  </span>
+                ))}
             </div>
             {system?.features.resources &&
-              system.resources.map((def) => {
+              system.resources.filter(isPool).map((def) => {
                 const r = s.resources[def.id] ?? { current: def.default, max: def.default }
                 const pct = r.max > 0 ? Math.max(0, Math.min(100, (r.current / r.max) * 100)) : 0
                 const change = (d: number) => set(s, { resources: adjustResource({ ...s, resources: { ...s.resources, [def.id]: r } }, def.id, d) })

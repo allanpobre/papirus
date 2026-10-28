@@ -8,6 +8,7 @@ import { useWorkspace } from '../../state/workspace'
 import { Select } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import type { RpgTab } from './RpgView'
+import { isPool } from '../../rpg/sheets'
 import { useRpg } from './rpgContext'
 
 /** Visão rápida do mestre: sistema, grupo, próxima sessão, segredos guardados, mistérios, elenco. */
@@ -26,7 +27,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
   const partially = codex.entries.filter((e) => e.depth !== 'completo')
   const mysteries = universe.seeds.filter((s) => s.kind === 'misterio' && s.status !== 'resolvida' && s.status !== 'abandonada')
   const party = universe.sheets.filter((s) => s.groupId === group.id && s.role === 'pj')
-  const main = system?.resources[0]
+  const main = system?.resources.find(isPool)
 
   const newSession = () => {
     const number = (sessions.at(-1)?.number ?? 0) + 1

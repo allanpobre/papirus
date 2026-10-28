@@ -45,7 +45,13 @@ export async function publishNow(server: ServerConfig, groupId: string, share: {
         ),
       })),
     )
-    const at = await publishCodex(server, share.id, share.key, { ...snapshot, maps, sections })
+    const party = await Promise.all(
+      snapshot.party.map(async ({ image, ...p }) => {
+        const thumb = image ? await imageThumbDataUrl(image, 200) : null
+        return thumb ? { ...p, image: thumb } : p
+      }),
+    )
+    const at = await publishCodex(server, share.id, share.key, { ...snapshot, maps, sections, party })
     setState(groupId, { state: 'ok', at })
     return true
   } catch (err) {

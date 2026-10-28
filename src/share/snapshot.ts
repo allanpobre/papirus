@@ -2,9 +2,11 @@ import { unmarkReveals } from '../logic/reveals'
 import { codexFor, factSentence, playerTag } from '../logic/codex'
 import { stripSecrets } from '../logic/secrets'
 import { formatYear, kindPlural } from '../model/labels'
-import type { Universe } from '../model/schema'
+import type { GameSystem, Sheet, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { mesaTheme } from '../rpg/themes'
+import { bonusLabel, expandFormula, skillExpression } from '../rpg/rolls'
+import { costResource, isPool } from '../rpg/sheets'
 
 /**
  * O Codex de uma mesa como os jogadores o veem, em dados simples e já filtrados:
@@ -16,7 +18,21 @@ export interface CodexSnapshot {
   universe: string
   group: string
   at: string
-  party: { name: string; player: string; fields: [string, string][]; attrs: [string, number][] }[]
+  party: {
+    name: string
+    player: string
+    fields: [string, string][]
+    attrs: [string, number][]
+    /** A ficha toda, só para consulta (retratos antigos não têm). */
+    image?: string
+    pools?: [string, number, number][]
+    values?: [string, number][]
+    conditions?: string[]
+    skills?: [string, string][]
+    attacks?: { name: string; test: string; damage: string; critical: string }[]
+    abilities?: { name: string; cost: string; text: string }[]
+    inventory?: [string, number][]
+  }[]
   sections: { title: string; entries: { name: string; summary: string; description: string; depth: 'nome' | 'resumo' | 'completo'; fresh?: boolean; image?: string }[] }[]
   events: { when: string; title: string; year?: number; fresh?: boolean }[]
   /** Ligações reveladas, pelo nome (opcional: retratos antigos não têm). */
@@ -43,11 +59,23 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     at: new Date().toISOString(),
     party: codex.sheets.map((s) => {
       const system = universe.systems.find((x) => x.id === s.systemId)
+      const res = (id: string, def: number) => s.resources[id] ?? { current: def, max: def }
+      const cost = costResource(system)
+      const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))
+      const portrait = s.image ?? (s.entityId ? byId(universe, 'entities', s.entityId)?.image : null)
       return {
         name: s.name,
         player: s.player,
         fields: Object.entries(s.fields).filter(([, v]) => v.trim()),
         attrs: (system?.attributes ?? []).map((a) => [a.abbr, s.attributes[a.id] ?? a.default] as [string, number]),
+        ...(portrait ? { image: portrait } : {}),
+        pools: (system?.resources ?? []).filter(isPool).map((r) => [r.abbr, res(r.id, r.default).current, res(r.id, r.default).max] as [string, number, number]),
+        values: (system?.resources ?? []).filter((r) => !isPool(r)).map((r) => [r.abbr, res(r.id, r.default).current] as [string, number]),
+        conditions: s.conditions,
+        skills: system ? system.skills.filter((k) => (s.skills[k.id] ?? 0) !== 0).map((k) => [k.name, bonusLabel(skillExpression(system, s, k.id))] as [string, string]) : [],
+        attacks: (s.attacks ?? []).map((a) => ({ name: a.name, test: system?.resolution === 'total' ? signed(a.bonus) : '', damage: damageText(a.damage, system, s), critical: a.critical })),
+        abilities: (s.abilities ?? []).map((a) => ({ name: a.name, cost: a.cost > 0 && cost ? `${a.cost} ${cost.abbr}` : '', text: a.text })),
+        inventory: (s.inventory ?? []).map((i) => [i.name, i.qty] as [string, number]),
       }
     }),
     sections: kinds.map((k) => ({
@@ -95,3 +123,13 @@ export const isEmptySnapshot = (s: CodexSnapshot) =>
 
 /** Compara dois retratos ignorando a hora, para saber se vale publicar de novo. */
 export const sameContent = (a: CodexSnapshot, b: CodexSnapshot) => JSON.stringify({ ...a, at: '' }) === JSON.stringify({ ...b, at: '' })
+
+/** Dano com os atributos já trocados pelos números ("1d8+{FOR}" vira "1d8+3"). */
+function damageText(damage: string, system: GameSystem | undefined, sheet: Sheet): string {
+  if (!system || !damage.trim()) return damage
+  try {
+    return expandFormula(damage, { system, sheet })
+  } catch {
+    return damage
+  }
+}

@@ -38,6 +38,7 @@ import { sampleUniverse } from '../model/sample'
 import type { Universe } from '../model/schema'
 import { createUniverse, newId } from '../model/universe'
 import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../model/templates'
+import { SYSTEM_TEMPLATES } from '../rpg/systems'
 import type { Library, LibraryEntry } from '../persistence/repository'
 import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistence/folder'
 import type { usePrefs } from '../state/prefs'
@@ -73,6 +74,7 @@ const dateFmt = new Intl.DateTimeFormat('pt-BR', {
 export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onChanged, onOpenShared }: Props) {
   const [name, setName] = useState('')
   const [template, setTemplate] = useState<UniverseTemplate['id']>('branco')
+  const [rpgSystem, setRpgSystem] = useState('t20')
   const [error, setError] = useState<string | null>(null)
   const [accountOpen, setAccountOpen] = useState(false)
   const [oficinaOpen, setOficinaOpen] = useState(false)
@@ -191,7 +193,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           setPref('hiddenViews', menuFor(template) ?? [])
           setPref('onboarded', true)
         }
-        onCreated(applyTemplate(createUniverse(name.trim() || 'Novo universo'), template))
+        onCreated(applyTemplate(createUniverse(name.trim() || 'Novo universo'), template, { system: rpgSystem }))
         setName('')
       }}
     >
@@ -218,6 +220,20 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           )
         })}
       </div>
+      {template === 'rpg' && (
+        <>
+          <p className="start-label" id="sistema-campanha">
+            Sistema
+          </p>
+          <div className="start-chips" role="radiogroup" aria-labelledby="sistema-campanha">
+            {SYSTEM_TEMPLATES.map((t) => (
+              <button key={t.id} type="button" role="radio" aria-checked={rpgSystem === t.id} className="start-chip" title={t.description} onClick={() => setRpgSystem(t.id)}>
+                {t.name.replace(/^Estilo /, '')}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <p className="tiny muted start-hint">
         {chosen.hint}
         {menuNote}
