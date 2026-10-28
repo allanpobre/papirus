@@ -1,3 +1,4 @@
+import { mesaTheme, NO_THEME } from '../rpg/themes'
 import { universeKind, type UniverseKind } from '../model/kind'
 import { isLocalOnly } from '../model/sample'
 import { migrate } from '../model/migrations'
@@ -188,6 +189,8 @@ export interface LibraryEntry {
   sessions?: number
   /** Personagens de jogadores (fichas de jogo). */
   sheets?: number
+  /** Tema da mesa (o do primeiro grupo), para o cartão no setor RPG. "nenhum" = cores do app. */
+  theme?: string
 }
 
 /** Índice dos universos guardados neste navegador. */
@@ -212,13 +215,13 @@ export class Library {
     await this.adoptLegacy()
     const list = ((await this.store.get(LIBRARY_KEY)) as LibraryEntry[] | undefined) ?? []
     // Entradas de antes dos setores: descobre uma vez se cada universo é escrita ou campanha.
-    const missing = list.filter((e) => !e.kind)
+    const missing = list.filter((e) => !e.kind || (e.sessions !== undefined && e.theme === undefined))
     if (missing.length) {
       for (const e of missing) {
         try {
           const u = await this.repository(e.id).load()
           e.kind = u ? universeKind(u) : 'escrita'
-          if (u?.groups.length) Object.assign(e, { sessions: u.sessions.length, sheets: u.sheets.length })
+          if (u?.groups.length) Object.assign(e, tableInfo(u))
         } catch {
           e.kind = 'escrita'
         }
@@ -239,7 +242,7 @@ export class Library {
       ...(isLocalOnly(universe) ? { sample: true } : {}),
       ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
       kind: universeKind(universe),
-      ...(universe.groups.length ? { sessions: universe.sessions.length, sheets: universe.sheets.length } : {}),
+      ...(universe.groups.length ? tableInfo(universe) : {}),
     }
     const i = list.findIndex((e) => e.id === universe.id)
     if (i >= 0) list[i] = entry
@@ -292,6 +295,13 @@ export class Library {
 
 // Contagem por cena, guardada enquanto a cena não muda: ao digitar, só a cena aberta é recontada.
 const sceneWords = new WeakMap<Universe['scenes'][number], number>()
+
+/** O que o cartão de uma mesa mostra: sessões, personagens e o tema do primeiro grupo. */
+function tableInfo(u: Universe): Pick<LibraryEntry, 'sessions' | 'sheets' | 'theme'> {
+  const g = u.groups[0]
+  const system = g?.systemId ? u.systems.find((x) => x.id === g.systemId) : undefined
+  return { sessions: u.sessions.length, sheets: u.sheets.length, theme: mesaTheme(g?.theme, system?.name) ?? NO_THEME }
+}
 
 export function countWords(universe: Universe): number {
   let n = 0

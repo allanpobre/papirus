@@ -1,4 +1,4 @@
-import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { withDailyStart } from '../logic/stats'
@@ -7,7 +7,7 @@ import { addBook, shelf } from '../export/shelf'
 import { authClient, useAccount } from '../account/auth'
 import { syncedMap } from '../account/cloud'
 import type { Scene, Universe } from '../model/schema'
-import { addScene, updateScene } from '../model/universe'
+import { addScene, draftInbox, insert, updateScene } from '../model/universe'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
@@ -41,6 +41,7 @@ import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
+import { MesaGate } from '../views/rpg/MesaGate'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { mesaTheme } from '../rpg/themes'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS } from '../model/kind'
@@ -129,6 +130,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     return { view: last && last !== 'oficina' ? last : firstView(initial) }
   })
   const navRef = useRef(nav)
+  // A tela em que o universo abriu (decide a animação de entrada).
+  const [openedIn] = useState(nav.view)
   // O passo atual do histórico passa a ser este universo, nesta tela.
   useEffect(() => {
     navigateTo({ u: initial.id, view: navRef.current.view, id: navRef.current.id ?? null }, true)
@@ -518,7 +521,12 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
-          {kind === 'escrita' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
+          {/* A entrada do setor: a porta da mesa numa campanha, a capa do livro na escrita (abrindo direto na mesa, quem recebe é a mesa). */}
+          {kind === 'campanha' ? (
+            <MesaGate name={universe.name || 'Sem nome'} />
+          ) : (
+            openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />
+          )}
           {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
           {isSample(universe) && !sampleNoteClosed && (
             <div className="sample-banner" role="status">
@@ -633,8 +641,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
       {oficinaOpen && (
         <OficinaPage
-          genre={guessGuide(universe.settings.fieldTemplates)}
+          genre={kind === 'campanha' ? 'mestrar' : guessGuide(universe.settings.fieldTemplates)}
           onClose={() => setOficinaOpen(false)}
+          onKeep={readOnly ? undefined : (text) => update((u) => insert(u, 'inbox', draftInbox(text))[0])}
           onPractice={
             readOnly
               ? undefined
@@ -830,8 +839,12 @@ function PhoneNav({
         <>
           <div className="rail-more-backdrop" aria-hidden="true" onClick={() => setOpen(false)} />
           <div id="menu-mais" className="rail-more" role="group" aria-label="Todas as áreas">
-            <button type="button" className="rail-more-universe" onClick={onLibrary}>
-              <LibraryIcon size={16} aria-hidden="true" /> <span>{universeName || 'Sem nome'}</span> <span className="muted tiny">trocar</span>
+            <button type="button" className="rail-more-universe" aria-label={`Voltar ao início (sair de ${universeName || 'Sem nome'})`} onClick={onLibrary}>
+              <ArrowLeft size={16} aria-hidden="true" />
+              <span className="rail-more-universe-text">
+                <strong>Voltar ao início</strong>
+                <span className="muted tiny">Sair de “{universeName || 'Sem nome'}” · Escrita, RPG e Oficina</span>
+              </span>
             </button>
             {oficina && !editing && <OficinaCard onClick={() => choose('oficina')} />}
             {editing && <p className="small rail-more-hint">Toque para pôr ou tirar da barra de baixo (até 4; o novo entra no lugar do último).</p>}

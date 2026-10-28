@@ -1,4 +1,8 @@
 import { useEffect } from 'react'
+// O clima da mesa (cores e letras de pedra) vale onde quer que o setor seja ligado.
+import '@fontsource/cinzel/400.css'
+import '@fontsource/cinzel/600.css'
+import '../styles/mesa.css'
 
 /** Quantos lugares pedem o clima da mesa agora (a campanha inteira e a tela da mesa). */
 let holders = 0

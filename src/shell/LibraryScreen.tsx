@@ -50,6 +50,7 @@ import type { Universe } from '../model/schema'
 import { createUniverse, newId } from '../model/universe'
 import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../model/templates'
 import { SYSTEM_TEMPLATES } from '../rpg/systems'
+import { MESA_THEMES } from '../rpg/themes'
 import type { Library, LibraryEntry } from '../persistence/repository'
 import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistence/folder'
 import type { usePrefs } from '../state/prefs'
@@ -407,8 +408,23 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     )
   }
 
+  /** No setor RPG, cada mesa aparece nas cores do tema que o mestre escolheu para ela. */
+  const themeStyle = (e: LibraryEntry): React.CSSProperties | undefined => {
+    const t = sector === 'rpg' ? MESA_THEMES.find((x) => x.id === e.theme) : undefined
+    if (!t) return undefined
+    const [bg, card, accent] = dark ? t.dark : t.light
+    return {
+      '--accent': accent,
+      '--surface': card,
+      '--accent-faint': `color-mix(in srgb, ${accent} 14%, ${card})`,
+      '--accent-soft': `color-mix(in srgb, ${accent} 24%, ${card})`,
+      '--accent-ink': dark ? bg : '#fff',
+      '--line': `color-mix(in srgb, ${accent} 32%, transparent)`,
+    } as React.CSSProperties
+  }
+
   const universeItem = (e: LibraryEntry, view?: View) => (
-    <li key={e.id} className="library-item">
+    <li key={e.id} className={`library-item${themeStyle(e) ? ' is-themed' : ''}`} style={themeStyle(e)}>
       <button type="button" className="library-open" onClick={() => onOpen(e.id, view)}>
         {e.cover ? <Picture value={e.cover} className="library-cover" /> : e.kind === 'campanha' ? <Dices size={20} aria-hidden="true" /> : <BookOpen size={20} aria-hidden="true" />}
         <span className="library-name">{e.name || 'Sem nome'}</span>
@@ -456,7 +472,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
   /** O cartão grande do começo: voltar para onde parou. */
   const continueCard = (e: LibraryEntry, label: string, view?: View) => (
-    <button type="button" className="hub-continue" onClick={() => onOpen(e.id, view)}>
+    <button type="button" className={`hub-continue${themeStyle(e) ? ' is-themed' : ''}`} style={themeStyle(e)} onClick={() => onOpen(e.id, view)}>
       {e.cover ? <Picture value={e.cover} className="hub-continue-cover" /> : <span className="hub-continue-cover hub-continue-blank" aria-hidden="true">{(e.name || '?').slice(0, 1)}</span>}
       <span className="hub-continue-text">
         <span className="hub-kicker">{label}</span>
@@ -580,6 +596,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <h2 id="mesas-livros" className="hub-h">
             Mesas dentro dos seus universos
           </h2>
+          <p className="small muted hub-note">Universos de escrita que também têm uma mesa. Se um deles é mesmo uma campanha, mude o tipo em Ajustes → Menu e ajuda, e ele passa a morar aqui.</p>
           <ul className="library-list" aria-label="Mesas dentro dos seus universos">
             {tablesInBooks.map((e) => universeItem(e, 'rpg'))}
           </ul>

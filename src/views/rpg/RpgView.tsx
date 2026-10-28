@@ -1,9 +1,10 @@
-import { CalendarDays, Crown, Dices, Eye, Feather, Library, Palette, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Crown, Dices, Eye, Palette, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
 import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../../styles/mesa.css'
 import { tabListKeys } from '../../ui/keys'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { MesaGate } from './MesaGate'
 import { draftGroup, insert, newId, patch } from '../../model/universe'
 import { describeOutcome, type RollOutcome } from '../../rpg/rolls'
 import { recall, remember } from '../../state/prefs'
@@ -75,40 +76,6 @@ function ThemePicker({ value, suggested, onChange, onClose, dark }: { value: str
   )
 }
 
-/** A porta da mesa: abre ao chegar vindo de outra tela (não ao reabrir o app, nem de novo logo em seguida, nem para quem prefere menos movimento). */
-function Gate({ name }: { name: string }) {
-  const [show, setShow] = useState(() => {
-    if (performance.now() < 2500 || matchMedia('(prefers-reduced-motion: reduce)').matches) return false
-    // Uma vez na chegada; voltar logo depois (de Ajustes, das fichas…) não repete a porta.
-    try {
-      const last = Number(sessionStorage.getItem('papirus:porta-da-mesa') ?? 0)
-      sessionStorage.setItem('papirus:porta-da-mesa', String(Date.now()))
-      return Date.now() - last > 10 * 60 * 1000
-    } catch {
-      return true
-    }
-  })
-  useEffect(() => {
-    if (!show) return
-    const t = setTimeout(() => setShow(false), 1300)
-    return () => clearTimeout(t)
-  }, [show])
-  if (!show) return null
-  return (
-    <div className="mesa-gate" aria-hidden="true">
-      <span className="mesa-gate-door mesa-gate-left" />
-      <span className="mesa-gate-door mesa-gate-right" />
-      <span className="mesa-gate-sign">
-        <span className="mesa-gate-emblem">
-          <Dices size={34} />
-        </span>
-        <span className="mesa-gate-title">Mesa de RPG</span>
-        <span className="mesa-gate-sub">{name}</span>
-      </span>
-    </div>
-  )
-}
-
 interface TrayRoll {
   id: string
   outcome: RollOutcome
@@ -175,12 +142,23 @@ export default function RpgView() {
 
   return (
     <div className={`view rpg-view${tab === 'mesa' ? ' rpg-at-table' : ''}`}>
-      <Gate name={universe.name || 'Sem nome'} />
+      {/* Numa campanha, a porta abre na entrada do universo (área de trabalho). */}
+      {kind !== 'campanha' && <MesaGate name={universe.name || 'Sem nome'} />}
       <header className="mesa-hero">
         <span className="mesa-emblem" aria-hidden="true">
           <Dices size={26} />
         </span>
         <div className="mesa-hero-text">
+          {/* A saída, sempre à vista: de uma campanha para o início do Papirus; de um livro, para a escrita. */}
+          {kind === 'campanha' ? (
+            <button type="button" className="mesa-back" onClick={() => closeUniverse()}>
+              <ArrowLeft size={15} aria-hidden="true" /> Campanhas
+            </button>
+          ) : (
+            <button type="button" className="mesa-back" onClick={() => go('inicio')}>
+              <ArrowLeft size={15} aria-hidden="true" /> Voltar à escrita
+            </button>
+          )}
           <p className="mesa-kicker">{universe.name || 'Sem nome'} · setor da mesa</p>
           <h1>Mesa de RPG</h1>
           {universe.groups.length > 0 && (
@@ -239,15 +217,6 @@ export default function RpgView() {
           {group && !readOnly && (
             <button type="button" className="btn btn-ghost btn-sm" aria-label="Tema da mesa" title="Tema da mesa" onClick={() => setPicking(true)}>
               <Palette size={15} /> <span className="mesa-act-label">Tema</span>
-            </button>
-          )}
-          {kind === 'campanha' ? (
-            <button type="button" className="btn btn-ghost btn-sm" aria-label="Suas campanhas" title="Suas campanhas" onClick={() => closeUniverse()}>
-              <Library size={15} /> <span className="mesa-act-label">Campanhas</span>
-            </button>
-          ) : (
-            <button type="button" className="btn btn-ghost btn-sm" aria-label="Voltar à escrita" title="Voltar à escrita" onClick={() => go('inicio')}>
-              <Feather size={15} /> <span className="mesa-act-label">Voltar à escrita</span>
             </button>
           )}
         </div>
