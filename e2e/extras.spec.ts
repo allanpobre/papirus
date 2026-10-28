@@ -406,3 +406,25 @@ test('o Início tem saudação, resumo do dia e portas para as áreas do mundo',
   await doors.getByRole('button', { name: /Atlas/ }).click()
   await expect(page.getByRole('heading', { name: 'Atlas', level: 1 })).toBeVisible()
 })
+
+test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', async ({ page }) => {
+  // O Alienista: fichas com texto longo, relações e marcas de spoiler.
+  await page.goto('/')
+  await page.getByRole('link', { name: 'Ver um mundo de exemplo' }).click()
+  await page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /Fichas/ }).click()
+  await page.locator('.entity-row-name', { hasText: /^D\. Evarista$/ }).click()
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  const reader = page.getByRole('article', { name: 'Ler a ficha D. Evarista' })
+  await expect(reader.getByRole('heading', { level: 1, name: 'D. Evarista' })).toBeVisible()
+  await expect(reader).not.toContainText('[a partir de')
+  await expect(reader.getByRole('heading', { name: 'Relações' })).toBeVisible()
+  // Um nome no texto vira link para a outra ficha.
+  await reader.getByRole('button', { name: 'Simão Bacamarte' }).first().click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Simão Bacamarte' })).toBeVisible()
+  // A escolha fica lembrada; "Editar" volta ao formulário.
+  await page.reload()
+  await page.locator('.entity-row-name', { hasText: /^Simão Bacamarte$/ }).click()
+  await expect(page.getByRole('article', { name: 'Ler a ficha Simão Bacamarte' })).toBeVisible()
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Simão Bacamarte')
+})
