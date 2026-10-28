@@ -41,3 +41,20 @@ test('a apresentação mostra os três setores, a mesa nova e o gerador da Ofici
   // As barras do celular seguem a cor da página.
   await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', /^#[0-9a-f]{6}$/)
 })
+
+test('a apresentação mostra a mesa dos dois lados e as telas por dentro', async ({ page }) => {
+  await page.goto('/')
+  const duo = page.getByRole('figure', { name: /o mestre no tablet e um jogador no celular/ })
+  await duo.scrollIntoViewIfNeeded()
+  // O mestre revela e o Codex do jogador recebe (o ciclo leva uns 10 segundos).
+  await expect(duo.getByText('Revelado ao grupo')).toBeVisible({ timeout: 15_000 })
+  await expect(duo.getByText('Novidades do mestre')).toBeVisible()
+
+  const telas = page.getByRole('tablist', { name: 'Telas do Papirus' })
+  await expect(telas.getByRole('tab')).toHaveCount(4)
+  await telas.getByRole('tab', { name: 'Placar' }).click()
+  await expect(page.getByRole('tabpanel')).toContainText('pontos por minutos com o mínimo batido')
+  // Escolher uma aba para de girar sozinho.
+  await page.waitForTimeout(8500)
+  await expect(telas.getByRole('tab', { name: 'Placar' })).toHaveAttribute('aria-selected', 'true')
+})
