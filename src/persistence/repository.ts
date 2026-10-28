@@ -179,6 +179,8 @@ export interface LibraryEntry {
   words: number
   /** Universo de exemplo: fica só neste aparelho. */
   sample?: boolean
+  /** Capa do universo ("img:…"), para a lista de universos. */
+  cover?: string
 }
 
 /** Índice dos universos guardados neste navegador. */
@@ -214,6 +216,7 @@ export class Library {
       updatedAt: universe.updatedAt,
       words: countWords(universe),
       ...(isLocalOnly(universe) ? { sample: true } : {}),
+      ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
     }
     const i = list.findIndex((e) => e.id === universe.id)
     if (i >= 0) list[i] = entry

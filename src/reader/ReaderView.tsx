@@ -10,10 +10,12 @@ import { MiniGraph } from '../ui/MiniGraph'
 import { ChapterReactions, type ReactionsApi } from './ChapterReactions'
 import { ReadAloudBar, ReadAloudButton, useReadAloud } from './ReadAloud'
 import { CommentFab, CommentSheet, useSelectedQuote, type SendComment } from './ReaderComment'
+import { Picture } from '../images/Picture'
 
 interface DocNode {
   type: string
   text?: string
+  attrs?: Record<string, unknown>
   marks?: { type: string }[]
   content?: DocNode[]
 }
@@ -430,6 +432,12 @@ function SceneText({ doc, matcher, onName }: { doc: DocNode; matcher: MentionMat
             <p key={i} className="leitor-sep" aria-hidden="true">
               ⁂
             </p>
+          )
+        if (n.type === 'image')
+          return (
+            <figure key={i} className="scene-figure">
+              <Picture value={String(n.attrs?.src ?? '')} alt={String(n.attrs?.alt ?? '')} />
+            </figure>
           )
         if (n.type === 'blockquote') return <blockquote key={i}>{(n.content ?? []).map((c, j) => <p key={j}>{inline(c, `${i}-${j}`)}</p>)}</blockquote>
         if (!(n.content ?? []).length) return null

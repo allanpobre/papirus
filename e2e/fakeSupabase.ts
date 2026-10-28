@@ -22,6 +22,9 @@ export const PASSWORD = 'segredo123'
 
 export function createFakeSupabase() {
   const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [], papirus_feedback: [], papirus_shelf_text: [], papirus_chapter_reactions: [], papirus_activity: [] }
+  const images = new Map<string, { owner: string; body: Buffer; type: string; at: string }>()
+  const QUOTA = 100 * 1024 * 1024
+  const usage = (owner: string) => [...images.values()].filter((v) => v.owner === owner).reduce((n, v) => n + v.body.length, 0)
   const friends = (a: unknown, b: unknown) =>
     tables.papirus_friendships.some((f) => f.status === 'aceita' && ((f.requester === a && f.addressee === b) || (f.requester === b && f.addressee === a)))
   /** Tabelas que quem não tem conta também lê (o que é público). */
@@ -110,6 +113,41 @@ export function createFakeSupabase() {
   const pick = (r: Row, select: string | null) => (!select || select === '*' ? r : Object.fromEntries(select.split(',').map((c) => [c, r[c]])))
 
   async function attach(context: BrowserContext) {
+    // Storage: a pasta pública de imagens (supabase/imagens.sql), com o limite por conta.
+    await context.route(`${SERVER}/storage/v1/**`, async (route) => {
+      const req = route.request()
+      if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+      const url = new URL(req.url())
+      const me = userOf(route)
+      const path = url.pathname.replace('/storage/v1/', '')
+      const pub = path.match(/^object\/public\/papirus-imagens\/([0-9a-f]{32})$/)
+      if (pub && req.method() === 'GET') {
+        const img = images.get(pub[1])
+        return img ? route.fulfill({ status: 200, headers: { ...cors, 'content-type': img.type }, body: img.body }) : route.fulfill({ status: 400, headers: cors, json: { statusCode: '404', error: 'not_found', message: 'Object not found' } })
+      }
+      if (!me) return route.fulfill({ status: 400, headers: cors, json: { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' } })
+      const up = path.match(/^object\/papirus-imagens\/(.+)$/)
+      if (up && req.method() === 'POST') {
+        const id = up[1]
+        if (!/^[0-9a-f]{32}$/.test(id) || usage(me.id) >= QUOTA) return route.fulfill({ status: 400, headers: cors, json: { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' } })
+        if (images.has(id)) return route.fulfill({ status: 400, headers: cors, json: { statusCode: '409', error: 'Duplicate', message: 'The resource already exists' } })
+        const body = req.postDataBuffer() ?? Buffer.alloc(0)
+        images.set(id, { owner: me.id, body, type: req.headers()['content-type'] ?? 'image/webp', at: new Date().toISOString() })
+        return route.fulfill({ headers: cors, json: { Key: `papirus-imagens/${id}`, Id: id } })
+      }
+      if (path === 'object/list/papirus-imagens' && req.method() === 'POST') {
+        const mine = [...images].filter(([, v]) => v.owner === me.id)
+        return route.fulfill({ headers: cors, json: mine.map(([id, v]) => ({ name: id, id, created_at: v.at, metadata: { size: v.body.length, mimetype: v.type } })) })
+      }
+      if (path === 'object/papirus-imagens' && req.method() === 'DELETE') {
+        const { prefixes } = req.postDataJSON() as { prefixes: string[] }
+        const gone = prefixes.filter((id) => images.get(id)?.owner === me.id)
+        for (const id of gone) images.delete(id)
+        return route.fulfill({ headers: cors, json: gone.map((name) => ({ name })) })
+      }
+      return route.fulfill({ status: 400, headers: cors, json: { statusCode: '404', error: 'not_found', message: 'not found' } })
+    })
+
     await context.route(`${SERVER}/auth/v1/**`, async (route) => {
       const url = route.request().url()
       if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
@@ -141,6 +179,10 @@ export function createFakeSupabase() {
       const me = userOf(route)
       const path = url.pathname.replace('/rest/v1/', '')
 
+      if (path === 'rpc/papirus_image_usage') {
+        if (!me) return route.fulfill({ status: 401, headers: cors, json: { message: 'permission denied for function papirus_image_usage' } })
+        return route.fulfill({ headers: cors, json: usage(me.id) })
+      }
       if (path === 'rpc/papirus_link_get') {
         const { token } = req.postDataJSON() as { token: string }
         const s = tables.papirus_shares.find((x) => x.link_token && x.link_token === token)
@@ -285,5 +327,5 @@ export function createFakeSupabase() {
     })
   }
 
-  return { tables, attach }
+  return { tables, images, attach }
 }

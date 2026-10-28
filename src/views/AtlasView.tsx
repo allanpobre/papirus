@@ -9,31 +9,8 @@ import { useWorkspace } from '../state/workspace'
 import { Empty } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityPicker } from '../ui/EntityPicker'
-
-const MAX_SIDE = 2400
-
-/** Reduz a imagem para caber no armazenamento local (JPEG, lado máximo 2400px). */
-async function loadImage(file: File): Promise<{ data: string; width: number; height: number }> {
-  const url = URL.createObjectURL(file)
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const i = new Image()
-      i.onload = () => resolve(i)
-      i.onerror = () => reject(new Error('Não foi possível ler a imagem.'))
-      i.src = url
-    })
-    const scale = Math.min(1, MAX_SIDE / Math.max(img.width, img.height))
-    const width = Math.round(img.width * scale)
-    const height = Math.round(img.height * scale)
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-    canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
-    return { data: canvas.toDataURL('image/jpeg', 0.85), width, height }
-  } finally {
-    URL.revokeObjectURL(url)
-  }
-}
+import { addImage } from '../images/add'
+import { useImageSrc } from '../images/resolve'
 
 /** Um pergaminho em branco, para posicionar lugares sem ter um mapa desenhado. */
 function blankParchment(): { data: string; width: number; height: number } {
@@ -70,7 +47,8 @@ export default function AtlasView() {
 
   const addMap = async (file?: File) => {
     try {
-      const img = file ? await loadImage(file) : blankParchment()
+      // O mapa vai para as imagens do universo (fora do arquivo do universo, que fica leve).
+      const img = file ? await addImage(file, 'mapa').then((r) => ({ data: r.ref, width: r.width, height: r.height })) : blankParchment()
       let id = ''
       update((u) => {
         const [next, m] = insert(u, 'maps', draftMap(file ? file.name.replace(/\.[^.]+$/, '') : 'Mapa em branco', img.data, img.width, img.height))
@@ -131,6 +109,7 @@ export default function AtlasView() {
 
 function MapCanvas({ map }: { map: AtlasMap }) {
   const { universe, update, peek, go, undoable, toast } = useWorkspace()
+  const mapSrc = useImageSrc(map.image)
   const [zoom, setZoom] = useState(1)
   const [placing, setPlacing] = useState<string | null>(null)
   const [pending, setPending] = useState<{ x: number; y: number } | null>(null)
@@ -231,7 +210,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         <div
           ref={imgRef}
           className={`atlas-image${placing !== null || moving ? ' placing' : ''}`}
-          style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: `url("${map.image}")` }}
+          style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: mapSrc ? `url("${mapSrc}")` : undefined }}
           onClick={(e) => {
             if ((e.target as Element).closest('.pin')) return
             if (moving) {

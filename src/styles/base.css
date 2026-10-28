@@ -1246,3 +1246,24 @@ input[type='radio'] {
     opacity: 0.7;
   }
 }
+
+/* Girando (carregando). */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation-duration: 2.5s;
+  }
+}
+
+/* Imagem ainda carregando (ou que não está neste aparelho). */
+.picture-empty {
+  display: block;
+  background: var(--surface-2);
+}

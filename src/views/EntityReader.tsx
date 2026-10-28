@@ -12,6 +12,7 @@ import type { Entity } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge } from '../ui/bits'
+import { Picture } from '../images/Picture'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
 export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode }) {
@@ -98,8 +99,9 @@ export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity;
       </div>
 
       <div className="reader-body">
-        {(infobox.length > 0 || e.tags.length > 0 || children.length > 0) && (
+        {(e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0) && (
           <aside className="reader-infobox" aria-label="Em resumo">
+            {e.image && <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="reader-portrait" />}
             {infobox.length > 0 && (
               <dl>
                 {infobox.map(([k, v]) => (

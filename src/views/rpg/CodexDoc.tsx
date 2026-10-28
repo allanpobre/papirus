@@ -2,6 +2,8 @@ import { MapPin } from 'lucide-react'
 import type { CodexSnapshot } from '../../share/snapshot'
 import { isEmptySnapshot } from '../../share/snapshot'
 import { MiniGraph } from '../../ui/MiniGraph'
+import { useImageSrc } from '../../images/resolve'
+import { Picture } from '../../images/Picture'
 
 /** O Codex como documento: o mesmo na prévia do mestre e no celular dos jogadores. */
 export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
@@ -39,7 +41,8 @@ export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
         <section key={sec.title}>
           <h3 className="codex-kind">{sec.title}</h3>
           {sec.entries.map((e, i) => (
-            <div key={i} className={`codex-entry${e.fresh ? ' is-fresh' : ''}`}>
+            <div key={i} className={`codex-entry${e.fresh ? ' is-fresh' : ''}${e.image ? ' has-portrait' : ''}`}>
+              {e.image && <Picture value={e.image} alt={`Retrato de ${e.name}`} className="codex-portrait" />}
               <h4>
                 {e.name}
                 {e.fresh && <span className="codex-new">novo</span>}
@@ -118,18 +121,26 @@ export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
       )}
 
       {codex.maps.map((m, i) => (
-        <section key={i}>
-          <h3 className="codex-kind">{m.name}</h3>
-          <div className="codex-map" style={{ aspectRatio: `${m.width} / ${m.height}`, backgroundImage: `url(${m.image})` }} role="img" aria-label={`Mapa ${m.name}`}>
-            {m.pins.map((p, j) => (
-              <span key={j} className="pin codex-pin" style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}>
-                <MapPin size={20} aria-hidden="true" />
-                <span className="pin-label">{p.label}</span>
-              </span>
-            ))}
-          </div>
-        </section>
+        <CodexMap key={i} m={m} />
       ))}
     </div>
+  )
+}
+
+/** Um mapa do Codex (a imagem pode vir embutida ou como referência "img:"). */
+function CodexMap({ m }: { m: CodexSnapshot['maps'][number] }) {
+  const src = useImageSrc(m.image)
+  return (
+    <section>
+      <h3 className="codex-kind">{m.name}</h3>
+      <div className="codex-map" style={{ aspectRatio: `${m.width} / ${m.height}`, backgroundImage: src ? `url("${src}")` : undefined }} role="img" aria-label={`Mapa ${m.name}`}>
+        {m.pins.map((p, j) => (
+          <span key={j} className="pin codex-pin" style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}>
+            <MapPin size={20} aria-hidden="true" />
+            <span className="pin-label">{p.label}</span>
+          </span>
+        ))}
+      </div>
+    </section>
   )
 }

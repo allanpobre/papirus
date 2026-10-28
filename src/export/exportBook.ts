@@ -1,6 +1,8 @@
 import { strToU8 as encode, zipSync, type Zippable } from 'fflate'
 import type { Scene, SceneDoc, Story, Universe } from '../model/schema'
 import { scenesOf } from '../model/universe'
+import { bookImageSrc } from '../images/bookImages'
+import { epubImageFiles } from './epubImages'
 
 /**
  * Exporta uma história como livro: Word (.docx) ou EPUB 3.
@@ -160,6 +162,10 @@ function xBlocks(nodes: DocNode[]): string {
           return `<p>${xInline(n.content)}</p>`
         case 'horizontalRule':
           return '<hr class="quebra"/>'
+        case 'image': {
+          const src = bookImageSrc(n.attrs?.src)
+          return src ? `<figure class="scene-figure"><img src="${src}" alt="${esc(String(n.attrs?.alt ?? ''))}"/></figure>` : ''
+        }
         case 'blockquote':
           return `<blockquote>${xBlocks(n.content ?? [])}</blockquote>`
         case 'bulletList':
@@ -177,6 +183,7 @@ const xhtml = (title: string, body: string, extraNs = '') =>
   `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml"${extraNs} xml:lang="pt-BR" lang="pt-BR"><head><meta charset="UTF-8"/><title>${esc(title)}</title><link rel="stylesheet" type="text/css" href="estilo.css"/></head><body>${body}</body></html>`
 
 const EPUB_CSS = `body{font-family:Georgia,serif;line-height:1.55;margin:0 5%}
+.scene-figure{margin:1.2em 0;text-align:center;page-break-inside:avoid}.scene-figure img{max-width:100%;height:auto}
 h1{font-weight:normal;text-align:center;margin:3em 0 1.5em;page-break-before:always}
 p{margin:0;text-indent:1.4em;text-align:justify}
 h1+p,hr+p,.capa+p{text-indent:0}
@@ -210,11 +217,13 @@ export function bookToEpub(book: BookExport, id = crypto.randomUUID()): Uint8Arr
         .join('')}</navMap></ncx>`,
     ),
   }
+  const pics = epubImageFiles()
   for (const c of chapters) {
-    files[`OEBPS/${c.file}`] = strToU8(xhtml(c.title, `${book.sceneTitles ? `<h1>${esc(c.title)}</h1>` : '<hr class="quebra"/>'}\n${xBlocks(blocksOf(c.scene.doc))}`))
+    files[`OEBPS/${c.file}`] = strToU8(xhtml(c.title, pics.take(`${book.sceneTitles ? `<h1>${esc(c.title)}</h1>` : '<hr class="quebra"/>'}\n${xBlocks(blocksOf(c.scene.doc))}`)))
   }
+  Object.assign(files, pics.files)
   files['OEBPS/content.opf'] = strToU8(
-    `<?xml version="1.0" encoding="UTF-8"?>\n<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid" xml:lang="pt-BR"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">urn:uuid:${id}</dc:identifier><dc:title>${esc(book.title)}</dc:title>${book.author ? `<dc:creator>${esc(book.author)}</dc:creator>` : ''}<dc:language>pt-BR</dc:language><meta property="dcterms:modified">${modified}</meta></metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="css" href="estilo.css" media-type="text/css"/><item id="capa" href="capa.xhtml" media-type="application/xhtml+xml"/>${chapters
+    `<?xml version="1.0" encoding="UTF-8"?>\n<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid" xml:lang="pt-BR"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">urn:uuid:${id}</dc:identifier><dc:title>${esc(book.title)}</dc:title>${book.author ? `<dc:creator>${esc(book.author)}</dc:creator>` : ''}<dc:language>pt-BR</dc:language><meta property="dcterms:modified">${modified}</meta></metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="css" href="estilo.css" media-type="text/css"/><item id="capa" href="capa.xhtml" media-type="application/xhtml+xml"/>${pics.items.join('')}${chapters
       .map((c, i) => `<item id="c${i + 1}" href="${c.file}" media-type="application/xhtml+xml"/>`)
       .join('')}</manifest><spine toc="ncx"><itemref idref="capa"/>${chapters.map((_, i) => `<itemref idref="c${i + 1}"/>`).join('')}</spine></package>`,
   )

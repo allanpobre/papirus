@@ -3,10 +3,12 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { isDialogue } from '../../logic/doc'
 import type { Scene } from '../../model/schema'
 import { recall, remember } from '../../state/prefs'
+import { Picture } from '../../images/Picture'
 
 interface DocNode {
   type: string
   text?: string
+  attrs?: Record<string, unknown>
   marks?: { type: string }[]
   content?: DocNode[]
 }
@@ -14,7 +16,7 @@ interface DocNode {
 interface Block {
   sceneId: string
   key: string
-  kind: 'titulo' | 'paragrafo' | 'separador' | 'citacao'
+  kind: 'titulo' | 'paragrafo' | 'separador' | 'citacao' | 'imagem'
   content: ReactNode
   plain: string
 }
@@ -27,6 +29,7 @@ function toBlocks(scenes: Scene[]): Block[] {
     ;((s.doc as DocNode).content ?? []).forEach((n, i) => {
       const key = `${s.id}-${i}`
       if (n.type === 'horizontalRule') blocks.push({ sceneId: s.id, key, kind: 'separador', content: '⁂', plain: '' })
+      else if (n.type === 'image') blocks.push({ sceneId: s.id, key, kind: 'imagem', content: <Picture value={String(n.attrs?.src ?? '')} alt={String(n.attrs?.alt ?? '')} />, plain: '' })
       else {
         const plain = textOf(n)
         if (!plain.trim()) return
@@ -161,6 +164,13 @@ export function ReadingMode({ title, scenes, startSceneId, onClose }: { title: s
                 <p key={b.key} id={`ler-${b.key}`} className="reading-break" aria-hidden="true">
                   ⁂
                 </p>
+              )
+            }
+            if (b.kind === 'imagem') {
+              return (
+                <figure key={b.key} id={`ler-${b.key}`} className="scene-figure">
+                  {b.content}
+                </figure>
               )
             }
             const Tag = b.kind === 'citacao' ? 'blockquote' : 'p'

@@ -1,5 +1,5 @@
 import { useEditorState, type Editor } from '@tiptap/react'
-import { Bold, BookmarkPlus, ChevronDown, Italic, Link2, MessageSquarePlus, Quote, Redo2, SeparatorHorizontal, Sparkles, Undo2, UserPlus } from 'lucide-react'
+import { Bold, BookmarkPlus, ChevronDown, ImagePlus, Italic, Link2, MessageSquarePlus, Quote, Redo2, SeparatorHorizontal, Sparkles, Undo2, UserPlus } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import type { SceneEditorActions, SelectionInfo } from './SceneEditor'
 
@@ -37,7 +37,7 @@ function DockButton({ label, onClick, pressed, children, wide }: { label: string
  * (onde brigaria com o "copiar, selecionar tudo" do próprio celular).
  * Sem seleção: formatação, travessão para falas, desfazer. Com seleção: ficha, fato, comentar…
  */
-export function PhoneDock({ editor, actions, selection }: { editor: Editor; actions: SceneEditorActions; selection: () => SelectionInfo }) {
+export function PhoneDock({ editor, actions, selection, pickImage }: { editor: Editor; actions: SceneEditorActions; selection: () => SelectionInfo; pickImage: () => void }) {
   const inset = useKeyboardInset()
   const state = useEditorState({
     editor,
@@ -98,6 +98,9 @@ export function PhoneDock({ editor, actions, selection }: { editor: Editor; acti
           </DockButton>
           <DockButton label="Separador de cena" onClick={() => chain().setHorizontalRule().run()}>
             <SeparatorHorizontal size={18} />
+          </DockButton>
+          <DockButton label="Imagem" onClick={pickImage}>
+            <ImagePlus size={18} />
           </DockButton>
           <span className="dock-space" />
           <DockButton label="Desfazer" onClick={() => state.canUndo && chain().undo().run()}>

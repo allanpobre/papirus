@@ -7,6 +7,8 @@ import { downloadText, fileNameFor } from '../export/download'
 import { universeToMarkdown } from '../export/markdown'
 import type { QuestionType } from '../logic/continuity'
 import { migrate } from '../model/migrations'
+import { restoreEmbeddedImages } from '../images/backup'
+import { ImageButtons, Picture } from '../images/Picture'
 import type { Universe } from '../model/schema'
 import { forkUniverse, newId } from '../model/universe'
 import type { SnapshotInfo } from '../persistence/repository'
@@ -22,6 +24,7 @@ import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
 import { playKey, unlockAudio } from '../editor/keySounds'
 import { WikiCard } from './WikiCard'
+import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
 import { matches, SETTINGS_CATEGORIES, type SettingsCategory } from './settingsCategories'
@@ -83,7 +86,9 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
   const importFile = async (file: File, mode: 'novo' | 'substituir') => {
     try {
-      const imported = migrate(JSON.parse(await file.text())).universe
+      const raw: unknown = JSON.parse(await file.text())
+      const imported = migrate(raw).universe
+      await restoreEmbeddedImages(raw)
       if (mode === 'novo') onOpenOther({ ...imported, id: newId(), name: `${imported.name} (importado)` })
       else await replaceWith(imported, 'importar o backup')
     } catch (err) {
@@ -132,6 +137,16 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             <Field label="Descrição" wide>
               {(id) => <textarea id={id} className="input textarea" rows={2} value={universe.description} onChange={(e) => update((u) => ({ ...u, description: e.target.value }))} />}
             </Field>
+            <div className="field field-wide">
+              <span className="field-label">Capa</span>
+              <div className="cover-field">
+                {settings.cover && <Picture value={settings.cover} alt="Capa do universo" className="cover-field-img" />}
+                <div className="inline-fields">
+                  <ImageButtons value={settings.cover ?? null} use="capa" chooseLabel="Escolher a capa" removeLabel="Tirar a capa" onChange={(v) => setSetting('cover', v)} onError={(m) => toast(m, { tone: 'erro' })} />
+                </div>
+              </div>
+              <span className="field-hint">Aparece no Início e na lista de universos.</span>
+            </div>
             <Field label="Rótulo do ano" hint="Texto depois do ano: DC, da Coroa, AA…">
               {(id) => <input id={id} className="input" value={settings.calendarSuffix} onChange={(e) => setSetting('calendarSuffix', e.target.value)} />}
             </Field>
@@ -401,6 +416,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         )}
 
         {show('dados') && <FolderCard />}
+        {show('dados') && <ImagesCard />}
 
 {show('dados') && (
         <section className="settings-card">

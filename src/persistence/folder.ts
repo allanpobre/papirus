@@ -1,3 +1,5 @@
+import { IMAGE_EXTS, imageFileName, imagesChanged, saveFolderImage, storedBlob } from '../images/backup'
+import { imageIdsIn } from '../images/ref'
 import type { SavedFile, Universe } from '../model/schema'
 import { BACKUP_FILE, MANIFEST, universeToFiles } from './folderFiles'
 import type { KeyValueStore } from './storage'
@@ -11,7 +13,7 @@ export interface DirHandle {
   name: string
   getDirectoryHandle(name: string, options?: { create?: boolean }): Promise<DirHandle>
   getFileHandle(name: string, options?: { create?: boolean }): Promise<{
-    createWritable(): Promise<{ write(data: string): Promise<void>; close(): Promise<void> }>
+    createWritable(): Promise<{ write(data: string | Blob): Promise<void>; close(): Promise<void> }>
     getFile(): Promise<File>
   }>
   removeEntry(name: string): Promise<void>
@@ -55,7 +57,19 @@ async function dirFor(root: DirHandle, parts: string[]): Promise<DirHandle> {
   return dir
 }
 
-async function writeText(root: DirHandle, path: string, content: string) {
+async function exists(root: DirHandle, path: string): Promise<boolean> {
+  try {
+    const parts = path.split('/')
+    let dir = root
+    for (const p of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(p)
+    await dir.getFileHandle(parts[parts.length - 1])
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function writeText(root: DirHandle, path: string, content: string | Blob) {
   const parts = path.split('/')
   const dir = await dirFor(root, parts.slice(0, -1))
   const fh = await dir.getFileHandle(parts[parts.length - 1], { create: true })
@@ -85,6 +99,14 @@ export async function writeUniverseToFolder(root: DirHandle, universe: Universe,
   const previous: string[] = JSON.parse((await readText(root, MANIFEST)) ?? '[]')
   for (const f of files) await writeText(root, f.path, f.content)
   const current = new Set(files.map((f) => f.path))
+  // Imagens: cada uma num arquivo em imagens/, escrito só uma vez (o nome é o conteúdo).
+  for (const id of imageIdsIn(universe)) {
+    const blob = await storedBlob(id)
+    if (!blob) continue
+    const path = `imagens/${imageFileName(id, blob.type)}`
+    current.add(path)
+    if (!(await exists(root, path))) await writeText(root, path, blob)
+  }
   for (const old of previous) {
     if (current.has(old)) continue
     try {
@@ -104,5 +126,21 @@ export async function writeUniverseToFolder(root: DirHandle, universe: Universe,
 export async function readBackupFromFolder(root: DirHandle): Promise<unknown> {
   const text = await readText(root, BACKUP_FILE)
   if (text === null) throw new Error(`Esta pasta não tem o arquivo ${BACKUP_FILE} do Papirus.`)
-  return JSON.parse(text)
+  const raw: unknown = JSON.parse(text)
+  // As imagens do universo, da pasta imagens/.
+  let n = 0
+  for (const id of imageIdsIn(raw)) {
+    for (const ext of IMAGE_EXTS) {
+      try {
+        const f = await (await (await root.getDirectoryHandle('imagens')).getFileHandle(`${id}.${ext}`)).getFile()
+        await saveFolderImage(id, f)
+        n++
+        break
+      } catch {
+        // Tenta a próxima extensão.
+      }
+    }
+  }
+  if (n) imagesChanged()
+  return raw
 }

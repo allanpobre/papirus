@@ -2,6 +2,7 @@ import type { BookDesign, Scene, SceneDoc, Story, Universe } from '../model/sche
 import { bookDesignSchema } from '../model/schema'
 import { scenesOf } from '../model/universe'
 import type { BookFontKey } from './bookFonts'
+import { bookImageSrc } from '../images/bookImages'
 
 /**
  * Diagramação do livro em HTML + CSS de página (Paged Media), para o Paged.js paginar
@@ -133,9 +134,11 @@ export function chapterLabel(d: BookDesign, n: number): string {
 
 // ─── Conteúdo ────────────────────────────────────────────────────────
 
+
 interface DocNode {
   type: string
   text?: string
+  attrs?: Record<string, unknown>
   marks?: { type: string }[]
   content?: DocNode[]
 }
@@ -198,6 +201,12 @@ function body(doc: SceneDoc, d: BookDesign, startOfChapter: boolean): string {
         out.push(sceneBreak(d))
         afterBreak = true
         break
+      case 'image': {
+        const src = bookImageSrc(n.attrs?.src)
+        if (src) out.push(`<figure class="scene-figure"><img src="${src}" alt="${esc(String(n.attrs?.alt ?? ''))}"/></figure>`)
+        afterBreak = true
+        break
+      }
       case 'blockquote':
         out.push(`<blockquote>${(n.content ?? []).map((p) => `<p>${inline(p.content)}</p>`).join('')}</blockquote>`)
         afterBreak = true
@@ -383,6 +392,7 @@ ${d.paragraph === 'recuo' ? `.chapter-body p + p{text-indent:${d.bodyFont === 'm
 em{font-style:italic}strong{font-weight:600}
 blockquote{margin:1em 1.5em;font-style:italic}
 blockquote p{text-indent:0!important}
+.scene-figure{margin:1em 0;text-align:center;break-inside:avoid}.scene-figure img{max-width:100%;max-height:60vh;object-fit:contain}
 section{break-before:page}
 section:first-child{break-before:auto}
 .cover{page:cover;height:${size.h}mm;width:${size.w}mm;overflow:hidden}

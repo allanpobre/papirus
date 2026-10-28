@@ -7,6 +7,7 @@ import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge } from '../ui/bits'
 import { Modal } from '../ui/Modal'
 import { SecretAwareText } from '../ui/SecretText'
+import { Picture } from '../images/Picture'
 
 /** Resumo de uma ficha num painel lateral, sem sair do que se está fazendo. */
 export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: () => void }) {
@@ -46,6 +47,7 @@ export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: (
       }
     >
       <div className="peek">
+        {e.image && <Picture value={e.image} alt={`Imagem de ${e.name}`} className="peek-portrait" />}
         <div className="peek-meta">
           <span className="eyebrow">{kindLabel(e.kind)}</span>
           <CanonBadge canon={e.canon} />

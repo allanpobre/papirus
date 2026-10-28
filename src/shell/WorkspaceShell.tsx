@@ -24,6 +24,9 @@ import { ShelfSync } from '../social/useShelfSync'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { Tour } from './Tour'
 import { usePlay } from './usePlay'
+import { useImageSync } from '../images/useImageSync'
+import { embeddedImages } from '../images/backup'
+import { onSceneImageError } from '../editor/image'
 import { OficinaPage } from '../oficina/OficinaPage'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
@@ -168,6 +171,19 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     }, 3000)
     return () => clearTimeout(t)
   }, [universe, userId, accountServer, goal, prefs.shareProgress, readOnly])
+  // Imagens: vêm do servidor da conta (ou do link de leitura) e, com conta, sobem sozinhas.
+  useImageSync({
+    universe,
+    server: source.kind === 'link' ? source.server : accountServer,
+    userId: userId ?? null,
+    canUpload: !readOnly && !isLocalOnly(universe),
+    onError: (m) => toast(m, { tone: 'erro' }),
+    update: readOnly ? undefined : write,
+  })
+  // Erros ao colar ou arrastar imagem no texto da cena.
+  useEffect(() => {
+    onSceneImageError((m) => toast(m, { tone: 'erro' }))
+  }, [toast])
   const me = useRef<string | null>(null)
   useEffect(() => {
     me.current = account.user?.email ? shortName(account.user.email) : null
@@ -230,7 +246,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   const downloadBackup = useCallback(() => {
     const date = new Date().toISOString().slice(0, 10)
-    downloadText(fileNameFor(`${universe.name}-backup-${date}`, 'json'), JSON.stringify(repo.toFile(universe), null, 2), 'application/json')
+    const file = repo.toFile(universe)
+    // As imagens vão dentro do arquivo: o backup sozinho basta para ter tudo de volta.
+    void embeddedImages(universe)
+      .catch(() => ({}))
+      .then((images) =>
+        downloadText(fileNameFor(`${universe.name}-backup-${date}`, 'json'), JSON.stringify(Object.keys(images).length ? { ...file, images } : file, null, 2), 'application/json'),
+      )
     markBackup({ last: new Date().toISOString() })
   }, [universe, repo, markBackup])
 

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
 import { manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
+import { imageDataUrl } from '../images/resolve'
 
 /** Wiki do mundo: um arquivo HTML para jogadores ou leitores, sem segredos (e, se quiser, sem spoiler). */
 export function WikiCard() {
@@ -12,7 +13,14 @@ export function WikiCard() {
 
   const build = async () => {
     const { buildWiki } = await import('../export/wiki')
-    return buildWiki(universe, { upTo: upTo === 'tudo' ? null : Number(upTo) })
+    // Os retratos vão dentro do arquivo (a wiki abre sem internet e sem conta).
+    const images = new Map<string, string>()
+    for (const e of universe.entities) {
+      if (!e.image || images.has(e.image)) continue
+      const data = await imageDataUrl(e.image).catch(() => null)
+      if (data) images.set(e.image, data)
+    }
+    return buildWiki(universe, { upTo: upTo === 'tudo' ? null : Number(upTo), images })
   }
 
   return (

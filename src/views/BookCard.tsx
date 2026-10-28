@@ -58,6 +58,7 @@ export function BookCard() {
       return
     }
     const { bookFrom, bookToDocx, bookToEpub, downloadBytes } = await import('../export/exportBook')
+    if (format === 'epub') await (await import('../images/bookImages')).prepareBookImages(universe)
     const book = bookFrom(universe, story, { author: author.trim(), sceneTitles: titles })
     if (format === 'docx') downloadBytes(fileNameFor(name, 'docx'), bookToDocx(book), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     else downloadBytes(fileNameFor(name, 'epub'), bookToEpub(book), 'application/epub+zip')
