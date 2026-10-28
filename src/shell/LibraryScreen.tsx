@@ -631,7 +631,10 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         </nav>
 
       <main className={`library-main${sector === 'oficina' ? ' hub-main-wide' : ''}`}>
-        {sector === 'rpg' ? rpg : sector === 'oficina' ? oficina : escrita}
+        {/* Cada setor entra com a sua animação ao ser escolhido. */}
+        <div key={sector} className="hub-sector">
+          {sector === 'rpg' ? rpg : sector === 'oficina' ? oficina : escrita}
+        </div>
         {first && sector === 'escrita' && (
           <p className="landing-note small">
             <ShieldCheck size={15} aria-hidden="true" /> Sem cadastro: tudo fica neste navegador. Com uma conta (opcional), seus universos aparecem em todos os seus aparelhos.{' '}
