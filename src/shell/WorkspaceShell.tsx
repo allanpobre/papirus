@@ -24,6 +24,8 @@ import { ShelfSync } from '../social/useShelfSync'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { Tour } from './Tour'
 import { usePlay } from './usePlay'
+import { backState, backTo, navigateTo, onBackNavigate } from './backStack'
+import { useBackLayer } from '../ui/useBackLayer'
 import { useImageSync } from '../images/useImageSync'
 import { embeddedImages } from '../images/backup'
 import { onSceneImageError } from '../editor/image'
@@ -116,9 +118,29 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     return () => clearTimeout(t)
   }, [prefs.tourDone, source.kind])
   const [nav, setNav] = useState<Nav>(() => {
+    // Reaberto pelo Android (ou recarregado): volta para a mesma tela e o mesmo registro.
+    const back = backState()
+    if (back.u === initial.id && back.view && back.view !== 'oficina') return { view: back.view, id: back.id ?? null }
     const last = recall(`vista:${initial.id}`) as View | null
     return { view: last && last !== 'oficina' ? last : 'inicio' }
   })
+  const navRef = useRef(nav)
+  // O passo atual do histórico passa a ser este universo, nesta tela.
+  useEffect(() => {
+    navigateTo({ u: initial.id, view: navRef.current.view, id: navRef.current.id ?? null }, true)
+  }, [initial.id])
+  // "Voltar" do aparelho: a tela (e o registro) do passo anterior.
+  useEffect(
+    () =>
+      onBackNavigate((st) => {
+        if (st.u !== initial.id || !st.view) return
+        const next = { view: st.view, id: st.id ?? null }
+        navRef.current = next
+        setNav(next)
+        remember(`vista:${initial.id}`, st.view)
+      }),
+    [initial.id],
+  )
   const [peekId, setPeekId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
@@ -140,11 +162,23 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [status, write])
 
   const go = useCallback(
-    (view: View, id: string | null = null) => {
+    (view: View, id: string | null = null, options: { replace?: boolean } = {}) => {
       if (view === 'oficina') return setOficinaOpen(true)
+      navigateTo({ u: initial.id, view, id }, options.replace)
+      navRef.current = { view, id }
       setNav({ view, id })
       remember(`vista:${initial.id}`, view)
     },
+    [initial.id],
+  )
+  // O tour passeia pelas telas sem encher o "voltar" de passos.
+  const tourGo = useCallback((view: View) => go(view, null, { replace: true }), [go])
+  const goBack = useCallback(
+    (view: View, id: string | null = null) =>
+      backTo({ u: initial.id, view, id }, () => {
+        navRef.current = { view, id }
+        setNav({ view, id })
+      }),
     [initial.id],
   )
 
@@ -291,6 +325,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       setPref,
       nav,
       go,
+      goBack,
       peek: setPeekId,
       toast,
       undoable,
@@ -322,7 +357,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         setBookOpen(id ?? null)
       },
     }),
-    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
+    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev],
   )
 
   // Arrastar texto selecionado sem querer inicia o "arrastar e soltar" do navegador, e alguns
@@ -541,7 +576,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} />}
         {tourOpen && (
           <Tour
-            onGo={go}
+            onGo={tourGo}
             hidden={prefs.hiddenViews}
             onClose={() => {
               setTourOpen(false)
@@ -719,6 +754,8 @@ function PhoneNav({
   extras: ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  // O "voltar" do aparelho fecha a folha "Mais".
+  useBackLayer(() => setOpen(false), open)
   const [editing, setEditing] = useState(false)
   const byView = (v: View) => items.find((i) => i.view === v)
   // Os escolhidos (que estão visíveis), completados com os padrões até 4.
@@ -871,6 +908,7 @@ function ReaderOverlay({
   commenterName?: string
 }) {
   const [copy] = useState(() => readerCopy(universe, false))
+  useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
       <ReaderView

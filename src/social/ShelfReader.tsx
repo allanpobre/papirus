@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { useBackLayer } from '../ui/useBackLayer'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Universe } from '../model/schema'
@@ -25,6 +26,7 @@ export function ShelfReader({
   onClose: () => void
   onAccount?: () => void
 }) {
+  useBackLayer(onClose)
   const [universe, setUniverse] = useState<Universe | null>(null)
   const [list, setList] = useState<ChapterReaction[]>([])
   const [error, setError] = useState<string | null>(null)

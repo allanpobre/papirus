@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { useBackLayer } from './useBackLayer'
 
 interface Props {
   title: string
@@ -11,10 +12,11 @@ interface Props {
   side?: boolean
 }
 
-/** Janela dentro do app. Esc ou clique fora fecham; o foco volta para onde estava. */
+/** Janela dentro do app. Esc, clique fora ou o "voltar" do aparelho fecham; o foco volta para onde estava. */
 export function Modal({ title, onClose, children, footer, size = 'md', side = false }: Props) {
   const titleId = useId()
   const ref = useRef<HTMLDivElement>(null)
+  useBackLayer(onClose)
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null

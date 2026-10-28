@@ -7,6 +7,7 @@ import { BOOK_FONTS, fontFaces } from '../export/bookFonts'
 import { shelf, styleOf, updateBook } from '../export/shelf'
 import { downloadEpub } from './epubDownload'
 import { prepareBookImages } from '../images/bookImages'
+import { useBackLayer } from '../ui/useBackLayer'
 import type { BookDesign } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
@@ -93,6 +94,7 @@ function bookDocument(title: string, html: string, css: string, fonts: string, p
  */
 export default function BookDesigner({ bookId, onClose }: { bookId: string; onClose: () => void }) {
   const { universe, update, toast } = useWorkspace()
+  useBackLayer(onClose)
   // O livro da estante (um objeto estável, para não paginar de novo a cada desenho).
   const books = useMemo(() => shelf(universe), [universe.books, universe.book]) // eslint-disable-line react-hooks/exhaustive-deps
   const record = books.find((b) => b.id === bookId)

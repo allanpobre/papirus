@@ -16,7 +16,7 @@ import { Picture } from '../images/Picture'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
 export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode }) {
-  const { universe, go } = useWorkspace()
+  const { universe, go, goBack } = useWorkspace()
   const suffix = universe.settings.calendarSuffix
   const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== e.id)), [universe.entities, e.id])
   const link = (id: string, label?: string) => (
@@ -79,7 +79,7 @@ export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity;
   return (
     <article className="entity entity-reader" aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
       <header className="reader-head">
-        <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => go('fichas', null)}>
+        <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => goBack('fichas', null)}>
           <ArrowLeft size={18} />
         </button>
         <span className="reader-head-space" />

@@ -45,7 +45,10 @@ export interface Workspace {
   prefs: Prefs
   setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void
   nav: Nav
-  go: (view: View, id?: string | null) => void
+  /** Vai para uma tela (e registro). Vira um passo do "voltar"; `replace` troca o passo atual (ex.: depois de apagar). */
+  go: (view: View, id?: string | null, options?: { replace?: boolean }) => void
+  /** A seta "voltar" do próprio app: volta de verdade se o passo anterior for esse lugar. */
+  goBack: (view: View, id?: string | null) => void
   /** Mostra o resumo de uma ficha num painel lateral, sem sair do lugar. */
   peek: (entityId: string | null) => void
   toast: (message: string, options?: ToastOptions) => void

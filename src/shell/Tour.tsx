@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight, X } from 'lucide-react'
+import { useBackLayer } from '../ui/useBackLayer'
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { View } from '../state/workspace'
 import { modKey } from '../ui/keys'
@@ -109,6 +110,8 @@ export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; 
     onGo('inicio')
     onClose()
   }, [onGo, onClose])
+  // O "voltar" do aparelho encerra o tour (como "Pular").
+  useBackLayer(finish)
 
   const move = useCallback(
     (d: 1 | -1) => {

@@ -2,6 +2,7 @@ import { AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Coffee, Ghost, Graduati
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
+import { useBackLayer } from '../ui/useBackLayer'
 import { GUIDES, tipOfTheDay, type Guide, type GuideId } from './guides'
 
 /** Cor e ícone de cada gênero (a capa da Oficina e o topo de cada guia). */
@@ -17,32 +18,15 @@ const LOOK: Record<GuideId, { icon: LucideIcon; color: string }> = {
 
 /**
  * A Oficina numa página própria, por cima de tudo: a capa com os gêneros e, ao escolher
- * um, o guia. O "voltar" do celular volta para a capa e depois fecha.
+ * um, o guia. O "voltar" do aparelho volta para a capa e depois fecha.
  */
 export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; onClose: () => void; onPractice?: (title: string, prompt: string) => void }) {
   const [open, setOpen] = useState<GuideId | null>(null)
-  const depth = useRef(0)
   const scroller = useRef<HTMLDivElement>(null)
 
-  // Cada passo vira uma entrada no histórico: o "voltar" do aparelho funciona.
-  useEffect(() => {
-    // Uma entrada só (o modo de desenvolvimento roda este efeito duas vezes).
-    const st = history.state as { oficina?: unknown } | null
-    if (!st || !('oficina' in st)) history.pushState({ oficina: null }, '')
-    depth.current = 1
-    const onPop = (e: PopStateEvent) => {
-      const st = e.state as { oficina?: GuideId | null } | null
-      if (st && 'oficina' in st) {
-        depth.current = st.oficina ? 2 : 1
-        setOpen(st.oficina ?? null)
-      } else {
-        depth.current = 0
-        onClose()
-      }
-    }
-    addEventListener('popstate', onPop)
-    return () => removeEventListener('popstate', onPop)
-  }, [onClose])
+  // A Oficina e o gênero aberto são passos do "voltar" do aparelho: volta para a capa e depois fecha.
+  useBackLayer(onClose)
+  useBackLayer(() => setOpen(null), open !== null)
 
   // Corpo com chaves: algumas extensões fazem scrollTo devolver um número, e o React
   // tentaria chamar esse número como limpeza do efeito ("1 is not a function").
@@ -50,21 +34,19 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
     if (scroller.current) scroller.current.scrollTop = 0
   }, [open])
 
-  const choose = (id: GuideId) => {
-    history.pushState({ oficina: id }, '')
-    depth.current = 2
-    setOpen(id)
-  }
-  const back = () => history.back()
-  const close = () => (depth.current > 0 ? history.go(-depth.current) : onClose())
+  const choose = (id: GuideId) => setOpen(id)
+  const back = () => setOpen(null)
+  const close = () => onClose()
   // Esc fecha (ou volta para a capa, se estiver num gênero).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') history.back()
+      if (e.key !== 'Escape') return
+      if (open) setOpen(null)
+      else onClose()
     }
     addEventListener('keydown', onKey)
     return () => removeEventListener('keydown', onKey)
-  }, [])
+  }, [open, onClose])
 
   const guide = open ? GUIDES.find((g) => g.id === open) : null
   return createPortal(
@@ -84,7 +66,7 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
             <X size={18} />
           </button>
         </header>
-        <ErrorBoundary key={open ?? 'capa'} label="A Oficina não conseguiu abrir esta página." onReset={() => history.back()}>
+        <ErrorBoundary key={open ?? 'capa'} label="A Oficina não conseguiu abrir esta página." onReset={back}>
         {guide ? (
           <GuidePage
             key={guide.id}
@@ -92,8 +74,9 @@ export function OficinaPage({ genre, onClose, onPractice }: { genre?: GuideId; o
             onPractice={
               onPractice &&
               ((title, prompt) => {
-                onPractice(title, prompt)
                 close()
+                // Depois que a Oficina sai do histórico, a cena nova entra como o passo seguinte.
+                setTimeout(() => onPractice(title, prompt), 0)
               })
             }
           />

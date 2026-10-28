@@ -178,7 +178,7 @@ function ModeSwitch({ mode, onChange }: { mode: 'ler' | 'editar'; onChange: (m: 
 }
 
 function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: React.ReactNode }) {
-  const { universe, update, go, peek, undoable } = useWorkspace()
+  const { universe, update, go, goBack, peek, undoable } = useWorkspace()
   const [factFor, setFactFor] = useState<boolean>(false)
   const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
   const summaryRef = useRef<HTMLInputElement>(null)
@@ -197,7 +197,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   return (
     <article className="entity">
       <header className="entity-head">
-        <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => go('fichas', null)}>
+        <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => goBack('fichas', null)}>
           <ArrowLeft size={18} />
         </button>
         <PortraitButton entity={e} onChange={(image) => set({ image })} />
@@ -220,7 +220,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           confirmLabel="Apagar ficha"
           onConfirm={() => {
             undoable(`Ficha “${e.name}” apagada`, (u) => removeEntity(u, e.id))
-            go('fichas', null)
+            go('fichas', null, { replace: true })
           }}
         >
           <Trash2 size={17} aria-label="Apagar ficha" />
