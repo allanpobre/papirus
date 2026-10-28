@@ -1,29 +1,24 @@
 /*
  * A Mesa de RPG é outro setor do Papirus: ao entrar, o app inteiro muda de clima
- * (noite de tempestade: preto azulado, carmesim e dourado) e os títulos ganham letras de pedra.
+ * (o tema escolhido pelo mestre para a mesa, em claro ou escuro) e os títulos ganham letras de pedra.
  * As cores são as mesmas variáveis do resto do app: tudo se adapta sozinho.
  */
+/* Base de todo tema da mesa: as cores derivadas e as letras de pedra. */
 body[data-sector='mesa'] {
-  /* Noite de tempestade: preto azulado, carmesim (a Tormenta) e dourado para o que brilha. */
-  --bg: #0d0f15;
-  --surface: #151821;
-  --surface-2: #1b1f2a;
-  --surface-3: #242936;
-  --inverse-bg: #eceef5;
-  --inverse-fg: #0d0f15;
-  --paper: #181b25;
-  --ink: #eceef5;
-  --ink-2: #c4c9d7;
-  --muted: #949bae;
-  --line: #2a2f3c;
-  --line-strong: #434a5b;
+  --glow: 29 107 88;
+  --glow-2: 106 78 163;
+  --font-display: 'Cinzel', 'Young Serif', Georgia, serif;
+}
+body[data-sector='mesa'][data-mesa-tema] {
+  --accent-hover: color-mix(in srgb, var(--accent) 82%, var(--ink));
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  --accent-faint: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  --inverse-bg: var(--ink);
+  --inverse-fg: var(--bg);
+}
 
-  --accent: #f0536f;
-  --accent-hover: #ff7189;
-  --accent-ink: #19060b;
-  --accent-soft: #3b1721;
-  --accent-faint: #251419;
-
+/* Claro ou escuro: quem joga escolhe; as cores de aviso seguem o modo. */
+body[data-sector='mesa'][data-mesa-tema][data-mesa-modo='escuro'] {
   --ochre: #e9c463;
   --ochre-soft: #352c17;
   --ochre-line: #9c7f3a;
@@ -37,25 +32,245 @@ body[data-sector='mesa'] {
   --wine-soft: #3d2131;
   --sky: #93c3f0;
   --sky-soft: #1c2b3d;
-
   --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-2: 0 12px 32px rgb(0 0 0 / 60%), 0 2px 8px rgb(0 0 0 / 40%);
   --shadow-page: 0 1px 0 rgb(0 0 0 / 25%), 0 18px 44px -20px rgb(0 0 0 / 75%);
-  --font-display: 'Cinzel', 'Young Serif', Georgia, serif;
-
   color-scheme: dark;
 }
+body[data-sector='mesa'][data-mesa-tema][data-mesa-modo='claro'] {
+  --ochre: #835810;
+  --ochre-soft: #f3e4c2;
+  --ochre-line: #d7a94c;
+  --danger: #a3372b;
+  --danger-soft: #f6dcd7;
+  --ok: #2f7445;
+  --ok-soft: #dcefe1;
+  --violet: #6a4ea3;
+  --violet-soft: #e8e1f5;
+  --wine: #8b2f52;
+  --wine-soft: #f3dce5;
+  --sky: #2d6290;
+  --sky-soft: #dce8f3;
+  --shadow-1: 0 1px 2px rgb(20 20 30 / 8%), 0 1px 1px rgb(20 20 30 / 5%);
+  --shadow-2: 0 6px 24px rgb(20 20 30 / 12%), 0 2px 6px rgb(20 20 30 / 7%);
+  --shadow-page: 0 1px 0 rgb(20 20 30 / 5%), 0 12px 40px -18px rgb(20 20 30 / 25%);
+  color-scheme: light;
+}
 
-/* O céu da mesa: escuro, com o brilho vermelho da tempestade lá em cima. */
-body[data-sector='mesa'] .shell {
+/* Tempestade: fantasia épica. */
+body[data-sector='mesa'][data-mesa-tema='tempestade'][data-mesa-modo='escuro'] {
+  --bg: #0d0f15;
+  --surface: #151821;
+  --surface-2: #1b1f2a;
+  --surface-3: #242936;
+  --paper: #181b25;
+  --ink: #eceef5;
+  --ink-2: #c4c9d7;
+  --muted: #949bae;
+  --line: #2a2f3c;
+  --line-strong: #434a5b;
+  --accent: #f0536f;
+  --accent-ink: #19060b;
+  --glow: 240 83 111;
+  --glow-2: 120 90 220;
+}
+body[data-sector='mesa'][data-mesa-tema='tempestade'][data-mesa-modo='claro'] {
+  --bg: #eceef4;
+  --surface: #f8f9fc;
+  --surface-2: #f0f2f7;
+  --surface-3: #e2e5ee;
+  --paper: #fdfdff;
+  --ink: #161925;
+  --ink-2: #3a4052;
+  --muted: #5a6175;
+  --line: #d5d9e3;
+  --line-strong: #a9afbf;
+  --accent: #b81d3c;
+  --accent-ink: #ffffff;
+  --glow: 184 29 60;
+  --glow-2: 90 70 190;
+}
+
+/* Pergaminho: fantasia clássica. */
+body[data-sector='mesa'][data-mesa-tema='pergaminho'][data-mesa-modo='escuro'] {
+  --bg: #101512;
+  --surface: #161d19;
+  --surface-2: #1c241f;
+  --surface-3: #252f28;
+  --paper: #19201b;
+  --ink: #efe9da;
+  --ink-2: #cfc7b2;
+  --muted: #a29b88;
+  --line: #2b352e;
+  --line-strong: #46524a;
+  --accent: #dcb85c;
+  --accent-ink: #1a1405;
+  --glow: 220 184 92;
+  --glow-2: 80 150 110;
+}
+body[data-sector='mesa'][data-mesa-tema='pergaminho'][data-mesa-modo='claro'] {
+  --bg: #efe6d0;
+  --surface: #f8f1e0;
+  --surface-2: #f2e9d4;
+  --surface-3: #e6dbc0;
+  --paper: #fbf6ea;
+  --ink: #2a2117;
+  --ink-2: #4a3d2c;
+  --muted: #6b5c47;
+  --line: #d8cbad;
+  --line-strong: #b0a07e;
+  --accent: #2f6b4f;
+  --accent-ink: #ffffff;
+  --glow: 160 120 50;
+  --glow-2: 47 107 79;
+}
+
+/* Paranormal: terror e investigação. */
+body[data-sector='mesa'][data-mesa-tema='paranormal'][data-mesa-modo='escuro'] {
+  --bg: #09090c;
+  --surface: #111116;
+  --surface-2: #17171e;
+  --surface-3: #202029;
+  --paper: #131318;
+  --ink: #ecebf2;
+  --ink-2: #c5c3d3;
+  --muted: #9592a8;
+  --line: #26252f;
+  --line-strong: #403e4d;
+  --accent: #a97bff;
+  --accent-ink: #12071f;
+  --glow: 169 123 255;
+  --glow-2: 200 30 60;
+}
+body[data-sector='mesa'][data-mesa-tema='paranormal'][data-mesa-modo='claro'] {
+  --bg: #ecebf0;
+  --surface: #f7f6fa;
+  --surface-2: #efeef4;
+  --surface-3: #e1dfe9;
+  --paper: #fcfbfe;
+  --ink: #18161f;
+  --ink-2: #3d3a4a;
+  --muted: #5d5a6e;
+  --line: #d6d3df;
+  --line-strong: #aaa6b8;
+  --accent: #6b33d6;
+  --accent-ink: #ffffff;
+  --glow: 107 51 214;
+  --glow-2: 180 30 60;
+}
+
+/* Abismo: horror cósmico. */
+body[data-sector='mesa'][data-mesa-tema='abismo'][data-mesa-modo='escuro'] {
+  --bg: #061113;
+  --surface: #0c191c;
+  --surface-2: #112125;
+  --surface-3: #182c31;
+  --paper: #0e1c1f;
+  --ink: #e3f1ee;
+  --ink-2: #b7cfca;
+  --muted: #87a39d;
+  --line: #1d3236;
+  --line-strong: #33504b;
+  --accent: #3fd1b0;
+  --accent-ink: #03140f;
+  --glow: 63 209 176;
+  --glow-2: 40 90 160;
+}
+body[data-sector='mesa'][data-mesa-tema='abismo'][data-mesa-modo='claro'] {
+  --bg: #e6f0ee;
+  --surface: #f4f9f8;
+  --surface-2: #ebf3f1;
+  --surface-3: #d9e7e3;
+  --paper: #fafdfc;
+  --ink: #0e2321;
+  --ink-2: #2e4a46;
+  --muted: #4d6b66;
+  --line: #cadcd8;
+  --line-strong: #9bb7b1;
+  --accent: #0c6f5d;
+  --accent-ink: #ffffff;
+  --glow: 12 111 93;
+  --glow-2: 40 90 160;
+}
+
+/* Neon: ficção científica. */
+body[data-sector='mesa'][data-mesa-tema='neon'][data-mesa-modo='escuro'] {
+  --bg: #080b17;
+  --surface: #0f1322;
+  --surface-2: #141a2d;
+  --surface-3: #1c2339;
+  --paper: #111628;
+  --ink: #e8ecfb;
+  --ink-2: #bec6e3;
+  --muted: #8d97b8;
+  --line: #222a43;
+  --line-strong: #3a4566;
+  --accent: #38d3ff;
+  --accent-ink: #021520;
+  --glow: 56 211 255;
+  --glow-2: 240 70 200;
+}
+body[data-sector='mesa'][data-mesa-tema='neon'][data-mesa-modo='claro'] {
+  --bg: #e9eef8;
+  --surface: #f6f8fd;
+  --surface-2: #edf1f9;
+  --surface-3: #dde4f2;
+  --paper: #fbfcff;
+  --ink: #111a2e;
+  --ink-2: #334063;
+  --muted: #536083;
+  --line: #d0d8ea;
+  --line-strong: #a2aecb;
+  --accent: #0763a3;
+  --accent-ink: #ffffff;
+  --glow: 7 99 163;
+  --glow-2: 200 40 170;
+}
+
+/* Floresta: fantasia feérica. */
+body[data-sector='mesa'][data-mesa-tema='floresta'][data-mesa-modo='escuro'] {
+  --bg: #0b120d;
+  --surface: #111a13;
+  --surface-2: #162119;
+  --surface-3: #1e2b21;
+  --paper: #131d15;
+  --ink: #e7f0e3;
+  --ink-2: #bfd0b8;
+  --muted: #90a589;
+  --line: #22311f;
+  --line-strong: #3b4f37;
+  --accent: #94d86f;
+  --accent-ink: #0b1505;
+  --glow: 148 216 111;
+  --glow-2: 220 180 80;
+}
+body[data-sector='mesa'][data-mesa-tema='floresta'][data-mesa-modo='claro'] {
+  --bg: #e9efe2;
+  --surface: #f5f8f0;
+  --surface-2: #edf2e6;
+  --surface-3: #dde6d2;
+  --paper: #fbfdf8;
+  --ink: #17220f;
+  --ink-2: #38482c;
+  --muted: #56664a;
+  --line: #d0dbc3;
+  --line-strong: #a3b393;
+  --accent: #356f22;
+  --accent-ink: #ffffff;
+  --glow: 53 111 34;
+  --glow-2: 170 130 30;
+}
+
+/* O céu da mesa: o brilho do tema lá em cima. */
+body[data-sector='mesa'][data-mesa-tema] .shell {
   background:
-    radial-gradient(70% 45% at 70% -12%, rgb(240 83 111 / 14%), transparent 65%),
-    radial-gradient(50% 35% at 10% -10%, rgb(120 90 220 / 10%), transparent 70%),
+    radial-gradient(70% 45% at 70% -12%, rgb(var(--glow) / 14%), transparent 65%),
+    radial-gradient(50% 35% at 10% -10%, rgb(var(--glow-2) / 10%), transparent 70%),
     var(--bg);
 }
 
-body[data-sector='mesa'] .rail {
-  background: #10121a;
+body[data-sector='mesa'][data-mesa-tema] .rail {
+  background: var(--surface);
   border-color: var(--line);
 }
 
@@ -70,7 +285,7 @@ body[data-sector='mesa'] .rail {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-l);
   background:
-    radial-gradient(120% 160% at 0% 0%, rgb(240 83 111 / 16%), transparent 55%),
+    radial-gradient(120% 160% at 0% 0%, rgb(var(--glow) / 16%), transparent 55%),
     linear-gradient(180deg, var(--surface-2), var(--surface));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%), var(--shadow-1);
 }
@@ -81,10 +296,10 @@ body[data-sector='mesa'] .rail {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 1px solid rgb(240 83 111 / 55%);
-  background: radial-gradient(circle at 35% 30%, #3a1a24, #12141c 70%);
+  border: 1px solid rgb(var(--glow) / 55%);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 28%, var(--surface)), var(--surface) 70%);
   color: var(--accent);
-  box-shadow: 0 0 0 4px rgb(240 83 111 / 10%), 0 0 26px rgb(240 83 111 / 25%);
+  box-shadow: 0 0 0 4px rgb(var(--glow) / 10%), 0 0 26px rgb(var(--glow) / 25%);
 }
 
 .mesa-hero-text {
@@ -109,7 +324,7 @@ body[data-sector='mesa'] .rail {
   font-size: clamp(1.6rem, 4vw, 2.3rem);
   letter-spacing: 0.04em;
   color: var(--ink);
-  text-shadow: 0 2px 22px rgb(240 83 111 / 28%);
+  text-shadow: 0 2px 22px rgb(var(--glow) / 28%);
 }
 
 .mesa-hero-meta {
@@ -131,8 +346,8 @@ body[data-sector='mesa'] .rail {
   gap: 0.4rem;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: rgb(240 83 111 / 14%);
-  border: 1px solid rgb(240 83 111 / 40%);
+  background: rgb(var(--glow) / 14%);
+  border: 1px solid rgb(var(--glow) / 40%);
   color: var(--ink);
   font-size: 0.82rem;
 }
@@ -141,19 +356,81 @@ body[data-sector='mesa'] .rail {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ff5a74;
-  box-shadow: 0 0 0 0 rgb(255 90 116 / 60%);
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgb(var(--glow) / 60%);
   animation: mesa-ember 1.8s ease-out infinite;
 }
 
 @keyframes mesa-ember {
   to {
-    box-shadow: 0 0 0 9px rgb(255 90 116 / 0%);
+    box-shadow: 0 0 0 9px rgb(var(--glow) / 0%);
   }
 }
 
-.mesa-exit {
+.mesa-actions {
   align-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+/* Seletor de tema da mesa. */
+.mesa-themes {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+.mesa-theme {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+}
+.mesa-theme[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.mesa-theme-swatch {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 54px;
+  margin-bottom: 0.25rem;
+  border-radius: calc(var(--radius) - 3px);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgb(127 127 127 / 25%);
+}
+.mesa-theme-swatch span:first-child {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 0;
+  height: 55%;
+  border-radius: 6px 6px 0 0;
+}
+.mesa-theme-swatch span:last-child {
+  position: absolute;
+  left: 18%;
+  bottom: 22%;
+  width: 34%;
+  height: 10px;
+  border-radius: 99px;
+}
+.mesa-theme-none {
+  background: repeating-linear-gradient(135deg, var(--surface-2) 0 8px, var(--surface-3) 8px 16px);
+}
+.mesa-theme-name {
+  font-weight: 600;
 }
 
 /* O painel do setor: cada parte da mesa é uma peça grande, com ícone. */
@@ -197,8 +474,8 @@ body[data-sector='mesa'] .rail {
 }
 
 .mesa-tab.tab[aria-selected='true'] {
-  border-color: rgb(240 83 111 / 60%);
-  background: linear-gradient(180deg, rgb(240 83 111 / 18%), rgb(240 83 111 / 6%));
+  border-color: rgb(var(--glow) / 60%);
+  background: linear-gradient(180deg, rgb(var(--glow) / 18%), rgb(var(--glow) / 6%));
   color: var(--ink);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
@@ -239,7 +516,7 @@ body[data-sector='mesa'] .rail {
     width: 44px;
     height: 44px;
   }
-  .mesa-exit {
+  .mesa-actions {
     grid-column: 1 / -1;
     justify-self: start;
   }
@@ -261,22 +538,22 @@ body[data-sector='mesa'] .rail {
   bottom: 0;
   width: 50.5%;
   background:
-    radial-gradient(80% 60% at 50% 40%, rgb(240 83 111 / 10%), transparent 70%),
-    linear-gradient(180deg, #171a24, #0b0d12);
+    radial-gradient(80% 60% at 50% 40%, rgb(var(--glow) / 10%), transparent 70%),
+    linear-gradient(180deg, var(--surface-2), var(--bg));
   box-shadow: inset 0 0 80px rgb(0 0 0 / 60%);
   animation: mesa-door 1.15s cubic-bezier(0.7, 0, 0.2, 1) 0.35s both;
 }
 
 .mesa-gate-left {
   left: 0;
-  border-right: 1px solid rgb(240 83 111 / 70%);
-  box-shadow: inset -12px 0 30px -18px rgb(240 83 111 / 80%), inset 0 0 80px rgb(0 0 0 / 60%);
+  border-right: 1px solid rgb(var(--glow) / 70%);
+  box-shadow: inset -12px 0 30px -18px rgb(var(--glow) / 80%), inset 0 0 80px rgb(0 0 0 / 60%);
 }
 
 .mesa-gate-right {
   right: 0;
-  border-left: 1px solid rgb(240 83 111 / 70%);
-  box-shadow: inset 12px 0 30px -18px rgb(240 83 111 / 80%), inset 0 0 80px rgb(0 0 0 / 60%);
+  border-left: 1px solid rgb(var(--glow) / 70%);
+  box-shadow: inset 12px 0 30px -18px rgb(var(--glow) / 80%), inset 0 0 80px rgb(0 0 0 / 60%);
   --dir: 1;
 }
 
@@ -296,7 +573,7 @@ body[data-sector='mesa'] .rail {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  color: #eceef5;
+  color: var(--ink);
   text-align: center;
   animation: mesa-sign 1.15s ease 0.15s both;
 }
@@ -307,10 +584,10 @@ body[data-sector='mesa'] .rail {
   width: 76px;
   height: 76px;
   border-radius: 50%;
-  border: 1px solid rgb(240 83 111 / 60%);
-  background: radial-gradient(circle at 35% 30%, #3a1a24, #12141c 70%);
-  color: #f0536f;
-  box-shadow: 0 0 44px rgb(240 83 111 / 40%);
+  border: 1px solid rgb(var(--glow) / 60%);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 28%, var(--surface)), var(--surface) 70%);
+  color: var(--accent);
+  box-shadow: 0 0 44px rgb(var(--glow) / 40%);
 }
 
 .mesa-gate-title {
@@ -324,7 +601,7 @@ body[data-sector='mesa'] .rail {
   font-size: 0.85rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #949bae;
+  color: var(--muted);
 }
 
 @keyframes mesa-sign {
@@ -352,4 +629,89 @@ body[data-sector='mesa'] .rail {
   .mesa-live-dot {
     animation: none;
   }
+}
+
+/* Dados na mesa (físicos) ou no app. */
+.mesa-dice-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  margin-right: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.mesa-dice-label {
+  padding: 0 0.4rem 0 0.5rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.mesa-dice-mode button {
+  padding: 0.25rem 0.65rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.82rem;
+}
+.mesa-dice-mode button[aria-checked='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+/* "Quanto saiu no dado?" */
+.physical-roll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.physical-roll-what {
+  margin: 0;
+}
+.physical-roll-dice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.physical-die {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+.physical-die-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.physical-die .input {
+  width: 4.2rem;
+  height: 3.2rem;
+  font-size: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.physical-roll-result {
+  margin: 0;
+  min-height: 1.6em;
+  font-size: 1rem;
+}
+.physical-roll-result strong {
+  font-size: 1.6rem;
+  margin-left: 0.2rem;
+}
+.physical-roll-result.tone-critico strong,
+.physical-roll-result.tone-sucesso strong {
+  color: var(--ok);
+}
+.physical-roll-result.tone-desastre strong,
+.physical-roll-result.tone-falha strong {
+  color: var(--danger);
+}
+.physical-roll-error {
+  color: var(--danger);
+  font-size: 0.9rem;
 }

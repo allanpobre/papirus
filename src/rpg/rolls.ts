@@ -1,4 +1,4 @@
-import { roll, type DiceRoll } from '../logic/dice'
+import { physicalRandom, roll, type DiceRoll } from '../logic/dice'
 import { fold } from '../logic/text'
 import type { GameSystem, Sheet } from '../model/schema'
 
@@ -73,6 +73,11 @@ function normalize(expr: string, zeroDiceRule: boolean): string {
 
 export interface RollOutcome {
   label: string
+  /** Nome da rolagem sem o alvo, e o alvo (sistemas "abaixo de"): para refazer a conta com o dado físico. */
+  name?: string
+  target?: number
+  /** Rolado num dado físico (a pessoa disse o que saiu). */
+  physical?: boolean
   expression: string
   result: DiceRoll
   /** Leitura do resultado conforme o sistema (ex.: "3 sucessos", "Sucesso difícil"). */
@@ -82,6 +87,10 @@ export interface RollOutcome {
 
 /** Rola e interpreta o resultado segundo o modo do sistema. */
 export function resolveRoll(system: GameSystem, label: string, expression: string, target?: number, random?: () => number): RollOutcome {
+  return { ...readRoll(system, label, expression, target, random), name: label, target }
+}
+
+function readRoll(system: GameSystem, label: string, expression: string, target?: number, random?: () => number): RollOutcome {
   const result = roll(expression, random)
   if (system.resolution === 'sucessos') {
     const dice = result.parts.flatMap((p) => p.kept)
@@ -136,11 +145,17 @@ export function rollInitiative(system: GameSystem, sheet: Sheet | null, random?:
   return roll(expandFormula(system.initiativeFormula, { system, sheet }), random).total
 }
 
+/** Refaz a conta de uma rolagem com o que saiu nos dados físicos. */
+export function physicalRoll(system: GameSystem, o: RollOutcome, faces: number[]): RollOutcome {
+  const out = resolveRoll(system, o.name ?? o.label, o.expression, o.target, physicalRandom(o.expression, faces))
+  return { ...out, physical: true }
+}
+
 /** Texto curto de uma rolagem, para o registro da sessão. */
 export function describeOutcome(o: RollOutcome, who?: string): string {
   const dice = o.result.parts
     .filter((p) => p.rolls.length)
     .map((p) => `[${p.rolls.join(', ')}]`)
     .join(' ')
-  return `${who ? `${who} — ` : ''}${o.label}: ${o.result.total}${o.verdict ? ` (${o.verdict})` : ''} · ${o.expression} ${dice}`.trim()
+  return `${who ? `${who} — ` : ''}${o.label}: ${o.result.total}${o.verdict ? ` (${o.verdict})` : ''} · ${o.expression} ${dice}${o.physical ? ' · dado físico' : ''}`.trim()
 }

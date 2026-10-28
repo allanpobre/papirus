@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchCodex, listenCodex, type ServerConfig } from '../share/server'
 import { sameContent, type CodexSnapshot } from '../share/snapshot'
 import { CodexDoc } from '../views/rpg/CodexDoc'
+import { useMesaSector } from '../rpg/useMesaSector'
+import '@fontsource/cinzel/400.css'
+import '@fontsource/cinzel/600.css'
+import '../styles/mesa.css'
 
 const POLL_MS = 20_000
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -20,6 +24,9 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
   const [live, setLive] = useState(false)
   const [fresh, setFresh] = useState(false)
   const [dark, setDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.hasAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches))
+
+  // O tema da mesa, escolhido pelo mestre; aqui só se troca entre claro e escuro.
+  useMesaSector(codex?.theme ?? null, dark)
 
   const load = useCallback(async () => {
     if (!server) return

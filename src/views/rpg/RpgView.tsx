@@ -1,4 +1,4 @@
-import { CalendarDays, Crown, Dices, Eye, Feather, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
+import { CalendarDays, Crown, Dices, Eye, Feather, Palette, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
 import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../../styles/mesa.css'
@@ -9,6 +9,14 @@ import { describeOutcome, type RollOutcome } from '../../rpg/rolls'
 import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
 import { Empty } from '../../ui/bits'
+import { Modal } from '../../ui/Modal'
+import { useMediaQuery } from '../../ui/useMediaQuery'
+import { MESA_THEMES, mesaTheme, NO_THEME, suggestedTheme } from '../../rpg/themes'
+import { useMesaSector } from '../../rpg/useMesaSector'
+import { PhysicalRollDialog } from './PhysicalRollDialog'
+import { makeSystem } from '../../rpg/systems'
+
+const FALLBACK = makeSystem('narrativo')
 import { CodexTab } from './CodexTab'
 import { DiceTab } from './DiceTab'
 import { GmTab } from './GmTab'
@@ -30,14 +38,41 @@ const TABS: [RpgTab, string, LucideIcon][] = [
   ['sistemas', 'Sistemas', Settings2],
 ]
 
-/** Entrar na mesa: o app inteiro muda de clima (cores, letras), como outro setor da casa. */
-function useSector() {
-  useEffect(() => {
-    document.body.dataset.sector = 'mesa'
-    return () => {
-      delete document.body.dataset.sector
-    }
-  }, [])
+/** O mestre escolhe o tema da mesa pelo gênero do jogo. */
+function ThemePicker({ value, suggested, onChange, onClose, dark }: { value: string | null; suggested: string; onChange: (id: string | null) => void; onClose: () => void; dark: boolean }) {
+  const current = value ?? suggested
+  return (
+    <Modal title="Tema da mesa" onClose={onClose}>
+      <p className="muted small">Cada mesa tem o seu clima. Quem joga (aqui e no Codex) só escolhe claro ou escuro.</p>
+      <ul className="mesa-themes" role="radiogroup" aria-label="Tema da mesa">
+        {MESA_THEMES.map((t) => {
+          const [bg, card, accent] = dark ? t.dark : t.light
+          return (
+            <li key={t.id}>
+              <button type="button" role="radio" aria-checked={current === t.id} className="mesa-theme" onClick={() => onChange(t.id)}>
+                <span className="mesa-theme-swatch" style={{ background: bg }} aria-hidden="true">
+                  <span style={{ background: card }} />
+                  <span style={{ background: accent }} />
+                </span>
+                <span className="mesa-theme-name">
+                  {t.name}
+                  {t.id === suggested && value === null && <span className="muted tiny"> · sugerido</span>}
+                </span>
+                <span className="muted small">{t.genre}</span>
+              </button>
+            </li>
+          )
+        })}
+        <li>
+          <button type="button" role="radio" aria-checked={current === NO_THEME} className="mesa-theme" onClick={() => onChange(NO_THEME)}>
+            <span className="mesa-theme-swatch mesa-theme-none" aria-hidden="true" />
+            <span className="mesa-theme-name">Sem tema</span>
+            <span className="muted small">As cores de sempre do app</span>
+          </button>
+        </li>
+      </ul>
+    </Modal>
+  )
 }
 
 /** A porta da mesa: abre ao entrar vindo de outra tela (não ao reabrir o app, nem para quem prefere menos movimento). */
@@ -72,8 +107,10 @@ interface TrayRoll {
 }
 
 export default function RpgView() {
-  const { universe, update, nav, go } = useWorkspace()
-  useSector()
+  const { universe, update, nav, go, prefs, readOnly } = useWorkspace()
+  const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
+  const dark = prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark)
+  const [picking, setPicking] = useState(false)
   const [tab, setTab] = useState<RpgTab>(() => (nav.view === 'rpg' && nav.id ? 'sessoes' : ((recall('rpg-aba') as RpgTab) || 'mestre')))
   const [groupId, setGroupId] = useState<string | null>(() => recall(`rpg-grupo:${universe.id}`) ?? universe.groups[0]?.id ?? null)
   const [groupName, setGroupName] = useState('')
@@ -81,6 +118,8 @@ export default function RpgView() {
   const group = universe.groups.find((g) => g.id === groupId) ?? universe.groups[0]
   const system = group?.systemId ? universe.systems.find((s) => s.id === group.systemId) : undefined
   const activeSession = group ? universe.sessions.find((s) => s.groupId === group.id && s.status === 'em-andamento') : undefined
+  const theme = mesaTheme(group?.theme, system?.name)
+  useMesaSector(theme, dark)
 
   const choose = (t: RpgTab) => {
     setTab(t)
@@ -100,13 +139,23 @@ export default function RpgView() {
     [activeSession, update],
   )
 
-  const report = useCallback(
+  const show = useCallback(
     (outcome: RollOutcome, who?: string) => {
       const shouldLog = system ? system.features.rollLog : true
       const logged = shouldLog ? logText(describeOutcome(outcome, who), 'rolagem') : false
       setTray((t) => [{ id: newId(), outcome, who, logged }, ...t].slice(0, 4))
     },
     [system, logText],
+  )
+  // Dados na mesa (físicos) ou no app: com dados físicos, cada rolagem pergunta o que saiu.
+  const [physical, setPhysical] = useState(() => recall('rpg-dados') !== 'app')
+  const [asking, setAsking] = useState<{ outcome: RollOutcome; who?: string } | null>(null)
+  const report = useCallback(
+    (outcome: RollOutcome, who?: string) => {
+      if (physical) setAsking({ outcome, who })
+      else show(outcome, who)
+    },
+    [physical, show],
   )
 
   const ctx: RpgState | null = useMemo(
@@ -153,9 +202,48 @@ export default function RpgView() {
             </div>
           )}
         </div>
-        <button type="button" className="btn btn-ghost btn-sm mesa-exit" onClick={() => go('inicio')}>
-          <Feather size={15} /> Voltar à escrita
-        </button>
+        <div className="mesa-actions">
+          <div className="mesa-dice-mode" role="radiogroup" aria-label="Dados">
+            <span className="mesa-dice-label">Dados</span>
+            {(
+              [
+                [true, 'Na mesa'],
+                [false, 'No app'],
+              ] as const
+            ).map(([v, label]) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={physical === v}
+                title={v ? 'Você rola os dados de verdade e diz o que saiu; o app faz a conta' : 'O app sorteia'}
+                onClick={() => {
+                  setPhysical(v)
+                  remember('rpg-dados', v ? 'fisico' : 'app')
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {group && !readOnly && (
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPicking(true)}>
+              <Palette size={15} /> Tema
+            </button>
+          )}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('inicio')}>
+            <Feather size={15} /> Voltar à escrita
+          </button>
+        </div>
+        {picking && group && (
+          <ThemePicker
+            value={group.theme}
+            suggested={suggestedTheme(system?.name)}
+            dark={dark}
+            onClose={() => setPicking(false)}
+            onChange={(id) => update((u) => patch(u, 'groups', group.id, { theme: id }))}
+          />
+        )}
       </header>
       <div className="tabs mesa-tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Mesa de RPG">
         {TABS.map(([t, label, Icon]) => (
@@ -209,6 +297,22 @@ export default function RpgView() {
         </RpgContext.Provider>
       )}
 
+      {asking && (
+        <PhysicalRollDialog
+          system={system ?? FALLBACK}
+          outcome={asking.outcome}
+          who={asking.who}
+          onClose={() => setAsking(null)}
+          onDone={(o) => {
+            setAsking(null)
+            show(o, asking.who)
+          }}
+          onDigital={() => {
+            setAsking(null)
+            show(asking.outcome, asking.who)
+          }}
+        />
+      )}
       {tray.length > 0 && (
         <aside className="dice-tray" aria-label="Últimas rolagens" aria-live="polite">
           {tray.map((r, i) => (
