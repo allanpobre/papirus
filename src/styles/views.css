@@ -1290,11 +1290,46 @@
 }
 
 .initiative {
+  container: iniciativa / inline-size;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
+}
+
+/* Iniciativa estreita (celular, painel da mesa): cada combatente em duas ou três linhas. */
+@container iniciativa (max-width: 620px) {
+  .init-row {
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'val name rm'
+      'res res res'
+      'cond cond cond';
+    row-gap: 0.3rem;
+  }
+
+  .init-value {
+    grid-area: val;
+  }
+
+  .init-name {
+    grid-area: name;
+  }
+
+  .init-remove {
+    grid-area: rm;
+  }
+
+  .init-row > .init-res {
+    grid-area: res;
+    justify-self: start;
+  }
+
+  .init-conditions,
+  .init-note {
+    grid-area: cond;
+  }
 }
 
 .init-list {
@@ -1324,11 +1359,12 @@
 }
 
 .init-row.down {
-  opacity: 0.55;
+  background: var(--surface-2);
 }
 
-.init-row.down .init-name {
+.init-row.down .init-name-text {
   text-decoration: line-through;
+  color: var(--muted);
 }
 
 .init-value {
@@ -1337,7 +1373,163 @@
 }
 
 .init-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  min-width: 0;
   font-weight: 650;
+}
+
+/* Barra de vida de quem está na luta: cai com o dano. */
+.init-bar {
+  flex-basis: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.init-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.45s ease;
+}
+
+.init-bar.is-low > span {
+  background: var(--danger);
+}
+
+.init-down {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.init-free {
+  gap: 0.25rem;
+}
+
+.init-free-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.init-free .init-hp {
+  width: 4.4rem;
+}
+
+.init-free .init-def {
+  width: 3.6rem;
+  text-align: center;
+}
+
+/* A vez de quem joga: os ataques a um toque. */
+.turn-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-s);
+  background: var(--accent-faint);
+}
+
+.turn-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.turn-who svg {
+  color: var(--accent);
+}
+
+.turn-attacks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.turn-attack-num {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+
+.turn-quick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.turn-quick-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.turn-quick-field .input {
+  width: 6.5rem;
+}
+
+/* Em quem: a lista de alvos de um ataque. */
+.target-list {
+  list-style: none;
+  margin: 0 0 0.7rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.target {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.target:hover,
+.target:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+}
+
+.target-name {
+  font-weight: 650;
+}
+
+.target-meta {
+  font-family: var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.target.is-down .target-name {
+  text-decoration: line-through;
+  color: var(--muted);
 }
 
 .codex-layout {
@@ -1782,15 +1974,6 @@
 
   .bars li {
     grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) 3.4rem;
-  }
-
-  .init-row {
-    grid-template-columns: 3rem minmax(0, 1fr) auto;
-  }
-
-  .init-conditions,
-  .init-row > .input:not(.init-value):not(.init-hp) {
-    grid-column: 1 / -1;
   }
 }
 
@@ -2268,7 +2451,7 @@ code {
   font-weight: 650;
   padding: 0.05rem 0.5rem;
   border-radius: 999px;
-  background: var(--accent-soft);
+  background: var(--accent-faint);
   color: var(--accent);
 }
 
@@ -2430,11 +2613,11 @@ code {
   grid-template-columns: 3rem minmax(0, 1fr);
   gap: 0.6rem;
   align-items: center;
-  opacity: 0.6;
+  color: color-mix(in srgb, var(--surface) 80%, var(--ink));
 }
 
 .tray-roll.tray-latest {
-  opacity: 1;
+  color: var(--surface);
 }
 
 .tray-total {
@@ -2465,7 +2648,7 @@ code {
 .tray-detail {
   font-family: var(--font-mono);
   font-size: 0.74rem;
-  opacity: 0.8;
+  color: color-mix(in srgb, var(--surface) 85%, var(--ink));
   overflow-wrap: anywhere;
 }
 
@@ -2477,6 +2660,32 @@ code {
 .tone-desastre .tray-total,
 .tone-falha .tray-total {
   color: var(--danger-soft);
+}
+
+.tray-act {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+  min-height: 30px;
+  font-size: 0.78rem;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: transparent;
+}
+
+.tray-act:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.tray-note {
+  margin-top: 0.2rem;
+  font-size: 0.76rem;
+  opacity: 0.85;
+}
+
+.tray-applied {
+  font-weight: 650;
+  opacity: 1;
 }
 
 .tray-close {
@@ -3126,6 +3335,246 @@ code {
 
 .player-main .codex-doc {
   border-radius: var(--radius-l);
+}
+
+/* O jogador na mesa: quem é, as rolagens de todos e o botão de rolar, sempre à mão. */
+.player.has-dock .player-main {
+  padding-bottom: 12rem;
+}
+
+.player-who {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-l);
+  background: var(--accent-faint);
+}
+
+.player-who-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.player-who p {
+  margin: 0;
+}
+
+.player-dock {
+  position: fixed;
+  z-index: 6;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(44rem, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.6rem max(16px, env(safe-area-inset-right, 0px)) calc(0.6rem + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -8px 24px -16px rgb(0 0 0 / 35%);
+}
+
+.player-dock:not(:has(*)) {
+  display: none;
+}
+
+.player-turn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-s);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  animation: rise 0.25s ease-out;
+}
+
+.player-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.player-roll {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+  opacity: 0.72;
+}
+
+.player-roll:first-child {
+  opacity: 1;
+  animation: rise 0.2s ease-out;
+}
+
+.player-roll-total {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.player-roll:first-child .player-roll-total {
+  font-size: 1.8rem;
+}
+
+.player-roll.tone-sucesso .player-roll-total,
+.player-roll.tone-critico .player-roll-total {
+  color: var(--accent);
+}
+
+.player-roll.tone-falha .player-roll-total,
+.player-roll.tone-desastre .player-roll-total {
+  color: var(--danger);
+}
+
+.player-roll-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.player-roll-label {
+  font-weight: 650;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-roll-detail {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.player-roll-detail strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+
+.player-dock-actions {
+  display: flex;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.player-roll-btn {
+  flex: 1 1 12rem;
+  min-height: 46px;
+  justify-content: center;
+}
+
+.player-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.player-sheet section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.player-sheet-h {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.player-sheet-attacks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.player-sheet-attacks li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.player-sheet-attacks .sp-item-name {
+  flex: 1 1 8rem;
+}
+
+/* Combate no Codex: a ordem e de quem é a vez. */
+.codex-kind svg {
+  vertical-align: -2px;
+}
+
+.codex-order {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-family: var(--font-ui);
+}
+
+.codex-order li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.86rem;
+}
+
+.codex-order li.is-current {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+  font-weight: 700;
+}
+
+.codex-order li.is-me .codex-order-name {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+.codex-order li.is-down .codex-order-name {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.codex-order-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.codex-order-tag.is-down {
+  color: var(--danger);
 }
 
 .player-new {

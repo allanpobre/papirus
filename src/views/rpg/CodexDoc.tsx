@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react'
+import { MapPin, Swords } from 'lucide-react'
 import type { CodexSnapshot } from '../../share/snapshot'
 import { isEmptySnapshot } from '../../share/snapshot'
 import { MiniGraph } from '../../ui/MiniGraph'
@@ -6,12 +6,29 @@ import { useImageSrc } from '../../images/resolve'
 import { Picture } from '../../images/Picture'
 
 /** O Codex como documento: o mesmo na prévia do mestre e no celular dos jogadores. */
-export function CodexDoc({ codex }: { codex: CodexSnapshot }) {
+export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
   return (
     <div className="codex-doc">
       <h2 className="codex-title">Codex</h2>
       <p className="codex-sub">{codex.group}</p>
-      {isEmptySnapshot(codex) && <p className="muted">Nada foi revelado ainda.</p>}
+      {isEmptySnapshot(codex) && !codex.combat && <p className="muted">Nada foi revelado ainda.</p>}
+
+      {codex.combat && (
+        <section className="codex-combat" aria-labelledby="codex-combate">
+          <h3 id="codex-combate" className="codex-kind">
+            <Swords size={15} aria-hidden="true" /> Combate · Rodada {codex.combat.round}
+          </h3>
+          <ol className="codex-order">
+            {codex.combat.order.map((e) => (
+              <li key={e.id} className={`${e.current ? 'is-current' : ''}${e.down ? ' is-down' : ''}${e.name === me ? ' is-me' : ''}`} aria-current={e.current ? 'step' : undefined}>
+                <span className="codex-order-name">{e.name}</span>
+                {e.current && <span className="codex-order-tag">na vez</span>}
+                {e.down && <span className="codex-order-tag is-down">derrotado</span>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {codex.party.length > 0 && (
         <section>

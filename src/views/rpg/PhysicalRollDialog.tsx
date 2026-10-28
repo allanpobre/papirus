@@ -1,8 +1,7 @@
 import { Dices } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { diceIn } from '../../logic/dice'
-import type { GameSystem } from '../../model/schema'
-import { physicalRoll, type RollOutcome } from '../../rpg/rolls'
+import { physicalRoll, type RollOutcome, type RollRules } from '../../rpg/rolls'
 import { Modal } from '../../ui/Modal'
 
 /**
@@ -17,7 +16,7 @@ export function PhysicalRollDialog({
   onDigital,
   onClose,
 }: {
-  system: GameSystem
+  system: RollRules
   outcome: RollOutcome
   who?: string
   onDone: (o: RollOutcome) => void

@@ -317,6 +317,8 @@ export const sessionSchema = z.object({
       note: z.string(),
       /** Ficha de jogo ligada, para recursos e condições. */
       sheetId: ref.default(null),
+      /** Defesa (ou CA) de quem não tem ficha, para saber se um ataque acerta. */
+      defense: z.number().nullable().default(null),
     }),
   ),
   /** Posição na ordem de iniciativa e número da rodada. */

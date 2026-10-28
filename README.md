@@ -1,6 +1,6 @@
 # Papirus
 
-**Versão 1.0.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
+**Versão 1.1.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
 
 Escrita, mesa de RPG e oficina num app só. Para quem escreve histórias, mestra campanhas e constrói mundos.
 
@@ -29,8 +29,9 @@ O app abre num início com três setores. Cada um tem a sua cara (cores, letras 
 - **Sistemas prontos** (D&D 5e, Tormenta 20, Ordem Paranormal, Call of Cthulhu, parada de dados, narrativo) ou as suas regras.
 - **Ficha de jogo** feita para jogar: PV e PM com um toque, condições, ataques, poderes que gastam PM, perícias com o total e inventário.
 - **Painel do mestre:** sessões com preparação e registro, iniciativa, tabelas aleatórias e revelações por grupo.
+- **Combate:** escolha o alvo e o app diz se acerta pela Defesa (20 e 1 naturais, crítico pela margem); o dano vem em seguida e sai da vida do alvo com um toque. A iniciativa mostra a vida de cada um e marca quem foi derrotado.
 - **Seis climas** escolhidos pelo mestre para cada mesa (Tempestade, Pergaminho, Paranormal, Abismo, Neon, Floresta); cada jogador escolhe claro ou escuro.
-- **Codex ao vivo:** o celular de cada jogador mostra só o que foi revelado, com o mapa e a ficha completa de cada personagem.
+- **Codex ao vivo:** o celular de cada jogador mostra só o que foi revelado, com o mapa e a ficha completa de cada personagem. Cada jogador rola pela própria ficha no celular: a rolagem chega ao mestre e ao grupo, e o mestre confere o acerto. Em combate, o Codex mostra a ordem e avisa quando é a vez de cada um.
 
 ### Oficina
 
@@ -57,7 +58,7 @@ A conta, o compartilhamento, o Codex ao vivo, as imagens na nuvem, a parte socia
 
 | Ordem | Script | Para quê |
 | --- | --- | --- |
-| 1 | [`supabase/codex.sql`](supabase/codex.sql) | Codex ao vivo dos jogadores |
+| 1 | [`supabase/codex.sql`](supabase/codex.sql) | Codex ao vivo dos jogadores (as rolagens pelo Codex usam o mesmo canal) |
 | 2 | [`supabase/contas.sql`](supabase/contas.sql) | Contas e universos na nuvem |
 | 3 | [`supabase/compartilhar.sql`](supabase/compartilhar.sql) | Compartilhar universos e link de leitura |
 | 4 | [`supabase/social.sql`](supabase/social.sql) | Perfil, amigos, estante, desafios e novidades |

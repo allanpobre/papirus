@@ -3,12 +3,13 @@ import { useMemo, useState } from 'react'
 import { fold } from '../../logic/text'
 import type { GameSystem, Sheet } from '../../model/schema'
 import { byId, newId, patch } from '../../model/universe'
-import { attributeExpression, bonusLabel, expandFormula, modifier, resolveRoll, rollAttribute, rollInitiative, rollSkill } from '../../rpg/rolls'
-import { adjustResource, attributeOf, costResource, critFrom, isPool } from '../../rpg/sheets'
+import { attributeExpression, bonusLabel, damageExpression, expandFormula, modifier, rollAttribute, rollInitiative, rollSkill } from '../../rpg/rolls'
+import { adjustResource, attributeOf, costResource, isPool } from '../../rpg/sheets'
 import { Picture } from '../../images/Picture'
 import { useImagePicker } from '../../images/useImagePicker'
 import { useWorkspace } from '../../state/workspace'
 import { Modal } from '../../ui/Modal'
+import { useAttack } from './Combat'
 import { useRpg } from './rpgContext'
 
 const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))
@@ -39,7 +40,7 @@ export function SheetPlay({ sheet: s, system }: { sheet: Sheet; system: GameSyst
   const addToInitiative = () => {
     if (!activeSession) return
     const value = rollInitiative(system, s)
-    update((u) => patch(u, 'sessions', activeSession.id, { initiative: [...activeSession.initiative, { id: newId(), name: s.name, value, hp: '', note: '', sheetId: s.id }] }))
+    update((u) => patch(u, 'sessions', activeSession.id, { initiative: [...activeSession.initiative, { id: newId(), name: s.name, value, hp: '', note: '', sheetId: s.id, defense: null }] }))
     toast(`${s.name} entrou na iniciativa com ${value}`)
   }
 
@@ -258,18 +259,16 @@ function Skills({ sheet: s, system }: { sheet: Sheet; system: GameSystem }) {
   )
 }
 
-/** Ataques: o teste e o dano a um toque; a margem de crítico entra na leitura do d20. */
+/**
+ * Ataques: o teste e o dano a um toque; a margem de crítico entra na leitura do d20.
+ * Em combate, o Papirus pergunta em quem, diz se acerta e oferece tirar o dano da vida do alvo.
+ */
 function Attacks({ sheet: s, system, onChange }: { sheet: Sheet; system: GameSystem; onChange: (a: Sheet['attacks']) => void }) {
-  const { report } = useRpg()
+  const { attack, picker } = useAttack()
   const [adding, setAdding] = useState(false)
   const usesD20 = system.resolution === 'total'
-  const damageOf = (d: string) => {
-    try {
-      return expandFormula(d, { system, sheet: s })
-    } catch {
-      return d
-    }
-  }
+  const damageOf = (d: string) => damageExpression(system, s, d)
+  const spec = (a: Sheet['attacks'][number]) => ({ name: a.name, bonus: a.bonus, damage: damageOf(a.damage), critical: a.critical })
   return (
     <section className="sp-block" aria-labelledby={`sp-atq-${s.id}`}>
       <div className="sp-head">
@@ -288,12 +287,12 @@ function Attacks({ sheet: s, system, onChange }: { sheet: Sheet; system: GameSys
             <li key={a.id} className="sp-attack">
               <span className="sp-item-name">{a.name || 'Ataque'}</span>
               {usesD20 && (
-                <button type="button" className="sp-roll" aria-label={`Teste de ${a.name}: ${signed(a.bonus)}`} onClick={() => report(resolveRoll(system, a.name || 'Ataque', `1d20${signed(a.bonus)}`, undefined, undefined, critFrom(a.critical)), s.name)}>
+                <button type="button" className="sp-roll" aria-label={`Teste de ${a.name}: ${signed(a.bonus)}`} onClick={() => attack(s.name, spec(a), 'teste', { sheetId: s.id })}>
                   <Dices size={13} aria-hidden="true" /> {signed(a.bonus)}
                 </button>
               )}
               {a.damage.trim() && (
-                <button type="button" className="sp-roll sp-roll-damage" aria-label={`Dano de ${a.name}: ${damageOf(a.damage)}`} onClick={() => report(resolveRoll(system, `${a.name || 'Ataque'} (dano)`, damageOf(a.damage)), s.name)}>
+                <button type="button" className="sp-roll sp-roll-damage" aria-label={`Dano de ${a.name}: ${damageOf(a.damage)}`} onClick={() => attack(s.name, spec(a), 'dano', { sheetId: s.id })}>
                   {damageOf(a.damage)}
                 </button>
               )}
@@ -305,6 +304,7 @@ function Attacks({ sheet: s, system, onChange }: { sheet: Sheet; system: GameSys
           ))}
         </ul>
       )}
+      {picker}
       {adding && (
         <Modal title="Novo ataque" size="sm" onClose={() => setAdding(false)}>
           <AttackForm

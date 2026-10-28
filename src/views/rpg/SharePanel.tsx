@@ -70,7 +70,7 @@ export function SharePanel({ group }: { group: Group }) {
         <h3 className="section-label">
           <Radio size={14} aria-hidden="true" /> Codex ao vivo
         </h3>
-        <p className="small">Gera um link para a mesa. Os jogadores só veem o que está na prévia ao lado, e cada nova revelação chega na hora.</p>
+        <p className="small">Gera um link para a mesa. Os jogadores só veem o que está na prévia ao lado, e cada nova revelação chega na hora. Pelo link, cada um rola pela própria ficha: a rolagem aparece para você e para o grupo.</p>
         <button type="button" className="btn btn-primary btn-sm" disabled={starting} onClick={() => void start()}>
           <Radio size={14} /> {starting ? 'Ligando…' : 'Compartilhar ao vivo'}
         </button>
@@ -131,7 +131,9 @@ export function SharePanel({ group }: { group: Group }) {
           <Square size={14} /> Parar
         </ConfirmButton>
       </div>
-      <p className="muted tiny">Quem tiver o link vê este Codex. Para trocar o link, pare e compartilhe de novo.</p>
+      <p className="muted tiny">
+        Quem tiver o link vê este Codex e pode rolar na mesa. Em combate, aparece a ordem da iniciativa (a vida e a Defesa dos inimigos, não). Para trocar o link, pare e compartilhe de novo.
+      </p>
     </section>
   )
 }

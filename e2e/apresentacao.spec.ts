@@ -44,11 +44,18 @@ test('a apresentação mostra os três setores, a mesa nova e o gerador da Ofici
 
 test('a apresentação mostra a mesa dos dois lados e as telas de cada setor', async ({ page }) => {
   await page.goto('/')
-  const duo = page.getByRole('figure', { name: /o mestre no tablet e um jogador no celular/ })
-  await duo.scrollIntoViewIfNeeded()
-  // O mestre revela o fato e o Codex do jogador recebe (o ciclo leva uns 10 segundos).
-  await expect(duo.getByText('Revelado', { exact: true })).toBeVisible({ timeout: 15_000 })
-  await expect(duo.getByText('Novidades do mestre')).toBeVisible()
+  const trio = page.getByRole('figure', { name: /o mestre no tablet e dois jogadores no celular/ })
+  await trio.scrollIntoViewIfNeeded()
+  // A Kaya rola pelo celular; o mestre confere e tira o dano; a vez passa ao Taren e a revelação chega aos dois (uns 15 segundos).
+  await expect(trio.locator('.lp-tray').getByText('Kaya · Espada longa contra Goblin')).toBeVisible({ timeout: 8_000 })
+  await expect(trio.getByText('Goblin: PV -2/7 · derrotado')).toBeVisible({ timeout: 10_000 })
+  await expect(trio.getByText('Sua vez, Taren!')).toBeVisible({ timeout: 6_000 })
+  await expect(trio.getByText('Revelado', { exact: true })).toBeVisible({ timeout: 8_000 })
+  await expect(trio.getByText('Novidades do mestre')).toHaveCount(2)
+
+  // Os passos da escrita e os amigos também têm a sua telinha.
+  await expect(page.locator('.lp-steps .lp-mini')).toHaveCount(3)
+  await expect(page.getByRole('figure', { name: /novidades dos amigos/ })).toBeVisible()
 
   // Por dentro: cada setor com as suas telas.
   const setores = page.getByRole('group', { name: 'Setor' })

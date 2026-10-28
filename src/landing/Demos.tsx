@@ -36,129 +36,228 @@ function useCycle(durations: number[], resetKey = '') {
   return { ref, step }
 }
 
-// ─── A mesa: o mestre rola, conta e revela; o Codex do jogador recebe ─────
+// ─── A mesa: o mestre no tablet, e dois jogadores no celular ──────────────
 
-const MESA_STEPS = [1800, 1400, 1700, 1600, 1600, 3400]
+const MESA_STEPS = [2000, 1700, 1500, 1400, 1500, 1700, 1900, 1300, 3600]
 const ROLLING = [3, 11, 7, 18, 2, 14, 9]
 
 /**
- * O lado do mestre (tablet) e o do jogador (celular), na mesma cena: a vez da Kaya, o dado
- * físico que ela rola, o goblin que cai, e a revelação que chega ao Codex em segundos.
+ * A mesa inteira numa cena: o mestre no tablet e dois jogadores, cada um no seu celular
+ * (um no escuro, outro no claro, no mesmo tema da mesa). A Kaya rola pelo Codex com o dado
+ * de verdade; o mestre confere a Defesa, tira o dano do goblin e passa a vez ao Taren; o que
+ * ele revela chega aos dois. Os passos:
+ * 0 vez da Kaya · 1 dado · 2 a rolagem chega · 3 "acerta" volta · 4 dano · 5 goblin cai
+ * 6 vez do Taren · 7 o mestre revela · 8 a revelação chega
  */
 export function MesaDemo() {
   const { ref, step } = useCycle(MESA_STEPS)
-  const rolled = step >= 1
-  const hit = step >= 2
-  const goblinDown = step >= 3
-  const revealing = step === 4
-  const revealed = step >= 5
+  const arrived = step >= 2
+  const damage = step >= 4
+  const goblinDown = step >= 5
+  const tarenTurn = step >= 6
+  const revealing = step === 7
+  const revealed = step >= 8
+  const order = [
+    { name: 'Kaya', current: !tarenTurn },
+    { name: 'Goblin', down: goblinDown },
+    { name: 'Taren', current: tarenTurn },
+  ]
 
   return (
-    <figure ref={ref as React.RefObject<HTMLElement>} className="lp-duo" aria-label="Exemplo: o mestre no tablet e um jogador no celular, na mesma mesa">
-      <div className="lp-tablet" aria-hidden="true">
-        <div className="lp-tablet-top">
-          <span className="lp-tablet-emblem">
-            <Dices size={14} />
-          </span>
-          <span className="lp-tablet-title">Mesa de RPG</span>
-          <span className="lp-tablet-sub">Mesa de sexta · Estilo Tormenta 20</span>
-          <span className={`lp-live-pill${revealed ? ' is-on' : ''}`}>
-            <span className="lp-live-dot" /> Sessão em andamento: A Torre
-          </span>
-        </div>
-        <div className="lp-tablet-body">
-          <div className="lp-init">
-            <p className="lp-mini-h">
-              <Swords size={12} /> Iniciativa · rodada 2
-            </p>
-            {[
-              { name: 'Kaya', pv: 24, max: 31, turn: true },
-              { name: 'Goblin', pv: goblinDown ? 0 : 7, max: 7, foe: true },
-              { name: 'Taren', pv: 18, max: 22 },
-            ].map((c) => (
-              <div key={c.name} className={`lp-init-row${c.turn ? ' is-turn' : ''}${c.foe ? ' is-foe' : ''}${c.foe && goblinDown ? ' is-down' : ''}`}>
-                <span className="lp-init-name">{c.name}</span>
-                <span className="lp-pv">
-                  <span style={{ width: `${(c.pv / c.max) * 100}%` }} />
-                </span>
-                <span className="lp-init-pv">
-                  {c.foe && goblinDown ? 'derrotado' : `${c.pv}/${c.max}`}
-                </span>
-              </div>
-            ))}
+    <figure ref={ref as React.RefObject<HTMLElement>} className="lp-trio" aria-label="Exemplo: o mestre no tablet e dois jogadores no celular, na mesma mesa">
+      <div className="lp-device lp-device-taren" aria-hidden="true">
+        <p className="lp-device-tag">Taren · celular no claro</p>
+        <CodexPhone me="Taren" mode="claro" step={step} order={order} />
+      </div>
+
+      <div className="lp-device lp-device-mestre" aria-hidden="true">
+        <p className="lp-device-tag">Mestre · tablet</p>
+        <div className="lp-tablet">
+          <div className="lp-tablet-top">
+            <span className="lp-tablet-emblem">
+              <Dices size={14} />
+            </span>
+            <span className="lp-tablet-title">Mesa de RPG</span>
+            <span className="lp-tablet-sub">Mesa de sexta · Estilo Tormenta 20</span>
+            <span className="lp-live-pill is-on">
+              <span className="lp-live-dot" /> Sessão em andamento: A Torre
+            </span>
           </div>
-          <div className={`lp-roll${rolled ? ' is-on' : ''}`}>
-            <p className="lp-mini-h">Kaya · Espada longa</p>
-            <p className="lp-roll-q">Quanto saiu no dado?</p>
-            <div className="lp-roll-row">
-              {rolled ? <RollingDie key={step === 1 ? 'rolando' : 'parado'} rolling={step === 1} final={15} /> : <span className="lp-d20">?</span>}
-              <span className="lp-roll-math">
-                1d20 <strong>+7</strong>
-              </span>
-              <span className={`lp-roll-total${hit ? ' is-on' : ''}`}>
-                Total 22
+          <div className="lp-tablet-body">
+            <div className="lp-init">
+              <p className="lp-mini-h">
+                <Swords size={12} /> Iniciativa · rodada 2
+              </p>
+              {[
+                { name: 'Kaya', pv: 24, max: 31, turn: !tarenTurn },
+                { name: 'Goblin', pv: goblinDown ? 0 : 7, max: 7, foe: true },
+                { name: 'Taren', pv: 18, max: 22, turn: tarenTurn },
+              ].map((c) => (
+                <div key={c.name} className={`lp-init-row${c.turn ? ' is-turn' : ''}${c.foe ? ' is-foe' : ''}${c.foe && goblinDown ? ' is-down' : ''}`}>
+                  <span className="lp-init-name">{c.name}</span>
+                  <span className="lp-pv">
+                    <span style={{ width: `${(c.pv / c.max) * 100}%` }} />
+                  </span>
+                  <span className="lp-init-pv">{c.foe && goblinDown ? 'derrotado' : `PV ${c.pv}/${c.max}`}</span>
+                </div>
+              ))}
+              <span className={`lp-next${step === 6 ? ' is-pressing' : ''}`}>Próxima vez ›</span>
+            </div>
+            <div className={`lp-tray${arrived ? ' is-on' : ''}`}>
+              <p className="lp-mini-h">
+                <Dices size={12} /> Últimas rolagens
+              </p>
+              {damage && (
+                <div className="lp-tray-roll is-latest">
+                  <span className="lp-tray-total">9</span>
+                  <span>
+                    <strong>Kaya · Espada longa (dano) em Goblin</strong>
+                    <small>1d8+4 [5] · pelo Codex</small>
+                    {goblinDown ? <em className="lp-tray-done">Goblin: PV -2/7 · derrotado</em> : <span className="lp-tray-act is-pressing">Tirar 9 PV de Goblin</span>}
+                  </span>
+                </div>
+              )}
+              {arrived ? (
+                <div className={`lp-tray-roll${damage ? '' : ' is-latest'}`}>
+                  <span className="lp-tray-total">22</span>
+                  <span>
+                    <strong>Kaya · Espada longa contra Goblin</strong>
+                    <small>
+                      <b>Acerta</b> · Defesa 14 · 1d20+7 [15] · pelo Codex
+                    </small>
+                  </span>
+                </div>
+              ) : (
+                <p className="lp-tray-wait">Esperando a vez da Kaya…</p>
+              )}
+            </div>
+            <div className={`lp-secret${revealing ? ' is-pressing' : ''}${revealed ? ' is-done' : ''}`}>
+              <p className="lp-mini-h">
+                <Eye size={12} /> Revelar fato
+              </p>
+              <p className="lp-secret-text">O símbolo na porta é da Ordem do Corvo.</p>
+              <span className="lp-secret-btn">
+                {revealed ? <Check size={12} /> : <Eye size={12} />} {revealed ? 'Revelado' : 'Revelar'}
               </span>
             </div>
-            <p className={`lp-roll-dmg${hit ? ' is-on' : ''}`}>
-              Dano 1d8+4 → <strong>9</strong>
-            </p>
-          </div>
-          <div className={`lp-secret${revealing ? ' is-pressing' : ''}${revealed ? ' is-done' : ''}`}>
-            <p className="lp-mini-h">
-              <Eye size={12} /> Revelar fato
-            </p>
-            <p className="lp-secret-text">O símbolo na porta é da Ordem do Corvo.</p>
-            <span className="lp-secret-btn">{revealed ? <Check size={12} /> : <Eye size={12} />} {revealed ? 'Revelado' : 'Revelar'}</span>
           </div>
         </div>
       </div>
 
-      <div className="lp-phone lp-phone-codex" aria-hidden="true">
-        <div className="lp-phone-screen">
-          <div className="lp-phone-top">
-            <span>A Queda de Valkaria</span>
-            <span className="lp-live">
-              <Radio size={11} /> ao vivo
-            </span>
-          </div>
-          {revealed && <p className="lp-phone-toast">Novidades do mestre</p>}
-          <p className="lp-phone-title">Codex</p>
-          <p className="lp-phone-sub">Mesa de sexta</p>
-          <p className="lp-phone-kind">Grupo</p>
-          <div className="lp-phone-pc">
-            <strong>Kaya</strong>
-            <span className="lp-pv">
-              <span style={{ width: `${(24 / 31) * 100}%` }} />
-            </span>
-            <span className="lp-phone-pv">PV 24/31</span>
-          </div>
-          <p className="lp-phone-kind">O que sabemos</p>
-          {revealed && (
-            <p className="lp-phone-entry lp-phone-new-entry">
-              <span className="lp-new">novo</span> O símbolo na porta é da Ordem do Corvo.
-            </p>
-          )}
-          <p className="lp-phone-entry">
-            Vaelor tem olhos cinzentos <em>(segundo Mira)</em>
-          </p>
-          <p className="lp-phone-kind">Linha do tempo</p>
-          <p className="lp-phone-entry">
-            <strong>341 DC</strong> A Queda
-          </p>
-        </div>
+      <div className="lp-device lp-device-kaya" aria-hidden="true">
+        <p className="lp-device-tag">Kaya · celular no escuro</p>
+        <CodexPhone me="Kaya" mode="escuro" step={step} order={order} />
       </div>
+
       <figcaption className="lp-duo-caption">
-        <span className={step <= 2 ? 'is-on' : ''}>
-          <Dices size={13} aria-hidden="true" /> A jogadora rola o dado de verdade; o app soma o bônus.
+        <span className={step <= 3 ? 'is-on' : ''}>
+          <Dices size={13} aria-hidden="true" /> A Kaya rola pelo celular, com o dado de verdade. O mestre confere a Defesa: acerta.
         </span>
-        <span className={step === 3 ? 'is-on' : ''}>
-          <Heart size={13} aria-hidden="true" /> O mestre desconta o dano na iniciativa.
+        <span className={step === 4 || step === 5 ? 'is-on' : ''}>
+          <Heart size={13} aria-hidden="true" /> O dano chega ao mestre, que tira da vida do goblin.
         </span>
-        <span className={step >= 4 ? 'is-on' : ''}>
-          <Radio size={13} aria-hidden="true" /> O mestre revela, e o celular de cada um recebe.
+        <span className={step >= 6 ? 'is-on' : ''}>
+          <Radio size={13} aria-hidden="true" /> A vez passa ao Taren, e o que o mestre revela chega aos dois.
         </span>
       </figcaption>
     </figure>
+  )
+}
+
+/** O Codex no celular de um jogador, no tema Tempestade da mesa (claro ou escuro, como cada um escolheu). */
+function CodexPhone({ me, mode, step, order }: { me: 'Kaya' | 'Taren'; mode: 'claro' | 'escuro'; step: number; order: { name: string; current?: boolean; down?: boolean }[] }) {
+  const kaya = me === 'Kaya'
+  const myTurn = kaya ? step < 6 : step >= 6
+  const asking = kaya && step === 1
+  const rolls = [
+    ...(step >= 4 ? [{ total: 9, label: 'Espada longa (dano) em Goblin', verdict: null as string | null }] : []),
+    ...(step >= 2 ? [{ total: 22, label: 'Espada longa contra Goblin', verdict: step >= 3 ? 'Acerta' : null }] : []),
+  ]
+  const pc = kaya ? { pv: 24, max: 31 } : { pv: 18, max: 22 }
+  return (
+    <div className={`lp-phone lp-codex lp-codex-${mode}`}>
+      <div className="lp-phone-screen">
+        <div className="lp-phone-top">
+          <span>A Queda de Valkaria</span>
+          <span className="lp-live">
+            <Radio size={10} /> ao vivo
+          </span>
+        </div>
+        {step >= 8 && <p className="lp-phone-toast">Novidades do mestre</p>}
+        <p className="lp-phone-title">Codex</p>
+        <p className="lp-phone-kind">
+          <Swords size={10} /> Combate · rodada 2
+        </p>
+        <p className="lp-order">
+          {order.map((e) => (
+            <span key={e.name} className={`${e.current ? 'is-current' : ''}${e.down ? ' is-down' : ''}${e.name === me ? ' is-me' : ''}`}>
+              {e.name}
+              {e.current && <b>na vez</b>}
+              {e.down && <b>derrotado</b>}
+            </span>
+          ))}
+        </p>
+        <p className="lp-phone-kind">O grupo</p>
+        <div className="lp-phone-pc">
+          <strong>{me}</strong>
+          <span className="lp-pv">
+            <span style={{ width: `${(pc.pv / pc.max) * 100}%` }} />
+          </span>
+          <span className="lp-phone-pv">
+            PV {pc.pv}/{pc.max}
+          </span>
+        </div>
+        <p className="lp-phone-kind">O que sabemos</p>
+        {step >= 8 && (
+          <p className="lp-phone-entry lp-phone-new-entry">
+            <span className="lp-new">novo</span> O símbolo na porta é da Ordem do Corvo.
+          </p>
+        )}
+        <p className="lp-phone-entry">
+          Vaelor tem olhos cinzentos <em>(segundo Mira)</em>
+        </p>
+
+        <div className="lp-dock">
+          {myTurn && (
+            <p className="lp-dock-turn" key={me + step}>
+              <Swords size={11} /> Sua vez, {me}!
+            </p>
+          )}
+          {rolls.slice(0, 2).map((r, i) => (
+            <p key={r.total} className={`lp-dock-roll${i === 0 ? ' is-latest' : ''}`}>
+              <span className="lp-dock-total">{r.total}</span>
+              <span>
+                <strong>
+                  {kaya ? 'Você' : 'Kaya'} · {r.label}
+                </strong>
+                {r.verdict && (
+                  <small>
+                    {r.verdict} <Check size={10} />
+                  </small>
+                )}
+              </span>
+            </p>
+          ))}
+          <span className="lp-dock-actions">
+            {kaya && (step === 2 || step === 3) && <span className={`lp-dock-btn is-ghost${step === 3 ? ' is-pressing' : ''}`}>Rolar dano</span>}
+            <span className="lp-dock-btn">
+              <Dices size={12} /> Rolar como {me}
+            </span>
+          </span>
+        </div>
+
+        {asking && (
+          <div className="lp-phone-sheet">
+            <p className="lp-roll-q">Quanto saiu no dado?</p>
+            <p className="lp-sheet-what">Kaya · Espada longa · 1d20+7</p>
+            <div className="lp-roll-row">
+              <RollingDie rolling final={15} />
+              <span className="lp-sheet-total">Total 22</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -667,5 +766,104 @@ function ExerciciosScreen({ step }: { step: number }) {
         </div>
       ))}
     </div>
+  )
+}
+
+// ─── Telinhas dos passos da escrita e dos amigos ──────────────────────────
+
+/** O que se vê na tela em cada passo da escrita (os textos são os do app). */
+export function StepScreen({ n }: { n: 1 | 2 | 3 }) {
+  if (n === 1)
+    return (
+      <div className="lp-mini lp-mini-1" aria-hidden="true">
+        <p className="lp-mini-bar">
+          <PenLine size={11} /> A chegada
+        </p>
+        <p className="lp-mini-text">
+          Era noite em <u>Ostria</u> quando <u>Kael</u> viu o navio. Ao lado dele, <i className="lp-mini-cand">Ilsa</i> não disse nada.
+          <span className="lp-mini-caret" />
+        </p>
+        <p className="lp-mini-chip">
+          <Sparkles size={11} /> 1 nome novo
+        </p>
+      </div>
+    )
+  if (n === 2)
+    return (
+      <div className="lp-mini lp-mini-2" aria-hidden="true">
+        <p className="lp-mini-text">
+          Mira jurou que ele tinha <mark>olhos cinzentos</mark>.
+        </p>
+        <p className="lp-mini-pop">
+          <span>Vincular</span>
+          <span className="is-hot">Fato</span>
+          <span>Ficha</span>
+          <span>Comentar</span>
+          <span>Guardar</span>
+        </p>
+        <p className="lp-mini-card">
+          <strong>Fato guardado</strong> Vaelor tem olhos cinzentos, segundo Mira
+        </p>
+      </div>
+    )
+  return (
+    <div className="lp-mini lp-mini-3" aria-hidden="true">
+      <p className="lp-mini-label">
+        <Lightbulb size={11} /> Perguntas
+      </p>
+      <p className="lp-mini-q">Kael está em Ostria em “A chegada” e em Torre de Marfim em “A Torre”, no mesmo dia. Viajou, ou é outra pessoa?</p>
+      <p className="lp-mini-actions">
+        <span className="is-hot">É intencional</span>
+        <span>Explicar</span>
+        <span>É um erro</span>
+      </p>
+    </div>
+  )
+}
+
+const NEWS = [
+  { who: 'Ana', text: 'pôs “A Queda de Valkaria” na estante.', when: 'agora' },
+  { who: 'Bruno', text: 'bateu a meta do dia: 1.200 palavras.', when: 'há 2 horas' },
+  { who: 'Carla', text: 'reagiu 🔥 a um capítulo de “As Cinzas de Ostria”.', when: 'ontem' },
+]
+
+/** O celular na parte dos amigos: as novidades chegando e o placar dos treinos. */
+export function FriendsPhone() {
+  const { ref, step } = useCycle([1400, 1400, 1400, 3800])
+  return (
+    <figure ref={ref as React.RefObject<HTMLElement>} className="lp-friends" aria-label="Exemplo: as novidades dos amigos e o placar dos treinos">
+      <div className="lp-friends-screen" aria-hidden="true">
+        <p className="lp-friends-h">
+          <Sparkles size={12} /> Novidades
+        </p>
+        <ul className="lp-friends-news">
+          {NEWS.map((n, i) => (
+            <li key={n.who} className={step >= NEWS.length - 1 - i ? 'is-on' : ''}>
+              <span className="lp-friends-avatar">{n.who[0]}</span>
+              <span>
+                <strong>{n.who}</strong> {n.text}
+                <small>{n.when}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="lp-friends-h">
+          <Trophy size={12} /> Placar dos treinos · Semana
+        </p>
+        <ol className={`lp-friends-placar${step >= 3 ? ' is-on' : ''}`}>
+          {[
+            ['🥇', 'Ana', 214],
+            ['🥈', 'Você', 180],
+            ['🥉', 'Bruno', 96],
+          ].map(([medal, who, pts]) => (
+            <li key={who} className={who === 'Você' ? 'is-me' : ''}>
+              <span>{medal}</span>
+              <strong>{who}</strong>
+              <span className="lp-friends-pts">{pts} pts</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </figure>
   )
 }
