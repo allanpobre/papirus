@@ -429,3 +429,31 @@ test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', asyn
   await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Simão Bacamarte')
 })
+
+test('segredo na ficha: quem escreve vê o trecho pintado, não código, e consegue desfazer', async ({ page }) => {
+  await openSample(page)
+  await nav(page, 'Fichas').click()
+  await page.getByRole('button', { name: /^Ostria/ }).first().click()
+  const desc = page.getByRole('textbox', { name: 'Descrição' })
+  await desc.fill('Cidade portuária. O porto é dos contrabandistas.')
+  // Seleciona a frase como alguém faria com o dedo e marca.
+  await desc.evaluate((el: HTMLTextAreaElement) => {
+    const i = el.value.indexOf('O porto')
+    el.focus()
+    el.setSelectionRange(i, el.value.length)
+  })
+  await page.getByRole('button', { name: 'Marcar seleção como segredo' }).click()
+  await expect(desc).toHaveValue('Cidade portuária. [segredo]O porto é dos contrabandistas.[/segredo]')
+  await expect(page.locator('.marked-backdrop .mk-secret:not(.mk-tag)')).toHaveText('O porto é dos contrabandistas.')
+  await expect(page.locator('.marked-backdrop .mk-tag').first()).toHaveText('[segredo]')
+  await page.screenshot({ path: test.info().outputPath('segredo.png') })
+
+  // Com o cursor dentro do trecho, o botão vira "Deixar de ser segredo".
+  await desc.evaluate((el: HTMLTextAreaElement) => {
+    el.focus()
+    el.setSelectionRange(32, 32)
+  })
+  await page.getByRole('button', { name: 'Deixar de ser segredo' }).click()
+  await expect(desc).toHaveValue('Cidade portuária. O porto é dos contrabandistas.')
+  await expect(page.getByRole('button', { name: 'Marcar seleção como segredo' })).toBeVisible()
+})
