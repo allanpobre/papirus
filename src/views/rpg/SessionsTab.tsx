@@ -88,8 +88,8 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
       if (s.log.length) next = insert(next, 'inbox', draftInbox(transcript, 'sessao', s.title))[0]
       return next
     })
-    toast(s.log.length ? 'Sessão encerrada. O registro foi para a Inbox para revisão.' : 'Sessão encerrada.', {
-      action: s.log.length ? { label: 'Abrir Inbox', run: () => go('inbox') } : undefined,
+    toast(s.log.length ? 'Sessão encerrada. O registro foi para Ideias, para revisão.' : 'Sessão encerrada.', {
+      action: s.log.length ? { label: 'Abrir Ideias', run: () => go('inbox') } : undefined,
     })
   }
 
@@ -173,7 +173,7 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
               <Send size={16} />
             </button>
           </div>
-          <p className="muted tiny">Ao encerrar, o registro vai para a Inbox. Nada vira canon sem a sua revisão.</p>
+          <p className="muted tiny">Ao encerrar, o registro vai para Ideias. Nada vira canon sem a sua revisão.</p>
         </section>
 
         <section className="session-reveal">

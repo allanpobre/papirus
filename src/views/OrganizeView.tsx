@@ -18,7 +18,7 @@ export default function OrganizeView() {
   return (
     <div className="view organize-view">
       <header className="view-head view-head-wide">
-        <h1>Organizar</h1>
+        <h1>Estrutura</h1>
         <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys}>
           {(
             [

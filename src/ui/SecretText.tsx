@@ -25,7 +25,7 @@ export function SecretTextarea({ id, value, onChange, rows = 8, placeholder }: {
         <button
           type="button"
           className="btn btn-ghost btn-sm"
-          title="Só você vê. O Codex dos jogadores nunca mostra; o Archivist só recebe se você pedir."
+          title="Só você vê. O Codex dos jogadores nunca mostra; a IA (Perguntar ao mundo) só recebe se você pedir."
           onClick={() => {
             const el = ref.current
             if (!el) return

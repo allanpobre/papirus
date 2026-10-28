@@ -24,7 +24,7 @@ export interface SceneEditorActions {
   capture: (sel: SelectionInfo) => void
   /** Criar ficha com o texto selecionado. */
   createEntity: (sel: SelectionInfo) => void
-  /** Guardar o trecho na Inbox. */
+  /** Guardar o trecho em Ideias. */
   keep: (sel: SelectionInfo) => void
   /** Comentar o trecho (nota do autor). */
   comment: (sel: SelectionInfo) => void
@@ -221,7 +221,7 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
           <button type="button" className="bubble-btn" onClick={() => actions.comment(selection())}>
             <MessageSquarePlus size={15} /> Comentar
           </button>
-          <button type="button" className="bubble-btn" title="Guardar trecho na Inbox" onClick={() => actions.keep(selection())}>
+          <button type="button" className="bubble-btn" title="Guardar trecho em Ideias" onClick={() => actions.keep(selection())}>
             <BookmarkPlus size={15} /> Guardar
           </button>
         </div>

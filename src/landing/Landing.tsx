@@ -248,7 +248,7 @@ const FEATURES = [
   { icon: EyeOff, title: 'Segredos e mentiras', text: 'Trechos secretos nas fichas e fatos falsos com quem os contou, separados do que é verdade.' },
   { icon: MessageSquareText, title: 'Comentários e versões', text: 'Notas presas ao texto, versões de cada cena para comparar e voltar atrás.' },
   { icon: BookDown, title: 'Livros', text: 'Importe um .docx ou .md e ele vira cenas. Exporte em Word, EPUB ou Markdown.' },
-  { icon: ScrollText, title: 'Archivist (opcional)', text: 'Pergunte à sua lore com IA, usando a sua chave. Ele só lê o que você manda e nunca muda nada.' },
+  { icon: ScrollText, title: 'Perguntar ao mundo (opcional)', text: 'Pergunte à sua lore com IA, usando a sua chave. Ele só lê o que você manda e nunca muda nada.' },
 ]
 
 type Seg = { t: string; kind?: 'name' | 'fact' }

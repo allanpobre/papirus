@@ -21,7 +21,7 @@ export function WikiCard() {
         <Globe size={16} aria-hidden="true" /> Wiki do mundo
       </h2>
       <p className="small">
-        Um site de uma página só, com as fichas ligadas entre si, busca e linha do tempo. Abre em qualquer navegador, até no celular: mande para os jogadores ou ponha no ar. Segredos e a Inbox nunca vão.
+        Um site de uma página só, com as fichas ligadas entre si, busca e linha do tempo. Abre em qualquer navegador, até no celular: mande para os jogadores ou ponha no ar. Segredos e as Ideias nunca vão.
       </p>
       <label className="field">
         <span className="field-label">O que entra</span>

@@ -42,6 +42,8 @@ export interface Prefs {
   shareProgress: boolean
   /** Baixar o backup sozinho, uma vez por semana, ao abrir um universo com novidades. */
   autoBackup: boolean
+  /** Os atalhos da barra de baixo no celular (até 4). */
+  phoneShortcuts: View[]
 }
 
 export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite' | 'rosa' | 'turquesa' | 'terracota'
@@ -78,6 +80,7 @@ export const DEFAULT_PREFS: Prefs = {
   keySound: 'nenhum',
   shareProgress: true,
   autoBackup: false,
+  phoneShortcuts: ['inicio', 'escrever', 'livro', 'fichas'],
 }
 
 const KEY = 'papirus:prefs'

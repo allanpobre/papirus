@@ -130,7 +130,7 @@ export function PhoneDock({ editor, actions, selection }: { editor: Editor; acti
           <DockButton label="Comentar" onClick={() => actions.comment(selection())} wide>
             <MessageSquarePlus size={16} /> Comentar
           </DockButton>
-          <DockButton label="Guardar na Inbox" onClick={() => actions.keep(selection())} wide>
+          <DockButton label="Guardar em Ideias" onClick={() => actions.keep(selection())} wide>
             <BookmarkPlus size={16} /> Guardar
           </DockButton>
           <DockButton label="Negrito" pressed={state.bold} onClick={() => chain().toggleBold().run()}>

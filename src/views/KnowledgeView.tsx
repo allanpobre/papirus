@@ -20,7 +20,7 @@ export default function KnowledgeView() {
   return (
     <div className="view knowledge-view">
       <header className="view-head view-head-wide">
-        <h1>Conhecimento</h1>
+        <h1>Quem sabe o quê</h1>
         <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys}>
           {(
             [

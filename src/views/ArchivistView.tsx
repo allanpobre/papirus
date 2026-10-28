@@ -98,7 +98,7 @@ export default function ArchivistView() {
   return (
     <div className="view archivist-view">
       <header className="view-head view-head-wide">
-        <h1>Archivist</h1>
+        <h1>Perguntar ao mundo</h1>
         <button type="button" className="btn btn-ghost" aria-expanded={showKey} onClick={() => setShowKey(!showKey)}>
           <KeyRound size={16} /> Chave e modelo
         </button>
@@ -212,7 +212,7 @@ export default function ArchivistView() {
 
       {history.length === 0 ? (
         <Empty icon={<ScrollText size={32} />} title="Nenhuma pergunta ainda.">
-          <p>As respostas ficam só nesta visita. Copie para a Inbox o que quiser guardar.</p>
+          <p>As respostas ficam só nesta visita. Guarde em Ideias o que quiser manter.</p>
         </Empty>
       ) : (
         <ol className="archivist-history">
@@ -245,12 +245,12 @@ function SaveToInbox({ question, answer }: { question: string; answer: string })
       className="btn btn-ghost btn-sm"
       disabled={saved}
       onClick={() => {
-        update((u) => insert(u, 'inbox', draftInbox(`Pergunta ao Archivist: ${question}\n\n${answer}`, 'captura', 'Archivist'))[0])
+        update((u) => insert(u, 'inbox', draftInbox(`Pergunta ao mundo: ${question}\n\n${answer}`, 'captura', 'Perguntar ao mundo'))[0])
         setSaved(true)
-        toast('Resposta guardada na Inbox')
+        toast('Resposta guardada em Ideias')
       }}
     >
-      {saved ? 'Guardada na Inbox' : 'Guardar na Inbox'}
+      {saved ? 'Guardada em Ideias' : 'Guardar em Ideias'}
     </button>
   )
 }

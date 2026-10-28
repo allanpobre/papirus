@@ -152,12 +152,12 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
               Revisar na área Conhecimento
             </button>
           )}
-          <h3 className="section-label">Inbox ({inbox.length})</h3>
+          <h3 className="section-label">Ideias ({inbox.length})</h3>
           {inbox.length === 0 ? (
-            <p className="muted small">Inbox vazia.</p>
+            <p className="muted small">Nenhuma ideia esperando.</p>
           ) : (
             <button type="button" className="link-btn" onClick={() => { onClose(); go('inbox') }}>
-              Abrir a Inbox
+              Abrir Ideias
             </button>
           )}
         </div>

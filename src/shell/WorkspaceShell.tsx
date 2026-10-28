@@ -1,4 +1,4 @@
-import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, Moon, Sun, Inbox, Library as LibraryIcon, Menu, Search, Settings, Users, X } from 'lucide-react'
+import { ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { withDailyStart } from '../logic/stats'
@@ -34,7 +34,7 @@ import { ReaderView } from '../reader/ReaderView'
 import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
-import { NAV, type NavItem } from './nav'
+import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
 import { SearchPalette } from './SearchPalette'
@@ -339,8 +339,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [mediumOpen, setMediumOpen] = useState(false)
   const collapsed = medium ? !mediumOpen : prefs.railCollapsed
   const phone = useMediaQuery('(max-width: 760px)')
-  const allItems: NavItem[] = [...NAV.flatMap((g) => g.items), { view: 'inbox', label: 'Inbox', icon: Inbox }, { view: 'config', label: 'Ajustes e dados', icon: Settings }]
-  const visibleItems = allItems.filter((item) => item.view === 'config' || !prefs.hiddenViews.includes(item.view) || nav.view === item.view)
+  const visibleItems = ALL_ITEMS.filter((item) => item.view === 'config' || !prefs.hiddenViews.includes(item.view) || nav.view === item.view)
 
   return (
     <WorkspaceContext.Provider value={ws}>
@@ -356,6 +355,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
+            shortcuts={prefs.phoneShortcuts}
+            onShortcuts={(v) => setPref('phoneShortcuts', v)}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
             onShare={source.kind === 'proprio' ? () => setShareOpen(true) : undefined}
@@ -407,19 +408,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               )
             })}
             <div className="rail-group rail-group-end">
-              {(!prefs.hiddenViews.includes('inbox') || nav.view === 'inbox') && (
-                <RailButton
-                  item={{ view: 'inbox', label: 'Inbox', icon: Inbox }}
-                  active={nav.view === 'inbox'}
-                  badge={openInbox || undefined}
-                  onClick={() => go('inbox')}
-                />
-              )}
-              <RailButton
-                item={{ view: 'config', label: 'Ajustes e dados', icon: Settings }}
-                active={nav.view === 'config'}
-                onClick={() => go('config')}
-              />
+              {TOOLS.filter((t) => t.view !== 'oficina' && (!prefs.hiddenViews.includes(t.view) || nav.view === t.view)).map((t) => (
+                <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
+              ))}
+              {!prefs.hiddenViews.includes('oficina') && <OficinaCard compact={collapsed} onClick={() => go('oficina')} />}
+              <RailButton item={CONFIG_ITEM} active={nav.view === 'config'} onClick={() => go('config')} />
             </div>
           </div>
 
@@ -597,6 +590,24 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   )
 }
 
+/** A Oficina no menu: um cartão que diz o que é, e não só mais um item. */
+function OficinaCard({ compact = false, onClick }: { compact?: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className={`oficina-card${compact ? ' is-compact' : ''}`} data-tour="nav-oficina" title="Oficina: dicas, livros e exercícios de escrita" onClick={onClick}>
+      <span className="oficina-card-icon" aria-hidden="true">
+        <GraduationCap size={18} />
+      </span>
+      {!compact && (
+        <span className="oficina-card-text">
+          <strong>Oficina</strong>
+          <span>Dicas, livros e exercícios</span>
+        </span>
+      )}
+      {compact && <span className="sr-only">Oficina</span>}
+    </button>
+  )
+}
+
 function RailButton({ item, active, onClick, badge }: { item: NavItem; active: boolean; onClick: () => void; badge?: number }) {
   const Icon = item.icon
   return (
@@ -660,6 +671,8 @@ function PhoneNav({
   current,
   inboxCount,
   universeName,
+  shortcuts: chosen,
+  onShortcuts,
   onGo,
   onSearch,
   onLibrary,
@@ -670,6 +683,9 @@ function PhoneNav({
   current: View
   inboxCount: number
   universeName: string
+  /** Atalhos escolhidos para a barra (até 4). */
+  shortcuts: View[]
+  onShortcuts: (v: View[]) => void
   onGo: (v: View) => void
   onSearch: () => void
   onLibrary: () => void
@@ -678,13 +694,25 @@ function PhoneNav({
   extras: ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const byView = (v: View) => items.find((i) => i.view === v)
+  // Os escolhidos (que estão visíveis), completados com os padrões até 4.
+  const picked = [...chosen, ...DEFAULT_SHORTCUTS].filter((v, i, all) => all.indexOf(v) === i && byView(v)).slice(0, 4)
   // A área aberta sempre aparece entre os atalhos.
-  const first = items.slice(0, 4)
-  const shortcuts = first.some((i) => i.view === current) ? first : [...items.slice(0, 3), ...items.filter((i) => i.view === current)]
+  const views = picked.includes(current) || !byView(current) ? picked : [...picked.slice(0, 3), current]
+  const shortcuts = views.map(byView).filter((i): i is NavItem => Boolean(i))
   const choose = (v: View) => {
     setOpen(false)
+    setEditing(false)
     onGo(v)
   }
+  // Editando: tocar fixa ou tira da barra. O novo entra na frente; com 4, sai o último.
+  const toggleShortcut = (v: View) => {
+    const now = picked.includes(v) ? picked.filter((x) => x !== v) : [v, ...picked].slice(0, 4)
+    if (now.length) onShortcuts(now)
+  }
+  const grid = items.filter((i) => i.view !== 'oficina')
+  const oficina = items.find((i) => i.view === 'oficina')
 
   useEffect(() => {
     if (!open) return
@@ -701,7 +729,18 @@ function PhoneNav({
       {shortcuts.map((item) => (
         <RailButton key={item.view} item={item} active={current === item.view} badge={item.view === 'inbox' && inboxCount ? inboxCount : undefined} onClick={() => choose(item.view)} />
       ))}
-      <button type="button" className="rail-item" aria-expanded={open} aria-controls="menu-mais" aria-label="Mais" title="Mais áreas" onClick={() => setOpen(!open)}>
+      <button
+        type="button"
+        className="rail-item"
+        aria-expanded={open}
+        aria-controls="menu-mais"
+        aria-label="Mais"
+        title="Mais áreas"
+        onClick={() => {
+          setOpen(!open)
+          setEditing(false)
+        }}
+      >
         <Menu size={18} aria-hidden="true" />
         <span className="rail-more-label">Mais</span>
         {inboxCount > 0 && !shortcuts.some((i) => i.view === 'inbox') && <span className="rail-badge" aria-hidden="true" />}
@@ -713,10 +752,19 @@ function PhoneNav({
             <button type="button" className="rail-more-universe" onClick={onLibrary}>
               <LibraryIcon size={16} aria-hidden="true" /> <span>{universeName || 'Sem nome'}</span> <span className="muted tiny">trocar</span>
             </button>
+            {oficina && !editing && <OficinaCard onClick={() => choose('oficina')} />}
+            {editing && <p className="small rail-more-hint">Toque para pôr ou tirar da barra de baixo (até 4; o novo entra no lugar do último).</p>}
             <div className="rail-more-grid">
-              {items.map((item) => {
+              {grid.map((item) => {
                 const Icon = item.icon
-                return (
+                const pinned = picked.includes(item.view)
+                return editing ? (
+                  <button key={item.view} type="button" className={`rail-more-item${pinned ? ' is-pinned' : ''}`} aria-pressed={pinned} onClick={() => toggleShortcut(item.view)}>
+                    <Icon size={20} aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {pinned && <Pin size={12} className="rail-more-pin" aria-label="na barra" />}
+                  </button>
+                ) : (
                   <button key={item.view} type="button" className="rail-more-item" aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
                     <Icon size={20} aria-hidden="true" />
                     <span>{item.label}</span>
@@ -726,6 +774,9 @@ function PhoneNav({
               })}
             </div>
             <div className="rail-more-foot">
+              <button type="button" className="btn btn-ghost btn-sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
+                <Pin size={15} aria-hidden="true" /> {editing ? 'Pronto' : 'Escolher atalhos'}
+              </button>
               {onShare && (
                 <button
                   type="button"

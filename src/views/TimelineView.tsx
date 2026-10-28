@@ -70,7 +70,7 @@ export default function TimelineView() {
   return (
     <div className="view timeline-view">
       <header className="view-head view-head-wide">
-        <h1>Timeline</h1>
+        <h1>Linha do tempo</h1>
         <form className="quick-create" onSubmit={create}>
           <label htmlFor="novo-evento" className="sr-only">
             Novo evento

@@ -1,8 +1,8 @@
-import { BookOpen, Compass, Download, FilePlus2, History, Inbox, Library, Lightbulb, Moon, Settings, UserPlus, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, Compass, Download, FilePlus2, History, Library, Lightbulb, Moon, UserPlus, Users, type LucideIcon } from 'lucide-react'
 import { fold } from '../logic/text'
 import { addScene, draftEntity, insert, manuscriptOrder } from '../model/universe'
 import type { Workspace } from '../state/workspace'
-import { NAV } from './nav'
+import { ALL_ITEMS } from './nav'
 
 /** Uma ação do Ctrl+K: ir para uma área, criar algo, abrir uma ferramenta. */
 export interface Command {
@@ -16,9 +16,13 @@ export interface Command {
 
 export function commands(ws: Workspace): Command[] {
   const out: Command[] = [
-    ...[...NAV.flatMap((g) => g.items), { view: 'inbox' as const, label: 'Inbox', icon: Inbox }, { view: 'config' as const, label: 'Ajustes e dados', icon: Settings }]
-      .filter((item) => item.view !== ws.nav.view)
-      .map((item) => ({ id: `ir-${item.view}`, title: `Ir para ${item.label}`, words: 'abrir área menu', icon: item.icon, run: (w: Workspace) => w.go(item.view) })),
+    ...ALL_ITEMS.filter((item) => item.view !== ws.nav.view).map((item) => ({
+      id: `ir-${item.view}`,
+      title: `Ir para ${item.label}`,
+      words: `abrir área menu ${item.words ?? ''}`,
+      icon: item.icon,
+      run: (w: Workspace) => w.go(item.view),
+    })),
   ]
   if (!ws.readOnly) {
     out.unshift(
