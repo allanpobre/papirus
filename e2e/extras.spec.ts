@@ -381,3 +381,18 @@ test.describe('no celular', () => {
     await expect(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'RPG', exact: true })).toBeVisible()
   })
 })
+
+test('uma falha que ninguém tratou aparece num aviso (e falta de internet não)', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await page.evaluate(() => {
+    void Promise.reject(new Error('Failed to fetch'))
+  })
+  await page.waitForTimeout(300)
+  await expect(page.getByText('Não deu certo:')).toHaveCount(0)
+  await page.evaluate(() => {
+    void Promise.reject(new Error('O arquivo não pôde ser gerado'))
+  })
+  await expect(page.getByRole('alert').filter({ hasText: 'O arquivo não pôde ser gerado' })).toBeVisible()
+  await page.getByRole('button', { name: 'Fechar o aviso' }).click()
+  await expect(page.getByText('Não deu certo:')).toHaveCount(0)
+})

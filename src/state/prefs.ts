@@ -40,6 +40,8 @@ export interface Prefs {
   keySound: 'nenhum' | 'suave' | 'maquina'
   /** Contar aos amigos quando bater a meta do dia (e os dias seguidos). */
   shareProgress: boolean
+  /** Comemorar meta batida, desafio feito e medalhas novas. */
+  celebrate: boolean
   /** Baixar o backup sozinho, uma vez por semana, ao abrir um universo com novidades. */
   autoBackup: boolean
   /** Os atalhos da barra de baixo no celular (até 4). */
@@ -79,6 +81,7 @@ export const DEFAULT_PREFS: Prefs = {
   focusParagraph: false,
   keySound: 'nenhum',
   shareProgress: true,
+  celebrate: true,
   autoBackup: false,
   phoneShortcuts: ['inicio', 'escrever', 'livro', 'fichas'],
 }

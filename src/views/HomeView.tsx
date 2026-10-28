@@ -7,6 +7,7 @@ import { addScene, byId, manuscriptOrder } from '../model/universe'
 import { countWords, wordCount } from '../persistence/repository'
 import { recall } from '../state/prefs'
 import { DeadlineLine, WritingCalendar } from './WritingCalendar'
+import { DailyChallengeCard, ProgressSection } from './PlayCards'
 import { guessGuide, tipOfTheDay } from '../oficina/guides'
 import { useWorkspace } from '../state/workspace'
 
@@ -120,11 +121,13 @@ export default function HomeView() {
           )}
           <DeadlineLine universe={universe} />
           <WritingCalendar universe={universe} />
+          <ProgressSection />
           <p className="muted small tabular">
             {total.toLocaleString('pt-BR')} palavras · {scenes.length} {scenes.length === 1 ? 'cena' : 'cenas'} · {universe.entities.length} fichas · {universe.facts.length} fatos
           </p>
         </section>
 
+        <DailyChallengeCard />
         <TipCard />
 
         <section className="home-card" aria-label="Pede atenção">

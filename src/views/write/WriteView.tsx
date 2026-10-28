@@ -50,6 +50,7 @@ import { Field, Select, YearInput } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { useSettled } from '../../ui/useSettled'
 import { MoreMenu } from '../../ui/MoreMenu'
+import { NameIdeas } from '../NameIdeas'
 import { EntityMultiPicker, EntityPicker } from '../../ui/EntityPicker'
 import { FactDialog, type FactDraft } from '../../ui/FactDialog'
 import { Modal } from '../../ui/Modal'
@@ -660,6 +661,7 @@ function NewEntityDialog({ name: initial, onClose, onCreate }: { name: string; o
           {(id) => <Select id={id} value={kind} onChange={setKind} options={ENTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />}
         </Field>
       </div>
+      <NameIdeas kind={kind} onPick={setName} />
       <p className="muted small">Uma ficha mínima. Complete quando quiser — ou nunca.</p>
     </Modal>
   )
