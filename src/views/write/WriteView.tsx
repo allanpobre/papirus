@@ -245,6 +245,7 @@ export default function WriteView() {
     return (
       <div className="view write-empty">
         <div className="write-welcome">
+          <PageHelp tour="escrever-vazio" className="write-welcome-help" />
           <Feather size={36} aria-hidden="true" />
           <h1>Uma página em branco.</h1>
           <p>Comece por uma cena solta. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>

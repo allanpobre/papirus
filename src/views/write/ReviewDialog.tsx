@@ -66,7 +66,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
   }
 
   return (
-    <Modal title="Revisão" onClose={onClose} size="lg">
+    <Modal title="Revisão" onClose={onClose} size="lg" help="revisao">
       <div className="tabs" role="tablist" onKeyDown={tabListKeys}>
         {(
           [

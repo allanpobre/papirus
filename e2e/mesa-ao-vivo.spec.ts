@@ -110,6 +110,8 @@ test('combate na mesa: em quem, acerta ou erra pela CA, e o dano sai da vida do 
 })
 
 test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', async ({ page, context, baseURL }) => {
+  // Três páginas, dois tours e a checagem de acessibilidade: leva mais que o normal.
+  test.setTimeout(90_000)
   await fakeCodex(context)
   await fakeRealtime(context, SERVER)
   const init = await combat(page, baseURL!)
@@ -142,6 +144,8 @@ test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', 
   await expect(ilmar.locator('.player-live')).toHaveText(/ao vivo/)
 
   await taren.getByRole('button', { name: 'Rolar como Taren' }).click()
+  const rolar = await runPageTour(taren, 'Rolar')
+  expect(rolar.every((s) => s.spot)).toBe(true)
   await taren.getByRole('dialog', { name: 'Rolar como Taren' }).getByRole('button', { name: 'Atacar com Espada longa' }).click()
   await taren.getByRole('dialog', { name: 'Espada longa: em quem?' }).getByRole('button', { name: /^Bandido/ }).click()
   const quanto = taren.getByRole('dialog', { name: 'Quanto saiu no dado?' })

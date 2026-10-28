@@ -156,7 +156,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
 
   if (viewing) {
     return (
-      <Modal title={viewing.name || `@${viewing.handle}`} size="lg" onClose={onClose}>
+      <Modal title={viewing.name || `@${viewing.handle}`} size="lg" onClose={onClose} help="perfil">
         <div className="social">
           {(user || !initialHandle) && (
             <button
@@ -224,7 +224,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
   ]
 
   return (
-    <Modal title="Sua conta" size="lg" onClose={onClose}>
+    <Modal title="Sua conta" size="lg" onClose={onClose} help="conta">
       <div className="social">
         <header className="social-me">
           <Avatar p={me ?? { avatar: null, name: draft?.name ?? '', handle: user.email ?? '?' }} size={48} />

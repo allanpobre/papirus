@@ -137,7 +137,7 @@ export function AccountDialog({
   )
 
   return (
-    <Modal title="Entrar no Papirus" size="sm" onClose={onClose}>
+    <Modal title="Entrar no Papirus" size="sm" onClose={onClose} help="entrar">
       <div className="account">
         <div className="account-hero">
           <BrandMark size={34} />

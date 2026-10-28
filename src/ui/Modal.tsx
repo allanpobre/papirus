@@ -1,5 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import type { PageTourId } from '../shell/pageTours'
+import { PageHelp } from './PageTour'
 import { useBackLayer } from './useBackLayer'
 
 interface Props {
@@ -10,10 +12,12 @@ interface Props {
   size?: 'sm' | 'md' | 'lg'
   /** Painel lateral em vez de janela central. */
   side?: boolean
+  /** Janela que funciona como uma tela: o (?) no cabeçalho abre o tour dela. */
+  help?: PageTourId
 }
 
 /** Janela dentro do app. Esc, clique fora ou o "voltar" do aparelho fecham; o foco volta para onde estava. */
-export function Modal({ title, onClose, children, footer, size = 'md', side = false }: Props) {
+export function Modal({ title, onClose, children, footer, size = 'md', side = false, help }: Props) {
   const titleId = useId()
   const ref = useRef<HTMLDivElement>(null)
   useBackLayer(onClose)
@@ -21,7 +25,7 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null
     const first = ref.current?.querySelector<HTMLElement>(
-      '[autofocus], input:not([type=hidden]), textarea, select, button:not(.modal-close)',
+      '[autofocus], input:not([type=hidden]), textarea, select, button:not(.modal-close):not(.page-help)',
     )
     ;(first ?? ref.current)?.focus()
     return () => previous?.focus?.()
@@ -51,6 +55,7 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
       >
         <header className="modal-header">
           <h2 id={titleId}>{title}</h2>
+          {help && <PageHelp tour={help} className="modal-help" />}
           <button type="button" className="btn-icon modal-close" aria-label="Fechar" onClick={onClose}>
             <X size={18} />
           </button>

@@ -14,7 +14,7 @@ export function ReviewDialog({ design, title, onClose }: { design: BookDesign; t
   const groups = ORDER.map((k) => ({ kind: k, items: issues.filter((i) => i.kind === k) })).filter((g) => g.items.length)
 
   return (
-    <Modal title={`Revisar “${title}”`} size="lg" onClose={onClose}>
+    <Modal title={`Revisar “${title}”`} size="lg" onClose={onClose} help="revisar-livro">
       <div className="review">
         {groups.length === 0 ? (
           <p className="review-ok">

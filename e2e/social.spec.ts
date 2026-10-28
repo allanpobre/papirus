@@ -1,5 +1,6 @@
 import type { Browser } from '@playwright/test'
 import { createFakeSupabase, PASSWORD, SERVER } from './fakeSupabase.ts'
+import { runPageTour } from './pageTour.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 type Fake = ReturnType<typeof createFakeSupabase>
@@ -60,6 +61,7 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   await expect(anaSocial.getByRole('textbox', { name: '@ (como te acham)' })).toHaveValue('ana')
   await createProfile(anaSocial, '@Ana Ribeiro', 'Ana Ribeiro')
   expect(fake.tables.papirus_profiles[0].handle).toBe('ana_ribeiro')
+  await runPageTour(page, 'Sua conta')
   await anaSocial.getByRole('button', { name: 'Fechar' }).click()
 
   // Bia cria perfil, acha a Ana: sem amizade, nada da estante aparece.
@@ -77,6 +79,7 @@ test('social: perfil, pedido de amizade, estante para amigos e para todo mundo',
   await biaSocial.getByRole('button', { name: 'Procurar' }).click()
   const anaProfile = bia.getByRole('dialog', { name: 'Ana Ribeiro' })
   await expect(anaProfile).toContainText('Nada aberto para você')
+  await runPageTour(bia, 'Perfil')
   await anaProfile.getByRole('button', { name: 'Adicionar amigo' }).click()
   await expect(anaProfile.getByRole('button', { name: 'Cancelar pedido' })).toBeVisible()
   await anaProfile.getByRole('button', { name: 'Fechar' }).click()

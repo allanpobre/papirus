@@ -2168,3 +2168,13 @@ body:has(.rail-phone) .toasts {
 .oficina-help {
   margin-left: auto;
 }
+
+/* Nas janelas que funcionam como tela, o (?) fica junto do fechar. */
+.modal-header .modal-help {
+  margin-left: auto;
+  margin-right: -0.6rem;
+}
+
+.write-welcome-help {
+  align-self: flex-end;
+}

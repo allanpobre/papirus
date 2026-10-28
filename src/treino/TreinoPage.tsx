@@ -253,6 +253,7 @@ export function TreinoPage({
               <Timer size={18} aria-hidden="true" /> Treino de escrita
             </span>
             {phase === 'preparar' && <PageHelp tour="treino" />}
+            {phase === 'resumo' && <PageHelp tour="treino-resultado" />}
             <button type="button" className="btn-icon" aria-label="Fechar o treino" onClick={onClose}>
               <X size={18} />
             </button>

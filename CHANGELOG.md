@@ -2,11 +2,14 @@
 
 ## 1.2.0 — 28 de outubro de 2026
 
-**Ajuda em cada tela.** No alto de cada tela há um botão (?) que mostra, parte por parte, como aquela tela funciona: destaca cada pedaço e explica para que serve, sem mexer em nada. Vale para todas as áreas do universo, cada aba da mesa, o início do app (Escrita, RPG e Oficina), os guias da Oficina, o treino, o modo leitor, a diagramação do livro e o Codex dos jogadores.
+**Ajuda em cada tela.** No alto de cada tela há um botão (?) que mostra, parte por parte, como aquela tela funciona: destaca cada pedaço e explica para que serve, sem mexer em nada. Vale para todas as áreas do universo (do Início ao Atlas, à Estrutura e aos Ajustes, e a página em branco do Escrever), cada aba da mesa, o início do app (Escrita, RPG e Oficina), os guias da Oficina, o treino e o resultado dele, o modo leitor, a diagramação do livro e o Codex dos jogadores.
+
+As janelas que funcionam como tela também têm o (?), ao lado do fechar: Revisão (nomes novos e perguntas), Versões da cena, Revisar o livro, Compartilhar, Entrar, Sua conta, o perfil de outra pessoa, Seus treinos, Placar, Medalhas, o dado de verdade e o “Rolar como…” do jogador.
 
 - O tour do Escrever e o tour principal explicam os nomes novos: o Papirus não os marca no texto; o botão Revisar, na margem, conta quantos nomes com maiúscula ainda não têm ficha e abre a lista para criar a ficha, juntar como apelido ou ignorar. No celular, a margem abre pelo botão no alto da página.
 - O tour principal termina mostrando o (?).
 - Na apresentação, a telinha do primeiro passo da escrita mostra os nomes novos como o app mostra: no botão Revisar, sem marca no texto.
+- Conserto: nas janelas com lista comprida, as abas de cima eram espremidas até sumir (na Revisão, “Perguntas” e “Pendências” não apareciam). Agora quem rola é a janela, e nada dentro dela encolhe.
 
 ## 1.1.0 — 28 de outubro de 2026
 

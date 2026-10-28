@@ -63,6 +63,16 @@ export const PAGE_TOURS = {
       { target: '.write-foot', title: 'Rodapé', body: 'As palavras da cena e as de hoje (com a meta), e o Sprint: escrever sem parar por alguns minutos.' },
     ],
   },
+  'escrever-vazio': {
+    title: 'Escrever',
+    steps: [
+      { target: '.write-welcome .btn', title: 'A primeira cena', body: 'Cria uma cena solta e abre a página para escrever. Histórias e capítulos podem vir depois, no Manuscrito, ou nunca.' },
+      {
+        title: 'Depois da primeira cena',
+        body: 'Esta tela vira a página de escrever. O (?) passa a mostrar o texto, a barra da seleção, os nomes novos (contados no botão Revisar da margem), os detalhes da cena e o rodapé com as metas e o Sprint.',
+      },
+    ],
+  },
   organizar: {
     title: 'Estrutura',
     steps: [
@@ -190,6 +200,119 @@ export const PAGE_TOURS = {
       },
       { target: '.settings-grid', title: 'Os ajustes', body: 'Tudo muda na hora e fica salvo. Apagar o universo pede confirmação.' },
       { title: 'Ajuda', body: 'Em Menu e ajuda dá para refazer o tour completo. Em cada tela, o botão (?) explica só ela.' },
+    ],
+  },
+
+  // ─── Janelas que funcionam como tela ─────────────────────────────
+  revisao: {
+    title: 'Revisão',
+    steps: [
+      {
+        target: '.modal .tabs',
+        title: 'Três listas',
+        body: 'Nomes novos (palavras com maiúscula, no meio da frase, que ainda não têm ficha), Perguntas de continuidade e Pendências (o que você marcou como erro, fatos em rascunho e ideias esperando).',
+      },
+      { target: '.review-toolbar', title: 'Onde procurar', body: 'Só nesta cena ou em todo o manuscrito. Marque vários nomes para criar as fichas ou ignorar de uma vez.', optional: true },
+      {
+        target: '.candidate',
+        title: 'Cada nome novo',
+        body: 'Quantas vezes aparece e um trecho onde está. Criar ficha (escolha o tipo), “É outro nome de…” (vira apelido de uma ficha), Deixar em aberto ou Ignorar (nunca mais sugerir; dá para desfazer em Ajustes → Escrita).',
+        optional: true,
+      },
+      { title: 'Só uma sugestão', body: 'A busca é simples e pode errar ou deixar passar nomes. Nada é criado sem o seu clique.' },
+    ],
+  },
+  versoes: {
+    title: 'Versões',
+    steps: [
+      { target: '#version-name', title: 'Guardar o texto atual', body: 'Dê um nome (como “antes de mudar o final”) e guarde. Além disso, a cena guarda sozinha uma versão por dia.' },
+      { target: '.version-list', title: 'As versões', body: 'Toque numa para comparar com o texto de agora.', optional: true },
+      { target: '.version-detail', title: 'Comparar e voltar', body: 'O que entrou e o que saiu desde aquela versão. “Voltar para esta versão” guarda o texto atual como versão antes, então nada se perde.', optional: true },
+    ],
+  },
+  'revisar-livro': {
+    title: 'Revisar o livro',
+    steps: [
+      {
+        target: '.review-group',
+        title: 'Apontamentos',
+        body: 'Agrupados por tipo: cenas vazias ou sem título, travessões, aspas, reticências, espaços, grafia, frases longas, palavras repetidas perto e cenas curtas.',
+        optional: true,
+      },
+      { target: '.review-group .btn', title: 'Corrigir de uma vez', body: 'A tipografia (travessões, aspas, reticências, espaços) se corrige no livro todo com um toque, e dá para desfazer.', optional: true },
+      { target: '.review-item', title: 'Ir até o trecho', body: 'Toque num apontamento para abrir a cena no lugar certo.', optional: true },
+      { title: 'O livro é seu', body: 'São só apontamentos. Repetição pode ser estilo, e frase longa pode ser de propósito.' },
+    ],
+  },
+  compartilhar: {
+    title: 'Compartilhar',
+    steps: [
+      { target: '.share-intro', title: 'Três jeitos', body: 'Pode ver (lê tudo, não muda nada), Pode editar (escreve junto, ao vivo) e Link de leitura (quem tiver o link lê sem conta).', optional: true },
+      { target: '.share-invite', title: 'Convidar', body: 'O e-mail da pessoa e o que ela pode fazer. Ela entra no Papirus com esse e-mail e o universo aparece em “Compartilhados com você”.', optional: true },
+      { target: '.share-members', title: 'Quem tem acesso', body: 'Troque o que cada pessoa pode fazer, ou tire o acesso, quando quiser.', optional: true },
+      { target: '[aria-labelledby="share-link"]', title: 'Link de leitura', body: 'Para quem não tem conta: leitores beta, a mesa de RPG. Abre como livro ou como o universo inteiro. Trocar o link faz o antigo parar de funcionar.', optional: true },
+      { target: '[aria-labelledby="share-segredos"]', title: 'Segredos', body: 'Desmarcado, fichas, fatos e relações secretas e os trechos de segredo não saem do seu Papirus para quem só lê. Quem pode editar vê tudo.', optional: true },
+      { title: 'Quem garante', body: 'Quem pode o quê é o servidor que garante, não só a tela.' },
+    ],
+  },
+  entrar: {
+    title: 'Entrar',
+    steps: [
+      { target: '.account-hero', title: 'A conta é opcional', body: 'Sem conta, tudo fica neste navegador. Com conta, os universos vão para todos os seus aparelhos e você ganha um perfil para amigos verem a sua estante.' },
+      { target: '.account-tabs', title: 'Entrar ou criar', body: 'Já tem conta? Entre. Senão, crie em dois passos: o acesso e o seu perfil (o @ é como as pessoas te acham).', optional: true },
+      { target: '.account-form', title: 'E-mail e senha', body: 'O olho ao lado da senha mostra o que você digitou.', optional: true },
+    ],
+  },
+  conta: {
+    title: 'Sua conta',
+    steps: [
+      { target: '.social-me', title: 'Você', body: 'O seu nome, o seu @ e o e-mail da conta.' },
+      {
+        target: '.social-tabs',
+        title: 'As seções',
+        body: 'Novidades (o que os amigos fizeram), Perfil (nome, foto, o seu link e se os amigos sabem quando você bate a meta), Amigos (procure pelo @ e aceite pedidos), Desafios (entre amigos) e Conta (sincronização dos universos e sair).',
+      },
+      { title: 'Seus livros', body: 'Só aparecem no seu perfil se você escolher, livro por livro, na página Livro: só você, amigos ou todo mundo.' },
+    ],
+  },
+  perfil: {
+    title: 'Perfil',
+    steps: [
+      { target: '.social-profile-head', title: 'A pessoa', body: 'Nome, @ e a apresentação. Aqui você pede amizade, aceita um pedido ou desfaz a amizade.' },
+      { target: '.social-person-view .social-h', title: 'Estante', body: 'Os livros que a pessoa mostrou para você (só os de amigos ou de todo mundo). Dá para ler direto, dizer que quer ler e comentar.', optional: true },
+    ],
+  },
+  treinos: {
+    title: 'Seus treinos',
+    steps: [
+      { target: '.treino-stats', title: 'Os números', body: 'Quantos treinos, quantos bateram o mínimo, os dias seguidos e o seu melhor ritmo.', optional: true },
+      { target: '.treino-list', title: 'Cada treino', body: 'A proposta e o resultado. Toque para ler o texto e refazer o mesmo desafio.', optional: true },
+      { target: '.treino-text', title: 'O texto', body: 'O que você escreveu naquele treino.', optional: true },
+      { target: '.treino-detail-actions', title: 'Refazer', body: 'Faça o mesmo desafio de novo e compare com as outras tentativas.', optional: true },
+      { target: '.treino-cloud', title: 'Onde ficam', body: 'Só neste aparelho, ou na nuvem com uma conta (e aí no placar).' },
+    ],
+  },
+  placar: {
+    title: 'Placar',
+    steps: [
+      { target: '.placar-switches', title: 'De quem e quando', body: 'Entre amigos ou de todo mundo; na semana ou no mês.' },
+      { target: '.placar-list', title: 'As posições', body: 'Os pontos, os dias e os treinos de cada um. Só números: o texto nunca aparece.', optional: true },
+      { target: '.placar-empty', title: 'Sem conta', body: 'Os seus pontos neste aparelho. Com uma conta, você entra no placar.', optional: true },
+      { target: '.placar-vis', title: 'Quem vê os seus pontos', body: 'Ninguém, os amigos ou todo mundo. Você sempre vê a sua linha.', optional: true },
+      { target: '.placar-how', title: 'Como contam os pontos', body: 'Os minutos de treino com o mínimo batido, até 60 por dia. O servidor confere cada treino e deixa de fora o que foi colado ou chegou dias depois.' },
+    ],
+  },
+  medalhas: {
+    title: 'Medalhas',
+    steps: [{ target: '.play-medal-list', title: 'As medalhas', body: 'Cada uma e como ganhar. As que faltam ficam com o cadeado. Nada disso é obrigatório: é só para quem gosta.' }],
+  },
+  'dado-fisico': {
+    title: 'Dado de verdade',
+    steps: [
+      { target: '.physical-roll-what', title: 'A rolagem', body: 'Quem rola, o quê e a fórmula, com os bônus da ficha já somados.' },
+      { target: '.physical-roll-dice, .physical-roll .field', title: 'O que saiu', body: 'Role os dados de verdade e digite o número de cada um. Com muitos dados, um campo só, com os números separados por espaço.', optional: true },
+      { target: '.physical-roll-result', title: 'A conta', body: 'O total, o crítico e, num ataque com alvo, se acerta.' },
+      { target: '.physical-roll .inline-fields', title: 'Registrar', body: '“Registrar” manda para a bandeja e o registro. Sem dados à mão? “Rolar no app” sorteia.' },
     ],
   },
 
@@ -360,6 +483,27 @@ export const PAGE_TOURS = {
       { target: '.treino-custom', title: 'Do seu jeito', body: 'Outro tempo e outro mínimo.', optional: true },
       { target: '.treino-go', title: 'Começar', body: 'O relógio corre em cima; dá para pausar e terminar antes. Embaixo, quanto você já escreveu e quanto falta para o mínimo.' },
       { title: 'Depois', body: 'Cada treino fica guardado com o texto, para refazer e comparar. Com conta, vai para a nuvem e entra no placar: pontos são os minutos com o mínimo batido, até 60 por dia.' },
+    ],
+  },
+  'treino-resultado': {
+    title: 'Resultado do treino',
+    steps: [
+      { target: '.treino-stats', title: 'Como foi', body: 'Palavras, caracteres, o tempo e o ritmo. Quando você bate o seu melhor neste desafio, aparece o recorde.', optional: true },
+      {
+        target: '.treino-result-actions',
+        title: 'E agora',
+        body: 'Refazer o mesmo desafio, guardar o texto como uma cena (dentro de um universo), escolher outro treino ou ver todos os seus treinos.',
+      },
+    ],
+  },
+  rolar: {
+    title: 'Rolar',
+    steps: [
+      { target: '.player-sheet .segmented', title: 'Dado de verdade ou no celular', body: 'Com o dado de verdade, você rola na mesa e digita o que saiu. No celular, ele sorteia.' },
+      { target: '.player-sheet-attacks', title: 'Ataques', body: 'O teste (com o bônus) e o dano. Em combate, você escolhe em quem; o mestre confere a Defesa e o “acerta” volta para todos.', optional: true },
+      { target: '[aria-labelledby="ps-atr"]', title: 'Atributos', body: 'Toque para rolar, já com os números da sua ficha.', optional: true },
+      { target: '[aria-labelledby="ps-per"]', title: 'Perícias', body: 'As treinadas aparecem primeiro; procure qualquer outra pelo nome.', optional: true },
+      { target: '[aria-labelledby="ps-dados"]', title: 'Dado livre', body: 'Um d4, d6, d8, d10, d12, d20 ou d100, sem ficha.' },
     ],
   },
   'codex-jogador': {
