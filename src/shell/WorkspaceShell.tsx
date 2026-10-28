@@ -40,6 +40,9 @@ import { ReaderView } from '../reader/ReaderView'
 import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
+import { WritingGate } from './WritingGate'
+import { useMesaSector } from '../rpg/useMesaSector'
+import { mesaTheme } from '../rpg/themes'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -315,6 +318,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [backupDue, prefs.autoBackup, downloadBackup, toast])
 
   const kind = universeKind(universe)
+  // Numa campanha, o universo inteiro fica no clima da mesa (o tema do grupo aberto).
+  const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
+  const campaignGroup = universe.groups.find((g) => g.id === recall(`rpg-grupo:${universe.id}`)) ?? universe.groups[0]
+  const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
+  useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), kind === 'campanha')
   const hidden = useMemo(() => hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), [universe, prefs.menus, prefs.hiddenViews])
   const ws: Workspace = useMemo(
     () => ({
@@ -510,6 +518,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
+          {kind === 'escrita' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
           {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
           {isSample(universe) && !sampleNoteClosed && (
             <div className="sample-banner" role="status">
