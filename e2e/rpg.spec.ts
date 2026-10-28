@@ -26,14 +26,33 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
   await page.getByRole('button', { name: 'Criar personagem' }).click()
   await page.getByRole('textbox', { name: 'Agilidade' }).fill('3')
   await page.getByRole('textbox', { name: 'Valor de Furtividade' }).fill('5')
+  // Dados na mesa (o padrão): rola os dados de verdade e diz o que saiu; o app faz a conta.
   await page.getByRole('button', { name: /^Furtividade/ }).click()
+  const quanto = page.getByRole('dialog', { name: 'Quanto saiu no dado?' })
+  await expect(quanto).toContainText('3d20kh1+5')
+  await quanto.getByRole('spinbutton', { name: 'Resultado do 1º dado (d20)' }).fill('4')
+  await quanto.getByRole('spinbutton', { name: 'Resultado do 2º dado (d20)' }).fill('17')
+  await quanto.getByRole('spinbutton', { name: 'Resultado do 3º dado (d20)' }).fill('25')
+  await expect(quanto.getByRole('status')).toContainText('de 1 a 20')
+  await quanto.getByRole('spinbutton', { name: 'Resultado do 3º dado (d20)' }).fill('9')
+  await expect(quanto.getByRole('status')).toContainText('Total 22')
+  await quanto.getByRole('button', { name: 'Registrar' }).click()
 
   await expect(tray(page)).toContainText('Dante · Furtividade')
   await expect(tray(page)).toContainText('3d20kh1+5')
+  await expect(tray(page)).toContainText('[4, 17, 9]')
   await expect(tray(page)).toContainText('no registro')
 
+  // No app: o app sorteia, sem perguntar.
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'No app' }).click()
+  await page.getByRole('button', { name: /^Furtividade/ }).click()
+  await expect(quanto).toHaveCount(0)
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'Na mesa' }).click()
+
   await page.getByRole('tab', { name: 'Sessões' }).click()
-  await expect(page.locator('.log-roll')).toContainText('Dante — Furtividade')
+  await expect(page.locator('.log-roll')).toHaveCount(2)
+  await expect(page.locator('.log-roll').first()).toContainText('Dante — Furtividade: 22')
+  await expect(page.locator('.log-roll').first()).toContainText('dado físico')
 })
 
 test('recursos: dano e cura respeitam o máximo', async ({ page }) => {
@@ -135,4 +154,22 @@ test('a mesa é outro setor: o app muda de clima ao entrar e volta ao sair', asy
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await expect(page.locator('body')).not.toHaveAttribute('data-sector', 'mesa')
   expect(await bg()).toBe(before)
+})
+
+test('o mestre escolhe o tema da mesa pelo gênero; claro ou escuro segue cada pessoa', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^RPG/ }).click()
+  // Sem escolha, vale o sugerido pelo sistema (D&D → Pergaminho).
+  await expect(page.locator('body')).toHaveAttribute('data-mesa-tema', 'pergaminho')
+  await page.getByRole('button', { name: 'Tema', exact: true }).click()
+  const temas = page.getByRole('dialog', { name: 'Tema da mesa' })
+  await expect(temas.getByRole('radio', { name: /Pergaminho.*sugerido/ })).toHaveAttribute('aria-checked', 'true')
+  await temas.getByRole('radio', { name: /^Abismo/ }).click()
+  await expect(page.locator('body')).toHaveAttribute('data-mesa-tema', 'abismo')
+  await temas.getByRole('button', { name: 'Fechar' }).click()
+  // "Sem tema": as cores de sempre.
+  await page.getByRole('button', { name: 'Tema', exact: true }).click()
+  await temas.getByRole('radio', { name: /^Sem tema/ }).click()
+  await expect(page.locator('body')).not.toHaveAttribute('data-mesa-tema', /.+/)
 })

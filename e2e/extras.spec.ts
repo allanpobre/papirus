@@ -146,6 +146,7 @@ test('Na mesa: começa a sessão, anota, rola e ajusta recursos', async ({ page 
   await openSample(page)
   await nav(page, 'RPG').click()
   await page.getByRole('tab', { name: 'Na mesa' }).click()
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'No app' }).click()
   const start = page.getByRole('button', { name: /^Começar/ })
   if (await start.count()) await start.click()
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('O grupo entrou na torre.')

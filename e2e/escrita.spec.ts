@@ -241,6 +241,7 @@ test('dados: rola expressões e recusa as inválidas', async ({ page }) => {
   await openSample(page)
   await nav(page, 'RPG').click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'No app' }).click()
   await page.getByRole('textbox', { name: 'Rolagem' }).fill('2d6+100')
   await page.getByRole('button', { name: 'Rolar', exact: true }).first().click()
   const total = Number(await page.locator('.dice-total').textContent())

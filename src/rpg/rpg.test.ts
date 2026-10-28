@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Sheet } from '../model/schema'
-import { describeOutcome, expandFormula, modifier, resolveRoll, rollAttribute, rollInitiative, rollSkill } from './rolls'
+import { describeOutcome, expandFormula, modifier, physicalRoll, resolveRoll, rollAttribute, rollInitiative, rollSkill } from './rolls'
 import { adjustResource, draftSheet } from './sheets'
 import { makeSystem, SYSTEM_TEMPLATES } from './systems'
 
@@ -110,5 +110,27 @@ describe('recursos', () => {
     const sheet = sheetOf(sys)
     expect(adjustResource(sheet, pv, -4)[pv]).toEqual({ current: 6, max: 10 })
     expect(adjustResource(sheet, pv, 50)[pv]).toEqual({ current: 10, max: 10 })
+  })
+})
+
+describe('dado físico', () => {
+  it('usa o que saiu no dado e faz o resto da conta', () => {
+    const sys = makeSystem('t20')
+    const digital = resolveRoll(sys, 'Luta', '1d20+5')
+    const fisico = physicalRoll(sys, digital, [14])
+    expect(fisico.result.total).toBe(19)
+    expect(fisico.physical).toBe(true)
+    expect(physicalRoll(sys, digital, [20]).tone).toBe('critico')
+    expect(() => physicalRoll(sys, digital, [21])).toThrow('de 1 a 20')
+    expect(() => physicalRoll(sys, resolveRoll(sys, 'Dano', '2d6+3'), [4])).toThrow('2 dados')
+    expect(physicalRoll(sys, resolveRoll(sys, 'Dano', '2d6+3'), [4, 6]).result.total).toBe(13)
+  })
+
+  it('mantém o alvo dos sistemas "abaixo de"', () => {
+    const sys = makeSystem('d100')
+    const o = resolveRoll(sys, 'Esconder', '1d100', 60)
+    const f = physicalRoll(sys, o, [25])
+    expect(f.label).toBe('Esconder (60)')
+    expect(f.verdict).toBe('Sucesso difícil')
   })
 })

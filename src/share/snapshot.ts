@@ -4,6 +4,7 @@ import { stripSecrets } from '../logic/secrets'
 import { formatYear, kindPlural } from '../model/labels'
 import type { Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
+import { mesaTheme } from '../rpg/themes'
 
 /**
  * O Codex de uma mesa como os jogadores o veem, em dados simples e já filtrados:
@@ -23,17 +24,22 @@ export interface CodexSnapshot {
   facts: { text: string; tag: string }[]
   clues: { text: string; mystery: string }[]
   maps: { name: string; image: string; width: number; height: number; pins: { x: number; y: number; label: string }[] }[]
+  /** Tema da mesa (cores por gênero) escolhido pelo mestre; os jogadores só escolhem claro ou escuro. */
+  theme?: string | null
 }
 
 export function codexSnapshot(universe: Universe, groupId: string, untilSession?: number): CodexSnapshot {
   const codex = codexFor(universe, groupId, untilSession)
+  const group = byId(universe, 'groups', groupId)
+  const system = group?.systemId ? universe.systems.find((x) => x.id === group.systemId) : undefined
   const suffix = universe.settings.calendarSuffix
   const kinds = [...new Set(codex.entries.map((e) => e.entity.kind))]
 
   return {
     v: 1,
     universe: universe.name,
-    group: byId(universe, 'groups', groupId)?.name ?? '',
+    group: group?.name ?? '',
+    theme: mesaTheme(group?.theme, system?.name),
     at: new Date().toISOString(),
     party: codex.sheets.map((s) => {
       const system = universe.systems.find((x) => x.id === s.systemId)
