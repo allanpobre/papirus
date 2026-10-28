@@ -16,6 +16,7 @@ import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
+import { useTableRolls } from '../share/useTableRolls'
 import { isLocalOnly, isSample } from '../model/sample'
 import { wordsToday } from '../logic/stats'
 import { recordToday } from '../social/dailyWords'
@@ -239,6 +240,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     }
   }, [readOnly, tracked, toast, source.kind])
   useReadOnlyInputs(readOnly)
+  // Rolagens feitas pelos jogadores no Codex chegam aqui, vão para o registro e para a bandeja da mesa.
+  useTableRolls(universe, prefs, tracked, !readOnly)
 
   const applyRemote = useCallback(
     (next: Universe, changedScenes: string[]) => {

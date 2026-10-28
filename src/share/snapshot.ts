@@ -5,8 +5,9 @@ import { formatYear, kindPlural } from '../model/labels'
 import type { GameSystem, Sheet, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { mesaTheme } from '../rpg/themes'
-import { bonusLabel, expandFormula, skillExpression } from '../rpg/rolls'
-import { costResource, isPool } from '../rpg/sheets'
+import { initiativeOrder, isDown } from '../rpg/combat'
+import { attributeExpression, bonusLabel, damageExpression, skillExpression, type RollRules } from '../rpg/rolls'
+import { costResource, critFrom, critMult, isPool } from '../rpg/sheets'
 
 /**
  * O Codex de uma mesa como os jogadores o veem, em dados simples e já filtrados:
@@ -32,6 +33,8 @@ export interface CodexSnapshot {
     attacks?: { name: string; test: string; damage: string; critical: string }[]
     abilities?: { name: string; cost: string; text: string }[]
     inventory?: [string, number][]
+    /** O que o jogador pode rolar pelo Codex, já com os números da ficha. */
+    rolls?: CodexRoll[]
   }[]
   sections: { title: string; entries: { name: string; summary: string; description: string; depth: 'nome' | 'resumo' | 'completo'; fresh?: boolean; image?: string }[] }[]
   events: { when: string; title: string; year?: number; fresh?: boolean }[]
@@ -42,6 +45,68 @@ export interface CodexSnapshot {
   maps: { name: string; image: string; width: number; height: number; pins: { x: number; y: number; label: string }[] }[]
   /** Tema da mesa (cores por gênero) escolhido pelo mestre; os jogadores só escolhem claro ou escuro. */
   theme?: string | null
+  /** Como ler as rolagens feitas pelo Codex (sem sistema, não há rolagens). */
+  rules?: RollRules
+  /** Combate em andamento: a ordem e de quem é a vez. A vida e a Defesa dos inimigos não vêm. */
+  combat?: { round: number; order: { id: string; name: string; pc: boolean; current: boolean; down: boolean }[] } | null
+}
+
+/** Uma rolagem da ficha, pronta para o Codex. */
+export interface CodexRoll {
+  kind: 'atributo' | 'pericia' | 'ataque'
+  name: string
+  expression: string
+  /** Perícia treinada (aparece primeiro). */
+  trained?: boolean
+  /** Sistemas "abaixo de": o valor a não passar. */
+  target?: number
+  critFrom?: number
+  /** Ataques: o dano, já com os números, e o multiplicador do crítico. */
+  damage?: string
+  mult?: number
+}
+
+function rollsOf(system: GameSystem, s: Sheet): CodexRoll[] {
+  const below = system.resolution === 'abaixo'
+  const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))
+  return [
+    ...(s.attacks ?? []).map((a): CodexRoll => ({
+      kind: 'ataque',
+      name: a.name || 'Ataque',
+      expression: system.resolution === 'total' ? `1d20${signed(a.bonus)}` : '',
+      ...(critFrom(a.critical) < 20 ? { critFrom: critFrom(a.critical) } : {}),
+      damage: damageExpression(system, s, a.damage),
+      mult: critMult(a.critical),
+    })),
+    ...system.attributes.map((a): CodexRoll => ({
+      kind: 'atributo',
+      name: a.name,
+      expression: attributeExpression(system, s, a.id),
+      ...(below ? { target: s.attributes[a.id] ?? a.default } : {}),
+    })),
+    ...system.skills.map((k): CodexRoll => ({
+      kind: 'pericia',
+      name: k.name,
+      expression: skillExpression(system, s, k.id),
+      ...((s.skills[k.id] ?? 0) !== 0 ? { trained: true } : {}),
+      ...(below ? { target: s.skills[k.id] ?? 0 } : {}),
+    })),
+  ]
+}
+
+/** O combate da sessão em andamento da mesa, como os jogadores podem ver. */
+function combatOf(universe: Universe, groupId: string): CodexSnapshot['combat'] {
+  const session = universe.sessions.find((x) => x.groupId === groupId && x.status === 'em-andamento')
+  if (!session?.initiative.length) return null
+  const order = initiativeOrder(session)
+  const turn = session.turn % order.length
+  return {
+    round: session.round,
+    order: order.map((e, i) => {
+      const sheet = e.sheetId ? byId(universe, 'sheets', e.sheetId) : undefined
+      return { id: e.id, name: e.name, pc: sheet?.role === 'pj', current: i === turn, down: isDown(universe, e) }
+    }),
+  }
 }
 
 export function codexSnapshot(universe: Universe, groupId: string, untilSession?: number): CodexSnapshot {
@@ -56,6 +121,8 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     universe: universe.name,
     group: group?.name ?? '',
     theme: mesaTheme(group?.theme, system?.name),
+    ...(system ? { rules: { resolution: system.resolution, successTarget: system.successTarget } } : {}),
+    combat: combatOf(universe, groupId),
     at: new Date().toISOString(),
     party: codex.sheets.map((s) => {
       const system = universe.systems.find((x) => x.id === s.systemId)
@@ -73,9 +140,10 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
         values: (system?.resources ?? []).filter((r) => !isPool(r)).map((r) => [r.abbr, res(r.id, r.default).current] as [string, number]),
         conditions: s.conditions,
         skills: system ? system.skills.filter((k) => (s.skills[k.id] ?? 0) !== 0).map((k) => [k.name, bonusLabel(skillExpression(system, s, k.id))] as [string, string]) : [],
-        attacks: (s.attacks ?? []).map((a) => ({ name: a.name, test: system?.resolution === 'total' ? signed(a.bonus) : '', damage: damageText(a.damage, system, s), critical: a.critical })),
+        attacks: (s.attacks ?? []).map((a) => ({ name: a.name, test: system?.resolution === 'total' ? signed(a.bonus) : '', damage: damageExpression(system, s, a.damage), critical: a.critical })),
         abilities: (s.abilities ?? []).map((a) => ({ name: a.name, cost: a.cost > 0 && cost ? `${a.cost} ${cost.abbr}` : '', text: a.text })),
         inventory: (s.inventory ?? []).map((i) => [i.name, i.qty] as [string, number]),
+        ...(system ? { rolls: rollsOf(system, s) } : {}),
       }
     }),
     sections: kinds.map((k) => ({
@@ -121,15 +189,11 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
 export const isEmptySnapshot = (s: CodexSnapshot) =>
   !s.party.length && !s.sections.length && !s.events.length && !s.facts.length && !s.clues.length && !s.maps.length && !(s.relations ?? []).length
 
+/** Mudou algo revelado (não só a vida do grupo ou a vez no combate): vale o aviso de novidades. */
+export const sameReveals = (a: CodexSnapshot, b: CodexSnapshot) => {
+  const pick = (c: CodexSnapshot) => JSON.stringify([c.sections, c.events, c.relations ?? [], c.facts, c.clues, c.maps.map((m) => [m.name, m.pins]), c.party.map((p) => p.name)])
+  return pick(a) === pick(b)
+}
+
 /** Compara dois retratos ignorando a hora, para saber se vale publicar de novo. */
 export const sameContent = (a: CodexSnapshot, b: CodexSnapshot) => JSON.stringify({ ...a, at: '' }) === JSON.stringify({ ...b, at: '' })
-
-/** Dano com os atributos já trocados pelos números ("1d8+{FOR}" vira "1d8+3"). */
-function damageText(damage: string, system: GameSystem | undefined, sheet: Sheet): string {
-  if (!system || !damage.trim()) return damage
-  try {
-    return expandFormula(damage, { system, sheet })
-  } catch {
-    return damage
-  }
-}

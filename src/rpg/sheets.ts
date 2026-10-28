@@ -64,3 +64,21 @@ export function critFrom(critical: string): number {
   const n = m ? Number(m[1]) : 20
   return n >= 2 && n <= 20 ? n : 20
 }
+
+/** Multiplicador do crítico de "19/x2" ou "x3" (2 quando não diz). */
+export function critMult(critical: string): number {
+  const m = critical.match(/[x×*]\s*(\d)/i)
+  const n = m ? Number(m[1]) : 2
+  return n >= 2 && n <= 6 ? n : 2
+}
+
+/** O valor fixo que um ataque precisa alcançar: Defesa, CA… */
+export const defenseResource = (system: GameSystem | undefined) =>
+  system?.resources.find((r) => !isPool(r) && (/^(def|ca)\b/i.test(r.abbr.trim()) || /defesa|armadura/i.test(r.name)))
+
+/** Como chamar a Defesa no texto: o nome quando é curto ("Defesa"), senão a sigla ("CA"). */
+export function defenseLabel(system: GameSystem | undefined): string {
+  const r = defenseResource(system)
+  if (!r) return 'Defesa'
+  return r.name.length <= 8 ? r.name : r.abbr
+}

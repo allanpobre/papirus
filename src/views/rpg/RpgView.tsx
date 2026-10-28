@@ -3,10 +3,12 @@ import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../../styles/mesa.css'
 import { tabListKeys } from '../../ui/keys'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MesaGate } from './MesaGate'
 import { draftGroup, insert, newId, patch } from '../../model/universe'
-import { describeOutcome, type RollOutcome } from '../../rpg/rolls'
+import { applyDamage, lifeOf } from '../../rpg/combat'
+import { critDamage, damageAfter, describeOutcome, landed, type RollOutcome } from '../../rpg/rolls'
+import { onIncomingRoll } from '../../share/useTableRolls'
 import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
 import { Empty } from '../../ui/bits'
@@ -81,6 +83,12 @@ interface TrayRoll {
   outcome: RollOutcome
   who?: string
   logged: boolean
+  /** Como ficou o alvo depois que o dano saiu da vida dele. */
+  applied?: string
+  /** Rolada no celular do jogador, pelo Codex. */
+  remote?: boolean
+  /** O dano deste ataque já foi rolado. */
+  followed?: boolean
 }
 
 export default function RpgView() {
@@ -134,6 +142,29 @@ export default function RpgView() {
     },
     [physical, show],
   )
+
+  // Rolagens dos jogadores pelo Codex: já estão no registro; aqui só aparecem na bandeja.
+  const groupKey = group?.id
+  useEffect(
+    () =>
+      onIncomingRoll((r) => {
+        if (r.groupId === groupKey) setTray((t) => [{ id: newId(), outcome: r.outcome, who: r.who, logged: r.logged, remote: true }, ...t].slice(0, 4))
+      }),
+    [groupKey],
+  )
+
+  // Dano de um ataque mirado: sai da vida do alvo (da ficha, ou do PV anotado na iniciativa).
+  const hurt = (r: TrayRoll) => {
+    const target = r.outcome.combat?.target
+    if (!activeSession || !target) return
+    const amount = r.outcome.result.total
+    const done = applyDamage(universe, activeSession.id, target.id, amount)
+    if (!done) return
+    update((u) => applyDamage(u, activeSession.id, target.id, amount)?.universe ?? u)
+    const now = `${done.current}${done.max !== null ? `/${done.max}` : ''}`
+    logText(`${done.name} perde ${amount} ${done.abbr} (fica com ${now})${done.down ? ' · derrotado' : ''}`)
+    setTray((t) => t.map((x) => (x.id === r.id ? { ...x, applied: `${done.name}: ${done.abbr} ${now}${done.down ? ' · derrotado' : ''}` } : x)))
+  }
 
   const ctx: RpgState | null = useMemo(
     () => (group ? { group, system, activeSession, report, logText } : null),
@@ -300,22 +331,54 @@ export default function RpgView() {
       )}
       {tray.length > 0 && (
         <aside className="dice-tray" aria-label="Últimas rolagens" aria-live="polite">
-          {tray.map((r, i) => (
-            <div key={r.id} className={`tray-roll tone-${r.outcome.tone}${i === 0 ? ' tray-latest' : ''}`}>
-              <span className="tray-total tabular">{r.outcome.result.total}</span>
-              <span className="tray-body">
-                <span className="tray-label">
-                  {r.who ? `${r.who} · ` : ''}
-                  {r.outcome.label}
+          {tray.map((r, i) => {
+            const c = r.outcome.combat
+            const entry = c && activeSession?.initiative.find((e) => e.id === c.target.id)
+            const life = entry ? lifeOf(universe, entry) : null
+            const canHurt = c?.hurts && !r.applied && r.outcome.result.total > 0
+            const crit = r.outcome.tone === 'critico'
+            return (
+              <div key={r.id} className={`tray-roll tone-${r.outcome.tone}${i === 0 ? ' tray-latest' : ''}`}>
+                <span className="tray-total tabular">{r.outcome.result.total}</span>
+                <span className="tray-body">
+                  <span className="tray-label">
+                    {r.who ? `${r.who} · ` : ''}
+                    {r.outcome.label}
+                  </span>
+                  <span className="tray-detail">
+                    {r.outcome.verdict && <strong>{r.outcome.verdict} · </strong>}
+                    {c && !c.hurts && c.target.defense !== null && `${c.target.defenseLabel} ${c.target.defense} · `}
+                    {r.outcome.expression} {r.outcome.result.parts.filter((p) => p.rolls.length).map((p) => `[${p.rolls.join(', ')}]`).join(' ')}
+                    {r.remote && ' · pelo Codex'}
+                    {r.logged && ' · no registro'}
+                  </span>
+                  {c && !r.followed && landed(r.outcome) && c.damage?.expression.trim() && (
+                    <button
+                      type="button"
+                      className="btn btn-sm tray-act"
+                      onClick={() => {
+                        const next = damageAfter(system ?? FALLBACK, r.outcome)
+                        if (!next) return
+                        setTray((t) => t.map((x) => (x.id === r.id ? { ...x, followed: true } : x)))
+                        report(next, r.who)
+                      }}
+                    >
+                      Rolar dano{crit ? ' crítico' : ''} ({crit ? critDamage(c.damage.expression, c.damage.mult) : c.damage.expression})
+                    </button>
+                  )}
+                  {canHurt &&
+                    (life ? (
+                      <button type="button" className="btn btn-sm tray-act" onClick={() => hurt(r)}>
+                        Tirar {r.outcome.result.total} {life.abbr} de {c.target.name}
+                      </button>
+                    ) : (
+                      <span className="tray-note">Anote o PV de {c.target.name} na iniciativa para descontar.</span>
+                    ))}
+                  {r.applied && <span className="tray-note tray-applied">{r.applied}</span>}
                 </span>
-                <span className="tray-detail">
-                  {r.outcome.verdict && <strong>{r.outcome.verdict} · </strong>}
-                  {r.outcome.expression} {r.outcome.result.parts.filter((p) => p.rolls.length).map((p) => `[${p.rolls.join(', ')}]`).join(' ')}
-                  {r.logged && ' · no registro'}
-                </span>
-              </span>
-            </div>
-          ))}
+              </div>
+            )
+          })}
           <button type="button" className="btn-icon btn-sm tray-close" aria-label="Limpar rolagens" onClick={() => setTray([])}>
             <X size={14} />
           </button>

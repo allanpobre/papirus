@@ -350,19 +350,21 @@ export function ostriaUniverse(): Universe {
   const skill = (name: string) => sistema.skills.find((k) => k.name === name)!.id
   const pv = sistema.resources[0].id
   const ca = sistema.resources[1].id
-  const pc = (name: string, player: string, attrs: Record<string, number>, skills: Record<string, number>, hp: number, armor: number, fields: Record<string, string>) => {
+  const weapon = (name: string, bonus: number, damage: string, critical = '') => ({ id: crypto.randomUUID(), name, bonus, damage, critical })
+  const pc = (name: string, player: string, attrs: Record<string, number>, skills: Record<string, number>, hp: number, armor: number, fields: Record<string, string>, attacks: ReturnType<typeof weapon>[]) => {
     const base = draftSheet(name, sistema, { role: 'pj', player, groupId: grupo.id })
     ;[u] = insert(u, 'sheets', {
       ...base,
+      attacks,
       attributes: { ...base.attributes, ...Object.fromEntries(Object.entries(attrs).map(([k, v]) => [attr(k), v])) },
       skills: { ...base.skills, ...Object.fromEntries(Object.entries(skills).map(([k, v]) => [skill(k), v])) },
       resources: { ...base.resources, [pv]: { current: hp, max: hp }, [ca]: { current: armor, max: armor } },
       fields: { ...base.fields, ...fields },
     })
   }
-  pc('Brisa', 'Ana', { FOR: 8, DES: 16, CON: 12, INT: 13, SAB: 10, CAR: 14 }, { Furtividade: 4, Prestidigitação: 2, Percepção: 2, Enganação: 2 }, 22, 14, { 'Classe e nível': 'Ladina 3', Raça: 'Meio-elfa', Antecedente: 'Criminosa' })
-  pc('Taren', 'Bruno', { FOR: 16, DES: 10, CON: 15, INT: 8, SAB: 12, CAR: 10 }, { Atletismo: 2, Intimidação: 2, Sobrevivência: 2 }, 31, 17, { 'Classe e nível': 'Guerreiro 3', Raça: 'Humano', Antecedente: 'Soldado' })
-  pc('Ilmar', 'Carla', { FOR: 9, DES: 12, CON: 13, INT: 17, SAB: 12, CAR: 10 }, { Arcanismo: 2, História: 2, Investigação: 2 }, 17, 12, { 'Classe e nível': 'Mago 3', Raça: 'Elfo', Antecedente: 'Sábio' })
+  pc('Brisa', 'Ana', { FOR: 8, DES: 16, CON: 12, INT: 13, SAB: 10, CAR: 14 }, { Furtividade: 4, Prestidigitação: 2, Percepção: 2, Enganação: 2 }, 22, 14, { 'Classe e nível': 'Ladina 3', Raça: 'Meio-elfa', Antecedente: 'Criminosa' }, [weapon('Rapieira', 5, '1d8+{mod:DES}'), weapon('Arco curto', 5, '1d6+{mod:DES}')])
+  pc('Taren', 'Bruno', { FOR: 16, DES: 10, CON: 15, INT: 8, SAB: 12, CAR: 10 }, { Atletismo: 2, Intimidação: 2, Sobrevivência: 2 }, 31, 17, { 'Classe e nível': 'Guerreiro 3', Raça: 'Humano', Antecedente: 'Soldado' }, [weapon('Espada longa', 5, '1d8+{mod:FOR}', '19/x2')])
+  pc('Ilmar', 'Carla', { FOR: 9, DES: 12, CON: 13, INT: 17, SAB: 12, CAR: 10 }, { Arcanismo: 2, História: 2, Investigação: 2 }, 17, 12, { 'Classe e nível': 'Mago 3', Raça: 'Elfo', Antecedente: 'Sábio' }, [weapon('Raio de fogo', 5, '1d10')])
   {
     const base = draftSheet('Kael (contrabandista)', sistema, { role: 'npc', groupId: grupo.id, entityId: kael.id })
     ;[u] = insert(u, 'sheets', {
@@ -370,6 +372,7 @@ export function ostriaUniverse(): Universe {
       attributes: { ...base.attributes, [attr('DES')]: 14, [attr('CAR')]: 12 },
       skills: { ...base.skills, [skill('Enganação')]: 2, [skill('Furtividade')]: 2 },
       resources: { ...base.resources, [pv]: { current: 18, max: 18 }, [ca]: { current: 13, max: 13 } },
+      attacks: [weapon('Adaga', 4, '1d4+{mod:DES}')],
       notes: 'Desconfiado. Ajuda os jogadores se envolverem a irmã dele.',
     })
   }

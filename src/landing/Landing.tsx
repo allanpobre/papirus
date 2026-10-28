@@ -33,7 +33,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BrandMark } from '../shell/Brand'
-import { MesaDemo, ScreensShowcase } from './Demos'
+import { FriendsPhone, MesaDemo, ScreensShowcase, StepScreen } from './Demos'
 import { rollIdea, type IdeaMode } from '../oficina/ideas'
 import { MESA_THEMES } from '../rpg/themes'
 
@@ -187,16 +187,19 @@ export function Landing() {
               <span className="lp-step-n">1</span>
               <h3>Escreva a cena</h3>
               <p>Um editor limpo, sem distrações. Os nomes que você já conhece aparecem sublinhados; os novos ficam como sugestão, nunca viram ficha sozinhos.</p>
+              <StepScreen n={1} />
             </li>
             <li>
               <span className="lp-step-n">2</span>
               <h3>Selecione e guarde</h3>
               <p>Um trecho vira ficha, fato, comentário ou ligação com um clique. “Mira jurou que ele tinha olhos cinzentos” vira um fato, com quem disse e se é verdade.</p>
+              <StepScreen n={2} />
             </li>
             <li>
               <span className="lp-step-n">3</span>
               <h3>Veja o mundo crescer</h3>
               <p>Fichas, relações, linha do tempo e mapas se preenchem a partir do texto. O Papirus pergunta quando algo não fecha: alguém em dois lugares no mesmo dia, um morto que aparece de novo.</p>
+              <StepScreen n={3} />
             </li>
           </ol>
         </section>
@@ -210,7 +213,7 @@ export function Landing() {
               </p>
               <h2 id="mestrar-titulo">O mesmo mundo, agora na mesa.</h2>
               <p className="lp-lede">
-                O RPG de verdade acontece na mesa, com dados de verdade. O Papirus é o ajudante: guarda as fichas, faz as contas e leva ao celular de cada jogador o que o grupo já descobriu.
+                O RPG de verdade acontece na mesa, com dados de verdade. O Papirus é o ajudante: guarda as fichas, faz as contas e liga o mestre ao celular de cada jogador, nos dois sentidos.
               </p>
               <ul className="lp-checks">
                 <li>
@@ -223,7 +226,10 @@ export function Landing() {
                   <Palette size={18} aria-hidden="true" /> Cada mesa com o clima do gênero, escolhido pelo mestre; cada jogador escolhe claro ou escuro
                 </li>
                 <li>
-                  <Radio size={18} aria-hidden="true" /> Codex ao vivo: revelações, mapa e a ficha completa de cada personagem no celular dos jogadores
+                  <Swords size={18} aria-hidden="true" /> Combate: escolha o alvo e o app diz se acerta pela Defesa; o dano sai da vida dele, e quem cai aparece como derrotado
+                </li>
+                <li>
+                  <Radio size={18} aria-hidden="true" /> Codex ao vivo: cada jogador rola pela própria ficha no celular, e a mesa toda vê. Revelações, mapa e a vez no combate chegam na hora
                 </li>
                 <li>
                   <EyeOff size={18} aria-hidden="true" /> Segredos ficam com você; uma mentira aparece só como “segundo fulano”
@@ -281,14 +287,17 @@ export function Landing() {
           </p>
           <h2 id="juntos-titulo">Escrever é sozinho. Ler pode ser junto.</h2>
           <p className="lp-lede">Com uma conta (opcional), você ganha um perfil, adiciona amigos e decide, livro por livro, quem pode ler: só você, os amigos ou todo mundo.</p>
-          <div className="lp-features lp-together">
-            {TOGETHER.map(({ icon: Icon, title, text }) => (
-              <article key={title} className="lp-feature">
-                <Icon size={20} aria-hidden="true" />
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </article>
-            ))}
+          <div className="lp-together-wrap">
+            <div className="lp-features lp-together">
+              {TOGETHER.map(({ icon: Icon, title, text }) => (
+                <article key={title} className="lp-feature">
+                  <Icon size={20} aria-hidden="true" />
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </article>
+              ))}
+            </div>
+            <FriendsPhone />
           </div>
         </section>
         </div>
@@ -387,7 +396,7 @@ const SECTORS = [
     icon: Dices,
     name: 'Mesa de RPG',
     title: 'Mestre com dados de verdade',
-    items: ['Dado físico primeiro; o app faz as contas', 'Ficha de jogo com ataques e poderes', 'Seis climas, um para cada gênero', 'Codex ao vivo no celular dos jogadores'],
+    items: ['Dado físico primeiro; o app faz as contas', 'Combate: acerta ou erra, e o dano no alvo', 'Seis climas, um para cada gênero', 'Jogadores rolam pelo Codex, ao vivo'],
     href: '#mestrar',
   },
   {
