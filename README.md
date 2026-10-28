@@ -1,47 +1,72 @@
 # Papirus
 
-Ambiente de worldbuilding e escrita contextual para escritores, mestres de RPG e criadores de universos ficcionais.
+**Versão 1.0.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
 
-> Projeto anteriormente chamado NEXUS.
+Escrita, mesa de RPG e oficina num app só. Para quem escreve histórias, mestra campanhas e constrói mundos.
 
-> O autor deve sentir que está escrevendo enquanto o Papirus presta atenção — não que está preenchendo um banco de dados.
+> O autor deve sentir que está escrevendo enquanto o Papirus presta atenção, e não que está preenchendo um banco de dados.
 
-## O que o Papirus faz
+Grátis, sem cadastro e funciona sem internet. Tudo fica no seu navegador; a conta é opcional e serve para levar os universos a outros aparelhos e para a parte social.
 
-**Escrever**
-- Editor de cenas com formatação mínima, separador de cena, modo foco e meta diária de palavras.
-- Histórias com cenas e cenas soltas; nada obriga a ter livro, capítulo ou ficha.
-- Margem viva: quem está na cena e no parágrafo, onde e quando, o que o ponto de vista sabe, fatos e tramas por perto.
-- Nomes de fichas destacados no texto; selecione um trecho para vincular a uma ficha, criar ficha, capturar um fato ou guardar na Inbox.
-- Revisão sob demanda: nomes novos encontrados no texto, perguntas de continuidade e pendências — nunca durante a digitação.
-- Versões de cena com comparação palavra a palavra; leitura sem distrações e ensaio parágrafo a parágrafo.
+## Os três setores
 
-**Mundo e narrativa**
-- Fichas de qualquer tipo (inclusive tipos próprios), com apelidos, canon e estado editorial independentes, campos livres, relações, aparições e linha do tempo.
-- Grafo de relações, Timeline com eras e cenas datadas, Atlas sobre a imagem do seu mapa.
-- Tramas e mistérios com pistas; Conhecimento separando verdade do autor, o que cada personagem sabe e o que o leitor já viu.
-- Organizar: quadro de cenas, matriz de presença e ritmo.
+O app abre num início com três setores. Cada um tem a sua cara (cores, letras e animação de entrada) e o seu menu.
 
-**Mesa de RPG**
-- Painel do mestre, sessões com preparação, registro com hora e iniciativa.
-- Revelações por grupo e um Codex dos jogadores que só mostra o que foi revelado.
-- Rolador de dados (`2d6+3`, `4d6kh3`, vantagem/desvantagem).
+### Escrita
 
-**Dados**
-- Tudo fica no navegador (IndexedDB), com salvamento automático, cópia de emergência ao fechar a página, snapshots e vários universos.
-- Backup completo em JSON, manuscrito em Markdown, importação e ramos “E se…?”.
+- **Editor de cenas** limpo, com modo foco, máquina de escrever, som de teclas e meta do dia. Os nomes das fichas aparecem sublinhados; nomes novos viram sugestão, nunca ficha sozinhos.
+- **Selecione e guarde:** um trecho vira ficha, fato (com quem disse e se é verdade), comentário ou ideia.
+- **O mundo:** fichas de qualquer tipo (com retrato e leitura como enciclopédia), relações em grafo, linha do tempo com calendário próprio e atlas sobre a imagem do seu mapa.
+- **Trama:** pistas e mistérios, quem sabe o quê, segredos e trechos que o leitor só vê a partir de certa cena.
+- **Livro:** modo leitor com caderno sem spoiler, ouvir em voz alta, importação de .docx e .md, exportação em Word, EPUB e PDF diagramado para imprimir.
+- **Revisão:** perguntas de continuidade (alguém em dois lugares no mesmo dia, um morto que reaparece), versões de cada cena e leitores beta com comentários presos ao texto.
+- **Treino de escrita:** o desafio do dia num sprint com tempo e mínimo de palavras ou de caracteres. Cada tentativa fica guardada (e na nuvem, com conta) para refazer depois, com recorde, dias seguidos e um **placar** entre amigos e de todo mundo.
+- **Metas:** meta do dia, meta com prazo, calendário de escrita, nível e medalhas.
 
-**Archivist (opcional)**
-- Perguntas sobre a lore usando a API do Claude com a sua própria chave. Só os registros relevantes são enviados, segredos e texto do manuscrito apenas se você pedir, e você vê o que será enviado antes.
+### Mesa de RPG
 
-Todas as automações podem ser desligadas em **Ajustes e dados**.
+- **Dado físico primeiro:** role os seus dados e diga o que saiu; o app soma o bônus, vê o crítico e calcula o dano. Sem dados na hora, o app rola.
+- **Sistemas prontos** (D&D 5e, Tormenta 20, Ordem Paranormal, Call of Cthulhu, parada de dados, narrativo) ou as suas regras.
+- **Ficha de jogo** feita para jogar: PV e PM com um toque, condições, ataques, poderes que gastam PM, perícias com o total e inventário.
+- **Painel do mestre:** sessões com preparação e registro, iniciativa, tabelas aleatórias e revelações por grupo.
+- **Seis climas** escolhidos pelo mestre para cada mesa (Tempestade, Pergaminho, Paranormal, Abismo, Neon, Floresta); cada jogador escolhe claro ou escuro.
+- **Codex ao vivo:** o celular de cada jogador mostra só o que foi revelado, com o mapa e a ficha completa de cada personagem.
 
-## Documentação
+### Oficina
 
-- [Visão geral](docs/00-visao-geral.md)
-- [Princípios](docs/01-principios.md) — liberdade do autor acima de tudo
-- [Roadmap](docs/02-roadmap.md)
-- [Fase 1 — Escrita](docs/03-fase-1-escrita.md)
+- **Guias** de gêneros (fantasia, ficção científica, mistério, romance, terror, realismo), de técnicas (personagem, estrutura, diálogo, ritmo, revisão) e para mestres (mestrar, aventuras e vilões): o que funciona, armadilhas, livros para estudar, curiosidades e exercícios.
+- **Gerador de ideias** para escrever (quem, quer, mas, onde) ou para a mesa (ganchos de aventura).
+- Exercícios que viram cena com um toque e o seu progresso marcado.
+
+### Com os amigos (com conta)
+
+Perfil com @, amigos, estante (cada livro decide quem lê: só você, amigos ou todo mundo), novidades, reações por capítulo, desafios entre amigos e o placar dos treinos.
+
+## Seus dados
+
+- Tudo fica no navegador (IndexedDB), com salvamento automático, cópia de emergência, snapshots e vários universos.
+- Backup em JSON (automático, se quiser), cópia numa pasta do computador e, com conta, sincronização entre aparelhos.
+- Imagens são encolhidas no aparelho antes de guardar.
+- **Perguntar ao mundo (opcional):** perguntas sobre a sua lore com a API do Claude, usando a sua chave. Só vai o que for relevante, e você vê o que será enviado.
+
+Todas as automações podem ser desligadas em **Ajustes e dados**, e o menu esconde o que você não usa.
+
+## Conta e nuvem (opcional)
+
+A conta, o compartilhamento, o Codex ao vivo, as imagens na nuvem, a parte social e os treinos usam um projeto [Supabase](https://supabase.com) (o plano grátis basta). Rode os scripts no **SQL Editor** do projeto, nesta ordem (todos podem ser rodados de novo sem problema):
+
+| Ordem | Script | Para quê |
+| --- | --- | --- |
+| 1 | [`supabase/codex.sql`](supabase/codex.sql) | Codex ao vivo dos jogadores |
+| 2 | [`supabase/contas.sql`](supabase/contas.sql) | Contas e universos na nuvem |
+| 3 | [`supabase/compartilhar.sql`](supabase/compartilhar.sql) | Compartilhar universos e link de leitura |
+| 4 | [`supabase/social.sql`](supabase/social.sql) | Perfil, amigos, estante, desafios e novidades |
+| 5 | [`supabase/imagens.sql`](supabase/imagens.sql) | Imagens na nuvem (até 100 MB por conta) |
+| 6 | [`supabase/treinos.sql`](supabase/treinos.sql) | Treinos de escrita e o placar |
+
+Cada script garante no servidor quem vê o quê (Row Level Security), não só na tela.
+
+Para publicar com o seu projeto já configurado, defina as variáveis `PAPIRUS_SUPABASE_URL` e `PAPIRUS_SUPABASE_KEY` (a chave pública) no repositório; o fluxo [`pages.yml`](.github/workflows/pages.yml) publica no GitHub Pages. Sem elas, cada pessoa pode informar o próprio projeto em **Entrar**.
 
 ## Desenvolvimento
 
@@ -57,14 +82,28 @@ npm run test:e2e   # testes no navegador (Playwright)
 Para usar um Chromium já instalado nos testes no navegador:
 `PW_CHROMIUM_PATH=/caminho/do/chromium npm run test:e2e`.
 
+A versão fica no `package.json` e aparece em Ajustes → Menu e ajuda e no rodapé da apresentação.
+
 ### Estrutura
 
-- `src/model` — formato dos dados, validação, migrações versionadas e universo de exemplo.
-- `src/logic` — regras sem interface: detecção de nomes, continuidade, conhecimento, Codex, grafo, busca, dados, diferenças de texto.
-- `src/persistence` — armazenamento local, biblioteca de universos, snapshots e salvamento automático.
-- `src/editor` — editor de cena (TipTap), menções e destaque de nomes.
-- `src/shell` — moldura do app: menu, busca, captura rápida, painel de ficha.
-- `src/views` — cada área do app.
-- `src/ai` — chamada opcional do Archivist.
+- `src/landing` — a página de apresentação (`/`); o app fica em `/app/`.
+- `src/shell` — moldura do app: início com os setores, menu, busca, voltar do aparelho.
+- `src/views` — cada área do universo (Início, fichas, relações, linha do tempo, atlas, ajustes…).
+- `src/editor` — editor de cena (TipTap), menções, destaque de nomes e imagens.
+- `src/views/rpg`, `src/rpg` — mesa de RPG: sistemas, fichas, rolagens e climas.
+- `src/oficina` — guias, gerador de ideias e progresso.
+- `src/treino` — treinos de escrita, histórico, nuvem e placar.
+- `src/social`, `src/account`, `src/share` — conta, amigos, estante, compartilhamento e Codex.
+- `src/reader`, `src/book`, `src/export` — modo leitor, diagramação e importação/exportação.
+- `src/images` — imagens: encolher, guardar e sincronizar.
+- `src/model`, `src/logic`, `src/persistence` — formato dos dados e migrações, regras sem interface, armazenamento.
 - `src/styles` — tokens de design e estilos.
-- `e2e` — testes no navegador.
+- `supabase` — scripts do servidor.
+- `e2e` — testes no navegador, com um Supabase de mentira (`e2e/fakeSupabase.ts`).
+
+## Documentação
+
+- [Visão geral](docs/00-visao-geral.md)
+- [Princípios](docs/01-principios.md) — liberdade do autor acima de tudo
+- [Roadmap](docs/02-roadmap.md)
+- [Fase 1 — Escrita](docs/03-fase-1-escrita.md)

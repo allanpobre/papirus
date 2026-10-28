@@ -238,6 +238,12 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </button>
             <InstallButton />
           </div>
+          <p className="muted tiny">
+            Papirus {__APP_VERSION__} ·{' '}
+            <a href="https://github.com/allanpobre/papirus" target="_blank" rel="noreferrer">
+              código e novidades
+            </a>
+          </p>
         </section>
         )}
 
