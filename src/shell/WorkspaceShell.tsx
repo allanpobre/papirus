@@ -445,7 +445,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const phone = useMediaQuery('(max-width: 760px)')
   // Uma sessão de RPG ao vivo: de qualquer área, um toque volta para ela.
   const liveSession = universe.sessions.find((x) => x.status === 'em-andamento')
-  const visibleItems = ALL_ITEMS.filter((item) => item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view)
+  const visibleItems = ALL_ITEMS.filter((item) => !item.inside && (item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view))
+  // A área marcada no menu: o Mapa, por exemplo, fica dentro de Escrever.
+  const area = ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view
 
   return (
     <WorkspaceContext.Provider value={ws}>
@@ -457,7 +459,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         {phone ? (
           <PhoneNav
             items={visibleItems}
-            current={nav.view}
+            current={area}
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
@@ -504,13 +506,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           <div className="rail-groups">
             {(mesaSector ? [NAV[0], ...NAV.filter((g) => g.group === 'Mesa'), ...NAV.slice(1).filter((g) => g.group !== 'Mesa')] : NAV).map((g) => {
               // Áreas escondidas somem do menu, mas a aberta continua visível.
-              const items = g.items.filter((item) => !hidden.includes(item.view) || nav.view === item.view)
+              const items = g.items.filter((item) => !item.inside && (!hidden.includes(item.view) || area === item.view))
               if (!items.length) return null
               return (
                 <div key={g.group} className="rail-group">
                   {g.group && <span className="rail-group-label rail-label">{g.group}</span>}
                   {items.map((item) => (
-                    <RailButton key={item.view} item={item} active={nav.view === item.view} onClick={() => go(item.view)} />
+                    <RailButton key={item.view} item={item} active={area === item.view} onClick={() => go(item.view)} />
                   ))}
                 </div>
               )

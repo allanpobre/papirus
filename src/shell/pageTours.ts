@@ -46,21 +46,43 @@ export const PAGE_TOURS = {
   escrever: {
     title: 'Escrever',
     steps: [
+      {
+        target: '[data-tour="modos"]',
+        title: 'Mapa, Página e Revisão',
+        body: 'Três momentos da escrita. O Mapa mostra a história vista de cima. A Página é só o texto, sem nada em volta puxando o olho. A Revisão traz de volta a margem, com as perguntas e a lista da cena.',
+      },
       { target: '.write-tree', title: 'Manuscrito', body: 'Histórias, capítulos e cenas, na ordem do livro. Toque numa cena para abrir. O botão no canto da barra esconde ou mostra esta lista.', optional: true },
-      { target: '[data-tour="editor"]', title: 'A página', body: `Escreva aqui; o título fica em cima. Os nomes das fichas que você já tem ficam com um sublinhado pontilhado. ${modKey} + clique num nome abre a ficha.` },
+      {
+        target: '[data-tour="editor"]',
+        title: 'A página',
+        body: `Escreva aqui; o título fica em cima. Na Revisão, os nomes das fichas que você já tem ficam com um sublinhado pontilhado (na Página, não). ${modKey} + clique num nome abre a ficha.`,
+      },
+      {
+        target: '.scene-frame, .scene-frame-add',
+        title: 'O que esta cena precisa fazer',
+        body: 'Até três linhas: quem quer o quê, o que atrapalha e como termina. Fica no alto da Página para lembrar o rumo da cena. É opcional.',
+        optional: true,
+      },
+      { target: '.resume', title: 'Onde você parou', body: 'A última frase da cena. “Continuar” leva o cursor para o fim do texto. Some quando você começa a escrever.', optional: true },
       {
         target: '.scene-text',
         title: 'Selecione um trecho',
         body: 'Aparece uma barra para: Vincular o trecho a uma ficha, guardar um Fato (com quem disse e se é verdade), criar uma Ficha, Comentar ou Guardar em Ideias. No celular, a barra fica em cima do teclado. Nada vira ficha sozinho.',
       },
-      { target: '.margin-review, [aria-label="Mostrar margem"]', title: 'Nomes novos', body: NOMES_NOVOS },
+      {
+        target: '.scene-review',
+        title: 'Esta cena',
+        body: 'Na Revisão: como a cena termina (melhor, pior ou igual), o cartão, as pistas que ela planta, avança ou paga e as perguntas abertas. As setas passam para a cena vizinha.',
+        optional: true,
+      },
+      { target: '.margin-review, [aria-label="Mostrar margem"]', title: 'Nomes novos', body: NOMES_NOVOS, optional: true },
       { target: '[data-tour="margem"]', title: 'A margem', body: 'Quem aparece no parágrafo e na cena, comentários, leitores beta, pistas ligadas a quem está em cena e perguntas de continuidade. Dá para fechar.', optional: true },
       {
         target: '.write-bar-actions',
         title: 'Detalhes da cena',
-        body: 'Estado, história, ponto de vista, local, data, elenco, sinopse e notas. No menu de três pontos: versões da cena, ler, exportar e apagar. Ao lado, o modo foco e a margem.',
+        body: 'Estado, história, ponto de vista, local, data, elenco, sinopse e notas. No menu de três pontos: versões da cena, ler, exportar e apagar. Ao lado, o modo foco (e, na Revisão, a margem).',
       },
-      { target: '.write-foot', title: 'Rodapé', body: 'As palavras da cena e as de hoje (com a meta), e o Sprint: escrever sem parar por alguns minutos.' },
+      { target: '.write-foot', title: 'Rodapé', body: 'As palavras da cena e as de hoje (com a meta), o Sprint (escrever sem parar por alguns minutos) e, na Página, quantas perguntas esperam a Revisão.' },
     ],
   },
   'escrever-vazio': {
@@ -74,10 +96,40 @@ export const PAGE_TOURS = {
     ],
   },
   organizar: {
-    title: 'Estrutura',
+    title: 'Mapa da história',
     steps: [
-      { target: '.organize-view .tabs', title: 'Três jeitos de ver', body: 'Quadro de cenas (como fichas de cortiça), Presença (quem aparece em cada cena) e Ritmo (o tamanho das cenas, os pontos de vista e as tramas abertas).' },
-      { target: '.corkboard', title: 'Quadro de cenas', body: 'Cada cartão é uma cena, agrupada pela história. Arraste pela alça ⠿ para mudar a ordem ou levar para outra história; no teclado, use as setas na alça.', optional: true },
+      { target: '[data-tour="modos"]', title: 'Mapa, Página e Revisão', body: 'O Mapa é o primeiro dos três momentos da escrita: planejar e olhar a história de cima. Página e Revisão voltam para o texto.' },
+      {
+        target: '.story-map-structure',
+        title: 'Modelo da história',
+        body: 'Livre, Três atos, Save the Cat ou Jornada do herói, para cada história. O modelo só desenha os atos e os momentos sobre a faixa; não muda nada no texto.',
+        optional: true,
+      },
+      {
+        target: '.map-strip-wrap',
+        title: 'A faixa',
+        body: 'Cada cena ocupa o tamanho que tem no livro, na cor de como termina: melhor, pior ou igual (você marca no cartão). Os traços mostram onde os momentos do modelo costumam cair. Toque numa cena para achar o cartão.',
+        optional: true,
+      },
+      {
+        target: '.map-promises',
+        title: 'Promessas',
+        body: 'Cada pista ou mistério vira uma linha: onde foi plantada, onde avançou e onde foi paga. Tracejada quer dizer plantada e parada há um bom pedaço do livro.',
+        optional: true,
+      },
+      {
+        target: '.map-notices',
+        title: 'Vale olhar',
+        body: 'Perguntas que o Papirus tira só do que você marcou e do que dá para contar (quem some, o que está parado, onde cai o meio). Nenhuma é regra: às vezes é de propósito.',
+        optional: true,
+      },
+      {
+        target: '.cork-cards',
+        title: 'Os cartões',
+        body: 'Cada cena com o cartão (quem quer o quê, o que atrapalha, como termina), a marca de como ela termina e o estado. Arraste pela alça ⠿ para mudar a ordem ou levar para outra história; no teclado, use as setas na alça.',
+        optional: true,
+      },
+      { target: '.organize-view .tabs', title: 'Três jeitos de ver', body: 'Cenas (a faixa e os cartões), Presença (quem aparece em cada cena) e Ritmo (o tamanho das cenas, os pontos de vista e as tramas abertas).' },
       { target: '.organize-view .table-wrap', title: 'Presença', body: 'Cada linha é uma cena e cada coluna um personagem: ponto de vista, presente ou só mencionado. Bom para ver quem sumiu da história.', optional: true },
       { target: '.rhythm', title: 'Ritmo', body: 'O tamanho de cada cena, quantas cenas cada ponto de vista tem e as tramas ainda abertas.', optional: true },
       { title: 'Tudo vem das cenas', body: 'Estado, história, ponto de vista e elenco são os Detalhes da cena, no Escrever. Mudou lá, muda aqui.' },

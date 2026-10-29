@@ -216,7 +216,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           </p>
           <p className="muted small">Esconda o que você não usa (vale para todos os universos deste tipo). Tudo continua acessível pela busca, e nada é apagado.</p>
           <div className="area-toggles">
-            {[...NAV.flatMap((g) => g.items), ...TOOLS].map((item) => (
+            {[...NAV.flatMap((g) => g.items.filter((item) => !item.inside)), ...TOOLS].map((item) => (
               <Toggle
                 key={item.view}
                 label={item.label}

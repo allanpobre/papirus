@@ -183,24 +183,24 @@ export function Landing() {
           <p className="lp-eyebrow">
             <Feather size={14} aria-hidden="true" /> Escrita · para quem escreve
           </p>
-          <h2 id="escrever-titulo">Escreva primeiro. O resto se organiza quando você quiser.</h2>
+          <h2 id="escrever-titulo">Planeje, escreva e revise. Um de cada vez.</h2>
           <ol className="lp-steps">
             <li>
               <span className="lp-step-n">1</span>
-              <h3>Escreva a cena</h3>
-              <p>Um editor limpo, sem distrações. Os nomes que você já conhece aparecem sublinhados. Os novos, o Papirus conta no botão Revisar da margem, como sugestão: nunca viram ficha sozinhos.</p>
+              <h3>Mapa: a história vista de cima</h3>
+              <p>Cada cena do tamanho que tem no livro, na cor de como termina: melhor ou pior para quem a vive. Escolha um modelo (três atos, Save the Cat, Jornada do herói) e veja as pistas como linhas: plantada, avançou, paga.</p>
               <StepScreen n={1} />
             </li>
             <li>
               <span className="lp-step-n">2</span>
-              <h3>Selecione e guarde</h3>
-              <p>Um trecho vira ficha, fato, comentário ou ligação com um clique. “Mira jurou que ele tinha olhos cinzentos” vira um fato, com quem disse e se é verdade.</p>
+              <h3>Página: escreva com a porta fechada</h3>
+              <p>Só o texto e, no alto, o que a cena precisa fazer. Nada de sublinhados ou perguntas puxando o olho: elas esperam a revisão. Um trecho selecionado ainda vira ficha, fato ou comentário.</p>
               <StepScreen n={2} />
             </li>
             <li>
               <span className="lp-step-n">3</span>
-              <h3>Veja o mundo crescer</h3>
-              <p>Fichas, relações, linha do tempo e mapas se preenchem a partir do texto. O Papirus pergunta quando algo não fecha: alguém em dois lugares no mesmo dia, um morto que aparece de novo.</p>
+              <h3>Revisão: abra a porta</h3>
+              <p>A margem volta: quem aparece, o que a cena planta ou paga e as perguntas quando algo não fecha, como alguém em dois lugares no mesmo dia. O Papirus não julga o texto; ele conta o que você marcou.</p>
               <StepScreen n={3} />
             </li>
           </ol>

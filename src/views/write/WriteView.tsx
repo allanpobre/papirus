@@ -62,6 +62,8 @@ import { ReadingMode } from './ReadingMode'
 import { ReviewDialog } from './ReviewDialog'
 import { VersionsDialog } from './VersionsDialog'
 import { PageHelp } from '../../ui/PageTour'
+import { SceneReview } from './SceneReview'
+import { SceneFrame, saveMode, savedMode, WritingModes, type WritingMode } from './WritingModes'
 
 type Dialog =
   | { kind: 'link'; sel: SelectionInfo }
@@ -87,12 +89,31 @@ export default function WriteView() {
   const [focus, setFocus] = useState(false)
   const phone = useMediaQuery('(max-width: 760px)')
   const narrow = useMediaQuery('(max-width: 1180px)')
-  const [treeOpen, setTreeOpen] = useState(() => recall('arvore') !== 'fechada' && !matchMedia('(max-width: 760px)').matches)
-  const [narrowMargin, setNarrowMargin] = useState(false)
-  const marginVisible = narrow ? narrowMargin : prefs.margin
+  // Página (porta fechada: só o texto) ou Revisão (porta aberta: a margem e as perguntas).
+  const [mode, setModeState] = useState<'pagina' | 'revisao'>(savedMode)
+  const drafting = mode === 'pagina'
+  const [treeOpen, setTreeOpen] = useState(() => savedMode() === 'revisao' && recall('arvore') !== 'fechada' && !matchMedia('(max-width: 760px)').matches)
+  const [narrowMargin, setNarrowMargin] = useState(
+    () => savedMode() === 'revisao' && matchMedia('(max-width: 1180px)').matches && !matchMedia('(max-width: 760px)').matches,
+  )
+  const marginVisible = !drafting && (narrow ? narrowMargin : prefs.margin)
+  // Na Página, a lista de cenas abre por cima do texto (e fecha ao escolher).
+  const treeOverlay = phone || drafting
+  // "Onde você parou": no toque o cursor não vai sozinho para o fim (abriria o teclado), então a
+  // Página mostra a última frase e um botão para continuar dali. Some ao escrever.
+  const touch = useMediaQuery('(pointer: coarse), (max-width: 760px)')
+  const [resume, setResume] = useState(() => savedMode() === 'pagina')
   const [metaOpen, setMetaOpen] = useState(false)
   // No celular, o manuscrito abre por cima do texto: o "voltar" do aparelho fecha. O modo foco também sai com "voltar".
-  useBackLayer(() => setTreeOpen(false), phone && treeOpen && !focus)
+  useBackLayer(() => setTreeOpen(false), treeOverlay && treeOpen && !focus)
+  useEffect(() => {
+    if (!treeOverlay || !treeOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.querySelector('.overlay')) setTreeOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [treeOverlay, treeOpen])
   useBackLayer(() => setFocus(false), focus)
   // Muda quando o texto da cena é trocado por fora (ex.: voltar a uma versão), para remontar o editor.
   const [editorNonce, setEditorNonce] = useState(0)
@@ -171,8 +192,9 @@ export default function WriteView() {
   const select = (id: string) => {
     setSceneId(id)
     go('escrever', id)
-    // No celular, o manuscrito é um painel por cima do texto: fecha ao escolher.
-    if (phone) setTreeOpen(false)
+    // No celular (e na Página), o manuscrito é um painel por cima do texto: fecha ao escolher.
+    if (treeOverlay) setTreeOpen(false)
+    setResume(false)
   }
 
   const newLooseScene = () => {
@@ -241,6 +263,21 @@ export default function WriteView() {
     },
   }
 
+  const setMode = (m: WritingMode) => {
+    if (m === 'mapa') return go('organizar')
+    setModeState(m)
+    saveMode(m)
+    setResume(false)
+    if (m === 'pagina') {
+      setTreeOpen(false)
+      return
+    }
+    // A Revisão abre com a margem à vista (e a lista de cenas como estava).
+    if (narrow) setNarrowMargin(true)
+    else if (!prefs.margin) setPref('margin', true)
+    if (!phone) setTreeOpen(recall('arvore') !== 'fechada')
+  }
+
   if (!scene) {
     return (
       <div className="view write-empty">
@@ -263,13 +300,19 @@ export default function WriteView() {
   const plan = deadlinePlan(universe)
   const goal = Math.max(universe.settings.dailyWordGoal, plan?.perDay ?? 0)
   const set = (changes: Parameters<typeof updateScene>[2]) => update((u) => updateScene(u, scene.id, changes))
+  const siblings = order.filter((x) => x.storyId === scene.storyId)
+  const at = siblings.findIndex((x) => x.id === scene.id)
+  const [prev, next] = [siblings[at - 1], siblings[at + 1]]
 
   return (
-    <div className={`view write${treeOpen ? '' : ' tree-closed'}${marginVisible ? '' : ' margin-closed'}${focus ? ' is-focus' : ''}`}>
+    <div className={`view write is-${mode}${treeOpen && !treeOverlay ? '' : ' tree-closed'}${marginVisible ? '' : ' margin-closed'}${focus ? ' is-focus' : ''}`}>
       {treeOpen && !focus && (
-        <aside className={`write-tree${phone ? ' write-overlay write-overlay-left' : ''}`} aria-label="Manuscrito">
+        <aside className={`write-tree${treeOverlay ? ' write-overlay write-overlay-left' : ''}`} aria-label="Manuscrito">
           <ManuscriptTree selectedId={scene.id} onSelect={select} />
         </aside>
+      )}
+      {treeOpen && !focus && treeOverlay && !phone && (
+        <button type="button" className="write-scrim" aria-label="Fechar a lista de cenas" tabIndex={-1} onClick={() => setTreeOpen(false)} />
       )}
 
       <div className="write-main">
@@ -280,11 +323,12 @@ export default function WriteView() {
             aria-label={treeOpen ? 'Esconder manuscrito' : 'Mostrar manuscrito'}
             onClick={() => {
               setTreeOpen(!treeOpen)
-              if (!phone) remember('arvore', treeOpen ? 'fechada' : 'aberta')
+              if (!treeOverlay) remember('arvore', treeOpen ? 'fechada' : 'aberta')
             }}
           >
             {treeOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
           </button>
+          <WritingModes current={mode} onPick={setMode} />
           <div className="write-bar-meta">
             <span className={`status-dot status-${scene.status}`} aria-hidden="true" />
             <span className="muted small">{SCENE_STATUS_LABEL[scene.status]}</span>
@@ -353,22 +397,25 @@ export default function WriteView() {
             >
               {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
             </button>
-            <button
-              type="button"
-              className="btn-icon"
-              aria-label={marginVisible ? 'Esconder margem' : 'Mostrar margem'}
-              onClick={() => (narrow ? setNarrowMargin(!narrowMargin) : setPref('margin', !prefs.margin))}
-            >
-              {marginVisible ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-            </button>
+            {!drafting && (
+              <button
+                type="button"
+                className="btn-icon"
+                aria-label={marginVisible ? 'Esconder margem' : 'Mostrar margem'}
+                onClick={() => (narrow ? setNarrowMargin(!narrowMargin) : setPref('margin', !prefs.margin))}
+              >
+                {marginVisible ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+              </button>
+            )}
           </div>
         </header>
 
         <div className="page-scroll">
           <article
             data-tour="editor"
-            className={`page page-${prefs.editorWidth} font-${prefs.editorFont}${prefs.typewriter ? ' typewriter' : ''}${prefs.focusParagraph ? ' focus-paragraph' : ''}`}
+            className={`page page-${prefs.editorWidth} font-${prefs.editorFont}${prefs.typewriter ? ' typewriter' : ''}${prefs.focusParagraph ? ' focus-paragraph' : ''}${drafting ? ' is-drafting' : ''}`}
             style={{ ['--editor-size' as string]: `${prefs.editorSize}px` }}
+            onInput={resume ? () => setResume(false) : undefined}
           >
             <label htmlFor="scene-title" className="sr-only">
               Título da cena
@@ -393,6 +440,24 @@ export default function WriteView() {
                 set({ title: e.target.value.replace(/\n/g, ' ') })
               }}
             />
+
+            {drafting && <SceneFrame scene={scene} compact={phone} />}
+            {drafting && touch && resume && scene.text.trim() && (
+              <div className="resume" role="status">
+                <span className="resume-label">Onde você parou</span>
+                <span className="resume-text">“{lastSentence(scene.text)}”</span>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    setResume(false)
+                    editorRef.current?.commands.focus('end')
+                  }}
+                >
+                  Continuar
+                </button>
+              </div>
+            )}
 
             {metaOpen && (
               <section className="scene-meta" aria-label="Detalhes da cena">
@@ -457,14 +522,10 @@ export default function WriteView() {
                     })()}
                   </div>
                   <Field label="Sinopse" wide>
-                    {(id) => (
-                      <textarea id={id} className="input textarea" rows={2} value={scene.synopsis} onChange={(e) => set({ synopsis: e.target.value })} />
-                    )}
+                    {(id) => <textarea id={id} className="input textarea" rows={2} value={scene.synopsis} onChange={(e) => set({ synopsis: e.target.value })} />}
                   </Field>
                   <Field label="Notas da cena" wide hint="Rascunho, outline, lembretes. Não entram na exportação.">
-                    {(id) => (
-                      <textarea id={id} className="input textarea" rows={3} value={scene.notes} onChange={(e) => set({ notes: e.target.value })} />
-                    )}
+                    {(id) => <textarea id={id} className="input textarea" rows={3} value={scene.notes} onChange={(e) => set({ notes: e.target.value })} />}
                   </Field>
                 </div>
               </section>
@@ -474,8 +535,8 @@ export default function WriteView() {
               <p className="editing-here" role="status">
                 <span className="editing-dot" aria-hidden="true" />
                 <span>
-                  <strong>{editingHere.map((o) => o.who).join(', ')}</strong> {editingHere.length === 1 ? 'está' : 'estão'} com esta cena aberta agora. O que cada um escreve
-                  é juntado em segundos; se mexerem nela ao mesmo tempo, a outra versão vira uma cópia ao lado.
+                  <strong>{editingHere.map((o) => o.who).join(', ')}</strong> {editingHere.length === 1 ? 'está' : 'estão'} com esta cena aberta agora. O que cada um
+                  escreve é juntado em segundos; se mexerem nela ao mesmo tempo, a outra versão vira uma cópia ao lado.
                 </span>
               </p>
             )}
@@ -510,11 +571,19 @@ export default function WriteView() {
             )}
           </span>
           {!ws.readOnly && <SprintButton />}
-          {sceneQuestions.filter(isOpen).length > 0 && !marginVisible && (
-            <button type="button" className="link-btn" onClick={() => setDialog({ kind: 'review' })}>
-              {sceneQuestions.filter(isOpen).length} perguntas
-            </button>
-          )}
+          {sceneQuestions.filter(isOpen).length > 0 &&
+            (drafting ? (
+              <button type="button" className="link-btn write-waiting" onClick={() => setMode('revisao')}>
+                <span className="write-waiting-dot" aria-hidden="true" />
+                {sceneQuestions.filter(isOpen).length === 1 ? '1 pergunta esperando a revisão' : `${sceneQuestions.filter(isOpen).length} perguntas esperando a revisão`}
+              </button>
+            ) : (
+              !marginVisible && (
+                <button type="button" className="link-btn" onClick={() => setDialog({ kind: 'review' })}>
+                  {sceneQuestions.filter(isOpen).length} perguntas
+                </button>
+              )
+            ))}
         </footer>
       </div>
 
@@ -530,6 +599,9 @@ export default function WriteView() {
           questions={sceneQuestions}
           candidates={candidates}
           onReview={() => setDialog({ kind: 'review' })}
+          top={
+            <SceneReview scene={scene} questions={sceneQuestions} onPrev={prev ? () => select(prev.id) : undefined} onNext={next ? () => select(next.id) : undefined} />
+          }
         />
       )}
 
@@ -553,7 +625,7 @@ export default function WriteView() {
       {dialog?.kind === 'versions' && <VersionsDialog scene={scene} onClose={() => setDialog(null)} onRestored={() => setEditorNonce((n) => n + 1)} />}
       {dialog?.kind === 'reading' && (
         <ReadingMode
-          title={scene.storyId ? (byId(universe, 'stories', scene.storyId)?.title || 'Sem título') : 'Cenas soltas'}
+          title={scene.storyId ? byId(universe, 'stories', scene.storyId)?.title || 'Sem título' : 'Cenas soltas'}
           scenes={order.filter((s) => s.storyId === scene.storyId)}
           startSceneId={scene.id}
           onClose={() => setDialog(null)}
@@ -597,6 +669,13 @@ export default function WriteView() {
   )
 }
 
+/** A última frase do texto (para "Onde você parou"), cortada se for comprida. */
+function lastSentence(text: string): string {
+  const parts = text.trim().split(/(?<=[.!?…])\s+/)
+  const last = parts[parts.length - 1] ?? ''
+  return last.length > 220 ? `…${last.slice(-220)}` : last
+}
+
 /** O título cresce em altura para caber inteiro (no celular, títulos longos quebram a linha). */
 function growTitle(el: HTMLTextAreaElement | null) {
   if (!el) return
@@ -634,9 +713,7 @@ function LinkDialog({ sel, onClose, onLink }: { sel: SelectionInfo; onClose: () 
           Guardar “{sel.text}” como outro nome de {entity.name}
         </label>
       )}
-      <p className="muted small">
-        O vínculo é seu: a identidade pode continuar misteriosa para personagens e leitores.
-      </p>
+      <p className="muted small">O vínculo é seu: a identidade pode continuar misteriosa para personagens e leitores.</p>
     </Modal>
   )
 }
@@ -661,12 +738,8 @@ function NewEntityDialog({ name: initial, onClose, onCreate }: { name: string; o
       }
     >
       <div className="form-grid">
-        <Field label="Nome">
-          {(id) => <input id={id} className="input" value={name} onChange={(e) => setName(e.target.value)} />}
-        </Field>
-        <Field label="Tipo">
-          {(id) => <Select id={id} value={kind} onChange={setKind} options={ENTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />}
-        </Field>
+        <Field label="Nome">{(id) => <input id={id} className="input" value={name} onChange={(e) => setName(e.target.value)} />}</Field>
+        <Field label="Tipo">{(id) => <Select id={id} value={kind} onChange={setKind} options={ENTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />}</Field>
       </div>
       <NameIdeas kind={kind} onPick={setName} />
       <p className="muted small">Uma ficha mínima. Complete quando quiser — ou nunca.</p>

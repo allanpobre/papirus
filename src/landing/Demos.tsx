@@ -1,4 +1,4 @@
-import { Check, Dices, Eye, Flame, GraduationCap, Heart, Lightbulb, Lock, NotebookPen, PenLine, Radio, ScanSearch, Search, Sparkles, Swords, Timer, Trophy, Zap } from 'lucide-react'
+import { Check, Dices, Eye, Flame, GraduationCap, Heart, Lightbulb, Lock, Map as MapIcon, NotebookPen, PenLine, Radio, Search, SearchCheck, Sparkles, Swords, Timer, Trophy, Zap } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 /** Quem pede menos movimento vê cada demonstração parada no último passo. */
@@ -318,7 +318,18 @@ const SECTORS: { id: SectorId; name: string; icon: typeof Dices; lede: string; s
     icon: PenLine,
     lede: 'Onde o livro e o mundo nascem.',
     screens: [
-      { id: 'editor', label: 'Editor', note: 'Você escreve; os nomes que o mundo já conhece ficam sublinhados. Selecione um trecho para vincular, guardar como fato, criar ficha, comentar ou guardar em Ideias.', render: (s) => <EditorScreen step={s} /> },
+      {
+        id: 'mapa',
+        label: 'Mapa',
+        note: 'A história vista de cima: cada cena do tamanho que tem, na cor de como termina, com os atos do modelo e as pistas como linhas. As perguntas vêm só do que você marcou.',
+        render: (s) => <MapaScreen step={s} />,
+      },
+      {
+        id: 'editor',
+        label: 'Página e Revisão',
+        note: 'Na Página, só o texto. Na Revisão, os nomes que o mundo já conhece ficam sublinhados, e um trecho selecionado vira fato, ficha, comentário ou ideia.',
+        render: (s) => <EditorScreen step={s} />,
+      },
       { id: 'ficha-mundo', label: 'Ficha do mundo', note: 'Cada ficha se lê como uma enciclopédia: retrato, quadro de resumo, segredos que só você vê e as cenas em que aparece.', render: (s) => <WorldSheetScreen step={s} /> },
       { id: 'treino', label: 'Treino', note: 'O treino de escrita: um sprint com relógio e um mínimo de palavras ou caracteres. Cada tentativa fica guardada para refazer.', render: (s) => <TreinoScreen step={s} /> },
       { id: 'placar', label: 'Placar', note: 'O placar dos treinos, entre amigos ou de todo mundo: pontos por minutos com o mínimo batido, até 60 por dia.', render: (s) => <PlacarScreen step={s} /> },
@@ -427,6 +438,57 @@ const TYPED =
   'A chuva tinha parado, mas a cidade continuava molhada por dentro. Lia atravessou a ponte sem olhar para trás, contando os passos como quem conta dívidas. Do outro lado, alguém já sabia o nome dela.'
 
 // Escrita
+
+const MAP_SCENES: [number, 'pior' | 'melhor' | 'igual'][] = [
+  [3, 'pior'],
+  [2, 'pior'],
+  [1, 'igual'],
+  [4, 'melhor'],
+  [3.5, 'pior'],
+  [3, 'melhor'],
+  [3, 'pior'],
+  [2.5, 'melhor'],
+]
+
+function MapaScreen({ step }: { step: number }) {
+  const total = MAP_SCENES.reduce((a, [w]) => a + w, 0)
+  return (
+    <div className="lp-scr lp-scr-mapa" aria-hidden="true">
+      <p className="lp-ed-scene">Livro I · Três atos</p>
+      <div className="lp-map-acts">
+        <span>Ato I</span>
+        <span>Ato II</span>
+        <span>Ato III</span>
+      </div>
+      <div className="lp-map-strip">
+        {MAP_SCENES.map(([w, shift], i) => (
+          <i key={i} className={step >= 1 + Math.floor(i / 3) ? `is-${shift}` : undefined} style={{ width: `${(w / total) * 100}%` }} />
+        ))}
+      </div>
+      <p className="lp-map-beats">
+        <span>Gancho</span>
+        <span>Virada</span>
+        <span>Meio</span>
+        <span>Tudo perdido</span>
+      </p>
+      <div className={`lp-map-promise${step >= 4 ? ' is-on' : ''}`}>
+        <span>A espada embrulhada</span>
+        <b>
+          <i style={{ left: '6%' }} className="is-open" />
+          <i style={{ left: '44%' }} />
+          <i style={{ left: '92%' }} className="is-paid" />
+        </b>
+      </div>
+      <div className={`lp-map-promise is-stalled${step >= 5 ? ' is-on' : ''}`}>
+        <span>Os 312 degraus</span>
+        <b>
+          <i style={{ left: '20%' }} className="is-open" />
+        </b>
+      </div>
+      <p className={`lp-map-q${step >= 6 ? ' is-on' : ''}`}>“Os 312 degraus” foi plantada em “A Torre fechada” e nenhuma pista dela aparece depois. Ela ainda vai avançar?</p>
+    </div>
+  )
+}
 
 function EditorScreen({ step }: { step: number }) {
   return (
@@ -809,42 +871,56 @@ function ExerciciosScreen({ step }: { step: number }) {
 export function StepScreen({ n }: { n: 1 | 2 | 3 }) {
   if (n === 1)
     return (
-      <div className="lp-mini lp-mini-1" aria-hidden="true">
+      <div className="lp-mini lp-mini-map" aria-hidden="true">
         <p className="lp-mini-bar">
-          <PenLine size={11} /> A chegada
+          <MapIcon size={11} /> Mapa · Três atos
         </p>
-        <p className="lp-mini-text">
-          Era noite em <u>Ostria</u> quando <u>Kael</u> viu o navio. Ao lado dele, Ilsa não disse nada.
-          <span className="lp-mini-caret" />
+        <p className="lp-mini-strip">
+          <i className="is-pior" style={{ flex: 3 }} />
+          <i className="is-pior" style={{ flex: 2 }} />
+          <i className="is-igual" style={{ flex: 1 }} />
+          <i className="is-melhor" style={{ flex: 4 }} />
+          <i className="is-pior" style={{ flex: 3 }} />
+          <i className="is-melhor" style={{ flex: 3 }} />
         </p>
-        {/* Como no app: o nome novo não é marcado no texto; a margem conta no botão Revisar. */}
-        <p className="lp-mini-review">
-          <ScanSearch size={12} /> Revisar <span className="lp-mini-chip">1 nome novo</span>
+        <p className="lp-mini-promise">
+          <span>A espada embrulhada</span>
+          <b />
         </p>
+        <p className="lp-mini-q">“Nas brumas” está marcada como “igual”. Alguma coisa muda nela?</p>
       </div>
     )
   if (n === 2)
     return (
-      <div className="lp-mini lp-mini-2" aria-hidden="true">
+      <div className="lp-mini lp-mini-page" aria-hidden="true">
+        <p className="lp-mini-bar">
+          <PenLine size={11} /> Página · A chegada
+        </p>
+        <p className="lp-mini-frame">
+          <span>Como termina</span> Pior: Mira jura que ele tem os olhos do príncipe morto
+        </p>
+        {/* Como no app: na Página, nem os nomes conhecidos ficam sublinhados. */}
         <p className="lp-mini-text">
-          Mira jurou que ele tinha <mark>olhos cinzentos</mark>.
+          Era noite em Ostria quando Kael viu o navio. Ao lado dele, Ilsa não disse nada.
+          <span className="lp-mini-caret" />
         </p>
-        <p className="lp-mini-pop">
-          <span>Vincular</span>
-          <span className="is-hot">Fato</span>
-          <span>Ficha</span>
-          <span>Comentar</span>
-          <span>Guardar</span>
-        </p>
-        <p className="lp-mini-card">
-          <strong>Fato guardado</strong> Vaelor tem olhos cinzentos, segundo Mira
+        <p className="lp-mini-wait">
+          <i /> 1 pergunta esperando a revisão
         </p>
       </div>
     )
   return (
     <div className="lp-mini lp-mini-3" aria-hidden="true">
       <p className="lp-mini-label">
-        <Lightbulb size={11} /> Perguntas
+        <SearchCheck size={11} /> Revisão · Esta cena
+      </p>
+      <p className="lp-mini-shift">
+        <span>Melhor</span>
+        <span className="is-on">Pior</span>
+        <span>Igual</span>
+      </p>
+      <p className="lp-mini-check">
+        <Check size={12} /> Planta “A espada embrulhada”
       </p>
       <p className="lp-mini-q">Kael está em Ostria em “A chegada” e em Torre de Marfim em “A Torre”, no mesmo dia. Viajou, ou é outra pessoa?</p>
       <p className="lp-mini-actions">

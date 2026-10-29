@@ -191,7 +191,7 @@ export function ostriaUniverse(): Universe {
   // Manuscrito
   let story
   ;[u, story] = addStory(u, 'Livro I — A Maré Volta')
-  u = patch(u, 'stories', story.id, { synopsis: 'Um estranho chega a Ostria e a cidade lembra do que tentou esquecer.' })
+  u = patch(u, 'stories', story.id, { synopsis: 'Um estranho chega a Ostria e a cidade lembra do que tentou esquecer.', structure: 'tres-atos' })
 
   const scene = (title: string, paragraphs: string[], extra: Parameters<typeof updateScene>[2]) => {
     let s
@@ -209,7 +209,7 @@ export function ostriaUniverse(): Universe {
       '---',
       'Mais tarde, na taverna, Mira jurou que o homem tinha olhos cinzentos. Kael disse que era impossível ver os olhos de alguém naquela neblina.',
     ],
-    { povId: kael.id, placeId: ostria.id, date: { year: 359, day: 12 }, presentIds: [kael.id, vaelor.id, homem.id, mira.id], status: 'revisao', synopsis: 'O Homem Pálido chega ao porto.' },
+    { povId: kael.id, placeId: ostria.id, date: { year: 359, day: 12 }, presentIds: [kael.id, vaelor.id, homem.id, mira.id], status: 'revisao', synopsis: 'O Homem Pálido chega ao porto.', want: 'Kael quer saber quem desceu do navio', obstacle: 'O estranho não responde e some na neblina', outcome: 'Pior: Mira jura que ele tem os olhos do príncipe morto', shift: 'pior' },
   )
   const c2 = scene(
     'A Torre fechada',
@@ -218,7 +218,7 @@ export function ostriaUniverse(): Universe {
       'Mira subiu os degraus contando-os, como Ilsa ensinara quando ela era pequena. Trezentos e doze.',
       'Lá dentro, Ilsa esperava por ela.',
     ],
-    { povId: mira.id, placeId: torre.id, date: { year: 359, day: 12 }, presentIds: [mira.id, ilsa.id], status: 'rascunho', synopsis: 'Mira encontra a guardiã que deveria estar morta.' },
+    { povId: mira.id, placeId: torre.id, date: { year: 359, day: 12 }, presentIds: [mira.id, ilsa.id], status: 'rascunho', synopsis: 'Mira encontra a guardiã que deveria estar morta.', want: 'Mira quer entrar na Torre sem ser vista', obstacle: 'A guardiã que devia estar morta', outcome: 'Pior: Ilsa a reconhece', shift: 'pior' },
   )
   const c3 = scene(
     'Nas brumas',
@@ -226,7 +226,7 @@ export function ostriaUniverse(): Universe {
       'No Vale das Brumas, Kael encontrou as marcas de uma forja antiga. O vidro negro ainda estava quente.',
       'Alguém tinha feito outra lâmina.',
     ],
-    { povId: kael.id, placeId: brumas.id, date: { year: 359, day: 12 }, presentIds: [kael.id], status: 'ideia' },
+    { povId: kael.id, placeId: brumas.id, date: { year: 359, day: 12 }, presentIds: [kael.id], status: 'ideia', shift: 'igual' },
   )
   const c4 = scene(
     'O navio sem nome',
@@ -238,7 +238,7 @@ export function ostriaUniverse(): Universe {
       'Rhea deu de ombros. — Pagou a viagem em vidro negro. Pedra que não reflete luz. Num porto como este, isso compra silêncio.',
       'Antes de descer, Kael viu no porão um baú com o brasão raspado a faca. Sobrava só a ponta de uma torre.',
     ],
-    { povId: kael.id, placeId: ostria.id, date: { year: 359, day: 13 }, presentIds: [kael.id, rhea.id], status: 'rascunho', synopsis: 'Kael sobe no navio e descobre como o estranho pagou a viagem.' },
+    { povId: kael.id, placeId: ostria.id, date: { year: 359, day: 13 }, presentIds: [kael.id, rhea.id], status: 'rascunho', synopsis: 'Kael sobe no navio e descobre como o estranho pagou a viagem.', want: 'Kael quer saber quem pagou a viagem', obstacle: 'A capitã Rhea não tem medo dele', outcome: 'Melhor: vidro negro e um brasão raspado', shift: 'melhor' },
   )
   const c5 = scene(
     'O regente',
@@ -249,7 +249,7 @@ export function ostriaUniverse(): Universe {
       'Ao lado dele, o Irmão Odo sorria como quem já sabe o fim de uma história. — Os mortos voltam com a maré, senhor. Eu avisei.',
       'Cassian não respondeu. Mas Mira viu a mão dele tremer sobre a mesa.',
     ],
-    { povId: mira.id, placeId: paco.id, date: { year: 359, day: 13 }, presentIds: [mira.id, cassian.id, odo.id], status: 'rascunho', synopsis: 'O regente manda caçar o estranho. Mira ouve tudo.' },
+    { povId: mira.id, placeId: paco.id, date: { year: 359, day: 13 }, presentIds: [mira.id, cassian.id, odo.id], status: 'rascunho', synopsis: 'O regente manda caçar o estranho. Mira ouve tudo.', want: 'Cassian quer o estranho preso antes da lua cheia', obstacle: 'Ninguém viu o estranho desde a taverna', outcome: 'Pior: Mira ouve tudo atrás da tapeçaria', shift: 'pior' },
   )
   const c6 = scene(
     'O retrato',
@@ -259,7 +259,7 @@ export function ostriaUniverse(): Universe {
       '— O príncipe — disse Ilsa da escada. — Morreu na Queda. Ou foi o que contaram.',
       'Mira olhou de novo para os olhos do retrato. Já tinha visto aqueles olhos. Na taverna, sob a neblina, num rosto sem cor.',
     ],
-    { povId: mira.id, placeId: torre.id, date: { year: 359, day: 14 }, presentIds: [mira.id, ilsa.id], status: 'revisao', synopsis: 'Mira encontra o retrato do príncipe e reconhece os olhos.' },
+    { povId: mira.id, placeId: torre.id, date: { year: 359, day: 14 }, presentIds: [mira.id, ilsa.id], status: 'revisao', synopsis: 'Mira encontra o retrato do príncipe e reconhece os olhos.', shift: 'melhor' },
   )
   const c7 = scene(
     'Duas portas',
