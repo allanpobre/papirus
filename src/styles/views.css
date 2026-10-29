@@ -6156,3 +6156,648 @@ button.fight-line {
   color: var(--danger);
   font-weight: 600;
 }
+
+/* ─── Fila de turnos: os retratos em fila, como num jogo ─── */
+.turn-queue {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem 0.1rem 0.5rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.tq {
+  flex: none;
+}
+
+.tq-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 3.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tq-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.7rem;
+  border: 2px solid var(--line-strong);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--ink);
+}
+
+.tq-face.is-herois,
+.is-herois > .tq-btn .tq-face {
+  background: color-mix(in srgb, var(--ok, #2f6b4f) 22%, var(--surface));
+}
+
+.tq-face.is-inimigos,
+.is-inimigos > .tq-btn .tq-face {
+  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
+}
+
+.tq-cond {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--violet, #8b5cf6);
+  border: 2px solid var(--surface);
+}
+
+.tq-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tq-hp {
+  width: 100%;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.tq-hp > span {
+  display: block;
+  height: 100%;
+  background: var(--ok, var(--accent));
+  transition: width 0.45s ease;
+}
+
+.is-inimigos .tq-hp > span {
+  background: var(--danger);
+}
+
+.tq-hp.is-low > span {
+  background: var(--danger);
+}
+
+.tq.is-now .tq-btn {
+  width: 4.2rem;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.tq.is-now .tq-face {
+  width: 3.4rem;
+  height: 3.4rem;
+  font-size: 1.25rem;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(var(--glow) / 28%);
+}
+
+.tq.is-done .tq-face,
+.tq.is-done .tq-hp {
+  opacity: 0.45;
+}
+
+.tq.is-done .tq-name {
+  color: var(--muted);
+}
+
+.tq.is-down .tq-name {
+  text-decoration: line-through;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tq.is-now .tq-face {
+    animation: tq-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes tq-pulse {
+  50% {
+    box-shadow: 0 0 0 7px rgb(var(--glow) / 10%);
+  }
+}
+
+.fight-row .tq-face {
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.fight-modes {
+  margin-top: 0.2rem;
+}
+
+.fight-sides {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem 1rem;
+  padding: 0.7rem;
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.fight-side {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fight-side-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.fight-side-label .input {
+  width: 4.2rem;
+}
+
+.heroes-turn .chips {
+  gap: 0.5rem;
+}
+
+.hero-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+}
+
+.popcorn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-s);
+}
+
+.popcorn p {
+  margin: 0;
+}
+
+.popcorn-pick {
+  min-height: 34px;
+  font-weight: 600;
+}
+
+.popcorn-pick.is-inimigos {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+}
+
+.fight-next {
+  min-width: 0;
+}
+
+.fight-next > span,
+.fight-next {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── O celular do jogador: Eu · Mesa · Codex ─── */
+.player-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.player-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.player.has-dock .player-main:has(.player-grid) {
+  max-width: 82rem;
+}
+
+.player-bottom {
+  position: fixed;
+  z-index: 6;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(44rem, 100%);
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -8px 24px -16px rgb(0 0 0 / 35%);
+}
+
+.player-bottom .player-dock-actions {
+  padding: 0.55rem max(16px, env(safe-area-inset-right, 0px)) 0.45rem max(16px, env(safe-area-inset-left, 0px));
+}
+
+.player-bottom:not(:has(nav)) .player-dock-actions {
+  padding-bottom: calc(0.55rem + env(safe-area-inset-bottom, 0px));
+}
+
+.player-tabs {
+  display: flex;
+  padding: 0.2rem max(6px, env(safe-area-inset-right, 0px)) max(0.3rem, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--line);
+}
+
+.player-tabs button {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.1rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.74rem;
+}
+
+.player-tabs button[aria-current='page'] {
+  background: rgb(var(--glow) / 16%);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.player-tabs button[aria-current='page'] svg {
+  color: var(--accent);
+}
+
+.player-tab-dot {
+  position: absolute;
+  top: 0.3rem;
+  right: calc(50% - 1.1rem);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.player-quiet {
+  padding: 1rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-l);
+  text-align: center;
+}
+
+/* O cartão do personagem. */
+.me-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.me-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.me-portrait {
+  flex: none;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 0.9rem;
+  object-fit: cover;
+}
+
+.me-portrait.is-letter {
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--ok) 22%, var(--surface));
+  border: 2px solid color-mix(in srgb, var(--ok) 50%, var(--line));
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.me-who {
+  flex: 1;
+  min-width: 0;
+}
+
+.me-who p {
+  margin: 0;
+}
+
+.me-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+}
+
+.me-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.me-pool-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+}
+
+.me-pool-label strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+
+.me-pool.is-big .me-pool-label strong {
+  font-size: 1.5rem;
+}
+
+.me-pool.is-big .resource-bar {
+  height: 10px;
+}
+
+.me-pool.is-low .resource-bar > span {
+  background: var(--danger);
+}
+
+.me-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.me-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.4rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.me-stat strong {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+}
+
+.me-stat small {
+  color: var(--ink-2);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.me-conds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+}
+
+.me-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.me-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.me-label .muted {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.me-attack {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.me-attack:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.me-attack svg {
+  color: var(--accent);
+}
+
+.me-attack-name {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.me-attack-num {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.me-test {
+  min-height: 34px;
+}
+
+.me-all {
+  align-self: flex-start;
+}
+
+.me-sheet > summary {
+  cursor: pointer;
+  color: var(--ink-2);
+}
+
+.me-sheet .codex-pc {
+  margin-top: 0.5rem;
+}
+
+.player-combat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.player-combat .turn-queue {
+  padding-bottom: 0.2rem;
+}
+
+.tq.is-me .tq-face {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+
+/* A sua vez, no meio da tela. */
+.player-turn-now .player-turn-acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.player-ask-close {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+}
+
+.player-pass {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.player-pass .chips {
+  justify-content: center;
+}
+
+.player-done {
+  min-height: 46px;
+}
+
+/* O Codex em partes que abrem e fecham. */
+.codex-sec {
+  border-top: 1px solid var(--line);
+}
+
+.codex-sec > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.codex-sec > summary::-webkit-details-marker {
+  display: none;
+}
+
+.codex-sec > summary::before {
+  content: '';
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--ink-2);
+  border-bottom: 2px solid var(--ink-2);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+
+.codex-sec[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.codex-sec > summary .codex-kind {
+  flex: 1;
+  margin: 0;
+}
+
+.codex-sec-count {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.codex-sec-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-bottom: 0.9rem;
+}
+
+@media (min-width: 960px) {
+  .player-bottom {
+    width: min(26rem, 100%);
+    left: auto;
+    right: 1.2rem;
+    bottom: 1.2rem;
+    transform: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+  }
+}
+
+.codex-sec > summary .codex-kind {
+  padding: 0;
+  border: 0;
+}
+
+.player-panel .clocks {
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+}
+
+.player-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.player-panel[hidden] {
+  display: none;
+}

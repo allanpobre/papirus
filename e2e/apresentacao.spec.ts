@@ -44,14 +44,15 @@ test('a apresentação mostra os três setores, a mesa nova e o gerador da Ofici
 
 test('a apresentação mostra a mesa dos dois lados e as telas de cada setor', async ({ page }) => {
   await page.goto('/')
-  const trio = page.getByRole('figure', { name: /o mestre no tablet e dois jogadores no celular/ })
+  const trio = page.getByRole('figure', { name: /o mestre com o escudo no tablet e dois jogadores com o cartão no celular/ })
   await trio.scrollIntoViewIfNeeded()
-  // A Kaya rola pelo celular; o mestre confere e tira o dano; a vez passa ao Taren e a revelação chega aos dois (uns 15 segundos).
+  // A vez da Kaya chega no meio da tela; ela rola; o mestre confere e tira o dano; ela termina, a vez vai ao Taren e a revelação chega aos dois (uns 15 segundos).
+  await expect(trio.locator('.lp-turn-now').getByText('Sua vez, Kaya!')).toBeVisible({ timeout: 6_000 })
   await expect(trio.locator('.lp-tray').getByText('Kaya · Espada longa contra Goblin')).toBeVisible({ timeout: 8_000 })
-  await expect(trio.getByText('Goblin: PV -2/7 · derrotado')).toBeVisible({ timeout: 10_000 })
-  await expect(trio.getByText('Sua vez, Taren!')).toBeVisible({ timeout: 6_000 })
+  await expect(trio.getByText('Goblin derrotado')).toBeVisible({ timeout: 10_000 })
+  await expect(trio.getByText('Sua vez, Taren!').first()).toBeVisible({ timeout: 6_000 })
   await expect(trio.getByText('Revelado', { exact: true })).toBeVisible({ timeout: 8_000 })
-  await expect(trio.getByText('Novidades do mestre')).toHaveCount(2)
+  await expect(trio.getByText('O mestre revelou: a Ordem do Corvo')).toHaveCount(2)
 
   // Os passos da escrita e os amigos também têm a sua telinha.
   await expect(page.locator('.lp-steps .lp-mini')).toHaveCount(3)
@@ -63,11 +64,11 @@ test('a apresentação mostra a mesa dos dois lados e as telas de cada setor', a
   await expect(page.getByRole('tablist', { name: 'Telas: Escrita' }).getByRole('tab')).toHaveCount(4)
   await setores.getByRole('button', { name: 'Mesa de RPG' }).click()
   const mesa = page.getByRole('tablist', { name: 'Telas: Mesa de RPG' })
-  await expect(mesa.getByRole('tab')).toHaveText(['Painel do mestre', 'Ficha de jogo', 'Registro'])
-  await mesa.getByRole('tab', { name: 'Registro' }).click()
+  await expect(mesa.getByRole('tab')).toHaveText(['Escudo do mestre', 'Combate', 'Ficha de jogo'])
+  await mesa.getByRole('tab', { name: 'Combate' }).click()
   await expect(page.getByRole('tabpanel')).toBeVisible()
-  await expect(page.getByText('cada rolagem (do dado de verdade ou do app) entra no registro', { exact: false })).toBeVisible()
+  await expect(page.locator('.lp-show-note')).toContainText('três jeitos de iniciativa: clássica, por lados ou pipoca')
   // Escolher uma tela para de girar sozinho.
   await page.waitForTimeout(8500)
-  await expect(mesa.getByRole('tab', { name: 'Registro' })).toHaveAttribute('aria-selected', 'true')
+  await expect(mesa.getByRole('tab', { name: 'Combate' })).toHaveAttribute('aria-selected', 'true')
 })

@@ -2767,3 +2767,329 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
   font-size: 1.1rem;
   box-shadow: 0 0 0 4px rgb(var(--glow) / 20%);
 }
+
+/* ─── O escudo do mestre: Roteiro · Palco · Mesa ─────────────────────── */
+.sm-body.is-shield {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, 1fr);
+}
+
+.shield-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.shield-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.1rem 0.1rem 0;
+}
+
+.shield-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.shield-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.shield-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.shield-label .muted {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.shield-start {
+  min-height: 3.2rem;
+  font-family: var(--font-text, inherit);
+}
+
+.shield-panel > .fold {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.shield-panel > .fold .section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.fold-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.shield-rows li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.shield-rows li:first-child {
+  border-top: 0;
+}
+
+/* As cenas do roteiro: riscar e começar. */
+.beat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.beat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.2rem 0.45rem;
+  padding: 0.2rem 0.25rem;
+  border-radius: var(--radius);
+}
+
+.beat.is-now {
+  background: rgb(var(--glow) / 14%);
+}
+
+.beat-check {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1.5px solid var(--ink-2);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+
+.beat-check[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.beat-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.beat-title:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.beat.is-done .beat-title {
+  color: var(--ink-2);
+  text-decoration: line-through;
+}
+
+.beat.is-now .beat-title {
+  font-weight: 650;
+}
+
+.beat-now {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.beat-play {
+  display: inline-grid;
+  color: var(--ink-2);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.beat-title:hover .beat-play,
+.beat-title:focus-visible .beat-play {
+  opacity: 1;
+}
+
+.beat-mood {
+  grid-column: 2 / -1;
+}
+
+.beat-add {
+  margin-top: 0.2rem;
+}
+
+/* O palco: a cena atual com o clima. */
+.stage-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  min-height: 6.5rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(120% 90% at 85% 0%, rgb(var(--glow) / 30%), transparent 62%),
+    linear-gradient(160deg, var(--surface-2), var(--surface));
+}
+
+.stage-card.is-empty {
+  min-height: 0;
+  border-style: dashed;
+  background: var(--surface);
+}
+
+.stage-kick {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.stage-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+.stage-mood {
+  color: var(--ink-2);
+  font-style: italic;
+}
+
+.stage-card.is-empty .stage-mood {
+  font-style: normal;
+}
+
+/* Relógios de progresso. */
+.clocks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clock-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.45rem 0.35rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.clock-chip.is-hidden {
+  border-style: dashed;
+}
+
+.clock-chip.is-full {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgb(var(--glow) / 18%);
+}
+
+.clock-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.clock-text strong {
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.clock-acts {
+  display: inline-flex;
+  gap: 0.1rem;
+}
+
+.clock-face {
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+
+.clock-face-bg {
+  fill: var(--surface-2);
+  stroke: var(--ink-2);
+  stroke-width: 1.2;
+}
+
+.clock-face-on {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 1.2;
+}
+
+.clock-face-off {
+  fill: transparent;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.clock-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.clock-add .input {
+  width: 12rem;
+  max-width: 100%;
+}
+
+.shield-palco .sm-combate {
+  padding: 0.85rem;
+}
+
+.shield-mesa .sm-panel .shield-label {
+  margin-bottom: 0.1rem;
+}

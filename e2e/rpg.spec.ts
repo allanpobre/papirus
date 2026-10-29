@@ -99,7 +99,7 @@ test('iniciativa: cada um rola, "Definir turnos" fecha a ordem, e vez e rodada c
   await page.getByRole('button', { name: 'Começar', exact: true }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
   const init = page.getByRole('region', { name: 'Iniciativa' })
-  await init.getByRole('button', { name: 'Começar combate' }).click()
+  await init.getByRole('button', { name: 'Combate!' }).click()
 
   // Sem o link da mesa, o mestre rola ou digita por cada um; só com todos rolados os turnos se definem.
   const turnos = init.getByRole('button', { name: 'Definir turnos' })

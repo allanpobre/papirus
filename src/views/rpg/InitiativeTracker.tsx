@@ -1,10 +1,33 @@
-import { ChevronDown, ChevronLeft, ChevronRight, Dices, Flag, Minus, Plus, Smartphone, Swords, UserPlus, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Dices, Flag, Minus, Plus, Smartphone, Swords, UserPlus, X } from 'lucide-react'
 import { useState } from 'react'
-import type { Session } from '../../model/schema'
-import { byId, insert, newId, patch } from '../../model/universe'
-import { addCondition, conditionsOf, expireEffects, initiativeOrder, isDown, lifeOf, removeCondition, roundsLeft } from '../../rpg/combat'
+import { roll } from '../../logic/dice'
+import { INITIATIVE_MODES, type Session, type Universe } from '../../model/schema'
+import { byId, insert, patch } from '../../model/universe'
+import { addCondition, conditionsOf, initiativeOrder, isDown, lifeOf, removeCondition, roundsLeft } from '../../rpg/combat'
 import { addMonsters, draftMonster, sortedMonsters } from '../../rpg/bestiary'
-import { autoInitiative, defineTurns, endFight, fightPhase, joinFight, setInitiative, startFight, waitingFor } from '../../rpg/fight'
+import {
+  actedSide,
+  autoInitiative,
+  currentId,
+  defineTurns,
+  endFight,
+  fightPhase,
+  firstSide,
+  joinFight,
+  MODE_HINT,
+  MODE_LABEL,
+  nextTurn,
+  passTo,
+  popcornChoices,
+  removeFromFight,
+  setInitiative,
+  setSides,
+  sideOf,
+  sideTurn,
+  startFight,
+  turnQueue,
+  waitingFor,
+} from '../../rpg/fight'
 import { attendanceOf } from '../../rpg/sessionLife'
 import { adjustResource, defenseLabel, defenseResource, isPool } from '../../rpg/sheets'
 import { useTablePresence } from '../../share/presence'
@@ -33,17 +56,29 @@ export function InitiativeTracker({ session }: { session: Session }) {
 function FightStart({ session }: { session: Session }) {
   const { update, readOnly } = useWorkspace()
   const { system, group } = useRpg()
+  const mode = group.initiativeMode
   return (
     <section className="initiative fight-start" aria-label="Iniciativa">
       <span className="fight-start-icon" aria-hidden="true">
         <Swords size={26} />
       </span>
       <h2 className="section-title">Nenhum combate agora</h2>
-      <p className="muted small">{group.share ? 'Os jogadores rolam a iniciativa no celular; você põe os inimigos.' : 'Você rola ou digita a iniciativa de cada um e põe os inimigos.'}</p>
       {!readOnly && (
-        <button type="button" className="btn btn-primary fight-go" onClick={() => update((u) => startFight(u, session.id, system))}>
-          <Swords size={17} /> Começar combate
-        </button>
+        <>
+          <div className="segmented fight-modes" role="radiogroup" aria-label="Jeito de iniciativa">
+            {INITIATIVE_MODES.map((m) => (
+              <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => update((u) => patch(u, 'groups', group.id, { initiativeMode: m }))}>
+                {MODE_LABEL[m]}
+              </button>
+            ))}
+          </div>
+          <p className="muted small">
+            {MODE_HINT[mode]} {mode === 'classica' && (group.share ? 'Os jogadores rolam no celular.' : 'Você rola ou digita por eles.')}
+          </p>
+          <button type="button" className="btn btn-primary fight-go" onClick={() => update((u) => startFight(u, session.id, system, new Date(), undefined, mode))}>
+            <Swords size={17} /> Combate!
+          </button>
+        </>
       )}
     </section>
   )
@@ -53,22 +88,45 @@ function RollingInitiative({ session }: { session: Session }) {
   const { universe, update, readOnly } = useWorkspace()
   const { system, group } = useRpg()
   const [open, setOpen] = useState<string | null>(null)
+  const [heroes, setHeroes] = useState('')
+  const [foes, setFoes] = useState('')
+  const [startId, setStartId] = useState('')
+  const mode = session.fightMode
   const waiting = waitingFor(session)
-  const pcs = session.initiative.filter((e) => e.sheetId && byId(universe, 'sheets', e.sheetId)?.role === 'pj')
-  const others = initiativeOrder(session).filter((e) => !pcs.includes(e))
-  const ready = session.initiative.length > 0 && waiting.length === 0
+  const pcs = session.initiative.filter((e) => sideOf(universe, e) === 'herois')
+  const others = (mode === 'classica' ? initiativeOrder(session) : session.initiative).filter((e) => !pcs.includes(e))
+  const ready = session.initiative.length > 0 && waiting.length === 0 && (mode !== 'lados' || session.sides !== null) && (mode !== 'pipoca' || session.initiative.some((e) => e.id === startId))
   const names = waiting.map((e) => e.name)
   // Quem está com o Codex aberto rola no celular; para os outros, o mestre rola ou digita.
   const online = new Set(useTablePresence(group.share ? group.id : undefined).map((p) => p.name))
+  const d20 = () => roll('1d20').total
+  const sides = (h: string, f: string) => {
+    setHeroes(h)
+    setFoes(f)
+    if (h && f) update((u) => setSides(u, session.id, Number(h), Number(f)))
+  }
+  const status = !session.initiative.length
+    ? 'Ninguém no combate ainda.'
+    : waiting.length
+      ? `Esperando ${names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`} rolar.${group.share ? '' : ' Sem o link da mesa, role ou digite por eles.'}`
+      : mode === 'lados'
+        ? session.sides
+          ? `Começam os ${firstSide(session) === 'herois' ? 'heróis' : 'inimigos'}.`
+          : 'Falta rolar um dado para cada lado.'
+        : mode === 'pipoca'
+          ? startId
+            ? 'Pronto: quem começa escolhe o próximo.'
+            : 'Escolha quem começa.'
+          : 'Todos rolaram. A ordem sai do maior para o menor.'
 
   return (
     <section className="initiative fight" aria-label="Iniciativa">
       <div className="fight-head">
         <h2 className="section-title">Iniciativa</h2>
-        <span className="round-pill">{waiting.length ? 'rolando' : 'pronta'}</span>
+        <span className="round-pill">{MODE_LABEL[mode]}</span>
       </div>
 
-      <h3 className="section-label">Jogadores</h3>
+      <h3 className="section-label">Heróis</h3>
       {pcs.length === 0 && <p className="muted small">Nenhum personagem de jogador nesta sessão.</p>}
       <ol className="fight-list">
         {pcs.map((e) => (
@@ -76,8 +134,13 @@ function RollingInitiative({ session }: { session: Session }) {
         ))}
       </ol>
 
-      <h3 className="section-label">Inimigos e NPCs</h3>
-      {others.length === 0 && <p className="muted small">Ponha quem vai lutar contra eles. O Papirus rola a iniciativa deles.</p>}
+      <h3 className="section-label">Inimigos</h3>
+      {others.length === 0 && (
+        <p className="muted small">
+          Ponha quem vai lutar contra eles
+          {mode === 'classica' ? '. O Papirus rola a iniciativa deles' : ''}.
+        </p>
+      )}
       <ol className="fight-list">
         {others.map((e) => (
           <Combatant key={e.id} session={session} entry={e} open={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} />
@@ -85,73 +148,124 @@ function RollingInitiative({ session }: { session: Session }) {
       </ol>
       {!readOnly && <AddCombatants session={session} />}
 
+      {!readOnly && mode === 'lados' && (
+        <div className="fight-sides" role="group" aria-label="Um dado para cada lado">
+          {(
+            [
+              ['Heróis', heroes, (v: string) => sides(v, foes)],
+              ['Inimigos', foes, (v: string) => sides(heroes, v)],
+            ] as const
+          ).map(([label, value, set]) => (
+            <div key={label} className="fight-side">
+              <RollingDie value={value ? Number(value) : null} />
+              <label className="fight-side-label">
+                <span>{label}</span>
+                <input className="input input-sm" inputMode="numeric" aria-label={`Dado dos ${label.toLowerCase()}`} placeholder="d20" value={value} onChange={(e) => set(e.target.value.replace(/[^\d]/g, '').slice(0, 2))} />
+              </label>
+              <button type="button" className="btn btn-sm btn-ghost" aria-label={`Rolar para os ${label.toLowerCase()}`} onClick={() => set(String(d20()))}>
+                <Dices size={14} /> Rolar
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {!readOnly && mode === 'pipoca' && (
+        <div className="fight-sides">
+          <label className="field">
+            <span className="field-label">Quem começa?</span>
+            <select className="input select input-sm" value={startId} onChange={(e) => setStartId(e.target.value)}>
+              <option value="">Escolha…</option>
+              {session.initiative.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className="btn btn-sm btn-ghost" disabled={!session.initiative.length} onClick={() => setStartId(session.initiative[Math.floor(Math.random() * session.initiative.length)].id)}>
+            <Dices size={14} /> Sortear
+          </button>
+        </div>
+      )}
+
       {!readOnly && (
         <div className="fight-foot">
-          <button type="button" className="btn btn-primary fight-go" disabled={!ready} onClick={() => update((u) => defineTurns(u, session.id))}>
+          <button type="button" className="btn btn-primary fight-go" disabled={!ready} onClick={() => update((u) => defineTurns(u, session.id, new Date(), startId || undefined))}>
             <Swords size={17} /> Definir turnos
           </button>
           <p className="muted small" role="status">
-            {!session.initiative.length
-              ? 'Ninguém no combate ainda.'
-              : waiting.length
-                ? `Esperando ${names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`} rolar.${group.share ? '' : ' Sem o link da mesa, role ou digite por eles.'}`
-                : 'Todos rolaram. A ordem sai do maior para o menor.'}
+            {status}
           </p>
           <ConfirmButton className="btn btn-ghost btn-sm" question="Cancelar o combate?" confirmLabel="Cancelar combate" onConfirm={() => update((u) => endFight(u, session.id))}>
             <X size={14} /> Cancelar
           </ConfirmButton>
         </div>
       )}
-      {system && <p className="muted tiny">Iniciativa do sistema: {system.initiativeFormula}</p>}
+      {system && mode === 'classica' && <p className="muted tiny">Iniciativa do sistema: {system.initiativeFormula}</p>}
     </section>
   )
+}
+
+/** A fila de turnos, como num jogo: os retratos em fila, quem age em destaque, a vida embaixo. */
+function Queue({ session, onPick }: { session: Session; onPick: (id: string) => void }) {
+  const { universe } = useWorkspace()
+  const queue = turnQueue(universe, session)
+  return (
+    <ol className="turn-queue" aria-label="Fila de turnos">
+      {queue.map(({ entry: e, state, side }) => {
+        const life = lifeOf(universe, e)
+        const pct = life && life.max ? Math.max(0, Math.min(100, (life.current / life.max) * 100)) : null
+        const down = isDown(universe, e)
+        const conds = conditionsOf(universe, e)
+        return (
+          <li key={e.id} className={`tq is-${side}${state === 'agora' ? ' is-now' : ''}${state === 'agiu' ? ' is-done' : ''}${down ? ' is-down' : ''}`}>
+            <button type="button" className="tq-btn" aria-label={`${e.name}${state === 'agora' ? ' (agindo)' : state === 'agiu' ? ' (já agiu)' : ''}${conds.length ? `, ${conds.join(', ')}` : ''}`} onClick={() => onPick(e.id)}>
+              <span className="tq-face" aria-hidden="true">
+                {initials(e.name)}
+                {conds.length > 0 && <span className="tq-cond" />}
+              </span>
+              <span className="tq-name" aria-hidden="true">
+                {e.name}
+              </span>
+              {pct !== null && (
+                <span className={`tq-hp${pct <= 25 ? ' is-low' : ''}`} aria-hidden="true">
+                  <span style={{ width: `${pct}%` }} />
+                </span>
+              )}
+            </button>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+/** "Goblin das falésias 2" → "G2"; "Brisa" → "B". */
+const initials = (name: string) => {
+  const n = name.match(/(\d+)$/)?.[1] ?? ''
+  return (name.trim()[0] ?? '?').toUpperCase() + n
 }
 
 function Turns({ session }: { session: Session }) {
   const { universe, update, readOnly } = useWorkspace()
   const [open, setOpen] = useState<string | null>(null)
-  const list = initiativeOrder(session)
-  const turn = list.length ? session.turn % list.length : 0
-  const set = (c: Partial<Session>) => update((u) => patch(u, 'sessions', session.id, c))
-
-  // Inimigos derrotados perdem a vez; personagens de jogador caídos, não (podem estar sangrando).
-  const skips = (i: number) => {
-    const e = list[i]
-    const sheet = e.sheetId ? byId(universe, 'sheets', e.sheetId) : undefined
-    return sheet?.role !== 'pj' && isDown(universe, e)
-  }
-
-  const next = (dir: 1 | -1) => {
-    if (!list.length) return
-    let t = turn
-    let round = session.round
-    for (let step = 0; step < list.length; step++) {
-      t += dir
-      if (t >= list.length) {
-        t = 0
-        round += 1
-      } else if (t < 0) {
-        t = list.length - 1
-        round = Math.max(1, round - 1)
-      }
-      if (!skips(t)) break
-    }
-    if (round <= session.round) return set({ turn: t, round })
-    // A rodada virou: as condições que venceram acabam, e o registro conta.
-    const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    update((u) => {
-      const { universe: v, ended } = expireEffects(patch(u, 'sessions', session.id, { turn: t, round }), session.id)
-      const s = byId(v, 'sessions', session.id)!
-      if (s.status !== 'em-andamento') return v
-      return patch(v, 'sessions', s.id, { log: [...s.log, ...[`Rodada ${round}`, ...ended].map((text) => ({ id: newId(), at, text, kind: 'nota' as const }))] })
-    })
-  }
+  // Por lados, na vez dos heróis, o mestre toca em quem vai agir para ver os ataques dele.
+  const [acting, setActing] = useState<string | null>(null)
+  const mode = session.fightMode
+  const now = currentId(session)
+  const side = mode === 'lados' ? sideTurn(universe, session) : null
+  const heroesTurn = side?.side === 'herois'
+  const list = turnQueue(universe, session).map((q) => q.entry)
+  const next = mode === 'classica' ? turnQueue(universe, nextTurnSession(universe, session)).at(0)?.entry : undefined
+  const choices = mode === 'pipoca' ? popcornChoices(universe, session) : null
+  const actor = heroesTurn ? (side.pending.some((e) => e.id === acting) ? acting : null) : now
 
   return (
     <section className="initiative fight" aria-label="Iniciativa">
       <div className="fight-head">
         <h2 className="section-title">Combate</h2>
         <span className="round-pill">Rodada {session.round}</span>
+        <span className="muted tiny">{MODE_LABEL[mode]}</span>
         {!readOnly && (
           <ConfirmButton className="btn btn-ghost btn-sm fight-end" question="Encerrar o combate?" confirmLabel="Encerrar" onConfirm={() => update((u) => endFight(u, session.id))}>
             <Flag size={14} /> Encerrar combate
@@ -159,23 +273,86 @@ function Turns({ session }: { session: Session }) {
         )}
       </div>
 
-      <TurnPanel session={session} />
-      {!readOnly && (
+      <Queue session={session} onPick={(id) => (heroesTurn && side.pending.some((e) => e.id === id) ? setActing(id) : setOpen(open === id ? null : id))} />
+
+      {heroesTurn && (
+        <div className="turn-panel heroes-turn" role="group" aria-label="Vez dos heróis">
+          <p className="turn-who">
+            <Swords size={15} aria-hidden="true" /> Vez dos heróis: <span className="muted small">eles escolhem a ordem.</span>
+          </p>
+          <div className="chips">
+            {side.pending.map((e) => (
+              <span key={e.id} className="hero-pending">
+                <button type="button" className={`chip${acting === e.id ? ' is-on' : ''}`} aria-pressed={acting === e.id} onClick={() => setActing(acting === e.id ? null : e.id)}>
+                  {e.name}
+                </button>
+                {!readOnly && (
+                  <button type="button" className="btn btn-xs" aria-label={`${e.name} agiu`} onClick={() => update((u) => actedSide(u, session.id, [e.id]))}>
+                    <Check size={12} /> agiu
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+          {!readOnly && side.pending.length > 1 && (
+            <button
+              type="button"
+              className="btn btn-sm btn-ghost"
+              onClick={() =>
+                update((u) =>
+                  actedSide(
+                    u,
+                    session.id,
+                    side.pending.map((e) => e.id),
+                  ),
+                )
+              }
+            >
+              Todos os heróis agiram
+            </button>
+          )}
+        </div>
+      )}
+      {actor && <TurnPanel session={session} entryId={actor} />}
+
+      {!readOnly && mode === 'classica' && (
         <div className="fight-step">
-          <button type="button" className="btn-icon" aria-label="Vez anterior" onClick={() => next(-1)}>
+          <button type="button" className="btn-icon" aria-label="Vez anterior" onClick={() => update((u) => nextTurn(u, session.id, -1))}>
             <ChevronLeft size={18} />
           </button>
-          <button type="button" className="btn btn-primary fight-next" onClick={() => next(1)}>
-            Próxima vez <ChevronRight size={16} />
+          <button type="button" className="btn btn-primary fight-next" onClick={() => update((u) => nextTurn(u, session.id, 1))}>
+            <span>Próxima vez{next ? ` → ${next.name}` : ''}</span> <ChevronRight size={16} />
           </button>
         </div>
       )}
+      {!readOnly && mode === 'lados' && side?.side === 'inimigos' && now && (
+        <div className="fight-step">
+          <button type="button" className="btn btn-primary fight-next" onClick={() => update((u) => actedSide(u, session.id, [now]))}>
+            <span>{side.pending.length > 1 ? `Próximo inimigo → ${side.pending[1].name}` : 'Fim da vez dos inimigos'}</span> <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
+      {!readOnly && choices && (
+        <div className="popcorn" role="group" aria-label="Passar a vez">
+          <p className="muted small">{choices.newRound ? 'Todos agiram. Quem começa a próxima rodada?' : `${list.find((e) => e.id === now)?.name ?? 'Quem agiu'} passa a vez para:`}</p>
+          <div className="chips">
+            {choices.next.map((e) => (
+              <button key={e.id} type="button" className={`chip popcorn-pick is-${sideOf(universe, e)}`} onClick={() => update((u) => passTo(u, session.id, e.id))}>
+                {e.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-      <ol className="fight-list" aria-label="Ordem dos turnos">
-        {list.map((e, i) => (
-          <Combatant key={e.id} session={session} entry={e} current={i === turn} open={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} />
-        ))}
-      </ol>
+      <details className="fight-more" open={open !== null}>
+        <summary>Vida, Defesa e condições</summary>
+        <ol className="fight-list" aria-label="Ordem dos turnos">
+          {list.map((e) => (
+            <Combatant key={e.id} session={session} entry={e} current={e.id === now} open={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} />
+          ))}
+        </ol>
+      </details>
       {!readOnly && (
         <details className="fight-more">
           <summary>
@@ -188,6 +365,9 @@ function Turns({ session }: { session: Session }) {
   )
 }
 
+/** Como fica a sessão depois de "Próxima vez" (para mostrar quem vem). */
+const nextTurnSession = (u: Universe, s: Session): Session => byId(nextTurn(u, s.id), 'sessions', s.id) ?? s
+
 /**
  * Uma linha do combate: a iniciativa no d20, o nome e a vida. Um toque abre o resto
  * (vida, Defesa, condições, tirar do combate). Quem ainda está rolando pede o valor.
@@ -198,15 +378,27 @@ function Combatant({ session, entry: c, current = false, onPhone = false, open, 
   const [typed, setTyped] = useState('')
   const sheet = c.sheetId ? byId(universe, 'sheets', c.sheetId) : undefined
   const main = system?.resources.find(isPool)
-  const res = sheet && main ? (sheet.resources[main.id] ?? { current: main.default, max: main.default }) : null
+  const res =
+    sheet && main
+      ? (sheet.resources[main.id] ?? {
+          current: main.default,
+          max: main.default,
+        })
+      : null
   const down = isDown(universe, c)
   const life = lifeOf(universe, c)
   const pct = life && life.max ? Math.max(0, Math.min(100, (life.current / life.max) * 100)) : null
   const defLabel = defenseLabel(system)
   const defAbbr = defenseResource(system)?.abbr ?? 'DEF'
   const conds = conditionsOf(universe, c)
-  const setEntry = (x: Partial<Entry>) => update((u) => patch(u, 'sessions', session.id, { initiative: session.initiative.map((e) => (e.id === c.id ? { ...e, ...x } : e)) }))
+  const setEntry = (x: Partial<Entry>) =>
+    update((u) =>
+      patch(u, 'sessions', session.id, {
+        initiative: session.initiative.map((e) => (e.id === c.id ? { ...e, ...x } : e)),
+      }),
+    )
   const gm = sheet && attendanceOf(session, sheet.id) === 'mestre'
+  const classic = session.fightMode === 'classica'
 
   if (!c.rolled) {
     const submit = () => {
@@ -238,22 +430,24 @@ function Combatant({ session, entry: c, current = false, onPhone = false, open, 
               <Dices size={13} /> Rolar por ele
             </button>
           </div>
-        ) : !readOnly && (
-          <form
-            className="fight-type"
-            onSubmit={(e) => {
-              e.preventDefault()
-              submit()
-            }}
-          >
-            <input className="input input-sm" inputMode="numeric" aria-label={`Iniciativa de ${c.name}`} placeholder="Valor" value={typed} onChange={(e) => setTyped(e.target.value.replace(/[^\d-]/g, '').slice(0, 3))} />
-            <button type="submit" className="btn btn-sm" disabled={!typed.trim()}>
-              OK
-            </button>
-            <button type="button" className="btn btn-sm btn-ghost" aria-label={`Rolar por ${c.name}`} onClick={() => update((u) => setInitiative(u, session.id, c.id, autoInitiative(u, system, c.sheetId)))}>
-              <Dices size={14} /> Rolar
-            </button>
-          </form>
+        ) : (
+          !readOnly && (
+            <form
+              className="fight-type"
+              onSubmit={(e) => {
+                e.preventDefault()
+                submit()
+              }}
+            >
+              <input className="input input-sm" inputMode="numeric" aria-label={`Iniciativa de ${c.name}`} placeholder="Valor" value={typed} onChange={(e) => setTyped(e.target.value.replace(/[^\d-]/g, '').slice(0, 3))} />
+              <button type="submit" className="btn btn-sm" disabled={!typed.trim()}>
+                OK
+              </button>
+              <button type="button" className="btn btn-sm btn-ghost" aria-label={`Rolar por ${c.name}`} onClick={() => update((u) => setInitiative(u, session.id, c.id, autoInitiative(u, system, c.sheetId)))}>
+                <Dices size={14} /> Rolar
+              </button>
+            </form>
+          )
         )}
       </li>
     )
@@ -261,8 +455,20 @@ function Combatant({ session, entry: c, current = false, onPhone = false, open, 
 
   return (
     <li className={`fight-row${current ? ' current' : ''}${down ? ' down' : ''}${open ? ' is-open' : ''}`} aria-current={current ? 'step' : undefined}>
-      <button type="button" className="fight-line" aria-expanded={open} aria-label={`${c.name}: iniciativa ${c.value}${life ? `, ${life.abbr} ${life.current}${life.max ? `/${life.max}` : ''}` : ''}${conds.length ? `, ${conds.join(', ')}` : ''}`} onClick={onToggle}>
-        <RollingDie value={c.value} />
+      <button
+        type="button"
+        className="fight-line"
+        aria-expanded={open}
+        aria-label={`${c.name}: ${[classic ? `iniciativa ${c.value}` : '', life ? `${life.abbr} ${life.current}${life.max ? `/${life.max}` : ''}` : '', ...conds].filter(Boolean).join(', ')}`}
+        onClick={onToggle}
+      >
+        {classic ? (
+          <RollingDie value={c.value} />
+        ) : (
+          <span className={`tq-face is-${sideOf(universe, c)}`} aria-hidden="true">
+            {initials(c.name)}
+          </span>
+        )}
         <span className="fight-name">
           <strong className="init-name-text">{c.name}</strong>
           {sheet && <span className={`role-dot role-${sheet.role}`} aria-hidden="true" />}
@@ -286,13 +492,35 @@ function Combatant({ session, entry: c, current = false, onPhone = false, open, 
           {res && main && sheet ? (
             <div className="fight-field">
               <span className="field-label">{main.abbr}</span>
-              <button type="button" className="btn-icon btn-xs" aria-label={`Menos 1 ${main.abbr} de ${c.name}`} onClick={() => update((u) => patch(u, 'sheets', sheet.id, { resources: adjustResource(sheet, main.id, -1) }))}>
+              <button
+                type="button"
+                className="btn-icon btn-xs"
+                aria-label={`Menos 1 ${main.abbr} de ${c.name}`}
+                onClick={() =>
+                  update((u) =>
+                    patch(u, 'sheets', sheet.id, {
+                      resources: adjustResource(sheet, main.id, -1),
+                    }),
+                  )
+                }
+              >
                 <Minus size={13} />
               </button>
               <span className="tabular">
                 {res.current}/{res.max}
               </span>
-              <button type="button" className="btn-icon btn-xs" aria-label={`Mais 1 ${main.abbr} de ${c.name}`} onClick={() => update((u) => patch(u, 'sheets', sheet.id, { resources: adjustResource(sheet, main.id, 1) }))}>
+              <button
+                type="button"
+                className="btn-icon btn-xs"
+                aria-label={`Mais 1 ${main.abbr} de ${c.name}`}
+                onClick={() =>
+                  update((u) =>
+                    patch(u, 'sheets', sheet.id, {
+                      resources: adjustResource(sheet, main.id, 1),
+                    }),
+                  )
+                }
+              >
                 <Plus size={13} />
               </button>
             </div>
@@ -319,33 +547,26 @@ function Combatant({ session, entry: c, current = false, onPhone = false, open, 
               </label>
             </>
           )}
-          <label className="fight-field">
-            <span className="field-label">Iniciativa</span>
-            <input
-              className="input input-sm init-value"
-              inputMode="numeric"
-              aria-label={`Iniciativa de ${c.name}`}
-              value={c.value}
-              readOnly={readOnly}
-              onChange={(e) => e.target.value.trim() && Number.isFinite(Number(e.target.value)) && setEntry({ value: Number(e.target.value) })}
-            />
-          </label>
+          {classic && (
+            <label className="fight-field">
+              <span className="field-label">Iniciativa</span>
+              <input
+                className="input input-sm init-value"
+                inputMode="numeric"
+                aria-label={`Iniciativa de ${c.name}`}
+                value={c.value}
+                readOnly={readOnly}
+                onChange={(e) => e.target.value.trim() && Number.isFinite(Number(e.target.value)) && setEntry({ value: Number(e.target.value) })}
+              />
+            </label>
+          )}
           {system?.features.conditions && system.conditions.length > 0 ? (
             <Conditions session={session} entry={c} />
           ) : (
             <input className="input input-sm init-note" aria-label={`Notas de ${c.name}`} placeholder="Condições…" value={c.note} readOnly={readOnly} onChange={(e) => setEntry({ note: e.target.value })} />
           )}
           {!readOnly && (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm fight-remove"
-              onClick={() => {
-                const list = initiativeOrder(session)
-                const i = list.findIndex((x) => x.id === c.id)
-                const turn = list.length ? session.turn % list.length : 0
-                update((u) => patch(u, 'sessions', session.id, { initiative: session.initiative.filter((x) => x.id !== c.id), turn: i < turn ? Math.max(0, turn - 1) : turn }))
-              }}
-            >
+            <button type="button" className="btn btn-ghost btn-sm fight-remove" onClick={() => update((u) => removeFromFight(u, session.id, c.id))}>
               <X size={14} /> Tirar {c.name} do combate
             </button>
           )}
@@ -367,7 +588,16 @@ function Conditions({ session, entry: c }: { session: Session; entry: Entry }) {
       {current.map((cond) => {
         const left = roundsLeft(session, c.id, cond)
         return (
-          <button key={cond} type="button" className="chip chip-condition" aria-pressed="true" aria-label={`Tirar ${cond} de ${c.name}`} title="Tirar a condição" disabled={readOnly} onClick={() => update((u) => removeCondition(u, session.id, c.id, cond))}>
+          <button
+            key={cond}
+            type="button"
+            className="chip chip-condition"
+            aria-pressed="true"
+            aria-label={`Tirar ${cond} de ${c.name}`}
+            title="Tirar a condição"
+            disabled={readOnly}
+            onClick={() => update((u) => removeCondition(u, session.id, c.id, cond))}
+          >
             {cond}
             {left !== null && <span className="cond-left">{left === 1 ? 'última rodada' : `${left} rodadas`}</span>} ×
           </button>
@@ -481,7 +711,13 @@ function AddCombatants({ session }: { session: Session }) {
           value=""
           onChange={(e) => {
             const s = sheets.find((x) => x.id === e.target.value)
-            if (s) update((u) => joinFight(u, session.id, s.name, system, { sheetId: s.id, note: s.role === 'pj' && attendanceOf(session, s.id) === 'mestre' ? 'mestre conduz' : '' }))
+            if (s)
+              update((u) =>
+                joinFight(u, session.id, s.name, system, {
+                  sheetId: s.id,
+                  note: s.role === 'pj' && attendanceOf(session, s.id) === 'mestre' ? 'mestre conduz' : '',
+                }),
+              )
           }}
         >
           <option value="">+ Personagem da mesa</option>

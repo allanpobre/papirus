@@ -227,11 +227,26 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
                 Novidades do mestre
               </p>
             )}
-            <AtTable people={alive(people, now)} session={codex.session ?? null} me={me && codex.party.some((p) => p.name === me) ? me : null} />
-            {codex.session && codex.notices?.length ? <LastNotice notice={codex.notices.at(-1)!} /> : null}
-            <PlayerTable codex={codex} me={me && codex.party.some((p) => p.name === me) ? me : null} onMe={chooseMe} feed={feed} onRoll={roll} />
-            <CodexDoc codex={codex} me={me ?? undefined} />
-            {updatedAt && <p className="muted tiny player-foot">Atualizado às {timeFmt.format(new Date(updatedAt))} · feito com Papirus</p>}
+            <PlayerTable
+              codex={codex}
+              me={me && codex.party.some((p) => p.name === me) ? me : null}
+              onMe={chooseMe}
+              feed={feed}
+              onRoll={roll}
+              onTurn={(to) => me && void table.current?.sendTurn({ id: crypto.randomUUID(), who: me, ...(to ? { to } : {}) }).catch(() => undefined)}
+              live={
+                <>
+                  <AtTable people={alive(people, now)} session={codex.session ?? null} me={me && codex.party.some((p) => p.name === me) ? me : null} />
+                  {codex.session && codex.notices?.length ? <LastNotice notice={codex.notices.at(-1)!} /> : null}
+                </>
+              }
+              codexView={
+                <>
+                  <CodexDoc codex={codex} me={me ?? undefined} folded />
+                  {updatedAt && <p className="muted tiny player-foot">Atualizado às {timeFmt.format(new Date(updatedAt))} · feito com Papirus</p>}
+                </>
+              }
+            />
           </>
         ) : null}
       </main>

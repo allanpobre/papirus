@@ -6,6 +6,7 @@ import { combatTargets } from '../rpg/combat'
 import { aimAt, describeOutcome, resolveRoll, type RollOutcome } from '../rpg/rolls'
 import { makeSystem } from '../rpg/systems'
 import { judge, recordResult } from '../rpg/requests'
+import { playerTurn } from '../rpg/fight'
 import type { Prefs } from '../state/prefs'
 import { forgetGroup, noteLeft, notePresence, PRESENCE_EVERY } from './presence'
 import { joinTable, type TableNotice, type TableRoll } from './server'
@@ -110,6 +111,12 @@ export function useTableRolls(universe: Universe, prefs: Prefs, update: (change:
           }
           if (outcome.combat && !outcome.combat.hurts && outcome.verdict) void t.sendCheck({ id: r.id, verdict: outcome.verdict, tone: outcome.tone }).catch(() => undefined)
           for (const l of listeners) l({ groupId, outcome, who: r.who, logged })
+        },
+        // "Terminei" pelo celular: passa a vez (na pipoca, para quem o jogador escolheu).
+        turn: (v) => {
+          if (seen.has(v.id)) return
+          seen.add(v.id)
+          latest.current.update((w) => playerTurn(w, groupId, v.who, v.to))
         },
         // Quem está na mesa: cada celular avisa; quem chega pergunta, e o mestre responde também.
         presence: (p) => notePresence(groupId, p),
