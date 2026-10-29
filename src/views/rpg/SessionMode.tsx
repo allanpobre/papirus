@@ -1,4 +1,4 @@
-import { BookOpen, Dices, Flag, Maximize2, Megaphone, Minimize2, Palette, ScrollText, Swords, Users, X, type LucideIcon } from 'lucide-react'
+import { BookOpen, Dices, Flag, ListChecks, Maximize2, Megaphone, Minimize2, Palette, ScrollText, Swords, Users, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '../../model/schema'
 import { patch } from '../../model/universe'
@@ -14,6 +14,7 @@ import { InitiativeTracker } from './InitiativeTracker'
 import { MesaPresence } from './LiveTable'
 import { markMesaGate } from './MesaGate'
 import { useRpg } from './rpgContext'
+import { AskRollDialog, RequestsPanel } from './Requests'
 import { SecretsPanel } from './Secrets'
 import { SheetPlay } from './SheetPlay'
 import { LogBox, PartyCards, QuickDice, TableRolls } from './TableTab'
@@ -82,6 +83,7 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
   const wide = useMediaQuery('(min-width: 1181px)')
   const [part, setPart] = useState<Part>(() => (recall('sessao-parte') as Part) || 'combate')
   const [announcing, setAnnouncing] = useState(false)
+  const [asking, setAsking] = useState(false)
   const [sheetId, setSheetId] = useState<string | null>(null)
   const [full, setFull] = useState(() => Boolean(document.fullscreenElement))
   const name = sessionName(session.number, session.title)
@@ -159,6 +161,11 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
         <div className="sm-acts">
           {diceMode}
           {!readOnly && (
+            <button type="button" className="btn btn-sm sm-ask" aria-label="Pedir teste" onClick={() => setAsking(true)}>
+              <ListChecks size={15} /> <span className="sm-act-label">Pedir teste</span>
+            </button>
+          )}
+          {!readOnly && (
             <button type="button" className="btn btn-primary btn-sm sm-announce" aria-label="Anunciar" onClick={() => setAnnouncing(true)}>
               <Megaphone size={15} /> <span className="sm-act-label">Anunciar</span>
             </button>
@@ -183,6 +190,7 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
         </div>
       </header>
 
+      <RequestsPanel />
       <div className={`sm-body sm-cols-${columns.length}`}>
         {columns.map((col, i) => (
           <div key={i} className="sm-col">
@@ -207,6 +215,7 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
       )}
 
       {announcing && <AnnounceDialog onClose={() => setAnnouncing(false)} />}
+      {asking && <AskRollDialog onClose={() => setAsking(false)} />}
       {sheet && (
         <Modal title={`Ficha de ${sheet.name}`} side onClose={() => setSheetId(null)}>
           {sheetSystem ? <SheetPlay sheet={sheet} system={sheetSystem} /> : <p className="muted small">Esta ficha não tem sistema: escolha um em Personagens.</p>}

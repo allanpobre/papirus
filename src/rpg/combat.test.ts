@@ -93,8 +93,8 @@ describe('vida na iniciativa', () => {
     ;[u, { id: kayaId }] = insert(u, 'sheets', { ...draftSheet('Kaya', sys, { groupId }), resources: { [pv]: { current: 24, max: 31 }, [def]: { current: 17, max: 17 } } })
     let sessionId = ''
     ;[u, { id: sessionId }] = insert(u, 'sessions', draftSession(1, groupId))
-    const kaya = { id: newId(), name: 'Kaya', value: 18, hp: '', note: '', sheetId: kayaId, defense: null }
-    const gob = { id: newId(), name: 'Goblin', value: 12, hp: '7', note: '', sheetId: null, defense: 14 }
+    const kaya = { id: newId(), name: 'Kaya', value: 18, hp: '', note: '', sheetId: kayaId, defense: null, attacks: [], monsterId: null }
+    const gob = { id: newId(), name: 'Goblin', value: 12, hp: '7', note: '', sheetId: null, defense: 14, attacks: [], monsterId: null }
     u = patch(u, 'sessions', sessionId, { status: 'em-andamento', initiative: [gob, kaya] })
     return { u, sys, sessionId, kaya, gob, kayaId }
   }

@@ -1,5 +1,5 @@
 import qrcode from 'qrcode-generator'
-import { Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
+import { BookOpen, Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Group, Session } from '../../model/schema'
 import { newId, patch } from '../../model/universe'
@@ -11,6 +11,7 @@ import { publishNow, serverFrom, useSyncState } from '../../share/useCodexSync'
 import { useWorkspace } from '../../state/workspace'
 import { Modal, trapFocus } from '../../ui/Modal'
 import { useBackLayer } from '../../ui/useBackLayer'
+import { RecapEditor } from './Journal'
 import { AttendanceList } from './Attendance'
 
 /** O link da mesa (Codex ao vivo): ligar, desligar, o endereço e o QR code. */
@@ -317,8 +318,9 @@ export function SessionOpening({ group, session, previous, onClose }: { group: G
 
 /** O fim da sessão: quanto durou, o que rolou e para onde foi o registro. */
 export function SessionClosing({ group, session, onClose }: { group: Group; session: Session; onClose: () => void }) {
-  const { universe, go } = useWorkspace()
+  const { universe, go, readOnly } = useWorkspace()
   const [now] = useState(() => Date.now())
+  const [writing, setWriting] = useState(false)
   const sum = sessionSummary(universe, session, now)
   const sent = playedLog(session).length > 0
   const title = customTitle(session)
@@ -353,6 +355,16 @@ export function SessionClosing({ group, session, onClose }: { group: Group; sess
         {sent ? 'O registro inteiro foi para Ideias: revise com calma e transforme o que aconteceu em fatos do mundo.' : 'Nada foi anotado nesta sessão.'}
         {group.share && ' Os celulares da mesa já sabem que a sessão terminou.'}
       </p>
+      {!readOnly &&
+        (writing ? (
+          <section className="session-opening-card" aria-label="Diário da campanha">
+            <RecapEditor session={session} />
+          </section>
+        ) : (
+          <button type="button" className="btn btn-ghost" onClick={() => setWriting(true)}>
+            <BookOpen size={16} /> Escrever o diário para os jogadores
+          </button>
+        ))}
       <div className="session-opening-actions">
         {sent && (
           <button

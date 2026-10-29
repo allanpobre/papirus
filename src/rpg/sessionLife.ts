@@ -181,7 +181,7 @@ export function announce(u: Universe, sessionId: string, text: string, tone: Not
       const sheet = next.sheets.find((x) => x.entityId === entity.id && x.groupId === s.groupId) ?? null
       const value = system ? rollInitiative(system, sheet) : roll('d20').total
       next = patch(next, 'sessions', s.id, {
-        initiative: [...current.initiative, { id: newId(), name: entity.name, value, hp: '', note: '', sheetId: sheet?.id ?? null, defense: null }],
+        initiative: [...current.initiative, { id: newId(), name: entity.name, value, hp: '', note: '', sheetId: sheet?.id ?? null, defense: null, attacks: [], monsterId: null }],
       })
     }
   }
@@ -190,3 +190,20 @@ export function announce(u: Universe, sessionId: string, text: string, tone: Not
 
 /** Os avisos que os celulares ainda mostram: os três últimos da sessão em andamento. */
 export const recentNotices = (s: Session | undefined): Notice[] => (s?.notices ?? []).slice(-3)
+
+// ─── O diário da campanha ─────────────────────────────────────────────
+
+/** Linhas do registro que o Papirus escreve sozinho e não contam a história. */
+const BOOKKEEPING = [/^Rodada \d+$/, /^Teste pedido:/, /fica de fora desta sessão/, /^O mestre conduz /, / volta a jogar/]
+
+/**
+ * Um rascunho do resumo para os jogadores, a partir das notas do registro (sem rolagens,
+ * rodadas e chamada). O mestre revisa antes de publicar: nada sai sozinho.
+ */
+export function draftRecap(s: Session): string {
+  return playedLog(s)
+    .filter((l) => l.kind === 'nota' && !BOOKKEEPING.some((re) => re.test(l.text)))
+    .map((l) => l.text.replace(/^Aviso à mesa: /, '').trim())
+    .filter(Boolean)
+    .join('\n')
+}

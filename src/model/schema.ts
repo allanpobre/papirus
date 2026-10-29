@@ -261,6 +261,9 @@ export const gameSystemSchema = z.object({
 })
 
 /** Ficha de jogo de um personagem de jogador ou NPC, ligada (ou não) a uma ficha do mundo. */
+/** Um ataque pronto: bônus do teste, dano e margem de crítico (o mesmo das fichas). */
+const attackSchema = z.object({ id, name: z.string(), bonus: z.number(), damage: z.string(), critical: z.string() })
+
 export const sheetSchema = z.object({
   id,
   name: z.string(),
@@ -278,11 +281,24 @@ export const sheetSchema = z.object({
   /** Retrato do personagem ("img:…"). Sem retrato próprio, vale o da ficha do mundo ligada. */
   image: z.string().nullable().optional(),
   /** Ataques: bônus do teste, dano (dados, pode usar {FOR}…) e margem de crítico ("19/x2"). */
-  attacks: z.array(z.object({ id, name: z.string(), bonus: z.number(), damage: z.string(), critical: z.string() })).default([]),
+  attacks: z.array(attackSchema).default([]),
   /** Poderes, magias e habilidades, com custo no recurso de mana/esforço. */
   abilities: z.array(z.object({ id, name: z.string(), cost: z.number(), text: z.string() })).default([]),
   /** O que o personagem carrega. */
   inventory: z.array(z.object({ id, name: z.string(), qty: z.number() })).default([]),
+  ...timestamps,
+})
+
+/** Inimigo pronto (bestiário): entra na iniciativa quantas vezes for preciso, já com vida, Defesa e ataques. */
+export const monsterSchema = z.object({
+  id,
+  name: z.string(),
+  hp: z.number().int(),
+  defense: z.number().nullable(),
+  /** Bônus de iniciativa (soma ao d20). */
+  initiative: z.number().int(),
+  attacks: z.array(attackSchema).default([]),
+  notes: z.string().default(''),
   ...timestamps,
 })
 
@@ -299,6 +315,10 @@ export const SESSION_STATUSES = ['planejada', 'em-andamento', 'encerrada'] as co
 export const SESSION_ATTENDANCE = ['joga', 'mestre', 'fora'] as const
 /** O tom do aviso do mestre: notícia, perigo ou mistério. */
 export const NOTICE_TONES = ['aviso', 'perigo', 'misterio'] as const
+
+
+/** O que o mestre pede para rolar: uma perícia, um atributo ou uma rolagem livre. */
+export const REQUEST_KINDS = ['pericia', 'atributo', 'livre'] as const
 
 export const sessionSchema = z.object({
   id,
@@ -323,6 +343,10 @@ export const sessionSchema = z.object({
       sheetId: ref.default(null),
       /** Defesa (ou CA) de quem não tem ficha, para saber se um ataque acerta. */
       defense: z.number().nullable().default(null),
+      /** Ataques de quem não tem ficha (vindos do bestiário): a um toque na vez dele. */
+      attacks: z.array(attackSchema).default([]),
+      /** O inimigo pronto de onde veio. */
+      monsterId: ref.default(null),
     }),
   ),
   /** Quando a sessão começou (a abertura e o tempo de jogo contam daí). */
@@ -334,6 +358,40 @@ export const sessionSchema = z.object({
   attendance: z.record(z.string(), z.enum(SESSION_ATTENDANCE)).default({}),
   /** Os avisos do mestre para a mesa, na hora: aparecem na tela de cada celular. */
   notices: z.array(z.object({ id, at: z.string(), text: z.string(), tone: z.enum(NOTICE_TONES) })).default([]),
+  /** Testes que o mestre pediu aos jogadores, e o que cada um tirou. */
+  requests: z
+    .array(
+      z.object({
+        id,
+        at: z.string(),
+        kind: z.enum(REQUEST_KINDS),
+        /** "Percepção", "Força", ou o nome da rolagem livre. */
+        name: z.string(),
+        /** Só na rolagem livre: o que rolar ("1d20", "2d6"). */
+        expression: z.string().default(''),
+        /** A dificuldade, que só o mestre vê (nos sistemas de sucessos, quantos são precisos). */
+        dc: z.number().nullable().default(null),
+        /** Para quem (fichas); vazio = todos que jogam nesta sessão. */
+        sheetIds: z.array(z.string()).default([]),
+        results: z
+          .array(
+            z.object({
+              sheetId: z.string(),
+              total: z.number(),
+              verdict: z.string().nullable(),
+              pass: z.boolean().nullable(),
+              by: z.enum(['jogador', 'mestre']),
+              at: z.string(),
+            }),
+          )
+          .default([]),
+        open: z.boolean().default(true),
+      }),
+    )
+    .default([]),
+  /** O resumo da sessão para os jogadores (o diário da campanha no Codex). */
+  recap: z.string().default(''),
+  recapShared: z.boolean().default(false),
   /** Posição na ordem de iniciativa e número da rodada. */
   turn: z.number().int().nonnegative().default(0),
   round: z.number().int().positive().default(1),
@@ -527,6 +585,7 @@ export const universeSchema = z.object({
   systems: z.array(gameSystemSchema).default([]),
   sheets: z.array(sheetSchema).default([]),
   tables: z.array(randomTableSchema).default([]),
+  monsters: z.array(monsterSchema).default([]),
   trash: z.array(trashItemSchema).default([]),
   /** Formato antigo (um livro só). Ao mexer na estante, vira o primeiro de `books`. */
   book: bookDesignSchema.nullable().default(null),
@@ -569,6 +628,7 @@ export type Revelation = z.infer<typeof revelationSchema>
 export type GameSystem = z.infer<typeof gameSystemSchema>
 export type Sheet = z.infer<typeof sheetSchema>
 export type RandomTable = z.infer<typeof randomTableSchema>
+export type Monster = z.infer<typeof monsterSchema>
 export type InboxItem = z.infer<typeof inboxItemSchema>
 export type AtlasMap = z.infer<typeof atlasMapSchema>
 export type ContinuityAnswer = z.infer<typeof continuityAnswerSchema>
@@ -593,6 +653,7 @@ export type CollectionKey =
   | 'systems'
   | 'sheets'
   | 'tables'
+  | 'monsters'
   | 'books'
 export type TrashItem = z.infer<typeof trashItemSchema>
 export type BookDesign = z.infer<typeof bookDesignSchema>

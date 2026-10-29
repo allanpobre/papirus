@@ -376,6 +376,10 @@ export function ostriaUniverse(): Universe {
       notes: 'Desconfiado. Ajuda os jogadores se envolverem a irmã dele.',
     })
   }
+  // O bestiário: inimigos prontos para o combate entrar com um toque.
+  const atk = (name: string, bonus: number, damage: string, critical = '') => ({ id: crypto.randomUUID(), name, bonus, damage, critical })
+  ;[u] = insert(u, 'monsters', { name: 'Goblin das falésias', hp: 7, defense: 13, initiative: 2, attacks: [atk('Cimitarra', 4, '1d6+2'), atk('Arco curto', 4, '1d6+2')], notes: 'Foge quando metade do bando cai.' })
+  ;[u] = insert(u, 'monsters', { name: 'Capanga do porto', hp: 11, defense: 12, initiative: 1, attacks: [atk('Porrete', 3, '1d6+1')], notes: 'Trabalha para quem paga mais. Se render quando o chefe cai.' })
   ;[u] = insert(u, 'tables', {
     name: 'Rumores do porto',
     entries: [

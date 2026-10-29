@@ -168,6 +168,8 @@ export interface TableRoll {
   critFrom?: number
   /** Em quem (um combatente da iniciativa, pelo nome que o Codex mostra). */
   aim?: { id: string; name: string }
+  /** A resposta a um teste que o mestre pediu. */
+  request?: string
   total: number
   verdict: string | null
   tone: 'neutro' | 'sucesso' | 'falha' | 'critico' | 'desastre'
@@ -211,6 +213,7 @@ export function readTableRoll(p: unknown): TableRoll | null {
     ...(int(r.target) !== undefined ? { target: int(r.target) } : {}),
     ...(int(r.critFrom) !== undefined ? { critFrom: int(r.critFrom) } : {}),
     ...(aimId && aimName ? { aim: { id: aimId, name: aimName } } : {}),
+    ...(text(r.request, 64) ? { request: text(r.request, 64)! } : {}),
     total,
     verdict: text(r.verdict, 60),
     tone: TONES.includes(r.tone as string) ? (r.tone as TableRoll['tone']) : 'neutro',
