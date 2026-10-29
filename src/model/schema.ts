@@ -38,12 +38,20 @@ export const narrativeDateSchema = z.object({
   day: z.number().nullable(),
 })
 
+/** Modelos de estrutura para o Mapa: só um guia, nunca uma regra. */
+export const STORY_STRUCTURES = ['livre', 'tres-atos', 'save-the-cat', 'jornada'] as const
+
 export const storySchema = z.object({
   id,
   title: z.string(),
   synopsis: z.string(),
+  /** Como o Mapa divide a história: livre, três atos, Save the Cat ou Jornada do herói. */
+  structure: z.enum(STORY_STRUCTURES).default('livre'),
   ...timestamps,
 })
+
+/** Como a cena termina para quem a vive (o autor marca; o app não julga o texto). */
+export const SCENE_SHIFTS = ['', 'melhor', 'pior', 'igual'] as const
 
 export const SCENE_STATUSES = ['ideia', 'rascunho', 'revisao', 'pronta'] as const
 
@@ -65,6 +73,12 @@ export const sceneSchema = z.object({
   /** Elenco presente na cena, registrado pelo autor. */
   presentIds: z.array(id),
   notes: z.string(),
+  /** O cartão da cena (cena e sequela, de Dwight Swain): quem quer o quê, o que atrapalha, como termina. */
+  want: z.string().default(''),
+  obstacle: z.string().default(''),
+  outcome: z.string().default(''),
+  /** Termina melhor, pior ou igual (vazio = não marcado). */
+  shift: z.enum(SCENE_SHIFTS).default(''),
   /** Versões guardadas do texto, para comparar e voltar atrás. */
   versions: z
     .array(z.object({ id, name: z.string(), at: z.string(), doc: sceneDocSchema, text: z.string() }))

@@ -416,3 +416,65 @@ test('Perguntar ao mundo: mostra o contexto antes de enviar e exibe a resposta',
   await page.getByRole('button', { name: 'Guardar em Ideias' }).click()
   await expect(page.getByRole('button', { name: 'Guardada em Ideias' })).toBeDisabled()
 })
+
+test('Mapa, Página e Revisão: escreve com a porta fechada e revisa com ela aberta', async ({ page }) => {
+  await openSample(page)
+  const modes = page.getByRole('navigation', { name: 'Momento da escrita' })
+  const margin = page.getByRole('complementary', { name: 'Margem viva' })
+  await expect(margin).toBeVisible()
+
+  // Página: só o texto, com o que a cena precisa fazer no alto; a margem e o manuscrito saem.
+  await modes.getByRole('button', { name: 'Página' }).click()
+  await expect(modes.getByRole('button', { name: 'Página' })).toHaveAttribute('aria-current', 'page')
+  await expect(margin).toHaveCount(0)
+  await expect(tree(page)).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Mostrar margem' })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'O que esta cena precisa fazer' })).toContainText('Kael quer saber quem desceu do navio')
+  // A lista de cenas abre por cima e fecha ao escolher.
+  await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
+  await tree(page).getByRole('button', { name: /A Torre fechada/ }).click()
+  await expect(tree(page)).toHaveCount(0)
+  await expect(page.getByRole('textbox', { name: 'Título da cena' })).toHaveValue('A Torre fechada')
+
+  // As perguntas esperam a Revisão; o rodapé leva até lá.
+  await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
+  await tree(page).getByRole('button', { name: /A chegada/ }).click()
+  await page.getByRole('button', { name: /esperando a revisão/ }).click()
+  await expect(modes.getByRole('button', { name: 'Revisão' })).toHaveAttribute('aria-current', 'page')
+  const review = margin.getByRole('region', { name: 'Esta cena' })
+  await expect(review).toContainText('Vira: termina pior')
+  await expect(review).toContainText('Planta A espada embrulhada')
+  await review.getByRole('radio', { name: /Melhor/ }).click()
+  await expect(review.getByRole('radio', { name: /Melhor/ })).toHaveAttribute('aria-checked', 'true')
+  await review.getByRole('button', { name: 'Próxima cena' }).click()
+  await expect(page.getByRole('textbox', { name: 'Título da cena' })).toHaveValue('A Torre fechada')
+
+  // Mapa: a faixa, as promessas, o modelo e as perguntas (tiradas só do que foi marcado).
+  await modes.getByRole('button', { name: 'Mapa' }).click()
+  await expect(page.getByRole('heading', { name: 'Mapa da história' })).toBeAttached()
+  await expect(page.getByRole('button', { name: 'A chegada: termina melhor' })).toBeVisible()
+  const promises = page.getByRole('region', { name: 'Promessas' })
+  await expect(promises.getByRole('listitem').filter({ hasText: 'Os trezentos e doze degraus' })).toContainText('parada')
+  await page.getByRole('combobox', { name: 'Modelo de estrutura de “Livro I — A Maré Volta”' }).selectOption('save-the-cat')
+  await expect(page.locator('.beat-chip', { hasText: 'Catalisador' })).toBeVisible()
+  await page.getByRole('radiogroup', { name: 'Como “O regente” termina' }).getByRole('radio', { name: /Igual/ }).click()
+  const notices = page.getByRole('region', { name: 'Vale olhar' })
+  const notice = notices.getByRole('listitem').filter({ hasText: '“O regente” está marcada como “igual”. Alguma coisa muda nela?' })
+  await notice.getByRole('button', { name: 'Abrir cena' }).click()
+  await expect(page.getByRole('textbox', { name: 'Título da cena' })).toHaveValue('O regente')
+
+  // O modo fica guardado: a escrita volta para a Revisão de onde saiu.
+  await page.reload()
+  await expect(page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Revisão' })).toHaveAttribute('aria-current', 'page')
+})
+
+test('no Mapa, o cartão da cena se escreve ali mesmo', async ({ page }) => {
+  await openSample(page)
+  await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Mapa' }).click()
+  const card = page.locator('[data-scene]').filter({ hasText: 'Nas brumas' })
+  await card.getByRole('button', { name: '+ O que esta cena precisa fazer' }).click()
+  await card.getByRole('textbox', { name: 'Quem quer o quê' }).fill('Kael quer achar o caminho')
+  await card.getByRole('textbox', { name: 'Como termina' }).fill('Igual: a névoa não deixa')
+  await card.getByRole('button', { name: 'Pronto' }).click()
+  await expect(card.getByRole('region', { name: 'O que esta cena precisa fazer' })).toContainText('Kael quer achar o caminho')
+})

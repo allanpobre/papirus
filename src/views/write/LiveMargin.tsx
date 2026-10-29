@@ -1,5 +1,5 @@
 import { Check, Eye, RotateCcw, ScanSearch, Sparkles, Trash2, UserCheck } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { factSentence } from '../../logic/codex'
 import { isOpen, type Question } from '../../logic/continuity'
 import type { MentionMatcher } from '../../logic/detection'
@@ -27,13 +27,15 @@ interface Props {
   focusedComment?: string | null
   /** Tira a marca do comentário do texto (o editor é quem sabe onde ela está). */
   onRemoveCommentMark?: (id: string) => void
+  /** O que vem antes de tudo (na Revisão: a lista da cena). */
+  top?: ReactNode
 }
 
 /**
  * Margem viva: o contexto da cena e do parágrafo onde está o cursor. Só mostra;
  * não interrompe e não muda nada sem um clique do autor.
  */
-export function LiveMargin({ scene, paragraph, matcher, questions, candidates, onReview, overlay, onClose, focusedComment, onRemoveCommentMark }: Props) {
+export function LiveMargin({ scene, paragraph, matcher, questions, candidates, onReview, overlay, onClose, focusedComment, onRemoveCommentMark, top }: Props) {
   const { universe, update, peek, go } = useWorkspace()
 
   const here = useMemo(() => {
@@ -80,6 +82,7 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
           Fechar margem
         </button>
       )}
+      {top}
       <CommentsSection scene={scene} focused={focusedComment ?? null} onRemoveMark={onRemoveCommentMark} />
       <BetaReadersSection sceneId={scene.id} />
 

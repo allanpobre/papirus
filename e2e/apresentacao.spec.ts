@@ -61,7 +61,7 @@ test('a apresentação mostra a mesa dos dois lados e as telas de cada setor', a
   // Por dentro: cada setor com as suas telas.
   const setores = page.getByRole('group', { name: 'Setor' })
   await expect(setores.getByRole('button')).toHaveCount(3)
-  await expect(page.getByRole('tablist', { name: 'Telas: Escrita' }).getByRole('tab')).toHaveCount(4)
+  await expect(page.getByRole('tablist', { name: 'Telas: Escrita' }).getByRole('tab')).toHaveText(['Mapa', 'Página e Revisão', 'Ficha do mundo', 'Treino', 'Placar'])
   await setores.getByRole('button', { name: 'Mesa de RPG' }).click()
   const mesa = page.getByRole('tablist', { name: 'Telas: Mesa de RPG' })
   await expect(mesa.getByRole('tab')).toHaveText(['Escudo do mestre', 'Combate', 'Ficha de jogo'])

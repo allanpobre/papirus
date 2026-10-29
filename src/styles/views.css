@@ -6801,3 +6801,402 @@ button.fight-line {
 .player-panel[hidden] {
   display: none;
 }
+
+/* ---------------------------------------------------------------- Mapa da história */
+
+.map-view-head {
+  gap: 0.8rem;
+}
+
+.map-view-head > .writing-modes {
+  margin-right: 0;
+}
+
+.story-map {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.story-map-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+}
+
+.story-map-head > .section-title {
+  margin: 0;
+}
+
+.story-map-structure {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.story-map-structure .select {
+  font-size: 0.82rem;
+  min-height: 28px;
+  padding-block: 0.1rem;
+}
+
+/* A faixa: cada cena do tamanho que tem no livro. */
+.map-strip-wrap {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.map-acts,
+.map-beats {
+  position: relative;
+  height: 1.1rem;
+}
+
+.map-acts span {
+  position: absolute;
+  top: 0;
+  padding-left: 0.3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.map-strip {
+  position: relative;
+  height: 30px;
+  border-radius: var(--radius-s);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.map-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 0;
+  border: 0;
+  border-right: 2px solid var(--surface);
+  cursor: pointer;
+}
+
+.map-seg:hover,
+.map-seg:focus-visible {
+  filter: brightness(0.92);
+  outline-offset: -3px;
+}
+
+.shift-melhor {
+  --shift: var(--ok);
+}
+
+.shift-pior {
+  --shift: var(--danger);
+}
+
+.shift-igual {
+  --shift: color-mix(in srgb, var(--muted) 55%, var(--surface-3));
+}
+
+.shift-sem {
+  --shift: var(--surface-3);
+}
+
+.map-seg {
+  background: color-mix(in srgb, var(--shift) 70%, var(--surface));
+}
+
+.map-seg.shift-sem {
+  background: repeating-linear-gradient(135deg, var(--surface-3) 0 6px, color-mix(in srgb, var(--surface-3) 60%, var(--surface)) 6px 12px);
+}
+
+.map-act-line {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.map-beats span {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 6px;
+  background: var(--line-strong);
+}
+
+.map-beats span em {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  font-size: 0.68rem;
+  font-style: normal;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Perto do fim, o nome encosta na direita para não sair da faixa. */
+.map-beats span.is-end em {
+  left: auto;
+  right: 0;
+}
+
+.map-beats {
+  height: 1.3rem;
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+  margin-top: 0.15rem;
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.map-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--shift) 70%, var(--surface));
+}
+
+.map-legend i.shift-sem {
+  background: var(--surface-3);
+  outline: 1px dashed var(--line-strong);
+}
+
+/* Promessas: plantada → pistas → paga. */
+.map-promises ul {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.map-promises li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.6rem;
+}
+
+.map-promises .map-track {
+  flex: 1 0 100%;
+}
+
+.map-promise-name {
+  text-align: left;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-promises-key {
+  margin-left: 0.5rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.map-track {
+  position: relative;
+  height: 14px;
+}
+
+.map-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dotted var(--line);
+}
+
+.map-track-line {
+  position: absolute;
+  top: calc(50% - 1px);
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.map-track-stall {
+  position: absolute;
+  top: calc(50% - 1px);
+  border-top: 2px dashed var(--ochre);
+}
+
+.map-pt {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.map-pt-plantada {
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+}
+
+.map-pt-pista {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+}
+
+.map-pt-paga {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+}
+
+.is-stalled .map-pt-plantada {
+  border-color: var(--ochre);
+}
+
+.map-stalled {
+  color: var(--ochre);
+  font-weight: 600;
+}
+
+/* Vale olhar: perguntas, nunca cobrança. */
+.map-notices ul {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.map-notices li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.7rem;
+  padding: 0.45rem 0.7rem;
+  border-left: 3px solid var(--ochre-line);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  background: var(--ochre-soft);
+  font-size: 0.86rem;
+  color: var(--ink);
+}
+
+.map-notices li > span {
+  flex: 1 1 18rem;
+}
+
+/* Os cartões no Mapa. */
+.cork-act {
+  grid-column: 1 / -1;
+  margin-top: 0.4rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cork-act:first-child {
+  margin-top: 0;
+}
+
+.cork-card[class*='shift-'] {
+  box-shadow: var(--shadow-1), inset 3px 0 0 color-mix(in srgb, var(--shift) 80%, transparent);
+}
+
+.cork-beats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.beat-chip {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent-faint);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.cork-card .scene-frame {
+  margin: 0;
+  padding: 0.1rem 1.8rem 0.1rem 0.6rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+  font-size: 0.8rem;
+}
+
+.cork-card .scene-frame.is-editing {
+  padding-right: 0.2rem;
+  border-left: 0;
+  padding-left: 0;
+}
+
+.cork-card .scene-frame-add {
+  margin: 0;
+  text-align: left;
+}
+
+.cork-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: auto;
+}
+
+@media (max-width: 760px) {
+  .story-map {
+    padding: 0.8rem;
+  }
+
+  .story-map-structure {
+    margin-left: 0;
+  }
+
+  /* No celular os nomes dos momentos não cabem na faixa: ficam nos cartões. */
+  .map-beats {
+    height: 0.5rem;
+  }
+
+  .map-beats span em {
+    display: none;
+  }
+
+  .map-view-head .tabs {
+    width: 100%;
+  }
+}

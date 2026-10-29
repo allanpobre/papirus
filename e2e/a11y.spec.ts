@@ -23,12 +23,19 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
     await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
-    for (const area of ['Início', 'Escrever', 'Estrutura', 'Fichas', 'Relações', 'Linha do tempo', 'Atlas', 'Pistas e mistérios', 'Quem sabe o quê', 'RPG', 'Ideias', 'Perguntar ao mundo', 'Ajustes e dados']) {
+    for (const area of ['Início', 'Escrever', 'Fichas', 'Relações', 'Linha do tempo', 'Atlas', 'Pistas e mistérios', 'Quem sabe o quê', 'RPG', 'Ideias', 'Perguntar ao mundo', 'Ajustes e dados']) {
       const button = nav(page, area)
       if (!(await button.count())) continue
       await button.click()
       await page.waitForTimeout(400)
       found.push(...(await audit(page, area)))
+    }
+    // Os outros dois momentos da escrita: o Mapa e a Página.
+    for (const mode of ['Mapa', 'Página']) {
+      await nav(page, 'Escrever').click()
+      await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: mode }).click()
+      await page.waitForTimeout(400)
+      found.push(...(await audit(page, `Escrita/${mode}`)))
     }
     for (const tab of ['Sessões', 'Personagens', 'Revelações e Codex', 'Dados e tabelas', 'Sistemas']) {
       await nav(page, 'RPG').click()

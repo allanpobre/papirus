@@ -25,7 +25,6 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   const areas: [string, string][] = [
     ['Início', 'Início'],
     ['Escrever', 'Escrever'],
-    ['Estrutura', 'Estrutura'],
     ['Livro', 'Livro'],
     ['Fichas', 'Fichas'],
     ['Relações', 'Relações'],
@@ -45,7 +44,7 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   // O tour do Escrever explica onde ficam os nomes novos.
   await nav(page, 'Escrever').click()
   await page.getByRole('button', { name: 'Como usar: Escrever' }).click()
-  for (let i = 0; i < 6 && !(await card.getByRole('heading', { name: 'Nomes novos' }).count()); i++) await card.getByRole('button', { name: 'Próximo' }).click()
+  for (let i = 0; i < 12 && !(await card.getByRole('heading', { name: 'Nomes novos' }).count()); i++) await card.getByRole('button', { name: 'Próximo' }).click()
   await expect(card).toContainText('o botão Revisar mostra “1 nome novo”')
   await expect(page.locator('.page-tour .tour-spot')).toBeVisible()
   await page.keyboard.press('Escape')
@@ -195,7 +194,7 @@ test('a página em branco do Escrever também explica', async ({ page }) => {
   expect(steps[0]).toEqual({ title: 'A primeira cena', spot: true })
 })
 
-test('Atlas com mapa e Estrutura em cada aba: o (?) explica o que está na tela', async ({ page }) => {
+test('Atlas com mapa e o Mapa da história em cada aba: o (?) explica o que está na tela', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
@@ -205,15 +204,16 @@ test('Atlas com mapa e Estrutura em cada aba: o (?) explica o que está na tela'
   const atlas = await runPageTour(page, 'Atlas')
   expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['Mapas', 'Marcar lugares', 'Caminho de', 'O mapa'])
 
-  await nav(page, 'Estrutura').click()
-  const abas: [string, string][] = [
-    ['Quadro de cenas', 'Quadro de cenas'],
-    ['Presença', 'Presença'],
-    ['Ritmo', 'Ritmo'],
+  await nav(page, 'Escrever').click()
+  await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Mapa' }).click()
+  const abas: [string, string[]][] = [
+    ['Cenas', ['Modelo da história', 'A faixa', 'Promessas', 'Vale olhar', 'Os cartões', 'Três jeitos de ver']],
+    ['Presença', ['Três jeitos de ver', 'Presença']],
+    ['Ritmo', ['Três jeitos de ver', 'Ritmo']],
   ]
-  for (const [aba, passo] of abas) {
+  for (const [aba, passos] of abas) {
     await page.getByRole('tab', { name: aba }).click()
-    const steps = await runPageTour(page, 'Estrutura')
-    expect(steps.filter((s) => s.spot).map((s) => s.title), aba).toEqual(['Três jeitos de ver', passo])
+    const steps = await runPageTour(page, 'Mapa da história')
+    expect(steps.filter((s) => s.spot).map((s) => s.title), aba).toEqual(['Mapa, Página e Revisão', ...passos])
   }
 })

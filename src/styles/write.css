@@ -1463,3 +1463,309 @@ body.escrevendo-no-celular .shared-banner {
   display: flex;
   gap: 0.25rem;
 }
+
+/* ---------------------------------------------------------------- Mapa · Página · Revisão */
+
+.writing-modes {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-s);
+  background: var(--surface-3);
+  flex: none;
+}
+
+.writing-modes button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  background: transparent;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.writing-modes button:hover {
+  color: var(--ink);
+}
+
+.writing-modes button[aria-current='page'] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+
+/* Na Página, a porta fica fechada: nomes, menções e comentários não puxam o olho. */
+.page.is-drafting .scene-text .mention,
+.page.is-drafting .scene-text .detected {
+  text-decoration: none;
+}
+
+.page.is-drafting .scene-text .comment-mark {
+  background: none;
+  border-bottom: 0;
+  cursor: text;
+}
+
+/* A lista de cenas por cima do texto, na Página do computador. */
+.write {
+  position: relative;
+}
+
+.write-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  border: 0;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  cursor: default;
+}
+
+@media (min-width: 761px) {
+  .write.is-pagina .write-overlay-left {
+    position: absolute;
+    bottom: 0;
+    z-index: 40;
+  }
+
+  .write.is-pagina .write-scrim {
+    position: absolute;
+  }
+}
+
+/* A moldura: o que esta cena precisa fazer. */
+.scene-frame {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.35rem 1.1rem;
+  margin: -0.4rem 0 1.4rem;
+  padding: 0.55rem 2.2rem 0.6rem 0.8rem;
+  border-left: 2px solid var(--accent-soft);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+.scene-frame-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.scene-frame-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.scene-frame-edit {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.2rem;
+}
+
+.scene-frame.is-editing {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+  padding-right: 0.8rem;
+}
+
+.scene-frame.is-editing > .btn {
+  align-self: flex-start;
+}
+
+.scene-frame-add {
+  display: block;
+  margin: -0.4rem 0 1.2rem;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.scene-frame-add:hover {
+  color: var(--accent);
+}
+
+.card-fields {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.card-fields .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* "Onde você parou" */
+.resume {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  margin: 0 0 1.4rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-s);
+  background: var(--accent-faint);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+}
+
+.resume-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.resume-text {
+  flex: 1 1 14rem;
+  min-width: 0;
+  color: var(--ink-2);
+  font-style: italic;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Rodapé da Página: as perguntas esperam a Revisão. */
+.write-waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+}
+
+.write-waiting-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ochre);
+}
+
+/* Como a cena termina: melhor, pior ou igual. */
+.shift-picker button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.shift-picker button i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0.6;
+}
+
+.shift-picker .shift-melhor[aria-checked='true'] i {
+  background: var(--ok);
+  border-color: var(--ok);
+  opacity: 1;
+}
+
+.shift-picker .shift-pior[aria-checked='true'] i {
+  background: var(--danger);
+  border-color: var(--danger);
+  opacity: 1;
+}
+
+.shift-picker .shift-igual[aria-checked='true'] i {
+  background: var(--muted);
+  border-color: var(--muted);
+  opacity: 1;
+}
+
+.shift-picker.is-compact button {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+/* A Revisão da cena, no alto da margem. */
+.scene-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scene-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scene-review-nav {
+  display: inline-flex;
+  gap: 0.1rem;
+}
+
+.scene-review-list {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+.scene-review-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.scene-review-list li > svg {
+  flex: none;
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
+
+.scene-review-list li.is-ok > svg {
+  color: var(--ok);
+}
+
+.scene-review-list li.is-todo > svg {
+  color: var(--ochre);
+}
+
+.scene-review-card summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.scene-review-card[open] summary {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 760px) {
+  .write-bar .write-bar-meta {
+    display: none;
+  }
+
+  .writing-modes button {
+    padding: 0.3rem 0.5rem;
+  }
+
+  /* No celular, só o modo atual mostra o nome. */
+  .writing-modes button:not([aria-current='page']) span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .scene-frame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

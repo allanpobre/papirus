@@ -268,7 +268,7 @@ export function manuscriptOrder(universe: Universe): Scene[] {
 }
 
 export function addStory(universe: Universe, title = 'Nova história'): [Universe, Story] {
-  return insert(universe, 'stories', { title, synopsis: '' })
+  return insert(universe, 'stories', { title, synopsis: '', structure: 'livre' })
 }
 
 export function renameStory(universe: Universe, storyId: string, title: string): Universe {
@@ -310,6 +310,10 @@ export function addScene(
     date: null,
     presentIds: [],
     notes: '',
+    want: '',
+    obstacle: '',
+    outcome: '',
+    shift: '',
     versions: [],
     comments: [],
   })

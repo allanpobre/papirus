@@ -25,6 +25,8 @@ export interface NavItem {
   icon: LucideIcon
   /** Outras palavras que acham a área na busca (nomes antigos, sinônimos). */
   words?: string
+  /** Mora dentro de outra área do menu (que fica marcada quando esta está aberta); a busca ainda acha. */
+  inside?: View
 }
 
 export const NAV: { group: string; items: NavItem[] }[] = [
@@ -33,7 +35,8 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     group: 'Escrita',
     items: [
       { view: 'escrever', label: 'Escrever', icon: Feather },
-      { view: 'organizar', label: 'Estrutura', icon: PanelsTopLeft, words: 'organizar quadro de cenas cortiça ritmo presença' },
+      // O Mapa é um dos três momentos de Escrever (Mapa · Página · Revisão).
+      { view: 'organizar', label: 'Mapa da história', icon: PanelsTopLeft, inside: 'escrever', words: 'estrutura organizar quadro de cenas cortiça ritmo presença atos promessas' },
       { view: 'livro', label: 'Livro', icon: BookOpenText },
     ],
   },
