@@ -17,6 +17,8 @@ import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspac
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
 import { setOutsideSession } from '../rpg/sessionFocus'
+import { sendToRoteiro } from '../rpg/sessionLife'
+import { sceneFromTreino } from '../treino/sceneFromTreino'
 import { useTableRolls } from '../share/useTableRolls'
 import { isLocalOnly, isSample } from '../model/sample'
 import { wordsToday } from '../logic/stats'
@@ -690,6 +692,27 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           genre={kind === 'campanha' ? 'mestrar' : guessGuide(universe.settings.fieldTemplates)}
           onClose={() => setOficinaOpen(false)}
           onKeep={readOnly ? undefined : (text) => update((u) => insert(u, 'inbox', draftInbox(text))[0])}
+          onKeepScene={
+            readOnly
+              ? undefined
+              : (t) => {
+                  update((u) => sceneFromTreino(u, t))
+                  toast('O texto virou uma cena (em Escrever, fora dos capítulos).')
+                }
+          }
+          onRoteiro={
+            readOnly || kind !== 'campanha'
+              ? undefined
+              : (kindOf, text) => {
+                  let label: string | null = null
+                  update((u) => {
+                    const sent = sendToRoteiro(u, kindOf, text)
+                    label = sent?.[1] ?? null
+                    return sent ? sent[0] : u
+                  })
+                  return label
+                }
+          }
           onPractice={
             readOnly
               ? undefined

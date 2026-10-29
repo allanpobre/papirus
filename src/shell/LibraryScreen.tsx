@@ -1,5 +1,6 @@
 import { InstallButton } from '../ui/InstallButton'
-import { OficinaCover, OficinaPage } from '../oficina/OficinaPage'
+import { OficinaCover } from '../oficina/OficinaHome'
+import { OficinaPage } from '../oficina/OficinaPage'
 import type { GuideId } from '../oficina/guides'
 import { SocialDialog, type SocialTab } from '../social/SocialDialog'
 import { getNoticeCount } from '../social/social'

@@ -4539,3 +4539,160 @@ body,
     animation: lp-mini-pop 6s ease-out infinite;
   }
 }
+
+/* Oficina: o passo de hoje, a trilha e o olhar depois. */
+.lp-of-today {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid color-mix(in srgb, #c27712 40%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, #c27712 10%, transparent);
+}
+
+.lp-of-today strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+.lp-of-btn.is-solid {
+  margin-top: 0.2rem;
+  border-color: #a96508;
+  background: #a96508;
+  color: #fff;
+}
+
+.lp-of-path {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-of-path li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 0.6rem;
+  padding-bottom: 0.55rem;
+}
+
+.lp-of-path li::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: color-mix(in srgb, #c27712 25%, transparent);
+}
+
+.lp-of-path li:last-child::before {
+  display: none;
+}
+
+.lp-of-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid color-mix(in srgb, #c27712 45%, transparent);
+  border-radius: 50%;
+  font-size: 0.68rem;
+  font-weight: 700;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.lp-of-path .is-done .lp-of-dot {
+  border-color: #a96508;
+  background: #a96508;
+  color: #fff;
+}
+
+.lp-of-path .is-now .lp-of-dot {
+  border-color: #a96508;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #c27712 22%, transparent);
+}
+
+.lp-of-path b {
+  display: block;
+  font-size: 0.82rem;
+}
+
+.lp-of-path small {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+.lp-of-write {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  opacity: 0.25;
+  transition: opacity 0.6s;
+}
+
+.lp-of-write.is-on {
+  opacity: 1;
+}
+
+.lp-of-look {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid color-mix(in srgb, #c27712 30%, transparent);
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+.lp-of-look.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.lp-of-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 36px;
+}
+
+.lp-of-bars i {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: color-mix(in srgb, #c27712 55%, transparent);
+}
+
+.lp-of-q {
+  font-family: var(--font-text);
+  font-size: 0.82rem;
+}
+
+.lp-of-answers {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.lp-of-answers span {
+  flex: 1;
+  padding: 0.15rem 0;
+  border: 1px solid color-mix(in srgb, #c27712 30%, transparent);
+  border-radius: 7px;
+  font-size: 0.7rem;
+  text-align: center;
+  transition: background 0.3s, color 0.3s;
+}
+
+.lp-of-answers .is-on {
+  border-color: #a96508;
+  background: #a96508;
+  color: #fff;
+}

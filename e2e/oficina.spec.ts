@@ -2,7 +2,7 @@ import { expect, test, type Page } from './fixtures.ts'
 
 const nav = (page: Page, name: string | RegExp) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name })
 
-test('Oficina: página à parte, com o gênero do universo, cartas que viram, exercício que vira cena e o voltar do aparelho', async ({ page }) => {
+test('Oficina: página à parte, com o gênero do universo, curiosidades, exercício que vira cena e o voltar do aparelho', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Mar')
   await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Fantasia' }).click()
@@ -10,15 +10,22 @@ test('Oficina: página à parte, com o gênero do universo, cartas que viram, ex
   await nav(page, 'Oficina').click()
   const oficina = page.getByRole('dialog', { name: 'Oficina' })
   await expect(oficina.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
-  await expect(oficina.getByRole('button', { name: /^Fantasia.*o seu universo/ })).toBeVisible()
+  // Na primeira vez, a pergunta sugere a trilha do gênero do universo.
+  await expect(oficina.getByRole('button', { name: /^Fantasia, o gênero do seu universo/ })).toBeVisible()
 
-  // Um gênero; o "voltar" do aparelho volta para a capa e depois fecha.
+  // Um guia da biblioteca; o "voltar" do aparelho volta para a capa e depois fecha.
+  await oficina.getByRole('tab', { name: 'Biblioteca' }).click()
+  await expect(oficina.getByRole('button', { name: /^Fantasia.*o seu universo/ })).toBeVisible()
   await oficina.getByRole('button', { name: /^Mistério/ }).click()
   await expect(oficina.getByRole('heading', { name: 'Mistério', level: 1 })).toBeVisible()
-  await expect(oficina.getByRole('region', { name: 'Livros para estudar' })).toContainText('E Não Sobrou Nenhum')
-  const carta = oficina.getByRole('button', { name: 'Você sabia? Curiosidade 1' })
-  await carta.click()
-  await expect(oficina.getByRole('button', { name: /Agatha Christie é, segundo o Guinness/ })).toHaveAttribute('aria-pressed', 'true')
+  const livros = oficina.locator('details', { hasText: 'Livros para estudar' })
+  await livros.locator('summary').click()
+  await expect(livros).toContainText('E Não Sobrou Nenhum')
+  // As curiosidades, uma de cada vez.
+  const curiosidades = oficina.getByRole('region', { name: 'Você sabia?' })
+  await expect(curiosidades).toContainText('Agatha Christie é, segundo o Guinness')
+  await curiosidades.getByRole('button', { name: 'Próxima curiosidade' }).click()
+  await expect(curiosidades).toContainText('Rua Morgue')
   await page.goBack()
   await expect(oficina.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
   await page.goBack()
@@ -27,7 +34,9 @@ test('Oficina: página à parte, com o gênero do universo, cartas que viram, ex
   // De novo, até o exercício: vira uma cena e a Oficina fecha.
   await nav(page, 'Oficina').click()
   await oficina.getByRole('button', { name: /^Mistério/ }).click()
-  await oficina.getByRole('region', { name: 'Experimente' }).getByRole('button', { name: 'Escrever este exercício' }).first().click()
+  const exercicios = oficina.locator('details', { hasText: 'Mais exercícios' })
+  await exercicios.locator('summary').click()
+  await exercicios.getByRole('button', { name: 'Virar uma cena' }).first().click()
   await expect(oficina).toHaveCount(0)
   await expect(page.getByRole('textbox', { name: 'Título da cena' })).toHaveValue('Exercício: Três pistas')
   await page.getByRole('button', { name: 'Detalhes da cena' }).click()
@@ -38,9 +47,13 @@ test('Oficina também abre pela tela de universos', async ({ page }) => {
   await page.goto('/app/')
   // A Oficina é um setor do início, ao lado de Escrita e RPG.
   await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  await page.getByRole('tab', { name: 'Biblioteca' }).click()
   await page.getByRole('button', { name: /^Terror/ }).click()
   const oficina = page.getByRole('dialog', { name: 'Oficina' })
-  await expect(oficina.getByRole('region', { name: 'Experimente' })).toContainText('Abra um universo')
+  // Fora de um universo, o exercício não vira cena, mas dá para treinar ali mesmo.
+  await oficina.locator('details', { hasText: 'Mais exercícios' }).locator('summary').click()
+  await expect(oficina.getByRole('button', { name: 'Treinar aqui' }).first()).toBeVisible()
+  await expect(oficina.getByRole('button', { name: 'Virar uma cena' })).toHaveCount(0)
   await page.goBack()
   await expect(oficina).toHaveCount(0)
   await expect(page.getByRole('heading', { name: /Escrever melhor/ })).toBeVisible()
@@ -130,6 +143,7 @@ test('Oficina funciona mesmo quando o navegador (ou uma extensão) muda o scroll
   })
   await page.goto('/app/')
   await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  await page.getByRole('tab', { name: 'Biblioteca' }).click()
   await page.getByRole('button', { name: /^Fantasia/ }).click()
   const oficina = page.getByRole('dialog', { name: 'Oficina' })
   await expect(oficina.getByRole('heading', { name: 'Fantasia', level: 1 })).toBeVisible()
@@ -164,8 +178,6 @@ test('Oficina: técnicas, guias de mestre, gerador de ideias e exercícios feito
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Oficina/ }).click()
   const oficina = page.getByRole('dialog', { name: 'Oficina' })
-  await expect(oficina.getByRole('heading', { name: 'Técnicas' })).toBeVisible()
-  await expect(oficina.getByRole('heading', { name: 'Para mestres de RPG' })).toBeVisible()
 
   // O gerador sorteia e guarda a ideia nas Ideias do universo.
   const ideias = oficina.getByRole('region', { name: 'Gerador de ideias' })
@@ -174,15 +186,83 @@ test('Oficina: técnicas, guias de mestre, gerador de ideias e exercícios feito
   await ideias.getByRole('button', { name: 'Guardar em Ideias' }).click()
   await expect(ideias.getByRole('button', { name: 'Guardada em Ideias' })).toBeDisabled()
 
+  // A biblioteca tem técnicas e guias de mestre.
+  await oficina.getByRole('tab', { name: 'Biblioteca' }).click()
+  await expect(oficina.getByRole('heading', { name: 'Técnicas' })).toBeVisible()
+  await expect(oficina.getByRole('heading', { name: 'Para mestres de RPG' })).toBeVisible()
+
   // Um guia de mestre: os títulos são da mesa, e o exercício fica marcado como feito.
   await oficina.getByRole('button', { name: /^Mestrar/ }).click()
-  await expect(oficina.getByRole('heading', { name: 'Para a próxima sessão' })).toBeVisible()
-  await oficina.getByRole('button', { name: 'Marcar como feito' }).first().click()
-  await expect(oficina.getByRole('button', { name: 'Feito', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await oficina.getByRole('button', { name: 'Todos os gêneros' }).click()
-  await expect(oficina.getByRole('status')).toContainText('1 exercício feito')
+  const sessao = oficina.locator('details', { hasText: 'Para a próxima sessão' })
+  await sessao.locator('summary').click()
+  await sessao.getByRole('button', { name: 'Marcar como feito' }).first().click()
+  await expect(sessao.getByRole('button', { name: 'Feito', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await oficina.getByRole('button', { name: 'Oficina', exact: true }).click()
   await expect(oficina.getByRole('button', { name: /^Mestrar/ })).toContainText('1/3 feitos')
   await oficina.getByRole('button', { name: 'Fechar a Oficina' }).click()
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Ideias/ }).click()
   await expect(page.getByText(/pede ao grupo para/)).toBeVisible()
+})
+
+test('Oficina: a trilha do passo de hoje, com lição, treino, contas, perguntas e caderno', async ({ page }) => {
+  await page.goto('/app/')
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  // Na primeira vez: o que você quer treinar?
+  await page.getByRole('button', { name: /^Escrever melhor/ }).click()
+  await expect(page.getByRole('heading', { name: 'Fundamentos', level: 2 })).toBeVisible()
+  await page.getByRole('button', { name: 'Começar a trilha' }).click()
+
+  const passo = page.getByRole('dialog', { name: 'Oficina: Desejo e obstáculo' })
+  await expect(passo.getByText('Toda cena fica mais viva')).toBeVisible()
+  await passo.getByRole('button', { name: /^Escrever/ }).click()
+  await passo.getByRole('textbox', { name: 'Texto do passo' }).fill('Lia queria o último lugar no ônibus. Um homem chegou antes. Ela ficou de pé, contando os pontos até o hospital.')
+  await passo.getByRole('button', { name: 'Terminar' }).click()
+  await expect(passo.getByText('Olhe o que escreveu')).toBeVisible()
+  await expect(passo.getByRole('region', { name: 'As contas do texto' })).toContainText('Frases')
+  await expect(passo.getByText(/Faltaram \d+ palavras para o mínimo/)).toBeVisible()
+  await passo.getByRole('radiogroup', { name: 'Dá para dizer em uma frase o que a personagem quer?' }).getByRole('radio', { name: 'Sim' }).click()
+  await passo.getByRole('button', { name: 'Concluir o passo' }).click()
+  await expect(passo.getByText('Passo concluído')).toBeVisible()
+
+  // O próximo passo tem palavras proibidas: o app avisa enquanto escreve.
+  await passo.getByRole('button', { name: 'Próximo: Mostrar e contar' }).click()
+  const mostrar = page.getByRole('dialog', { name: 'Oficina: Mostrar e contar' })
+  await expect(mostrar.getByText('Ela dobrou o guardanapo pela quarta vez.')).toBeVisible()
+  // Mão em movimento: apagar fica desligado.
+  await mostrar.getByRole('checkbox', { name: /Mão em movimento/ }).check()
+  await mostrar.getByRole('button', { name: /^Escrever/ }).click()
+  const area = mostrar.getByRole('textbox', { name: 'Texto do passo' })
+  await area.pressSequentially('Ela sentiu pavor')
+  await expect(mostrar.getByText('Fora da regra: “pavor”')).toBeVisible()
+  await area.press('Backspace')
+  await expect(area).toHaveValue('Ela sentiu pavor')
+  await expect(mostrar.getByText('Sem apagar até o fim')).toBeVisible()
+  await mostrar.getByRole('button', { name: 'Terminar' }).click()
+  await mostrar.getByRole('button', { name: 'Fechar o passo' }).click()
+
+  // A trilha mostra o passo feito; em Hoje, o passo seguinte. O caderno guarda os textos.
+  await expect(page.locator('.oficina-node.is-done')).toHaveCount(1)
+  await page.getByRole('tab', { name: 'Hoje' }).click()
+  await expect(page.getByRole('region', { name: 'Mostrar e contar' })).toContainText('passo 2 de 8')
+  await page.getByRole('tab', { name: 'Caderno' }).click()
+  await expect(page.locator('.oficina-cad-item')).toHaveCount(2)
+  await page.locator('.oficina-cad-item summary', { hasText: 'Desejo e obstáculo' }).click()
+  await expect(page.locator('.oficina-cad-item', { hasText: 'Desejo e obstáculo' })).toContainText('Sim')
+})
+
+test('Oficina: a imitação de Machado esconde o trecho e compara lado a lado', async ({ page }) => {
+  await page.goto('/app/')
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  await page.getByRole('tab', { name: 'Trilhas' }).click()
+  await page.getByRole('button', { name: /^Fundamentos/ }).click()
+  await page.getByRole('button', { name: /^Imitação: Machado de Assis/ }).click()
+  const passo = page.getByRole('dialog', { name: 'Oficina: Imitação: Machado de Assis' })
+  await expect(passo.getByText(/As crônicas da vila de Itaguaí/)).toBeVisible()
+  await passo.getByRole('button', { name: 'Já li · esconder o trecho' }).click()
+  await expect(passo.getByText(/As crônicas da vila de Itaguaí/)).toHaveCount(0)
+  await expect(passo.getByRole('list', { name: 'Palavras-chave' })).toContainText('Simão Bacamarte')
+  await passo.getByRole('textbox', { name: 'Texto do passo' }).fill('Contam as crônicas de Itaguaí que ali viveu um médico, o Dr. Simão Bacamarte, o maior médico do Brasil.')
+  await passo.getByRole('button', { name: 'Comparar' }).click()
+  await expect(passo.getByText(/das palavras de Machado voltaram no seu texto/)).toBeVisible()
+  await expect(passo.getByRole('region', { name: 'O original' }).locator('mark', { hasText: 'Bacamarte' })).toBeVisible()
 })
