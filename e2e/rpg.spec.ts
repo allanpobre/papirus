@@ -23,9 +23,10 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
 
   // Sessão em andamento: as rolagens vão para o registro.
   await page.getByRole('button', { name: /Planejar sessão 1/ }).click()
-  await page.getByRole('button', { name: 'Começar' }).click()
+  await page.getByRole('button', { name: 'Começar', exact: true }).click()
   // A sessão abre na tela inteira; "Começar a jogar" leva ao modo sessão. Aqui, a ficha se monta fora dele.
   await page.getByRole('dialog', { name: 'A sessão começou' }).getByRole('button', { name: 'Começar a jogar' }).click()
+  await page.getByRole('button', { name: 'Mais da sessão' }).click()
   await page.getByRole('button', { name: 'Sair do modo sessão' }).click()
 
   await page.getByRole('tab', { name: 'Personagens' }).click()
@@ -90,27 +91,40 @@ test('recursos: dano e cura respeitam o máximo', async ({ page }) => {
   await expect(page.locator('.sp-value')).toContainText('CA')
 })
 
-test('iniciativa: grupo entra pela ficha, e vez e rodada continuam após recarregar', async ({ page }) => {
+test('iniciativa: cada um rola, "Definir turnos" fecha a ordem, e vez e rodada continuam após recarregar', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await nav(page, 'RPG').click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
-  await page.getByRole('button', { name: 'Começar' }).click()
+  await page.getByRole('button', { name: 'Começar', exact: true }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
-  await page.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
-  const rows = page.locator('.init-row')
+  const init = page.getByRole('region', { name: 'Iniciativa' })
+  await init.getByRole('button', { name: 'Começar combate' }).click()
+
+  // Sem o link da mesa, o mestre rola ou digita por cada um; só com todos rolados os turnos se definem.
+  const turnos = init.getByRole('button', { name: 'Definir turnos' })
+  await expect(turnos).toBeDisabled()
+  await expect(init.getByRole('status')).toContainText('Esperando Inácia, Tomé e Dr. Fagundes rolar')
+  await init.getByRole('button', { name: 'Rolar por Inácia' }).click()
+  await init.getByRole('button', { name: 'Rolar por Tomé' }).click()
+  await init.getByRole('textbox', { name: 'Iniciativa de Dr. Fagundes' }).fill('30')
+  await init.getByRole('textbox', { name: 'Iniciativa de Dr. Fagundes' }).press('Enter')
+  await turnos.click()
+  const rows = page.locator('.fight-row')
   await expect(rows).toHaveCount(3)
+  await expect(page.locator('.fight-row.current .init-name-text')).toHaveText('Dr. Fagundes')
+  await expect(page.locator('.log')).toContainText('Ordem da iniciativa: Dr. Fagundes 30')
 
   // Uma volta completa: três vezes e a rodada 2 começa.
   for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Próxima vez' }).click()
   await expect(page.locator('.round-pill')).toHaveText('Rodada 2')
-  const current = await page.locator('.init-row.current .init-name').textContent()
+  const current = await page.locator('.fight-row.current .init-name-text').textContent()
 
   // Recarregou com a sessão ao vivo: volta direto para o modo sessão.
   await page.reload()
   await expect(page.locator('.session-mode-view')).toBeVisible()
   await expect(page.locator('.round-pill')).toHaveText('Rodada 2')
-  await expect(page.locator('.init-row.current .init-name')).toHaveText(current!)
+  await expect(page.locator('.fight-row.current .init-name-text')).toHaveText(current!)
   await expect(page.locator('.log')).toContainText('Rodada 2')
 })
 

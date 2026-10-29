@@ -13,8 +13,8 @@ function combat() {
   ;[u, kaya] = insert(u, 'sheets', draftSheet('Kaya', system, { groupId: g.id }))
   let id
   ;[u, id] = beginSession(u, g.id, null)
-  const gob = { id: 'gob', name: 'Goblin', value: 5, hp: '7/7', note: '', sheetId: null, defense: 12, attacks: [], monsterId: null, conditions: [] }
-  const k = { id: 'k', name: 'Kaya', value: 15, hp: '', note: '', sheetId: kaya.id, defense: null, attacks: [], monsterId: null, conditions: [] }
+  const gob = { id: 'gob', name: 'Goblin', value: 5, hp: '7/7', note: '', sheetId: null, defense: 12, attacks: [], monsterId: null, conditions: [], rolled: true }
+  const k = { id: 'k', name: 'Kaya', value: 15, hp: '', note: '', sheetId: kaya.id, defense: null, attacks: [], monsterId: null, conditions: [], rolled: true }
   u = patch(u, 'sessions', id, { initiative: [k, gob] })
   return { u, id, kaya }
 }

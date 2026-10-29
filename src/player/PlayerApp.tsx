@@ -56,12 +56,6 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
   const dismiss = useCallback(() => setMoments((q) => q.slice(1)), [])
   // Os avisos já vistos: os que existiam ao abrir o Codex não pulam na tela.
   const seenNotices = useRef<Set<string> | null>(null)
-  // Os testes pedidos já vistos, e quem eu sou agora (o pedido pula na tela só para quem deve rolar).
-  const seenRequests = useRef<Set<string>>(new Set())
-  const meNow = useRef(me)
-  useEffect(() => {
-    meNow.current = me
-  }, [me])
   const showNotice = useCallback(
     (n: TableNotice) => {
       const seen = (seenNotices.current ??= new Set())
@@ -102,15 +96,7 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
       const notices = r.data.notices ?? []
       if (prev) notices.forEach(showNotice)
       else for (const n of notices) (seenNotices.current ??= new Set()).add(n.id)
-      // Um teste pedido para mim (ou para todos): na tela inteira, e o botão de rolar fica no alto do Codex.
-      for (const q of r.data.requests ?? []) {
-        if (seenRequests.current.has(q.id)) continue
-        seenRequests.current.add(q.id)
-        const mine = meNow.current
-        if (!prev || (mine && q.who.length && !q.who.includes(mine))) continue
-        push({ id: `teste-${q.id}`, kind: 'aviso', tone: 'aviso', kicker: 'O mestre pede um teste', title: q.name, sub: 'Role pelo botão no alto do Codex.' })
-        navigator.vibrate?.([90, 60, 90])
-      }
+      // Os testes pedidos (e a iniciativa) abrem no meio da tela, com o botão de rolar: ficam no PlayerTable.
       // O que o mestre acabou de revelar.
       const learned = prev ? revealedSince(prev, r.data) : []
       if (learned.length)

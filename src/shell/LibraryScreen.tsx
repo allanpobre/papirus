@@ -37,6 +37,7 @@ import {
   Wand2,
 } from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
+import { cleanName, isCloudCopy } from '../persistence/cloudCopy'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
 import { useCloudStatus } from '../account/useCloud'
@@ -430,14 +431,23 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     <li key={e.id} className={`library-item${themeStyle(e) ? ' is-themed' : ''}`} style={themeStyle(e)}>
       <button type="button" className="library-open" onClick={() => onOpen(e.id, view)}>
         {e.cover ? <Picture value={e.cover} className="library-cover" /> : e.kind === 'campanha' ? <Dices size={20} aria-hidden="true" /> : <BookOpen size={20} aria-hidden="true" />}
-        <span className="library-name">{e.name || 'Sem nome'}</span>
+        <span className="library-name">{cleanName(e.name) || 'Sem nome'}</span>
         <span className="library-meta">
           {e.kind === 'campanha' || view === 'rpg'
             ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'} · ${e.sheets ?? 0} ${e.sheets === 1 ? 'personagem' : 'personagens'}`
             : `${e.words.toLocaleString('pt-BR')} palavras`}
           {' · '}
           {dateFmt.format(new Date(e.updatedAt))}
-          {account.user && !e.sample && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
+          {isCloudCopy(e) ? (
+            <>
+              {' · '}
+              <span className="cloud-tag" title="Este universo mudou aqui e em outro aparelho ao mesmo tempo: esta é a versão que estava na nuvem, guardada ao lado.">
+                <Cloud size={13} aria-hidden="true" /> versão da nuvem
+              </span>
+            </>
+          ) : (
+            account.user && !e.sample && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')
+          )}
           {account.user && mine.has(e.id) && (
             <>
               {' '}
@@ -450,7 +460,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {!e.sample && !view && (
         <ConfirmButton
           className="btn-icon"
-          title={`Apagar ${e.name}`}
+          title={`Apagar ${cleanName(e.name)}`}
           question={account.user ? 'Apagar de vez, aqui e na sua conta?' : 'Apagar de vez, com os snapshots?'}
           confirmLabel={e.kind === 'campanha' ? 'Apagar campanha' : 'Apagar universo'}
           onConfirm={async () => {
@@ -467,7 +477,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             onChanged()
           }}
         >
-          <Trash2 size={16} aria-label={`Apagar ${e.name}`} />
+          <Trash2 size={16} aria-label={`Apagar ${cleanName(e.name)}${isCloudCopy(e) ? ' (versão da nuvem)' : ''}`} />
         </ConfirmButton>
       )}
     </li>
@@ -479,10 +489,10 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {e.cover ? <Picture value={e.cover} className="hub-continue-cover" /> : <span className="hub-continue-cover hub-continue-blank" aria-hidden="true">{(e.name || '?').slice(0, 1)}</span>}
       <span className="hub-continue-text">
         <span className="hub-kicker">{label}</span>
-        <strong className="hub-continue-name">{e.name || 'Sem nome'}</strong>
+        <strong className="hub-continue-name">{cleanName(e.name) || 'Sem nome'}</strong>
         <span className="muted small">
           {e.kind === 'campanha' ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'}` : `${e.words.toLocaleString('pt-BR')} palavras`} · {dateFmt.format(new Date(e.updatedAt))}
-          {account.user && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
+          {isCloudCopy(e) ? ' · versão da nuvem' : account.user && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
         </span>
       </span>
       <ArrowRight size={20} className="hub-continue-go" aria-hidden="true" />

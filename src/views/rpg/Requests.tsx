@@ -130,7 +130,8 @@ export function AskRollDialog({ onClose }: { onClose: () => void }) {
 export function RequestsPanel() {
   const { universe, update, readOnly } = useWorkspace()
   const { group, system, activeSession } = useRpg()
-  const open = openRequests(activeSession)
+  // A iniciativa aparece no próprio combate, não aqui.
+  const open = openRequests(activeSession).filter((r) => r.kind !== 'iniciativa')
   if (!activeSession || !open.length) return null
   const rules = system ?? FALLBACK
 

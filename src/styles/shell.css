@@ -2225,3 +2225,19 @@ body:has(.rail-phone) .live-return {
     animation: none;
   }
 }
+
+/* A versão da nuvem guardada ao lado: a nuvem no cartão, não no nome. */
+.cloud-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sky, var(--accent)) 14%, transparent);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.cloud-tag svg {
+  color: var(--sky, var(--accent));
+}

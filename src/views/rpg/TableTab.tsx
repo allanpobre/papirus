@@ -79,38 +79,42 @@ export function PartyCards({ onSheet }: { onSheet?: (sheetId: string) => void } 
                     </div>
                   )
                 })}
-              {system && system.attributes.length > 0 && (
-                <div className="pc-rolls">
-                  {system.attributes.map((a) => (
-                    <button key={a.id} type="button" className="chip" title={`Rolar ${a.name}`} onClick={() => report(rollAttribute(system, s, a.id), s.name)}>
-                      {a.abbr}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {system?.features.conditions && system.conditions.length > 0 && (
-                <details className="pc-conditions">
-                  <summary className="small">{s.conditions.length ? s.conditions.join(', ') : 'Condições'}</summary>
-                  <div className="chips">
-                    {system.conditions.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className="chip chip-condition"
-                        aria-pressed={s.conditions.includes(c)}
-                        onClick={() => set(s, { conditions: s.conditions.includes(c) ? s.conditions.filter((x) => x !== c) : [...s.conditions, c] })}
-                      >
-                        {c}
+              {s.conditions.length > 0 && <p className="pc-cond-now small">{s.conditions.join(' · ')}</p>}
+              <details className="pc-more">
+                <summary className="small">{gm ? 'Rolar, condições e quem conduz' : 'Rolar, condições e quem joga'}</summary>
+                {system && system.attributes.length > 0 && (
+                  <div className="pc-rolls">
+                    {system.attributes.map((a) => (
+                      <button key={a.id} type="button" className="chip" title={`Rolar ${a.name}`} onClick={() => report(rollAttribute(system, s, a.id), s.name)}>
+                        {a.abbr}
                       </button>
                     ))}
                   </div>
-                </details>
-              )}
-              {activeSession && (
-                <div className="pc-card-foot">
-                  <AttendanceSelect session={activeSession} sheet={s} />
-                </div>
-              )}
+                )}
+                {system?.features.conditions && system.conditions.length > 0 && (
+                  <div className="pc-conditions">
+                    <span className="field-label">Condições</span>
+                    <div className="chips">
+                      {system.conditions.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          className="chip chip-condition"
+                          aria-pressed={s.conditions.includes(c)}
+                          onClick={() => set(s, { conditions: s.conditions.includes(c) ? s.conditions.filter((x) => x !== c) : [...s.conditions, c] })}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {activeSession && (
+                  <div className="pc-card-foot">
+                    <AttendanceSelect session={activeSession} sheet={s} />
+                  </div>
+                )}
+              </details>
             </li>
           )
         })}
@@ -234,7 +238,8 @@ export function LogBox() {
           <Send size={16} />
         </button>
       </form>
-      <ol className="log table-log">
+      {/* Rola quando é comprido: com o foco, dá para rolar pelo teclado. */}
+      <ol className="log table-log" tabIndex={0} aria-label="Registro da sessão">
         {[...log]
           .reverse()
           .slice(0, 12)

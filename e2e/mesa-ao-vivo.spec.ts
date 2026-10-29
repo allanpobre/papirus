@@ -43,14 +43,29 @@ async function ostria(page: Page, baseURL: string) {
   await nav(page, 'RPG').click()
 }
 
+/** Abre o "⋯" da barra da sessão e toca numa ação de lá. */
+async function more(page: Page, name: string) {
+  await page.getByRole('button', { name: 'Mais da sessão' }).click()
+  await page.getByRole('button', { name, exact: true }).click()
+}
+
 /** Ostria com uma sessão em andamento e um combate: Brisa (20), Taren (15), Ilmar (10), Bandido (2) e Goblin (1). */
 async function combat(page: Page, baseURL: string) {
   await ostria(page, baseURL)
   await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
 
+  // Começar combate: os jogadores esperam a iniciativa (sem celular, o mestre digita o que saiu).
   const init = page.getByRole('region', { name: 'Iniciativa' })
-  await init.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
+  await init.getByRole('button', { name: 'Começar combate' }).click()
+  for (const [name, value] of [
+    ['Brisa', '20'],
+    ['Taren', '15'],
+    ['Ilmar', '10'],
+  ]) {
+    await init.getByRole('textbox', { name: `Iniciativa de ${name}` }).fill(value)
+    await init.getByRole('textbox', { name: `Iniciativa de ${name}` }).press('Enter')
+  }
   for (const [name, value] of [
     ['Bandido', '2'],
     ['Goblin', '1'],
@@ -59,14 +74,13 @@ async function combat(page: Page, baseURL: string) {
     await init.getByRole('textbox', { name: 'Iniciativa', exact: true }).fill(value)
     await init.getByRole('button', { name: 'Adicionar', exact: true }).click()
   }
-  for (const [name, value] of [
-    ['Brisa', '20'],
-    ['Taren', '15'],
-    ['Ilmar', '10'],
-  ])
-    await init.getByRole('textbox', { name: `Iniciativa de ${name}` }).fill(value)
+  await init.getByRole('button', { name: 'Definir turnos' }).click()
+  await expect(init.getByText('Rodada 1')).toBeVisible()
+  // Um toque no combatente abre a vida e a Defesa.
+  await init.getByRole('button', { name: /^Goblin: / }).click()
   await init.getByRole('textbox', { name: 'PV de Goblin' }).fill('7')
   await init.getByRole('textbox', { name: 'CA de Goblin' }).fill('12')
+  await init.getByRole('button', { name: /^Bandido: / }).click()
   await init.getByRole('textbox', { name: 'PV de Bandido' }).fill('11')
   await init.getByRole('textbox', { name: 'CA de Bandido' }).fill('13')
   return init
@@ -97,14 +111,16 @@ test('combate na mesa: em quem, acerta ou erra pela CA, e o dano sai da vida do 
   await expect(tray(page)).toContainText('Goblin: PV -2/7 · derrotado')
   // Tirou errado? Desfazer devolve a vida; e dá para tirar de novo.
   await tray(page).getByRole('button', { name: 'Desfazer o dano em Goblin' }).click()
+  await init.getByRole('button', { name: /^Goblin: / }).click()
   await expect(init.getByRole('textbox', { name: 'PV de Goblin' })).toHaveValue('7')
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('Desfeito: 9 de dano em Goblin')
   await tray(page).getByRole('button', { name: 'Tirar 9 PV de Goblin' }).click()
   await expect(tray(page)).toContainText('Goblin: PV -2/7 · derrotado')
-  await expect(init.locator('.init-row', { hasText: 'Goblin' })).toContainText('derrotado')
+  await expect(init.locator('.fight-row', { hasText: 'Goblin' })).toContainText('derrotado')
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('Goblin perde 9 PV (fica com -2/7) · derrotado')
 
   // Uma condição por uma rodada: acaba sozinha quando a rodada vira.
+  await init.getByRole('button', { name: /^Ilmar: / }).click()
   await init.getByRole('combobox', { name: 'Adicionar condição a Ilmar' }).selectOption('Atordoado')
   await init.getByRole('combobox', { name: 'Quanto tempo dura Atordoado em Ilmar' }).selectOption({ label: '1 rodada' })
   await expect(init.getByRole('button', { name: 'Tirar Atordoado de Ilmar' })).toContainText('última rodada')
@@ -261,7 +277,7 @@ test('sessão ao vivo: convidar, ver quem está na mesa, a abertura e o fim, no 
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('A sessão começou.')
 
   // Encerrar: o resumo para o mestre, o aviso no celular e o registro em Ideias.
-  await page.getByRole('button', { name: 'Encerrar sessão' }).click()
+  await more(page, 'Encerrar sessão')
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   const fim = page.getByRole('dialog', { name: 'Fim da sessão' })
   await expect(fim).toContainText('Notas1')
@@ -315,9 +331,27 @@ test('improvisar na mesa: quem não veio, anunciar e revelar na hora, e o celula
   await expect(grupo.locator('.pc-out')).toContainText('Taren')
   await expect(grupo.locator('.pc-card', { hasText: 'Ilmar' })).toContainText('mestre conduz')
   const init = page.getByRole('region', { name: 'Iniciativa' })
-  await init.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
-  await expect(init.locator('.init-row')).toHaveCount(2)
+  await init.getByRole('button', { name: 'Começar combate' }).click()
+  await expect(init.locator('.fight-row')).toHaveCount(2)
   await expect(init).not.toContainText('Taren')
+  // Ilmar o mestre conduz (já rolado); Brisa rola no celular, e só então os turnos se definem.
+  await expect(init.locator('.fight-row', { hasText: 'Brisa' })).toContainText('rolando no celular')
+  await expect(init.getByRole('button', { name: 'Definir turnos' })).toBeDisabled()
+  // No celular, o pedido abre no meio da tela com o botão de rolar; "Depois" guarda no alto do Codex.
+  const chamada = brisa.getByRole('dialog', { name: 'Combate: role a iniciativa' })
+  await expect(chamada).toContainText('Combate!')
+  await expect(chamada.getByRole('button', { name: 'Rolar Iniciativa (+3)' })).toBeFocused()
+  await chamada.getByRole('button', { name: 'Depois' }).click()
+  await expect(chamada).toHaveCount(0)
+  const guardado = brisa.getByRole('region', { name: 'Combate: role a iniciativa' })
+  await guardado.getByRole('button', { name: /^Rolar Iniciativa/ }).click()
+  const dado = brisa.getByRole('dialog', { name: 'Quanto saiu no dado?' })
+  await dado.getByRole('spinbutton').fill('12')
+  await dado.getByRole('button', { name: 'Registrar' }).click()
+  await expect(guardado).toHaveCount(0)
+  await expect(init.getByRole('button', { name: /^Brisa: iniciativa 15/ })).toBeVisible()
+  await init.getByRole('button', { name: 'Definir turnos' }).click()
+  await expect(brisa.locator('.codex-order')).toContainText('Brisa')
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('Taren fica de fora desta sessão (Bruno não veio).')
   await expect(brisa.locator('.codex-pc', { hasText: 'Taren' })).toContainText('Fora desta sessão')
   await expect(brisa.locator('.codex-pc', { hasText: 'Ilmar' })).toContainText('Com o mestre nesta sessão')
@@ -353,7 +387,7 @@ test('improvisar na mesa: quem não veio, anunciar e revelar na hora, e o celula
   await revelou.click()
   await expect(brisa.locator('.player-notice')).toContainText('Um inimigo aparece!')
   await expect(brisa.locator('.codex-order')).toContainText('Vulto da Torre')
-  await expect(init.locator('.init-row')).toHaveCount(3)
+  await expect(init.locator('.fight-row')).toHaveCount(3)
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('Aviso à mesa: Um inimigo aparece!')
 
   // Um segredo, com um toque, direto da mesa.
@@ -404,7 +438,7 @@ test('modo sessão: o app vira a mesa, sai e volta de qualquer lugar, e no celul
   }
 
   // Sair: o app volta, a sessão continua; de qualquer área, um toque volta para ela.
-  await page.getByRole('button', { name: 'Sair do modo sessão' }).click()
+  await more(page, 'Sair do modo sessão')
   await expect(areas).toBeVisible()
   await expect(page.getByRole('button', { name: 'Voltar para a sessão' })).toBeVisible()
   await nav(page, 'Fichas').click()
@@ -430,7 +464,7 @@ test('modo sessão: o app vira a mesa, sai e volta de qualquer lugar, e no celul
   }
 
   // Encerrar: o resumo, e o app volta ao normal, sem a pílula.
-  await page.getByRole('button', { name: 'Encerrar sessão' }).click()
+  await more(page, 'Encerrar sessão')
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   await page.getByRole('dialog', { name: 'Fim da sessão' }).getByRole('button', { name: 'Fechar' }).click()
   await expect(page.locator('.session-mode-view')).toHaveCount(0)
@@ -458,10 +492,21 @@ test('o mestre pede um teste, põe inimigos prontos no combate e publica o diár
 
   // Bestiário: três goblins entram numerados, com os ataques prontos na vez deles.
   const init = page.getByRole('region', { name: 'Iniciativa' })
+  await init.getByRole('button', { name: 'Começar combate' }).click()
   await init.getByRole('combobox', { name: 'Inimigo pronto' }).selectOption({ label: 'Goblin das falésias' })
   await init.getByRole('textbox', { name: 'Quantos' }).fill('3')
   await init.getByRole('button', { name: 'Pôr no combate' }).click()
-  await expect(init.locator('.init-row')).toHaveCount(3)
+  await expect(init.locator('.fight-row', { hasText: 'Goblin das falésias' })).toHaveCount(3)
+  // Brisa rola no celular; por Taren e Ilmar (sem celular), o mestre rola.
+  await brisa.getByRole('dialog', { name: 'Combate: role a iniciativa' }).getByRole('button', { name: /^Rolar Iniciativa/ }).click()
+  const dado = brisa.getByRole('dialog', { name: 'Quanto saiu no dado?' })
+  await dado.getByRole('spinbutton').fill('10')
+  await dado.getByRole('button', { name: 'Registrar' }).click()
+  for (const pc of ['Taren', 'Ilmar']) await init.getByRole('button', { name: `Rolar por ${pc}` }).click()
+  await init.getByRole('button', { name: 'Definir turnos' }).click()
+  // Até a vez de um goblin.
+  for (let i = 0; i < 6 && !(await page.getByRole('region', { name: /^Vez de Goblin das falésias/ }).count()); i++) await init.getByRole('button', { name: /Próxima vez/ }).click()
+  await init.getByRole('button', { name: /^Goblin das falésias 2: / }).click()
   for (const n of [1, 2, 3]) await expect(init).toContainText(`Goblin das falésias ${n}`)
   await expect(init.getByRole('textbox', { name: 'PV de Goblin das falésias 2' })).toHaveValue('7/7')
   const vez = page.getByRole('region', { name: /^Vez de Goblin das falésias/ })
@@ -480,8 +525,8 @@ test('o mestre pede um teste, põe inimigos prontos no combate e publica o diár
   await expect(testes).toContainText('Percepção · CD 15')
   await expect(testes).toContainText('0 de 3')
 
-  await brisa.getByRole('status').filter({ hasText: 'O mestre pede um teste' }).click()
-  const pedido = brisa.getByRole('region', { name: 'Teste pedido: Percepção' })
+  const pedido = brisa.getByRole('dialog', { name: 'Teste pedido: Percepção' })
+  await expect(pedido).toContainText('O mestre pede um teste')
   await pedido.getByRole('button', { name: /^Rolar Percepção/ }).click()
   const quanto = brisa.getByRole('dialog', { name: 'Quanto saiu no dado?' })
   await quanto.getByRole('spinbutton').fill('16')
@@ -502,7 +547,7 @@ test('o mestre pede um teste, põe inimigos prontos no combate e publica o diár
   // O diário: o mestre começa pelas notas, revisa e publica; o Codex dos jogadores mostra.
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('Os goblins fugiram pelas falésias.')
   await page.getByRole('button', { name: 'Anotar' }).click()
-  await page.getByRole('button', { name: 'Encerrar sessão' }).click()
+  await more(page, 'Encerrar sessão')
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   const fim = page.getByRole('dialog', { name: 'Fim da sessão' })
   await fim.getByRole('button', { name: 'Escrever o diário para os jogadores' }).click()

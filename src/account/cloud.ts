@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { migrate } from '../model/migrations'
 import { CURRENT_SCHEMA_VERSION, type Universe } from '../model/schema'
-import { newId } from '../model/universe'
 import { countWords, type Library } from '../persistence/repository'
+import { keepCloudCopy, sameUniverse } from '../persistence/cloudCopy'
 
 /**
  * Universos na nuvem da conta. Regras (nunca perdem trabalho):
@@ -136,8 +136,8 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
   const synced = syncedMap(userId)
 
   for (const [id, entry] of local) {
-    // O exemplo fica só neste aparelho.
-    if (entry.sample) continue
+    // O exemplo fica só neste aparelho; a versão da nuvem guardada ao lado também.
+    if (entry.sample || entry.cloudCopyOf) continue
     const row = cloud.get(id)
     const last = synced[id]
     const localChanged = !last || time(entry.updatedAt) !== time(last)
@@ -170,12 +170,14 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
       continue
     }
     if (localChanged && cloudChanged && last) {
-      // Os dois lados mudaram: guarda a versão da nuvem como cópia e sobe a daqui.
+      // Os dois lados mudaram. Se ficaram iguais, nada a fazer; senão, guarda a versão da nuvem ao lado e sobe a daqui.
       const theirs = await download(sb, userId, id)
-      await saveLocal(lib, { ...theirs, id: newId(), name: `${theirs.name} (versão da nuvem)` })
       const mine = await lib.repository(id).load()
+      if (mine && !sameUniverse(mine, theirs)) {
+        await keepCloudCopy(lib, id, theirs)
+        report.conflicts++
+      }
       if (mine) await upload(sb, userId, mine)
-      report.conflicts++
     } else if (time(entry.updatedAt) > time(row.updated_at)) {
       const u = await lib.repository(id).load()
       if (u) {

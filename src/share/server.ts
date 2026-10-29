@@ -158,7 +158,7 @@ export interface TableRoll {
   who: string
   /** "Espada longa", "Percepção", "d20". */
   name: string
-  kind: 'atributo' | 'pericia' | 'ataque' | 'dano' | 'livre'
+  kind: 'atributo' | 'pericia' | 'ataque' | 'dano' | 'livre' | 'iniciativa'
   expression: string
   /** O que saiu em cada dado, na ordem da expressão: o mestre refaz a conta com eles. */
   faces: number[]
@@ -184,7 +184,7 @@ export interface TableCheck {
 }
 
 const TONES = ['neutro', 'sucesso', 'falha', 'critico', 'desastre']
-const KINDS = ['atributo', 'pericia', 'ataque', 'dano', 'livre']
+const KINDS = ['atributo', 'pericia', 'ataque', 'dano', 'livre', 'iniciativa']
 const text = (v: unknown, max: number) => (typeof v === 'string' && v.trim() && v.length <= max ? v.trim() : null)
 const int = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && Math.abs(v) < 100_000 ? v : undefined)
 

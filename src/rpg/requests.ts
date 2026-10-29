@@ -1,6 +1,7 @@
 import type { GameSystem, Session, Sheet, Universe } from '../model/schema'
 import { byId, newId, patch } from '../model/universe'
-import { describeOutcome, resolveRoll, rollAttribute, rollSkill, type RollOutcome, type RollRules } from './rolls'
+import { initiativeFromPlayer } from './fight'
+import { describeOutcome, expandFormula, resolveRoll, rollAttribute, rollSkill, type RollOutcome, type RollRules } from './rolls'
 import { attendanceOf, partyOf } from './sessionLife'
 
 export type RollRequest = Session['requests'][number]
@@ -65,19 +66,23 @@ export function recordResult(u: Universe, sessionId: string, requestId: string, 
   const s = byId(u, 'sessions', sessionId)
   const req = s?.requests.find((r) => r.id === requestId)
   if (!s || !req) return u
-  const { pass, verdict } = judge(rules, o, req.dc)
+  // A iniciativa não passa nem falha: vai direto para o lugar do personagem no combate.
+  const initiative = req.kind === 'iniciativa'
+  const { pass, verdict } = initiative ? { pass: null, verdict: null } : judge(rules, o, req.dc)
   const result: RequestResult = { sheetId: sheet.id, total: o.result.total, verdict, pass, by, at: now.toISOString() }
   const line = `${describeOutcome(o, sheet.name)}${pass === true ? ' · passou' : pass === false ? ' · falhou' : ''}${by === 'jogador' ? ' · pelo Codex' : ''}`
-  return patch(u, 'sessions', s.id, {
+  const next = patch(u, 'sessions', s.id, {
     requests: s.requests.map((r) => (r.id === requestId ? { ...r, results: [...r.results.filter((x) => x.sheetId !== sheet.id), result] } : r)),
     log: [...s.log, { id: newId(), at: clock(now), text: line, kind: 'rolagem' }],
   })
+  return initiative ? initiativeFromPlayer(next, s.id, sheet.id, o.result.total) : next
 }
 
 /** O mestre rola por alguém (quem ele conduz, ou quem está sem o celular), pela ficha. */
 export function rollFor(system: GameSystem | undefined, sheet: Sheet, req: RollRequest, random?: () => number): RollOutcome | null {
   try {
-    if (req.kind === 'livre' || !system) return resolveRoll(system ?? { resolution: 'total', successTarget: 6 }, req.name, req.expression || '1d20', undefined, random)
+    if (req.kind === 'iniciativa' && system) return resolveRoll(system, 'Iniciativa', expandFormula(system.initiativeFormula, { system, sheet }), undefined, random)
+    if (req.kind === 'livre' || req.kind === 'iniciativa' || !system) return resolveRoll(system ?? { resolution: 'total', successTarget: 6 }, req.name, req.expression || '1d20', undefined, random)
     const list = req.kind === 'pericia' ? system.skills : system.attributes
     const item = list.find((x) => x.name === req.name)
     if (!item) return null

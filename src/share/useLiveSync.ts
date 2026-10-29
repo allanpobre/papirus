@@ -8,6 +8,7 @@ import type { Universe } from '../model/schema'
 import { newId } from '../model/universe'
 import type { Library } from '../persistence/repository'
 import type { SaveStatus } from '../persistence/useUniverse'
+import { keepCloudCopy, sameUniverse } from '../persistence/cloudCopy'
 import { mergeUniverse, stableJson } from './merge'
 import { anonClient, type ServerConfig } from './server'
 import { fetchByLink, getShare, onShareChanged, openShared, refreshReaderCopy, saveShared, sharedStamp, shortName, type Share } from './sharing'
@@ -183,10 +184,10 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
           if (base.current) receive(theirs, remote, from)
           else {
             // Sem base conhecida (nunca sincronizou daqui): a versão de lá vira uma cópia, como antes.
-            const copy = { ...theirs, id: newId(), name: `${theirs.name} (versão da nuvem)` }
-            await lib.repository(copy.id).save(copy)
-            await lib.touch(copy)
-            cb.current.notify(`Este universo também mudou em outro aparelho. A versão de lá foi guardada como “${copy.name}”.`, 'erro')
+            if (!sameUniverse(latest.current, theirs)) {
+              await keepCloudCopy(lib, latest.current.id, theirs)
+              cb.current.notify('Este universo também mudou em outro aparelho. A versão de lá foi guardada ao lado, com a nuvem no cartão.', 'erro')
+            }
             base.current = theirs
             stamp.current = remote
           }

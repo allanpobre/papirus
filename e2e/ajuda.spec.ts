@@ -67,11 +67,11 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   await page.getByRole('tab', { name: 'Painel do mestre' }).click()
   await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
-  await page.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
+  await page.getByRole('button', { name: 'Começar combate' }).click()
   // Com a sessão começada, o app vira o modo sessão, e o (?) explica a mesa inteira.
   const sessao = await runPageTour(page, 'Modo sessão')
   expect(sessao.filter((s) => s.spot).map((s) => s.title)).toEqual(
-    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Dados', 'Anunciar', 'Combate', 'Grupo', 'Segredos', 'Dados e tabelas', 'Registro e preparação', 'Sair', 'Encerrar']),
+    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Pedir teste', 'Anunciar', 'Combate', 'Grupo', 'Segredos', 'Dados e tabelas', 'Registro e preparação', 'Mais']),
   )
 })
 

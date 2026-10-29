@@ -1,7 +1,7 @@
 import { roll } from '../logic/dice'
 import type { GameSystem, Monster, Session, Universe } from '../model/schema'
 import { byId, newId, patch, type Draft } from '../model/universe'
-import { parseHp } from './combat'
+import { initiativeOrder, parseHp } from './combat'
 import { rollInitiative } from './rolls'
 
 type Entry = Session['initiative'][number]
@@ -44,8 +44,14 @@ export function addMonsters(u: Universe, sessionId: string, monsterId: string, c
     attacks: m.attacks.map((a) => ({ ...a, id: newId() })),
     monsterId: m.id,
     conditions: [],
+    rolled: true,
   }))
-  return patch(u, 'sessions', s.id, { initiative: [...s.initiative, ...entries] })
+  // A vez continua com quem estava jogando, mesmo que os novos entrem antes dele na ordem.
+  const list = initiativeOrder(s)
+  const current = list.length ? list[s.turn % list.length] : undefined
+  const initiative = [...s.initiative, ...entries]
+  const turn = current ? initiativeOrder({ ...s, initiative }).findIndex((e) => e.id === current.id) : 0
+  return patch(u, 'sessions', s.id, { initiative, turn: Math.max(0, turn) })
 }
 
 /** Guarda um combatente avulso no bestiário: o nome sem o número, a vida máxima, a Defesa e o ataque que ele usou. */
