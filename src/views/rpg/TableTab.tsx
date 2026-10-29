@@ -1,4 +1,4 @@
-import { Dices, Flag, Maximize2, Minimize2, Minus, Play, Plus, Send, UserPlus, Users } from 'lucide-react'
+import { Dices, Flag, Maximize2, Megaphone, Minimize2, Minus, Play, Plus, Send, UserPlus, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { DiceError, roll } from '../../logic/dice'
 import type { RandomTable, Sheet } from '../../model/schema'
@@ -6,11 +6,14 @@ import { patch } from '../../model/universe'
 import { resolveRoll, rollAttribute } from '../../rpg/rolls'
 import { adjustResource, isPool } from '../../rpg/sheets'
 import { makeSystem } from '../../rpg/systems'
-import { sessionToStart } from '../../rpg/sessionLife'
+import { attendanceOf, sessionToStart } from '../../rpg/sessionLife'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { InitiativeTracker } from './InitiativeTracker'
+import { AnnounceDialog } from './Announce'
+import { AttendanceSelect } from './Attendance'
 import { PresenceList } from './LiveTable'
+import { SecretsPanel } from './Secrets'
 import { useRpg } from './rpgContext'
 
 const QUICK = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
@@ -24,6 +27,7 @@ export function TableTab() {
   const { universe, readOnly } = useWorkspace()
   const { group, activeSession, startSession, endSession, invite } = useRpg()
   const [full, setFull] = useState(false)
+  const [announcing, setAnnouncing] = useState(false)
 
   useEffect(() => {
     const onChange = () => setFull(Boolean(document.fullscreenElement))
@@ -67,6 +71,11 @@ export function TableTab() {
         <strong className="table-mode-title">{activeSession.title}</strong>
         <span className="muted small">{group.name}</span>
         <span className="table-mode-acts">
+          {!readOnly && (
+            <button type="button" className="btn btn-primary btn-sm table-announce" onClick={() => setAnnouncing(true)}>
+              <Megaphone size={14} /> Anunciar
+            </button>
+          )}
           <button type="button" className="btn btn-ghost btn-sm table-full" onClick={toggleFull}>
             {full ? <Minimize2 size={14} /> : <Maximize2 size={14} />} {full ? 'Sair da tela cheia' : 'Tela cheia'}
           </button>
@@ -90,97 +99,125 @@ export function TableTab() {
           <QuickDice />
           <TableRolls />
         </section>
+        <SecretsPanel />
         <section className="table-panel" aria-label="Registro">
           <h2 className="section-title">Registro</h2>
           <LogBox />
         </section>
       </div>
+      {announcing && <AnnounceDialog onClose={() => setAnnouncing(false)} />}
     </div>
   )
 }
 
 function PartyCards() {
   const { universe, update } = useWorkspace()
-  const { group, report } = useRpg()
+  const { group, report, activeSession } = useRpg()
   const party = universe.sheets.filter((s) => s.groupId === group.id && s.role === 'pj')
   if (!party.length) return <p className="muted small">Nenhum personagem de jogador nesta mesa. Crie em Personagens.</p>
   const set = (s: Sheet, c: Partial<Sheet>) => update((u) => patch(u, 'sheets', s.id, c))
+  // Quem não veio: o mestre conduz o personagem (continua aqui) ou ele fica de fora (vai para o fim, recolhido).
+  const out = party.filter((s) => attendanceOf(activeSession, s.id) === 'fora')
 
   return (
-    <ul className="pc-cards">
-      {party.map((s) => {
-        const system = universe.systems.find((x) => x.id === s.systemId)
-        return (
-          <li key={s.id} className="pc-card">
-            <div className="pc-card-head">
-              <strong>{s.name}</strong>
-              {s.player && <span className="muted tiny">{s.player}</span>}
-              {system?.resources
-                .filter((d) => !isPool(d))
-                .map((d) => (
-                  <span key={d.id} className="pc-value" title={d.name}>
-                    {d.abbr} <strong className="tabular">{(s.resources[d.id] ?? { current: d.default }).current}</strong>
-                  </span>
-                ))}
-            </div>
-            {system?.features.resources &&
-              system.resources.filter(isPool).map((def) => {
-                const r = s.resources[def.id] ?? { current: def.default, max: def.default }
-                const pct = r.max > 0 ? Math.max(0, Math.min(100, (r.current / r.max) * 100)) : 0
-                const change = (d: number) => set(s, { resources: adjustResource({ ...s, resources: { ...s.resources, [def.id]: r } }, def.id, d) })
-                return (
-                  <div key={def.id} className={`pc-res${r.max > 0 && r.current <= 0 ? ' resource-empty' : ''}`}>
-                    <button type="button" className="btn-icon pc-step" aria-label={`${s.name}: menos 1 ${def.abbr}`} onClick={() => change(-1)}>
-                      <Minus size={16} />
-                    </button>
-                    <span className="pc-res-mid">
-                      <span className="pc-res-label">
-                        <span>{def.abbr}</span>
-                        <span className="tabular">
-                          {r.current}/{r.max}
+    <>
+      <ul className="pc-cards">
+        {party.filter((s) => attendanceOf(activeSession, s.id) !== 'fora').map((s) => {
+          const system = universe.systems.find((x) => x.id === s.systemId)
+          const gm = attendanceOf(activeSession, s.id) === 'mestre'
+          return (
+            <li key={s.id} className={`pc-card${gm ? ' is-gm' : ''}`}>
+              <div className="pc-card-head">
+                <strong>{s.name}</strong>
+                {s.player && !gm && <span className="muted tiny">{s.player}</span>}
+                {gm && <span className="pc-gm-tag">mestre conduz</span>}
+                {system?.resources
+                  .filter((d) => !isPool(d))
+                  .map((d) => (
+                    <span key={d.id} className="pc-value" title={d.name}>
+                      {d.abbr} <strong className="tabular">{(s.resources[d.id] ?? { current: d.default }).current}</strong>
+                    </span>
+                  ))}
+              </div>
+              {system?.features.resources &&
+                system.resources.filter(isPool).map((def) => {
+                  const r = s.resources[def.id] ?? { current: def.default, max: def.default }
+                  const pct = r.max > 0 ? Math.max(0, Math.min(100, (r.current / r.max) * 100)) : 0
+                  const change = (d: number) => set(s, { resources: adjustResource({ ...s, resources: { ...s.resources, [def.id]: r } }, def.id, d) })
+                  return (
+                    <div key={def.id} className={`pc-res${r.max > 0 && r.current <= 0 ? ' resource-empty' : ''}`}>
+                      <button type="button" className="btn-icon pc-step" aria-label={`${s.name}: menos 1 ${def.abbr}`} onClick={() => change(-1)}>
+                        <Minus size={16} />
+                      </button>
+                      <span className="pc-res-mid">
+                        <span className="pc-res-label">
+                          <span>{def.abbr}</span>
+                          <span className="tabular">
+                            {r.current}/{r.max}
+                          </span>
+                        </span>
+                        <span className="resource-bar" aria-hidden="true">
+                          <span style={{ width: `${pct}%` }} />
                         </span>
                       </span>
-                      <span className="resource-bar" aria-hidden="true">
-                        <span style={{ width: `${pct}%` }} />
-                      </span>
-                    </span>
-                    <button type="button" className="btn-icon pc-step" aria-label={`${s.name}: mais 1 ${def.abbr}`} onClick={() => change(1)}>
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                )
-              })}
-            {system && system.attributes.length > 0 && (
-              <div className="pc-rolls">
-                {system.attributes.map((a) => (
-                  <button key={a.id} type="button" className="chip" title={`Rolar ${a.name}`} onClick={() => report(rollAttribute(system, s, a.id), s.name)}>
-                    {a.abbr}
-                  </button>
-                ))}
-              </div>
-            )}
-            {system?.features.conditions && system.conditions.length > 0 && (
-              <details className="pc-conditions">
-                <summary className="small">{s.conditions.length ? s.conditions.join(', ') : 'Condições'}</summary>
-                <div className="chips">
-                  {system.conditions.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      className="chip chip-condition"
-                      aria-pressed={s.conditions.includes(c)}
-                      onClick={() => set(s, { conditions: s.conditions.includes(c) ? s.conditions.filter((x) => x !== c) : [...s.conditions, c] })}
-                    >
-                      {c}
+                      <button type="button" className="btn-icon pc-step" aria-label={`${s.name}: mais 1 ${def.abbr}`} onClick={() => change(1)}>
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )
+                })}
+              {system && system.attributes.length > 0 && (
+                <div className="pc-rolls">
+                  {system.attributes.map((a) => (
+                    <button key={a.id} type="button" className="chip" title={`Rolar ${a.name}`} onClick={() => report(rollAttribute(system, s, a.id), s.name)}>
+                      {a.abbr}
                     </button>
                   ))}
                 </div>
-              </details>
-            )}
-          </li>
-        )
-      })}
-    </ul>
+              )}
+              {system?.features.conditions && system.conditions.length > 0 && (
+                <details className="pc-conditions">
+                  <summary className="small">{s.conditions.length ? s.conditions.join(', ') : 'Condições'}</summary>
+                  <div className="chips">
+                    {system.conditions.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        className="chip chip-condition"
+                        aria-pressed={s.conditions.includes(c)}
+                        onClick={() => set(s, { conditions: s.conditions.includes(c) ? s.conditions.filter((x) => x !== c) : [...s.conditions, c] })}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              )}
+              {activeSession && (
+                <div className="pc-card-foot">
+                  <AttendanceSelect session={activeSession} sheet={s} />
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+      {out.length > 0 && activeSession && (
+        <div className="pc-out">
+          <h3 className="section-label">De fora nesta sessão</h3>
+          <ul className="plain-list">
+            {out.map((s) => (
+              <li key={s.id} className="pc-out-row">
+                <span>
+                  {s.name} {s.player && <span className="muted tiny">{s.player}</span>}
+                </span>
+                <AttendanceSelect session={activeSession} sheet={s} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
   )
 }
 

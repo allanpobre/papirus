@@ -109,8 +109,8 @@ export function CodexTab({ group }: { group: Group }) {
   )
 }
 
-/** Escolhe o que revelar: ficha, fato, evento, pista, mapa ou marcador. */
-function RevealForm({ group }: { group: Group }) {
+/** Escolhe o que revelar: ficha, fato, evento, pista, mapa ou marcador (na sessão dada, se houver). */
+export function RevealForm({ group, sessionId = null, onDone }: { group: Group; sessionId?: string | null; onDone?: () => void }) {
   const { universe, update } = useWorkspace()
   const [target, setTarget] = useState<Revelation['target']>('entidade')
   const [entityId, setEntityId] = useState<string | null>(null)
@@ -135,9 +135,10 @@ function RevealForm({ group }: { group: Group }) {
   const id = target === 'entidade' ? entityId : choice
   const reveal = () => {
     if (!id) return
-    update((u) => insert(u, 'revelations', { ...draftRevelation(group.id, target, id, null), depth: target === 'entidade' ? depth : 'completo' })[0])
+    update((u) => insert(u, 'revelations', { ...draftRevelation(group.id, target, id, sessionId), depth: target === 'entidade' ? depth : 'completo' })[0])
     setEntityId(null)
     setChoice('')
+    onDone?.()
   }
 
   return (

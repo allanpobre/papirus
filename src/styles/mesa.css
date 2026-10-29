@@ -1776,6 +1776,373 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
   }
 }
 
+/* Quem joga nesta sessão. */
+.attendance {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attendance-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.8rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.attendance-row.is-fora .attendance-who strong {
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--ink-2) 60%, transparent);
+}
+
+.attendance-who {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  min-width: 0;
+}
+
+.attendance-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+.attendance-pick {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper, var(--surface));
+}
+
+.attendance-pick button {
+  padding: 0.2rem 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.attendance-pick button[aria-checked='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.attendance-select {
+  width: auto;
+  max-width: 100%;
+}
+
+/* Na mesa: o personagem que o mestre conduz, e quem ficou de fora. */
+.pc-card.is-gm {
+  border-style: dashed;
+  border-color: rgb(var(--glow) / 55%);
+}
+
+.pc-gm-tag,
+.party-away {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: rgb(var(--glow) / 14%);
+  color: var(--ink);
+  font-size: 0.72rem;
+}
+
+.pc-card-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pc-out .section-label {
+  margin-top: 0.4rem;
+}
+
+.pc-out-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem 0.6rem;
+  padding: 0.25rem 0;
+  color: var(--ink-2);
+}
+
+/* Os segredos à mão, durante o jogo. */
+.table-secrets .section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.table-secrets p {
+  margin: 0;
+}
+
+.secret-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.secret-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-s);
+  background: var(--paper, var(--surface));
+  border: 1px solid var(--line);
+}
+
+.secret-name {
+  min-width: 0;
+}
+
+.secret-acts {
+  display: inline-flex;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+.secret-any {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.secret-any > :first-child {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.table-secrets .section-label {
+  margin: 0.3rem 0 0;
+}
+
+.secret-partial summary {
+  cursor: pointer;
+  margin-bottom: 0.35rem;
+}
+
+/* Anunciar para a mesa. */
+.table-announce {
+  box-shadow: 0 0 0 3px rgb(var(--glow) / 18%);
+}
+
+.announce-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.announce-chip.tone-perigo {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+}
+
+.announce-chip.tone-misterio {
+  border-color: color-mix(in srgb, var(--violet) 45%, var(--line));
+}
+
+.announce-tones {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0.2rem 0 0.6rem;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.announce-tones button {
+  padding: 0.25rem 0.8rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.84rem;
+}
+
+.announce-tones button[aria-checked='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.announce-tones button.tone-perigo[aria-checked='true'] {
+  background: var(--danger);
+  color: var(--surface);
+}
+
+.announce-tones button.tone-misterio[aria-checked='true'] {
+  background: var(--violet);
+  color: var(--surface);
+}
+
+.announce-who {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.announce-who-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* Como o aviso vai aparecer no celular. */
+.announce-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.8rem;
+  padding: 0.9rem;
+  border-radius: var(--radius-l);
+  border: 1px solid rgb(var(--glow) / 45%);
+  background: radial-gradient(80% 90% at 50% 30%, rgb(var(--glow) / 20%), transparent 75%), var(--bg);
+  text-align: center;
+}
+
+.announce-preview.tone-perigo {
+  border-color: color-mix(in srgb, var(--danger) 60%, transparent);
+  background: radial-gradient(80% 90% at 50% 30%, color-mix(in srgb, var(--danger) 22%, transparent), transparent 75%), var(--bg);
+}
+
+.announce-preview.tone-misterio {
+  border-color: color-mix(in srgb, var(--violet) 60%, transparent);
+  background: radial-gradient(80% 90% at 50% 30%, color-mix(in srgb, var(--violet) 22%, transparent), transparent 75%), var(--bg);
+}
+
+.announce-preview-kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.announce-preview-text {
+  font-family: 'Cinzel', 'Young Serif', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+/* No celular: o aviso do mestre na tela inteira, na cor do tom, e o último aviso guardado. */
+.player-moment.tone-perigo {
+  background:
+    radial-gradient(70% 50% at 50% 40%, color-mix(in srgb, var(--danger) 30%, transparent), transparent 72%),
+    color-mix(in srgb, var(--bg) 94%, transparent);
+}
+
+.player-moment.tone-perigo .player-moment-kicker {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.player-moment.tone-misterio {
+  background:
+    radial-gradient(70% 50% at 50% 40%, color-mix(in srgb, var(--violet) 28%, transparent), transparent 72%),
+    color-mix(in srgb, var(--bg) 94%, transparent);
+}
+
+.player-moment.tone-perigo .player-moment-title {
+  animation: moment-shake 0.5s ease 0.2s both;
+}
+
+@keyframes moment-shake {
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+.player-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid rgb(var(--glow) / 45%);
+  border-radius: var(--radius-l);
+  background: rgb(var(--glow) / 10%);
+}
+
+.player-notice svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+.player-notice.tone-perigo {
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+}
+
+.player-notice.tone-misterio {
+  border-color: color-mix(in srgb, var(--violet) 55%, var(--line));
+  background: color-mix(in srgb, var(--violet) 10%, var(--surface));
+}
+
+.player-notice-h {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.player-who-chip {
+  flex-direction: column;
+  align-items: flex-start;
+  height: auto;
+  border-radius: var(--radius);
+  padding-block: 0.3rem;
+  line-height: 1.2;
+}
+
+.player-who-player,
+.player-who-away {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--ink-2);
+}
+
+.player-who-chip.is-away {
+  border-style: dashed;
+}
+
+.codex-pc-away {
+  margin: 0.1rem 0 0;
+  color: var(--ink-2);
+  font-style: italic;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .session-opening,
   .session-opening-emblem,
@@ -1785,7 +2152,8 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
   .session-stats {
     animation: none;
   }
-  .player-moment {
+  .player-moment,
+  .player-moment.tone-perigo .player-moment-title {
     animation: none;
   }
 }

@@ -1,5 +1,19 @@
 # Novidades
 
+## 1.4.0 — 29 de outubro de 2026
+
+**O mestre improvisa.** Na aba Na mesa, “Anunciar” manda um aviso para a tela inteira de cada celular, na hora: “Um inimigo aparece!”, “Emboscada!”, “Pausa de 10 minutos”, ou o que o mestre escrever. Há atalhos prontos e três tons (Aviso, Perigo e Mistério); no Perigo, o celular vibra mais forte. Quem aparece pode ser escolhido ou criado na hora: o nome entra no Codex e, se for briga, ele entra na iniciativa. O aviso fica no registro, e o último fica guardado no alto do Codex para quem piscou e perdeu.
+
+**Os segredos à mão.** A aba Na mesa ganhou o painel Segredos: o que a mesa ainda não sabe (fichas e fatos secretos), com “Revelar” a um toque; quem a mesa conhece só em parte, com “Revelar mais”; qualquer outra ficha pela busca; e fatos, pistas, mapas e ligações em “Fato, pista, mapa…”. Tudo fica marcado como revelado nesta sessão. No celular, aparece “O mestre revelou” na tela inteira.
+
+**Quem joga nesta sessão.** Cada personagem aparece com o seu jogador. Quando alguém não vem, o mestre escolhe, como nas mesas de verdade: o mestre conduz o personagem nesta sessão (ele vira NPC e continua no combate) ou ele fica de fora (sai da iniciativa e vai para o fim da lista do grupo).
+- Dá para marcar na abertura da sessão (“Quem joga hoje”, mostrando quem já está com o Codex aberto), em Sessões (até antes, ao planejar) e no cartão de cada personagem na mesa.
+- Fica no registro (“Taren fica de fora desta sessão (Bruno não veio)”), e o registro que vai para Ideias começa com a chamada da sessão.
+- No Codex, os jogadores veem quem está fora ou com o mestre, e o “Quem é você na mesa?” mostra o jogador de cada personagem.
+
+- Os tours (?) de Na mesa, Sessões e Codex explicam as novidades, e a janela de anúncio tem o seu (?).
+- Usa o mesmo canal ao vivo do Codex: não precisa rodar nenhum script novo no servidor.
+
 ## 1.3.0 — 29 de outubro de 2026
 
 **A sessão começa de verdade.** Começar a sessão agora é um momento: a tela inteira no clima da mesa, com o nome da sessão, o que aconteceu na última vez, quem já está na mesa e o convite. “Começar a jogar” leva direto para a mesa.

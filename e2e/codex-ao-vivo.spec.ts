@@ -78,7 +78,9 @@ test('Codex ao vivo: o mestre compartilha, o jogador vê e recebe as novas revel
   await player.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
   await expect(player.getByRole('heading', { name: 'Linha do tempo' })).toBeVisible()
   await expect(player.locator('.codex-timeline')).toContainText('A Queda')
-  await expect(player.getByRole('status')).toHaveText('Novidades do mestre')
+  await expect(player.getByRole('status').filter({ hasText: 'Novidades do mestre' })).toBeVisible()
+  // E na tela inteira: o que o mestre acabou de revelar.
+  await expect(player.getByRole('status').filter({ hasText: 'O mestre revelou' })).toContainText('A Queda')
 
   // Parar apaga do servidor; o link avisa.
   await page.getByRole('button', { name: 'Parar' }).click()

@@ -1,5 +1,7 @@
-import type { Session, Universe } from '../model/schema'
-import { byId, draftInbox, draftSession, insert, newId, patch } from '../model/universe'
+import { NOTICE_TONES, SESSION_ATTENDANCE, type Session, type Sheet, type Universe } from '../model/schema'
+import { byId, draftInbox, draftRevelation, draftSession, insert, newId, patch } from '../model/universe'
+import { roll } from '../logic/dice'
+import { rollInitiative } from './rolls'
 
 /** As linhas que o próprio Papirus escreve no registro quando a sessão começa e termina. */
 export const START_NOTE = 'A sessão começou.'
@@ -53,7 +55,8 @@ export function finishSession(u: Universe, id: string, groupName: string, now = 
   let next = patch(u, 'sessions', s.id, { status: 'encerrada', log })
   const sent = playedLog(s).length > 0
   if (sent) {
-    const transcript = [`${s.title} — ${groupName}`, '', ...log.map((l) => `[${l.at}] ${l.text}`)].join('\n')
+    const who = rollCall(u, s)
+    const transcript = [`${s.title} — ${groupName}`, ...(who ? [who] : []), '', ...log.map((l) => `[${l.at}] ${l.text}`)].join('\n')
     next = insert(next, 'inbox', draftInbox(transcript, 'sessao', s.title))[0]
   }
   return { universe: next, sent }
@@ -83,3 +86,107 @@ export function durationLabel(minutes: number): string {
   const m = minutes % 60
   return m ? `${Math.floor(minutes / 60)} h ${m} min` : `${minutes / 60} h`
 }
+
+// ─── Quem joga nesta sessão ────────────────────────────────────────────
+
+export type Attendance = (typeof SESSION_ATTENDANCE)[number]
+
+export const ATTENDANCE_LABEL: Record<Attendance, string> = { joga: 'Joga', mestre: 'Mestre conduz', fora: 'Fica de fora' }
+
+/** Os personagens de jogador da mesa. */
+export const partyOf = (u: Universe, groupId: string | null) => u.sheets.filter((s) => s.groupId === groupId && s.role === 'pj')
+
+/** Como o personagem está nesta sessão (sem nada marcado, joga). */
+export const attendanceOf = (s: Session | undefined, sheetId: string): Attendance => s?.attendance?.[sheetId] ?? 'joga'
+
+/**
+ * Muda quem joga. Com a sessão em andamento, fica no registro: "Taren fica de fora desta sessão (Bruno não veio)".
+ */
+export function setAttendance(u: Universe, sessionId: string, sheetId: string, value: Attendance, now = new Date()): Universe {
+  const s = byId(u, 'sessions', sessionId)
+  const sheet = byId(u, 'sheets', sheetId)
+  if (!s || !sheet || attendanceOf(s, sheetId) === value) return u
+  const attendance = { ...s.attendance }
+  if (value === 'joga') delete attendance[sheetId]
+  else attendance[sheetId] = value
+  const absent = sheet.player ? ` (${sheet.player} não veio)` : ''
+  const line =
+    value === 'fora' ? `${sheet.name} fica de fora desta sessão${absent}.` : value === 'mestre' ? `O mestre conduz ${sheet.name} nesta sessão${absent}.` : `${sheet.name} volta a jogar${sheet.player ? ` com ${sheet.player}` : ''}.`
+  const log = s.status === 'em-andamento' ? [...s.log, { id: newId(), at: clock(now), text: line, kind: 'nota' as const }] : s.log
+  return patch(u, 'sessions', s.id, { attendance, log })
+}
+
+/** A chamada da sessão, numa linha: quem jogou, quem o mestre conduziu e quem ficou de fora. */
+export function rollCall(u: Universe, s: Session): string {
+  const party = partyOf(u, s.groupId)
+  if (!party.length) return ''
+  const name = (p: Sheet) => (p.player ? `${p.name} (${p.player})` : p.name)
+  const by = (a: Attendance) => party.filter((p) => attendanceOf(s, p.id) === a).map(name)
+  return [
+    by('joga').length ? `Na mesa: ${by('joga').join(', ')}` : '',
+    by('mestre').length ? `O mestre conduziu: ${by('mestre').join(', ')}` : '',
+    by('fora').length ? `De fora: ${by('fora').join(', ')}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
+// ─── Avisos do mestre ─────────────────────────────────────────────────
+
+export type NoticeTone = (typeof NOTICE_TONES)[number]
+export type Notice = Session['notices'][number]
+
+export const NOTICE_TONE_LABEL: Record<NoticeTone, string> = { aviso: 'Aviso', perigo: 'Perigo', misterio: 'Mistério' }
+
+/** Atalhos para improvisar: um toque e o aviso está pronto. */
+export const NOTICE_PRESETS: { text: string; tone: NoticeTone }[] = [
+  { text: 'Um inimigo aparece!', tone: 'perigo' },
+  { text: 'Emboscada!', tone: 'perigo' },
+  { text: 'Rolem iniciativa!', tone: 'perigo' },
+  { text: 'Algo se aproxima…', tone: 'misterio' },
+  { text: 'Vocês ouvem um barulho lá fora.', tone: 'misterio' },
+  { text: 'Uma sombra passa pela janela.', tone: 'misterio' },
+  { text: 'Pausa de 10 minutos.', tone: 'aviso' },
+  { text: 'Última cena antes do intervalo.', tone: 'aviso' },
+]
+
+/** Quem aparece com o aviso: o nome no Codex (só o nome) e, se for briga, na iniciativa. */
+export interface Appearance {
+  entityId: string
+  reveal: boolean
+  fight: boolean
+}
+
+/**
+ * Anuncia para a mesa: o aviso fica na sessão (os celulares mostram na tela inteira) e no registro.
+ * Com alguém aparecendo, revela o nome no Codex e põe na iniciativa, se pedido.
+ */
+export function announce(u: Universe, sessionId: string, text: string, tone: NoticeTone, appear: Appearance | null = null, now = new Date()): [Universe, Notice | null] {
+  const s = byId(u, 'sessions', sessionId)
+  const clean = text.trim().slice(0, 160)
+  if (!s || !clean) return [u, null]
+  const notice: Notice = { id: newId(), at: now.toISOString(), text: clean, tone }
+  let next = patch(u, 'sessions', s.id, {
+    notices: [...s.notices, notice].slice(-20),
+    log: [...s.log, { id: newId(), at: clock(now), text: `Aviso à mesa: ${clean}`, kind: 'nota' }],
+  })
+  const entity = appear ? byId(next, 'entities', appear.entityId) : undefined
+  if (appear && entity && s.groupId) {
+    const known = next.revelations.some((r) => r.groupId === s.groupId && r.target === 'entidade' && r.targetId === entity.id)
+    if (appear.reveal && !known) next = insert(next, 'revelations', { ...draftRevelation(s.groupId, 'entidade', entity.id, s.id), depth: 'nome' })[0]
+    const current = byId(next, 'sessions', s.id)!
+    if (appear.fight && !current.initiative.some((i) => i.name === entity.name)) {
+      const group = byId(next, 'groups', s.groupId)
+      const system = next.systems.find((x) => x.id === group?.systemId)
+      const sheet = next.sheets.find((x) => x.entityId === entity.id && x.groupId === s.groupId) ?? null
+      const value = system ? rollInitiative(system, sheet) : roll('d20').total
+      next = patch(next, 'sessions', s.id, {
+        initiative: [...current.initiative, { id: newId(), name: entity.name, value, hp: '', note: '', sheetId: sheet?.id ?? null, defense: null }],
+      })
+    }
+  }
+  return [next, notice]
+}
+
+/** Os avisos que os celulares ainda mostram: os três últimos da sessão em andamento. */
+export const recentNotices = (s: Session | undefined): Notice[] => (s?.notices ?? []).slice(-3)

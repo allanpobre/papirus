@@ -326,6 +326,16 @@ export const PAGE_TOURS = {
     ],
   },
 
+  anunciar: {
+    title: 'Anunciar para a mesa',
+    steps: [
+      { target: '.announce-presets', title: 'Atalhos', body: 'Para improvisar rápido: um toque e o aviso fica pronto, já com o tom certo. Dá para mudar o texto depois.' },
+      { target: '.announce-tones', title: 'O tom', body: 'Aviso (uma notícia, uma pausa), Perigo (o celular vibra mais forte) ou Mistério. Muda a cor do aviso no celular.' },
+      { target: '.announce-who', title: 'Quem aparece', body: 'Opcional. Escolha ou crie na hora quem entra em cena: o nome vai para o Codex e, se for briga, ele entra na iniciativa.' },
+      { target: '.modal-footer', title: 'Anunciar', body: 'Vai na hora para a tela inteira de cada celular e fica no registro da sessão. Ctrl+Enter também anuncia.' },
+    ],
+  },
+
   // ─── Mesa de RPG (uma aba de cada vez) ───────────────────────────
   'rpg-mestre': {
     title: 'Painel do mestre',
@@ -361,8 +371,11 @@ export const PAGE_TOURS = {
         body: 'Os ataques de quem está na vez, a um toque. O app pergunta em quem, compara com a Defesa e diz se acerta. Quem não tem ficha usa o ataque rápido, com bônus e dano.',
         optional: true,
       },
+      { target: '.table-announce', title: 'Anunciar', body: 'Para improvisar: “Um inimigo aparece!”, “Emboscada!”, “Pausa de 10 minutos”. Aparece na tela inteira de cada celular, na hora, e quem aparece pode entrar no Codex e na iniciativa.', optional: true },
       { target: '.table-panel[aria-label="Grupo"]', title: 'Grupo', body: 'A vida de cada um com − e +, os atributos para rolar e as condições.', optional: true },
+      { target: '.pc-card-foot', title: 'Quem não veio', body: 'Embaixo de cada personagem: joga, o mestre conduz (vira NPC nesta sessão) ou fica de fora (sai da iniciativa e vai para o fim da lista).', optional: true },
       { target: '.table-panel[aria-label="Dados"]', title: 'Dados e tabelas', body: 'Os dados rápidos, uma rolagem qualquer (como 2d6+3) e as tabelas aleatórias da mesa.', optional: true },
+      { target: '.table-secrets', title: 'Segredos', body: 'O que a mesa ainda não sabe, à mão: “Revelar” mostra no Codex de cada celular na hora. “Revelar mais” para quem já conhecem só em parte; fatos, pistas e mapas também.', optional: true },
       { target: '.table-panel[aria-label="Registro"]', title: 'Registro', body: 'Anote o que aconteceu; as rolagens entram sozinhas, com a hora.', optional: true },
       { target: '.mesa-dice-mode', title: 'Dados na mesa ou no app', body: 'Na mesa: cada rolagem pergunta o que saiu nos dados de verdade, e o app faz a conta. No app: ele sorteia.' },
       {
@@ -378,6 +391,7 @@ export const PAGE_TOURS = {
     steps: [
       { target: '.split-list[aria-label="Sessões"]', title: 'As sessões', body: 'Crie a próxima e toque numa para abrir. Cada uma tem número, data, preparação, registro e o que foi revelado nela.' },
       { target: '.session-head', title: 'Começar e encerrar', body: '“Começar” abre a sessão na tela inteira e leva para a mesa; as rolagens vão para o registro dela. Ao encerrar, aparece o resumo e o registro vai para Ideias, para você revisar com calma.', optional: true },
+      { target: '.session-attendance', title: 'Quem joga', body: 'Cada personagem com o seu jogador. Quem não veio: o mestre conduz o personagem nesta sessão, ou ele fica de fora. Dá para marcar antes, ao planejar.', optional: true },
       { target: '.session-log', title: 'Registro da mesa', body: 'O que aconteceu, com a hora. Nada vira canon sem a sua revisão.', optional: true },
       { target: '.session-reveal', title: 'Revelado nesta sessão', body: 'Revele uma ficha (só o nome, nome e resumo, ou tudo) ou um fato. O Codex dos jogadores recebe na hora.', optional: true },
       { target: '.session .initiative', title: 'Iniciativa', body: 'A ordem do combate desta sessão, a mesma da aba Na mesa.', optional: true },
@@ -525,6 +539,7 @@ export const PAGE_TOURS = {
       { target: '.player-live', title: 'Ao vivo', body: 'O Codex se atualiza sozinho quando o mestre revela algo. “Novidades do mestre” aparece quando chega coisa nova.' },
       { target: '.player-session', title: 'Sessão ao vivo', body: 'Aparece quando o mestre começa a sessão. O celular vibra no começo e avisa quando ela termina.', optional: true },
       { target: '.player-people', title: 'Na mesa agora', body: 'O mestre e os outros jogadores que estão com o Codex aberto, pelo personagem.', optional: true },
+      { target: '.player-notice', title: 'Avisos do mestre', body: 'Quando o mestre anuncia algo (“Um inimigo aparece!”), aparece na tela inteira e o celular vibra. O último aviso fica aqui.', optional: true },
       { target: '.player-who', title: 'Quem é você?', body: 'Escolha o seu personagem para rolar pela ficha dele. Fica lembrado neste aparelho.', optional: true },
       { target: '.codex-combat', title: 'Combate', body: 'A ordem da iniciativa e de quem é a vez. Quando for a sua, o celular avisa.', optional: true },
       { target: '.codex-party', title: 'O grupo', body: 'A vida e as condições de cada um. Em “Ficha completa”, atributos, perícias, ataques, poderes e inventário.', optional: true },

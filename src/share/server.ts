@@ -92,7 +92,7 @@ interface Table {
 const tables = new Map<string, Table>()
 /** Canais saindo: um canal novo no mesmo tópico espera o antigo sair de vez (o cliente devolveria o velho). */
 const leaving = new Map<string, Promise<unknown>>()
-const TABLE_EVENTS = ['atualizado', 'rolagem', 'conferida', 'presenca', 'saiu', 'quem'] as const
+const TABLE_EVENTS = ['atualizado', 'rolagem', 'conferida', 'presenca', 'saiu', 'quem', 'aviso'] as const
 
 function openTable(cfg: ServerConfig, id: string): Table {
   const key = `${cfg.url}|${cfg.anonKey}|${id}`
@@ -243,6 +243,24 @@ function readPresence(p: unknown): TablePresence | null {
   return { id, role: r.role, who: text(r.who, 60) }
 }
 
+/** Um aviso do mestre para a mesa ("Um inimigo aparece!"), na hora. */
+export interface TableNotice {
+  id: string
+  at: string
+  text: string
+  tone: 'aviso' | 'perigo' | 'misterio'
+}
+
+export function readNotice(p: unknown): TableNotice | null {
+  if (!p || typeof p !== 'object') return null
+  const r = p as Record<string, unknown>
+  const id = text(r.id, 64)
+  const body = text(r.text, 160)
+  const at = text(r.at, 40)
+  if (!id || !body || !at) return null
+  return { id, at, text: body, tone: r.tone === 'perigo' || r.tone === 'misterio' ? r.tone : 'aviso' }
+}
+
 /** Entra no canal da mesa. Devolve como enviar e como sair. */
 export function joinTable(
   cfg: ServerConfig,
@@ -258,6 +276,8 @@ export function joinTable(
     left?: (id: string) => void
     /** Alguém chegou e quer saber quem já está: cada um responde com a própria presença. */
     ask?: () => void
+    /** O mestre anunciou algo para a mesa. */
+    notice?: (n: TableNotice) => void
   } = {},
 ) {
   const t = openTable(cfg, id)
@@ -269,6 +289,10 @@ export function joinTable(
       const gone = payload && typeof payload === 'object' ? text((payload as Record<string, unknown>).id, 64) : null
       if (gone) on.left?.(gone)
     } else if (event === 'quem') on.ask?.()
+    else if (event === 'aviso') {
+      const n = readNotice(payload)
+      if (n) on.notice?.(n)
+    }
     else if (event === 'atualizado') on.update?.()
     else if (event === 'rolagem') {
       const r = readTableRoll(payload)
@@ -291,6 +315,7 @@ export function joinTable(
     sendPresence: (p: TablePresence) => sendOn(t, 'presenca', p),
     sendLeft: (presenceId: string) => sendOn(t, 'saiu', { id: presenceId }),
     ask: () => sendOn(t, 'quem', {}),
+    sendNotice: (n: TableNotice) => sendOn(t, 'aviso', n),
     leave: () => {
       if (left) return
       left = true

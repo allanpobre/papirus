@@ -28,10 +28,10 @@ O app abre num início com três setores. Cada um tem a sua cara (cores, letras 
 - **Dado físico primeiro:** role os seus dados e diga o que saiu; o app soma o bônus, vê o crítico e calcula o dano. Sem dados na hora, o app rola.
 - **Sistemas prontos** (D&D 5e, Tormenta 20, Ordem Paranormal, Call of Cthulhu, parada de dados, narrativo) ou as suas regras.
 - **Ficha de jogo** feita para jogar: PV e PM com um toque, condições, ataques, poderes que gastam PM, perícias com o total e inventário.
-- **Painel do mestre:** sessões com preparação e registro, iniciativa, tabelas aleatórias e revelações por grupo.
+- **Painel do mestre:** sessões com preparação e registro, iniciativa, tabelas aleatórias e revelações por grupo. Cada personagem tem o seu jogador; quem não vem fica de fora da sessão ou é conduzido pelo mestre.
 - **Combate:** escolha o alvo e o app diz se acerta pela Defesa (20 e 1 naturais, crítico pela margem); o dano vem em seguida e sai da vida do alvo com um toque. A iniciativa mostra a vida de cada um e marca quem foi derrotado.
 - **Seis climas** escolhidos pelo mestre para cada mesa (Tempestade, Pergaminho, Paranormal, Abismo, Neon, Floresta); cada jogador escolhe claro ou escuro.
-- **Codex ao vivo:** o celular de cada jogador mostra só o que foi revelado, com o mapa e a ficha completa de cada personagem. Cada jogador rola pela própria ficha no celular: a rolagem chega ao mestre e ao grupo, e o mestre confere o acerto. Em combate, o Codex mostra a ordem e avisa quando é a vez de cada um. O mestre convida pelo QR code, vê quem está na mesa e começa a sessão na tela inteira; o celular de cada jogador avisa quando ela começa e quando termina.
+- **Codex ao vivo:** o celular de cada jogador mostra só o que foi revelado, com o mapa e a ficha completa de cada personagem. Cada jogador rola pela própria ficha no celular: a rolagem chega ao mestre e ao grupo, e o mestre confere o acerto. Em combate, o Codex mostra a ordem e avisa quando é a vez de cada um. O mestre convida pelo QR code, vê quem está na mesa e começa a sessão na tela inteira; o celular de cada jogador avisa quando ela começa e quando termina. Para improvisar, o mestre anuncia (“Um inimigo aparece!”) e revela segredos com um toque, direto na mesa; o aviso aparece na tela de cada celular na hora.
 
 ### Oficina
 

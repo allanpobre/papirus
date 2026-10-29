@@ -9,6 +9,7 @@ import { Select } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import type { RpgTab } from './RpgView'
 import { isPool } from '../../rpg/sheets'
+import { attendanceOf } from '../../rpg/sessionLife'
 import { useRpg } from './rpgContext'
 
 /** Visão rápida do mestre: sistema, grupo, próxima sessão, segredos guardados, mistérios, elenco. */
@@ -122,6 +123,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
                 <li key={p.id} className="party-member">
                   <span className="party-name">{p.name}</span>
                   <span className="muted tiny">{p.player}</span>
+                  {next && attendanceOf(next, p.id) !== 'joga' && <span className="party-away tiny">{attendanceOf(next, p.id) === 'fora' ? 'de fora' : 'mestre conduz'}</span>}
                   {r && main && (
                     <span className="party-res" title={`${main.name}: ${r.current}/${r.max}`}>
                       <span className="resource-bar" aria-hidden="true">

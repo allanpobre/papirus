@@ -8,6 +8,7 @@ import { useWorkspace } from '../../state/workspace'
 import { Empty, Field, Select } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { EntityPicker } from '../../ui/EntityPicker'
+import { AttendanceList } from './Attendance'
 import { InitiativeTracker } from './InitiativeTracker'
 import { useRpg } from './rpgContext'
 
@@ -164,6 +165,14 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
             </button>
           </div>
           <p className="muted tiny">Ao encerrar, o registro vai para Ideias. Nada vira canon sem a sua revisão.</p>
+        </section>
+
+        <section className="session-attendance" aria-labelledby="sessao-chamada">
+          <h2 id="sessao-chamada" className="section-title">
+            Quem joga
+          </h2>
+          <p className="muted small">Quem não veio: o mestre conduz o personagem nesta sessão, ou ele fica de fora (não entra na iniciativa).</p>
+          <AttendanceList session={s} group={group} />
         </section>
 
         <section className="session-reveal">
