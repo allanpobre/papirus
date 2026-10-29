@@ -5,6 +5,7 @@ import { newId, patch } from '../model/universe'
 import { combatTargets } from '../rpg/combat'
 import { aimAt, describeOutcome, resolveRoll, type RollOutcome } from '../rpg/rolls'
 import { makeSystem } from '../rpg/systems'
+import { judge, recordResult } from '../rpg/requests'
 import type { Prefs } from '../state/prefs'
 import { forgetGroup, noteLeft, notePresence, PRESENCE_EVERY } from './presence'
 import { joinTable, type TableNotice, type TableRoll } from './server'
@@ -88,6 +89,17 @@ export function useTableRolls(universe: Universe, prefs: Prefs, update: (change:
           const system = u.systems.find((s) => s.id === group?.systemId)
           const session = u.sessions.find((s) => s.groupId === groupId && s.status === 'em-andamento')
           const logged = Boolean(session && (system ? system.features.rollLog : true))
+          // A resposta a um teste pedido: guarda no pedido (e no registro), e diz ao celular se passou.
+          const request = r.request && session ? session.requests.find((x) => x.id === r.request && x.open) : undefined
+          const sheet = request ? u.sheets.find((x) => x.groupId === groupId && x.role === 'pj' && x.name === r.who) : undefined
+          if (request && sheet && session) {
+            const rules = system ?? FALLBACK
+            write((v) => recordResult(v, session.id, request.id, sheet, outcome, 'jogador', rules))
+            const { pass } = judge(rules, outcome, request.dc)
+            if (pass !== null) void t.sendCheck({ id: r.id, verdict: pass ? 'Passou' : 'Falhou', tone: pass ? 'sucesso' : 'falha' }).catch(() => undefined)
+            for (const l of listeners) l({ groupId, outcome, who: r.who, logged: true })
+            return
+          }
           if (logged) {
             const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
             const text = `${describeOutcome(outcome, r.who)} · pelo Codex`

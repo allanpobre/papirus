@@ -1,4 +1,4 @@
-import { MapPin, Swords } from 'lucide-react'
+import { BookOpen, MapPin, Swords } from 'lucide-react'
 import type { CodexSnapshot } from '../../share/snapshot'
 import { isEmptySnapshot } from '../../share/snapshot'
 import { MiniGraph } from '../../ui/MiniGraph'
@@ -38,6 +38,25 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
               <PartyCard key={i} s={s} />
             ))}
           </div>
+        </section>
+      )}
+
+      {(codex.journal ?? []).length > 0 && (
+        <section className="codex-journal" aria-labelledby="codex-diario">
+          <h3 id="codex-diario" className="codex-kind">
+            <BookOpen size={15} aria-hidden="true" /> Diário da campanha
+          </h3>
+          {[...(codex.journal ?? [])].reverse().map((j, i) => (
+            <details key={j.number} className="codex-journal-entry" open={i === 0}>
+              <summary>
+                <span className="codex-journal-title">{j.title}</span>
+                <span className="muted small"> · {new Date(j.when + 'T12:00').toLocaleDateString('pt-BR')}</span>
+              </summary>
+              {j.text.split(/\n+/).map((line, k) => (
+                <p key={k}>{line}</p>
+              ))}
+            </details>
+          ))}
         </section>
       )}
 

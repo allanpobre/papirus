@@ -10,6 +10,7 @@ import { ConfirmButton } from '../../ui/ConfirmButton'
 import { EntityPicker } from '../../ui/EntityPicker'
 import { AttendanceList } from './Attendance'
 import { InitiativeTracker } from './InitiativeTracker'
+import { RecapEditor } from './Journal'
 import { useRpg } from './rpgContext'
 
 export function SessionsTab() {
@@ -174,6 +175,13 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
           </h2>
           <p className="muted small">Quem não veio: o mestre conduz o personagem nesta sessão, ou ele fica de fora (não entra na iniciativa).</p>
           <AttendanceList session={s} group={group} />
+        </section>
+
+        <section className="session-journal" aria-labelledby="sessao-diario">
+          <h2 id="sessao-diario" className="section-title">
+            Diário (para os jogadores)
+          </h2>
+          <RecapEditor session={s} />
         </section>
 
         <section className="session-reveal">

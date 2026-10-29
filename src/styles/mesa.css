@@ -2365,7 +2365,8 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
   .sm-bar .mesa-dice-label,
   .sm-bar .mesa-presence-who,
   .sm-bar .mesa-invite-label,
-  .sm-theme {
+  .sm-theme,
+  .sm-full {
     display: none;
   }
   .sm-bar .mesa-dice-mode button {
@@ -2392,4 +2393,295 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
   .sm-col {
     padding-bottom: 7rem;
   }
+}
+
+/* ------------------------------------------------------------ testes pedidos */
+
+.requests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.65rem max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+}
+
+.request-card {
+  flex: 1 1 18rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgb(var(--glow) / 50%);
+  border-radius: var(--radius-l);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  box-shadow: var(--shadow-1);
+}
+
+.request-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+}
+
+.request-head svg {
+  color: var(--accent);
+}
+
+.request-close {
+  margin-left: auto;
+}
+
+.request-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.request-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.35rem 0.2rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.86rem;
+}
+
+.request-row.is-pass {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--line));
+  background: color-mix(in srgb, var(--ok) 12%, var(--surface));
+}
+
+.request-row.is-fail {
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+}
+
+.request-res {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.request-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.76rem;
+  color: var(--ink-2);
+}
+
+.ask-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.6rem 0;
+}
+
+.ask-who .field-label {
+  width: 100%;
+}
+
+.ask-free {
+  margin-top: 0.4rem;
+}
+
+.player-request {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.75rem 0.9rem;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-l);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.player-request p {
+  margin: 0;
+}
+
+.player-request-h {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.player-request-what {
+  font-family: 'Cinzel', 'Young Serif', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------ bestiário */
+
+.bestiary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.bestiary .section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bestiary p {
+  margin: 0;
+}
+
+.bestiary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bestiary-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.bestiary-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.monster-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.2rem 0.7rem 0.7rem;
+}
+
+.modal .monster-editor {
+  padding: 0;
+}
+
+.monster-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.monster-grid > :first-child {
+  grid-column: 1 / -1;
+}
+
+.monster-editor .input {
+  width: 100%;
+  min-width: 0;
+}
+
+.monster-grid .field,
+.monster-editor > .field {
+  width: 100%;
+  margin: 0;
+}
+
+.monster-editor .section-label {
+  margin: 0.2rem 0 0;
+}
+
+.monster-attacks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.monster-attack {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 0.8fr) minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.init-monsters .init-count {
+  width: 3rem;
+}
+
+.turn-keep {
+  align-self: flex-start;
+}
+
+@media (max-width: 560px) {
+  .monster-attack {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+  .monster-attack > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ------------------------------------------------------------ diário da campanha */
+
+.recap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  text-align: left;
+}
+
+.recap textarea {
+  width: 100%;
+}
+
+.recap p {
+  margin: 0;
+}
+
+.recap-acts {
+  justify-content: space-between;
+}
+
+.codex-journal-entry {
+  margin: 0 0 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border-left: 3px solid rgb(var(--glow) / 60%);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: rgb(var(--glow) / 7%);
+}
+
+.codex-journal-entry summary {
+  cursor: pointer;
+}
+
+.codex-journal-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.codex-journal-entry p {
+  margin: 0.4rem 0 0;
 }

@@ -2,12 +2,14 @@ import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, UsersRound, X } from
 import { useState } from 'react'
 import { roll } from '../../logic/dice'
 import type { Session } from '../../model/schema'
-import { byId, newId, patch } from '../../model/universe'
+import { byId, insert, newId, patch } from '../../model/universe'
 import { initiativeOrder, isDown, lifeOf } from '../../rpg/combat'
+import { addMonsters, draftMonster, sortedMonsters } from '../../rpg/bestiary'
 import { attendanceOf } from '../../rpg/sessionLife'
 import { rollInitiative } from '../../rpg/rolls'
 import { adjustResource, defenseLabel, defenseResource, isPool } from '../../rpg/sheets'
 import { useWorkspace } from '../../state/workspace'
+import { MonsterDialog } from './Bestiary'
 import { TurnPanel } from './Combat'
 import { useRpg } from './rpgContext'
 
@@ -21,6 +23,10 @@ export function InitiativeTracker({ session }: { session: Session }) {
   const { system, group, logText } = useRpg()
   const [name, setName] = useState('')
   const [value, setValue] = useState('')
+  const [monsterId, setMonsterId] = useState('')
+  const [count, setCount] = useState('1')
+  const [editingMonster, setEditingMonster] = useState<string | null>(null)
+  const monsters = sortedMonsters(universe)
   const list = initiativeOrder(session)
   const turn = list.length ? session.turn % list.length : 0
   const main = system?.resources.find(isPool)
@@ -37,7 +43,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
     if (!name.trim()) return
     const v = value.trim() ? Number(value) : rollFor(null)
     if (!Number.isFinite(v)) return
-    set({ initiative: [...session.initiative, { id: newId(), name: name.trim(), value: v, hp: '', note: '', sheetId: null, defense: null }] })
+    set({ initiative: [...session.initiative, { id: newId(), name: name.trim(), value: v, hp: '', note: '', sheetId: null, defense: null, attacks: [], monsterId: null }] })
     setName('')
     setValue('')
   }
@@ -49,7 +55,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
     set({
       initiative: [
         ...session.initiative,
-        ...sheets.map((s) => ({ id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: attendanceOf(session, s.id) === 'mestre' ? 'mestre conduz' : '', sheetId: s.id, defense: null })),
+        ...sheets.map((s) => ({ id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: attendanceOf(session, s.id) === 'mestre' ? 'mestre conduz' : '', sheetId: s.id, defense: null, attacks: [], monsterId: null })),
       ],
     })
   }
@@ -225,7 +231,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
             value=""
             onChange={(e) => {
               const s = npcSheets.find((x) => x.id === e.target.value)
-              if (s) set({ initiative: [...session.initiative, { id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: '', sheetId: s.id, defense: null }] })
+              if (s) set({ initiative: [...session.initiative, { id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: '', sheetId: s.id, defense: null, attacks: [], monsterId: null }] })
             }}
           >
             <option value="">+ NPC da mesa</option>
@@ -236,6 +242,52 @@ export function InitiativeTracker({ session }: { session: Session }) {
             ))}
           </select>
         )}
+        <form
+          className="inline-fields init-monsters"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const n = Math.max(1, Math.min(20, Number(count) || 1))
+            if (!monsterId) return
+            update((u) => addMonsters(u, session.id, monsterId, n, system))
+            setCount('1')
+          }}
+        >
+          <label htmlFor="init-monstro" className="sr-only">
+            Inimigo pronto
+          </label>
+          <select
+            id="init-monstro"
+            className="input select input-sm"
+            value={monsterId}
+            onChange={(e) => {
+              if (e.target.value === '+novo') {
+                let id = ''
+                update((u) => {
+                  const [next, m] = insert(u, 'monsters', draftMonster('Novo inimigo'))
+                  id = m.id
+                  return next
+                })
+                setMonsterId(id)
+                setEditingMonster(id)
+              } else setMonsterId(e.target.value)
+            }}
+          >
+            <option value="">Inimigo pronto…</option>
+            {monsters.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name || 'Sem nome'}
+              </option>
+            ))}
+            <option value="+novo">+ Novo inimigo pronto</option>
+          </select>
+          <label htmlFor="init-qtd" className="sr-only">
+            Quantos
+          </label>
+          <input id="init-qtd" className="input input-sm init-count" inputMode="numeric" value={count} onChange={(e) => setCount(e.target.value.replace(/[^\d]/g, '').slice(0, 2))} />
+          <button type="submit" className="btn btn-sm btn-ghost" disabled={!monsterId}>
+            <Plus size={14} /> Pôr no combate
+          </button>
+        </form>
         <form
           className="inline-fields"
           onSubmit={(e) => {
@@ -257,6 +309,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
         </form>
       </div>
       <p className="muted tiny">Sem valor, o Papirus rola a iniciativa do sistema da mesa{system ? ` (${system.initiativeFormula})` : ' (1d20)'}.</p>
+      {editingMonster && <MonsterDialog monsterId={editingMonster} onClose={() => setEditingMonster(null)} />}
     </section>
   )
 }

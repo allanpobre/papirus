@@ -1,5 +1,25 @@
 # Novidades
 
+## 1.3.3 — 29 de outubro de 2026
+
+**O mestre pede um teste.** No modo sessão, “Pedir teste”: o mestre escolhe o quê (uma perícia, um atributo ou uma rolagem livre), para quem (todos que jogam, ou só alguns) e a dificuldade, que só ele vê.
+- No celular de cada um, o pedido aparece na tela inteira e fica no alto do Codex, com o botão que já rola pela ficha (“Rolar Percepção (+2)”), com o dado de verdade ou no celular.
+- Na mesa, o mestre vê quem passou, quem falhou e quem ainda falta. Por quem ele conduz (ou quem está sem celular), “Rolar”. Com a dificuldade, o celular recebe “Passou” ou “Falhou”.
+- Quem ficou de fora da sessão não entra no pedido. Tudo vai para o registro.
+
+**Inimigos prontos (bestiário).** Em Dados e tabelas, cada inimigo guarda vida, Defesa, iniciativa, ataques e notas.
+- No combate, “Inimigo pronto” e quantos: três goblins entram na iniciativa como “Goblin 1”, “Goblin 2” e “Goblin 3”, cada um com a sua vida e a iniciativa rolada. Na vez deles, os ataques ficam a um toque, como os das fichas.
+- Dá para criar um inimigo pronto sem sair do combate, e guardar no bestiário um combatente anotado na hora (com a vida, a Defesa e o ataque que ele usou).
+- O exemplo de Ostria já vem com dois inimigos prontos.
+
+**Diário da campanha.** O resumo de cada sessão para os jogadores.
+- Ao encerrar (ou em Sessões), “Escrever o diário”: dá para começar pelas notas do registro (sem rolagens e sem a chamada), revisar e publicar.
+- No Codex dos jogadores, o diário fica sessão por sessão, com a mais recente aberta. Só vai o que o mestre escrever; segredos ficam de fora.
+- No celular, aparece “O mestre revelou: o diário da Sessão 2”.
+
+- Os tours (?) do modo sessão, de Dados e tabelas, de Sessões e do Codex explicam as novidades, e a janela de pedir teste tem o seu (?).
+- Não precisa rodar nenhum script novo no servidor.
+
 ## 1.3.2 — 29 de outubro de 2026
 
 **A sessão começa e o app muda.** Com a sessão ao vivo, o Papirus vira a mesa: o modo sessão. Some o menu da escrita, somem as abas; fica a barra da sessão (o nome, o tempo de jogo, quem está na mesa, Convidar, Anunciar, os dados na mesa ou no app, Encerrar) e só o que se usa no jogo.

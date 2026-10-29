@@ -1,7 +1,8 @@
-import { Crosshair, Swords } from 'lucide-react'
+import { Crosshair, Skull, Swords } from 'lucide-react'
 import { useState } from 'react'
 import type { Session } from '../../model/schema'
-import { byId } from '../../model/universe'
+import { byId, insert } from '../../model/universe'
+import { baseName, monsterFromEntry } from '../../rpg/bestiary'
 import { combatTargets, initiativeOrder, isDown, lifeOf } from '../../rpg/combat'
 import { aimAt, damageExpression, resolveRoll, type CombatTarget } from '../../rpg/rolls'
 import { critFrom, critMult } from '../../rpg/sheets'
@@ -99,7 +100,7 @@ function TargetPicker({ title, targets, onPick, onClose }: { title: string; targ
  * (o goblin anotado na hora), um ataque rápido com bônus e dano.
  */
 export function TurnPanel({ session }: { session: Session }) {
-  const { universe } = useWorkspace()
+  const { universe, update, toast, readOnly } = useWorkspace()
   const { system } = useRpg()
   const { attack, picker } = useAttack()
   const order = initiativeOrder(session)
@@ -108,8 +109,14 @@ export function TurnPanel({ session }: { session: Session }) {
   const sheet = entry.sheetId ? byId(universe, 'sheets', entry.sheetId) : undefined
   const sheetSystem = sheet ? universe.systems.find((s) => s.id === sheet.systemId) : undefined
   const usesD20 = (system ?? FALLBACK).resolution === 'total'
-  const attacks = (sheet?.attacks ?? []).filter((a) => usesD20 || a.damage.trim())
+  // Os ataques da ficha, ou os do inimigo pronto (o dano já vem com os números).
+  const attacks = (sheet ? sheet.attacks : entry.attacks).filter((a) => usesD20 || a.damage.trim())
   const self = { sheetId: sheet?.id, entryId: entry.id }
+  const saved = entry.monsterId ? universe.monsters.some((m) => m.id === entry.monsterId) : false
+  const keep = (attack: { bonus: number; damage: string } | null) => {
+    update((u) => insert(u, 'monsters', monsterFromEntry(entry, attack))[0])
+    toast(`${baseName(entry.name)} está no bestiário (Dados e tabelas).`)
+  }
 
   return (
     <section className="turn-panel" aria-label={`Vez de ${entry.name}`}>
@@ -120,7 +127,7 @@ export function TurnPanel({ session }: { session: Session }) {
       {attacks.length > 0 ? (
         <div className="turn-attacks">
           {attacks.map((a) => {
-            const damage = damageExpression(sheetSystem ?? system, sheet!, a.damage)
+            const damage = sheet ? damageExpression(sheetSystem ?? system, sheet, a.damage) : a.damage
             const spec = { name: a.name, bonus: a.bonus, damage, critical: a.critical }
             return (
               <button
@@ -136,14 +143,19 @@ export function TurnPanel({ session }: { session: Session }) {
           })}
         </div>
       ) : (
-        <QuickAttack key={entry.id} usesD20={usesD20} onAttack={(spec) => attack(entry.name, spec, usesD20 ? 'teste' : 'dano', self)} />
+        <QuickAttack key={entry.id} usesD20={usesD20} onAttack={(spec) => attack(entry.name, spec, usesD20 ? 'teste' : 'dano', self)} onKeep={!sheet && !saved && !readOnly ? keep : undefined} />
+      )}
+      {!sheet && !saved && attacks.length > 0 && !readOnly && (
+        <button type="button" className="btn btn-ghost btn-xs turn-keep" onClick={() => keep(null)}>
+          <Skull size={13} /> Guardar {baseName(entry.name)} no bestiário
+        </button>
       )}
       {picker}
     </section>
   )
 }
 
-function QuickAttack({ usesD20, onAttack }: { usesD20: boolean; onAttack: (a: AttackSpec) => void }) {
+function QuickAttack({ usesD20, onAttack, onKeep }: { usesD20: boolean; onAttack: (a: AttackSpec) => void; onKeep?: (a: { bonus: number; damage: string }) => void }) {
   const [bonus, setBonus] = useState('')
   const [damage, setDamage] = useState('')
   return (
@@ -168,6 +180,11 @@ function QuickAttack({ usesD20, onAttack }: { usesD20: boolean; onAttack: (a: At
       <button type="submit" className="btn btn-sm">
         <Crosshair size={14} aria-hidden="true" /> {usesD20 ? 'Atacar' : 'Dano'}
       </button>
+      {onKeep && (
+        <button type="button" className="btn btn-ghost btn-xs turn-keep" title="Guarda a vida, a Defesa e este ataque para os próximos combates" onClick={() => onKeep({ bonus: Number(bonus) || 0, damage: damage.replace(/\s+/g, '') })}>
+          <Skull size={13} /> Guardar no bestiário
+        </button>
+      )}
     </form>
   )
 }

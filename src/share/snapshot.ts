@@ -7,6 +7,7 @@ import { byId, entityName } from '../model/universe'
 import { mesaTheme } from '../rpg/themes'
 import { initiativeOrder, isDown } from '../rpg/combat'
 import { attendanceOf, recentNotices } from '../rpg/sessionLife'
+import { openRequests, requestTargets } from '../rpg/requests'
 import { attributeExpression, bonusLabel, damageExpression, skillExpression, type RollRules } from '../rpg/rolls'
 import { costResource, critFrom, critMult, isPool } from '../rpg/sheets'
 
@@ -52,6 +53,10 @@ export interface CodexSnapshot {
   rules?: RollRules
   /** A sessão em andamento: os jogadores veem quando ela começa e quando termina. */
   session?: { number: number; title: string; startedAt: string | null } | null
+  /** Os testes que o mestre pediu e ainda estão abertos (sem a dificuldade): para quem, e quem já rolou. */
+  requests?: { id: string; kind: 'pericia' | 'atributo' | 'livre'; name: string; expression: string; who: string[]; done: string[] }[]
+  /** O diário da campanha: os resumos que o mestre publicou, sessão por sessão. */
+  journal?: { number: number; title: string; when: string; text: string }[]
   /** Os últimos avisos do mestre na sessão em andamento ("Um inimigo aparece!"). */
   notices?: { id: string; at: string; text: string; tone: 'aviso' | 'perigo' | 'misterio' }[]
   /** Combate em andamento: a ordem e de quem é a vez. A vida e a Defesa dos inimigos não vêm. */
@@ -138,6 +143,20 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     ...(system ? { rules: { resolution: system.resolution, successTarget: system.successTarget } } : {}),
     session: liveSession(universe, groupId),
     notices: recentNotices(live),
+    requests: live
+      ? openRequests(live).map((r) => ({
+          id: r.id,
+          kind: r.kind,
+          name: r.name,
+          expression: r.expression,
+          who: r.sheetIds.length ? requestTargets(universe, live, r).map((p) => p.name) : [],
+          done: r.results.map((x) => byId(universe, 'sheets', x.sheetId)?.name ?? '').filter(Boolean),
+        }))
+      : [],
+    journal: universe.sessions
+      .filter((s) => s.groupId === groupId && s.recapShared && s.recap.trim() && (untilSession === undefined || s.number <= untilSession))
+      .sort((a, b) => a.number - b.number)
+      .map((s) => ({ number: s.number, title: s.title, when: s.playedOn, text: s.recap.trim() })),
     combat: combatOf(universe, groupId),
     at: new Date().toISOString(),
     party: codex.sheets.map((s) => {
@@ -205,7 +224,7 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
 }
 
 export const isEmptySnapshot = (s: CodexSnapshot) =>
-  !s.party.length && !s.sections.length && !s.events.length && !s.facts.length && !s.clues.length && !s.maps.length && !(s.relations ?? []).length
+  !s.party.length && !s.sections.length && !s.events.length && !s.facts.length && !s.clues.length && !s.maps.length && !(s.relations ?? []).length && !(s.journal ?? []).length
 
 /** Mudou algo revelado (não só a vida do grupo ou a vez no combate): vale o aviso de novidades. */
 export const sameReveals = (a: CodexSnapshot, b: CodexSnapshot) => {
@@ -233,6 +252,7 @@ export function revealedSince(a: CodexSnapshot, b: CodexSnapshot): string[] {
   out.push(...newOnes(a.relations ?? [], b.relations ?? [], (r) => r.text).map((r) => r.text))
   out.push(...newOnes(a.clues, b.clues, (c) => c.text).map((c) => (c.mystery ? `uma pista: ${c.mystery}` : 'uma pista')))
   out.push(...newOnes(a.maps, b.maps, (m) => m.name).map((m) => `o mapa ${m.name}`))
+  out.push(...newOnes(a.journal ?? [], b.journal ?? [], (j) => String(j.number)).map((j) => `o diário da Sessão ${j.number}`))
   return out
 }
 

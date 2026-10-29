@@ -1,13 +1,15 @@
-import { Check, Crosshair, Dices, Search, Swords } from 'lucide-react'
+import { Check, Crosshair, Dices, ListChecks, Search, Swords } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fold } from '../logic/text'
-import { critDamage, facesOf, resolveRoll, type RollOutcome, type RollRules } from '../rpg/rolls'
+import { bonusLabel, critDamage, facesOf, resolveRoll, type RollOutcome, type RollRules } from '../rpg/rolls'
 import type { TableRoll } from '../share/server'
 import type { CodexRoll, CodexSnapshot } from '../share/snapshot'
 import { recall, remember } from '../state/prefs'
 import { Modal } from '../ui/Modal'
 import { PhysicalRollDialog } from '../views/rpg/PhysicalRollDialog'
 
+/** A hora da rolagem (fora do componente: só roda no toque). */
+const nowIso = () => new Date().toISOString()
 const LOOSE: RollRules = { resolution: 'total', successTarget: 0 }
 const FREE = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
 
@@ -24,6 +26,8 @@ interface Pending {
   expression: string
   target?: number
   critFrom?: number
+  /** A resposta a um teste que o mestre pediu. */
+  request?: string
 }
 
 /**
@@ -35,6 +39,8 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
   const [aiming, setAiming] = useState<Pending | null>(null)
   const [asking, setAsking] = useState<{ outcome: RollOutcome; pending: Pending; aim?: TableRoll['aim'] } | null>(null)
   const [physical, setPhysical] = useState(() => recall('codex-dados') !== 'app')
+  // Os testes pedidos que este celular já respondeu (some da tela antes do mestre confirmar).
+  const [answered, setAnswered] = useState<string[]>([])
   const rules = codex.rules ?? LOOSE
   const pc = me ? codex.party.find((p) => p.name === me) : undefined
   const rolls = pc?.rolls ?? []
@@ -47,6 +53,7 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
   const others = combat?.order.filter((e) => e.name !== me) ?? []
 
   const send = (o: RollOutcome, p: Pending, aim?: TableRoll['aim']) => {
+    if (p.request) setAnswered((a) => [...a, p.request!])
     onRoll({
       id: crypto.randomUUID(),
       who: me ?? 'Alguém',
@@ -58,10 +65,11 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
       ...(p.target !== undefined ? { target: p.target } : {}),
       ...(p.critFrom ? { critFrom: p.critFrom } : {}),
       ...(aim ? { aim } : {}),
+      ...(p.request ? { request: p.request } : {}),
       total: o.result.total,
       verdict: o.verdict,
       tone: o.tone,
-      at: new Date().toISOString(),
+      at: nowIso(),
     })
   }
 
@@ -91,8 +99,34 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
   const canDamage = last && feed[0] === last && lastAttack?.damage && !/^erra/i.test(last.verdict ?? '')
   const crit = last?.tone === 'critico'
 
+  // Os testes que o mestre pediu para mim (ou para todos) e eu ainda não rolei.
+  const asked = (codex.requests ?? []).filter((r) => me && pc?.away !== 'fora' && (!r.who.length || r.who.includes(me)) && !r.done.includes(me) && !answered.includes(r.id))
+
   return (
     <>
+      {asked.map((r) => {
+        const fromSheet = r.kind === 'livre' ? undefined : rolls.find((x) => x.kind === r.kind && x.name === r.name)
+        const expression = r.kind === 'livre' ? r.expression : fromSheet?.expression
+        return (
+          <section key={r.id} className="player-request" aria-label={`Teste pedido: ${r.name}`}>
+            <p className="player-request-h">
+              <ListChecks size={16} aria-hidden="true" /> O mestre pede um teste
+            </p>
+            <p className="player-request-what">{r.name}</p>
+            {expression ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => go({ roll: fromSheet ?? null, name: r.name, kind: r.kind === 'livre' ? 'livre' : r.kind, expression, target: fromSheet?.target, request: r.id })}
+              >
+                <Dices size={16} /> Rolar {r.name} ({r.kind === 'livre' ? expression : bonusLabel(expression)})
+              </button>
+            ) : (
+              <p className="muted small">Sua ficha no Codex não tem essa rolagem: role na mesa e diga o resultado ao mestre.</p>
+            )}
+          </section>
+        )
+      })}
       {codex.party.length > 0 && !me && (
         <section className="player-who" aria-labelledby="player-who">
           <h2 id="player-who" className="player-who-title">

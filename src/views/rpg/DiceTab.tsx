@@ -7,6 +7,7 @@ import { resolveRoll } from '../../rpg/rolls'
 import { makeSystem } from '../../rpg/systems'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
+import { Bestiary } from './Bestiary'
 import { RpgContext } from './rpgContext'
 
 const QUICK = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
@@ -110,6 +111,7 @@ export function DiceTab() {
       </section>
       <section className="dice-side">
         <RandomTables />
+        {rpg && <Bestiary />}
         <div className="dice-history">
           <h2 className="section-title">Histórico</h2>
           <ol className="plain-list small">

@@ -6,7 +6,7 @@ import { newId } from '../model/universe'
  * de cada mudança feita aqui. Assim nada apagado some de vez (30 dias na lixeira) e
  * dá para ver quem mudou o quê, e voltar atrás.
  */
-export const TRACKED: CollectionKey[] = ['stories', 'scenes', 'entities', 'groups', 'sessions', 'maps', 'seeds', 'events', 'facts', 'relations', 'knowledge', 'revelations', 'systems', 'sheets', 'tables', 'inbox', 'books']
+export const TRACKED: CollectionKey[] = ['stories', 'scenes', 'entities', 'groups', 'sessions', 'maps', 'seeds', 'events', 'facts', 'relations', 'knowledge', 'revelations', 'systems', 'sheets', 'tables', 'monsters', 'inbox', 'books']
 
 export const TRASH_DAYS = 30
 const HISTORY_MAX = 150
@@ -31,6 +31,7 @@ export const KIND_NAME: Record<string, string> = {
   systems: 'o sistema',
   sheets: 'a ficha de jogo',
   tables: 'a tabela',
+  monsters: 'o inimigo',
   inbox: 'a ideia',
   books: 'o livro',
 }

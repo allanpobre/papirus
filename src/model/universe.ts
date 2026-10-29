@@ -48,6 +48,7 @@ export function createUniverse(name = 'Meu universo'): Universe {
     systems: [],
     sheets: [],
     tables: [],
+    monsters: [],
     trash: [],
     history: [],
     book: null,
@@ -62,7 +63,7 @@ export function createUniverse(name = 'Meu universo'): Universe {
 // ---------------------------------------------------------------------------
 // Coleções genéricas
 
-type Draft<K extends CollectionKey> = Omit<RecordOf<K>, 'id' | 'createdAt' | 'updatedAt'>
+export type Draft<K extends CollectionKey> = Omit<RecordOf<K>, 'id' | 'createdAt' | 'updatedAt'>
 
 export function insert<K extends CollectionKey>(
   universe: Universe,
@@ -200,6 +201,9 @@ export const draftSession = (number: number, groupId: string | null): Draft<'ses
   startedAt: null,
   attendance: {},
   notices: [],
+  requests: [],
+  recap: '',
+  recapShared: false,
   turn: 0,
   round: 1,
 })
