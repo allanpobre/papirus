@@ -17,6 +17,7 @@ import {
   sessionToStart,
   setAttendance,
   START_NOTE,
+  sendToRoteiro,
 } from './sessionLife'
 
 function table(): [Universe, string] {
@@ -155,5 +156,22 @@ describe('avisos do mestre', () => {
     let id
     ;[u, id] = beginSession(u, groupId, null)
     expect(announce(u, id, '   ', 'aviso')).toEqual([u, null])
+  })
+})
+
+describe('da Oficina para o Roteiro', () => {
+  it('o início forte e as cenas vão para a próxima sessão, criada se preciso', () => {
+    let [u, groupId] = table()
+    expect(sendToRoteiro(createUniverse('Sem mesa'), 'inicio', 'A ponte estala.')).toBeNull()
+    ;[u] = insert(u, 'sessions', { ...draftSession(1, groupId), status: 'encerrada' })
+    const sent = sendToRoteiro(u, 'inicio', 'A ponte estala.')!
+    expect(sent[1]).toBe('sessão 2')
+    u = sent[0]
+    const s2 = u.sessions.find((s) => s.number === 2)!
+    expect(s2).toMatchObject({ status: 'planejada', strongStart: 'A ponte estala.' })
+    // Na mesma sessão planejada: cada linha vira uma cena do roteiro.
+    ;[u] = sendToRoteiro(u, 'cena', '1. A vila sem sinos\n- O mapa do contrabandista\n\n')!
+    expect(byId(u, 'sessions', s2.id)!.beats.map((b) => b.title)).toEqual(['A vila sem sinos', 'O mapa do contrabandista'])
+    expect(u.sessions).toHaveLength(2)
   })
 })

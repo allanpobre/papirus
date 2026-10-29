@@ -662,3 +662,12 @@
   flex: none;
   margin-top: 0.2rem;
 }
+
+/* Com uma trilha da Oficina, o treino de hoje é o próximo passo dela. */
+.treino-trail-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--ink-2);
+}

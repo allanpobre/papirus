@@ -542,21 +542,43 @@ export const PAGE_TOURS = {
   oficina: {
     title: 'Oficina',
     steps: [
-      { target: '.oficina-hero', title: 'Oficina', body: 'Gêneros, técnicas e guias para mestres: dicas, armadilhas, livros para estudar, curiosidades e exercícios. O seu progresso fica marcado.' },
-      { target: '.oficina-tip', title: 'Dica do dia', body: 'Uma dica nova por dia. Toque para abrir o guia dela.' },
-      { target: '.oficina-shelf-section', title: 'Os guias', body: 'Toque num gênero ou técnica para abrir o guia. A etiqueta mostra o do seu universo.' },
+      { target: '.oficina-hero', title: 'Oficina', body: 'Um lugar para treinar um pouco por dia: ler uma técnica em um minuto, escrever dez e olhar o que escreveu. Sem nota e sem IA.' },
+      { target: '.oficina-tabs', title: 'Quatro partes', body: 'Hoje (o seu próximo passo), Trilhas (cada guia vira um caminho curto), Caderno (tudo o que você escreveu) e Biblioteca (os guias completos para ler).' },
+      { target: '.oficina-first', title: 'Por onde começar', body: 'Escolha o que quer treinar. A resposta escolhe a trilha do passo de hoje; dá para trocar quando quiser.', optional: true },
+      { target: '.oficina-today-card', title: 'O passo de hoje', body: 'O próximo passo da sua trilha, com quanto tempo leva. “Começar” abre a lição e o exercício.', optional: true },
+      { target: '.oficina-trail-rows', title: 'Suas trilhas', body: 'Quanto você já andou em cada uma. Trilha completa ganha o selo.', optional: true },
+      { target: '.oficina-path', title: 'A trilha', body: 'Lições, uma revisão (reescrever o primeiro texto com a técnica nova), uma imitação de Machado de Assis e o desafio final. Toque em qualquer passo.', optional: true },
+      { target: '.oficina-cad', title: 'O caderno', body: 'Cada texto, com a data e as suas respostas. Toque para reler ou refazer o passo.', optional: true },
       { target: '.oficina-ideas', title: 'Gerador de ideias', body: 'Sorteie uma ideia para escrever ou um gancho para a mesa. Dentro de um universo, ela vira uma cena com um toque.', optional: true },
+      { target: '.oficina-shelf-section', title: 'Os guias', body: 'Toque num gênero ou técnica para ler o guia inteiro. A etiqueta mostra o do seu universo.', optional: true },
     ],
   },
   'oficina-guia': {
     title: 'Guia',
     steps: [
-      { target: '.oficina-guide-hero', title: 'O guia', body: 'Um gênero ou uma técnica, do básico ao que dá trabalho.' },
-      { target: '[aria-labelledby="of-funciona"]', title: 'O que funciona', body: 'O que os bons livros do gênero fazem.', optional: true },
-      { target: '[aria-labelledby="of-armadilhas"]', title: 'Armadilhas', body: 'Os erros mais comuns, para evitar.', optional: true },
-      { target: '[aria-labelledby="of-livros"]', title: 'Livros para estudar', body: 'O que ler, e o que cada um ensina.', optional: true },
-      { target: '[aria-labelledby="of-curiosidades"]', title: 'Curiosidades', body: 'Toque num cartão para virar.', optional: true },
-      { target: '[aria-labelledby="of-exercicios"]', title: 'Exercícios', body: 'Dentro de um universo, cada exercício vira uma cena para você praticar, e fica marcado como feito.', optional: true },
+      { target: '.oficina-guide-hero', title: 'O guia', body: 'Um gênero ou uma técnica. O botão no alto abre a trilha dele: praticar, e não só ler.' },
+      { target: '.oficina-fold', title: 'Seções que abrem e fecham', body: 'O que funciona, armadilhas, livros para estudar e mais exercícios. Toque no título para abrir.', optional: true },
+      { target: '.oficina-facts', title: 'Você sabia?', body: 'Uma curiosidade de cada vez. As setas passam para a próxima.', optional: true },
+      { title: 'Mais exercícios', body: 'Cada exercício do guia dá para treinar aqui mesmo, com o relógio. Dentro de um universo, também vira uma cena.' },
+    ],
+  },
+  'oficina-passo': {
+    title: 'Passo da trilha',
+    steps: [
+      { target: '.step-title', title: 'A técnica', body: 'Leia em um minuto. Quando tem, o antes e depois mostra a diferença.' },
+      { target: '.step-passage', title: 'O trecho', body: 'Na imitação: leia com calma. Depois ele some, ficam só as palavras-chave, e você reescreve de memória.', optional: true },
+      { target: '.step-prompt', title: 'O exercício', body: 'A proposta, o tempo e o mínimo de palavras. Algumas têm palavras proibidas: o app avisa na hora se uma aparecer.', optional: true },
+      { target: '.step-moving', title: 'Mão em movimento', body: 'Ligado, apagar fica desligado até o fim: escreva sem parar e sem corrigir, como no treino de Natalie Goldberg.', optional: true },
+      { target: '.step-go', title: 'Escrever', body: 'O relógio corre em cima e a contagem fica embaixo. O texto vai para o caderno.' },
+    ],
+  },
+  'oficina-olhar': {
+    title: 'Olhe o que escreveu',
+    steps: [
+      { target: '.step-counts', title: 'As contas', body: 'O que dá para contar sem ler por você: palavras, frases (cada barra é uma), quanto é fala, palavras proibidas, advérbios e repetições.', optional: true },
+      { target: '.step-compare', title: 'Lado a lado', body: 'Na imitação: as palavras que os dois textos têm ficam marcadas. O que você trocou não é erro: é o seu jeito.', optional: true },
+      { target: '.step-ask', title: 'As perguntas', body: 'Você responde sobre o seu próprio texto. As respostas ficam só no caderno; o app não dá nota.' },
+      { target: '.treino-result-actions', title: 'Concluir ou reescrever', body: 'Concluir conta o passo na trilha. Reescrever volta ao texto, com o relógio de novo.' },
     ],
   },
   treino: {

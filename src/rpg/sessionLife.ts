@@ -2,6 +2,7 @@ import { NOTICE_TONES, SESSION_ATTENDANCE, type Session, type Sheet, type Univer
 import { byId, draftInbox, draftRevelation, draftSession, insert, newId, patch } from '../model/universe'
 import { roll } from '../logic/dice'
 import { rollInitiative } from './rolls'
+import { addBeat } from './stage'
 
 /** As linhas que o próprio Papirus escreve no registro quando a sessão começa e termina. */
 export const START_NOTE = 'A sessão começou.'
@@ -206,4 +207,35 @@ export function draftRecap(s: Session): string {
     .map((l) => l.text.replace(/^Aviso à mesa: /, '').trim())
     .filter(Boolean)
     .join('\n')
+}
+
+/**
+ * Leva um texto da Oficina para o Roteiro da próxima sessão (cria a sessão, se a mesa não
+ * tiver uma planejada): como início forte, ou cada linha como uma cena. Devolve o universo e
+ * qual sessão recebeu; sem mesa, `null`.
+ */
+export function sendToRoteiro(u: Universe, kind: 'inicio' | 'cena', text: string): [Universe, string] | null {
+  const clean = text.trim()
+  if (!clean || !u.groups.length) return null
+  // A mesa que jogou por último (ou a primeira).
+  const lastPlayed = [...u.sessions].filter((s) => s.groupId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
+  const groupId = u.groups.some((g) => g.id === lastPlayed?.groupId) ? lastPlayed!.groupId! : u.groups[0].id
+  const next = sessionToStart(u, groupId)
+  let out = u
+  let sessionId = next.id
+  if (!sessionId) {
+    const [withNew, s] = insert(out, 'sessions', draftSession(next.number, groupId))
+    out = withNew
+    sessionId = s.id
+  }
+  const s = byId(out, 'sessions', sessionId)!
+  if (kind === 'inicio') out = patch(out, 'sessions', s.id, { strongStart: s.strongStart.trim() ? `${s.strongStart.trim()}\n\n${clean}` : clean })
+  else
+    for (const line of clean
+      .split(/\n+/)
+      .map((l) => l.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, '').trim())
+      .filter(Boolean)
+      .slice(0, 8))
+      out = addBeat(out, s.id, line)
+  return [out, `sessão ${next.number}`]
 }

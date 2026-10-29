@@ -85,6 +85,7 @@ test('fora do universo: setores, Oficina, treino, leitor e diagramação têm o 
   await runPageTour(page, 'Oficina')
 
   // Um guia da Oficina tem o tour dele.
+  await page.getByRole('tab', { name: 'Biblioteca' }).click()
   await page.locator('.oficina-genres button').first().click()
   await expect(page.getByRole('dialog', { name: 'Oficina' })).toBeVisible()
   await runPageTour(page, 'Guia')

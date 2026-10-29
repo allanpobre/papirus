@@ -352,9 +352,9 @@ const SECTORS: { id: SectorId; name: string; icon: typeof Dices; lede: string; s
     icon: GraduationCap,
     lede: 'Para aprender um pouco por dia, escrevendo ou mestrando.',
     screens: [
-      { id: 'guia', label: 'Guia', note: 'Cada guia traz o que o leitor espera, o que funciona, armadilhas, livros para estudar e curiosidades para virar.', render: (s) => <GuiaScreen step={s} /> },
-      { id: 'ideias', label: 'Gerador de ideias', note: 'Sem ideia? Sorteie quem, o que quer, o que atrapalha e onde. Para a mesa, sorteie um gancho de aventura.', render: (s) => <IdeiasScreen step={s} /> },
-      { id: 'exercicios', label: 'Exercícios', note: 'Exercícios que viram cena com um toque, marcados como feitos. A capa mostra o seu caminho.', render: (s) => <ExerciciosScreen step={s} /> },
+      { id: 'trilha', label: 'Trilhas', note: 'Cada guia vira uma trilha curta: lições, uma revisão, uma imitação de Machado de Assis e o desafio final. O passo de hoje fica no alto.', render: (s) => <TrilhaScreen step={s} /> },
+      { id: 'passo', label: 'O passo', note: 'Ler a técnica em um minuto, escrever com o relógio e olhar depois: as contas do texto e perguntas para você responder. Sem nota e sem IA.', render: (s) => <PassoScreen step={s} /> },
+      { id: 'guia', label: 'Guia', note: 'Cada guia traz o que o leitor espera, o que funciona, armadilhas, livros para estudar e curiosidades, em seções que abrem e fecham.', render: (s) => <GuiaScreen step={s} /> },
     ],
   },
 ]
@@ -797,70 +797,74 @@ function GuiaScreen({ step }: { step: number }) {
       </ol>
       <div className={`lp-guia-fact${step >= 5 ? ' is-flipped' : ''}`}>
         <span className="lp-guia-front">
-          <Sparkles size={14} /> Você sabia?
+          <Sparkles size={14} /> Você sabia? · 1 de 4
         </span>
         <span className="lp-guia-back">“Os Assassinatos da Rua Morgue” (1841), de Poe, é considerado o primeiro conto policial moderno.</span>
       </div>
+      <span className={`lp-of-btn is-solid${step >= 6 ? ' is-press' : ''}`}>Praticar a trilha · 8 passos</span>
     </div>
   )
 }
 
-const IDEAS = [
-  ['Um padeiro que nunca saiu da cidade', 'Devolver um objeto ao verdadeiro dono', 'Precisa da ajuda do pior inimigo', 'Num trem noturno que não para'],
-  ['Uma tradutora de cartas de amor', 'Descobrir quem escreve as cartas anônimas', 'A verdade vai ferir quem mais ama', 'Numa festa de casamento'],
+const TRILHA: [string, string][] = [
+  ['Desejo e obstáculo', 'Lição e treino'],
+  ['Mostrar e contar', 'Lição e treino'],
+  ['Ponto de vista firme', 'Lição e treino'],
+  ['Revisão', 'Reescrever o primeiro texto'],
+  ['Imitação', 'Machado de Assis, de memória'],
 ]
 
-function IdeiasScreen({ step }: { step: number }) {
-  const idea = IDEAS[step >= 4 ? 1 : 0]
+function TrilhaScreen({ step }: { step: number }) {
+  // Os passos vão sendo feitos, um por um, enquanto a tela está à vista.
+  const done = Math.min(3, Math.floor(step / 2) + 1)
   return (
     <div className="lp-scr lp-scr-oficina" aria-hidden="true">
-      <p className="lp-of-tip">
-        <Lightbulb size={13} /> Dica do dia · Fundamentos
-      </p>
-      <p className="lp-of-tip-text">Uma boa fala revela quem fala e move a história.</p>
-      <p className="lp-of-h">
-        <Sparkles size={13} /> Gerador de ideias
-      </p>
-      <dl key={step >= 4 ? 'b' : 'a'} className="lp-of-idea">
-        {['Quem', 'Quer', 'Mas', 'Onde'].map((label, i) => (
-          <div key={label} style={{ '--i': i } as React.CSSProperties}>
-            <dt>{label}</dt>
-            <dd>{idea[i]}</dd>
-          </div>
+      <div className="lp-of-today">
+        <span className="lp-of-h">
+          <Lightbulb size={12} /> Hoje · Fundamentos · passo {done + 1} de 8
+        </span>
+        <strong>{TRILHA[done][0]}</strong>
+        <span className="lp-of-btn is-solid">Começar</span>
+      </div>
+      <ol className="lp-of-path">
+        {TRILHA.map(([t, k], i) => (
+          <li key={t} className={i < done ? 'is-done' : i === done ? 'is-now' : undefined}>
+            <span className="lp-of-dot">{i < done ? <Check size={11} /> : i + 1}</span>
+            <span>
+              <b>{t}</b>
+              <small>{k}</small>
+            </span>
+          </li>
         ))}
-      </dl>
-      <span className={`lp-of-btn${step === 3 ? ' is-press' : ''}`}>
-        <Dices size={13} /> Outra ideia
-      </span>
+      </ol>
     </div>
   )
 }
 
-function ExerciciosScreen({ step }: { step: number }) {
-  const done = step >= 3
+const SENTENCES = [30, 55, 20, 95, 40, 25, 60, 35]
+
+function PassoScreen({ step }: { step: number }) {
   return (
     <div className="lp-scr lp-scr-oficina" aria-hidden="true">
-      <p className={`lp-of-progress${done ? ' is-on' : ''}`}>
-        <Check size={12} /> 3 de 14 guias abertos · {done ? 2 : 1} {done ? 'exercícios feitos' : 'exercício feito'}
+      <p className="lp-of-h">Mostrar e contar · o exercício</p>
+      <p className="lp-of-tip-text">Uma personagem com muito medo, sem usar “medo”. Só gestos, corpo e ação.</p>
+      <p className={`lp-of-write${step >= 2 ? ' is-on' : ''}`}>
+        A chave não entrava. Lia tentou de novo, e a mão errou o buraco duas vezes. Atrás dela, os passos pararam.
       </p>
-      <p className="lp-of-h">
-        <Lightbulb size={13} /> Experimente
-      </p>
-      {[
-        ['Três pistas', 'Escreva uma cena num lugar comum com três detalhes: um que é pista de verdade, um que parece e não é, e um que só faz sentido no fim.', done],
-        ['O álibi', 'Um suspeito conta onde estava na hora do crime, com uma pequena contradição.', true],
-      ].map(([t, p, d]) => (
-        <div key={t as string} className={`lp-of-ex${d ? ' is-done' : ''}`}>
-          <strong>{t}</strong>
-          <span>{p}</span>
-          <span className="lp-of-ex-actions">
-            <span className="lp-of-ex-write">Escrever este exercício</span>
-            <span className={`lp-of-ex-done${d ? ' is-on' : ''}`}>
-              <Check size={11} /> {d ? 'Feito' : 'Marcar como feito'}
-            </span>
-          </span>
-        </div>
-      ))}
+      <div className={`lp-of-look${step >= 4 ? ' is-on' : ''}`}>
+        <span className="lp-of-h">Olhe o que escreveu</span>
+        <span className="lp-of-bars">
+          {SENTENCES.map((h, i) => (
+            <i key={i} style={{ height: `${h}%` }} />
+          ))}
+        </span>
+        <span className="lp-of-q">Dá para saber o que ela sente só pelos gestos?</span>
+        <span className="lp-of-answers">
+          <span className={step >= 6 ? 'is-on' : undefined}>Sim</span>
+          <span>Quase</span>
+          <span>Não</span>
+        </span>
+      </div>
     </div>
   )
 }
