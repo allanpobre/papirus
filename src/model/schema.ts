@@ -295,6 +295,10 @@ export const randomTableSchema = z.object({
 })
 
 export const SESSION_STATUSES = ['planejada', 'em-andamento', 'encerrada'] as const
+/** Cada personagem de jogador numa sessão: joga, o mestre conduz ou fica de fora. */
+export const SESSION_ATTENDANCE = ['joga', 'mestre', 'fora'] as const
+/** O tom do aviso do mestre: notícia, perigo ou mistério. */
+export const NOTICE_TONES = ['aviso', 'perigo', 'misterio'] as const
 
 export const sessionSchema = z.object({
   id,
@@ -323,6 +327,13 @@ export const sessionSchema = z.object({
   ),
   /** Quando a sessão começou (a abertura e o tempo de jogo contam daí). */
   startedAt: z.string().nullable().default(null),
+  /**
+   * Quem joga nesta sessão, por ficha de personagem de jogador: joga (o padrão), o mestre
+   * conduz (vira NPC por esta sessão) ou fica de fora.
+   */
+  attendance: z.record(z.string(), z.enum(SESSION_ATTENDANCE)).default({}),
+  /** Os avisos do mestre para a mesa, na hora: aparecem na tela de cada celular. */
+  notices: z.array(z.object({ id, at: z.string(), text: z.string(), tone: z.enum(NOTICE_TONES) })).default([]),
   /** Posição na ordem de iniciativa e número da rodada. */
   turn: z.number().int().nonnegative().default(0),
   round: z.number().int().positive().default(1),

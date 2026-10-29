@@ -7,7 +7,7 @@ import { aimAt, describeOutcome, resolveRoll, type RollOutcome } from '../rpg/ro
 import { makeSystem } from '../rpg/systems'
 import type { Prefs } from '../state/prefs'
 import { forgetGroup, noteLeft, notePresence, PRESENCE_EVERY } from './presence'
-import { joinTable, type TableRoll } from './server'
+import { joinTable, type TableNotice, type TableRoll } from './server'
 import { serverFrom } from './useCodexSync'
 
 const FALLBACK = makeSystem('narrativo')
@@ -21,6 +21,16 @@ export interface IncomingRoll {
 }
 
 const listeners = new Set<(r: IncomingRoll) => void>()
+/** Os canais abertos agora, por mesa: por aqui o mestre manda os avisos na hora. */
+const open = new Map<string, ReturnType<typeof joinTable>>()
+
+/** Manda um aviso para os celulares da mesa agora. Sem canal, ele chega com o Codex (em poucos segundos). */
+export function sendNoticeNow(groupId: string, n: TableNotice) {
+  void open
+    .get(groupId)
+    ?.sendNotice(n)
+    .catch(() => undefined)
+}
 
 /** A bandeja de rolagens da mesa escuta por aqui. */
 export function onIncomingRoll(fn: (r: IncomingRoll) => void): () => void {
@@ -94,6 +104,7 @@ export function useTableRolls(universe: Universe, prefs: Prefs, update: (change:
         left: (id) => noteLeft(groupId, id),
         ask: () => void t.sendPresence(me).catch(() => undefined),
       })
+      open.set(groupId, t)
       const me = { id: `mestre-${newId()}`, role: 'mestre' as const, who: null }
       void t.ask().catch(() => undefined)
       void t.sendPresence(me).catch(() => undefined)
@@ -105,6 +116,7 @@ export function useTableRolls(universe: Universe, prefs: Prefs, update: (change:
         clearInterval(beat)
         void t.sendLeft(me.id).catch(() => undefined)
         forgetGroup(groupId)
+        if (open.get(groupId) === t) open.delete(groupId)
         t.leave()
       })
   }, [server, key])

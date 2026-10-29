@@ -159,6 +159,7 @@ function PartyCard({ s }: { s: CodexSnapshot['party'][number] }) {
         <div>
           <h4>{s.name}</h4>
           {s.player && <p className="muted small">{s.player}</p>}
+          {s.away && <p className="codex-pc-away small">{s.away === 'fora' ? 'Fora desta sessão' : 'Com o mestre nesta sessão'}</p>}
           {s.fields.length > 0 && <p className="small">{s.fields.map(([, v]) => v).join(' · ')}</p>}
         </div>
       </div>

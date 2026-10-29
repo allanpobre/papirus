@@ -101,8 +101,10 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
           <p className="muted small">Para rolar pela sua ficha. As rolagens aparecem para o mestre e para o grupo.</p>
           <div className="chips">
             {codex.party.map((p) => (
-              <button key={p.name} type="button" className="chip" onClick={() => onMe(p.name)}>
+              <button key={p.name} type="button" className={`chip player-who-chip${p.away ? ' is-away' : ''}`} onClick={() => onMe(p.name)}>
                 {p.name}
+                {p.player && <span className="player-who-player">{p.player}</span>}
+                {p.away && <span className="player-who-away">{p.away === 'fora' ? 'fora hoje' : 'com o mestre hoje'}</span>}
               </button>
             ))}
           </div>

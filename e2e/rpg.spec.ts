@@ -24,8 +24,9 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
   // Sessão em andamento: as rolagens vão para o registro.
   await page.getByRole('button', { name: /Planejar sessão 1/ }).click()
   await page.getByRole('button', { name: 'Começar' }).click()
-  // A sessão abre na tela inteira; "Começar a jogar" leva para a mesa.
+  // A sessão abre na tela inteira; "Começar a jogar" leva ao modo sessão. Aqui, a ficha se monta fora dele.
   await page.getByRole('dialog', { name: 'A sessão começou' }).getByRole('button', { name: 'Começar a jogar' }).click()
+  await page.getByRole('button', { name: 'Sair do modo sessão' }).click()
 
   await page.getByRole('tab', { name: 'Personagens' }).click()
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Dante')
@@ -105,9 +106,9 @@ test('iniciativa: grupo entra pela ficha, e vez e rodada continuam após recarre
   await expect(page.locator('.round-pill')).toHaveText('Rodada 2')
   const current = await page.locator('.init-row.current .init-name').textContent()
 
+  // Recarregou com a sessão ao vivo: volta direto para o modo sessão.
   await page.reload()
-  await nav(page, 'RPG').click()
-  await page.getByRole('tab', { name: 'Sessões' }).click()
+  await expect(page.locator('.session-mode-view')).toBeVisible()
   await expect(page.locator('.round-pill')).toHaveText('Rodada 2')
   await expect(page.locator('.init-row.current .init-name')).toHaveText(current!)
   await expect(page.locator('.log')).toContainText('Rodada 2')

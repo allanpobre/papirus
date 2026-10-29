@@ -16,6 +16,7 @@ import { recall, remember, type usePrefs } from '../state/prefs'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
+import { setOutsideSession } from '../rpg/sessionFocus'
 import { useTableRolls } from '../share/useTableRolls'
 import { isLocalOnly, isSample } from '../model/sample'
 import { wordsToday } from '../logic/stats'
@@ -442,6 +443,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [mediumOpen, setMediumOpen] = useState(false)
   const collapsed = medium ? !mediumOpen : prefs.railCollapsed
   const phone = useMediaQuery('(max-width: 760px)')
+  // Uma sessão de RPG ao vivo: de qualquer área, um toque volta para ela.
+  const liveSession = universe.sessions.find((x) => x.status === 'em-andamento')
   const visibleItems = ALL_ITEMS.filter((item) => item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view)
 
   return (
@@ -623,6 +626,20 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </Suspense>
         </main>
 
+        {liveSession && nav.view !== 'rpg' && (
+          <button
+            type="button"
+            className="live-return"
+            onClick={() => {
+              // De volta ao modo sessão, na mesa da sessão ao vivo.
+              setOutsideSession(null)
+              if (liveSession.groupId) remember(`rpg-grupo:${universe.id}`, liveSession.groupId)
+              go('rpg')
+            }}
+          >
+            <span className="live-return-dot" aria-hidden="true" /> Sessão {liveSession.number} ao vivo · <strong>Voltar</strong>
+          </button>
+        )}
         {peekId && <PeekDrawer entityId={peekId} onClose={() => setPeekId(null)} />}
         {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} />}
         {tourOpen && (

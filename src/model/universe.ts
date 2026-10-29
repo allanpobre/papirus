@@ -198,6 +198,8 @@ export const draftSession = (number: number, groupId: string | null): Draft<'ses
   log: [],
   initiative: [],
   startedAt: null,
+  attendance: {},
+  notices: [],
   turn: 0,
   round: 1,
 })

@@ -1,8 +1,8 @@
-import { Moon, Radio, Sun } from 'lucide-react'
+import { Megaphone, Moon, Radio, Sun } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { alive, PRESENCE_EVERY, useNow, withPresence, type Present } from '../share/presence'
-import { fetchCodex, joinTable, type ServerConfig, type TablePresence, type TableRoll } from '../share/server'
-import { sameReveals, type CodexSnapshot } from '../share/snapshot'
+import { fetchCodex, joinTable, type ServerConfig, type TableNotice, type TablePresence, type TableRoll } from '../share/server'
+import { revealedSince, sameReveals, type CodexSnapshot } from '../share/snapshot'
 import { recall, remember } from '../state/prefs'
 import { PlayerTable, type FeedRoll } from './PlayerTable'
 import { CodexDoc } from '../views/rpg/CodexDoc'
@@ -15,6 +15,18 @@ import '../styles/mesa.css'
 
 const POLL_MS = 20_000
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+/** Um momento na tela inteira do celular: a sessão começou ou terminou, um aviso, uma revelação. */
+interface Moment {
+  id: string
+  kind: 'comecou' | 'terminou' | 'aviso' | 'revelou'
+  tone?: TableNotice['tone']
+  kicker: string
+  title: string
+  sub: string
+}
+
+const NOTICE_KICKER: Record<TableNotice['tone'], string> = { aviso: 'Aviso do mestre', perigo: 'Perigo!', misterio: 'Algo acontece' }
 
 /**
  * O Codex no celular dos jogadores: sem nada do universo além do que o mestre revelou.
@@ -37,8 +49,23 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
   const [people, setPeople] = useState<Present[]>([])
   const mine = useRef<TablePresence>({ id: presenceId, role: 'jogador', who: me })
   const now = useNow()
-  // A sessão começou ou terminou desde a última vez que o Codex chegou.
-  const [moment, setMoment] = useState<{ kind: 'comecou' | 'terminou'; title: string; number: number } | null>(null)
+  // Os momentos na tela inteira (a sessão começou, um aviso do mestre, uma revelação), um de cada vez.
+  const [moments, setMoments] = useState<Moment[]>([])
+  const moment = moments[0] ?? null
+  const push = useCallback((m: Moment) => setMoments((q) => (q.some((x) => x.id === m.id) ? q : [...q, m].slice(-4))), [])
+  const dismiss = useCallback(() => setMoments((q) => q.slice(1)), [])
+  // Os avisos já vistos: os que existiam ao abrir o Codex não pulam na tela.
+  const seenNotices = useRef<Set<string> | null>(null)
+  const showNotice = useCallback(
+    (n: TableNotice) => {
+      const seen = (seenNotices.current ??= new Set())
+      if (seen.has(n.id)) return
+      seen.add(n.id)
+      push({ id: n.id, kind: 'aviso', tone: n.tone, kicker: NOTICE_KICKER[n.tone], title: n.text, sub: `às ${timeFmt.format(new Date(n.at))}` })
+      navigator.vibrate?.(n.tone === 'perigo' ? [220, 90, 220, 90, 320] : [120, 80, 120])
+    },
+    [push],
+  )
   const [dark, setDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.hasAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches))
 
   // O tema da mesa, escolhido pelo mestre; aqui só se troca entre claro e escuro.
@@ -62,9 +89,23 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
       const was = prev?.session ?? null
       const is = r.data.session ?? null
       if (prev && is && (!was || was.number !== is.number)) {
-        setMoment({ kind: 'comecou', title: is.title, number: is.number })
+        push({ id: `comecou-${is.number}`, kind: 'comecou', kicker: 'A sessão começou', title: is.title || `Sessão ${is.number}`, sub: 'O mestre está na mesa. Boa sessão!' })
         navigator.vibrate?.([120, 80, 120])
-      } else if (prev && was && !is) setMoment({ kind: 'terminou', title: was.title, number: was.number })
+      } else if (prev && was && !is) push({ id: `terminou-${was.number}`, kind: 'terminou', kicker: 'A sessão terminou', title: was.title || `Sessão ${was.number}`, sub: 'Até a próxima.' })
+      // Avisos do mestre que ainda não apareceram (chegam também pelo canal, na hora).
+      const notices = r.data.notices ?? []
+      if (prev) notices.forEach(showNotice)
+      else for (const n of notices) (seenNotices.current ??= new Set()).add(n.id)
+      // O que o mestre acabou de revelar.
+      const learned = prev ? revealedSince(prev, r.data) : []
+      if (learned.length)
+        push({
+          id: `revelou-${r.updatedAt}`,
+          kind: 'revelou',
+          kicker: 'O mestre revelou',
+          title: learned[0],
+          sub: learned.length > 1 ? `e mais ${learned.length - 1} ${learned.length > 2 ? 'novidades' : 'novidade'} no Codex` : 'Está no Codex.',
+        })
       current.current = r.data
       setCodex(r.data)
       setUpdatedAt(r.updatedAt)
@@ -73,7 +114,7 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
       setError(err instanceof Error ? err.message : String(err))
       setState((s) => (s === 'ok' ? 'ok' : 'erro'))
     }
-  }, [server, id])
+  }, [server, id, push, showNotice])
 
   useEffect(() => {
     if (!server) return
@@ -89,6 +130,7 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
       presence: (p) => setPeople((l) => withPresence(l, p, Date.now())),
       left: (gone) => setPeople((l) => l.filter((p) => p.id !== gone)),
       ask: () => void t.sendPresence(mine.current).catch(() => undefined),
+      notice: showNotice,
     })
     table.current = t
     // Chegou: pergunta quem já está e avisa que está; depois, avisa de tempos em tempos.
@@ -110,7 +152,7 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
       t.leave()
       table.current = null
     }
-  }, [server, id, load])
+  }, [server, id, load, showNotice])
 
   // Trocou de personagem: a mesa fica sabendo.
   useEffect(() => {
@@ -118,17 +160,17 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
     void table.current?.sendPresence(mine.current).catch(() => undefined)
   }, [me, presenceId])
 
-  // O momento some sozinho depois de um tempo (ou com um toque, ou Esc).
+  // O momento some sozinho depois de um tempo (ou com um toque, ou Esc), e vem o próximo.
   useEffect(() => {
     if (!moment) return
-    const t = setTimeout(() => setMoment(null), 6000)
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMoment(null)
+    const t = setTimeout(dismiss, 6000)
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && dismiss()
     addEventListener('keydown', onKey)
     return () => {
       clearTimeout(t)
       removeEventListener('keydown', onKey)
     }
-  }, [moment])
+  }, [moment, dismiss])
 
   const roll = (r: TableRoll) => {
     setFeed((f) => [{ ...r, mine: true }, ...f].slice(0, 12))
@@ -185,6 +227,7 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
               </p>
             )}
             <AtTable people={alive(people, now)} session={codex.session ?? null} me={me && codex.party.some((p) => p.name === me) ? me : null} />
+            {codex.session && codex.notices?.length ? <LastNotice notice={codex.notices.at(-1)!} /> : null}
             <PlayerTable codex={codex} me={me && codex.party.some((p) => p.name === me) ? me : null} onMe={chooseMe} feed={feed} onRoll={roll} />
             <CodexDoc codex={codex} me={me ?? undefined} />
             {updatedAt && <p className="muted tiny player-foot">Atualizado às {timeFmt.format(new Date(updatedAt))} · feito com Papirus</p>}
@@ -192,13 +235,28 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
         ) : null}
       </main>
       {moment && (
-        <div className={`player-moment is-${moment.kind}`} role="status" onClick={() => setMoment(null)}>
-          <p className="player-moment-kicker">{moment.kind === 'comecou' ? 'A sessão começou' : 'A sessão terminou'}</p>
-          <p className="player-moment-title">{moment.title || `Sessão ${moment.number}`}</p>
-          <p className="player-moment-sub">{moment.kind === 'comecou' ? 'O mestre está na mesa. Boa sessão!' : 'Até a próxima.'}</p>
+        <div key={moment.id} className={`player-moment is-${moment.kind}${moment.tone ? ` tone-${moment.tone}` : ''}`} role={moment.tone === 'perigo' ? 'alert' : 'status'} onClick={dismiss}>
+          <p className="player-moment-kicker">{moment.kicker}</p>
+          <p className="player-moment-title">{moment.title}</p>
+          <p className="player-moment-sub">{moment.sub}</p>
         </div>
       )}
     </div>
+  )
+}
+
+/** O último aviso do mestre, para quem piscou e perdeu. */
+function LastNotice({ notice }: { notice: TableNotice }) {
+  return (
+    <p className={`player-notice tone-${notice.tone}`}>
+      <Megaphone size={15} aria-hidden="true" />
+      <span>
+        <span className="player-notice-h">
+          {NOTICE_KICKER[notice.tone]} · {timeFmt.format(new Date(notice.at))}
+        </span>{' '}
+        {notice.text}
+      </span>
+    </p>
   )
 }
 

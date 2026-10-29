@@ -17,6 +17,8 @@ export interface RpgState {
   endSession: (id: string) => void
   /** Abre o convite: o link e o QR code para os jogadores. */
   invite: () => void
+  /** Volta para o modo sessão (a sessão ao vivo na tela toda). */
+  enterSession: () => void
 }
 
 export const RpgContext = createContext<RpgState | null>(null)

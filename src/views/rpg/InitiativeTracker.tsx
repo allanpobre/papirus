@@ -4,6 +4,7 @@ import { roll } from '../../logic/dice'
 import type { Session } from '../../model/schema'
 import { byId, newId, patch } from '../../model/universe'
 import { initiativeOrder, isDown, lifeOf } from '../../rpg/combat'
+import { attendanceOf } from '../../rpg/sessionLife'
 import { rollInitiative } from '../../rpg/rolls'
 import { adjustResource, defenseLabel, defenseResource, isPool } from '../../rpg/sheets'
 import { useWorkspace } from '../../state/workspace'
@@ -41,10 +42,16 @@ export function InitiativeTracker({ session }: { session: Session }) {
     setValue('')
   }
 
+  // Quem ficou de fora desta sessão não entra; quem o mestre conduz entra, com a anotação.
   const addParty = () => {
     const present = new Set(session.initiative.map((i) => i.sheetId))
-    const sheets = universe.sheets.filter((s) => s.groupId === group.id && s.role === 'pj' && !present.has(s.id))
-    set({ initiative: [...session.initiative, ...sheets.map((s) => ({ id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: '', sheetId: s.id, defense: null }))] })
+    const sheets = universe.sheets.filter((s) => s.groupId === group.id && s.role === 'pj' && !present.has(s.id) && attendanceOf(session, s.id) !== 'fora')
+    set({
+      initiative: [
+        ...session.initiative,
+        ...sheets.map((s) => ({ id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: attendanceOf(session, s.id) === 'mestre' ? 'mestre conduz' : '', sheetId: s.id, defense: null })),
+      ],
+    })
   }
 
   // Inimigos derrotados perdem a vez; personagens de jogador caídos, não (podem estar sangrando).

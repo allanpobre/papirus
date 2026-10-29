@@ -6,6 +6,7 @@ import type { GameSystem, Sheet, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { mesaTheme } from '../rpg/themes'
 import { initiativeOrder, isDown } from '../rpg/combat'
+import { attendanceOf, recentNotices } from '../rpg/sessionLife'
 import { attributeExpression, bonusLabel, damageExpression, skillExpression, type RollRules } from '../rpg/rolls'
 import { costResource, critFrom, critMult, isPool } from '../rpg/sheets'
 
@@ -35,6 +36,8 @@ export interface CodexSnapshot {
     inventory?: [string, number][]
     /** O que o jogador pode rolar pelo Codex, já com os números da ficha. */
     rolls?: CodexRoll[]
+    /** Nesta sessão, o mestre conduz o personagem ou ele fica de fora (o jogador não veio). */
+    away?: 'mestre' | 'fora'
   }[]
   sections: { title: string; entries: { name: string; summary: string; description: string; depth: 'nome' | 'resumo' | 'completo'; fresh?: boolean; image?: string }[] }[]
   events: { when: string; title: string; year?: number; fresh?: boolean }[]
@@ -49,6 +52,8 @@ export interface CodexSnapshot {
   rules?: RollRules
   /** A sessão em andamento: os jogadores veem quando ela começa e quando termina. */
   session?: { number: number; title: string; startedAt: string | null } | null
+  /** Os últimos avisos do mestre na sessão em andamento ("Um inimigo aparece!"). */
+  notices?: { id: string; at: string; text: string; tone: 'aviso' | 'perigo' | 'misterio' }[]
   /** Combate em andamento: a ordem e de quem é a vez. A vida e a Defesa dos inimigos não vêm. */
   combat?: { round: number; order: { id: string; name: string; pc: boolean; current: boolean; down: boolean }[] } | null
 }
@@ -122,6 +127,8 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
   const system = group?.systemId ? universe.systems.find((x) => x.id === group.systemId) : undefined
   const suffix = universe.settings.calendarSuffix
   const kinds = [...new Set(codex.entries.map((e) => e.entity.kind))]
+  // A sessão em andamento: quem joga e os avisos do mestre (o Codex "até a sessão N" não tem).
+  const live = untilSession === undefined ? universe.sessions.find((x) => x.groupId === groupId && x.status === 'em-andamento') : undefined
 
   return {
     v: 1,
@@ -130,6 +137,7 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     theme: mesaTheme(group?.theme, system?.name),
     ...(system ? { rules: { resolution: system.resolution, successTarget: system.successTarget } } : {}),
     session: liveSession(universe, groupId),
+    notices: recentNotices(live),
     combat: combatOf(universe, groupId),
     at: new Date().toISOString(),
     party: codex.sheets.map((s) => {
@@ -138,9 +146,11 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
       const cost = costResource(system)
       const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))
       const portrait = s.image ?? (s.entityId ? byId(universe, 'entities', s.entityId)?.image : null)
+      const away = attendanceOf(live, s.id)
       return {
         name: s.name,
         player: s.player,
+        ...(away !== 'joga' ? { away } : {}),
         fields: Object.entries(s.fields).filter(([, v]) => v.trim()),
         attrs: (system?.attributes ?? []).map((a) => [a.abbr, s.attributes[a.id] ?? a.default] as [string, number]),
         ...(portrait ? { image: portrait } : {}),
@@ -201,6 +211,29 @@ export const isEmptySnapshot = (s: CodexSnapshot) =>
 export const sameReveals = (a: CodexSnapshot, b: CodexSnapshot) => {
   const pick = (c: CodexSnapshot) => JSON.stringify([c.sections, c.events, c.relations ?? [], c.facts, c.clues, c.maps.map((m) => [m.name, m.pins]), c.party.map((p) => p.name)])
   return pick(a) === pick(b)
+}
+
+const DEPTH_RANK = { nome: 0, resumo: 1, completo: 2 } as const
+
+/** O que a mesa ficou sabendo de um retrato para o outro, em textos curtos ("Homem Pálido", "mais sobre Rhea"). */
+export function revealedSince(a: CodexSnapshot, b: CodexSnapshot): string[] {
+  const depth = new Map(a.sections.flatMap((s) => s.entries.map((e) => [e.name, e.depth] as const)))
+  const out: string[] = []
+  for (const e of b.sections.flatMap((s) => s.entries)) {
+    const was = depth.get(e.name)
+    if (!was) out.push(e.name)
+    else if (DEPTH_RANK[e.depth] > DEPTH_RANK[was]) out.push(`mais sobre ${e.name}`)
+  }
+  const newOnes = <T>(before: T[], after: T[], key: (x: T) => string) => {
+    const had = new Set(before.map(key))
+    return after.filter((x) => !had.has(key(x)))
+  }
+  out.push(...newOnes(a.facts, b.facts, (f) => f.text).map((f) => f.text))
+  out.push(...newOnes(a.events, b.events, (e) => e.title).map((e) => e.title))
+  out.push(...newOnes(a.relations ?? [], b.relations ?? [], (r) => r.text).map((r) => r.text))
+  out.push(...newOnes(a.clues, b.clues, (c) => c.text).map((c) => (c.mystery ? `uma pista: ${c.mystery}` : 'uma pista')))
+  out.push(...newOnes(a.maps, b.maps, (m) => m.name).map((m) => `o mapa ${m.name}`))
+  return out
 }
 
 /** Compara dois retratos ignorando a hora, para saber se vale publicar de novo. */

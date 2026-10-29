@@ -24,9 +24,10 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null
-    const first = ref.current?.querySelector<HTMLElement>(
-      '[autofocus], input:not([type=hidden]), textarea, select, button:not(.modal-close):not(.page-help)',
-    )
+    // O primeiro campo ou botão que se vê (um seletor de arquivo escondido não recebe o foco).
+    const first = [
+      ...(ref.current?.querySelectorAll<HTMLElement>('[autofocus], input:not([type=hidden]), textarea, select, button:not(.modal-close):not(.page-help)') ?? []),
+    ].find((el) => el.offsetParent !== null)
     ;(first ?? ref.current)?.focus()
     return () => previous?.focus?.()
   }, [])

@@ -1,9 +1,9 @@
 import qrcode from 'qrcode-generator'
-import { Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserPlus, Users } from 'lucide-react'
+import { Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Group, Session } from '../../model/schema'
 import { newId, patch } from '../../model/universe'
-import { durationLabel, playedLog, sessionName, sessionSummary } from '../../rpg/sessionLife'
+import { durationLabel, partyOf, playedLog, sessionName, sessionSummary } from '../../rpg/sessionLife'
 import { useTablePresence } from '../../share/presence'
 import { DEFAULT_PUBLIC_URL, deleteCodex, newShareKey, playerLink } from '../../share/server'
 import { codexSnapshot } from '../../share/snapshot'
@@ -11,6 +11,7 @@ import { publishNow, serverFrom, useSyncState } from '../../share/useCodexSync'
 import { useWorkspace } from '../../state/workspace'
 import { Modal, trapFocus } from '../../ui/Modal'
 import { useBackLayer } from '../../ui/useBackLayer'
+import { AttendanceList } from './Attendance'
 
 /** O link da mesa (Codex ao vivo): ligar, desligar, o endereço e o QR code. */
 export function useMesaLink(group: Group) {
@@ -185,8 +186,8 @@ export function MesaPresence({ group, onInvite }: { group: Group; onInvite: () =
           </ul>
         </span>
       )}
-      <button type="button" className={`btn btn-sm mesa-invite${people.length ? ' btn-ghost' : ' btn-primary'}`} onClick={onInvite}>
-        <UserPlus size={15} /> {people.length ? 'Convidar' : 'Convidar jogadores'}
+      <button type="button" className={`btn btn-sm mesa-invite${people.length ? ' btn-ghost' : ' btn-primary'}`} aria-label={people.length ? 'Convidar' : 'Convidar jogadores'} onClick={onInvite}>
+        <UserPlus size={15} /> <span className="mesa-invite-label">{people.length ? 'Convidar' : 'Convidar jogadores'}</span>
       </button>
     </div>
   )
@@ -254,6 +255,8 @@ const customTitle = (s: Session) => sessionName(s.number, s.title)
  * e o convite. Fecha com "Começar a jogar".
  */
 export function SessionOpening({ group, session, previous, onClose }: { group: Group; session: Session; previous: Session | undefined; onClose: () => void }) {
+  const { universe } = useWorkspace()
+  const party = partyOf(universe, group.id)
   const recap = previous ? playedLog(previous).filter((l) => l.kind === 'nota' && !/^Rodada \d+$/.test(l.text)).slice(-3) : []
   const title = customTitle(session)
 
@@ -284,6 +287,16 @@ export function SessionOpening({ group, session, previous, onClose }: { group: G
           ) : (
             <p className="small">{previous.prep}</p>
           )}
+        </section>
+      )}
+
+      {party.length > 0 && (
+        <section className="session-opening-card" aria-labelledby="abertura-chamada">
+          <h3 id="abertura-chamada" className="section-label">
+            <UserCheck size={14} aria-hidden="true" /> Quem joga hoje
+          </h3>
+          <p className="small muted">Alguém não veio? O mestre conduz o personagem nesta sessão, ou ele fica de fora.</p>
+          <AttendanceList session={session} group={group} />
         </section>
       )}
 

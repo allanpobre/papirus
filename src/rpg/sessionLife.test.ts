@@ -1,7 +1,23 @@
 import { describe, expect, it } from 'vitest'
 import type { Universe } from '../model/schema'
-import { byId, createUniverse, draftGroup, draftSession, insert, newId, patch } from '../model/universe'
-import { beginSession, durationLabel, END_NOTE, finishSession, playedLog, sessionName, sessionSummary, sessionToStart, START_NOTE } from './sessionLife'
+import { byId, createUniverse, draftEntity, draftGroup, draftSession, insert, newId, patch } from '../model/universe'
+import { draftSheet } from './sheets'
+import {
+  announce,
+  attendanceOf,
+  beginSession,
+  durationLabel,
+  END_NOTE,
+  finishSession,
+  playedLog,
+  recentNotices,
+  rollCall,
+  sessionName,
+  sessionSummary,
+  sessionToStart,
+  setAttendance,
+  START_NOTE,
+} from './sessionLife'
 
 function table(): [Universe, string] {
   const [u, g] = insert(createUniverse('Ostria'), 'groups', draftGroup('Mesa de sexta'))
@@ -76,5 +92,68 @@ describe('começo e fim da sessão', () => {
     expect(sessionName(2, 'Sessão 2')).toBeNull()
     expect(sessionName(2, 'A Torre')).toBe('A Torre')
     expect(sessionName(2, 'Sessão 20')).toBe('Sessão 20')
+  })
+})
+
+describe('quem joga nesta sessão', () => {
+  function withParty(): [Universe, string, string, string] {
+    let [u, groupId] = table()
+    let taren
+    ;[u, taren] = insert(u, 'sheets', draftSheet('Taren', null, { groupId, player: 'Bruno' }))
+    ;[u] = insert(u, 'sheets', draftSheet('Brisa', null, { groupId, player: 'Ana' }))
+    let id
+    ;[u, id] = beginSession(u, groupId, null)
+    return [u, groupId, id, taren.id]
+  }
+
+  it('sem marcar, todos jogam; quem não veio fica de fora ou o mestre conduz, e fica no registro', () => {
+    let [u, , id, taren] = withParty()
+    expect(attendanceOf(byId(u, 'sessions', id), taren)).toBe('joga')
+    u = setAttendance(u, id, taren, 'fora')
+    expect(attendanceOf(byId(u, 'sessions', id), taren)).toBe('fora')
+    expect(byId(u, 'sessions', id)!.log.at(-1)!.text).toBe('Taren fica de fora desta sessão (Bruno não veio).')
+    u = setAttendance(u, id, taren, 'mestre')
+    expect(byId(u, 'sessions', id)!.log.at(-1)!.text).toBe('O mestre conduz Taren nesta sessão (Bruno não veio).')
+    u = setAttendance(u, id, taren, 'joga')
+    expect(byId(u, 'sessions', id)!.attendance).toEqual({})
+    expect(byId(u, 'sessions', id)!.log.at(-1)!.text).toBe('Taren volta a jogar com Bruno.')
+  })
+
+  it('a chamada vai junto com o registro para Ideias', () => {
+    let [u, , id, taren] = withParty()
+    u = setAttendance(u, id, taren, 'mestre')
+    expect(rollCall(u, byId(u, 'sessions', id)!)).toBe('Na mesa: Brisa (Ana) · O mestre conduziu: Taren (Bruno)')
+    const done = finishSession(u, id, 'Mesa de sexta')
+    expect(done.universe.inbox[0].text.split('\n')[1]).toBe('Na mesa: Brisa (Ana) · O mestre conduziu: Taren (Bruno)')
+  })
+})
+
+describe('avisos do mestre', () => {
+  it('o aviso fica na sessão e no registro; quem aparece ganha o nome no Codex e entra na iniciativa', () => {
+    let [u, groupId] = table()
+    let id
+    ;[u, id] = beginSession(u, groupId, null)
+    let boss
+    ;[u, boss] = insert(u, 'entities', draftEntity('personagem', 'Homem Pálido'))
+    const [next, notice] = announce(u, id, '  Um inimigo aparece!  ', 'perigo', { entityId: boss.id, reveal: true, fight: true }, new Date('2026-10-29T22:10:00Z'))
+    expect(notice).toMatchObject({ text: 'Um inimigo aparece!', tone: 'perigo', at: '2026-10-29T22:10:00.000Z' })
+    const s = byId(next, 'sessions', id)!
+    expect(recentNotices(s).map((n) => n.text)).toEqual(['Um inimigo aparece!'])
+    expect(s.log.at(-1)!.text).toBe('Aviso à mesa: Um inimigo aparece!')
+    expect(s.initiative.map((i) => i.name)).toEqual(['Homem Pálido'])
+    expect(next.revelations).toMatchObject([{ groupId, target: 'entidade', targetId: boss.id, depth: 'nome', sessionId: id }])
+
+    // De novo: não revela nem entra na iniciativa duas vezes.
+    const [again] = announce(next, id, 'Ele volta!', 'perigo', { entityId: boss.id, reveal: true, fight: true })
+    expect(byId(again, 'sessions', id)!.initiative).toHaveLength(1)
+    expect(again.revelations).toHaveLength(1)
+    expect(recentNotices(byId(again, 'sessions', id))).toHaveLength(2)
+  })
+
+  it('aviso vazio não sai', () => {
+    let [u, groupId] = table()
+    let id
+    ;[u, id] = beginSession(u, groupId, null)
+    expect(announce(u, id, '   ', 'aviso')).toEqual([u, null])
   })
 })
