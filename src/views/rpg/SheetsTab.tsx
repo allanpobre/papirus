@@ -24,6 +24,7 @@ export function SheetsTab() {
   const [role, setRole] = useState<'todos' | Sheet['role']>('todos')
   const [name, setName] = useState('')
   const [newRole, setNewRole] = useState<Sheet['role']>('pj')
+  const [player, setPlayer] = useState('')
   const sheets = universe.sheets
     .filter((s) => s.groupId === group.id && (role === 'todos' || s.role === role))
     .sort((a, b) => (a.role === b.role ? a.name.localeCompare(b.name, 'pt') : a.role === 'pj' ? -1 : 1))
@@ -40,11 +41,12 @@ export function SheetsTab() {
             if (!name.trim()) return
             let id = ''
             update((u) => {
-              const [next, s] = insert(u, 'sheets', draftSheet(name.trim(), system ?? null, { role: newRole, groupId: group.id }))
+              const [next, s] = insert(u, 'sheets', draftSheet(name.trim(), system ?? null, { role: newRole, groupId: group.id, player: newRole === 'pj' ? player.trim() : '' }))
               id = s.id
               return next
             })
             setName('')
+            setPlayer('')
             setOpenId(id)
           }}
         >
@@ -52,17 +54,28 @@ export function SheetsTab() {
             Nome do personagem
           </label>
           <input id="nova-ficha-jogo" className="input" placeholder="Novo personagem…" value={name} onChange={(e) => setName(e.target.value)} />
-          <Select
-            label="Tipo"
-            value={newRole}
-            onChange={setNewRole}
-            options={[
-              { value: 'pj', label: 'Jogador' },
-              { value: 'npc', label: 'NPC' },
-            ]}
-          />
+          <div className="segmented quick-role" role="radiogroup" aria-label="De quem é">
+            {(
+              [
+                ['pj', 'De jogador'],
+                ['npc', 'NPC do mestre'],
+              ] as const
+            ).map(([r, label]) => (
+              <button key={r} type="button" role="radio" aria-checked={newRole === r} onClick={() => setNewRole(r)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {newRole === 'pj' && (
+            <>
+              <label htmlFor="nova-ficha-jogador" className="sr-only">
+                Quem joga
+              </label>
+              <input id="nova-ficha-jogador" className="input" placeholder="Quem joga (ex.: Ana)" value={player} onChange={(e) => setPlayer(e.target.value)} />
+            </>
+          )}
           <button type="submit" className="btn btn-primary" aria-label="Criar personagem">
-            <Plus size={16} />
+            <Plus size={16} /> Criar
           </button>
         </form>
         <div className="filter-chips" role="radiogroup" aria-label="Mostrar">

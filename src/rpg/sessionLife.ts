@@ -181,7 +181,7 @@ export function announce(u: Universe, sessionId: string, text: string, tone: Not
       const sheet = next.sheets.find((x) => x.entityId === entity.id && x.groupId === s.groupId) ?? null
       const value = system ? rollInitiative(system, sheet) : roll('d20').total
       next = patch(next, 'sessions', s.id, {
-        initiative: [...current.initiative, { id: newId(), name: entity.name, value, hp: '', note: '', sheetId: sheet?.id ?? null, defense: null, attacks: [], monsterId: null }],
+        initiative: [...current.initiative, { id: newId(), name: entity.name, value, hp: '', note: '', sheetId: sheet?.id ?? null, defense: null, attacks: [], monsterId: null, conditions: [] }],
       })
     }
   }

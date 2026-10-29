@@ -347,6 +347,8 @@ export const sessionSchema = z.object({
       attacks: z.array(attackSchema).default([]),
       /** O inimigo pronto de onde veio. */
       monsterId: ref.default(null),
+      /** Condições de quem não tem ficha (quem tem ficha usa as da ficha). */
+      conditions: z.array(z.string()).default([]),
     }),
   ),
   /** Quando a sessão começou (a abertura e o tempo de jogo contam daí). */
@@ -389,6 +391,8 @@ export const sessionSchema = z.object({
       }),
     )
     .default([]),
+  /** Condições com duração: acabam sozinhas quando começa a rodada `until`. */
+  effects: z.array(z.object({ id, entryId: z.string(), name: z.string(), until: z.number().int() })).default([]),
   /** O resumo da sessão para os jogadores (o diário da campanha no Codex). */
   recap: z.string().default(''),
   recapShared: z.boolean().default(false),

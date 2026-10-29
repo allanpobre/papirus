@@ -1,5 +1,17 @@
 # Novidades
 
+## 1.3.4 — 29 de outubro de 2026
+
+**A mesa mais simples.** Uma revisão do RPG do ponto de vista de quem nunca usou o app.
+- A aba “Na mesa” saiu: durante o jogo, quem manda é o modo sessão. Agora são seis abas, e a sessão começa pelo Painel do mestre (“Começar agora”) ou por Sessões. Fora do modo sessão, “Voltar para a sessão” fica no alto da mesa.
+- Grupo vazio no Painel: em vez de convidar jogadores antes de existir personagem, “Criar personagens”.
+- Criar personagem ficou mais claro: “De jogador” ou “NPC do mestre” e, para quem é de jogador, “Quem joga” (o nome que aparece na chamada da sessão e no Codex).
+- Mudar o Estado da sessão para “Em andamento” ou “Encerrada” passa pela abertura e pelo resumo, como os botões.
+
+**Condições com duração.** Na iniciativa, ao pôr uma condição (Atordoado, Caído…), o Papirus pergunta por quanto tempo: até tirar, ou 1, 2, 3, 5 ou 10 rodadas. A contagem aparece na condição (“última rodada”) e, quando a rodada vira, ela acaba sozinha e fica no registro (“Atordoado acabou em Ilmar”). Vale também para quem não tem ficha (o goblin anotado na hora). No celular, a ordem do combate mostra as condições de cada um.
+
+**Desfazer o dano.** Na bandeja, depois de “Tirar 9 PV de Goblin”, “Desfazer” devolve a vida como estava e anota no registro.
+
 ## 1.3.3 — 29 de outubro de 2026
 
 **O mestre pede um teste.** No modo sessão, “Pedir teste”: o mestre escolhe o quê (uma perícia, um atributo ou uma rolagem livre), para quem (todos que jogam, ou só alguns) e a dificuldade, que só ele vê.

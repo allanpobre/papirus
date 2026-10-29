@@ -54,7 +54,6 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   await nav(page, 'RPG').click()
   for (const [tab, title] of [
     ['Painel do mestre', 'Painel do mestre'],
-    ['Na mesa', 'Na mesa'],
     ['Sessões', 'Sessões'],
     ['Personagens', 'Personagens'],
     ['Revelações e Codex', 'Revelações e Codex'],
@@ -65,8 +64,8 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
     expect(spotted(await runPageTour(page, title)), title).toBeGreaterThan(0)
   }
   // Em combate, o tour da mesa mostra a iniciativa e a vez.
-  await page.getByRole('tab', { name: 'Na mesa' }).click()
-  await page.getByRole('button', { name: /^Começar/ }).click()
+  await page.getByRole('tab', { name: 'Painel do mestre' }).click()
+  await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
   // Com a sessão começada, o app vira o modo sessão, e o (?) explica a mesa inteira.

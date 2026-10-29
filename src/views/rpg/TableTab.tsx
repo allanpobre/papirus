@@ -1,114 +1,21 @@
-import { Dices, Flag, Maximize2, Megaphone, Minimize2, Minus, Play, Plus, ScrollText, Send, UserPlus, Users } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Dices, Minus, Plus, ScrollText, Send } from 'lucide-react'
+import { useState } from 'react'
 import { DiceError, roll } from '../../logic/dice'
 import type { RandomTable, Sheet } from '../../model/schema'
 import { patch } from '../../model/universe'
 import { resolveRoll, rollAttribute } from '../../rpg/rolls'
 import { adjustResource, isPool } from '../../rpg/sheets'
 import { makeSystem } from '../../rpg/systems'
-import { attendanceOf, sessionToStart } from '../../rpg/sessionLife'
+import { attendanceOf } from '../../rpg/sessionLife'
 import { useWorkspace } from '../../state/workspace'
-import { ConfirmButton } from '../../ui/ConfirmButton'
-import { InitiativeTracker } from './InitiativeTracker'
-import { AnnounceDialog } from './Announce'
 import { AttendanceSelect } from './Attendance'
-import { PresenceList } from './LiveTable'
-import { SecretsPanel } from './Secrets'
 import { useRpg } from './rpgContext'
 
+/*
+ * As peças da mesa usadas no modo sessão: o grupo, os dados, as tabelas e o registro.
+ */
 const QUICK = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
 const FALLBACK_SYSTEM = makeSystem('narrativo')
-
-/**
- * "Na mesa": tudo o que se usa durante o jogo numa tela só, com botões grandes
- * para tablet e celular. Iniciativa, grupo, dados, tabelas e o registro.
- */
-export function TableTab() {
-  const { universe, readOnly } = useWorkspace()
-  const { group, activeSession, startSession, endSession, invite } = useRpg()
-  const [full, setFull] = useState(false)
-  const [announcing, setAnnouncing] = useState(false)
-
-  useEffect(() => {
-    const onChange = () => setFull(Boolean(document.fullscreenElement))
-    document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [])
-
-  const toggleFull = () => {
-    if (document.fullscreenElement) void document.exitFullscreen()
-    else void document.documentElement.requestFullscreen?.().catch(() => undefined)
-  }
-
-  if (!activeSession) {
-    const next = sessionToStart(universe, group.id)
-    return (
-      <div className="table-start">
-        <p className="lede">Nenhuma sessão em andamento para {group.name}.</p>
-        <button type="button" className="btn btn-primary btn-lg" onClick={() => startSession(next.id ?? undefined)}>
-          <Play size={18} /> {next.id ? `Começar “${next.title}”` : `Começar a sessão ${next.number}`}
-        </button>
-        <p className="muted small">Na mesa, as rolagens e anotações vão direto para o registro da sessão.</p>
-        {!readOnly && (
-          <section className="table-start-who" aria-labelledby="mesa-quem">
-            <h2 id="mesa-quem" className="section-label">
-              <Users size={14} aria-hidden="true" /> Quem já está na mesa
-            </h2>
-            <PresenceList groupId={group.id} empty={group.share ? 'Ninguém abriu o link ainda.' : 'Os jogadores podem acompanhar pelo celular, cada um com a sua ficha.'} />
-            <button type="button" className="btn btn-sm" onClick={invite}>
-              <UserPlus size={14} /> Convidar jogadores
-            </button>
-          </section>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <div className="table-mode">
-      <div className="table-mode-bar">
-        <span className="eyebrow">Na mesa</span>
-        <strong className="table-mode-title">{activeSession.title}</strong>
-        <span className="muted small">{group.name}</span>
-        <span className="table-mode-acts">
-          {!readOnly && (
-            <button type="button" className="btn btn-primary btn-sm table-announce" onClick={() => setAnnouncing(true)}>
-              <Megaphone size={14} /> Anunciar
-            </button>
-          )}
-          <button type="button" className="btn btn-ghost btn-sm table-full" onClick={toggleFull}>
-            {full ? <Minimize2 size={14} /> : <Maximize2 size={14} />} {full ? 'Sair da tela cheia' : 'Tela cheia'}
-          </button>
-          {!readOnly && (
-            <ConfirmButton className="btn btn-sm table-end" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(activeSession.id)}>
-              <Flag size={14} /> Encerrar sessão
-            </ConfirmButton>
-          )}
-        </span>
-      </div>
-      <div className="table-grid">
-        <div className="table-panel table-initiative">
-          <InitiativeTracker session={activeSession} />
-        </div>
-        <section className="table-panel" aria-label="Grupo">
-          <h2 className="section-title">Grupo</h2>
-          <PartyCards />
-        </section>
-        <section className="table-panel" aria-label="Dados">
-          <h2 className="section-title">Dados</h2>
-          <QuickDice />
-          <TableRolls />
-        </section>
-        <SecretsPanel />
-        <section className="table-panel" aria-label="Registro">
-          <h2 className="section-title">Registro</h2>
-          <LogBox />
-        </section>
-      </div>
-      {announcing && <AnnounceDialog onClose={() => setAnnouncing(false)} />}
-    </div>
-  )
-}
 
 /** Os personagens de jogador na mesa. Com `onSheet`, cada cartão abre a ficha completa. */
 export function PartyCards({ onSheet }: { onSheet?: (sheetId: string) => void } = {}) {

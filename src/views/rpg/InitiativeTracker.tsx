@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { roll } from '../../logic/dice'
 import type { Session } from '../../model/schema'
 import { byId, insert, newId, patch } from '../../model/universe'
-import { initiativeOrder, isDown, lifeOf } from '../../rpg/combat'
+import { addCondition, conditionsOf, expireEffects, initiativeOrder, isDown, lifeOf, removeCondition, roundsLeft } from '../../rpg/combat'
 import { addMonsters, draftMonster, sortedMonsters } from '../../rpg/bestiary'
 import { attendanceOf } from '../../rpg/sessionLife'
 import { rollInitiative } from '../../rpg/rolls'
@@ -20,12 +20,14 @@ import { useRpg } from './rpgContext'
  */
 export function InitiativeTracker({ session }: { session: Session }) {
   const { universe, update } = useWorkspace()
-  const { system, group, logText } = useRpg()
+  const { system, group } = useRpg()
   const [name, setName] = useState('')
   const [value, setValue] = useState('')
   const [monsterId, setMonsterId] = useState('')
   const [count, setCount] = useState('1')
   const [editingMonster, setEditingMonster] = useState<string | null>(null)
+  // A condição escolhida espera a duração (até tirar, ou algumas rodadas).
+  const [adding, setAdding] = useState<{ entryId: string; name: string } | null>(null)
   const monsters = sortedMonsters(universe)
   const list = initiativeOrder(session)
   const turn = list.length ? session.turn % list.length : 0
@@ -43,7 +45,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
     if (!name.trim()) return
     const v = value.trim() ? Number(value) : rollFor(null)
     if (!Number.isFinite(v)) return
-    set({ initiative: [...session.initiative, { id: newId(), name: name.trim(), value: v, hp: '', note: '', sheetId: null, defense: null, attacks: [], monsterId: null }] })
+    set({ initiative: [...session.initiative, { id: newId(), name: name.trim(), value: v, hp: '', note: '', sheetId: null, defense: null, attacks: [], monsterId: null, conditions: [] }] })
     setName('')
     setValue('')
   }
@@ -55,7 +57,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
     set({
       initiative: [
         ...session.initiative,
-        ...sheets.map((s) => ({ id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: attendanceOf(session, s.id) === 'mestre' ? 'mestre conduz' : '', sheetId: s.id, defense: null, attacks: [], monsterId: null })),
+        ...sheets.map((s) => ({ id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: attendanceOf(session, s.id) === 'mestre' ? 'mestre conduz' : '', sheetId: s.id, defense: null, attacks: [], monsterId: null, conditions: [] })),
       ],
     })
   }
@@ -82,8 +84,15 @@ export function InitiativeTracker({ session }: { session: Session }) {
       }
       if (!skips(t)) break
     }
-    if (round > session.round) logText(`Rodada ${round}`, 'nota')
-    set({ turn: t, round })
+    if (round <= session.round) return set({ turn: t, round })
+    // A rodada virou: as condições que venceram acabam, e o registro conta.
+    const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    update((u) => {
+      const { universe: v, ended } = expireEffects(patch(u, 'sessions', session.id, { turn: t, round }), session.id)
+      const s = byId(v, 'sessions', session.id)!
+      if (s.status !== 'em-andamento') return v
+      return patch(v, 'sessions', s.id, { log: [...s.log, ...[`Rodada ${round}`, ...ended].map((text) => ({ id: newId(), at, text, kind: 'nota' as const }))] })
+    })
   }
 
   const npcSheets = universe.sheets.filter((s) => s.groupId === group.id && s.role === 'npc' && !session.initiative.some((i) => i.sheetId === s.id))
@@ -181,26 +190,57 @@ export function InitiativeTracker({ session }: { session: Session }) {
                     />
                   </span>
                 )}
-                {sheet && system?.features.conditions ? (
+                {system?.features.conditions && system.conditions.length > 0 ? (
                   <span className="init-conditions">
-                    {sheet.conditions.map((cond) => (
-                      <button key={cond} type="button" className="chip chip-condition" aria-pressed="true" title="Remover condição" onClick={() => update((u) => patch(u, 'sheets', sheet.id, { conditions: sheet.conditions.filter((x) => x !== cond) }))}>
-                        {cond} ×
-                      </button>
-                    ))}
-                    <select
-                      className="input select input-sm init-add-cond"
-                      aria-label={`Adicionar condição a ${c.name}`}
-                      value=""
-                      onChange={(e) => e.target.value && update((u) => patch(u, 'sheets', sheet.id, { conditions: [...sheet.conditions, e.target.value] }))}
-                    >
-                      <option value="">+ condição</option>
-                      {system.conditions.filter((x) => !sheet.conditions.includes(x)).map((x) => (
-                        <option key={x} value={x}>
-                          {x}
+                    {conditionsOf(universe, c).map((cond) => {
+                      const left = roundsLeft(session, c.id, cond)
+                      return (
+                        <button key={cond} type="button" className="chip chip-condition" aria-pressed="true" aria-label={`Tirar ${cond} de ${c.name}`} title="Tirar a condição" onClick={() => update((u) => removeCondition(u, session.id, c.id, cond))}>
+                          {cond}
+                          {left !== null && <span className="cond-left">{left === 1 ? 'última rodada' : `${left} rodadas`}</span>} ×
+                        </button>
+                      )
+                    })}
+                    {adding?.entryId === c.id ? (
+                      <select
+                        className="input select input-sm init-add-cond"
+                        aria-label={`Quanto tempo dura ${adding.name} em ${c.name}`}
+                        autoFocus
+                        value=""
+                        onBlur={() => setAdding(null)}
+                        onChange={(e) => {
+                          const rounds = Number(e.target.value)
+                          update((u) => addCondition(u, session.id, c.id, adding.name, rounds || null))
+                          setAdding(null)
+                        }}
+                      >
+                        <option value="" disabled>
+                          {adding.name}: por quanto tempo?
                         </option>
-                      ))}
-                    </select>
+                        <option value="0">Até tirar</option>
+                        {[1, 2, 3, 5, 10].map((n) => (
+                          <option key={n} value={n}>
+                            {n} {n === 1 ? 'rodada' : 'rodadas'}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <select
+                        className="input select input-sm init-add-cond"
+                        aria-label={`Adicionar condição a ${c.name}`}
+                        value=""
+                        onChange={(e) => e.target.value && setAdding({ entryId: c.id, name: e.target.value })}
+                      >
+                        <option value="">+ condição</option>
+                        {system.conditions
+                          .filter((x) => !conditionsOf(universe, c).includes(x))
+                          .map((x) => (
+                            <option key={x} value={x}>
+                              {x}
+                            </option>
+                          ))}
+                      </select>
+                    )}
                   </span>
                 ) : (
                   <input className="input input-sm init-note" aria-label={`Notas de ${c.name}`} placeholder="Condições…" value={c.note} onChange={(e) => set({ initiative: session.initiative.map((x) => (x.id === c.id ? { ...x, note: e.target.value } : x)) })} />
@@ -231,7 +271,7 @@ export function InitiativeTracker({ session }: { session: Session }) {
             value=""
             onChange={(e) => {
               const s = npcSheets.find((x) => x.id === e.target.value)
-              if (s) set({ initiative: [...session.initiative, { id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: '', sheetId: s.id, defense: null, attacks: [], monsterId: null }] })
+              if (s) set({ initiative: [...session.initiative, { id: newId(), name: s.name, value: rollFor(s.id), hp: '', note: '', sheetId: s.id, defense: null, attacks: [], monsterId: null, conditions: [] }] })
             }}
           >
             <option value="">+ NPC da mesa</option>

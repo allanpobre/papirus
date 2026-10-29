@@ -24,6 +24,11 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
                 <span className="codex-order-name">{e.name}</span>
                 {e.current && <span className="codex-order-tag">na vez</span>}
                 {e.down && <span className="codex-order-tag is-down">derrotado</span>}
+                {e.conditions?.map((c) => (
+                  <span key={c} className="codex-order-tag is-cond">
+                    {c}
+                  </span>
+                ))}
               </li>
             ))}
           </ol>

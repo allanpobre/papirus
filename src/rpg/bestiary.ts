@@ -43,6 +43,7 @@ export function addMonsters(u: Universe, sessionId: string, monsterId: string, c
     defense: m.defense,
     attacks: m.attacks.map((a) => ({ ...a, id: newId() })),
     monsterId: m.id,
+    conditions: [],
   }))
   return patch(u, 'sessions', s.id, { initiative: [...s.initiative, ...entries] })
 }
