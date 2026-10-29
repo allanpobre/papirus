@@ -191,6 +191,8 @@ export interface LibraryEntry {
   sheets?: number
   /** Tema da mesa (o do primeiro grupo), para o cartão no setor RPG. "nenhum" = cores do app. */
   theme?: string
+  /** É a versão da nuvem de outro universo, guardada ao lado (o id do original). */
+  cloudCopyOf?: string
 }
 
 /** Índice dos universos guardados neste navegador. */
@@ -243,6 +245,7 @@ export class Library {
       ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
       kind: universeKind(universe),
       ...(universe.groups.length ? tableInfo(universe) : {}),
+      ...(universe.cloudCopyOf ? { cloudCopyOf: universe.cloudCopyOf } : {}),
     }
     const i = list.findIndex((e) => e.id === universe.id)
     if (i >= 0) list[i] = entry

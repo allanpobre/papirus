@@ -318,7 +318,7 @@ export const NOTICE_TONES = ['aviso', 'perigo', 'misterio'] as const
 
 
 /** O que o mestre pede para rolar: uma perícia, um atributo ou uma rolagem livre. */
-export const REQUEST_KINDS = ['pericia', 'atributo', 'livre'] as const
+export const REQUEST_KINDS = ['pericia', 'atributo', 'livre', 'iniciativa'] as const
 
 export const sessionSchema = z.object({
   id,
@@ -349,8 +349,15 @@ export const sessionSchema = z.object({
       monsterId: ref.default(null),
       /** Condições de quem não tem ficha (quem tem ficha usa as da ficha). */
       conditions: z.array(z.string()).default([]),
+      /** Já tem iniciativa (o jogador ainda rolando no celular fica `false`). */
+      rolled: z.boolean().default(true),
     }),
   ),
+  /**
+   * O combate: '' (sem combate, ou um antigo já em turnos), 'iniciativa' (os jogadores
+   * estão rolando) ou 'turnos' (a ordem está definida).
+   */
+  fight: z.enum(['', 'iniciativa', 'turnos']).default(''),
   /** Quando a sessão começou (a abertura e o tempo de jogo contam daí). */
   startedAt: z.string().nullable().default(null),
   /**
@@ -596,6 +603,8 @@ export const universeSchema = z.object({
   /** A estante: os livros deste universo. */
   books: z.array(bookRecordSchema).default([]),
   history: z.array(historyEntrySchema).default([]),
+  /** Cópia guardada da versão da nuvem de outro universo (quando os dois lados mudaram): o id do original. */
+  cloudCopyOf: z.string().nullable().default(null),
   settings: universeSettingsSchema,
   /** Total de palavras no início de cada dia (AAAA-MM-DD), para metas diárias. */
   dailyStart: z.record(z.string(), z.number()),

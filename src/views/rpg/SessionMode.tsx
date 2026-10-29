@@ -7,6 +7,7 @@ import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { Modal } from '../../ui/Modal'
+import { MoreMenu } from '../../ui/MoreMenu'
 import { PageHelp } from '../../ui/PageTour'
 import { useMediaQuery } from '../../ui/useMediaQuery'
 import { AnnounceDialog } from './Announce'
@@ -159,34 +160,62 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
         <SessionClock startedAt={session.startedAt} />
         {!readOnly && <MesaPresence group={group} onInvite={invite} />}
         <div className="sm-acts">
-          {diceMode}
           {!readOnly && (
-            <button type="button" className="btn btn-sm sm-ask" aria-label="Pedir teste" onClick={() => setAsking(true)}>
-              <ListChecks size={15} /> <span className="sm-act-label">Pedir teste</span>
+            <button type="button" className="btn btn-sm sm-ask" onClick={() => setAsking(true)}>
+              <ListChecks size={15} /> Pedir teste
             </button>
           )}
           {!readOnly && (
-            <button type="button" className="btn btn-primary btn-sm sm-announce" aria-label="Anunciar" onClick={() => setAnnouncing(true)}>
-              <Megaphone size={15} /> <span className="sm-act-label">Anunciar</span>
+            <button type="button" className="btn btn-primary btn-sm sm-announce" onClick={() => setAnnouncing(true)}>
+              <Megaphone size={15} /> Anunciar
             </button>
           )}
           <PageHelp tour="sessao" />
-          {!readOnly && (
-            <button type="button" className="btn-icon sm-theme" aria-label="Tema da mesa" title="Tema da mesa" onClick={onTheme}>
-              <Palette size={16} />
-            </button>
-          )}
-          <button type="button" className="btn-icon sm-full" aria-label={full ? 'Sair da tela cheia' : 'Tela cheia'} title={full ? 'Sair da tela cheia' : 'Tela cheia'} onClick={toggleFull}>
-            {full ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
-          <button type="button" className="btn btn-ghost btn-sm sm-leave" aria-label="Sair do modo sessão" title="Sair do modo sessão: a sessão continua, e dá para voltar de qualquer lugar" onClick={onLeave}>
-            <X size={15} /> <span className="sm-act-label">Sair</span>
-          </button>
-          {!readOnly && (
-            <ConfirmButton className="btn btn-sm sm-end" title="Encerrar sessão" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(session.id)}>
-              <Flag size={15} /> <span className="sm-act-label">Encerrar sessão</span>
-            </ConfirmButton>
-          )}
+          <MoreMenu label="Mais da sessão">
+            {(close) => (
+              <div className="sm-more">
+                <div className="sm-more-dice">{diceMode}</div>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      onTheme()
+                    }}
+                  >
+                    <Palette size={16} /> Tema da mesa
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="more-menu-item"
+                  onClick={() => {
+                    close()
+                    toggleFull()
+                  }}
+                >
+                  {full ? <Minimize2 size={16} /> : <Maximize2 size={16} />} {full ? 'Sair da tela cheia' : 'Tela cheia'}
+                </button>
+                <button
+                  type="button"
+                  className="more-menu-item sm-leave"
+                  title="A sessão continua, e dá para voltar de qualquer lugar"
+                  onClick={() => {
+                    close()
+                    onLeave()
+                  }}
+                >
+                  <X size={16} /> Sair do modo sessão
+                </button>
+                {!readOnly && (
+                  <ConfirmButton className="more-menu-item more-menu-danger sm-end" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(session.id)}>
+                    <Flag size={16} /> Encerrar sessão
+                  </ConfirmButton>
+                )}
+              </div>
+            )}
+          </MoreMenu>
         </div>
       </header>
 

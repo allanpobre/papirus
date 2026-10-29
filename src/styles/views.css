@@ -3410,11 +3410,10 @@ code {
   grid-template-columns: 2.6rem minmax(0, 1fr);
   gap: 0.55rem;
   align-items: center;
-  opacity: 0.72;
 }
 
+/* A mais nova em destaque (o d20 maior); as de antes ficam legíveis, sem apagar o texto. */
 .player-roll:first-child {
-  opacity: 1;
   animation: rise 0.2s ease-out;
 }
 
@@ -5874,4 +5873,286 @@ button.arc-dot {
 }
 .codex-pc-abilities li {
   flex-direction: column;
+}
+
+/* ─── O combate em passos: começar, rolar a iniciativa, os turnos ─── */
+.fight-start {
+  align-items: center;
+  text-align: center;
+  padding-block: 1.6rem 1.2rem;
+}
+
+.fight-start .section-title {
+  margin: 0;
+}
+
+.fight-start p {
+  max-width: 30ch;
+  margin: 0;
+}
+
+.fight-start-icon {
+  display: grid;
+  place-items: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 50%;
+  background: var(--accent-faint);
+  color: var(--accent);
+}
+
+.fight-go {
+  min-height: 46px;
+  padding-inline: 1.4rem;
+  font-size: 1rem;
+}
+
+.fight-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fight-head .section-title {
+  margin: 0;
+}
+
+.fight-end {
+  margin-left: auto;
+}
+
+.fight .section-label {
+  margin: 0.4rem 0 0;
+}
+
+.fight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fight-row {
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.fight-row.current {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.fight-row.down {
+  background: var(--surface-2);
+}
+
+.fight-row.down .init-name-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.fight-row.is-waiting {
+  border-style: dashed;
+}
+
+.fight-line {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.fight-line {
+  cursor: pointer;
+  min-height: 52px;
+}
+
+.fight-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.fight-name > strong {
+  font-weight: 650;
+}
+
+.fight-name .tiny {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.fight-meta {
+  flex-basis: 100%;
+}
+
+.fight-chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+
+.fight-row.is-open .fight-chevron {
+  transform: rotate(180deg);
+}
+
+.fight-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.8rem;
+  padding: 0.2rem 0.6rem 0.65rem;
+  border-top: 1px dashed var(--line);
+  padding-top: 0.6rem;
+}
+
+.fight-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fight-field .field-label {
+  margin: 0;
+}
+
+.fight-field .init-hp {
+  width: 4.6rem;
+}
+
+.fight-field .init-def,
+.fight-field .init-value {
+  width: 3.6rem;
+  text-align: center;
+}
+
+.fight-edit .init-conditions,
+.fight-edit .init-note {
+  flex-basis: 100%;
+}
+
+.fight-remove {
+  margin-left: auto;
+}
+
+.fight-type {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0 0.6rem 0.55rem 3.85rem;
+}
+
+.fight-type .input {
+  width: 5rem;
+}
+
+.fight-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.fight-foot p {
+  margin: 0;
+}
+
+.fight-foot .btn-ghost {
+  align-self: center;
+}
+
+.fight-step {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.fight-next {
+  flex: 1;
+  min-height: 46px;
+  font-size: 1rem;
+}
+
+.fight-more > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.fight-more[open] > summary {
+  margin-bottom: 0.4rem;
+}
+
+.fight-add {
+  padding: 0.6rem;
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+/* A última rolagem (bandeja do mestre e celular do jogador) cai num d20 que gira. */
+.d20.tray-total,
+.d20.player-roll-total {
+  justify-self: center;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.25rem;
+}
+
+.tray-roll .d20.tray-total,
+.player-roll .d20.player-roll-total {
+  color: var(--accent-ink);
+}
+
+.tray-roll .d20[data-spin].tray-total,
+.player-roll .d20[data-spin].player-roll-total {
+  color: transparent;
+}
+
+.tone-falha .d20,
+.tone-desastre .d20 {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--danger) 70%, #fff), var(--danger) 70%);
+}
+
+/* Cartão do personagem na sessão: nome e vida à vista; o resto abre num toque. */
+.pc-more > summary {
+  cursor: pointer;
+  color: var(--ink-2);
+  padding: 0.2rem 0;
+}
+
+.pc-more[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.pc-more[open] > summary {
+  color: var(--accent);
+}
+
+.pc-cond-now {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 600;
 }

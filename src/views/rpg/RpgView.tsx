@@ -11,6 +11,7 @@ import { critDamage, damageAfter, describeOutcome, landed, type RollOutcome } fr
 import { onIncomingRoll } from '../../share/useTableRolls'
 import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
+import { RollingDie } from '../../ui/RollingDie'
 import { Empty } from '../../ui/bits'
 import { Modal } from '../../ui/Modal'
 import { useMediaQuery } from '../../ui/useMediaQuery'
@@ -301,7 +302,7 @@ export default function RpgView() {
             const crit = r.outcome.tone === 'critico'
             return (
               <div key={r.id} className={`tray-roll tone-${r.outcome.tone}${i === 0 ? ' tray-latest' : ''}`}>
-                <span className="tray-total tabular">{r.outcome.result.total}</span>
+                {i === 0 ? <RollingDie value={r.outcome.result.total} fresh className="tray-total" /> : <span className="tray-total tabular">{r.outcome.result.total}</span>}
                 <span className="tray-body">
                   <span className="tray-label">
                     {r.who ? `${r.who} · ` : ''}

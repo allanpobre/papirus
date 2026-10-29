@@ -8,7 +8,8 @@ import { mesaTheme } from '../rpg/themes'
 import { conditionsOf, initiativeOrder, isDown, roundsLeft } from '../rpg/combat'
 import { attendanceOf, recentNotices } from '../rpg/sessionLife'
 import { openRequests, requestTargets } from '../rpg/requests'
-import { attributeExpression, bonusLabel, damageExpression, skillExpression, type RollRules } from '../rpg/rolls'
+import { fightPhase } from '../rpg/fight'
+import { attributeExpression, bonusLabel, damageExpression, expandFormula, skillExpression, type RollRules } from '../rpg/rolls'
 import { costResource, critFrom, critMult, isPool } from '../rpg/sheets'
 
 /**
@@ -54,7 +55,7 @@ export interface CodexSnapshot {
   /** A sessão em andamento: os jogadores veem quando ela começa e quando termina. */
   session?: { number: number; title: string; startedAt: string | null } | null
   /** Os testes que o mestre pediu e ainda estão abertos (sem a dificuldade): para quem, e quem já rolou. */
-  requests?: { id: string; kind: 'pericia' | 'atributo' | 'livre'; name: string; expression: string; who: string[]; done: string[] }[]
+  requests?: { id: string; kind: 'pericia' | 'atributo' | 'livre' | 'iniciativa'; name: string; expression: string; who: string[]; done: string[] }[]
   /** O diário da campanha: os resumos que o mestre publicou, sessão por sessão. */
   journal?: { number: number; title: string; when: string; text: string }[]
   /** Os últimos avisos do mestre na sessão em andamento ("Um inimigo aparece!"). */
@@ -65,7 +66,7 @@ export interface CodexSnapshot {
 
 /** Uma rolagem da ficha, pronta para o Codex. */
 export interface CodexRoll {
-  kind: 'atributo' | 'pericia' | 'ataque'
+  kind: 'atributo' | 'pericia' | 'ataque' | 'iniciativa'
   name: string
   expression: string
   /** Perícia treinada (aparece primeiro). */
@@ -78,10 +79,20 @@ export interface CodexRoll {
   mult?: number
 }
 
+/** A iniciativa do personagem, já com os números da ficha ("1d20+3"). */
+function initiativeOf(system: GameSystem, s: Sheet): CodexRoll[] {
+  try {
+    return [{ kind: 'iniciativa', name: 'Iniciativa', expression: expandFormula(system.initiativeFormula, { system, sheet: s }) }]
+  } catch {
+    return []
+  }
+}
+
 function rollsOf(system: GameSystem, s: Sheet): CodexRoll[] {
   const below = system.resolution === 'abaixo'
   const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))
   return [
+    ...initiativeOf(system, s),
     ...(s.attacks ?? []).map((a): CodexRoll => ({
       kind: 'ataque',
       name: a.name || 'Ataque',
@@ -114,7 +125,8 @@ function liveSession(universe: Universe, groupId: string): CodexSnapshot['sessio
 /** O combate da sessão em andamento da mesa, como os jogadores podem ver. */
 function combatOf(universe: Universe, groupId: string): CodexSnapshot['combat'] {
   const session = universe.sessions.find((x) => x.groupId === groupId && x.status === 'em-andamento')
-  if (!session?.initiative.length) return null
+  // Enquanto todos rolam a iniciativa, ainda não há ordem nem vez.
+  if (!session || fightPhase(session) !== 'turnos') return null
   const order = initiativeOrder(session)
   const turn = session.turn % order.length
   return {

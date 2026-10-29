@@ -100,9 +100,35 @@ describe('universos na nuvem', () => {
     await put(a, later(base, 2000, 'Ostria (aqui)'))
     await sb.from('papirus_universes').upsert({ id: u.id, name: 'x', words: 0, data: { schemaVersion: 2, revision: 0, universe: later(base, 3000, 'Ostria (lá)') }, updated_at: later(base, 3000).updatedAt, deleted: false } as never)
     expect(await syncAll(sb, 'ana', a)).toMatchObject({ conflicts: 1 })
-    const names = (await a.list()).map((e) => e.name).sort()
-    expect(names).toEqual(['Ostria (aqui)', 'Ostria (lá) (versão da nuvem)'])
+    // A cópia leva o nome de lá, sem "(versão da nuvem)" no título: a marca fica no cartão.
+    const list = await a.list()
+    expect(list.map((e) => e.name).sort()).toEqual(['Ostria (aqui)', 'Ostria (lá)'])
+    const copy = list.find((e) => e.cloudCopyOf === u.id)!
+    expect(copy.name).toBe('Ostria (lá)')
     expect((cloud.get(u.id)!.data as { universe: Universe }).universe.name).toBe('Ostria (aqui)')
+    // A cópia fica só neste aparelho.
+    expect(cloud.has(copy.id)).toBe(false)
+
+    // Outra vez os dois mudaram: a cópia é trocada, não empilhada.
+    const again = (await a.repository(u.id).load())!
+    await put(a, later(again, 4000, 'Ostria (aqui 2)'))
+    await sb.from('papirus_universes').upsert({ id: u.id, name: 'x', words: 0, data: { schemaVersion: 2, revision: 0, universe: later(again, 5000, 'Ostria (lá 2)') }, updated_at: later(again, 5000).updatedAt, deleted: false } as never)
+    await syncAll(sb, 'ana', a)
+    const copies = (await a.list()).filter((e) => e.cloudCopyOf === u.id)
+    expect(copies.map((e) => [e.id, e.name])).toEqual([[copy.id, 'Ostria (lá 2)']])
+  })
+
+  it('se os dois lados ficaram iguais, não guarda cópia', async () => {
+    const a = await device()
+    const sb = fakeSupabase(cloud, 'ana')
+    const u = createUniverse('Igual')
+    await put(a, u)
+    await syncAll(sb, 'ana', a)
+    const same = later(u, 1000, 'Igual 2')
+    await put(a, same)
+    await sb.from('papirus_universes').upsert({ id: u.id, name: 'x', words: 0, data: { schemaVersion: 2, revision: 0, universe: { ...same, updatedAt: later(u, 2000).updatedAt } }, updated_at: later(u, 2000).updatedAt, deleted: false } as never)
+    expect(await syncAll(sb, 'ana', a)).toMatchObject({ conflicts: 0 })
+    expect((await a.list()).length).toBe(1)
   })
 
   it('apagar em um aparelho apaga nos outros, a menos que tenham mexido', async () => {

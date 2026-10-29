@@ -1278,3 +1278,69 @@ input[type='radio'] {
   display: block;
   background: var(--surface-2);
 }
+
+/* O d20 que gira (as rolagens da mesa e a iniciativa). */
+.d20 {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent) 70%);
+  clip-path: polygon(50% 0, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.d20[data-spin] {
+  color: transparent;
+}
+
+.d20[data-spin]::after {
+  content: attr(data-spin);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--accent-ink);
+}
+
+.d20.is-rolling {
+  animation: d20-shake 0.2s linear infinite;
+}
+
+.d20.is-waiting {
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  color: var(--ink-2);
+  animation: d20-wait 1.6s ease-in-out infinite;
+}
+
+@keyframes d20-shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-14deg) translateY(-2px);
+  }
+  75% {
+    transform: rotate(12deg) translateY(1px);
+  }
+}
+
+@keyframes d20-wait {
+  50% {
+    transform: rotate(-8deg) scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .d20.is-rolling,
+  .d20.is-waiting {
+    animation: none;
+  }
+}
