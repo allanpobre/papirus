@@ -5,7 +5,7 @@ import { formatYear, kindPlural } from '../model/labels'
 import type { GameSystem, Sheet, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { mesaTheme } from '../rpg/themes'
-import { initiativeOrder, isDown } from '../rpg/combat'
+import { conditionsOf, initiativeOrder, isDown, roundsLeft } from '../rpg/combat'
 import { attendanceOf, recentNotices } from '../rpg/sessionLife'
 import { openRequests, requestTargets } from '../rpg/requests'
 import { attributeExpression, bonusLabel, damageExpression, skillExpression, type RollRules } from '../rpg/rolls'
@@ -60,7 +60,7 @@ export interface CodexSnapshot {
   /** Os últimos avisos do mestre na sessão em andamento ("Um inimigo aparece!"). */
   notices?: { id: string; at: string; text: string; tone: 'aviso' | 'perigo' | 'misterio' }[]
   /** Combate em andamento: a ordem e de quem é a vez. A vida e a Defesa dos inimigos não vêm. */
-  combat?: { round: number; order: { id: string; name: string; pc: boolean; current: boolean; down: boolean }[] } | null
+  combat?: { round: number; order: { id: string; name: string; pc: boolean; current: boolean; down: boolean; conditions?: string[] }[] } | null
 }
 
 /** Uma rolagem da ficha, pronta para o Codex. */
@@ -121,7 +121,11 @@ function combatOf(universe: Universe, groupId: string): CodexSnapshot['combat'] 
     round: session.round,
     order: order.map((e, i) => {
       const sheet = e.sheetId ? byId(universe, 'sheets', e.sheetId) : undefined
-      return { id: e.id, name: e.name, pc: sheet?.role === 'pj', current: i === turn, down: isDown(universe, e) }
+      const conditions = conditionsOf(universe, e).map((c) => {
+        const left = roundsLeft(session, e.id, c)
+        return left === null ? c : `${c} (${left})`
+      })
+      return { id: e.id, name: e.name, pc: sheet?.role === 'pj', current: i === turn, down: isDown(universe, e), ...(conditions.length ? { conditions } : {}) }
     }),
   }
 }

@@ -2685,3 +2685,33 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
 .codex-journal-entry p {
   margin: 0.4rem 0 0;
 }
+
+/* Criar personagem: nome, de quem é e quem joga, cada um na sua linha na coluna estreita. */
+[aria-label='Personagens da mesa'] .quick-create > .input {
+  flex: 1 1 100%;
+}
+
+.quick-role {
+  flex: 1 1 auto;
+}
+
+/* Condições com duração e o "Desfazer" do dano. */
+.cond-left {
+  margin-left: 0.3rem;
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+.cond-left::before {
+  content: '· ';
+}
+
+.tray-undo {
+  margin: 0 0 0 0.4rem;
+  min-height: 24px;
+  padding-block: 0.1rem;
+}
+
+.codex-order-tag.is-cond {
+  color: var(--violet);
+}

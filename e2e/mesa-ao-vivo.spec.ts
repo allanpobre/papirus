@@ -46,8 +46,7 @@ async function ostria(page: Page, baseURL: string) {
 /** Ostria com uma sessão em andamento e um combate: Brisa (20), Taren (15), Ilmar (10), Bandido (2) e Goblin (1). */
 async function combat(page: Page, baseURL: string) {
   await ostria(page, baseURL)
-  await page.getByRole('tab', { name: 'Na mesa' }).click()
-  await page.getByRole('button', { name: /^Começar/ }).click()
+  await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
 
   const init = page.getByRole('region', { name: 'Iniciativa' })
@@ -96,8 +95,19 @@ test('combate na mesa: em quem, acerta ou erra pela CA, e o dano sai da vida do 
   await quanto.getByRole('button', { name: 'Registrar' }).click()
   await tray(page).getByRole('button', { name: 'Tirar 9 PV de Goblin' }).click()
   await expect(tray(page)).toContainText('Goblin: PV -2/7 · derrotado')
+  // Tirou errado? Desfazer devolve a vida; e dá para tirar de novo.
+  await tray(page).getByRole('button', { name: 'Desfazer o dano em Goblin' }).click()
+  await expect(init.getByRole('textbox', { name: 'PV de Goblin' })).toHaveValue('7')
+  await expect(page.getByRole('region', { name: 'Registro' })).toContainText('Desfeito: 9 de dano em Goblin')
+  await tray(page).getByRole('button', { name: 'Tirar 9 PV de Goblin' }).click()
+  await expect(tray(page)).toContainText('Goblin: PV -2/7 · derrotado')
   await expect(init.locator('.init-row', { hasText: 'Goblin' })).toContainText('derrotado')
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('Goblin perde 9 PV (fica com -2/7) · derrotado')
+
+  // Uma condição por uma rodada: acaba sozinha quando a rodada vira.
+  await init.getByRole('combobox', { name: 'Adicionar condição a Ilmar' }).selectOption('Atordoado')
+  await init.getByRole('combobox', { name: 'Quanto tempo dura Atordoado em Ilmar' }).selectOption({ label: '1 rodada' })
+  await expect(init.getByRole('button', { name: 'Tirar Atordoado de Ilmar' })).toContainText('última rodada')
 
   // O ataque rápido de quem não tem ficha, e a vez que pula os inimigos derrotados.
   for (let i = 0; i < 3; i++) await init.getByRole('button', { name: /Próxima vez/ }).click()
@@ -112,6 +122,8 @@ test('combate na mesa: em quem, acerta ou erra pela CA, e o dano sai da vida do 
   await expect(tray(page).getByRole('button', { name: 'Rolar dano crítico (2d6+2)' })).toBeVisible()
   await init.getByRole('button', { name: /Próxima vez/ }).click()
   await expect(init.getByText('Rodada 2')).toBeVisible()
+  await expect(init.getByRole('button', { name: 'Tirar Atordoado de Ilmar' })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Registro' })).toContainText('Atordoado acabou em Ilmar.')
   await expect(page.getByRole('region', { name: 'Vez de Brisa' })).toBeVisible()
 })
 

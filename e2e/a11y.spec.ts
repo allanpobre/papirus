@@ -30,7 +30,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.waitForTimeout(400)
       found.push(...(await audit(page, area)))
     }
-    for (const tab of ['Na mesa', 'Sessões', 'Personagens', 'Revelações e Codex', 'Dados e tabelas', 'Sistemas']) {
+    for (const tab of ['Sessões', 'Personagens', 'Revelações e Codex', 'Dados e tabelas', 'Sistemas']) {
       await nav(page, 'RPG').click()
       const t = page.getByRole('tab', { name: tab })
       await t.click()

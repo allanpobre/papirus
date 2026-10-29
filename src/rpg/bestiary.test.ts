@@ -28,7 +28,7 @@ describe('bestiário', () => {
   })
 
   it('um combatente avulso vira inimigo pronto', () => {
-    const entry = { id: 'x', name: 'Bandido 2', value: 10, hp: '3/11', note: '', sheetId: null, defense: 13, attacks: [], monsterId: null }
+    const entry = { id: 'x', name: 'Bandido 2', value: 10, hp: '3/11', note: '', sheetId: null, defense: 13, attacks: [], monsterId: null, conditions: [] }
     expect(monsterFromEntry(entry, { bonus: 4, damage: '1d6+2' })).toMatchObject({ name: 'Bandido', hp: 11, defense: 13, attacks: [{ name: 'Ataque', bonus: 4, damage: '1d6+2' }] })
     expect(monsterFromEntry(entry, null).attacks).toEqual([])
   })

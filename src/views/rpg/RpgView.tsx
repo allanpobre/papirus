@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, Crown, Dices, Eye, Palette, Settings2, Swords, Users, X, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Crown, Dices, Eye, Palette, Settings2, Swords, Undo2, Users, X, type LucideIcon } from 'lucide-react'
 import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../../styles/mesa.css'
@@ -6,7 +6,7 @@ import { tabListKeys } from '../../ui/keys'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MesaGate } from './MesaGate'
 import { draftGroup, insert, newId, patch } from '../../model/universe'
-import { applyDamage, lifeOf } from '../../rpg/combat'
+import { applyDamage, lifeBefore, lifeOf, restoreLife, type LifeBefore } from '../../rpg/combat'
 import { critDamage, damageAfter, describeOutcome, landed, type RollOutcome } from '../../rpg/rolls'
 import { onIncomingRoll } from '../../share/useTableRolls'
 import { recall, remember } from '../../state/prefs'
@@ -31,14 +31,12 @@ import { RpgContext, type RpgState } from './rpgContext'
 import { SessionsTab } from './SessionsTab'
 import { SheetsTab } from './SheetsTab'
 import { SystemsTab } from './SystemsTab'
-import { TableTab } from './TableTab'
 import { PageHelp } from '../../ui/PageTour'
 
-export type RpgTab = 'mesa' | 'mestre' | 'sessoes' | 'personagens' | 'sistemas' | 'codex' | 'dados'
+export type RpgTab = 'mestre' | 'sessoes' | 'personagens' | 'sistemas' | 'codex' | 'dados'
 
 const TABS: [RpgTab, string, LucideIcon][] = [
   ['mestre', 'Painel do mestre', Crown],
-  ['mesa', 'Na mesa', Swords],
   ['sessoes', 'Sessões', CalendarDays],
   ['personagens', 'Personagens', Users],
   ['codex', 'Revelações e Codex', Eye],
@@ -94,6 +92,8 @@ interface TrayRoll {
   remote?: boolean
   /** O dano deste ataque já foi rolado. */
   followed?: boolean
+  /** Como a vida do alvo estava antes do dano: para o "Desfazer". */
+  before?: LifeBefore
 }
 
 export default function RpgView() {
@@ -101,7 +101,12 @@ export default function RpgView() {
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const dark = prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark)
   const [picking, setPicking] = useState(false)
-  const [tab, setTab] = useState<RpgTab>(() => (nav.view === 'rpg' && nav.id ? 'sessoes' : ((recall('rpg-aba') as RpgTab) || 'mestre')))
+  const [tab, setTab] = useState<RpgTab>(() => {
+    if (nav.view === 'rpg' && nav.id) return 'sessoes'
+    const saved = recall('rpg-aba') as RpgTab | null
+    // A antiga aba "Na mesa" virou o modo sessão: quem a deixou aberta volta ao Painel.
+    return saved && TABS.some(([t]) => t === saved) ? saved : 'mestre'
+  })
   const [groupId, setGroupId] = useState<string | null>(() => recall(`rpg-grupo:${universe.id}`) ?? universe.groups[0]?.id ?? null)
   const [groupName, setGroupName] = useState('')
   const [tray, setTray] = useState<TrayRoll[]>([])
@@ -165,10 +170,20 @@ export default function RpgView() {
     const amount = r.outcome.result.total
     const done = applyDamage(universe, activeSession.id, target.id, amount)
     if (!done) return
+    const before = lifeBefore(universe, activeSession.id, target.id) ?? undefined
     update((u) => applyDamage(u, activeSession.id, target.id, amount)?.universe ?? u)
     const now = `${done.current}${done.max !== null ? `/${done.max}` : ''}`
     logText(`${done.name} perde ${amount} ${done.abbr} (fica com ${now})${done.down ? ' · derrotado' : ''}`)
-    setTray((t) => t.map((x) => (x.id === r.id ? { ...x, applied: `${done.name}: ${done.abbr} ${now}${done.down ? ' · derrotado' : ''}` } : x)))
+    setTray((t) => t.map((x) => (x.id === r.id ? { ...x, applied: `${done.name}: ${done.abbr} ${now}${done.down ? ' · derrotado' : ''}`, before } : x)))
+  }
+
+  // Tirou o dano errado: a vida volta como estava, e o registro conta.
+  const undoHurt = (r: TrayRoll) => {
+    if (!activeSession || !r.before) return
+    const before = r.before
+    update((u) => restoreLife(u, activeSession.id, before))
+    logText(`Desfeito: ${r.outcome.result.total} de dano em ${r.outcome.combat?.target.name ?? 'alvo'}`)
+    setTray((t) => t.map((x) => (x.id === r.id ? { ...x, applied: undefined, before: undefined } : x)))
   }
 
   // A sessão como evento: a abertura em tela cheia ao começar, o resumo ao terminar.
@@ -184,8 +199,9 @@ export default function RpgView() {
         started = sid
         return next
       })
-      setTab('mesa')
-      remember('rpg-aba', 'mesa')
+      // Ao terminar, a mesa volta para o Painel do mestre (durante o jogo, quem manda é o modo sessão).
+      setTab('mestre')
+      remember('rpg-aba', 'mestre')
       setOutsideSession(null)
       setOpening(started)
     },
@@ -320,7 +336,16 @@ export default function RpgView() {
                     ) : (
                       <span className="tray-note">Anote o PV de {c.target.name} na iniciativa para descontar.</span>
                     ))}
-                  {r.applied && <span className="tray-note tray-applied">{r.applied}</span>}
+                  {r.applied && (
+                    <span className="tray-note tray-applied">
+                      {r.applied}
+                      {r.before && !readOnly && (
+                        <button type="button" className="btn btn-sm tray-act tray-undo" aria-label={`Desfazer o dano em ${c?.target.name ?? 'alvo'}`} onClick={() => undoHurt(r)}>
+                          <Undo2 size={12} /> Desfazer
+                        </button>
+                      )}
+                    </span>
+                  )}
                 </span>
               </div>
             )
@@ -342,7 +367,7 @@ export default function RpgView() {
     )
 
   return (
-    <div className={`view rpg-view${tab === 'mesa' ? ' rpg-at-table' : ''}`}>
+    <div className="view rpg-view">
       {/* Numa campanha, a porta abre na entrada do universo (área de trabalho). */}
       {kind !== 'campanha' && <MesaGate name={universe.name || 'Sem nome'} />}
       <header className="mesa-hero">
@@ -447,7 +472,6 @@ export default function RpgView() {
       ) : (
         <RpgContext.Provider value={ctx}>
           {tab === 'mestre' && <GmTab onGo={choose} />}
-          {tab === 'mesa' && <TableTab />}
           {tab === 'sessoes' && <SessionsTab />}
           {tab === 'personagens' && <SheetsTab />}
           {tab === 'codex' && <CodexTab group={group} />}

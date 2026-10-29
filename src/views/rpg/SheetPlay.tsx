@@ -40,7 +40,7 @@ export function SheetPlay({ sheet: s, system }: { sheet: Sheet; system: GameSyst
   const addToInitiative = () => {
     if (!activeSession) return
     const value = rollInitiative(system, s)
-    update((u) => patch(u, 'sessions', activeSession.id, { initiative: [...activeSession.initiative, { id: newId(), name: s.name, value, hp: '', note: '', sheetId: s.id, defense: null, attacks: [], monsterId: null }] }))
+    update((u) => patch(u, 'sessions', activeSession.id, { initiative: [...activeSession.initiative, { id: newId(), name: s.name, value, hp: '', note: '', sheetId: s.id, defense: null, attacks: [], monsterId: null, conditions: [] }] }))
     toast(`${s.name} entrou na iniciativa com ${value}`)
   }
 

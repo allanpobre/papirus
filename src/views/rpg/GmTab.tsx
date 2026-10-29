@@ -15,7 +15,7 @@ import { useRpg } from './rpgContext'
 /** Visão rápida do mestre: sistema, grupo, próxima sessão, segredos guardados, mistérios, elenco. */
 export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
   const { universe, update, go, peek, undoable, readOnly } = useWorkspace()
-  const { group, system, startSession, invite } = useRpg()
+  const { group, system, startSession, invite, enterSession } = useRpg()
   const [newGroup, setNewGroup] = useState('')
   const sessions = universe.sessions.filter((s) => s.groupId === group.id).sort((a, b) => a.number - b.number)
   const next = sessions.find((s) => s.status !== 'encerrada')
@@ -58,7 +58,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
             {next.prep ? <p className="gm-prep">{next.prep}</p> : <p className="muted small">Sem preparação ainda.</p>}
             <div className="inline-fields">
               {next.status === 'em-andamento' ? (
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => onGo('mesa')}>
+                <button type="button" className="btn btn-primary btn-sm" onClick={enterSession}>
                   <Swords size={14} /> Voltar para a mesa
                 </button>
               ) : (
@@ -113,7 +113,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
       <section className="gm-card" data-tour="gm-grupo">
         <h2 className="section-title">Grupo ({party.length})</h2>
         {party.length === 0 ? (
-          <p className="muted small">Nenhum personagem de jogador ainda.</p>
+          <p className="muted small">Nenhum personagem de jogador ainda. Crie um para cada jogador, com o nome de quem joga.</p>
         ) : (
           <ul className="party">
             {party.map((p) => {
@@ -141,14 +141,25 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
           </ul>
         )}
         <div className="inline-fields">
-          {!readOnly && (
-            <button type="button" className="btn btn-sm" onClick={invite}>
-              <UserPlus size={14} /> Convidar jogadores
-            </button>
+          {/* Sem personagens, o primeiro passo é criá-los; o convite vem depois. */}
+          {party.length === 0 ? (
+            !readOnly && (
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => onGo('personagens')}>
+                <Plus size={14} /> Criar personagens
+              </button>
+            )
+          ) : (
+            <>
+              {!readOnly && (
+                <button type="button" className="btn btn-sm" onClick={invite}>
+                  <UserPlus size={14} /> Convidar jogadores
+                </button>
+              )}
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => onGo('personagens')}>
+                Fichas dos personagens
+              </button>
+            </>
           )}
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => onGo('personagens')}>
-            Fichas dos personagens
-          </button>
         </div>
       </section>
 

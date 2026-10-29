@@ -168,7 +168,7 @@ test('a mesa é outro setor: o app muda de clima ao entrar e volta ao sair', asy
   await expect(page.getByRole('heading', { name: 'Mesa de RPG', level: 1 })).toBeVisible()
   await expect(page.locator('body')).toHaveAttribute('data-sector', 'mesa')
   expect(await bg()).not.toBe(before)
-  await expect(page.getByRole('tablist', { name: 'Mesa de RPG' }).getByRole('tab')).toHaveCount(7)
+  await expect(page.getByRole('tablist', { name: 'Mesa de RPG' }).getByRole('tab')).toHaveCount(6)
   await page.getByRole('button', { name: 'Voltar à escrita' }).click()
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await expect(page.locator('body')).not.toHaveAttribute('data-sector', 'mesa')
@@ -202,10 +202,16 @@ test('campanha de Tormenta: criar, montar a ficha e jogar com dado físico', asy
   await page.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(page.locator('.mesa-hero')).toContainText('Estilo Tormenta 20')
   await expect(page.locator('body')).toHaveAttribute('data-mesa-tema', 'tempestade')
+  // Sem a aba "Na mesa": o jogo acontece no modo sessão.
+  await expect(page.getByRole('tab', { name: 'Na mesa' })).toHaveCount(0)
 
-  await page.getByRole('tab', { name: 'Personagens' }).click()
+  // Grupo vazio: o primeiro passo é criar os personagens, cada um com quem joga.
+  await page.getByRole('button', { name: 'Criar personagens' }).click()
+  await expect(page.getByRole('tab', { name: 'Personagens' })).toHaveAttribute('aria-selected', 'true')
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Kaya')
+  await page.getByRole('textbox', { name: 'Quem joga' }).fill('Ana')
   await page.getByRole('button', { name: 'Criar personagem' }).click()
+  await expect(page.getByRole('region', { name: 'Personagens da mesa' })).toContainText('Ana')
   const modo = page.getByRole('group', { name: 'Modo da ficha de jogo' })
   await modo.getByRole('button', { name: 'Editar' }).click()
   await page.getByRole('textbox', { name: 'Raça' }).fill('Humana')

@@ -127,7 +127,15 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
           {(id) => <input id={id} type="date" className="input" value={s.playedOn} onChange={(e) => set({ playedOn: e.target.value })} />}
         </Field>
         <Field label="Estado">
-          {(id) => <Select id={id} value={s.status} onChange={(v) => set({ status: v })} options={SESSION_STATUSES.map((x) => ({ value: x, label: SESSION_STATUS_LABEL[x] }))} />}
+          {(id) => (
+            <Select
+              id={id}
+              value={s.status}
+              // Começar e encerrar passam pelo mesmo caminho dos botões: a abertura, o modo sessão e o resumo.
+              onChange={(v) => (v === 'em-andamento' && s.status !== 'em-andamento' ? startSession(s.id) : v === 'encerrada' && s.status === 'em-andamento' ? endSession(s.id) : set({ status: v }))}
+              options={SESSION_STATUSES.map((x) => ({ value: x, label: SESSION_STATUS_LABEL[x] }))}
+            />
+          )}
         </Field>
         <Field label="Preparação" wide hint="Só o mestre vê. Ganchos, cenas possíveis, nomes de reserva.">
           {(id) => <textarea id={id} className="input textarea" rows={4} value={s.prep} onChange={(e) => set({ prep: e.target.value })} />}
