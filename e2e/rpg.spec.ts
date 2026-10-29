@@ -24,6 +24,8 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
   // Sessão em andamento: as rolagens vão para o registro.
   await page.getByRole('button', { name: /Planejar sessão 1/ }).click()
   await page.getByRole('button', { name: 'Começar' }).click()
+  // A sessão abre na tela inteira; "Começar a jogar" leva para a mesa.
+  await page.getByRole('dialog', { name: 'A sessão começou' }).getByRole('button', { name: 'Começar a jogar' }).click()
 
   await page.getByRole('tab', { name: 'Personagens' }).click()
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Dante')
@@ -93,6 +95,7 @@ test('iniciativa: grupo entra pela ficha, e vez e rodada continuam após recarre
   await nav(page, 'RPG').click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
   await page.getByRole('button', { name: 'Começar' }).click()
+  await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
   const rows = page.locator('.init-row')
   await expect(rows).toHaveCount(3)

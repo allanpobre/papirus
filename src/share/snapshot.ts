@@ -47,6 +47,8 @@ export interface CodexSnapshot {
   theme?: string | null
   /** Como ler as rolagens feitas pelo Codex (sem sistema, não há rolagens). */
   rules?: RollRules
+  /** A sessão em andamento: os jogadores veem quando ela começa e quando termina. */
+  session?: { number: number; title: string; startedAt: string | null } | null
   /** Combate em andamento: a ordem e de quem é a vez. A vida e a Defesa dos inimigos não vêm. */
   combat?: { round: number; order: { id: string; name: string; pc: boolean; current: boolean; down: boolean }[] } | null
 }
@@ -94,6 +96,11 @@ function rollsOf(system: GameSystem, s: Sheet): CodexRoll[] {
   ]
 }
 
+function liveSession(universe: Universe, groupId: string): CodexSnapshot['session'] {
+  const s = universe.sessions.find((x) => x.groupId === groupId && x.status === 'em-andamento')
+  return s ? { number: s.number, title: s.title, startedAt: s.startedAt } : null
+}
+
 /** O combate da sessão em andamento da mesa, como os jogadores podem ver. */
 function combatOf(universe: Universe, groupId: string): CodexSnapshot['combat'] {
   const session = universe.sessions.find((x) => x.groupId === groupId && x.status === 'em-andamento')
@@ -122,6 +129,7 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     group: group?.name ?? '',
     theme: mesaTheme(group?.theme, system?.name),
     ...(system ? { rules: { resolution: system.resolution, successTarget: system.successTarget } } : {}),
+    session: liveSession(universe, groupId),
     combat: combatOf(universe, groupId),
     at: new Date().toISOString(),
     party: codex.sheets.map((s) => {

@@ -233,7 +233,10 @@ test('RPG: registro de sessão vai para Ideias ao encerrar', async ({ page }) =>
   await page.getByRole('textbox', { name: 'Nova nota' }).fill('Os jogadores entraram na Torre.')
   await page.keyboard.press('Enter')
   await page.getByRole('button', { name: 'Encerrar sessão' }).click()
-  await page.getByRole('button', { name: 'Abrir Ideias' }).click()
+  // O fim da sessão mostra o resumo e leva o registro para Ideias.
+  const fim = page.getByRole('dialog', { name: 'Fim da sessão' })
+  await expect(fim).toContainText('Notas1')
+  await fim.getByRole('button', { name: 'Revisar em Ideias' }).click()
   await expect(page.getByRole('textbox', { name: 'Texto do item' }).first()).toHaveValue(/Os jogadores entraram na Torre\./)
 })
 

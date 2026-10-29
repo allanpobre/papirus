@@ -156,7 +156,10 @@ test('Na mesa: começa a sessão, anota, rola e ajusta recursos', async ({ page 
   await page.getByRole('tab', { name: 'Na mesa' }).click()
   await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'No app' }).click()
   const start = page.getByRole('button', { name: /^Começar/ })
-  if (await start.count()) await start.click()
+  if (await start.count()) {
+    await start.click()
+    await page.getByRole('button', { name: 'Começar a jogar' }).click()
+  }
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('O grupo entrou na torre.')
   await page.getByRole('button', { name: 'Anotar' }).click()
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('O grupo entrou na torre.')

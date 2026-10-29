@@ -67,6 +67,7 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   // Em combate, o tour da mesa mostra a iniciativa e a vez.
   await page.getByRole('tab', { name: 'Na mesa' }).click()
   await page.getByRole('button', { name: /^Começar/ }).click()
+  await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
   const combate = await runPageTour(page, 'Na mesa')
   expect(combate.filter((s) => s.spot).map((s) => s.title)).toEqual(expect.arrayContaining(['Iniciativa', 'A vez', 'Grupo', 'Dados e tabelas', 'Registro']))

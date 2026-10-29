@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Play, Plus, Swords, Trash2, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { codexFor } from '../../logic/codex'
 import { kindLabel, SESSION_STATUS_LABEL } from '../../model/labels'
@@ -13,8 +13,8 @@ import { useRpg } from './rpgContext'
 
 /** Visão rápida do mestre: sistema, grupo, próxima sessão, segredos guardados, mistérios, elenco. */
 export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
-  const { universe, update, go, peek, undoable } = useWorkspace()
-  const { group, system } = useRpg()
+  const { universe, update, go, peek, undoable, readOnly } = useWorkspace()
+  const { group, system, startSession, invite } = useRpg()
   const [newGroup, setNewGroup] = useState('')
   const sessions = universe.sessions.filter((s) => s.groupId === group.id).sort((a, b) => a.number - b.number)
   const next = sessions.find((s) => s.status !== 'encerrada')
@@ -55,9 +55,22 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
               {SESSION_STATUS_LABEL[next.status]} · {new Date(next.playedOn + 'T12:00').toLocaleDateString('pt-BR')}
             </p>
             {next.prep ? <p className="gm-prep">{next.prep}</p> : <p className="muted small">Sem preparação ainda.</p>}
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => onGo('sessoes')}>
-              Abrir sessão
-            </button>
+            <div className="inline-fields">
+              {next.status === 'em-andamento' ? (
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => onGo('mesa')}>
+                  <Swords size={14} /> Voltar para a mesa
+                </button>
+              ) : (
+                !readOnly && (
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => startSession(next.id)}>
+                    <Play size={14} /> Começar agora
+                  </button>
+                )
+              )}
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => onGo('sessoes')}>
+                Abrir sessão
+              </button>
+            </div>
           </>
         ) : (
           <>
@@ -125,9 +138,16 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
             })}
           </ul>
         )}
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => onGo('personagens')}>
-          Fichas dos personagens
-        </button>
+        <div className="inline-fields">
+          {!readOnly && (
+            <button type="button" className="btn btn-sm" onClick={invite}>
+              <UserPlus size={14} /> Convidar jogadores
+            </button>
+          )}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => onGo('personagens')}>
+            Fichas dos personagens
+          </button>
+        </div>
       </section>
 
       <section className="gm-card" data-tour="gm-segredos">

@@ -1,13 +1,16 @@
-import { Dices, Maximize2, Minimize2, Minus, Play, Plus, Send } from 'lucide-react'
+import { Dices, Flag, Maximize2, Minimize2, Minus, Play, Plus, Send, UserPlus, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { DiceError, roll } from '../../logic/dice'
 import type { RandomTable, Sheet } from '../../model/schema'
-import { draftSession, insert, patch } from '../../model/universe'
+import { patch } from '../../model/universe'
 import { resolveRoll, rollAttribute } from '../../rpg/rolls'
 import { adjustResource, isPool } from '../../rpg/sheets'
 import { makeSystem } from '../../rpg/systems'
+import { sessionToStart } from '../../rpg/sessionLife'
 import { useWorkspace } from '../../state/workspace'
+import { ConfirmButton } from '../../ui/ConfirmButton'
 import { InitiativeTracker } from './InitiativeTracker'
+import { PresenceList } from './LiveTable'
 import { useRpg } from './rpgContext'
 
 const QUICK = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
@@ -18,8 +21,8 @@ const FALLBACK_SYSTEM = makeSystem('narrativo')
  * para tablet e celular. Iniciativa, grupo, dados, tabelas e o registro.
  */
 export function TableTab() {
-  const { universe, update } = useWorkspace()
-  const { group, activeSession } = useRpg()
+  const { universe, readOnly } = useWorkspace()
+  const { group, activeSession, startSession, endSession, invite } = useRpg()
   const [full, setFull] = useState(false)
 
   useEffect(() => {
@@ -34,21 +37,25 @@ export function TableTab() {
   }
 
   if (!activeSession) {
-    const sessions = universe.sessions.filter((s) => s.groupId === group.id).sort((a, b) => a.number - b.number)
-    const planned = sessions.find((s) => s.status === 'planejada')
-    const start = () =>
-      update((u) => {
-        if (planned) return patch(u, 'sessions', planned.id, { status: 'em-andamento' })
-        const [next, s] = insert(u, 'sessions', draftSession((sessions.at(-1)?.number ?? 0) + 1, group.id))
-        return patch(next, 'sessions', s.id, { status: 'em-andamento' })
-      })
+    const next = sessionToStart(universe, group.id)
     return (
       <div className="table-start">
         <p className="lede">Nenhuma sessão em andamento para {group.name}.</p>
-        <button type="button" className="btn btn-primary btn-lg" onClick={start}>
-          <Play size={18} /> {planned ? `Começar “${planned.title}”` : `Começar a sessão ${(sessions.at(-1)?.number ?? 0) + 1}`}
+        <button type="button" className="btn btn-primary btn-lg" onClick={() => startSession(next.id ?? undefined)}>
+          <Play size={18} /> {next.id ? `Começar “${next.title}”` : `Começar a sessão ${next.number}`}
         </button>
         <p className="muted small">Na mesa, as rolagens e anotações vão direto para o registro da sessão.</p>
+        {!readOnly && (
+          <section className="table-start-who" aria-labelledby="mesa-quem">
+            <h2 id="mesa-quem" className="section-label">
+              <Users size={14} aria-hidden="true" /> Quem já está na mesa
+            </h2>
+            <PresenceList groupId={group.id} empty={group.share ? 'Ninguém abriu o link ainda.' : 'Os jogadores podem acompanhar pelo celular, cada um com a sua ficha.'} />
+            <button type="button" className="btn btn-sm" onClick={invite}>
+              <UserPlus size={14} /> Convidar jogadores
+            </button>
+          </section>
+        )}
       </div>
     )
   }
@@ -59,9 +66,16 @@ export function TableTab() {
         <span className="eyebrow">Na mesa</span>
         <strong className="table-mode-title">{activeSession.title}</strong>
         <span className="muted small">{group.name}</span>
-        <button type="button" className="btn btn-ghost btn-sm table-full" onClick={toggleFull}>
-          {full ? <Minimize2 size={14} /> : <Maximize2 size={14} />} {full ? 'Sair da tela cheia' : 'Tela cheia'}
-        </button>
+        <span className="table-mode-acts">
+          <button type="button" className="btn btn-ghost btn-sm table-full" onClick={toggleFull}>
+            {full ? <Minimize2 size={14} /> : <Maximize2 size={14} />} {full ? 'Sair da tela cheia' : 'Tela cheia'}
+          </button>
+          {!readOnly && (
+            <ConfirmButton className="btn btn-sm table-end" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(activeSession.id)}>
+              <Flag size={14} /> Encerrar sessão
+            </ConfirmButton>
+          )}
+        </span>
       </div>
       <div className="table-grid">
         <div className="table-panel table-initiative">

@@ -321,6 +321,8 @@ export const sessionSchema = z.object({
       defense: z.number().nullable().default(null),
     }),
   ),
+  /** Quando a sessão começou (a abertura e o tempo de jogo contam daí). */
+  startedAt: z.string().nullable().default(null),
   /** Posição na ordem de iniciativa e número da rodada. */
   turn: z.number().int().nonnegative().default(0),
   round: z.number().int().positive().default(1),

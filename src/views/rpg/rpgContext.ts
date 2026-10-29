@@ -11,6 +11,12 @@ export interface RpgState {
   report: (outcome: RollOutcome, who?: string) => void
   /** Registra um texto livre na sessão em andamento. */
   logText: (text: string, kind?: 'nota' | 'rolagem') => boolean
+  /** Começa a sessão (sem `id`: a planejada, ou uma nova) com a abertura em tela cheia, e vai para a mesa. */
+  startSession: (id?: string) => void
+  /** Encerra a sessão: o registro vai para Ideias e aparece o resumo. */
+  endSession: (id: string) => void
+  /** Abre o convite: o link e o QR code para os jogadores. */
+  invite: () => void
 }
 
 export const RpgContext = createContext<RpgState | null>(null)

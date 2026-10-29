@@ -31,7 +31,7 @@ O app abre num início com três setores. Cada um tem a sua cara (cores, letras 
 - **Painel do mestre:** sessões com preparação e registro, iniciativa, tabelas aleatórias e revelações por grupo.
 - **Combate:** escolha o alvo e o app diz se acerta pela Defesa (20 e 1 naturais, crítico pela margem); o dano vem em seguida e sai da vida do alvo com um toque. A iniciativa mostra a vida de cada um e marca quem foi derrotado.
 - **Seis climas** escolhidos pelo mestre para cada mesa (Tempestade, Pergaminho, Paranormal, Abismo, Neon, Floresta); cada jogador escolhe claro ou escuro.
-- **Codex ao vivo:** o celular de cada jogador mostra só o que foi revelado, com o mapa e a ficha completa de cada personagem. Cada jogador rola pela própria ficha no celular: a rolagem chega ao mestre e ao grupo, e o mestre confere o acerto. Em combate, o Codex mostra a ordem e avisa quando é a vez de cada um.
+- **Codex ao vivo:** o celular de cada jogador mostra só o que foi revelado, com o mapa e a ficha completa de cada personagem. Cada jogador rola pela própria ficha no celular: a rolagem chega ao mestre e ao grupo, e o mestre confere o acerto. Em combate, o Codex mostra a ordem e avisa quando é a vez de cada um. O mestre convida pelo QR code, vê quem está na mesa e começa a sessão na tela inteira; o celular de cada jogador avisa quando ela começa e quando termina.
 
 ### Oficina
 
