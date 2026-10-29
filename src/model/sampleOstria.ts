@@ -403,7 +403,21 @@ export function ostriaUniverse(): Universe {
       { id: crypto.randomUUID(), at: '21:02', text: 'Bardo tentou ler a mente dele; falhou feio.', kind: 'nota' },
     ],
   })
-  ;[u] = insert(u, 'sessions', { ...draftSession(2, grupo.id), title: 'Sessão 2 — A Torre', prep: 'Luz na janela da Torre de Marfim. Ilsa pode aparecer se forem até lá.' })
+  // A sessão 2 vem com o roteiro do "mestre preguiçoso": início forte e cenas para riscar.
+  const beat = (title: string, mood: string) => ({ id: crypto.randomUUID(), title, mood, done: false })
+  ;[u] = insert(u, 'sessions', {
+    ...draftSession(2, grupo.id),
+    title: 'Sessão 2 — A Torre',
+    prep: 'Luz na janela da Torre de Marfim. Ilsa pode aparecer se forem até lá.',
+    strongStart: 'Um corvo pousa na mesa da taverna com uma chave de marfim no bico. Alguém na Torre quer que vocês subam.',
+    beats: [
+      beat('A chave na taverna', 'Fumaça de cachimbo, o corvo encarando cada um.'),
+      beat('Subir pelas falésias', 'Vento forte, pedra molhada, gaivotas gritando.'),
+      beat('A biblioteca selada', 'Poeira de séculos e uma luz que não devia estar acesa.'),
+      beat('Cassian chega com a guarda', 'Tochas na escada. Não há para onde correr.'),
+    ],
+  })
+  u = patch(u, 'groups', grupo.id, { clocks: [{ id: crypto.randomUUID(), name: 'A guarda de Cassian chega', size: 4, filled: 1, hidden: false }] })
   for (const [target, id, depth] of [
     ['entidade', ostria.id, 'completo'],
     ['entidade', kael.id, 'resumo'],

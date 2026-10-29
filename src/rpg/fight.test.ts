@@ -3,7 +3,7 @@ import type { Universe } from '../model/schema'
 import { byId, createUniverse, draftGroup, insert, patch } from '../model/universe'
 import { codexSnapshot } from '../share/snapshot'
 import { initiativeOrder } from './combat'
-import { defineTurns, endFight, fightPhase, joinFight, setInitiative, startFight, waitingFor } from './fight'
+import { actedSide, currentId, defineTurns, endFight, fightPhase, finishedTurn, joinFight, passTo, playerTurn, popcornChoices, setInitiative, setSides, sideTurn, startFight, waitingFor } from './fight'
 import { openRequests, recordResult } from './requests'
 import { resolveRoll } from './rolls'
 import { beginSession, setAttendance } from './sessionLife'
@@ -93,5 +93,87 @@ describe('combate em passos', () => {
     expect(openRequests(s)).toEqual([])
     const old = patch(u, 'sessions', id, { fight: '', initiative: [{ ...joinFight(u, id, 'Goblin', system, {}, 3).sessions.find((x) => x.id === id)!.initiative[0] }] })
     expect(fightPhase(byId(old, 'sessions', id))).toBe('turnos')
+  })
+})
+
+describe('por lados e pipoca', () => {
+  it('por lados: ninguém rola sozinho; o lado que tirou mais age primeiro, e a rodada vira quando os dois lados agiram', () => {
+    let { u, system, id, brisa, taren, ilmar } = table()
+    u = startFight(u, id, system, new Date(), undefined, 'lados')
+    expect(openRequests(byId(u, 'sessions', id)!)).toEqual([])
+    u = joinFight(u, id, 'Goblin', system, {}, 0)
+    u = joinFight(u, id, 'Lobo', system, {}, 0)
+    expect(defineTurns(u, id)).toBe(u) // falta rolar os lados
+    u = setSides(u, id, 8, 15)
+    u = defineTurns(u, id)
+    let s = byId(u, 'sessions', id)!
+    expect(s.log.at(-1)!.text).toBe('Por lados: heróis 8 × inimigos 15. Começam os inimigos.')
+    expect(sideTurn(u, s)!.side).toBe('inimigos')
+    expect(byId(u, 'sessions', id)!.initiative.find((e) => e.id === currentId(s))!.name).toBe('Goblin')
+
+    for (const name of ['Goblin', 'Lobo']) u = finishedTurn(u, id, byId(u, 'sessions', id)!.initiative.find((e) => e.name === name)!.id)
+    s = byId(u, 'sessions', id)!
+    expect(sideTurn(u, s)).toMatchObject({ side: 'herois' })
+    expect(currentId(s)).toBeNull() // os heróis escolhem a ordem entre eles
+    const pc = (sheetId: string) => s.initiative.find((e) => e.sheetId === sheetId)!.id
+    u = actedSide(u, id, [pc(taren.id), pc(brisa.id)])
+    expect(byId(u, 'sessions', id)!.round).toBe(1)
+    u = finishedTurn(u, id, pc(ilmar.id))
+    s = byId(u, 'sessions', id)!
+    expect(s.round).toBe(2)
+    expect(s.acted).toEqual([])
+    expect(s.log.at(-1)!.text).toBe('Rodada 2')
+  })
+
+  it('pipoca: quem agiu passa a vez para quem ainda não agiu; no fim, escolhe qualquer um e a rodada vira', () => {
+    let { u, system, id } = table()
+    u = startFight(u, id, system, new Date(), undefined, 'pipoca')
+    u = joinFight(u, id, 'Goblin', system, {}, 0)
+    const ids = Object.fromEntries(byId(u, 'sessions', id)!.initiative.map((e) => [e.name, e.id]))
+    u = defineTurns(u, id, new Date(), ids.Brisa)
+    let s = byId(u, 'sessions', id)!
+    expect(currentId(s)).toBe(ids.Brisa)
+    expect(popcornChoices(u, s).next.map((e) => e.name)).toEqual(['Taren', 'Ilmar', 'Goblin'])
+    expect(passTo(u, id, ids.Brisa)).toBe(u) // não passa para si mesma no meio da rodada
+    for (const name of ['Goblin', 'Taren', 'Ilmar']) u = passTo(u, id, ids[name])
+    s = byId(u, 'sessions', id)!
+    expect(s.log.at(-1)!.text).toBe('Taren passa a vez para Ilmar.')
+    expect(popcornChoices(u, s)).toMatchObject({ newRound: true })
+    u = passTo(u, id, ids.Ilmar)
+    s = byId(u, 'sessions', id)!
+    expect([s.round, currentId(s), s.acted]).toEqual([2, ids.Ilmar, []])
+  })
+
+  it('clássica: "Terminei" passa a vez só se era de quem disse', () => {
+    let { u, system, id } = table()
+    u = startFight(u, id, system, new Date(), undefined, 'classica')
+    for (const e of waitingFor(byId(u, 'sessions', id)!)) u = setInitiative(u, id, e.id, e.name === 'Brisa' ? 20 : e.name === 'Taren' ? 10 : 5)
+    u = defineTurns(u, id)
+    const ids = Object.fromEntries(byId(u, 'sessions', id)!.initiative.map((e) => [e.name, e.id]))
+    expect(finishedTurn(u, id, ids.Taren)).toBe(u)
+    u = finishedTurn(u, id, ids.Brisa)
+    expect(currentId(byId(u, 'sessions', id)!)).toBe(ids.Taren)
+  })
+})
+
+describe('"Terminei" pelo celular', () => {
+  it('só vale na vez do jogador; na pipoca, passa para quem ele escolheu', () => {
+    let { u, system, g, id } = table()
+    u = startFight(u, id, system, new Date(), undefined, 'pipoca')
+    u = joinFight(u, id, 'Goblin', system, {}, 0)
+    const ids = Object.fromEntries(byId(u, 'sessions', id)!.initiative.map((e) => [e.name, e.id]))
+    u = defineTurns(u, id, new Date(), ids.Taren)
+    expect(playerTurn(u, g.id, 'Brisa', ids.Goblin)).toBe(u) // não é a vez dela
+    expect(playerTurn(u, g.id, 'Goblin', ids.Brisa)).toBe(u) // inimigos não falam pelo celular
+    u = playerTurn(u, g.id, 'Taren', ids.Goblin)
+    expect(currentId(byId(u, 'sessions', id)!)).toBe(ids.Goblin)
+    const snap = codexSnapshot(u, g.id).combat!
+    expect(snap.mode).toBe('pipoca')
+    expect(snap.order.map((e) => [e.name, e.current, Boolean(e.acted)])).toEqual([
+      ['Goblin', true, false],
+      ['Brisa', false, false],
+      ['Ilmar', false, false],
+      ['Taren', false, true],
+    ])
   })
 })

@@ -204,6 +204,9 @@ export const seedSchema = z.object({
   ...timestamps,
 })
 
+/** Os jeitos de iniciativa: cada um rola; heróis contra inimigos; quem agiu escolhe o próximo. */
+export const INITIATIVE_MODES = ['classica', 'lados', 'pipoca'] as const
+
 export const groupSchema = z.object({
   id,
   name: z.string(),
@@ -215,6 +218,13 @@ export const groupSchema = z.object({
   theme: z.string().nullable().default(null),
   /** Codex ao vivo: id público (vai no link) e chave secreta do mestre. `null` = não compartilha. */
   share: z.object({ id, key: z.string() }).nullable().default(null),
+  /** Como a mesa faz a iniciativa: cada um rola (clássica), por lados ou pipoca. */
+  initiativeMode: z.enum(INITIATIVE_MODES).default('classica'),
+  /**
+   * Relógios de progresso (como os de Blades in the Dark): "A guarda chega", 2 de 4.
+   * Ficam na mesa, de uma sessão para a outra; os escondidos só o mestre vê.
+   */
+  clocks: z.array(z.object({ id, name: z.string(), size: z.number().int().min(2).max(12), filled: z.number().int().min(0), hidden: z.boolean().default(false) })).default([]),
   ...timestamps,
 })
 
@@ -358,6 +368,20 @@ export const sessionSchema = z.object({
    * estão rolando) ou 'turnos' (a ordem está definida).
    */
   fight: z.enum(['', 'iniciativa', 'turnos']).default(''),
+  /** O jeito de iniciativa deste combate (fica fixo até ele acabar). */
+  fightMode: z.enum(INITIATIVE_MODES).default('classica'),
+  /** Por lados: o que cada lado tirou (quem tirou mais age primeiro em cada rodada). */
+  sides: z.object({ heroes: z.number(), foes: z.number() }).nullable().default(null),
+  /** Por lados e pipoca: quem age agora (na vez dos heróis, `null` = o grupo escolhe). */
+  turnId: ref.default(null),
+  /** Por lados e pipoca: quem já agiu nesta rodada. */
+  acted: z.array(z.string()).default([]),
+  /** O início forte da sessão: a primeira cena, já com algo acontecendo. */
+  strongStart: z.string().default(''),
+  /** As cenas possíveis da sessão (o roteiro do mestre), para riscar ao jogar. */
+  beats: z.array(z.object({ id, title: z.string(), mood: z.string().default(''), done: z.boolean().default(false) })).default([]),
+  /** A cena que está acontecendo agora (os celulares mostram no alto). */
+  beatId: ref.default(null),
   /** Quando a sessão começou (a abertura e o tempo de jogo contam daí). */
   startedAt: z.string().nullable().default(null),
   /**

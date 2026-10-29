@@ -1,4 +1,4 @@
-import { Check, Dices, Eye, Flame, GraduationCap, Heart, Lightbulb, Lock, PenLine, Radio, ScanSearch, Search, Sparkles, Swords, Timer, Trophy, Zap } from 'lucide-react'
+import { Check, Dices, Eye, Flame, GraduationCap, Heart, Lightbulb, Lock, NotebookPen, PenLine, Radio, ScanSearch, Search, Sparkles, Swords, Timer, Trophy, Zap } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 /** Quem pede menos movimento vê cada demonstração parada no último passo. */
@@ -42,11 +42,12 @@ const MESA_STEPS = [2000, 1700, 1500, 1400, 1500, 1700, 1900, 1300, 3600]
 const ROLLING = [3, 11, 7, 18, 2, 14, 9]
 
 /**
- * A mesa inteira numa cena: o mestre no tablet e dois jogadores, cada um no seu celular
- * (um no escuro, outro no claro, no mesmo tema da mesa). A Kaya rola pelo Codex com o dado
- * de verdade; o mestre confere a Defesa, tira o dano do goblin e passa a vez ao Taren; o que
- * ele revela chega aos dois. Os passos:
- * 0 vez da Kaya · 1 dado · 2 a rolagem chega · 3 "acerta" volta · 4 dano · 5 goblin cai
+ * A mesa inteira numa cena: o mestre com o escudo no tablet (Roteiro e Palco) e dois jogadores,
+ * cada um com o cartão no celular (um no escuro, outro no claro, no mesmo tema da mesa). É a vez
+ * da Kaya: o celular dela mostra no meio da tela; ela rola com o dado de verdade; o mestre confere
+ * a Defesa e tira o dano do goblin; ela toca em "Terminei" e a vez vai ao Taren; o mestre revela
+ * um segredo do roteiro e ele chega aos dois. Os passos:
+ * 0 sua vez, Kaya · 1 dado · 2 a rolagem chega · 3 "acerta" volta · 4 dano · 5 goblin cai
  * 6 vez do Taren · 7 o mestre revela · 8 a revelação chega
  */
 export function MesaDemo() {
@@ -58,52 +59,69 @@ export function MesaDemo() {
   const revealing = step === 7
   const revealed = step >= 8
   const order = [
-    { name: 'Kaya', current: !tarenTurn },
-    { name: 'Goblin', down: goblinDown },
+    { name: 'Kaya', current: !tarenTurn, acted: tarenTurn },
     { name: 'Taren', current: tarenTurn },
+    { name: 'Goblin', down: goblinDown, foe: true },
   ]
 
   return (
-    <figure ref={ref as React.RefObject<HTMLElement>} className="lp-trio" aria-label="Exemplo: o mestre no tablet e dois jogadores no celular, na mesma mesa">
+    <figure ref={ref as React.RefObject<HTMLElement>} className="lp-trio" aria-label="Exemplo: o mestre com o escudo no tablet e dois jogadores com o cartão no celular, na mesma mesa">
       <div className="lp-device lp-device-taren" aria-hidden="true">
         <p className="lp-device-tag">Taren · celular no claro</p>
         <CodexPhone me="Taren" mode="claro" step={step} order={order} />
       </div>
 
       <div className="lp-device lp-device-mestre" aria-hidden="true">
-        <p className="lp-device-tag">Mestre · tablet</p>
+        <p className="lp-device-tag">Mestre · o escudo no tablet</p>
         <div className="lp-tablet">
           <div className="lp-tablet-top">
             <span className="lp-tablet-emblem">
               <Dices size={14} />
             </span>
-            <span className="lp-tablet-title">Mesa de RPG</span>
-            <span className="lp-tablet-sub">Mesa de sexta · Estilo Tormenta 20</span>
+            <span className="lp-tablet-title">A Torre</span>
+            <span className="lp-tablet-sub">Mesa de sexta · Sessão 2</span>
             <span className="lp-live-pill is-on">
-              <span className="lp-live-dot" /> Sessão em andamento: A Torre
+              <span className="lp-live-dot" /> 1:24
             </span>
           </div>
           <div className="lp-tablet-body">
-            <div className="lp-init">
+            <div className="lp-init lp-roteiro">
               <p className="lp-mini-h">
-                <Swords size={12} /> Iniciativa · rodada 2
+                <NotebookPen size={12} /> Roteiro · só você vê
               </p>
-              {[
-                { name: 'Kaya', pv: 24, max: 31, turn: !tarenTurn },
-                { name: 'Goblin', pv: goblinDown ? 0 : 7, max: 7, foe: true },
-                { name: 'Taren', pv: 18, max: 22, turn: tarenTurn },
-              ].map((c) => (
-                <div key={c.name} className={`lp-init-row${c.turn ? ' is-turn' : ''}${c.foe ? ' is-foe' : ''}${c.foe && goblinDown ? ' is-down' : ''}`}>
-                  <span className="lp-init-name">{c.name}</span>
-                  <span className="lp-pv">
-                    <span style={{ width: `${(c.pv / c.max) * 100}%` }} />
-                  </span>
-                  <span className="lp-init-pv">{c.foe && goblinDown ? 'derrotado' : `PV ${c.pv}/${c.max}`}</span>
-                </div>
-              ))}
-              <span className={`lp-next${step === 6 ? ' is-pressing' : ''}`}>Próxima vez ›</span>
+              <p className="lp-shield-label">Cenas</p>
+              <p className="lp-beat is-done">
+                <i /> A chave na taverna
+              </p>
+              <p className="lp-beat is-now">
+                <i /> Subir pelas falésias <b>agora</b>
+              </p>
+              <p className="lp-beat">
+                <i /> A biblioteca selada
+              </p>
+              <p className="lp-shield-label">Segredos e pistas</p>
+              <div className={`lp-secret-row${revealing ? ' is-pressing' : ''}${revealed ? ' is-done' : ''}`}>
+                <span>O símbolo na porta é da Ordem do Corvo.</span>
+                <span className="lp-secret-btn">
+                  {revealed ? <Check size={12} /> : <Eye size={12} />} {revealed ? 'Revelado' : 'Revelar'}
+                </span>
+              </div>
             </div>
-            <div className={`lp-tray${arrived ? ' is-on' : ''}`}>
+            <div className="lp-init lp-palco">
+              <p className="lp-mini-h">
+                <Swords size={12} /> Palco · rodada 2
+              </p>
+              <div className="lp-queue">
+                {order.map((c) => (
+                  <span key={c.name} className={`lp-qface${c.current ? ' is-now' : ''}${c.foe ? ' is-foe' : ''}${c.down || c.acted ? ' is-done' : ''}`}>
+                    <b>{c.name[0]}</b>
+                    <small>{c.name}</small>
+                  </span>
+                ))}
+              </div>
+              <span className={`lp-next${step === 6 ? ' is-pressing' : ''}`}>{tarenTurn ? 'Vez do Taren' : 'Vez da Kaya'} ›</span>
+            </div>
+            <div className={`lp-tray lp-rolls${arrived ? ' is-on' : ''}`}>
               <p className="lp-mini-h">
                 <Dices size={12} /> Últimas rolagens
               </p>
@@ -111,9 +129,9 @@ export function MesaDemo() {
                 <div className="lp-tray-roll is-latest">
                   <span className="lp-tray-total">9</span>
                   <span>
-                    <strong>Kaya · Espada longa (dano) em Goblin</strong>
-                    <small>1d8+4 [5] · pelo Codex</small>
-                    {goblinDown ? <em className="lp-tray-done">Goblin: PV -2/7 · derrotado</em> : <span className="lp-tray-act is-pressing">Tirar 9 PV de Goblin</span>}
+                    <strong>Kaya · dano em Goblin</strong>
+                    <small>1d8+4 [5] · pelo celular</small>
+                    {goblinDown ? <em className="lp-tray-done">Goblin derrotado</em> : <span className="lp-tray-act is-pressing">Tirar 9 PV de Goblin</span>}
                   </span>
                 </div>
               )}
@@ -123,22 +141,13 @@ export function MesaDemo() {
                   <span>
                     <strong>Kaya · Espada longa contra Goblin</strong>
                     <small>
-                      <b>Acerta</b> · Defesa 14 · 1d20+7 [15] · pelo Codex
+                      <b>Acerta</b> · Defesa 14 · 1d20+7 [15]
                     </small>
                   </span>
                 </div>
               ) : (
                 <p className="lp-tray-wait">Esperando a vez da Kaya…</p>
               )}
-            </div>
-            <div className={`lp-secret${revealing ? ' is-pressing' : ''}${revealed ? ' is-done' : ''}`}>
-              <p className="lp-mini-h">
-                <Eye size={12} /> Revelar fato
-              </p>
-              <p className="lp-secret-text">O símbolo na porta é da Ordem do Corvo.</p>
-              <span className="lp-secret-btn">
-                {revealed ? <Check size={12} /> : <Eye size={12} />} {revealed ? 'Revelado' : 'Revelar'}
-              </span>
             </div>
           </div>
         </div>
@@ -151,26 +160,30 @@ export function MesaDemo() {
 
       <figcaption className="lp-duo-caption">
         <span className={step <= 3 ? 'is-on' : ''}>
-          <Dices size={13} aria-hidden="true" /> A Kaya rola pelo celular, com o dado de verdade. O mestre confere a Defesa: acerta.
+          <Dices size={13} aria-hidden="true" /> A vez da Kaya chega no meio da tela do celular. Ela rola o dado de verdade; o mestre confere a Defesa: acerta.
         </span>
         <span className={step === 4 || step === 5 ? 'is-on' : ''}>
           <Heart size={13} aria-hidden="true" /> O dano chega ao mestre, que tira da vida do goblin.
         </span>
         <span className={step >= 6 ? 'is-on' : ''}>
-          <Radio size={13} aria-hidden="true" /> A vez passa ao Taren, e o que o mestre revela chega aos dois.
+          <Radio size={13} aria-hidden="true" /> Ela toca em "Terminei" e a vez vai ao Taren. O segredo que o mestre revela chega aos dois.
         </span>
       </figcaption>
     </figure>
   )
 }
 
-/** O Codex no celular de um jogador, no tema Tempestade da mesa (claro ou escuro, como cada um escolheu). */
-function CodexPhone({ me, mode, step, order }: { me: 'Kaya' | 'Taren'; mode: 'claro' | 'escuro'; step: number; order: { name: string; current?: boolean; down?: boolean }[] }) {
+type DemoOrder = { name: string; current?: boolean; down?: boolean; acted?: boolean; foe?: boolean }[]
+
+/** O cartão no celular de um jogador, no tema Tempestade da mesa (claro ou escuro, como cada um escolheu). */
+function CodexPhone({ me, mode, step, order }: { me: 'Kaya' | 'Taren'; mode: 'claro' | 'escuro'; step: number; order: DemoOrder }) {
   const kaya = me === 'Kaya'
   const myTurn = kaya ? step < 6 : step >= 6
+  // A vez chega no meio da tela; depois de tocar, o cartão volta.
+  const turnNow = kaya ? step === 0 : step === 6
   const asking = kaya && step === 1
   const rolls = [
-    ...(step >= 4 ? [{ total: 9, label: 'Espada longa (dano) em Goblin', verdict: null as string | null }] : []),
+    ...(step >= 4 ? [{ total: 9, label: 'dano em Goblin', verdict: null as string | null }] : []),
     ...(step >= 2 ? [{ total: 22, label: 'Espada longa contra Goblin', verdict: step >= 3 ? 'Acerta' : null }] : []),
   ]
   const pc = kaya ? { pv: 24, max: 31 } : { pv: 18, max: 22 }
@@ -178,26 +191,32 @@ function CodexPhone({ me, mode, step, order }: { me: 'Kaya' | 'Taren'; mode: 'cl
     <div className={`lp-phone lp-codex lp-codex-${mode}`}>
       <div className="lp-phone-screen">
         <div className="lp-phone-top">
-          <span>A Queda de Valkaria</span>
+          <span>Mesa de sexta</span>
           <span className="lp-live">
             <Radio size={10} /> ao vivo
           </span>
         </div>
-        {step >= 8 && <p className="lp-phone-toast">Novidades do mestre</p>}
-        <p className="lp-phone-title">Codex</p>
+        {step >= 8 && (
+          <p className="lp-phone-toast">
+            <Eye size={10} /> O mestre revelou: a Ordem do Corvo
+          </p>
+        )}
+        <div className="lp-stage">
+          <small>Cena</small>
+          <strong>Subir pelas falésias</strong>
+          <em>Vento forte, pedra molhada.</em>
+        </div>
         <p className="lp-phone-kind">
           <Swords size={10} /> Combate · rodada 2
         </p>
-        <p className="lp-order">
+        <div className="lp-queue is-phone">
           {order.map((e) => (
-            <span key={e.name} className={`${e.current ? 'is-current' : ''}${e.down ? ' is-down' : ''}${e.name === me ? ' is-me' : ''}`}>
-              {e.name}
-              {e.current && <b>na vez</b>}
-              {e.down && <b>derrotado</b>}
+            <span key={e.name} className={`lp-qface${e.current ? ' is-now' : ''}${e.foe ? ' is-foe' : ''}${e.down || e.acted ? ' is-done' : ''}${e.name === me ? ' is-me' : ''}`}>
+              <b>{e.name[0]}</b>
+              <small>{e.name === me ? 'Você' : e.name}</small>
             </span>
           ))}
-        </p>
-        <p className="lp-phone-kind">O grupo</p>
+        </div>
         <div className="lp-phone-pc">
           <strong>{me}</strong>
           <span className="lp-pv">
@@ -207,18 +226,9 @@ function CodexPhone({ me, mode, step, order }: { me: 'Kaya' | 'Taren'; mode: 'cl
             PV {pc.pv}/{pc.max}
           </span>
         </div>
-        <p className="lp-phone-kind">O que sabemos</p>
-        {step >= 8 && (
-          <p className="lp-phone-entry lp-phone-new-entry">
-            <span className="lp-new">novo</span> O símbolo na porta é da Ordem do Corvo.
-          </p>
-        )}
-        <p className="lp-phone-entry">
-          Vaelor tem olhos cinzentos <em>(segundo Mira)</em>
-        </p>
 
         <div className="lp-dock">
-          {myTurn && (
+          {myTurn && !turnNow && (
             <p className="lp-dock-turn" key={me + step}>
               <Swords size={11} /> Sua vez, {me}!
             </p>
@@ -240,11 +250,28 @@ function CodexPhone({ me, mode, step, order }: { me: 'Kaya' | 'Taren'; mode: 'cl
           ))}
           <span className="lp-dock-actions">
             {kaya && (step === 2 || step === 3) && <span className={`lp-dock-btn is-ghost${step === 3 ? ' is-pressing' : ''}`}>Rolar dano</span>}
+            {kaya && step === 5 && <span className="lp-dock-btn is-ghost is-pressing">Terminei</span>}
             <span className="lp-dock-btn">
               <Dices size={12} /> Rolar como {me}
             </span>
           </span>
+          <span className="lp-tabs">
+            <span>Eu</span>
+            <span className="is-on">Mesa</span>
+            <span>Codex</span>
+          </span>
         </div>
+
+        {turnNow && (
+          <div className="lp-turn-now">
+            <small>Rodada 2</small>
+            <strong>Sua vez, {me}!</strong>
+            <span className="lp-dock-btn is-pressing">
+              <Swords size={12} /> {kaya ? 'Espada longa +7' : 'Machado +6'}
+            </span>
+            <span className="lp-turn-done">Terminei</span>
+          </div>
+        )}
 
         {asking && (
           <div className="lp-phone-sheet">
@@ -303,9 +330,9 @@ const SECTORS: { id: SectorId; name: string; icon: typeof Dices; lede: string; s
     icon: Dices,
     lede: 'Outro setor, outro clima: o lado do mestre.',
     screens: [
-      { id: 'painel', label: 'Painel do mestre', note: 'A próxima sessão com a preparação, o grupo com a vida de cada um e o que ainda não foi revelado.', render: (s) => <PainelScreen step={s} /> },
+      { id: 'escudo', label: 'Escudo do mestre', note: 'O roteiro da sessão para riscar (início forte, cenas, segredos) e o palco: a cena atual e os relógios, que os jogadores veem no celular.', render: (s) => <EscudoScreen step={s} /> },
+      { id: 'combate', label: 'Combate', note: 'A fila de turnos com a vida de cada um, e três jeitos de iniciativa: clássica, por lados ou pipoca (quem agiu escolhe o próximo).', render: (s) => <CombateScreen step={s} /> },
       { id: 'ficha-jogo', label: 'Ficha de jogo', note: 'A ficha abre pronta para jogar: PV e PM com um toque, ataques com dano e crítico, poderes que gastam PM, condições à vista.', render: (s) => <FichaScreen step={s} /> },
-      { id: 'registro', label: 'Registro', note: 'Durante a sessão, cada rolagem (do dado de verdade ou do app) entra no registro com a hora.', render: (s) => <RegistroScreen step={s} /> },
     ],
   },
   {
@@ -545,45 +572,81 @@ function PlacarScreen({ step }: { step: number }) {
 
 // Mesa
 
-function PainelScreen({ step }: { step: number }) {
-  const live = step >= 3
+const BEATS = ['A chave na taverna', 'Subir pelas falésias', 'A biblioteca selada', 'Cassian chega com a guarda']
+
+/** O escudo: as cenas se riscam uma a uma, um segredo é revelado e o relógio enche. */
+function EscudoScreen({ step }: { step: number }) {
+  const now = Math.min(BEATS.length - 1, Math.floor(step / 2))
+  const filled = Math.min(4, 1 + Math.floor(step / 3))
   return (
-    <div className="lp-scr lp-scr-mesa lp-scr-painel" aria-hidden="true">
-      <p className="lp-painel-title">Painel do mestre</p>
-      <div className="lp-painel-card">
-        <p className="lp-painel-h">Próxima sessão</p>
-        <p className="lp-painel-session">Sessão 3 — A Torre</p>
-        <p className="lp-painel-meta">{live ? 'Em andamento' : 'Planejada · 31/10'}</p>
-        <p className="lp-painel-prep">Luz na janela da Torre de Marfim. Ilsa pode aparecer se forem até lá.</p>
-        <span className={`lp-painel-btn${live ? ' is-live' : ''}`}>{live ? 'Sessão em andamento' : 'Abrir sessão'}</span>
+    <div className="lp-scr lp-scr-mesa lp-scr-escudo" aria-hidden="true">
+      <div className="lp-escudo-col">
+        <p className="lp-painel-title">Roteiro</p>
+        <p className="lp-shield-label">Início forte</p>
+        <p className="lp-escudo-start">Um corvo pousa na mesa com uma chave de marfim no bico.</p>
+        <p className="lp-shield-label">Cenas</p>
+        {BEATS.map((b, i) => (
+          <p key={b} className={`lp-beat${i < now ? ' is-done' : ''}${i === now ? ' is-now' : ''}`}>
+            <i /> {b} {i === now && <b>agora</b>}
+          </p>
+        ))}
+        <p className="lp-shield-label">Segredos e pistas</p>
+        <div className={`lp-secret-row${step >= 5 ? ' is-done' : ''}${step === 4 ? ' is-pressing' : ''}`}>
+          <span>Vaelor sobreviveu à Queda</span>
+          <span className="lp-secret-btn">{step >= 5 ? <Check size={12} /> : <Eye size={12} />}</span>
+        </div>
       </div>
-      <div className="lp-painel-card">
-        <p className="lp-painel-h">Grupo (3)</p>
-        {[
-          ['Kaya', 'Ana', 24, 31],
-          ['Taren', 'Bruno', 18, 22],
-          ['Ilmar', 'Carla', step >= 5 ? 9 : 17, 17],
-        ].map(([n, p, pv, max]) => (
-          <div key={n as string} className="lp-painel-pc">
-            <span>
-              <strong>{n}</strong> <em>{p}</em>
-            </span>
-            <span className="lp-pv">
-              <span style={{ width: `${((pv as number) / (max as number)) * 100}%` }} />
-            </span>
-            <span className="lp-painel-pv">
-              PV {pv}/{max}
-            </span>
-          </div>
+      <div className="lp-escudo-col">
+        <p className="lp-painel-title">Palco</p>
+        <div className="lp-stage is-big">
+          <small>Cena atual</small>
+          <strong>{BEATS[now]}</strong>
+        </div>
+        <div className="lp-clock">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="16" cy="16" r="14" className="lp-clock-bg" />
+            {[0, 1, 2, 3].map((i) => (
+              <path key={i} d={['M16 16 L16 2 A14 14 0 0 1 30 16 Z', 'M16 16 L30 16 A14 14 0 0 1 16 30 Z', 'M16 16 L16 30 A14 14 0 0 1 2 16 Z', 'M16 16 L2 16 A14 14 0 0 1 16 2 Z'][i]} className={i < filled ? 'lp-clock-on' : 'lp-clock-off'} />
+            ))}
+          </svg>
+          <span>
+            <strong>A guarda chega</strong> {filled} de 4
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const MODES = [
+  { name: 'Clássica', order: ['Kaya 19', 'Goblin 15', 'Taren 12', 'Lobo 8'], how: 'Cada um rola; do maior para o menor.' },
+  { name: 'Por lados', order: ['Heróis', 'Kaya', 'Taren', 'Inimigos', 'Goblin', 'Lobo'], how: 'Heróis 14 × inimigos 9: os heróis escolhem a ordem.' },
+  { name: 'Pipoca', order: ['Kaya', '→ Taren', '→ Goblin', '→ Lobo'], how: 'Quem agiu escolhe quem vem depois.' },
+]
+
+/** O combate: os três jeitos de iniciativa passando, cada um com a sua fila. */
+function CombateScreen({ step }: { step: number }) {
+  const m = MODES[Math.min(MODES.length - 1, Math.floor(step / 3))]
+  return (
+    <div className="lp-scr lp-scr-mesa lp-scr-combate" aria-hidden="true">
+      <p className="lp-painel-title">Combate · rodada 1</p>
+      <p className="lp-modes">
+        {MODES.map((x) => (
+          <span key={x.name} className={x === m ? 'is-on' : ''}>
+            {x.name}
+          </span>
+        ))}
+      </p>
+      <div className="lp-queue is-wide">
+        {m.order.map((n, i) => (
+          <span key={n} className={`lp-qface${i === 0 ? ' is-now' : ''}${/Goblin|Lobo|Inimigos/.test(n) ? ' is-foe' : ''}${/^(Heróis|Inimigos)$/.test(n) ? ' is-side' : ''}`}>
+            <b>{n.replace('→ ', '')[0]}</b>
+            <small>{n}</small>
+          </span>
         ))}
       </div>
-      <div className="lp-painel-card lp-painel-secrets">
-        <p className="lp-painel-h">
-          <Eye size={11} /> Segredos ainda guardados
-        </p>
-        <p>Fato: Vaelor sobreviveu à Queda</p>
-        <p>Fato: Mira é herdeira de Casa de Vaelor</p>
-      </div>
+      <p className="lp-modes-how">{m.how}</p>
+      <span className="lp-next is-pressing">Próxima vez ›</span>
     </div>
   )
 }
@@ -642,35 +705,6 @@ function FichaScreen({ step }: { step: number }) {
           <strong>Golpe pessoal</strong> 2 PM · {step >= 5 ? 'usado' : 'Usar'}
         </span>
       </div>
-    </div>
-  )
-}
-
-const LOG = [
-  ['21:02', 'Rodada 1'],
-  ['21:03', 'Kaya — Iniciativa: 17 · 1d20+3 [14] · dado físico'],
-  ['21:05', 'Kaya — Espada longa: 22 · 1d20+7 [15] · dado físico'],
-  ['21:05', 'Kaya — Espada longa (dano): 9 · 1d8+4 [5]'],
-  ['21:07', 'Taren — Misticismo: 19 · 1d20+6 [13]'],
-  ['21:09', 'O grupo encontrou o símbolo da Ordem do Corvo.'],
-]
-
-function RegistroScreen({ step }: { step: number }) {
-  const shown = LOG.slice(0, Math.min(LOG.length, step + 1))
-  return (
-    <div className="lp-scr lp-scr-mesa lp-scr-registro" aria-hidden="true">
-      <p className="lp-painel-title">Sessão 3 — A Torre</p>
-      <p className="lp-reg-live">
-        <span className="lp-live-dot" /> Em andamento
-      </p>
-      <ul className="lp-reg">
-        {shown.map(([at, text], i) => (
-          <li key={i} className={text.includes('—') ? 'is-roll' : undefined}>
-            <span className="lp-reg-at">{at}</span>
-            <span>{text}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }

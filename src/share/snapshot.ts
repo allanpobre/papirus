@@ -5,10 +5,11 @@ import { formatYear, kindPlural } from '../model/labels'
 import type { GameSystem, Sheet, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { mesaTheme } from '../rpg/themes'
-import { conditionsOf, initiativeOrder, isDown, roundsLeft } from '../rpg/combat'
+import { conditionsOf, isDown, roundsLeft } from '../rpg/combat'
 import { attendanceOf, recentNotices } from '../rpg/sessionLife'
 import { openRequests, requestTargets } from '../rpg/requests'
-import { fightPhase } from '../rpg/fight'
+import { fightPhase, sideTurn, turnQueue } from '../rpg/fight'
+import { currentBeat, sharedClocks } from '../rpg/stage'
 import { attributeExpression, bonusLabel, damageExpression, expandFormula, skillExpression, type RollRules } from '../rpg/rolls'
 import { costResource, critFrom, critMult, isPool } from '../rpg/sheets'
 
@@ -56,12 +57,24 @@ export interface CodexSnapshot {
   session?: { number: number; title: string; startedAt: string | null } | null
   /** Os testes que o mestre pediu e ainda estão abertos (sem a dificuldade): para quem, e quem já rolou. */
   requests?: { id: string; kind: 'pericia' | 'atributo' | 'livre' | 'iniciativa'; name: string; expression: string; who: string[]; done: string[] }[]
+  /** A cena que está acontecendo (o título e o clima que o mestre escreveu). */
+  scene?: { title: string; mood: string } | null
+  /** Os relógios de progresso que o mestre mostra ("A guarda chega", 2 de 4). */
+  clocks?: { id: string; name: string; size: number; filled: number }[]
   /** O diário da campanha: os resumos que o mestre publicou, sessão por sessão. */
   journal?: { number: number; title: string; when: string; text: string }[]
   /** Os últimos avisos do mestre na sessão em andamento ("Um inimigo aparece!"). */
   notices?: { id: string; at: string; text: string; tone: 'aviso' | 'perigo' | 'misterio' }[]
   /** Combate em andamento: a ordem e de quem é a vez. A vida e a Defesa dos inimigos não vêm. */
-  combat?: { round: number; order: { id: string; name: string; pc: boolean; current: boolean; down: boolean; conditions?: string[] }[] } | null
+  combat?: {
+    round: number
+    /** Clássica, por lados ou pipoca (retratos antigos não têm: clássica). */
+    mode?: 'classica' | 'lados' | 'pipoca'
+    /** Por lados: de que lado é a vez. */
+    side?: 'herois' | 'inimigos'
+    /** Na ordem da fila: quem age, quem vem, e (por lados e pipoca) quem já agiu. */
+    order: { id: string; name: string; pc: boolean; current: boolean; acted?: boolean; down: boolean; conditions?: string[] }[]
+  } | null
 }
 
 /** Uma rolagem da ficha, pronta para o Codex. */
@@ -127,17 +140,17 @@ function combatOf(universe: Universe, groupId: string): CodexSnapshot['combat'] 
   const session = universe.sessions.find((x) => x.groupId === groupId && x.status === 'em-andamento')
   // Enquanto todos rolam a iniciativa, ainda não há ordem nem vez.
   if (!session || fightPhase(session) !== 'turnos') return null
-  const order = initiativeOrder(session)
-  const turn = session.turn % order.length
+  const turn = session.fightMode === 'lados' ? sideTurn(universe, session) : null
   return {
     round: session.round,
-    order: order.map((e, i) => {
-      const sheet = e.sheetId ? byId(universe, 'sheets', e.sheetId) : undefined
+    mode: session.fightMode,
+    ...(turn ? { side: turn.side } : {}),
+    order: turnQueue(universe, session).map(({ entry: e, state, side }) => {
       const conditions = conditionsOf(universe, e).map((c) => {
         const left = roundsLeft(session, e.id, c)
         return left === null ? c : `${c} (${left})`
       })
-      return { id: e.id, name: e.name, pc: sheet?.role === 'pj', current: i === turn, down: isDown(universe, e), ...(conditions.length ? { conditions } : {}) }
+      return { id: e.id, name: e.name, pc: side === 'herois', current: state === 'agora', ...(state === 'agiu' ? { acted: true } : {}), down: isDown(universe, e), ...(conditions.length ? { conditions } : {}) }
     }),
   }
 }
@@ -159,6 +172,11 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     ...(system ? { rules: { resolution: system.resolution, successTarget: system.successTarget } } : {}),
     session: liveSession(universe, groupId),
     notices: recentNotices(live),
+    scene: (() => {
+      const beat = currentBeat(live)
+      return beat ? { title: beat.title, mood: beat.mood } : null
+    })(),
+    clocks: untilSession === undefined ? sharedClocks(group).map(({ id, name, size, filled }) => ({ id, name, size, filled })) : [],
     requests: live
       ? openRequests(live).map((r) => ({
           id: r.id,

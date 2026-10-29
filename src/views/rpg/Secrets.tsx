@@ -30,7 +30,7 @@ export function SecretsPanel() {
   return (
     <section className="table-panel table-secrets" aria-label="Segredos">
       <h2 className="section-title">
-        <EyeOff size={17} aria-hidden="true" /> Segredos
+        <EyeOff size={17} aria-hidden="true" /> Segredos e pistas
       </h2>
       <p className="muted small">Um toque e a mesa fica sabendo: o Codex de cada celular mostra na hora.</p>
       {nothing && <p className="muted small">Nenhum segredo guardado. Fichas e fatos marcados como secretos aparecem aqui.</p>}

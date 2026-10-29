@@ -21,6 +21,8 @@ import {
   Lock,
   MapIcon,
   MessageSquareText,
+  NotebookPen,
+  Smartphone,
   Moon,
   Network,
   Radio,
@@ -213,20 +215,23 @@ export function Landing() {
               </p>
               <h2 id="mestrar-titulo">O mesmo mundo, agora na mesa.</h2>
               <p className="lp-lede">
-                O RPG de verdade acontece na mesa, com dados de verdade. O Papirus é o ajudante: guarda as fichas, faz as contas e liga o mestre ao celular de cada jogador, nos dois sentidos.
+                O RPG de verdade acontece na mesa, com dados de verdade. O Papirus é o ajudante: o mestre ganha um escudo, com o roteiro da sessão e o palco do que está acontecendo; cada jogador ganha o cartão do personagem no celular.
               </p>
               <ul className="lp-checks">
                 <li>
                   <Dices size={18} aria-hidden="true" /> Role os seus dados e diga o que saiu: o app soma o bônus, vê o crítico e calcula o dano. Esqueceu os dados? Ele rola.
                 </li>
                 <li>
-                  <Swords size={18} aria-hidden="true" /> Ficha feita para jogar: PV e PM com um toque, ataques, poderes que gastam PM, condições e inventário
+                  <NotebookPen size={18} aria-hidden="true" /> O escudo do mestre: início forte, cenas para riscar e segredos para revelar num toque; a cena atual e os relógios aparecem no celular de todos
+                </li>
+                <li>
+                  <Swords size={18} aria-hidden="true" /> Combate com fila de turnos e três jeitos de iniciativa: clássica, por lados ou pipoca (quem agiu escolhe o próximo, pelo celular). O app diz se o ataque acerta pela Defesa e tira o dano da vida
+                </li>
+                <li>
+                  <Smartphone size={18} aria-hidden="true" /> O cartão do jogador: vida, defesa e ataques a um toque. Na vez dele, o celular vibra e mostra tudo no meio da tela
                 </li>
                 <li>
                   <Palette size={18} aria-hidden="true" /> Cada mesa com o clima do gênero, escolhido pelo mestre; cada jogador escolhe claro ou escuro
-                </li>
-                <li>
-                  <Swords size={18} aria-hidden="true" /> Combate: escolha o alvo e o app diz se acerta pela Defesa; o dano sai da vida dele, e quem cai aparece como derrotado
                 </li>
                 <li>
                   <Radio size={18} aria-hidden="true" /> Codex ao vivo: cada jogador rola pela própria ficha no celular, e a mesa toda vê. Revelações, mapa e a vez no combate chegam na hora

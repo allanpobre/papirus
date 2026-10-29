@@ -1,18 +1,26 @@
-import { Check, Crosshair, Dices, ListChecks, Search, Swords } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { BookOpen, Crosshair, Dices, ListChecks, Search, Swords, Theater, UserRound, type LucideIcon } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { fold } from '../logic/text'
 import { bonusLabel, critDamage, facesOf, resolveRoll, type RollOutcome, type RollRules } from '../rpg/rolls'
 import type { TableRoll } from '../share/server'
 import type { CodexRoll, CodexSnapshot } from '../share/snapshot'
 import { recall, remember } from '../state/prefs'
 import { Modal } from '../ui/Modal'
-import { RollingDie } from '../ui/RollingDie'
+import { useMediaQuery } from '../ui/useMediaQuery'
+import { CombatBoard, Feed, MeCard, SceneBoard, YourTurn } from './PlayerPanels'
 import { PhysicalRollDialog } from '../views/rpg/PhysicalRollDialog'
 
 /** A hora da rolagem (fora do componente: só roda no toque). */
 const nowIso = () => new Date().toISOString()
 const LOOSE: RollRules = { resolution: 'total', successTarget: 0 }
 const FREE = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
+
+type Tab = 'eu' | 'mesa' | 'codex'
+const TABS: [Tab, string, LucideIcon][] = [
+  ['eu', 'Eu', UserRound],
+  ['mesa', 'Mesa', Theater],
+  ['codex', 'Codex', BookOpen],
+]
 
 const askLabel = (r: { kind: string; name: string }) => (r.kind === 'iniciativa' ? 'Combate: role a iniciativa' : `Teste pedido: ${r.name}`)
 
@@ -37,7 +45,40 @@ interface Pending {
  * O jogador na mesa: escolhe quem é, rola pela própria ficha (o dado de verdade primeiro) e
  * vê as rolagens de todos. Nada muda no Codex por aqui: o mestre confere e decide.
  */
-export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSnapshot; me: string | null; onMe: (name: string | null) => void; feed: FeedRoll[]; onRoll: (r: TableRoll) => void }) {
+export function PlayerTable({
+  codex,
+  me,
+  onMe,
+  feed,
+  onRoll,
+  onTurn,
+  live,
+  codexView,
+}: {
+  codex: CodexSnapshot
+  me: string | null
+  onMe: (name: string | null) => void
+  feed: FeedRoll[]
+  onRoll: (r: TableRoll) => void
+  /** "Terminei" (na pipoca, com quem vem depois). */
+  onTurn: (to?: string) => void
+  /** Quem está na mesa e o último aviso, no alto da aba Mesa. */
+  live: ReactNode
+  /** O Codex (a aba Codex). */
+  codexView: ReactNode
+}) {
+  const wide = useMediaQuery('(min-width: 960px)')
+  const [tab, setTab] = useState<Tab>(() => {
+    const saved = recall('codex-aba')
+    return saved === 'eu' || saved === 'codex' ? saved : 'mesa'
+  })
+  const choose = (t: Tab) => {
+    setTab(t)
+    remember('codex-aba', t)
+    scrollTo({ top: 0 })
+  }
+  // A vez que o jogador já fechou (ou terminou): o aviso não volta até a próxima.
+  const [closedTurn, setClosedTurn] = useState<string | null>(null)
   const [rolling, setRolling] = useState(false)
   const [aiming, setAiming] = useState<Pending | null>(null)
   const [asking, setAsking] = useState<{ outcome: RollOutcome; pending: Pending; aim?: TableRoll['aim'] } | null>(null)
@@ -120,6 +161,71 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
     if (askId) navigator.vibrate?.([90, 60, 90])
   }, [askId])
 
+  const pick = (r: CodexRoll): Pending => ({ roll: r, name: r.name, kind: r.kind, expression: r.expression, target: r.target, critFrom: r.critFrom })
+  const attacks = rolls.filter((r) => r.kind === 'ataque')
+  const turnKey = myTurn && combat ? `${combat.round}-${combat.order.find((e) => e.current && e.name === me)?.id}` : null
+  const showTurn = Boolean(turnKey && turnKey !== closedTurn && !ask && !aiming && !asking && !rolling)
+  const done = (to?: string) => {
+    setClosedTurn(turnKey)
+    onTurn(to)
+  }
+
+  const whoAmI = (
+        <section className="player-who" aria-labelledby="player-who">
+          <h2 id="player-who" className="player-who-title">
+            Quem é você na mesa?
+          </h2>
+          <p className="muted small">Para rolar pela sua ficha. As rolagens aparecem para o mestre e para o grupo.</p>
+          <div className="chips">
+            {codex.party.map((p) => (
+              <button key={p.name} type="button" className={`chip player-who-chip${p.away ? ' is-away' : ''}`} onClick={() => onMe(p.name)}>
+                {p.name}
+                {p.player && <span className="player-who-player">{p.player}</span>}
+                {p.away && <span className="player-who-away">{p.away === 'fora' ? 'fora hoje' : 'com o mestre hoje'}</span>}
+              </button>
+            ))}
+          </div>
+        </section>
+  )
+
+  // A pessoa ainda não disse quem é: a aba "Eu" vem primeiro.
+  const shown: Tab = !me && codex.party.length > 0 && tab === 'mesa' ? 'eu' : tab
+  // No celular, as abas fora de vista continuam montadas (só escondidas): o Codex não perde o que estava aberto.
+  const off = (t: Tab) => !wide && shown !== t
+
+  const panels: Record<Tab, ReactNode> = {
+    eu: (
+      <section key="eu" className="player-panel player-eu" aria-label="Eu" hidden={off('eu')}>
+        {pc && me ? (
+          <MeCard pc={pc} rolls={rolls} onRoll={(r) => start(pick(r))} onAll={() => setRolling(true)} onChange={() => onMe(null)} />
+        ) : codex.party.length > 0 ? (
+          whoAmI
+        ) : (
+          <p className="muted small">Esta mesa ainda não tem fichas no Codex. Role pelo botão "Rolar".</p>
+        )}
+      </section>
+    ),
+    mesa: (
+      <section key="mesa" className="player-panel player-live-board" aria-label="Mesa" hidden={off('mesa')}>
+        {live}
+        <SceneBoard codex={codex} />
+        {combat && <CombatBoard combat={combat} me={me} />}
+        {myTurn && (
+          <p className="player-turn" role="status">
+            <Swords size={15} aria-hidden="true" /> Sua vez, {me}!
+          </p>
+        )}
+        <Feed feed={feed} />
+        {!codex.scene && !combat && !feed.length && <p className="muted small player-quiet">Nada acontecendo na mesa agora. As rolagens, a cena e o combate aparecem aqui.</p>}
+      </section>
+    ),
+    codex: (
+      <section key="codex" className="player-panel player-codex" aria-label="Codex" hidden={off('codex')}>
+        {codexView}
+      </section>
+    ),
+  }
+
   return (
     <>
       {/* O pedido do mestre no meio da tela, com o botão de rolar; "Depois" guarda no alto. */}
@@ -165,54 +271,11 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
             )}
           </section>
         ))}
-      {codex.party.length > 0 && !me && (
-        <section className="player-who" aria-labelledby="player-who">
-          <h2 id="player-who" className="player-who-title">
-            Quem é você na mesa?
-          </h2>
-          <p className="muted small">Para rolar pela sua ficha. As rolagens aparecem para o mestre e para o grupo.</p>
-          <div className="chips">
-            {codex.party.map((p) => (
-              <button key={p.name} type="button" className={`chip player-who-chip${p.away ? ' is-away' : ''}`} onClick={() => onMe(p.name)}>
-                {p.name}
-                {p.player && <span className="player-who-player">{p.player}</span>}
-                {p.away && <span className="player-who-away">{p.away === 'fora' ? 'fora hoje' : 'com o mestre hoje'}</span>}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
 
-      <aside className="player-dock" aria-label="Na mesa">
-        {myTurn && (
-          <p className="player-turn" role="status">
-            <Swords size={15} aria-hidden="true" /> Sua vez, {me}!
-          </p>
-        )}
-        {feed.length > 0 && (
-          <ol className="player-feed" aria-label="Rolagens da mesa" aria-live="polite">
-            {feed.slice(0, 3).map((r, i) => (
-              <li key={r.id} className={`player-roll tone-${r.tone}${r.mine ? ' is-mine' : ''}`}>
-                {i === 0 ? <RollingDie value={r.total} fresh className="player-roll-total" /> : <span className="player-roll-total tabular">{r.total}</span>}
-                <span className="player-roll-body">
-                  <span className="player-roll-label">
-                    {r.mine ? 'Você' : r.who} · {rollLabel(r)}
-                  </span>
-                  <span className="player-roll-detail">
-                    {r.verdict && (
-                      <strong>
-                        {r.verdict}
-                        {r.checked && <Check size={12} aria-label="conferido pelo mestre" />}
-                      </strong>
-                    )}{' '}
-                    {r.expression} [{r.faces.join(', ')}]{r.physical ? ' · dado físico' : ''}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ol>
-        )}
-        {me ? (
+      <div className={wide ? 'player-grid' : 'player-stack'}>{(['eu', 'mesa', 'codex'] as Tab[]).map((t) => panels[t])}</div>
+
+      <div className="player-bottom">
+        {(me || codex.party.length === 0) && (
           <div className="player-dock-actions">
             {canDamage && (
               <button
@@ -226,19 +289,26 @@ export function PlayerTable({ codex, me, onMe, feed, onRoll }: { codex: CodexSna
               </button>
             )}
             <button type="button" className="btn btn-primary player-roll-btn" onClick={() => setRolling(true)}>
-              <Dices size={16} aria-hidden="true" /> Rolar como {me}
+              <Dices size={16} aria-hidden="true" /> {me ? `Rolar como ${me}` : 'Rolar'}
             </button>
           </div>
-        ) : (
-          codex.party.length === 0 && (
-            <div className="player-dock-actions">
-              <button type="button" className="btn btn-primary player-roll-btn" onClick={() => setRolling(true)}>
-                <Dices size={16} aria-hidden="true" /> Rolar
-              </button>
-            </div>
-          )
         )}
-      </aside>
+        {!wide && (
+          <nav className="player-tabs" aria-label="Partes do Codex">
+            {TABS.map(([t, label, Icon]) => (
+              <button key={t} type="button" aria-current={shown === t ? 'page' : undefined} onClick={() => choose(t)}>
+                <Icon size={19} aria-hidden="true" />
+                <span>{label}</span>
+                {t === 'mesa' && myTurn && shown !== 'mesa' && <span className="player-tab-dot" aria-label="sua vez" />}
+              </button>
+            ))}
+          </nav>
+        )}
+      </div>
+
+      {showTurn && me && combat && (
+        <YourTurn me={me} combat={combat} attacks={attacks} onAttack={(r) => start(pick(r))} onOther={() => setRolling(true)} onDone={done} onClose={() => setClosedTurn(turnKey)} />
+      )}
 
       {rolling && (
         <RollSheet

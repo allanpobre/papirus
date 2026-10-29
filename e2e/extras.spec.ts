@@ -160,6 +160,8 @@ test('Na mesa: começa a sessão, anota, rola e ajusta recursos', async ({ page 
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('O grupo entrou na torre.')
   await page.getByRole('button', { name: 'Anotar' }).click()
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('O grupo entrou na torre.')
+  // Os dados ficam na Mesa, numa parte que abre e fecha.
+  await page.getByText('Dados e tabelas', { exact: true }).click()
   await page.getByRole('region', { name: 'Dados' }).getByRole('button', { name: 'd20', exact: true }).click()
   await expect(page.getByRole('complementary', { name: 'Últimas rolagens' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Registro' }).locator('.log-roll')).not.toHaveCount(0)

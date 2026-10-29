@@ -3,7 +3,8 @@ import { useState } from 'react'
 import type { Session } from '../../model/schema'
 import { byId, insert } from '../../model/universe'
 import { baseName, monsterFromEntry } from '../../rpg/bestiary'
-import { combatTargets, initiativeOrder, isDown, lifeOf } from '../../rpg/combat'
+import { combatTargets, isDown, lifeOf } from '../../rpg/combat'
+import { currentId } from '../../rpg/fight'
 import { aimAt, damageExpression, resolveRoll, type CombatTarget } from '../../rpg/rolls'
 import { critFrom, critMult } from '../../rpg/sheets'
 import { makeSystem } from '../../rpg/systems'
@@ -99,13 +100,14 @@ function TargetPicker({ title, targets, onPick, onClose }: { title: string; targ
  * A vez de quem joga agora: os ataques da ficha a um toque; para quem não tem ficha
  * (o goblin anotado na hora), um ataque rápido com bônus e dano.
  */
-export function TurnPanel({ session }: { session: Session }) {
+export function TurnPanel({ session, entryId }: { session: Session; entryId?: string | null }) {
   const { universe, update, toast, readOnly } = useWorkspace()
   const { system } = useRpg()
   const { attack, picker } = useAttack()
-  const order = initiativeOrder(session)
-  if (!order.length) return null
-  const entry = order[session.turn % order.length]
+  // Quem age: o da vez, ou (por lados, na vez dos heróis) quem o mestre tocou.
+  const id = entryId ?? currentId(session)
+  const entry = session.initiative.find((e) => e.id === id)
+  if (!entry) return null
   const sheet = entry.sheetId ? byId(universe, 'sheets', entry.sheetId) : undefined
   const sheetSystem = sheet ? universe.systems.find((s) => s.id === sheet.systemId) : undefined
   const usesD20 = (system ?? FALLBACK).resolution === 'total'

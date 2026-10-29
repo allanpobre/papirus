@@ -1,7 +1,6 @@
-import { BookOpen, Dices, Flag, ListChecks, Maximize2, Megaphone, Minimize2, Palette, ScrollText, Swords, Users, X, type LucideIcon } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { Dices, Flag, ListChecks, Maximize2, Megaphone, Minimize2, NotebookPen, Palette, Theater, Users, X, type LucideIcon } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from 'react'
 import type { Session } from '../../model/schema'
-import { patch } from '../../model/universe'
 import { sessionName } from '../../rpg/sessionLife'
 import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
@@ -11,23 +10,23 @@ import { MoreMenu } from '../../ui/MoreMenu'
 import { PageHelp } from '../../ui/PageTour'
 import { useMediaQuery } from '../../ui/useMediaQuery'
 import { AnnounceDialog } from './Announce'
-import { InitiativeTracker } from './InitiativeTracker'
 import { MesaPresence } from './LiveTable'
 import { markMesaGate } from './MesaGate'
 import { useRpg } from './rpgContext'
-import { AskRollDialog, RequestsPanel } from './Requests'
-import { SecretsPanel } from './Secrets'
+import { AskRollDialog } from './Requests'
+import { Palco } from './Palco'
+import { Roteiro } from './Roteiro'
 import { SheetPlay } from './SheetPlay'
 import { LogBox, PartyCards, QuickDice, TableRolls } from './TableTab'
+import { Fold } from '../../ui/Fold'
 
-type Part = 'combate' | 'grupo' | 'dados' | 'registro' | 'segredos'
+type Part = 'roteiro' | 'palco' | 'mesa'
 
+// O escudo do mestre: três painéis, como o de papelão. No celular, um de cada vez (o Palco primeiro).
 const PARTS: [Part, string, LucideIcon][] = [
-  ['combate', 'Combate', Swords],
-  ['grupo', 'Grupo', Users],
-  ['dados', 'Dados', Dices],
-  ['registro', 'Registro', BookOpen],
-  ['segredos', 'Segredos', ScrollText],
+  ['roteiro', 'Roteiro', NotebookPen],
+  ['palco', 'Palco', Theater],
+  ['mesa', 'Mesa', Users],
 ]
 
 /** Tempo de jogo desde o começo: "1:25". */
@@ -50,28 +49,6 @@ function SessionClock({ startedAt }: { startedAt: string | null }) {
   )
 }
 
-/** A preparação da sessão (só o mestre vê), à mão durante o jogo. */
-function Prep({ session }: { session: Session }) {
-  const { update, readOnly } = useWorkspace()
-  return (
-    <details className="sm-prep" open={Boolean(session.prep.trim())}>
-      <summary className="section-label">Preparação · só você vê</summary>
-      <label htmlFor="sm-prep" className="sr-only">
-        Preparação da sessão
-      </label>
-      <textarea
-        id="sm-prep"
-        className="input textarea"
-        rows={4}
-        readOnly={readOnly}
-        placeholder="Ganchos, cenas possíveis, nomes de reserva…"
-        value={session.prep}
-        onChange={(e) => update((u) => patch(u, 'sessions', session.id, { prep: e.target.value }))}
-      />
-    </details>
-  )
-}
-
 /**
  * O modo sessão: quando a sessão começa, o app vira a mesa. Some o menu da escrita; fica a barra
  * da sessão (o nome, o tempo, quem está, anunciar, dados, encerrar) e só o que se usa no jogo, em
@@ -82,7 +59,10 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
   const { group, endSession, invite } = useRpg()
   const phone = useMediaQuery('(max-width: 760px)')
   const wide = useMediaQuery('(min-width: 1181px)')
-  const [part, setPart] = useState<Part>(() => (recall('sessao-parte') as Part) || 'combate')
+  const [part, setPart] = useState<Part>(() => {
+    const saved = recall('sessao-parte')
+    return saved === 'roteiro' || saved === 'mesa' ? saved : 'palco'
+  })
   const [announcing, setAnnouncing] = useState(false)
   const [asking, setAsking] = useState(false)
   const [sheetId, setSheetId] = useState<string | null>(null)
@@ -114,36 +94,52 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
   }
 
   const panels: Record<Part, ReactNode> = {
-    combate: (
-      <div className="table-panel sm-panel sm-combate">
-        <InitiativeTracker session={session} />
-      </div>
-    ),
-    grupo: (
-      <section className="table-panel sm-panel" aria-label="Grupo">
-        <h2 className="section-title">Grupo</h2>
-        <PartyCards onSheet={setSheetId} />
+    roteiro: <Roteiro session={session} onSheet={setSheetId} />,
+    palco: <Palco session={session} onRoteiro={phone ? () => choose('roteiro') : undefined} />,
+    mesa: (
+      <section className="shield-panel shield-mesa" aria-label="Mesa">
+        <header className="shield-head">
+          <h2 className="shield-title">Mesa</h2>
+          <span className="muted tiny">quem joga hoje</span>
+        </header>
+        <section className="table-panel sm-panel" aria-label="Grupo">
+          <h3 className="shield-label">Grupo</h3>
+          <PartyCards onSheet={setSheetId} />
+        </section>
+        <section className="table-panel sm-panel" aria-label="Registro">
+          <h3 className="shield-label">Registro</h3>
+          <LogBox />
+        </section>
+        <Fold id="sm-dados" title="Dados e tabelas" defaultOpen={false}>
+          <section className="sm-panel" aria-label="Dados">
+            <QuickDice />
+            <TableRolls />
+          </section>
+        </Fold>
       </section>
     ),
-    dados: (
-      <section className="table-panel sm-panel" aria-label="Dados">
-        <h2 className="section-title">Dados</h2>
-        <QuickDice />
-        <TableRolls />
-      </section>
-    ),
-    registro: (
-      <section className="table-panel sm-panel" aria-label="Registro">
-        <h2 className="section-title">Registro</h2>
-        <Prep session={session} />
-        <LogBox />
-      </section>
-    ),
-    segredos: <SecretsPanel />,
   }
 
-  // Computador: combate | grupo e segredos | dados e registro. Tablet: duas colunas. Celular: uma parte por vez.
-  const columns: Part[][] = phone ? [[part]] : wide ? [['combate'], ['grupo', 'segredos'], ['dados', 'registro']] : [['combate', 'grupo'], ['dados', 'registro', 'segredos']]
+  // Computador: os três lado a lado. Tablet: Palco | Roteiro e Mesa. Celular: um de cada vez.
+  const columns: Part[][] = phone ? [[part]] : wide ? [['roteiro'], ['palco'], ['mesa']] : [['palco'], ['roteiro', 'mesa']]
+
+  // No celular, arrastar para o lado troca de painel, como virar o escudo.
+  const swipe = useRef<{ x: number; y: number } | null>(null)
+  const onTouchStart = (e: TouchEvent) => {
+    const t = e.touches[0]
+    swipe.current = (e.target as HTMLElement).closest('input, textarea, select, .clocks, .fight-list') ? null : { x: t.clientX, y: t.clientY }
+  }
+  const onTouchEnd = (e: TouchEvent) => {
+    const start = swipe.current
+    swipe.current = null
+    if (!start || !phone) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - start.x
+    if (Math.abs(dx) < 70 || Math.abs(t.clientY - start.y) > 50) return
+    const i = PARTS.findIndex(([p]) => p === part)
+    const next = PARTS[i + (dx < 0 ? 1 : -1)]
+    if (next) choose(next[0])
+  }
 
   return (
     <div className="session-mode-view">
@@ -219,8 +215,7 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
         </div>
       </header>
 
-      <RequestsPanel />
-      <div className={`sm-body sm-cols-${columns.length}`}>
+      <div className={`sm-body sm-cols-${columns.length}${wide && !phone ? ' is-shield' : ''}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {columns.map((col, i) => (
           <div key={i} className="sm-col">
             {col.map((p) => (

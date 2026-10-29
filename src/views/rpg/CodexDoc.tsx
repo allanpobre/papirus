@@ -1,19 +1,48 @@
 import { BookOpen, MapPin, Swords } from 'lucide-react'
+import type { ReactNode } from 'react'
 import type { CodexSnapshot } from '../../share/snapshot'
 import { isEmptySnapshot } from '../../share/snapshot'
 import { MiniGraph } from '../../ui/MiniGraph'
 import { useImageSrc } from '../../images/resolve'
 import { Picture } from '../../images/Picture'
 
-/** O Codex como documento: o mesmo na prévia do mestre e no celular dos jogadores. */
-export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
+/**
+ * Uma parte do Codex. No celular (`folded`), vira uma linha que abre e fecha, com quantos
+ * itens tem e quantos são novos; abre sozinha quando há novidade.
+ */
+function Sec({ title, count, fresh = 0, folded, className, labelledBy, children }: { title: ReactNode; count?: number; fresh?: number; folded: boolean; className?: string; labelledBy?: string; children: ReactNode }) {
+  if (!folded)
+    return (
+      <section className={className} aria-labelledby={labelledBy}>
+        <h3 id={labelledBy} className="codex-kind">
+          {title}
+        </h3>
+        {children}
+      </section>
+    )
+  return (
+    <details className={`codex-sec ${className ?? ''}`.trim()} open={fresh > 0 || undefined}>
+      <summary>
+        <h3 id={labelledBy} className="codex-kind">
+          {title}
+        </h3>
+        {fresh > 0 && <span className="codex-new">{fresh === 1 ? '1 novo' : `${fresh} novos`}</span>}
+        {count !== undefined && <span className="codex-sec-count tabular">{count}</span>}
+      </summary>
+      <div className="codex-sec-body">{children}</div>
+    </details>
+  )
+}
+
+/** O Codex como documento: o mesmo na prévia do mestre e no celular dos jogadores (lá, em partes que abrem e fecham). */
+export function CodexDoc({ codex, me, folded = false }: { codex: CodexSnapshot; me?: string; folded?: boolean }) {
   return (
     <div className="codex-doc">
       <h2 className="codex-title">Codex</h2>
       <p className="codex-sub">{codex.group}</p>
       {isEmptySnapshot(codex) && !codex.combat && <p className="muted">Nada foi revelado ainda.</p>}
 
-      {codex.combat && (
+      {codex.combat && !folded && (
         <section className="codex-combat" aria-labelledby="codex-combate">
           <h3 id="codex-combate" className="codex-kind">
             <Swords size={15} aria-hidden="true" /> Combate · Rodada {codex.combat.round}
@@ -36,21 +65,27 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
       )}
 
       {codex.party.length > 0 && (
-        <section>
-          <h3 className="codex-kind">O grupo</h3>
+        <Sec title="O grupo" count={codex.party.length} folded={folded}>
           <div className="codex-party">
             {codex.party.map((s, i) => (
               <PartyCard key={i} s={s} />
             ))}
           </div>
-        </section>
+        </Sec>
       )}
 
       {(codex.journal ?? []).length > 0 && (
-        <section className="codex-journal" aria-labelledby="codex-diario">
-          <h3 id="codex-diario" className="codex-kind">
-            <BookOpen size={15} aria-hidden="true" /> Diário da campanha
-          </h3>
+        <Sec
+          className="codex-journal"
+          labelledBy="codex-diario"
+          folded={folded}
+          count={(codex.journal ?? []).length}
+          title={
+            <>
+              <BookOpen size={15} aria-hidden="true" /> Diário da campanha
+            </>
+          }
+        >
           {[...(codex.journal ?? [])].reverse().map((j, i) => (
             <details key={j.number} className="codex-journal-entry" open={i === 0}>
               <summary>
@@ -62,12 +97,11 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
               ))}
             </details>
           ))}
-        </section>
+        </Sec>
       )}
 
       {codex.sections.map((sec) => (
-        <section key={sec.title}>
-          <h3 className="codex-kind">{sec.title}</h3>
+        <Sec key={sec.title} title={sec.title} folded={folded} count={sec.entries.length} fresh={sec.entries.filter((e) => e.fresh).length}>
           {sec.entries.map((e, i) => (
             <div key={i} className={`codex-entry${e.fresh ? ' is-fresh' : ''}${e.image ? ' has-portrait' : ''}`}>
               {e.image && <Picture value={e.image} alt={`Retrato de ${e.name}`} className="codex-portrait" />}
@@ -80,12 +114,11 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
               {e.depth === 'nome' && <p className="muted small">Ainda pouco se sabe.</p>}
             </div>
           ))}
-        </section>
+        </Sec>
       ))}
 
       {(codex.relations ?? []).length > 0 && (
-        <section>
-          <h3 className="codex-kind">Ligações</h3>
+        <Sec title="Ligações" folded={folded} count={(codex.relations ?? []).length} fresh={(codex.relations ?? []).filter((r) => r.fresh).length}>
           {(codex.relations ?? []).length > 1 && (() => {
             const rels = codex.relations ?? []
             const names = [...new Set(rels.flatMap((r) => [r.from, r.to]))]
@@ -100,12 +133,11 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
               </li>
             ))}
           </ul>
-        </section>
+        </Sec>
       )}
 
       {codex.events.length > 0 && (
-        <section>
-          <h3 className="codex-kind">Linha do tempo</h3>
+        <Sec title="Linha do tempo" folded={folded} count={codex.events.length} fresh={codex.events.filter((e) => e.fresh).length}>
           <ol className="codex-timeline codex-years">
             {codex.events.map((e, i) => (
               <li key={i} className={e.fresh ? 'is-fresh' : undefined}>
@@ -117,12 +149,11 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
               </li>
             ))}
           </ol>
-        </section>
+        </Sec>
       )}
 
       {codex.facts.length > 0 && (
-        <section>
-          <h3 className="codex-kind">O que sabemos</h3>
+        <Sec title="O que sabemos" folded={folded} count={codex.facts.length}>
           <ul>
             {codex.facts.map((f, i) => (
               <li key={i}>
@@ -131,12 +162,11 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
               </li>
             ))}
           </ul>
-        </section>
+        </Sec>
       )}
 
       {codex.clues.length > 0 && (
-        <section>
-          <h3 className="codex-kind">Pistas</h3>
+        <Sec title="Pistas" folded={folded} count={codex.clues.length}>
           <ul>
             {codex.clues.map((c, i) => (
               <li key={i}>
@@ -145,12 +175,18 @@ export function CodexDoc({ codex, me }: { codex: CodexSnapshot; me?: string }) {
               </li>
             ))}
           </ul>
-        </section>
+        </Sec>
       )}
 
-      {codex.maps.map((m, i) => (
-        <CodexMap key={i} m={m} />
-      ))}
+      {folded && codex.maps.length > 0 ? (
+        <Sec title="Mapas" folded count={codex.maps.length}>
+          {codex.maps.map((m, i) => (
+            <CodexMap key={i} m={m} />
+          ))}
+        </Sec>
+      ) : (
+        codex.maps.map((m, i) => <CodexMap key={i} m={m} />)
+      )}
     </div>
   )
 }
@@ -174,7 +210,7 @@ function CodexMap({ m }: { m: CodexSnapshot['maps'][number] }) {
 }
 
 /** Um personagem no Codex: o essencial à vista e a ficha toda para consultar (o mestre é quem muda). */
-function PartyCard({ s }: { s: CodexSnapshot['party'][number] }) {
+export function PartyCard({ s }: { s: CodexSnapshot['party'][number] }) {
   const more = (s.skills?.length ?? 0) + (s.attacks?.length ?? 0) + (s.abilities?.length ?? 0) + (s.inventory?.length ?? 0) > 0 || s.attrs.length > 0
   return (
     <div className="codex-pc">

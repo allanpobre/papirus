@@ -9,6 +9,7 @@ import { CodexDoc } from '../views/rpg/CodexDoc'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { sessionName } from '../rpg/sessionLife'
 import { PageHelp } from '../ui/PageTour'
+import { useMediaQuery } from '../ui/useMediaQuery'
 import '@fontsource/cinzel/400.css'
 import '@fontsource/cinzel/600.css'
 import '../styles/mesa.css'
@@ -35,6 +36,8 @@ const NOTICE_KICKER: Record<TableNotice['tone'], string> = { aviso: 'Aviso do me
  */
 export default function PlayerApp({ id, server }: { id: string; server: ServerConfig | null }) {
   const [codex, setCodex] = useState<CodexSnapshot | null>(null)
+  // No computador, o Codex fica numa coluna inteira; no celular, em partes que abrem e fecham.
+  const wide = useMediaQuery('(min-width: 960px)')
   const current = useRef<CodexSnapshot | null>(null)
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
   const [state, setState] = useState<'carregando' | 'ok' | 'sumiu' | 'erro'>('carregando')
@@ -227,11 +230,26 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
                 Novidades do mestre
               </p>
             )}
-            <AtTable people={alive(people, now)} session={codex.session ?? null} me={me && codex.party.some((p) => p.name === me) ? me : null} />
-            {codex.session && codex.notices?.length ? <LastNotice notice={codex.notices.at(-1)!} /> : null}
-            <PlayerTable codex={codex} me={me && codex.party.some((p) => p.name === me) ? me : null} onMe={chooseMe} feed={feed} onRoll={roll} />
-            <CodexDoc codex={codex} me={me ?? undefined} />
-            {updatedAt && <p className="muted tiny player-foot">Atualizado às {timeFmt.format(new Date(updatedAt))} · feito com Papirus</p>}
+            <PlayerTable
+              codex={codex}
+              me={me && codex.party.some((p) => p.name === me) ? me : null}
+              onMe={chooseMe}
+              feed={feed}
+              onRoll={roll}
+              onTurn={(to) => me && void table.current?.sendTurn({ id: crypto.randomUUID(), who: me, ...(to ? { to } : {}) }).catch(() => undefined)}
+              live={
+                <>
+                  <AtTable people={alive(people, now)} session={codex.session ?? null} me={me && codex.party.some((p) => p.name === me) ? me : null} />
+                  {codex.session && codex.notices?.length ? <LastNotice notice={codex.notices.at(-1)!} /> : null}
+                </>
+              }
+              codexView={
+                <>
+                  <CodexDoc codex={codex} me={me ?? undefined} folded={!wide} />
+                  {updatedAt && <p className="muted tiny player-foot">Atualizado às {timeFmt.format(new Date(updatedAt))} · feito com Papirus</p>}
+                </>
+              }
+            />
           </>
         ) : null}
       </main>

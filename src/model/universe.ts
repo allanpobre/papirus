@@ -199,6 +199,13 @@ export const draftSession = (number: number, groupId: string | null): Draft<'ses
   prep: '',
   log: [],
   fight: '',
+  fightMode: 'classica',
+  sides: null,
+  turnId: null,
+  acted: [],
+  strongStart: '',
+  beats: [],
+  beatId: null,
   initiative: [],
   startedAt: null,
   attendance: {},
@@ -238,7 +245,7 @@ export const draftRevelation = (
   sessionId,
 })
 
-export const draftGroup = (name: string, systemId: string | null = null): Draft<'groups'> => ({ name, systemId, showSheetsInCodex: true, share: null, theme: null })
+export const draftGroup = (name: string, systemId: string | null = null): Draft<'groups'> => ({ name, systemId, showSheetsInCodex: true, share: null, theme: null, initiativeMode: 'classica', clocks: [] })
 
 export const draftMap = (name: string, image: string, width: number, height: number): Draft<'maps'> => ({
   name,

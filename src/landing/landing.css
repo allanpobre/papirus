@@ -3870,3 +3870,402 @@ body,
 .lp-steps .lp-mini {
   margin-top: auto;
 }
+
+/* ─── A mesa nova: o escudo do mestre e o cartão do jogador ─── */
+.lp-tablet-body .lp-roteiro {
+  grid-area: init;
+}
+
+.lp-tablet-body .lp-palco {
+  grid-area: roll;
+}
+
+.lp-tablet-body .lp-rolls {
+  grid-area: secret;
+}
+
+.lp-shield-label {
+  margin: 0.55rem 0 0.25rem;
+  color: #949bae;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lp-beat {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.15rem 0;
+  padding: 0.2rem 0.3rem;
+  border-radius: 7px;
+  font-size: 0.78rem;
+}
+
+.lp-beat i {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid #949bae;
+  border-radius: 3px;
+}
+
+.lp-beat.is-done {
+  color: #949bae;
+  text-decoration: line-through;
+}
+
+.lp-beat.is-done i {
+  border-color: #f0536f;
+  background: #f0536f;
+}
+
+.lp-beat.is-now {
+  background: rgb(240 83 111 / 14%);
+  font-weight: 650;
+}
+
+.lp-beat b {
+  margin-left: auto;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: #f0536f;
+  color: #19060b;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lp-secret-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #2a2f3c;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s;
+}
+
+.lp-secret-row.is-pressing .lp-secret-btn {
+  transform: scale(0.92);
+  box-shadow: 0 0 0 6px rgb(240 83 111 / 25%);
+}
+
+.lp-secret-row.is-done {
+  border-color: rgb(63 209 176 / 55%);
+  box-shadow: 0 0 22px rgb(63 209 176 / 18%);
+}
+
+.lp-secret-row.is-done .lp-secret-btn {
+  background: #3fd1b0;
+  color: #061113;
+}
+
+/* A fila de turnos (no tablet, no celular e na tela de combate). */
+.lp-queue {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  margin: 0.2rem 0 0.5rem;
+}
+
+.lp-qface {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  width: 2.6rem;
+  color: #949bae;
+  font-size: 0.58rem;
+}
+
+.lp-qface b {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #3a4052;
+  border-radius: 0.55rem;
+  background: #1d3326;
+  color: #c9f0d6;
+  font-family: 'Cinzel', var(--font-display);
+  font-size: 0.85rem;
+  transition:
+    width 0.3s,
+    height 0.3s;
+}
+
+.lp-qface small {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lp-qface.is-foe b {
+  background: #3a1820;
+  color: #ffb3c0;
+}
+
+.lp-qface.is-side b {
+  border-style: dashed;
+  background: transparent;
+  color: #eceef5;
+}
+
+.lp-qface.is-now {
+  width: 3.2rem;
+  color: #eceef5;
+  font-weight: 650;
+}
+
+.lp-qface.is-now b {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-color: #f0536f;
+  box-shadow: 0 0 0 3px rgb(240 83 111 / 28%);
+  font-size: 1.1rem;
+}
+
+.lp-qface.is-done {
+  opacity: 0.4;
+}
+
+.lp-queue.is-phone .lp-qface {
+  color: var(--c-muted);
+}
+
+.lp-queue.is-phone .lp-qface.is-now {
+  color: var(--c-ink);
+}
+
+.lp-queue.is-phone .lp-qface b {
+  border-color: var(--c-line);
+}
+
+.lp-queue.is-phone .lp-qface.is-now b {
+  border-color: var(--c-accent);
+}
+
+.lp-qface.is-me b {
+  outline: 2px dashed var(--c-accent, #f0536f);
+  outline-offset: 2px;
+}
+
+.lp-codex-claro .lp-qface b {
+  background: #dcefe2;
+  color: #1d5a37;
+}
+
+.lp-codex-claro .lp-qface.is-foe b {
+  background: #fbe3e8;
+  color: #8c1730;
+}
+
+/* A cena, no alto do celular. */
+.lp-stage {
+  display: flex;
+  flex-direction: column;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--c-line, #2a2f3c);
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 90% at 85% 0%, rgb(240 83 111 / 22%), transparent 62%),
+    var(--c-card, #151821);
+}
+
+.lp-stage small {
+  color: var(--c-accent, #f0536f);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.lp-stage strong {
+  font-family: 'Cinzel', var(--font-display);
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+}
+
+.lp-stage em {
+  color: var(--c-muted, #949bae);
+  font-size: 0.66rem;
+}
+
+.lp-stage.is-big {
+  min-height: 5.5rem;
+  justify-content: flex-end;
+}
+
+.lp-stage.is-big strong {
+  font-size: 1.1rem;
+}
+
+.lp-tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--c-line);
+  color: var(--c-muted);
+  font-size: 0.62rem;
+}
+
+.lp-tabs .is-on {
+  color: var(--c-ink);
+  font-weight: 700;
+}
+
+/* A vez do jogador, no meio da tela do celular. */
+.lp-turn-now {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1rem;
+  text-align: center;
+  background:
+    radial-gradient(70% 45% at 50% 42%, rgb(240 83 111 / 30%), transparent 72%),
+    color-mix(in srgb, var(--c-bg) 94%, transparent);
+  animation: lp-toast 0.35s ease-out both;
+}
+
+.lp-turn-now small {
+  color: var(--c-accent);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lp-turn-now strong {
+  font-family: 'Cinzel', var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+}
+
+.lp-turn-done {
+  color: var(--c-muted);
+  font-size: 0.7rem;
+  text-decoration: underline;
+}
+
+/* As telas do setor: o escudo e o combate. */
+.lp-scr-escudo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.8rem;
+}
+
+.lp-escudo-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.lp-escudo-start {
+  margin: 0;
+  color: #c7ccd9;
+  font-size: 0.76rem;
+  font-style: italic;
+}
+
+.lp-clock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  font-size: 0.76rem;
+}
+
+.lp-clock svg {
+  width: 30px;
+  height: 30px;
+}
+
+.lp-clock-bg {
+  fill: #1b1f2a;
+  stroke: #949bae;
+  stroke-width: 1.2;
+}
+
+.lp-clock-on {
+  fill: #f0536f;
+  stroke: #0d0f15;
+  stroke-width: 1.2;
+  transition: fill 0.4s;
+}
+
+.lp-clock-off {
+  fill: transparent;
+  stroke: #3a4052;
+}
+
+.lp-modes {
+  display: flex;
+  gap: 0.3rem;
+  margin: 0.3rem 0 0.7rem;
+}
+
+.lp-modes span {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #2a2f3c;
+  color: #949bae;
+  font-size: 0.72rem;
+  transition:
+    background 0.3s,
+    color 0.3s;
+}
+
+.lp-modes span.is-on {
+  border-color: #f0536f;
+  background: #f0536f;
+  color: #19060b;
+  font-weight: 700;
+}
+
+.lp-queue.is-wide {
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.lp-modes-how {
+  margin: 0 0 0.7rem;
+  color: #c7ccd9;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 560px) {
+  .lp-scr-escudo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.lp-turn-now .lp-dock-btn {
+  flex: none;
+  height: auto;
+  min-height: 0;
+  padding: 0.45rem 0.9rem;
+}
+
+/* Quem já agiu fica apagado no retrato; o nome continua legível. */
+.lp-qface.is-done {
+  opacity: 1;
+}
+
+.lp-qface.is-done b {
+  opacity: 0.4;
+}
