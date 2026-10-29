@@ -234,6 +234,7 @@ test('RPG: registro de sessão vai para Ideias ao encerrar', async ({ page }) =>
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('Os jogadores entraram na Torre.')
   await page.getByRole('button', { name: 'Anotar' }).click()
+  await page.getByRole('button', { name: 'Mais da sessão' }).click()
   await page.getByRole('button', { name: 'Encerrar sessão' }).click()
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   // O fim da sessão mostra o resumo e leva o registro para Ideias.
