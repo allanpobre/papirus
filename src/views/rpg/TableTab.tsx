@@ -1,4 +1,4 @@
-import { Dices, Flag, Maximize2, Megaphone, Minimize2, Minus, Play, Plus, Send, UserPlus, Users } from 'lucide-react'
+import { Dices, Flag, Maximize2, Megaphone, Minimize2, Minus, Play, Plus, ScrollText, Send, UserPlus, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { DiceError, roll } from '../../logic/dice'
 import type { RandomTable, Sheet } from '../../model/schema'
@@ -110,7 +110,8 @@ export function TableTab() {
   )
 }
 
-function PartyCards() {
+/** Os personagens de jogador na mesa. Com `onSheet`, cada cartão abre a ficha completa. */
+export function PartyCards({ onSheet }: { onSheet?: (sheetId: string) => void } = {}) {
   const { universe, update } = useWorkspace()
   const { group, report, activeSession } = useRpg()
   const party = universe.sheets.filter((s) => s.groupId === group.id && s.role === 'pj')
@@ -131,6 +132,11 @@ function PartyCards() {
                 <strong>{s.name}</strong>
                 {s.player && !gm && <span className="muted tiny">{s.player}</span>}
                 {gm && <span className="pc-gm-tag">mestre conduz</span>}
+                {onSheet && system && (
+                  <button type="button" className="btn btn-ghost btn-xs pc-sheet" aria-label={`Ficha de ${s.name}`} onClick={() => onSheet(s.id)}>
+                    <ScrollText size={13} /> Ficha
+                  </button>
+                )}
                 {system?.resources
                   .filter((d) => !isPool(d))
                   .map((d) => (
@@ -221,7 +227,7 @@ function PartyCards() {
   )
 }
 
-function QuickDice() {
+export function QuickDice() {
   const { system, report } = useRpg()
   const [expr, setExpr] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -266,7 +272,7 @@ function QuickDice() {
   )
 }
 
-function TableRolls() {
+export function TableRolls() {
   const { universe } = useWorkspace()
   const { logText } = useRpg()
   const [last, setLast] = useState<{ table: string; pick: string } | null>(null)
@@ -297,7 +303,7 @@ function TableRolls() {
   )
 }
 
-function LogBox() {
+export function LogBox() {
   const { activeSession, logText } = useRpg()
   const [text, setText] = useState('')
   const log = activeSession?.log ?? []

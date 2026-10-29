@@ -186,8 +186,8 @@ export function MesaPresence({ group, onInvite }: { group: Group; onInvite: () =
           </ul>
         </span>
       )}
-      <button type="button" className={`btn btn-sm mesa-invite${people.length ? ' btn-ghost' : ' btn-primary'}`} onClick={onInvite}>
-        <UserPlus size={15} /> {people.length ? 'Convidar' : 'Convidar jogadores'}
+      <button type="button" className={`btn btn-sm mesa-invite${people.length ? ' btn-ghost' : ' btn-primary'}`} aria-label={people.length ? 'Convidar' : 'Convidar jogadores'} onClick={onInvite}>
+        <UserPlus size={15} /> <span className="mesa-invite-label">{people.length ? 'Convidar' : 'Convidar jogadores'}</span>
       </button>
     </div>
   )

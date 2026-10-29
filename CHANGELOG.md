@@ -1,10 +1,19 @@
 # Novidades
 
-## 1.4.0 — 29 de outubro de 2026
+## 1.3.2 — 29 de outubro de 2026
 
-**O mestre improvisa.** Na aba Na mesa, “Anunciar” manda um aviso para a tela inteira de cada celular, na hora: “Um inimigo aparece!”, “Emboscada!”, “Pausa de 10 minutos”, ou o que o mestre escrever. Há atalhos prontos e três tons (Aviso, Perigo e Mistério); no Perigo, o celular vibra mais forte. Quem aparece pode ser escolhido ou criado na hora: o nome entra no Codex e, se for briga, ele entra na iniciativa. O aviso fica no registro, e o último fica guardado no alto do Codex para quem piscou e perdeu.
+**A sessão começa e o app muda.** Com a sessão ao vivo, o Papirus vira a mesa: o modo sessão. Some o menu da escrita, somem as abas; fica a barra da sessão (o nome, o tempo de jogo, quem está na mesa, Convidar, Anunciar, os dados na mesa ou no app, Encerrar) e só o que se usa no jogo.
+- No computador, três colunas que rolam sozinhas: o combate; o grupo e os segredos; os dados e o registro. No tablet, duas. No celular, uma parte por vez, com as abas embaixo (Combate, Grupo, Dados, Registro e Segredos).
+- A preparação da sessão (só o mestre vê) fica à mão no Registro.
+- “Ficha” em cada personagem do grupo abre a ficha completa ao lado, sem sair da mesa.
+- “Sair” volta ao resto do app sem encerrar a sessão. De qualquer área, a pílula “Sessão ao vivo · Voltar” leva de volta; no alto da mesa, “Voltar para a sessão”. Recarregar o app com a sessão ao vivo abre direto no modo sessão.
+- Anotar no registro de uma sessão planejada não a começa mais: começar é pelo botão “Começar”, com a abertura e o modo sessão.
+- O (?) do modo sessão explica cada parte.
+- Consertos: o Esc fecha uma janela que abre com um seletor de arquivo escondido (como a ficha com retrato); a porta da mesa não toca de novo ao sair do modo sessão.
 
-**Os segredos à mão.** A aba Na mesa ganhou o painel Segredos: o que a mesa ainda não sabe (fichas e fatos secretos), com “Revelar” a um toque; quem a mesa conhece só em parte, com “Revelar mais”; qualquer outra ficha pela busca; e fatos, pistas, mapas e ligações em “Fato, pista, mapa…”. Tudo fica marcado como revelado nesta sessão. No celular, aparece “O mestre revelou” na tela inteira.
+**O mestre improvisa.** Na mesa, “Anunciar” manda um aviso para a tela inteira de cada celular, na hora: “Um inimigo aparece!”, “Emboscada!”, “Pausa de 10 minutos”, ou o que o mestre escrever. Há atalhos prontos e três tons (Aviso, Perigo e Mistério); no Perigo, o celular vibra mais forte. Quem aparece pode ser escolhido ou criado na hora: o nome entra no Codex e, se for briga, ele entra na iniciativa. O aviso fica no registro, e o último fica guardado no alto do Codex para quem piscou e perdeu.
+
+**Os segredos à mão.** A mesa ganhou o painel Segredos: o que a mesa ainda não sabe (fichas e fatos secretos), com “Revelar” a um toque; quem a mesa conhece só em parte, com “Revelar mais”; qualquer outra ficha pela busca; e fatos, pistas, mapas e ligações em “Fato, pista, mapa…”. Tudo fica marcado como revelado nesta sessão. No celular, aparece “O mestre revelou” na tela inteira.
 
 **Quem joga nesta sessão.** Cada personagem aparece com o seu jogador. Quando alguém não vem, o mestre escolhe, como nas mesas de verdade: o mestre conduz o personagem nesta sessão (ele vira NPC e continua no combate) ou ele fica de fora (sai da iniciativa e vai para o fim da lista do grupo).
 - Dá para marcar na abertura da sessão (“Quem joga hoje”, mostrando quem já está com o Codex aberto), em Sessões (até antes, ao planejar) e no cartão de cada personagem na mesa.

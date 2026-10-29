@@ -124,10 +124,11 @@ test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', 
   await init.getByRole('button', { name: /Próxima vez/ }).click()
   await expect(page.getByRole('region', { name: 'Vez de Taren' })).toBeVisible()
 
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
-  await page.getByRole('button', { name: 'Compartilhar ao vivo' }).click()
+  // O convite, direto da barra do modo sessão.
+  await page.locator('.sm-bar').getByRole('button', { name: 'Convidar jogadores' }).click()
+  await page.getByRole('dialog', { name: 'Convidar jogadores' }).getByRole('button', { name: 'Criar o link da mesa' }).click()
   const link = await page.getByRole('textbox', { name: 'Link para os jogadores' }).inputValue()
-  await page.getByRole('tab', { name: 'Na mesa' }).click()
+  await page.keyboard.press('Escape')
 
   // Taren no celular: escolhe quem é e vê que é a vez dele.
   const taren = await context.newPage()
@@ -239,8 +240,10 @@ test('sessão ao vivo: convidar, ver quem está na mesa, a abertura e o fim, no 
 
   await abertura.getByRole('button', { name: 'Começar a jogar' }).click()
   await expect(abertura).toHaveCount(0)
-  await expect(page.getByRole('tab', { name: 'Na mesa' })).toHaveAttribute('aria-selected', 'true')
-  await expect(page.locator('.mesa-live')).toContainText('Sessão 2 ao vivo · A Torre · começou agora')
+  // O app vira a mesa: o modo sessão, com o nome e o tempo de jogo no alto.
+  await expect(page.locator('.sm-bar')).toContainText('Mesa de sexta · Sessão 2')
+  await expect(page.locator('.sm-name')).toHaveText('A Torre')
+  await expect(page.getByLabel('Tempo de jogo: 0 h 0 min')).toBeVisible()
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('Ilsa apareceu na janela da Torre.')
   await page.getByRole('button', { name: 'Anotar' }).click()
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('A sessão começou.')
@@ -352,4 +355,73 @@ test('improvisar na mesa: quem não veio, anunciar e revelar na hora, e o celula
     await page.waitForTimeout(200)
     expect(await audit(page)).toEqual([])
   }
+})
+
+test('modo sessão: o app vira a mesa, sai e volta de qualquer lugar, e no celular uma parte por vez', async ({ page }) => {
+  test.setTimeout(90_000)
+  await page.goto('/app/?exemplo=ostria')
+  await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
+  await nav(page, 'RPG').click()
+  await page.getByRole('button', { name: 'Começar agora' }).click()
+  await page.getByRole('button', { name: 'Começar a jogar' }).click()
+
+  // Sem o menu da escrita: só a mesa, com a sessão no alto.
+  const areas = page.getByRole('navigation', { name: 'Áreas' })
+  await expect(areas).toBeHidden()
+  await expect(page.getByRole('tab', { name: 'Painel do mestre' })).toHaveCount(0)
+  await expect(page.locator('.sm-name')).toHaveText('A Torre')
+  await expect(page.getByRole('timer', { name: /Tempo de jogo/ })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Preparação da sessão' })).toHaveValue(/Luz na janela da Torre/)
+  for (const region of ['Iniciativa', 'Grupo', 'Segredos', 'Dados', 'Registro']) await expect(page.getByRole('region', { name: region })).toBeVisible()
+
+  // A ficha completa de um personagem, sem sair da mesa.
+  await page.getByRole('button', { name: 'Ficha de Brisa' }).click()
+  const ficha = page.getByRole('dialog', { name: 'Ficha de Brisa' })
+  await expect(ficha).toContainText('Rapieira')
+  await page.keyboard.press('Escape')
+  await expect(ficha).toHaveCount(0)
+
+  const ajuda = await runPageTour(page, 'Modo sessão')
+  // No computador, cada passo destaca a sua parte (as abas de baixo são só do celular).
+  expect(ajuda.every((x) => x.spot)).toBe(true)
+  expect(ajuda.map((x) => x.title)).not.toContain('As partes')
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' })
+    await page.waitForTimeout(200)
+    expect(await audit(page)).toEqual([])
+  }
+
+  // Sair: o app volta, a sessão continua; de qualquer área, um toque volta para ela.
+  await page.getByRole('button', { name: 'Sair do modo sessão' }).click()
+  await expect(areas).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Voltar para a sessão' })).toBeVisible()
+  await nav(page, 'Fichas').click()
+  await page.getByRole('button', { name: /Sessão 2 ao vivo · Voltar/ }).click()
+  await expect(page.locator('.session-mode-view')).toBeVisible()
+  await expect(areas).toBeHidden()
+  await page.reload()
+  await expect(page.locator('.session-mode-view')).toBeVisible()
+
+  // No celular: uma parte por vez, com as abas embaixo.
+  await page.setViewportSize({ width: 390, height: 800 })
+  const partes = page.getByRole('navigation', { name: 'Partes da sessão' })
+  await partes.getByRole('button', { name: 'Segredos' }).click()
+  await expect(page.getByRole('region', { name: 'Segredos' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Grupo' })).toHaveCount(0)
+  await partes.getByRole('button', { name: 'Grupo' }).click()
+  await expect(page.getByRole('region', { name: 'Grupo' })).toBeVisible()
+  await expect(partes.getByRole('button', { name: 'Grupo' })).toHaveAttribute('aria-current', 'page')
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' })
+    await page.waitForTimeout(200)
+    expect(await audit(page)).toEqual([])
+  }
+
+  // Encerrar: o resumo, e o app volta ao normal, sem a pílula.
+  await page.getByRole('button', { name: 'Encerrar sessão' }).click()
+  await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
+  await page.getByRole('dialog', { name: 'Fim da sessão' }).getByRole('button', { name: 'Fechar' }).click()
+  await expect(page.locator('.session-mode-view')).toHaveCount(0)
+  await expect(areas).toBeVisible()
+  await expect(page.getByRole('button', { name: /ao vivo · Voltar/ })).toHaveCount(0)
 })

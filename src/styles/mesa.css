@@ -2157,3 +2157,239 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
     animation: none;
   }
 }
+
+/* ------------------------------------------------------------ o modo sessão */
+
+/* Com a sessão na tela, o app vira a mesa: sem o menu e sem os avisos da escrita. */
+.session-mode .shell,
+.session-mode .shell.rail-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.session-mode .shell > .rail,
+.session-mode .sample-banner,
+.session-mode .backup-banner,
+.session-mode .shared-banner {
+  display: none;
+}
+
+.session-mode .stage {
+  overflow: hidden;
+}
+
+.session-mode-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background:
+    radial-gradient(60% 40% at 15% 0%, rgb(var(--glow) / 12%), transparent 70%),
+    radial-gradient(50% 40% at 100% 100%, rgb(var(--glow-2) / 8%), transparent 70%),
+    var(--bg);
+}
+
+.sm-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  padding: 0.55rem max(16px, env(safe-area-inset-right, 0px)) 0.55rem max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow: var(--shadow-1);
+}
+
+.sm-emblem {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--glow) / 55%);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 28%, var(--surface)), var(--surface) 70%);
+  color: var(--accent);
+  box-shadow: 0 0 18px rgb(var(--glow) / 30%);
+}
+
+.sm-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sm-kicker {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.sm-name {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sm-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid rgb(var(--glow) / 40%);
+  border-radius: 999px;
+  background: rgb(var(--glow) / 14%);
+  font-weight: 600;
+}
+
+.sm-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.sm-acts .mesa-dice-mode {
+  margin-right: 0;
+}
+
+.sm-announce {
+  box-shadow: 0 0 0 3px rgb(var(--glow) / 18%);
+}
+
+.sm-body {
+  display: grid;
+  flex: 1;
+  gap: 0.75rem;
+  min-height: 0;
+  padding: 0.75rem max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+}
+
+.sm-cols-3 {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.05fr);
+}
+
+.sm-cols-2 {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.sm-cols-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Cada coluna rola sozinha: a barra e as outras colunas ficam paradas. */
+.sm-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  padding-bottom: 6rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* No painel da mesa, a iniciativa não precisa da linha de cima (ela separa nas Sessões). */
+.table-panel .initiative {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sm-prep summary {
+  cursor: pointer;
+  margin: 0 0 0.35rem;
+}
+
+.sm-prep textarea {
+  width: 100%;
+}
+
+.pc-sheet {
+  order: 10;
+  margin-left: auto;
+}
+
+/* No celular: uma parte por vez, com as abas embaixo. */
+.sm-dock {
+  display: flex;
+  padding: 0.25rem max(6px, env(safe-area-inset-right, 0px)) max(0.3rem, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--line-strong);
+  background: var(--surface-2);
+}
+
+.sm-dock button {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.35rem 0.1rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.72rem;
+}
+
+.sm-dock button[aria-current='page'] {
+  background: rgb(var(--glow) / 16%);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.sm-dock button[aria-current='page'] svg {
+  color: var(--accent);
+}
+
+.mesa-return {
+  box-shadow: 0 0 0 3px rgb(var(--glow) / 18%);
+}
+
+@media (max-width: 760px) {
+  .sm-bar {
+    gap: 0.4rem 0.6rem;
+    padding-block: 0.45rem;
+  }
+  .sm-emblem,
+  .sm-kicker,
+  .sm-act-label,
+  .sm-bar .mesa-dice-label,
+  .sm-bar .mesa-presence-who,
+  .sm-bar .mesa-invite-label,
+  .sm-theme {
+    display: none;
+  }
+  .sm-bar .mesa-dice-mode button {
+    white-space: nowrap;
+  }
+  .sm-title {
+    flex: 1;
+  }
+  .sm-name {
+    font-size: 1.15rem;
+  }
+  .sm-acts {
+    flex-wrap: nowrap;
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+  }
+  .sm-acts .mesa-dice-mode {
+    margin-right: auto;
+  }
+  .sm-body {
+    padding-top: 0.6rem;
+  }
+  .sm-col {
+    padding-bottom: 7rem;
+  }
+}

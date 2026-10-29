@@ -18,7 +18,9 @@ import { MESA_THEMES, mesaTheme, NO_THEME, suggestedTheme } from '../../rpg/them
 import { useMesaSector } from '../../rpg/useMesaSector'
 import { PhysicalRollDialog } from './PhysicalRollDialog'
 import { InviteDialog, LiveSessionPill, MesaPresence, SessionClosing, SessionOpening } from './LiveTable'
+import { SessionMode } from './SessionMode'
 import { beginSession, finishSession, sessionToStart } from '../../rpg/sessionLife'
+import { setOutsideSession, useOutsideSession } from '../../rpg/sessionFocus'
 import { makeSystem } from '../../rpg/systems'
 
 const FALLBACK = makeSystem('narrativo')
@@ -184,6 +186,7 @@ export default function RpgView() {
       })
       setTab('mesa')
       remember('rpg-aba', 'mesa')
+      setOutsideSession(null)
       setOpening(started)
     },
     [group, update],
@@ -197,10 +200,17 @@ export default function RpgView() {
     [group, update],
   )
   const invite = useCallback(() => setInviting(true), [])
+  // O modo sessão: com a sessão ao vivo, o app vira a mesa. "Sair" guarda de qual sessão se saiu.
+  const outside = useOutsideSession()
+  const leaveSession = useCallback(() => {
+    if (activeSession) setOutsideSession(activeSession.id)
+  }, [activeSession])
+  const enterSession = useCallback(() => setOutsideSession(null), [])
+  const focused = Boolean(activeSession && group && outside !== activeSession.id)
 
   const ctx: RpgState | null = useMemo(
-    () => (group ? { group, system, activeSession, report, logText, startSession, endSession, invite } : null),
-    [group, system, activeSession, report, logText, startSession, endSession, invite],
+    () => (group ? { group, system, activeSession, report, logText, startSession, endSession, invite, enterSession } : null),
+    [group, system, activeSession, report, logText, startSession, endSession, invite, enterSession],
   )
   const opened = opening ? universe.sessions.find((s) => s.id === opening) : undefined
   const openedGroup = opened && universe.groups.find((g) => g.id === opened.groupId)
@@ -208,146 +218,43 @@ export default function RpgView() {
   const closed = closing ? universe.sessions.find((s) => s.id === closing) : undefined
   const closedGroup = closed && universe.groups.find((g) => g.id === closed.groupId)
 
-  return (
-    <div className={`view rpg-view${tab === 'mesa' ? ' rpg-at-table' : ''}`}>
-      {/* Numa campanha, a porta abre na entrada do universo (área de trabalho). */}
-      {kind !== 'campanha' && <MesaGate name={universe.name || 'Sem nome'} />}
-      <header className="mesa-hero">
-        <span className="mesa-emblem" aria-hidden="true">
-          <Dices size={26} />
-        </span>
-        <div className="mesa-hero-text">
-          {/* A saída, sempre à vista: de uma campanha para o início do Papirus; de um livro, para a escrita. */}
-          {kind === 'campanha' ? (
-            <button type="button" className="mesa-back" onClick={() => closeUniverse()}>
-              <ArrowLeft size={15} aria-hidden="true" /> Campanhas
-            </button>
-          ) : (
-            <button type="button" className="mesa-back" onClick={() => go('inicio')}>
-              <ArrowLeft size={15} aria-hidden="true" /> Voltar à escrita
-            </button>
-          )}
-          <p className="mesa-kicker">{universe.name || 'Sem nome'} · setor da mesa</p>
-          <h1>Mesa de RPG</h1>
-          {universe.groups.length > 0 && (
-            <div className="mesa-hero-meta">
-              <label className="inline-label">
-                <Users size={15} aria-hidden="true" />
-                <span className="sr-only">Mesa</span>
-                <select
-                  className="input select input-sm"
-                  value={group?.id ?? ''}
-                  onChange={(e) => {
-                    setGroupId(e.target.value)
-                    remember(`rpg-grupo:${universe.id}`, e.target.value)
-                  }}
-                >
-                  {universe.groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <span className="mesa-system">{system ? system.name : 'sem sistema'}</span>
-              {activeSession && <LiveSessionPill session={activeSession} />}
-              {group && !readOnly && <MesaPresence group={group} onInvite={invite} />}
-            </div>
-          )}
-        </div>
-        <div className="mesa-actions">
-          <PageHelp tour={`rpg-${tab}`} />
-          <div className="mesa-dice-mode" role="radiogroup" aria-label="Dados">
-            <span className="mesa-dice-label">Dados</span>
-            {(
-              [
-                [true, 'Na mesa'],
-                [false, 'No app'],
-              ] as const
-            ).map(([v, label]) => (
-              <button
-                key={label}
-                type="button"
-                role="radio"
-                aria-checked={physical === v}
-                title={v ? 'Você rola os dados de verdade e diz o que saiu; o app faz a conta' : 'O app sorteia'}
-                onClick={() => {
-                  setPhysical(v)
-                  remember('rpg-dados', v ? 'fisico' : 'app')
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {group && !readOnly && (
-            <button type="button" className="btn btn-ghost btn-sm" aria-label="Tema da mesa" title="Tema da mesa" onClick={() => setPicking(true)}>
-              <Palette size={15} /> <span className="mesa-act-label">Tema</span>
-            </button>
-          )}
-        </div>
-        {picking && group && (
-          <ThemePicker
-            value={group.theme}
-            suggested={suggestedTheme(system?.name)}
-            dark={dark}
-            onClose={() => setPicking(false)}
-            onChange={(id) => update((u) => patch(u, 'groups', group.id, { theme: id }))}
-          />
-        )}
-      </header>
-      <div className="tabs mesa-tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Mesa de RPG">
-        {TABS.map(([t, label, Icon]) => (
-          <button key={t} type="button" role="tab" className="tab mesa-tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => choose(t)}>
-            <Icon size={18} aria-hidden="true" />
-            <span>{label}</span>
-          </button>
-        ))}
-      </div>
+  const diceMode = (
+    <div className="mesa-dice-mode" role="radiogroup" aria-label="Dados">
+      <span className="mesa-dice-label">Dados</span>
+      {(
+        [
+          [true, 'Na mesa'],
+          [false, 'No app'],
+        ] as const
+      ).map(([v, label]) => (
+        <button
+          key={label}
+          type="button"
+          role="radio"
+          aria-checked={physical === v}
+          title={v ? 'Você rola os dados de verdade e diz o que saiu; o app faz a conta' : 'O app sorteia'}
+          onClick={() => {
+            setPhysical(v)
+            remember('rpg-dados', v ? 'fisico' : 'app')
+          }}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
 
-      {tab === 'sistemas' ? (
-        <SystemsTab />
-      ) : !group || !ctx ? (
-        tab === 'dados' ? (
-          <DiceTab />
-        ) : (
-          <Empty icon={<Dices size={32} />} title="Use o mesmo mundo como campanha.">
-            <p>Crie uma mesa (grupo de jogadores) para registrar sessões, fichas e o que cada mesa já descobriu.</p>
-            <form
-              className="inline-fields"
-              onSubmit={(e) => {
-                e.preventDefault()
-                let id = ''
-                update((u) => {
-                  const [next, g] = insert(u, 'groups', draftGroup(groupName.trim() || 'Mesa principal'))
-                  id = g.id
-                  return next
-                })
-                setGroupId(id)
-                setGroupName('')
-              }}
-            >
-              <label htmlFor="novo-grupo" className="sr-only">
-                Nome da mesa
-              </label>
-              <input id="novo-grupo" className="input" placeholder="Mesa de sexta" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
-              <button type="submit" className="btn btn-primary">
-                Criar mesa
-              </button>
-            </form>
-          </Empty>
-        )
-      ) : (
-        <RpgContext.Provider value={ctx}>
-          {tab === 'mestre' && <GmTab onGo={choose} />}
-          {tab === 'mesa' && <TableTab />}
-          {tab === 'sessoes' && <SessionsTab />}
-          {tab === 'personagens' && <SheetsTab />}
-          {tab === 'codex' && <CodexTab group={group} />}
-          {tab === 'dados' && <DiceTab />}
-        </RpgContext.Provider>
+  const overlays = (
+    <>
+      {picking && group && (
+        <ThemePicker
+          value={group.theme}
+          suggested={suggestedTheme(system?.name)}
+          dark={dark}
+          onClose={() => setPicking(false)}
+          onChange={(id) => update((u) => patch(u, 'groups', group.id, { theme: id }))}
+        />
       )}
-
       {inviting && group && <InviteDialog group={group} onClose={() => setInviting(false)} />}
       {opened && openedGroup && <SessionOpening group={openedGroup} session={opened} previous={before} onClose={() => setOpening(null)} />}
       {closed && closedGroup && <SessionClosing group={closedGroup} session={closed} onClose={() => setClosing(null)} />}
@@ -423,6 +330,132 @@ export default function RpgView() {
           </button>
         </aside>
       )}
+    </>
+  )
+
+  if (focused && ctx && activeSession)
+    return (
+      <RpgContext.Provider value={ctx}>
+        <SessionMode session={activeSession} diceMode={diceMode} onTheme={() => setPicking(true)} onLeave={leaveSession} />
+        {overlays}
+      </RpgContext.Provider>
+    )
+
+  return (
+    <div className={`view rpg-view${tab === 'mesa' ? ' rpg-at-table' : ''}`}>
+      {/* Numa campanha, a porta abre na entrada do universo (área de trabalho). */}
+      {kind !== 'campanha' && <MesaGate name={universe.name || 'Sem nome'} />}
+      <header className="mesa-hero">
+        <span className="mesa-emblem" aria-hidden="true">
+          <Dices size={26} />
+        </span>
+        <div className="mesa-hero-text">
+          {/* A saída, sempre à vista: de uma campanha para o início do Papirus; de um livro, para a escrita. */}
+          {kind === 'campanha' ? (
+            <button type="button" className="mesa-back" onClick={() => closeUniverse()}>
+              <ArrowLeft size={15} aria-hidden="true" /> Campanhas
+            </button>
+          ) : (
+            <button type="button" className="mesa-back" onClick={() => go('inicio')}>
+              <ArrowLeft size={15} aria-hidden="true" /> Voltar à escrita
+            </button>
+          )}
+          <p className="mesa-kicker">{universe.name || 'Sem nome'} · setor da mesa</p>
+          <h1>Mesa de RPG</h1>
+          {universe.groups.length > 0 && (
+            <div className="mesa-hero-meta">
+              <label className="inline-label">
+                <Users size={15} aria-hidden="true" />
+                <span className="sr-only">Mesa</span>
+                <select
+                  className="input select input-sm"
+                  value={group?.id ?? ''}
+                  onChange={(e) => {
+                    setGroupId(e.target.value)
+                    remember(`rpg-grupo:${universe.id}`, e.target.value)
+                  }}
+                >
+                  {universe.groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span className="mesa-system">{system ? system.name : 'sem sistema'}</span>
+              {activeSession && <LiveSessionPill session={activeSession} />}
+              {activeSession && (
+                <button type="button" className="btn btn-primary btn-sm mesa-return" onClick={enterSession}>
+                  <Swords size={14} /> Voltar para a sessão
+                </button>
+              )}
+              {group && !readOnly && <MesaPresence group={group} onInvite={invite} />}
+            </div>
+          )}
+        </div>
+        <div className="mesa-actions">
+          <PageHelp tour={`rpg-${tab}`} />
+          {diceMode}
+          {group && !readOnly && (
+            <button type="button" className="btn btn-ghost btn-sm" aria-label="Tema da mesa" title="Tema da mesa" onClick={() => setPicking(true)}>
+              <Palette size={15} /> <span className="mesa-act-label">Tema</span>
+            </button>
+          )}
+        </div>
+      </header>
+      <div className="tabs mesa-tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Mesa de RPG">
+        {TABS.map(([t, label, Icon]) => (
+          <button key={t} type="button" role="tab" className="tab mesa-tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => choose(t)}>
+            <Icon size={18} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'sistemas' ? (
+        <SystemsTab />
+      ) : !group || !ctx ? (
+        tab === 'dados' ? (
+          <DiceTab />
+        ) : (
+          <Empty icon={<Dices size={32} />} title="Use o mesmo mundo como campanha.">
+            <p>Crie uma mesa (grupo de jogadores) para registrar sessões, fichas e o que cada mesa já descobriu.</p>
+            <form
+              className="inline-fields"
+              onSubmit={(e) => {
+                e.preventDefault()
+                let id = ''
+                update((u) => {
+                  const [next, g] = insert(u, 'groups', draftGroup(groupName.trim() || 'Mesa principal'))
+                  id = g.id
+                  return next
+                })
+                setGroupId(id)
+                setGroupName('')
+              }}
+            >
+              <label htmlFor="novo-grupo" className="sr-only">
+                Nome da mesa
+              </label>
+              <input id="novo-grupo" className="input" placeholder="Mesa de sexta" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
+              <button type="submit" className="btn btn-primary">
+                Criar mesa
+              </button>
+            </form>
+          </Empty>
+        )
+      ) : (
+        <RpgContext.Provider value={ctx}>
+          {tab === 'mestre' && <GmTab onGo={choose} />}
+          {tab === 'mesa' && <TableTab />}
+          {tab === 'sessoes' && <SessionsTab />}
+          {tab === 'personagens' && <SheetsTab />}
+          {tab === 'codex' && <CodexTab group={group} />}
+          {tab === 'dados' && <DiceTab />}
+        </RpgContext.Provider>
+      )}
+
+      {overlays}
     </div>
   )
 }

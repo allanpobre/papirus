@@ -2178,3 +2178,50 @@ body:has(.rail-phone) .toasts {
 .write-welcome-help {
   align-self: flex-end;
 }
+
+/* Uma sessão de RPG ao vivo, fora da mesa: um toque e volta para ela. */
+.live-return {
+  position: fixed;
+  z-index: 35;
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-2);
+}
+
+.live-return strong {
+  color: var(--accent);
+}
+
+.live-return-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: live-return-pulse 1.8s ease-out infinite;
+}
+
+@keyframes live-return-pulse {
+  to {
+    box-shadow: 0 0 0 9px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+
+body:has(.rail-phone) .live-return {
+  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-return-dot {
+    animation: none;
+  }
+}

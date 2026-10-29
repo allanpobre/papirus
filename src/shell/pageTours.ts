@@ -336,6 +336,25 @@ export const PAGE_TOURS = {
     ],
   },
 
+  sessao: {
+    title: 'Modo sessão',
+    steps: [
+      { target: '.sm-title', title: 'A sessão ao vivo', body: 'Com a sessão começada, o app vira a mesa: só o que se usa no jogo, sem o menu da escrita. Aqui, o nome da sessão.' },
+      { target: '.sm-clock', title: 'Tempo de jogo', body: 'Quanto tempo desde que a sessão começou.', optional: true },
+      { target: '.sm-bar .mesa-presence', title: 'Quem está na mesa', body: 'Os jogadores com o Codex aberto no celular. “Convidar” mostra o QR code e o link.', optional: true },
+      { target: '.sm-bar .mesa-dice-mode', title: 'Dados', body: 'Na mesa: cada rolagem pergunta o que saiu nos dados de verdade. No app: ele sorteia.' },
+      { target: '.sm-announce', title: 'Anunciar', body: 'Para improvisar: “Um inimigo aparece!”, “Emboscada!”, uma pausa. Aparece na tela inteira de cada celular, na hora.', optional: true },
+      { target: '.sm-combate', title: 'Combate', body: 'A iniciativa e a vez de cada um, com os ataques a um toque. “Próxima vez” passa a vez e conta as rodadas.', optional: true },
+      { target: '.sm-panel[aria-label="Grupo"]', title: 'Grupo', body: 'A vida de cada um, os atributos para rolar e as condições. “Ficha” abre a ficha completa; embaixo, quem não veio (o mestre conduz ou fica de fora).', optional: true },
+      { target: '.table-secrets', title: 'Segredos', body: 'O que a mesa ainda não sabe, com “Revelar” a um toque: vai na hora para o Codex dos jogadores.', optional: true },
+      { target: '.sm-panel[aria-label="Dados"]', title: 'Dados e tabelas', body: 'Os dados rápidos, uma rolagem qualquer (como 2d6+3) e as tabelas aleatórias.', optional: true },
+      { target: '.sm-panel[aria-label="Registro"]', title: 'Registro e preparação', body: 'O que aconteceu, com a hora (as rolagens entram sozinhas), e a sua preparação da sessão, que só você vê.', optional: true },
+      { target: '.sm-dock', title: 'As partes', body: 'No celular, uma parte por vez: Combate, Grupo, Dados, Registro e Segredos.', optional: true },
+      { target: '.sm-leave', title: 'Sair', body: 'Volta ao resto do app sem encerrar: a sessão continua, e o botão “Sessão ao vivo” traz você de volta de qualquer lugar.' },
+      { target: '.sm-end', title: 'Encerrar', body: 'No fim do jogo: mostra o resumo, avisa os celulares e manda o registro para Ideias.', optional: true },
+    ],
+  },
+
   // ─── Mesa de RPG (uma aba de cada vez) ───────────────────────────
   'rpg-mestre': {
     title: 'Painel do mestre',

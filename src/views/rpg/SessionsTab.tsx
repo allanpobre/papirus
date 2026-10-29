@@ -80,7 +80,8 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
   const addNote = () => {
     if (!note.trim()) return
     const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    set({ log: [...s.log, { id: newId(), at, text: note.trim(), kind: 'nota' }], status: s.status === 'planejada' ? 'em-andamento' : s.status })
+    // Anotar não começa a sessão: começar é um momento (a abertura e o modo sessão), pelo botão "Começar".
+    set({ log: [...s.log, { id: newId(), at, text: note.trim(), kind: 'nota' }] })
     setNote('')
   }
 
