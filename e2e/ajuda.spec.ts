@@ -71,7 +71,7 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   // Com a sessão começada, o app vira o modo sessão, e o (?) explica a mesa inteira.
   const sessao = await runPageTour(page, 'Modo sessão')
   expect(sessao.filter((s) => s.spot).map((s) => s.title)).toEqual(
-    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Pedir teste', 'Anunciar', 'Combate', 'Grupo', 'Segredos', 'Dados e tabelas', 'Registro e preparação', 'Mais']),
+    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Pedir teste', 'Anunciar', 'Roteiro: início forte', 'Cenas', 'Segredos e pistas', 'Palco: a cena atual', 'Relógios', 'Combate', 'Mesa: o grupo', 'Registro', 'Mais']),
   )
 })
 
