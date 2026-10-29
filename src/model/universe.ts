@@ -197,6 +197,7 @@ export const draftSession = (number: number, groupId: string | null): Draft<'ses
   prep: '',
   log: [],
   initiative: [],
+  startedAt: null,
   turn: 0,
   round: 1,
 })

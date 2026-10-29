@@ -67,7 +67,8 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
   )
 }
 
-function trapFocus(e: React.KeyboardEvent, root: HTMLElement | null) {
+/** Tab e Shift+Tab giram dentro da janela, sem escapar para a página atrás. */
+export function trapFocus(e: React.KeyboardEvent, root: HTMLElement | null) {
   if (!root) return
   const items = [
     ...root.querySelectorAll<HTMLElement>(

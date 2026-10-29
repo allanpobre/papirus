@@ -17,6 +17,8 @@ import { useMediaQuery } from '../../ui/useMediaQuery'
 import { MESA_THEMES, mesaTheme, NO_THEME, suggestedTheme } from '../../rpg/themes'
 import { useMesaSector } from '../../rpg/useMesaSector'
 import { PhysicalRollDialog } from './PhysicalRollDialog'
+import { InviteDialog, LiveSessionPill, MesaPresence, SessionClosing, SessionOpening } from './LiveTable'
+import { beginSession, finishSession, sessionToStart } from '../../rpg/sessionLife'
 import { makeSystem } from '../../rpg/systems'
 
 const FALLBACK = makeSystem('narrativo')
@@ -167,10 +169,44 @@ export default function RpgView() {
     setTray((t) => t.map((x) => (x.id === r.id ? { ...x, applied: `${done.name}: ${done.abbr} ${now}${done.down ? ' · derrotado' : ''}` } : x)))
   }
 
-  const ctx: RpgState | null = useMemo(
-    () => (group ? { group, system, activeSession, report, logText } : null),
-    [group, system, activeSession, report, logText],
+  // A sessão como evento: a abertura em tela cheia ao começar, o resumo ao terminar.
+  const [opening, setOpening] = useState<string | null>(null)
+  const [closing, setClosing] = useState<string | null>(null)
+  const [inviting, setInviting] = useState(false)
+  const startSession = useCallback(
+    (id?: string) => {
+      if (!group) return
+      let started = ''
+      update((u) => {
+        const [next, sid] = beginSession(u, group.id, id ?? sessionToStart(u, group.id).id)
+        started = sid
+        return next
+      })
+      setTab('mesa')
+      remember('rpg-aba', 'mesa')
+      setOpening(started)
+    },
+    [group, update],
   )
+  const endSession = useCallback(
+    (id: string) => {
+      if (!group) return
+      update((u) => finishSession(u, id, group.name).universe)
+      setClosing(id)
+    },
+    [group, update],
+  )
+  const invite = useCallback(() => setInviting(true), [])
+
+  const ctx: RpgState | null = useMemo(
+    () => (group ? { group, system, activeSession, report, logText, startSession, endSession, invite } : null),
+    [group, system, activeSession, report, logText, startSession, endSession, invite],
+  )
+  const opened = opening ? universe.sessions.find((s) => s.id === opening) : undefined
+  const openedGroup = opened && universe.groups.find((g) => g.id === opened.groupId)
+  const before = opened && universe.sessions.filter((s) => s.groupId === opened.groupId && s.status === 'encerrada' && s.number < opened.number).sort((a, b) => b.number - a.number)[0]
+  const closed = closing ? universe.sessions.find((s) => s.id === closing) : undefined
+  const closedGroup = closed && universe.groups.find((g) => g.id === closed.groupId)
 
   return (
     <div className={`view rpg-view${tab === 'mesa' ? ' rpg-at-table' : ''}`}>
@@ -214,11 +250,8 @@ export default function RpgView() {
                 </select>
               </label>
               <span className="mesa-system">{system ? system.name : 'sem sistema'}</span>
-              {activeSession && (
-                <span className="mesa-live" role="status">
-                  <span className="mesa-live-dot" aria-hidden="true" /> Sessão em andamento: {activeSession.title || 'sem título'}
-                </span>
-              )}
+              {activeSession && <LiveSessionPill session={activeSession} />}
+              {group && !readOnly && <MesaPresence group={group} onInvite={invite} />}
             </div>
           )}
         </div>
@@ -314,6 +347,10 @@ export default function RpgView() {
           {tab === 'dados' && <DiceTab />}
         </RpgContext.Provider>
       )}
+
+      {inviting && group && <InviteDialog group={group} onClose={() => setInviting(false)} />}
+      {opened && openedGroup && <SessionOpening group={openedGroup} session={opened} previous={before} onClose={() => setOpening(null)} />}
+      {closed && closedGroup && <SessionClosing group={closedGroup} session={closed} onClose={() => setClosing(null)} />}
 
       {asking && (
         <PhysicalRollDialog

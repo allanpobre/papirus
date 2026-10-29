@@ -31,8 +31,8 @@ async function fakeCodex(context: BrowserContext) {
   await context.route(`${SERVER}/realtime/v1/api/**`, (route) => route.abort())
 }
 
-/** Ostria com uma sessão em andamento e um combate: Brisa (20), Taren (15), Ilmar (10), Bandido (2) e Goblin (1). */
-async function combat(page: Page, baseURL: string) {
+/** Ostria com o servidor configurado, aberta na Mesa de RPG. */
+async function ostria(page: Page, baseURL: string) {
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await nav(page, 'Ajustes e dados').click()
@@ -41,8 +41,14 @@ async function combat(page: Page, baseURL: string) {
   await page.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
   await page.getByRole('textbox', { name: 'Endereço público do Papirus' }).fill(baseURL + '/')
   await nav(page, 'RPG').click()
+}
+
+/** Ostria com uma sessão em andamento e um combate: Brisa (20), Taren (15), Ilmar (10), Bandido (2) e Goblin (1). */
+async function combat(page: Page, baseURL: string) {
+  await ostria(page, baseURL)
   await page.getByRole('tab', { name: 'Na mesa' }).click()
   await page.getByRole('button', { name: /^Começar/ }).click()
+  await page.getByRole('button', { name: 'Começar a jogar' }).click()
 
   const init = page.getByRole('region', { name: 'Iniciativa' })
   await init.getByRole('button', { name: 'Adicionar os jogadores da mesa' }).click()
@@ -179,4 +185,85 @@ test('Codex ao vivo: o jogador rola pela ficha, o mestre confere e todos veem', 
     expect(await audit(page)).toEqual([])
     expect(await audit(taren)).toEqual([])
   }
+})
+
+test('sessão ao vivo: convidar, ver quem está na mesa, a abertura e o fim, no computador e no celular', async ({ page, context, baseURL }) => {
+  test.setTimeout(90_000)
+  await fakeCodex(context)
+  await fakeRealtime(context, SERVER)
+  await ostria(page, baseURL!)
+
+  // Ninguém na mesa ainda: o convite fica à vista no alto.
+  const presence = page.locator('.mesa-presence')
+  await presence.getByRole('button', { name: 'Convidar jogadores' }).click()
+  const convite = page.getByRole('dialog', { name: 'Convidar jogadores' })
+  await convite.getByRole('button', { name: 'Criar o link da mesa' }).click()
+  await expect(convite.getByRole('button', { name: 'Copiar o link' })).toBeFocused()
+  await expect(convite.getByRole('img', { name: 'QR code do link para os jogadores' })).toBeVisible()
+  await expect(convite).toContainText('Ninguém entrou ainda')
+  const ajuda = await runPageTour(page, 'Convidar jogadores')
+  expect(ajuda.filter((x) => x.spot).map((x) => x.title)).toEqual(['O código', 'O link', 'Na mesa agora'])
+  const link = await convite.getByRole('textbox', { name: 'Link para os jogadores' }).inputValue()
+
+  // Taren abre o link no celular: aparece na hora para o mestre, e ele vê o mestre.
+  const taren = await context.newPage()
+  await taren.setViewportSize({ width: 390, height: 800 })
+  await taren.goto(link)
+  await taren.getByRole('region', { name: 'Quem é você na mesa?' }).getByRole('button', { name: 'Taren' }).click()
+  await expect(convite.getByRole('list', { name: 'Na mesa agora' })).toContainText('Taren')
+  const naMesa = taren.getByRole('region', { name: 'Na mesa agora' })
+  await expect(naMesa).toContainText('Mestre')
+  await expect(naMesa).toContainText('Taren (você)')
+  await page.keyboard.press('Escape')
+  await expect(convite).toHaveCount(0)
+  await expect(presence).toContainText('Taren')
+  await expect(presence.getByRole('button', { name: 'Convidar', exact: true })).toBeVisible()
+
+  // Começar: a sessão abre na tela inteira, com o que houve na última vez e quem chegou.
+  await page.getByRole('button', { name: 'Começar agora' }).click()
+  const abertura = page.getByRole('dialog', { name: 'A Torre' })
+  await expect(abertura).toContainText('Mesa de sexta · Sessão 2')
+  await expect(abertura).toContainText('Na última sessão · Sessão 1 — Neblina no porto')
+  await expect(abertura.getByRole('list', { name: 'Na mesa agora' })).toContainText('Taren')
+  await expect(abertura.getByRole('button', { name: 'Começar a jogar' })).toBeFocused()
+  // No celular, o aviso de que começou.
+  await expect(taren.getByRole('status').filter({ hasText: 'A sessão começou' })).toContainText('Sessão 2 — A Torre')
+  await expect(taren.locator('.player-session')).toHaveText(/Sessão 2/)
+  await expect(naMesa).toContainText('Sessão 2 · A Torre')
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' })
+    await page.waitForTimeout(200)
+    expect(await audit(page)).toEqual([])
+  }
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
+
+  await abertura.getByRole('button', { name: 'Começar a jogar' }).click()
+  await expect(abertura).toHaveCount(0)
+  await expect(page.getByRole('tab', { name: 'Na mesa' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('.mesa-live')).toContainText('Sessão 2 ao vivo · A Torre · começou agora')
+  await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('Ilsa apareceu na janela da Torre.')
+  await page.getByRole('button', { name: 'Anotar' }).click()
+  await expect(page.getByRole('region', { name: 'Registro' })).toContainText('A sessão começou.')
+
+  // Encerrar: o resumo para o mestre, o aviso no celular e o registro em Ideias.
+  await page.getByRole('button', { name: 'Encerrar sessão' }).click()
+  await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
+  const fim = page.getByRole('dialog', { name: 'Fim da sessão' })
+  await expect(fim).toContainText('Notas1')
+  await expect(fim).toContainText('Durou< 1 min')
+  await expect(taren.getByRole('status').filter({ hasText: 'A sessão terminou' })).toBeVisible()
+  await expect(taren.locator('.player-session')).toHaveCount(0)
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' })
+    await taren.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' })
+    await page.waitForTimeout(200)
+    expect(await audit(page)).toEqual([])
+    expect(await audit(taren)).toEqual([])
+  }
+  // Taren fecha o Codex: sai da mesa para o mestre.
+  await taren.close({ runBeforeUnload: true })
+  await expect(presence).not.toContainText('Taren')
+  await expect(presence.getByRole('button', { name: 'Convidar jogadores' })).toBeAttached()
+  await fim.getByRole('button', { name: 'Revisar em Ideias' }).click()
+  await expect(page.getByText(/Ilsa apareceu na janela da Torre\./).first()).toBeVisible()
 })

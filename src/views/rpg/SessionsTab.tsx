@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { factSentence, revelationLabel } from '../../logic/codex'
 import { SESSION_STATUS_LABEL } from '../../model/labels'
 import { SESSION_STATUSES, type Group, type Revelation, type Session } from '../../model/schema'
-import { byId, draftInbox, draftRevelation, draftSession, insert, newId, patch, remove, removeSession } from '../../model/universe'
+import { byId, draftRevelation, draftSession, insert, newId, patch, remove, removeSession } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { Empty, Field, Select } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
@@ -66,12 +66,14 @@ export function SessionsTab() {
 }
 
 function SessionDetail({ session: s, group, showInitiative, onDeleted }: { session: Session; group: Group; showInitiative: boolean; onDeleted: () => void }) {
-  const { universe, update, toast, undoable, go } = useWorkspace()
+  const { universe, update, undoable } = useWorkspace()
+  const { startSession, endSession } = useRpg()
   const [note, setNote] = useState('')
   const [revealId, setRevealId] = useState<string | null>(null)
   const [depth, setDepth] = useState<Revelation['depth']>('resumo')
   const [factId, setFactId] = useState('')
-  const set = (c: Partial<Session>) => update((u) => patch(u, 'sessions', s.id, c))
+  // Em andamento por outro caminho (o Estado, uma nota): guarda a hora do começo também.
+  const set = (c: Partial<Session>) => update((u) => patch(u, 'sessions', s.id, c.status === 'em-andamento' && !s.startedAt ? { ...c, startedAt: new Date().toISOString() } : c))
   const revelations = universe.revelations.filter((r) => r.sessionId === s.id)
 
   const addNote = () => {
@@ -79,18 +81,6 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
     const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     set({ log: [...s.log, { id: newId(), at, text: note.trim(), kind: 'nota' }], status: s.status === 'planejada' ? 'em-andamento' : s.status })
     setNote('')
-  }
-
-  const finish = () => {
-    const transcript = [`${s.title} — ${group.name}`, '', ...s.log.map((l) => `[${l.at}] ${l.text}`)].join('\n')
-    update((u) => {
-      let next = patch(u, 'sessions', s.id, { status: 'encerrada' })
-      if (s.log.length) next = insert(next, 'inbox', draftInbox(transcript, 'sessao', s.title))[0]
-      return next
-    })
-    toast(s.log.length ? 'Sessão encerrada. O registro foi para Ideias, para revisão.' : 'Sessão encerrada.', {
-      action: s.log.length ? { label: 'Abrir Ideias', run: () => go('inbox') } : undefined,
-    })
   }
 
   return (
@@ -102,12 +92,12 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
         <input id="session-title" className="entity-name" value={s.title} onChange={(e) => set({ title: e.target.value })} />
         <div className="inline-fields">
           {s.status === 'planejada' && (
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => set({ status: 'em-andamento' })}>
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => startSession(s.id)}>
               <Play size={14} /> Começar
             </button>
           )}
           {s.status === 'em-andamento' && (
-            <button type="button" className="btn btn-primary btn-sm" onClick={finish}>
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => endSession(s.id)}>
               <Flag size={14} /> Encerrar sessão
             </button>
           )}

@@ -6,6 +6,7 @@ import { combatTargets } from '../rpg/combat'
 import { aimAt, describeOutcome, resolveRoll, type RollOutcome } from '../rpg/rolls'
 import { makeSystem } from '../rpg/systems'
 import type { Prefs } from '../state/prefs'
+import { forgetGroup, noteLeft, notePresence, PRESENCE_EVERY } from './presence'
 import { joinTable, type TableRoll } from './server'
 import { serverFrom } from './useCodexSync'
 
@@ -47,7 +48,8 @@ export function readIncoming(universe: Universe, groupId: string, r: TableRoll):
 }
 
 /**
- * No Papirus do mestre: escuta as rolagens dos jogadores em cada mesa com Codex ao vivo.
+ * No Papirus do mestre: a mesa ao vivo de cada grupo com Codex compartilhado. Sabe quem
+ * está com o Codex aberto e escuta as rolagens dos jogadores.
  * Cada uma vai para o registro da sessão e para a bandeja; num ataque com alvo, o mestre
  * confere contra a Defesa e devolve só o veredito (acerta ou erra) para a mesa.
  */
@@ -87,9 +89,23 @@ export function useTableRolls(universe: Universe, prefs: Prefs, update: (change:
           if (outcome.combat && !outcome.combat.hurts && outcome.verdict) void t.sendCheck({ id: r.id, verdict: outcome.verdict, tone: outcome.tone }).catch(() => undefined)
           for (const l of listeners) l({ groupId, outcome, who: r.who, logged })
         },
+        // Quem está na mesa: cada celular avisa; quem chega pergunta, e o mestre responde também.
+        presence: (p) => notePresence(groupId, p),
+        left: (id) => noteLeft(groupId, id),
+        ask: () => void t.sendPresence(me).catch(() => undefined),
       })
-      return t
+      const me = { id: `mestre-${newId()}`, role: 'mestre' as const, who: null }
+      void t.ask().catch(() => undefined)
+      void t.sendPresence(me).catch(() => undefined)
+      const beat = setInterval(() => void t.sendPresence(me).catch(() => undefined), PRESENCE_EVERY)
+      return { t, me, beat, groupId }
     })
-    return () => tables.forEach((t) => t.leave())
+    return () =>
+      tables.forEach(({ t, me, beat, groupId }) => {
+        clearInterval(beat)
+        void t.sendLeft(me.id).catch(() => undefined)
+        forgetGroup(groupId)
+        t.leave()
+      })
   }, [server, key])
 }

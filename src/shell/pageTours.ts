@@ -316,17 +316,28 @@ export const PAGE_TOURS = {
     ],
   },
 
+  convidar: {
+    title: 'Convidar jogadores',
+    steps: [
+      { target: '.invite-qr', title: 'O código', body: 'Cada jogador aponta a câmera do celular para o código e o Codex abre, sem conta e sem instalar nada.', optional: true },
+      { target: '.invite-side', title: 'O link', body: 'Copie e mande no grupo da mesa, ou use “Enviar” para escolher o aplicativo. É o mesmo link para todos.', optional: true },
+      { target: '.invite:not(.is-on)', title: 'Criar o link', body: 'A primeira vez, crie o link da mesa. Ele continua o mesmo nas próximas sessões.', optional: true },
+      { target: '.invite-who', title: 'Na mesa agora', body: 'Quem está com o Codex aberto, pelo personagem que escolheu. Aparece também no alto da mesa, ao lado de “Convidar”.' },
+    ],
+  },
+
   // ─── Mesa de RPG (uma aba de cada vez) ───────────────────────────
   'rpg-mestre': {
     title: 'Painel do mestre',
     steps: [
-      { target: '.mesa-hero-meta', title: 'A mesa', body: 'Qual mesa (grupo de jogadores), o sistema dela e se há uma sessão em andamento.', optional: true },
+      { target: '.mesa-hero-meta', title: 'A mesa', body: 'Qual mesa (grupo de jogadores), o sistema dela e se há uma sessão ao vivo, com a hora em que começou.', optional: true },
+      { target: '.mesa-presence', title: 'Quem está na mesa', body: 'Os jogadores com o Codex aberto no celular aparecem aqui, pelo personagem. “Convidar” mostra o QR code e o link para eles entrarem.', optional: true },
       { target: '.mesa-dice-mode', title: 'Dados', body: 'Na mesa (o padrão): você rola os dados de verdade e diz o que saiu; o app soma o bônus e vê o crítico. No app: ele sorteia.' },
       { target: '[aria-label="Tema da mesa"]', title: 'Tema', body: 'O clima da mesa, pelo gênero do jogo. Os jogadores veem o mesmo no Codex e só escolhem claro ou escuro.', optional: true },
       { target: '.mesa-tabs', title: 'As abas', body: 'Na mesa (o combate e os dados durante o jogo), Sessões, Personagens, Revelações e Codex, Dados e tabelas, Sistemas. Cada aba tem o seu (?).' },
-      { target: '.gm-next', title: 'Próxima sessão', body: 'A sessão marcada e a sua preparação.', optional: true },
+      { target: '.gm-next', title: 'Próxima sessão', body: 'A sessão marcada e a sua preparação. “Começar agora” abre a sessão na tela inteira e leva para a mesa.', optional: true },
       { target: '[data-tour="gm-sistema"]', title: 'Sistema da mesa', body: 'As regras desta mesa: escolha um sistema que você já tem ou crie um a partir de um modelo. “Editar sistemas” abre a aba Sistemas.', optional: true },
-      { target: '[data-tour="gm-grupo"]', title: 'Grupo', body: 'Os personagens de jogador, com a vida e as condições de cada um.', optional: true },
+      { target: '[data-tour="gm-grupo"]', title: 'Grupo', body: 'Os personagens de jogador, com a vida e as condições de cada um. “Convidar jogadores” manda o link do Codex para os celulares.', optional: true },
       { target: '[data-tour="gm-segredos"]', title: 'Segredos ainda guardados', body: 'O que a mesa ainda não sabe, e o que ela conhece só em parte (o nome ou o resumo).', optional: true },
       { target: '[data-tour="gm-misterios"]', title: 'Mistérios em jogo', body: 'Os mistérios abertos e quantas pistas cada um tem. Toque para abrir em Pistas e mistérios.', optional: true },
       { target: '[data-tour="gm-mesas"]', title: 'Mesas', body: 'Um universo pode ter várias mesas (grupos de jogadores), cada uma com o que já descobriu. Renomeie ou apague aqui.', optional: true },
@@ -336,7 +347,8 @@ export const PAGE_TOURS = {
   'rpg-mesa': {
     title: 'Na mesa',
     steps: [
-      { target: '.table-start', title: 'Começar a sessão', body: 'Na mesa, as rolagens e as anotações vão direto para o registro da sessão em andamento.', optional: true },
+      { target: '.table-start', title: 'Começar a sessão', body: 'Ao começar, a sessão abre na tela inteira: o resumo da última vez, quem já está na mesa e o convite. Depois, as rolagens e as anotações vão direto para o registro.', optional: true },
+      { target: '.table-start-who', title: 'Quem já chegou', body: 'Quem abriu o link no celular aparece aqui antes mesmo de começar. “Convidar jogadores” mostra o QR code.', optional: true },
       {
         target: '.table-initiative',
         title: 'Iniciativa',
@@ -358,13 +370,14 @@ export const PAGE_TOURS = {
         body: 'Cada rolagem aparece no canto da tela. Depois de um ataque que acerta, “Rolar dano”; depois do dano, “Tirar PV” do alvo. As rolagens dos jogadores pelo Codex também chegam ali.',
       },
       { target: '.table-full', title: 'Tela cheia', body: 'Para o tablet na mesa, sem o resto do app em volta.', optional: true },
+      { target: '.table-end', title: 'Encerrar', body: 'No fim do jogo: mostra quanto durou e o que rolou, avisa os celulares e manda o registro para Ideias.', optional: true },
     ],
   },
   'rpg-sessoes': {
     title: 'Sessões',
     steps: [
       { target: '.split-list[aria-label="Sessões"]', title: 'As sessões', body: 'Crie a próxima e toque numa para abrir. Cada uma tem número, data, preparação, registro e o que foi revelado nela.' },
-      { target: '.session-head', title: 'Começar e encerrar', body: 'Com a sessão em andamento, as rolagens vão para o registro dela. Ao encerrar, o registro vai para Ideias, para você revisar com calma.', optional: true },
+      { target: '.session-head', title: 'Começar e encerrar', body: '“Começar” abre a sessão na tela inteira e leva para a mesa; as rolagens vão para o registro dela. Ao encerrar, aparece o resumo e o registro vai para Ideias, para você revisar com calma.', optional: true },
       { target: '.session-log', title: 'Registro da mesa', body: 'O que aconteceu, com a hora. Nada vira canon sem a sua revisão.', optional: true },
       { target: '.session-reveal', title: 'Revelado nesta sessão', body: 'Revele uma ficha (só o nome, nome e resumo, ou tudo) ou um fato. O Codex dos jogadores recebe na hora.', optional: true },
       { target: '.session .initiative', title: 'Iniciativa', body: 'A ordem do combate desta sessão, a mesma da aba Na mesa.', optional: true },
@@ -510,6 +523,8 @@ export const PAGE_TOURS = {
     title: 'Codex',
     steps: [
       { target: '.player-live', title: 'Ao vivo', body: 'O Codex se atualiza sozinho quando o mestre revela algo. “Novidades do mestre” aparece quando chega coisa nova.' },
+      { target: '.player-session', title: 'Sessão ao vivo', body: 'Aparece quando o mestre começa a sessão. O celular vibra no começo e avisa quando ela termina.', optional: true },
+      { target: '.player-people', title: 'Na mesa agora', body: 'O mestre e os outros jogadores que estão com o Codex aberto, pelo personagem.', optional: true },
       { target: '.player-who', title: 'Quem é você?', body: 'Escolha o seu personagem para rolar pela ficha dele. Fica lembrado neste aparelho.', optional: true },
       { target: '.codex-combat', title: 'Combate', body: 'A ordem da iniciativa e de quem é a vez. Quando for a sua, o celular avisa.', optional: true },
       { target: '.codex-party', title: 'O grupo', body: 'A vida e as condições de cada um. Em “Ficha completa”, atributos, perícias, ataques, poderes e inventário.', optional: true },

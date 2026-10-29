@@ -1,32 +1,17 @@
-import qrcode from 'qrcode-generator'
 import { Copy, ExternalLink, Radio, RefreshCw, Settings, Square } from 'lucide-react'
-import { useMemo, useState } from 'react'
 import type { Group } from '../../model/schema'
-import { newId, patch } from '../../model/universe'
-import { deleteCodex, DEFAULT_PUBLIC_URL, newShareKey, playerLink } from '../../share/server'
 import { codexSnapshot } from '../../share/snapshot'
-import { publishNow, serverFrom, useSyncState } from '../../share/useCodexSync'
+import { publishNow } from '../../share/useCodexSync'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
+import { useMesaLink } from './LiveTable'
 
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
 /** Liga e desliga o Codex ao vivo de uma mesa, com link e QR code para os jogadores. */
 export function SharePanel({ group }: { group: Group }) {
-  const { universe, update, prefs, toast, go } = useWorkspace()
-  const server = serverFrom(prefs)
-  const sync = useSyncState(group.id)
-  const [starting, setStarting] = useState(false)
-  const share = group.share
-  const link = share && server ? playerLink(prefs.publicUrl || DEFAULT_PUBLIC_URL, server, share.id) : ''
-
-  const qr = useMemo(() => {
-    if (!link) return ''
-    const q = qrcode(0, 'M')
-    q.addData(link)
-    q.make()
-    return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true })
-  }, [link])
+  const { universe, toast, go } = useWorkspace()
+  const { server, share, link, qr, sync, starting, start: startLink, stop, copy } = useMesaLink(group)
 
   if (!server) {
     return (
@@ -43,25 +28,7 @@ export function SharePanel({ group }: { group: Group }) {
   }
 
   const start = async () => {
-    setStarting(true)
-    const s = { id: newId(), key: newShareKey() }
-    const ok = await publishNow(server, group.id, s, codexSnapshot(universe, group.id))
-    setStarting(false)
-    if (ok) {
-      update((u) => patch(u, 'groups', group.id, { share: s }))
-      toast('Codex ao vivo. Mande o link para a mesa.')
-    }
-  }
-
-  const stop = async () => {
-    if (!share) return
-    try {
-      await deleteCodex(server, share.id, share.key)
-    } catch {
-      // Mesmo sem conexão, a mesa deixa de publicar; o link antigo pode continuar mostrando a última versão.
-      toast('Não foi possível apagar do servidor agora. O link para de atualizar.', { tone: 'erro' })
-    }
-    update((u) => patch(u, 'groups', group.id, { share: null }))
+    if (await startLink()) toast('Codex ao vivo. Mande o link para a mesa.')
   }
 
   if (!share) {
@@ -107,18 +74,7 @@ export function SharePanel({ group }: { group: Group }) {
           Link para os jogadores
         </label>
         <input id={`link-${group.id}`} className="input input-sm" readOnly value={link} onFocus={(e) => e.target.select()} />
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(link)
-              toast('Link copiado')
-            } catch {
-              toast('Não deu para copiar. Selecione o link e copie.', { tone: 'erro' })
-            }
-          }}
-        >
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => void copy()}>
           <Copy size={14} /> Copiar
         </button>
       </div>

@@ -92,7 +92,7 @@ interface Table {
 const tables = new Map<string, Table>()
 /** Canais saindo: um canal novo no mesmo tópico espera o antigo sair de vez (o cliente devolveria o velho). */
 const leaving = new Map<string, Promise<unknown>>()
-const TABLE_EVENTS = ['atualizado', 'rolagem', 'conferida'] as const
+const TABLE_EVENTS = ['atualizado', 'rolagem', 'conferida', 'presenca', 'saiu', 'quem'] as const
 
 function openTable(cfg: ServerConfig, id: string): Table {
   const key = `${cfg.url}|${cfg.anonKey}|${id}`
@@ -227,15 +227,49 @@ function readTableCheck(p: unknown): TableCheck | null {
   return { id, verdict, tone: TONES.includes(r.tone as string) ? (r.tone as TableRoll['tone']) : 'neutro' }
 }
 
+/** Quem está com a mesa aberta agora: o mestre ou um jogador (com o personagem, se já escolheu). */
+export interface TablePresence {
+  /** Um por aparelho aberto (some quando ele fecha ou para de avisar). */
+  id: string
+  role: 'mestre' | 'jogador'
+  who: string | null
+}
+
+function readPresence(p: unknown): TablePresence | null {
+  if (!p || typeof p !== 'object') return null
+  const r = p as Record<string, unknown>
+  const id = text(r.id, 64)
+  if (!id || (r.role !== 'mestre' && r.role !== 'jogador')) return null
+  return { id, role: r.role, who: text(r.who, 60) }
+}
+
 /** Entra no canal da mesa. Devolve como enviar e como sair. */
 export function joinTable(
   cfg: ServerConfig,
   id: string,
-  on: { update?: () => void; roll?: (r: TableRoll) => void; check?: (c: TableCheck) => void; status?: (live: boolean) => void } = {},
+  on: {
+    update?: () => void
+    roll?: (r: TableRoll) => void
+    check?: (c: TableCheck) => void
+    status?: (live: boolean) => void
+    /** Alguém está (ou continua) na mesa. */
+    presence?: (p: TablePresence) => void
+    /** Alguém fechou a mesa. */
+    left?: (id: string) => void
+    /** Alguém chegou e quer saber quem já está: cada um responde com a própria presença. */
+    ask?: () => void
+  } = {},
 ) {
   const t = openTable(cfg, id)
   const handler = (event: string, payload: unknown) => {
-    if (event === 'atualizado') on.update?.()
+    if (event === 'presenca') {
+      const p = readPresence(payload)
+      if (p) on.presence?.(p)
+    } else if (event === 'saiu') {
+      const gone = payload && typeof payload === 'object' ? text((payload as Record<string, unknown>).id, 64) : null
+      if (gone) on.left?.(gone)
+    } else if (event === 'quem') on.ask?.()
+    else if (event === 'atualizado') on.update?.()
     else if (event === 'rolagem') {
       const r = readTableRoll(payload)
       if (r) on.roll?.(r)
@@ -254,6 +288,9 @@ export function joinTable(
     sendRoll: (r: TableRoll) => sendOn(t, 'rolagem', r),
     sendCheck: (c: TableCheck) => sendOn(t, 'conferida', c),
     ping: () => sendOn(t, 'atualizado', {}),
+    sendPresence: (p: TablePresence) => sendOn(t, 'presenca', p),
+    sendLeft: (presenceId: string) => sendOn(t, 'saiu', { id: presenceId }),
+    ask: () => sendOn(t, 'quem', {}),
     leave: () => {
       if (left) return
       left = true

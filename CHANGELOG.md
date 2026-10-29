@@ -1,5 +1,21 @@
 # Novidades
 
+## 1.3.0 — 29 de outubro de 2026
+
+**A sessão começa de verdade.** Começar a sessão agora é um momento: a tela inteira no clima da mesa, com o nome da sessão, o que aconteceu na última vez, quem já está na mesa e o convite. “Começar a jogar” leva direto para a mesa.
+
+**Quem está na mesa.** Cada celular com o Codex aberto avisa que está ali. O mestre vê, no alto da mesa, o nome do personagem de cada jogador que entrou (e quem ainda está escolhendo); quem fecha o Codex sai da lista sozinho. No celular, o jogador vê o mestre e os outros jogadores.
+
+**Convidar à vista.** O botão “Convidar jogadores” fica no alto da mesa, no Painel do mestre (no Grupo) e na tela de começar a sessão. Ele mostra o QR code e o link (copiar ou enviar pelo celular) e, quando o link ainda não existe, cria na hora.
+
+- O alto da mesa mostra “Sessão 2 ao vivo · A Torre · começou há 25 min”.
+- O Painel do mestre tem “Começar agora” na próxima sessão e “Voltar para a mesa” enquanto ela está em andamento.
+- “Encerrar sessão” também na mesa (com confirmação). O fim mostra quanto durou, quantas rolagens, notas e revelações, e leva o registro para Ideias.
+- O registro ganha a linha de começo e de fim, com a hora.
+- No celular do jogador: “A sessão começou” na tela inteira (e vibra, onde dá), a sessão no alto enquanto ela dura, e “A sessão terminou” no fim.
+- Os tours (?) da mesa e do Codex explicam o convite, quem está na mesa e o começo e o fim da sessão; a janela de convite tem o seu (?).
+- Usa o mesmo canal ao vivo do Codex: não precisa rodar nenhum script novo no servidor.
+
 ## 1.2.0 — 28 de outubro de 2026
 
 **Ajuda em cada tela.** No alto de cada tela há um botão (?) que mostra, parte por parte, como aquela tela funciona: destaca cada pedaço e explica para que serve, sem mexer em nada. Vale para todas as áreas do universo (do Início ao Atlas, à Estrutura e aos Ajustes, e a página em branco do Escrever), cada aba da mesa, o início do app (Escrita, RPG e Oficina), os guias da Oficina, o treino e o resultado dele, o modo leitor, a diagramação do livro e o Codex dos jogadores.
