@@ -90,6 +90,8 @@ test('compartilhar: convidar para editar, as mudanças chegam, o link só lê e 
   const readerText = reader.getByRole('textbox', { name: 'Texto da cena' })
   await expect(readerText).toContainText('Bia chegou.')
   await expect(readerText).toHaveAttribute('contenteditable', 'false')
+  // Quem chega pelo link abre na Página: a lista de cenas fica atrás do botão do canto.
+  await reader.getByRole('button', { name: 'Mostrar manuscrito' }).click()
   await reader.getByRole('button', { name: 'Nova cena' }).first().click()
   await expect(reader.getByText('Você está lendo pelo link: aqui nada pode ser mudado.')).toBeVisible()
 
