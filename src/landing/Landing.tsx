@@ -380,7 +380,7 @@ const FEATURES = [
   { icon: EyeOff, title: 'Segredos e spoilers', text: 'Trechos secretos nas fichas, fatos falsos com quem os contou e partes que o leitor só vê depois de certa cena.' },
   { icon: ImageIcon, title: 'Imagens', text: 'Capa do universo, retratos, mapas e imagens nas cenas, encolhidas sozinhas para não pesar.' },
   { icon: Headphones, title: 'Ler e ouvir', text: 'Leia como livro, com um caderno que não dá spoiler, ou ouça o texto em voz alta para revisar.' },
-  { icon: Printer, title: 'Livro pronto', text: 'Importe .docx ou .md. Exporte em Word, EPUB ou um PDF diagramado para imprimir.' },
+  { icon: Printer, title: 'Livro pronto', text: 'Do manuscrito ao livro em cinco passos: revisar, o que os leitores disseram, diagramar e baixar em PDF, EPUB ou Word, com a lombada e o molde da capa para a gráfica.' },
   { icon: Target, title: 'Metas e calendário', text: 'Meta do dia, meta com prazo e um calendário de quanto você escreveu, com a sequência de dias.' },
   { icon: MessageSquareText, title: 'Comentários e versões', text: 'Notas presas ao texto e versões de cada cena para comparar e voltar atrás.' },
   { icon: WifiOff, title: 'Instala e funciona offline', text: 'Vira app no celular e no computador e abre sem internet. Backup em arquivo, numa pasta ou na conta.' },

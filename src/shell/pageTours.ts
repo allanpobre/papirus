@@ -138,14 +138,20 @@ export const PAGE_TOURS = {
   livro: {
     title: 'Livro',
     steps: [
-      { target: '.book-view .view-head .btn', title: 'Novo livro', body: 'Junte histórias num livro à parte, com a sua capa. Uma série pode ter um livro por volume, todos com o mesmo estilo.', optional: true },
+      { target: '.book-head-actions', title: 'Novo livro ou importar', body: 'Junte histórias num livro à parte, com a sua capa (uma série pode ter um por volume, no mesmo estilo). “Importar” traz um texto de .docx, .md ou .txt como história nova.', optional: true },
       { target: '.shelf', title: 'Estante', body: 'Com mais de um livro, escolha aqui qual ver.', optional: true },
-      { target: '.book-hero', title: 'Seu livro', body: 'A capa e as contas do livro: capítulos, palavras e páginas. Toque na capa para diagramar. Ainda sem livro? “Criar o livro” junta as histórias com uma capa.' },
+      { target: '.book-hero', title: 'Seu livro', body: 'A capa e o título. Toque na capa para diagramar. Ainda sem livro? “Criar o livro” junta as histórias com uma capa.' },
       {
         target: '[data-tour="livro-acoes"]',
         optional: true,
-        title: 'O que dá para fazer',
-        body: 'Diagramar e gerar o PDF, ler como leitor, Revisar (repetições, frases longas, aspas, travessões), baixar o e-book (EPUB) e começar o próximo volume com o mesmo estilo.',
+        title: 'Diagramar, ler e baixar',
+        body: '“Baixar” tem todos os formatos, sempre do livro: PDF para imprimir, e-book, Word, texto e a capa para gráfica. No “⋯”, o próximo volume com o mesmo estilo e tirar da estante.',
+      },
+      {
+        target: '[data-tour="livro-caminho"]',
+        optional: true,
+        title: 'Do manuscrito ao livro',
+        body: 'Cinco passos, cada um com o que achou: o texto, revisar, o que os leitores disseram, diagramar e baixar. Nada é obrigatório; cada passo leva aonde resolver.',
       },
       { target: '.shelf-publish', title: 'No seu perfil', body: 'Com uma conta, escolha quem vê este livro no seu perfil: só você, os amigos ou todo mundo, com uma sinopse de contracapa.', optional: true },
       { target: '.book-how', title: 'Como funciona', body: 'Os passos para chegar ao livro pronto.', optional: true },
@@ -301,15 +307,16 @@ export const PAGE_TOURS = {
   'revisar-livro': {
     title: 'Revisar o livro',
     steps: [
+      { target: '.review', title: 'Só apontamentos', body: 'O livro é seu: nada aqui muda sozinho. Primeiro o que o Papirus arruma; depois, cena a cena, o que vale olhar.' },
+      { target: '[aria-label="O Papirus arruma"]', title: 'O Papirus arruma', body: 'Tipografia de livro (travessões, aspas, reticências, espaços): “Arrumar tudo” corrige no livro todo de uma vez, e dá para desfazer.', optional: true },
       {
-        target: '.review-group',
-        title: 'Apontamentos',
-        body: 'Agrupados por tipo: cenas vazias ou sem título, travessões, aspas, reticências, espaços, grafia, frases longas, palavras repetidas perto e cenas curtas.',
+        target: '[aria-label="Vale olhar"]',
+        title: 'Vale olhar',
+        body: 'Cena a cena, começando pelas que têm mais: frases longas, repetições, cenas curtas e nomes escritos de jeitos diferentes. Nada aqui é erro.',
         optional: true,
       },
-      { target: '.review-group .btn', title: 'Corrigir de uma vez', body: 'A tipografia (travessões, aspas, reticências, espaços) se corrige no livro todo com um toque, e dá para desfazer.', optional: true },
-      { target: '.review-item', title: 'Ir até o trecho', body: 'Toque num apontamento para abrir a cena no lugar certo.', optional: true },
-      { title: 'O livro é seu', body: 'São só apontamentos. Repetição pode ser estilo, e frase longa pode ser de propósito.' },
+      { target: '.review-words', title: 'Repetições', body: 'As palavras que mais se repetem na cena, com quantas vezes. O olho riscado ignora uma palavra que é tema do livro.', optional: true },
+      { target: '.review-item', title: 'Ir até o trecho', body: 'Toque num apontamento para abrir a cena.', optional: true },
     ],
   },
   compartilhar: {
@@ -672,12 +679,13 @@ export const PAGE_TOURS = {
       { target: '.book-top-title', title: 'O livro', body: 'Capítulos, palavras e páginas, contados enquanto você muda o estilo.' },
       {
         target: '.book-panel',
-        title: 'Opções',
-        body: 'Modelo, capa e contracapa, o que entra, folha de rosto, página, texto, capítulos, quebra de cena, cabeçalho e números. Tudo aparece na prévia na hora.',
+        title: 'Começo, miolo e fim',
+        body: 'Na ordem do livro: a capa, a folha de rosto e a dedicatória; o modelo, o que entra, a página, o texto e os capítulos; e, no fim, agradecimentos, “sobre a autoria”, “Também de” e a capa para gráfica. Tudo aparece na prévia na hora.',
       },
+      { target: '.book-measure', title: 'Caracteres por linha', body: 'De 45 a 75 é confortável (Bringhurst). Muda com o tamanho da página, as margens e a letra.', optional: true },
       { target: '.book-panel-toggle', title: 'Opções ou páginas', body: 'No celular, alterna entre as opções e a prévia.', optional: true },
       { target: '.book-preview', title: 'Prévia', body: 'As páginas como vão sair.', optional: true },
-      { target: '.book-top .btn-primary', title: 'Gerar', body: '“Imprimir ou salvar PDF” abre a impressão (escolha “Salvar como PDF”). Também dá para baixar o e-book (EPUB) ou um arquivo para imprimir depois.' },
+      { target: '.book-top .more-menu', title: 'Baixar', body: 'PDF (abre a impressão: escolha “Salvar como PDF”), um arquivo para imprimir depois, o e-book (EPUB) e o molde da capa para gráfica.' },
     ],
   },
 } satisfies Record<string, PageTourDef>

@@ -104,6 +104,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   // A Oficina é uma página à parte, por cima da área de trabalho.
   const [oficinaOpen, setOficinaOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState<string | null>(null)
+  const [bookFocus, setBookFocus] = useState<'grafica' | undefined>()
   const closeBook = useCallback(() => setBookOpen(null), [])
   const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
   const [editingScene, setEditingScene] = useState<string | null>(null)
@@ -388,7 +389,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       setEditingScene,
       openShare: () => setShareOpen(true),
       openReader: () => setReaderOpen(true),
-      openBookDesigner: (bookId?: string) => {
+      openBookDesigner: (bookId?: string, focus?: 'grafica') => {
+        setBookFocus(focus)
         // Sem livro escolhido: o primeiro da estante, ou um novo.
         let id = bookId ?? shelf(universe)[0]?.id
         if (!id)
@@ -683,7 +685,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       {bookOpen !== null &&
         createPortal(
           <Suspense fallback={<div className="book-designer view-loading">Abrindo a diagramação…</div>}>
-            <BookDesigner bookId={bookOpen} onClose={closeBook} />
+            <BookDesigner bookId={bookOpen} focus={bookFocus} onClose={closeBook} />
           </Suspense>,
           document.body,
         )}

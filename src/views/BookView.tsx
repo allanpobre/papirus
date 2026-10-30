@@ -1,16 +1,24 @@
-import { BookOpen, BookOpenText, Copy, FileDown, Palette, Plus, Printer, SpellCheck, Trash2 } from 'lucide-react'
+import { BookOpen, BookOpenText, Check, Copy, FileDown, FileText, FileType, Palette, Plus, Printer, Ruler, Trash2, Upload } from 'lucide-react'
 import { ReviewDialog } from '../book/ReviewDialog'
 import { useMemo, useState } from 'react'
 import { BOOK_FONTS } from '../export/bookFonts'
-import { BODY_FONT_KEY, PAGE_SIZES, bookContent, bookTitle } from '../export/bookDesign'
+import { BODY_FONT_KEY, PAGE_SIZES, bookTitle } from '../export/bookDesign'
+import { reviewStep, textStep, type StepState } from '../export/bookPath'
+import { fileNameFor, downloadText } from '../export/download'
 import { addBook, removeBook, shelf, storiesOutsideBooks } from '../export/shelf'
+import { reviewBook } from '../logic/review'
 import type { BookRecord } from '../model/schema'
+import { useAccount } from '../account/auth'
 import { useWorkspace } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { MoreMenu } from '../ui/MoreMenu'
 import { ShelfPublish } from '../social/ShelfPublish'
 import { SocialDialog } from '../social/SocialDialog'
+import { VISIBILITY_LABEL } from '../social/social'
 import { useShelfStatus } from '../social/useShelfSync'
-import { BookCard } from './BookCard'
+import { BookImport } from './BookImport'
+import { BookReadersDialog } from './BookReaders'
+import { readersSummary, useBookReaders } from './readersData'
 import { PageHelp } from '../ui/PageTour'
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
@@ -18,17 +26,22 @@ const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'm
 /**
  * A estante: os livros deste universo (volumes de uma série, contos, edições).
  * Cada livro tem capa, histórias e diagramação próprias; dá para copiar o estilo de outro.
+ * O livro escolhido mostra o caminho do manuscrito ao livro: texto, revisar, leitores,
+ * diagramar e baixar, cada passo com o que achou e um atalho para resolver.
  */
 export default function BookView() {
-  const { universe, update, openBookDesigner, openReader, readOnly, toast, source, prefs } = useWorkspace()
+  const { universe, update, openBookDesigner, readOnly, toast, source, prefs } = useWorkspace()
   const shelfStatus = useShelfStatus()
   const [socialOpen, setSocialOpen] = useState(false)
   const books = useMemo(() => shelf(universe), [universe])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = books.find((b) => b.id === selectedId) ?? books[0] ?? null
   const [adding, setAdding] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [reviewing, setReviewing] = useState<string | null>(null)
+  const [readersOf, setReadersOf] = useState<string | null>(null)
   const reviewBookRecord = books.find((b) => b.id === reviewing)
+  const readersBook = books.find((b) => b.id === readersOf)
   const [newTitle, setNewTitle] = useState('')
   const [styleFrom, setStyleFrom] = useState<string>('')
   const hasText = universe.scenes.some((s) => s.text.trim())
@@ -52,18 +65,30 @@ export default function BookView() {
         <h1>Livros</h1>
         <PageHelp tour="livro" />
         {!readOnly && (
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={() => {
-              setStyleFrom(selected?.id ?? '')
-              setAdding(true)
-            }}
-          >
-            <Plus size={15} /> Novo livro
-          </button>
+          <span className="book-head-actions">
+            <button type="button" className="btn btn-sm btn-ghost" aria-expanded={importing} onClick={() => setImporting(!importing)}>
+              <Upload size={15} /> Importar
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => {
+                setStyleFrom(selected?.id ?? '')
+                setAdding(true)
+              }}
+            >
+              <Plus size={15} /> Novo livro
+            </button>
+          </span>
         )}
       </header>
+
+      {importing && (
+        <section className="book-new" aria-label="Importar um texto">
+          <p className="muted small">Traga um texto de .docx, .md ou .txt. Vira uma história nova, dividida em cenas; depois, ela pode entrar num livro. Nada vira ficha sozinho.</p>
+          <BookImport onDone={() => setImporting(false)} />
+        </section>
+      )}
 
       {adding && (
         <form
@@ -122,10 +147,20 @@ export default function BookView() {
 
       {selected ? (
         <>
-          <BookHero book={selected} hasText={hasText} />
-          {!readOnly && source.kind === 'proprio' && (
-            <ShelfPublish book={selected} title={bookTitle(universe, selected)} status={shelfStatus} onSocial={() => setSocialOpen(true)} />
-          )}
+          <BookHero
+            key={selected.id}
+            book={selected}
+            books={books}
+            hasText={hasText}
+            onReview={() => setReviewing(selected.id)}
+            onReaders={() => setReadersOf(selected.id)}
+            onNextVolume={() => {
+              setStyleFrom(selected.id)
+              setAdding(true)
+            }}
+            onRemoved={() => setSelectedId(null)}
+          />
+          {!readOnly && source.kind === 'proprio' && <ShelfPublish book={selected} title={bookTitle(universe, selected)} status={shelfStatus} onSocial={() => setSocialOpen(true)} />}
         </>
       ) : (
         <section className="book-hero" aria-label="Seu livro">
@@ -150,111 +185,275 @@ export default function BookView() {
           </div>
         </section>
       )}
+      {/* As explicações só com a estante vazia; com um livro, o caminho dele explica. */}
+      {!selected && (
+        <ul className="book-how">
+          <li>
+            <Palette size={18} aria-hidden="true" />
+            <span>
+              <strong>A capa é sua.</strong> Envie a imagem; o Papirus cuida do miolo: fontes, títulos, ornamentos, margens.
+            </span>
+          </li>
+          <li>
+            <BookOpenText size={18} aria-hidden="true" />
+            <span>
+              <strong>Uma série, vários livros.</strong> Cada volume com suas histórias; o estilo pode ser o mesmo para todos.
+            </span>
+          </li>
+          <li>
+            <FileDown size={18} aria-hidden="true" />
+            <span>
+              <strong>Sai em PDF</strong> para gráfica ou impressão, e também em e-book, Word e texto.
+            </span>
+          </li>
+        </ul>
+      )}
 
-      <ul className="book-how">
-        <li>
-          <Palette size={18} aria-hidden="true" />
-          <span>
-            <strong>A capa é sua.</strong> Envie a imagem; o Papirus cuida do miolo: fontes, títulos, ornamentos, margens.
-          </span>
-        </li>
-        <li>
-          <BookOpenText size={18} aria-hidden="true" />
-          <span>
-            <strong>Uma série, vários livros.</strong> Cada volume com suas histórias; o estilo pode ser o mesmo para todos.
-          </span>
-        </li>
-        <li>
-          <FileDown size={18} aria-hidden="true" />
-          <span>
-            <strong>Sai em PDF</strong> para gráfica ou impressão, e também em Word, EPUB e Markdown (abaixo).
-          </span>
-        </li>
-      </ul>
-
-      {!readOnly && <BookCard />}
       {socialOpen && <SocialDialog publicUrl={prefs.publicUrl} onClose={() => setSocialOpen(false)} />}
       {reviewBookRecord && <ReviewDialog design={reviewBookRecord} title={bookTitle(universe, reviewBookRecord)} onClose={() => setReviewing(null)} />}
+      {readersBook && <ReadersFor book={readersBook} onClose={() => setReadersOf(null)} />}
     </div>
   )
+}
 
-  function BookHero({ book, hasText }: { book: BookRecord; hasText: boolean }) {
-    const { parts, words } = bookContent(universe, book)
-    const chapters = parts.reduce((n, p) => n + p.chapters.length, 0)
-    const title = bookTitle(universe, book)
-    const author = book.author.trim()
-    const stories = book.storyIds.length ? universe.stories.filter((s) => book.storyIds.includes(s.id)) : universe.stories
-    return (
-      <section className="book-hero" aria-label={`Livro ${title}`}>
-        <button type="button" className="book-hero-cover" onClick={() => openBookDesigner(book.id)} disabled={readOnly || !hasText} aria-label={`Diagramar ${title}`}>
-          <Cover book={book} title={title} />
-        </button>
-        <div className="book-hero-info">
-          <p className="eyebrow">{books.length > 1 ? `Livro ${books.indexOf(book) + 1} de ${books.length}` : 'Seu livro'}</p>
-          <h2>{title}</h2>
-          {author && <p className="book-hero-author">{author}</p>}
-          <p className="muted small">
-            {chapters} {chapters === 1 ? 'capítulo' : 'capítulos'} · {words.toLocaleString('pt-BR')} palavras
-            {stories.length > 0 && ` · ${stories.map((s) => s.title || 'Sem título').join(', ')}`}
-          </p>
-          <p className="book-hero-spec small">
-            {PAGE_SIZES[book.pageSize].label.replace(/ \(.*/, '')} · {BOOK_FONTS[BODY_FONT_KEY[book.bodyFont]].label} · capítulos em estilo {STYLE_LABEL[book.chapterStyle]}
-          </p>
-          <div className="book-hero-actions" data-tour="livro-acoes">
-            {!readOnly && (
-              <button type="button" className="btn btn-primary btn-lg" disabled={!hasText} onClick={() => openBookDesigner(book.id)}>
-                <Printer size={18} /> Diagramar e gerar PDF
-              </button>
-            )}
-            <button type="button" className="btn btn-ghost" disabled={!chapters} onClick={openReader}>
-              <BookOpen size={16} /> Ler como leitor
-            </button>
-            {!readOnly && (
-              <button type="button" className="btn btn-ghost" disabled={!chapters} title="Repetições, frases longas, aspas, travessões…" onClick={() => setReviewing(book.id)}>
-                <SpellCheck size={16} /> Revisar
-              </button>
-            )}
+interface HeroProps {
+  book: BookRecord
+  books: BookRecord[]
+  hasText: boolean
+  onReview: () => void
+  onReaders: () => void
+  onNextVolume: () => void
+  onRemoved: () => void
+}
+
+/** O livro escolhido: capa, botões e o caminho até o livro pronto. */
+function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onRemoved }: HeroProps) {
+  const { universe, update, openBookDesigner, openReader, readOnly, source, go } = useWorkspace()
+  const { user } = useAccount()
+  const title = bookTitle(universe, book)
+  const author = book.author.trim()
+  const issues = useMemo(() => reviewBook(universe, book), [universe, book])
+  const text = textStep(universe, book, issues)
+  const review = reviewStep(issues)
+  const readers = useBookReaders(book)
+  const said = readersSummary(readers)
+  const chapters = text.chapters > 0
+  const download = async (format: 'epub' | 'docx' | 'md') => {
+    if (format === 'epub') return void import('../book/epubDownload').then((m) => m.downloadEpub(universe, book))
+    const { bookFromDesign, bookToDocx, bookToMarkdown, downloadBytes } = await import('../export/exportBook')
+    const out = bookFromDesign(universe, book)
+    if (format === 'docx') downloadBytes(fileNameFor(title, 'docx'), bookToDocx(out), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    else downloadText(fileNameFor(title, 'md'), bookToMarkdown(out))
+  }
+  // O menu "Baixar" (no alto e no último passo): todos os formatos, sempre a partir do livro.
+  const baixar = (small: boolean) => (
+    <MoreMenu
+      label={`Baixar “${title}”`}
+      button={
+        <>
+          <FileDown size={small ? 14 : 16} aria-hidden="true" /> Baixar
+        </>
+      }
+      buttonClass={small ? 'btn btn-sm btn-ghost' : 'btn'}
+    >
+      {(close) => (
+        <>
+          <button
+            type="button"
+            className="more-menu-item"
+            disabled={!chapters || readOnly}
+            onClick={() => {
+              close()
+              openBookDesigner(book.id)
+            }}
+          >
+            <Printer size={16} />{' '}
+            <span>
+              PDF para imprimir<small className="more-menu-hint">abre a prévia, para conferir antes</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="more-menu-item"
+            disabled={!chapters}
+            onClick={() => {
+              close()
+              void download('epub')
+            }}
+          >
+            <BookOpen size={16} />{' '}
+            <span>
+              E-book (EPUB)<small className="more-menu-hint">Kindle, Kobo, Apple Livros</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="more-menu-item"
+            disabled={!chapters}
+            onClick={() => {
+              close()
+              void download('docx')
+            }}
+          >
+            <FileType size={16} />{' '}
+            <span>
+              Word (.docx)<small className="more-menu-hint">para editora ou revisor</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="more-menu-item"
+            disabled={!chapters}
+            onClick={() => {
+              close()
+              void download('md')
+            }}
+          >
+            <FileText size={16} />{' '}
+            <span>
+              Texto (.md)<small className="more-menu-hint">só o texto, em Markdown</small>
+            </span>
+          </button>
+          {!readOnly && (
             <button
               type="button"
-              className="btn btn-ghost"
+              className="more-menu-item"
               disabled={!chapters}
-              title="E-book com a mesma capa e estilo"
-              onClick={() => void import('../book/epubDownload').then((m) => m.downloadEpub(universe, book))}
+              onClick={() => {
+                close()
+                openBookDesigner(book.id, 'grafica')
+              }}
             >
-              <FileDown size={16} /> E-book
+              <Ruler size={16} />{' '}
+              <span>
+                Capa para gráfica<small className="more-menu-hint">lombada, capa inteira e o molde</small>
+              </span>
             </button>
-            {!readOnly && (
-              <button
-                type="button"
-                className="btn btn-ghost"
-                title="Novo livro com o mesmo estilo deste"
-                onClick={() => {
-                  setStyleFrom(book.id)
-                  setAdding(true)
-                }}
-              >
-                <Copy size={16} /> Próximo volume
-              </button>
-            )}
-            {!readOnly && (
-              <ConfirmButton
-                className="btn btn-ghost"
-                title={`Tirar ${title} da estante`}
-                question="Tirar este livro da estante? As histórias continuam; só a capa e a diagramação vão para a lixeira."
-                confirmLabel="Tirar da estante"
-                onConfirm={() => {
-                  update((u) => removeBook(u, book.id))
-                  setSelectedId(null)
-                }}
-              >
-                <Trash2 size={16} aria-label={`Tirar ${title} da estante`} />
-              </ConfirmButton>
-            )}
-          </div>
+          )}
+        </>
+      )}
+    </MoreMenu>
+  )
+  const steps: { id: string; title: string; state: StepState; detail: string; action: React.ReactNode }[] = [
+    {
+      id: 'texto',
+      title: 'O texto',
+      ...text,
+      action: (
+        <button type="button" className="btn btn-sm btn-ghost" onClick={() => go('organizar')}>
+          Ver no Mapa
+        </button>
+      ),
+    },
+    {
+      id: 'revisar',
+      title: 'Revisar',
+      state: review.state,
+      detail: review.detail,
+      action: (
+        <button type="button" className="btn btn-sm btn-ghost" disabled={!chapters} onClick={onReview}>
+          Revisar
+        </button>
+      ),
+    },
+    {
+      id: 'leitores',
+      title: 'Leitores',
+      state: said.open ? 'olhar' : 'neutro',
+      detail: said.detail,
+      action: (
+        <button type="button" className="btn btn-sm btn-ghost" onClick={onReaders}>
+          Ver
+        </button>
+      ),
+    },
+    {
+      id: 'diagramar',
+      title: 'Diagramar',
+      state: book.cover ? 'ok' : 'neutro',
+      detail: `${PAGE_SIZES[book.pageSize].label.replace(/ \(.*/, '')} · ${BOOK_FONTS[BODY_FONT_KEY[book.bodyFont]].label} · capítulos em estilo ${STYLE_LABEL[book.chapterStyle]}${book.cover ? '' : ' · sem capa ainda'}`,
+      action: !readOnly && (
+        <button type="button" className="btn btn-sm btn-ghost" disabled={!chapters} onClick={() => openBookDesigner(book.id)}>
+          Diagramar
+        </button>
+      ),
+    },
+    {
+      id: 'baixar',
+      title: 'Baixar e publicar',
+      state: 'neutro',
+      detail: `PDF para imprimir, e-book, Word ou texto${user && source.kind === 'proprio' ? ` · no seu perfil: ${VISIBILITY_LABEL[book.shelfVisibility].toLowerCase()}` : ''}`,
+      action: baixar(true),
+    },
+  ]
+  return (
+    <section className="book-hero" aria-label={`Livro ${title}`}>
+      <button type="button" className="book-hero-cover" onClick={() => openBookDesigner(book.id)} disabled={readOnly || !hasText} aria-label={`Diagramar ${title}`}>
+        <Cover book={book} title={title} />
+      </button>
+      <div className="book-hero-info">
+        <p className="eyebrow">{books.length > 1 ? `Livro ${books.indexOf(book) + 1} de ${books.length}` : 'Seu livro'}</p>
+        <h2>{title}</h2>
+        {author && <p className="book-hero-author">{author}</p>}
+        <div className="book-hero-actions" data-tour="livro-acoes">
+          {!readOnly && (
+            <button type="button" className="btn btn-primary" disabled={!hasText} onClick={() => openBookDesigner(book.id)}>
+              <Palette size={16} /> Diagramar
+            </button>
+          )}
+          <button type="button" className="btn" disabled={!chapters} onClick={openReader}>
+            <BookOpen size={16} /> Ler
+          </button>
+          {baixar(false)}
+          {!readOnly && (
+            <MoreMenu label={`Mais de “${title}”`}>
+              {(close) => (
+                <>
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      onNextVolume()
+                    }}
+                  >
+                    <Copy size={16} /> Próximo volume, com o mesmo estilo
+                  </button>
+                  <ConfirmButton
+                    className="more-menu-item more-menu-danger"
+                    title={`Tirar ${title} da estante`}
+                    question="Tirar este livro da estante? As histórias continuam; só a capa e a diagramação vão para a lixeira."
+                    confirmLabel="Tirar da estante"
+                    onConfirm={() => {
+                      close()
+                      update((u) => removeBook(u, book.id))
+                      onRemoved()
+                    }}
+                  >
+                    <Trash2 size={16} aria-hidden="true" /> Tirar da estante
+                  </ConfirmButton>
+                </>
+              )}
+            </MoreMenu>
+          )}
         </div>
-      </section>
-    )
-  }
+        <ol className="book-path" aria-label="Do manuscrito ao livro" data-tour="livro-caminho">
+          {steps.map((st, i) => (
+            <li key={st.id} className={`book-step is-${st.state}`}>
+              <span className="book-step-dot" aria-hidden="true">
+                {st.state === 'ok' ? <Check size={13} /> : i + 1}
+              </span>
+              <span className="book-step-text">
+                <strong>{st.title}</strong>
+                <span>{st.detail}</span>
+              </span>
+              <span className="book-step-action">{st.action}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
 }
 
 function Cover({ book, title, small }: { book: BookRecord; title: string; small?: boolean }) {
@@ -266,4 +465,11 @@ function Cover({ book, title, small }: { book: BookRecord; title: string; small?
       {!small && <span className="book-hero-placeholder-hint">Sua capa aqui</span>}
     </span>
   )
+}
+
+/** A janela dos leitores, com os dados do livro (comentários e reações). */
+function ReadersFor({ book, onClose }: { book: BookRecord; onClose: () => void }) {
+  const { universe } = useWorkspace()
+  const readers = useBookReaders(book)
+  return <BookReadersDialog readers={readers} title={bookTitle(universe, book)} onClose={onClose} />
 }

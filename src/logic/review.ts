@@ -27,6 +27,8 @@ export interface ReviewIssue {
   /** Trecho onde aparece (curto). */
   excerpt: string
   message: string
+  /** Na repetição: a palavra (para juntar por palavra e poder ignorar). */
+  word?: string
 }
 
 export const REVIEW_INFO: Record<ReviewKind, { title: string; hint: string; fixable: boolean }> = {
@@ -69,10 +71,12 @@ export function reviewBook(universe: Universe, d: BookDesign): ReviewIssue[] {
   const spellings = new Map<string, Map<string, { sceneId: string; title: string; excerpt: string }>>()
   // Nomes de fichas se repetem naturalmente: não contam como repetição.
   const names = new Set(universe.entities.flatMap((e) => [e.name, ...e.aliases]).flatMap((n) => fold(n).split(/[^\p{L}\p{N}]+/u)))
+  // Palavras que o autor disse que são tema, não descuido.
+  const ignored = new Set((d.reviewIgnore ?? []).map((w) => fold(w)))
 
   for (const s of scenes) {
     const title = s.title || 'Sem título'
-    const add = (kind: ReviewKind, excerpt: string, message: string) => issues.push({ kind, sceneId: s.id, sceneTitle: title, excerpt, message })
+    const add = (kind: ReviewKind, excerpt: string, message: string, word?: string) => issues.push({ kind, sceneId: s.id, sceneTitle: title, excerpt, message, ...(word ? { word } : {}) })
     const text = s.text
     const words = text.match(/[\p{L}\p{N}]+(?:[-'’][\p{L}]+)*/gu) ?? []
 
@@ -90,11 +94,11 @@ export function reviewBook(universe: Universe, d: BookDesign): ReviewIssue[] {
     let i = 0
     for (const m of text.matchAll(re)) {
       const w = fold(m[0])
-      if (!STOP.has(w) && !names.has(w) && !w.endsWith('mente')) {
+      if (!STOP.has(w) && !names.has(w) && !ignored.has(w) && !w.endsWith('mente')) {
         const last = seen.get(w)
         if (last !== undefined && i - last <= 30 && !reported.has(w)) {
           reported.add(w)
-          add('repeticao', excerptAround(text, m.index), `“${m[0]}” aparece de novo ${i - last} palavras depois.`)
+          add('repeticao', excerptAround(text, m.index), `“${m[0]}” aparece de novo ${i - last} palavras depois.`, m[0].toLocaleLowerCase('pt-BR'))
         }
         seen.set(w, i)
       }

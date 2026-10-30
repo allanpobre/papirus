@@ -7555,3 +7555,190 @@ button.fight-line {
 .fact-card.fact-disputado {
   border-left: 3px solid var(--ochre);
 }
+
+/* ---------------------------------------------------------------- Livro: o caminho */
+
+.book-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Com o caminho, a capa fica no alto, ao lado do título. */
+.book-hero:has(.book-path) {
+  align-items: start;
+}
+
+.book-path {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.book-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  text-align: left;
+}
+
+.book-step-dot {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong, var(--line));
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.book-step.is-ok .book-step-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.book-step.is-olhar .book-step-dot {
+  border-color: var(--ochre);
+  color: var(--ochre);
+}
+
+.book-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.book-step-text > strong {
+  font-size: 0.95rem;
+}
+
+.book-step-text > span {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+.book-step-action:empty {
+  display: none;
+}
+
+/* Um rótulo pequeno embaixo do nome de cada item de um menu (os formatos do "Baixar"). */
+.more-menu-item > span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.more-menu-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* O que os leitores disseram, capítulo a capítulo. */
+.book-readers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.book-readers > p {
+  margin: 0;
+}
+
+.book-readers-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.book-readers-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.book-readers-row:hover {
+  border-color: var(--accent);
+}
+
+.book-readers-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.6rem;
+}
+
+.book-readers-go {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.book-readers-react {
+  font-size: 0.85rem;
+}
+
+.book-readers-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.86rem;
+}
+
+.book-readers-note q {
+  font-family: var(--font-text);
+  font-style: italic;
+  color: var(--ink-2);
+}
+
+.chip-warn {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  border-color: transparent;
+}
+
+@media (max-width: 640px) {
+  /* No celular, o caminho fica alinhado à esquerda, mesmo com a capa no meio. */
+  .book-hero .book-path {
+    width: 100%;
+  }
+}
+
+.book-hero .more-menu-pop {
+  min-width: 16rem;
+}
+
+@media (max-width: 640px) {
+  /* Com um livro, a capa encolhe: o caminho é o que importa no celular. */
+  .book-hero:has(.book-path) .book-hero-cover {
+    width: min(130px, 40vw);
+  }
+
+  .book-hero:has(.book-path) {
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+}

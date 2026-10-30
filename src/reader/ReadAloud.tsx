@@ -117,7 +117,7 @@ export function ReadAloudButton({ onStart }: { onStart: () => void }) {
   if (!canSpeak()) return null
   return (
     <button type="button" className="btn btn-sm btn-ghost" onClick={onStart} title="Ouvir o capítulo em voz alta">
-      <Headphones size={15} /> Ouvir
+      <Headphones size={15} aria-hidden="true" /> <span className="leitor-btn-label">Ouvir</span>
     </button>
   )
 }

@@ -115,7 +115,7 @@ test('fora do universo: setores, Oficina, treino, leitor e diagramação têm o 
   await runPageTour(page, 'Modo leitor')
   await page.keyboard.press('Escape')
   await nav(page, 'Livro').click()
-  await page.getByRole('button', { name: /^(Diagramar e gerar PDF|Criar o livro)$/ }).click()
+  await page.getByRole('button', { name: /^(Diagramar|Criar o livro)$/ }).first().click()
   await runPageTour(page, 'Diagramar')
 })
 

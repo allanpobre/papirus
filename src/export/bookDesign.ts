@@ -287,6 +287,34 @@ export function bookTitle(universe: Universe, d: BookDesign): string {
   return d.title.trim() || (storiesOf(universe, d).length === 1 ? storiesOf(universe, d)[0].title : '') || universe.name || 'Sem título'
 }
 
+/**
+ * Os outros livros da estante, para a página "Também de" no fim (como no Vellum, em que o fim
+ * de um livro chama o próximo). Vazio quando a página está desligada ou não há outros.
+ */
+export function alsoByTitles(universe: Universe, d: BookDesign): string[] {
+  if (!d.alsoBy) return []
+  const id = (d as { id?: string }).id
+  const title = bookTitle(universe, d)
+  return (universe.books ?? [])
+    .filter((b) => (id ? b.id !== id : bookTitle(universe, b) !== title))
+    .map((b) => bookTitle(universe, b))
+    .filter((t, i, all) => t !== title && all.indexOf(t) === i)
+}
+
+/** A página "Também de": o título com a autoria, e um livro por linha. */
+export function alsoByHtml(universe: Universe, d: BookDesign): string {
+  const titles = alsoByTitles(universe, d)
+  if (!titles.length) return ''
+  const author = d.author.trim()
+  return `<section class="back-matter also-by"><h2>${author ? `Também de ${esc(author)}` : 'Também nesta estante'}</h2><ul>${titles.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>`
+}
+
+/** Largura da mancha de texto, em mm (a página menos as margens de dentro e de fora). */
+export function textWidthMm(d: BookDesign): number {
+  const [, , inner, outer] = MARGINS[d.margins]
+  return PAGE_SIZES[d.pageSize].w - inner - outer
+}
+
 /** O livro inteiro (HTML do corpo) e a folha de estilo de página. */
 export function buildBook(universe: Universe, design: BookDesign): { title: string; html: string; css: string; chapters: number; words: number } {
   const d = design
@@ -338,6 +366,8 @@ export function buildBook(universe: Universe, design: BookDesign): { title: stri
 
   if (d.acknowledgments.trim()) sections.push(`<section class="back-matter"><h2>Agradecimentos</h2>${paragraphs(d.acknowledgments)}</section>`)
   if (d.aboutAuthor.trim()) sections.push(`<section class="back-matter"><h2>${d.author.trim() ? `Sobre ${esc(d.author.trim())}` : 'Sobre o autor'}</h2>${paragraphs(d.aboutAuthor)}</section>`)
+  const also = alsoByHtml(universe, d)
+  if (also) sections.push(also)
   if (d.backCover) sections.push(`<section class="cover back-cover"><img src="${esc(d.backCover)}" alt=""/></section>`)
 
   return { title, html: sections.join('\n'), css: bookCss(d, title), chapters: all.length, words }
@@ -440,6 +470,8 @@ hr.scene-break.line{border:0;border-top:.6pt solid #888;width:22%;margin:1.3em a
 .scene-break.space{height:1.4em}
 .back-matter{page:front}
 .back-matter p{margin-bottom:.7em}
+.also-by ul{list-style:none;margin:0;padding:0;text-align:center}
+.also-by li{font-style:italic;margin:.4em 0}
 ul,ol{margin:.6em 0 .6em 1.4em;padding:0}
 `
 }
