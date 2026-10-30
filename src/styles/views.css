@@ -3600,6 +3600,13 @@ code {
   gap: 1.4rem;
 }
 
+/* Em telas largas, as páginas com largura máxima ficam no meio: o que sobra se divide dos dois lados. */
+.view.home,
+.view.book-view {
+  width: 100%;
+  margin-inline: auto;
+}
+
 /* O topo: a capa do universo, com saudação, resumo do dia e atalhos. */
 .home-hero {
   position: relative;
@@ -4717,6 +4724,11 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 0.8rem;
+}
+
+/* O (?) fica junto do título; o "Novo livro", na ponta. */
+.book-view .view-head > .page-help {
+  margin-right: auto;
 }
 
 .shelf {
