@@ -1,5 +1,75 @@
 # Novidades
 
+## 1.4.0 — 30 de outubro de 2026
+
+Quatro áreas redesenhadas a partir de livros e de outros apps: a escrita, a mesa de RPG, a Oficina e o mundo.
+
+**Escrita em três momentos: Mapa, Página e Revisão.** Escreva com a porta fechada, revise com ela aberta (Stephen King). Os três ficam no alto da tela de escrever.
+- **Página**, o modo padrão: só o texto. A margem e a lista de cenas saem (a lista abre por cima, no canto), e nomes e comentários ficam sem sublinhado.
+  - No alto, “o que esta cena precisa fazer”, em até três linhas: quem quer o quê, o que atrapalha e como termina. É opcional.
+  - No celular, “Onde você parou” mostra a última frase, com “Continuar”. O rodapé diz quantas perguntas esperam a revisão.
+- **Revisão:** a margem volta, com o bloco “Esta cena”: como ela termina (melhor, pior ou igual), o cartão, as pistas que ela planta, avança ou paga, as perguntas abertas e setas para a cena vizinha.
+- **Mapa** (era a tela Estrutura): cada história tem um modelo (livre, três atos, Save the Cat ou Jornada do herói).
+  - A faixa mostra cada cena do tamanho que tem, na cor de como termina, com os atos.
+  - As promessas viram linhas (plantada, pista, paga), tracejadas quando ficam paradas.
+  - “Vale olhar” faz perguntas só a partir do que você marcou: o meio sem virada, cenas que não mudam nada, quatro cenas seguidas na mesma direção, promessas paradas, personagens que somem. Nada lê o texto nem julga a cena.
+  - Os cartões vêm agrupados por ato; Presença e Ritmo continuam como abas.
+
+**A mesa nova: escudo do mestre e cartão do jogador.**
+- **Escudo do mestre** (modo sessão), em três painéis. No computador ficam lado a lado; no celular, um por vez, e arrastar para o lado troca.
+  - **Roteiro:** início forte, cenas e segredos com “Revelar”. Tocar numa cena começa ela; riscar a atual passa para a próxima.
+  - **Palco:** a cena atual, o clima e relógios de progresso (encher, esvaziar, esconder dos jogadores), os testes pedidos e o combate.
+  - **Mesa:** o grupo, o registro e Dados e tabelas.
+  - A barra ficou com Pedir teste, Anunciar, a ajuda e o “⋯” (dados, tema, tela cheia, sair e encerrar). Os cartões do grupo mostram nome e vida; o resto abre com um toque.
+- **Combate em passos:** “Combate!” pede a iniciativa aos celulares, e “Definir turnos” fecha a ordem. Três jeitos de iniciativa, e a mesa lembra a escolha:
+  - **clássica:** cada um rola no celular, e o mestre rola ou digita por quem não está com o Codex aberto;
+  - **por lados:** um dado para cada lado, e os heróis marcam “agiu”;
+  - **pipoca:** quem agiu escolhe o próximo, também pelo celular.
+  - A fila de turnos mostra retratos com a vida e as condições. O d20 gira na última rolagem e na iniciativa.
+- **Cartão do jogador** (celular), em três abas.
+  - **Eu:** vida grande, defesa, ataques e testes a um toque.
+  - **Mesa:** a cena, os relógios, a fila e as rolagens.
+  - **Codex:** o que foi revelado, em partes que abrem e fecham.
+  - Na sua vez, o celular vibra e mostra os ataques e “Terminei”. Os pedidos de iniciativa e de teste abrem no meio da tela, e “Depois” guarda no alto.
+- Cópia da nuvem: o título fica limpo, com uma etiqueta no cartão. Não empilha cópias, e não cria cópia quando as duas versões são iguais.
+
+**Oficina em trilhas.** A Oficina deixou de ser só uma biblioteca: abre no passo de hoje, com as abas Hoje, Trilhas, Caderno e Biblioteca.
+- Na primeira vez, “O que você quer treinar?” escolhe a trilha. Cada guia vira uma trilha curta:
+  - lições com exercício (67 exercícios novos, um por técnica);
+  - uma revisão do primeiro texto com a técnica nova;
+  - nas trilhas de escrita, uma imitação de *O Alienista*: o trecho some, ficam as palavras-chave, você reescreve de memória e compara lado a lado;
+  - um desafio no fim.
+- O passo tem três partes: ler, escrever (com relógio e mínimo, e a opção “mão em movimento”, que não deixa apagar) e olhar depois.
+  - Olhar depois traz só contas e perguntas, sem nota e sem IA: palavras, tamanho das frases, quanto é fala, verbos de fala, advérbios em -mente e repetições.
+  - As palavras proibidas do exercício são avisadas na hora.
+- O Caderno guarda tudo o que foi escrito, com as respostas.
+- O texto de um passo vira cena. Numa campanha, o exercício de mestre vai para o Roteiro da próxima sessão.
+- Com uma trilha escolhida, o treino do dia passa a ser o próximo passo.
+
+**Mundo e Trama: tudo sobre uma coisa num lugar só.**
+- **Menu:** as seis entradas viraram duas.
+  - **Mundo:** Fichas, Ligações (eram as Relações), Linha do tempo e Atlas.
+  - **Trama:** Pistas e mistérios, e Quem sabe o quê.
+  - As partes ficam no alto da tela, e a busca ainda acha cada uma pelo nome.
+- **A ficha abre para ler**, como uma página de enciclopédia, com “No mapa”: o marcador dela, o caminho de um personagem pelas cenas ou o lugar em que ela fica. Tocar no mapa abre o Atlas. Uma ficha recém-criada abre em Editar.
+- **Editar em palavras simples:**
+  - “É verdade no mundo?” (Verdade, Segredo, Rumor, Lenda, Fontes discordam, Mentira, Ainda não decidi);
+  - “Quão pronta” (Rascunho, Quase, Pronta);
+  - o tipo pelo nome, com “Outro…” para um tipo seu;
+  - o pouco usado dobrado em “Mais detalhes”.
+- **Perguntas para começar** uma ficha vazia: três ou quatro do tipo dela (numa magia, primeiro o custo e o limite). As respostas viram campos, e dá para pular.
+- **A lista mostra em quantas cenas** cada ficha aparece, ou “só nas notas”, com filtro. Sem ficha aberta, no computador, aparece “O mundo até aqui”.
+- **Linha do tempo:** quem participa de um evento aparece com a idade naquele ano.
+- **Ligações no celular:** o grafo vem primeiro, e os filtros ficam no botão “Filtros”.
+- **Quem sabe o quê** virou uma frase por fato (“Vaelor sobreviveu à Queda. É verdade, mas é segredo.”), com quem sabe e se o leitor já viu.
+- O exemplo de Ostria ganhou um mapa desenhado, com o caminho do Kael.
+
+**Também**
+- Em monitores largos, o Início e o Livro ficam no meio da tela.
+- Os tours (?) de cada tela, o tour geral e a apresentação acompanham as mudanças.
+- Universos antigos abrem sem mudança: os campos novos têm padrão.
+- Não precisa rodar nenhum script novo no servidor.
+
 ## 1.3.4 — 29 de outubro de 2026
 
 **A mesa mais simples.** Uma revisão do RPG do ponto de vista de quem nunca usou o app.
