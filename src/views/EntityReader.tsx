@@ -2,8 +2,10 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { Fragment, useMemo } from 'react'
 import { factSentence } from '../logic/codex'
 import { appearancesOf } from '../logic/appearances'
+import { isBlank, questionsFor } from '../logic/kindQuestions'
 import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
+import { glimpseOf } from '../logic/route'
 import { unmarkReveals } from '../logic/reveals'
 import { splitSecrets } from '../logic/secrets'
 import { snippet } from '../logic/text'
@@ -13,9 +15,10 @@ import { byId, entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge } from '../ui/bits'
 import { Picture } from '../images/Picture'
+import { MapGlimpse } from './MapGlimpse'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
-export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode }) {
+export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
   const { universe, go, goBack } = useWorkspace()
   const suffix = universe.settings.calendarSuffix
   const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== e.id)), [universe.entities, e.id])
@@ -57,6 +60,7 @@ export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity;
   const events = universe.events.filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id).sort((a, b) => a.year - b.year)
   const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id))
   const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
+  const onMap = useMemo(() => glimpseOf(universe, e.id) !== null, [universe, e.id])
   const born = formatYear(e.startYear, suffix)
   const died = formatYear(e.endYear, suffix)
   const isPerson = e.kind === 'personagem'
@@ -91,17 +95,21 @@ export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity;
           <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" /> {kindLabel(e.kind)}
         </p>
         <h1>{e.name || 'Sem nome'}</h1>
-        <div className="entity-badges">
-          <CanonBadge canon={e.canon} />
-          <EditorialBadge editorial={e.editorial} />
-        </div>
+        {/* Só o que foge do comum: verdade e pronta não precisam de selo. */}
+        {(e.canon !== 'estabelecido' || e.editorial !== 'definido') && (
+          <div className="entity-badges">
+            {e.canon !== 'estabelecido' && <CanonBadge canon={e.canon} />}
+            {e.editorial !== 'definido' && <EditorialBadge editorial={e.editorial} />}
+          </div>
+        )}
         {e.summary && <p className="reader-lede">{rich(e.summary)}</p>}
       </div>
 
       <div className="reader-body">
-        {(e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0) && (
+        {(e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0 || onMap) && (
           <aside className="reader-infobox" aria-label="Em resumo">
             {e.image && <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="reader-portrait" />}
+            {onMap && <MapGlimpse entity={e} />}
             {infobox.length > 0 && (
               <dl>
                 {infobox.map(([k, v]) => (
@@ -142,13 +150,22 @@ export function EntityReader({ entity: e, order, modeSwitch }: { entity: Entity;
             paragraphs.map((p, i) => (
               <p key={i}>{rich(p)}</p>
             ))
+          ) : onEdit && isBlank(e) ? (
+            <div className="reader-blank">
+              <p>
+                Ficha em branco. {questionsFor(e.kind).length} perguntas sobre {kindLabel(e.kind).toLowerCase()} ajudam a começar.
+              </p>
+              <button type="button" className="btn btn-primary btn-sm" onClick={onEdit}>
+                Responder
+              </button>
+            </div>
           ) : (
             <p className="muted">Ainda sem descrição. Em “Editar” você escreve sobre esta ficha.</p>
           )}
 
           {relations.length > 0 && (
             <section>
-              <h2>Relações</h2>
+              <h2>Ligações</h2>
               <ul>
                 {relations.map((r) => (
                   <li key={r.id}>

@@ -4696,3 +4696,45 @@ body,
   background: #a96508;
   color: #fff;
 }
+
+/* O pedaço do mapa na ficha do mundo (o alfinete cai quando a tela chega nele). */
+.lp-mundo-map {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 64px;
+  margin-left: auto;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 30% 45%, #d8cfb8 0 22%, transparent 23%),
+    radial-gradient(circle at 72% 62%, #d8cfb8 0 26%, transparent 27%),
+    repeating-linear-gradient(160deg, transparent 0 7px, rgb(47 95 143 / 0.1) 7px 8px),
+    linear-gradient(135deg, #e9e1cd, #ddd2b8);
+}
+
+.lp-mundo-map i {
+  position: absolute;
+  left: 62%;
+  top: 30%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg) translateY(-8px);
+  background: #a3372b;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.3);
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.lp-mundo-map.is-on i {
+  opacity: 1;
+  transform: rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-mundo-map i {
+    transition: none;
+  }
+}

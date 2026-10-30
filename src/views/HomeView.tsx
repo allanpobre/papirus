@@ -21,6 +21,12 @@ const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numer
 const when = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 /** Início do universo: onde parei, o dia de escrita, o que pede atenção e atalhos. */
+/** Nas portas do Início, as partes pelo nome delas (no menu, Fichas fica dentro do Mundo; Pistas, da Trama). */
+const DOOR_PART: Partial<Record<View, { label: string; icon: typeof BookMarked }>> = {
+  fichas: { label: 'Fichas', icon: BookMarked },
+  tramas: { label: 'Pistas e mistérios', icon: Sprout },
+}
+
 export default function HomeView() {
   const { universe, prefs, go, peek, update, openCapture, openSearch, closeUniverse, source, openShare, openReader, readOnly, toast, hiddenViews } = useWorkspace()
   const cover = universe.settings.cover ?? null
@@ -85,7 +91,7 @@ export default function HomeView() {
     ] as [View, string][]
   )
     .filter(([v]) => shown(v))
-    .map(([v, detail]) => ({ ...ALL_ITEMS.find((i) => i.view === v)!, detail }))
+    .map(([v, detail]) => ({ ...ALL_ITEMS.find((i) => i.view === v)!, ...DOOR_PART[v], detail }))
 
   return (
     <div className="view home">

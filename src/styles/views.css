@@ -163,6 +163,28 @@
   color: var(--muted);
 }
 
+/* Em quantas cenas: só um número, sem cobrança (ficha só nas notas também vale). */
+.entity-row-count {
+  grid-area: kind;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.entity-row-count.is-notes {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.entity-row-kindtext {
+  color: var(--ink-2);
+}
+
+.entity-row-summary:empty {
+  display: none;
+}
+
 .entity-row-summary {
   grid-area: summary;
   font-size: 0.8rem;
@@ -3600,6 +3622,13 @@ code {
   gap: 1.4rem;
 }
 
+/* Em telas largas, as páginas com largura máxima ficam no meio: o que sobra se divide dos dois lados. */
+.view.home,
+.view.book-view {
+  width: 100%;
+  margin-inline: auto;
+}
+
 /* O topo: a capa do universo, com saudação, resumo do dia e atalhos. */
 .home-hero {
   position: relative;
@@ -4717,6 +4746,11 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 0.8rem;
+}
+
+/* O (?) fica junto do título; o "Novo livro", na ponta. */
+.book-view .view-head > .page-help {
+  margin-right: auto;
 }
 
 .shelf {
@@ -7199,4 +7233,325 @@ button.fight-line {
   .map-view-head .tabs {
     width: 100%;
   }
+}
+
+/* ---------------------------------------------------------------- Mundo e Trama */
+
+/* As partes (Fichas · Ligações · Linha do tempo · Atlas) no alto, numa linha própria. */
+.area-head {
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: nowrap;
+}
+
+.area-head > h1:not(.sr-only) {
+  margin-right: auto;
+}
+
+.area-modes {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.view.split > .area-head {
+  grid-column: 1 / -1;
+}
+
+/* No chip marcado (fundo escuro), o número segue a cor do texto. */
+.chip[aria-checked='true'] .chip-count,
+.chip[aria-pressed='true'] .chip-count {
+  color: inherit;
+}
+
+.chip-count {
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 860px) {
+  /* No celular, a ficha aberta ocupa a tela: as partes voltam com o "voltar". */
+  .split.has-detail > .area-head {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  /* No celular, as partes ficam só com o nome (todas, não só a atual como na escrita). */
+  .area-modes button > svg {
+    display: none;
+  }
+
+  .area-modes button:not([aria-current='page']) span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  .area-modes button {
+    padding-inline: 0.55rem;
+  }
+}
+
+@media (max-width: 560px) {
+  /* A ficha em Editar no celular: os botões numa linha, o nome inteiro embaixo. */
+  .entity-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'back . modes trash'
+      'pic title title title';
+    align-items: center;
+    row-gap: 0.8rem;
+  }
+
+  .entity-head > .back-btn {
+    grid-area: back;
+  }
+
+  .entity-head > .portrait-edit {
+    grid-area: pic;
+  }
+
+  .entity-head > .entity-title-wrap {
+    grid-area: title;
+  }
+
+  .entity-head > .mode-switch {
+    grid-area: modes;
+  }
+
+  .entity-head > :last-child {
+    grid-area: trash;
+  }
+}
+
+/* Perguntas da ficha vazia: uma linha basta em cada. */
+.kind-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+
+.kind-questions-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.7rem;
+}
+
+.kind-questions-head .section-title {
+  margin: 0;
+}
+
+.kind-questions-head .btn {
+  margin-left: auto;
+}
+
+.kind-questions-head p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.kind-question {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.kind-question-ask {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.reader-blank {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+.reader-blank p {
+  margin: 0;
+  flex: 1 1 16rem;
+}
+
+/* O pedaço do mapa dentro da ficha. */
+.map-glimpse {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.map-glimpse-img {
+  position: relative;
+  width: 100%;
+  max-height: 16rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2) center / 100% 100% no-repeat;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.map-glimpse-img:hover {
+  border-color: var(--accent);
+}
+
+.map-glimpse-pin {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -14px 0 0 -7px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--danger, #a3372b);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.35);
+}
+
+.map-glimpse-stop {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* Sem ficha aberta, no computador: o mundo em resumo. */
+.world-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+  padding: 1.4rem clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.world-overview header p {
+  margin: 0.3rem 0 0;
+}
+
+.world-overview-part {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.world-overview-part p {
+  margin: 0;
+}
+
+.world-overview-top {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* Ligações: no computador, os filtros ficam à vista; no celular, atrás do botão "Filtros". */
+.graph-filters-btn {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .graph-filters-btn {
+    display: inline-flex;
+  }
+
+  .graph-view:not(.filters-open) .graph-controls,
+  .graph-view:not(.filters-open) .graph-bar {
+    display: none;
+  }
+
+  .graph-view .graph-wrap,
+  .graph-view .graph {
+    min-height: min(62dvh, 520px);
+  }
+}
+
+/* Quem sabe o quê: cada fato numa frase, com quem sabe e se o leitor já viu. */
+.fact-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 0.7rem;
+}
+
+.fact-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.85rem 4.2rem 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.fact-card-text {
+  margin: 0;
+  font-family: var(--font-text);
+  line-height: 1.5;
+}
+
+.fact-card .fact-quote {
+  margin: 0;
+}
+
+.fact-who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.fact-who:empty {
+  display: none;
+}
+
+.fact-card .row-actions {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: flex;
+  gap: 0.15rem;
+}
+
+.reader-chip {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.reader-chip.is-seen {
+  border-style: solid;
+  color: var(--ink-2);
+}
+
+.fact-card.fact-secreto {
+  border-left: 3px solid var(--violet);
+}
+
+.fact-card.fact-falso {
+  border-left: 3px solid var(--danger);
+}
+
+.fact-card.fact-rumor,
+.fact-card.fact-lenda,
+.fact-card.fact-disputado {
+  border-left: 3px solid var(--ochre);
 }

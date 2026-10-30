@@ -4,30 +4,42 @@ import { useMemo, useState } from 'react'
 import { factSentence } from '../logic/codex'
 import { holdersOf, knowledgeAt, readerKnowsAt } from '../logic/knowledge'
 import { fold } from '../logic/text'
-import { CANON_LABEL, EDITORIAL_LABEL, KNOWLEDGE_LABEL } from '../model/labels'
-import { CANON_STATES, EDITORIAL_STATES, type Canon, type Editorial } from '../model/schema'
+import { CANON_LABEL, CANON_ORDER, KNOWLEDGE_LABEL } from '../model/labels'
+import type { Canon, KnowledgeState } from '../model/schema'
 import { byId, entityName, manuscriptOrder, removeFact } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
-import { CanonBadge, EditorialBadge, Empty, Field, Select } from '../ui/bits'
+import { CanonBadge, Empty, Field, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
-import { PageHelp } from '../ui/PageTour'
+import { AreaHead } from './AreaModes'
 
 type Tab = 'fatos' | 'leitor' | 'pov' | 'divergencias'
+
+/** Cada fato numa frase: o que é verdade, dito do jeito mais simples. */
+const TRUTH: Record<Canon, string> = {
+  estabelecido: 'É verdade.',
+  secreto: 'É verdade, mas é segredo.',
+  rumor: 'É boato.',
+  lenda: 'É lenda.',
+  disputado: 'As fontes discordam.',
+  falso: 'É mentira.',
+  desconhecido: 'Você ainda não decidiu se é verdade.',
+}
+
+const KNOWLEDGE_VERB: Record<KnowledgeState, string> = { sabe: 'sabe', suspeita: 'suspeita', acredita: 'acredita', esqueceu: 'esqueceu' }
 
 export default function KnowledgeView() {
   const [tab, setTab] = useState<Tab>('fatos')
   return (
     <div className="view knowledge-view">
-      <header className="view-head view-head-wide">
-        <h1>Quem sabe o quê</h1>
-        <PageHelp tour="conhecimento" />
+      <AreaHead current="conhecimento" tour="conhecimento" />
+      <header className="view-head view-head-wide area-tools">
         <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys}>
           {(
             [
               ['fatos', 'Fatos'],
-              ['pov', 'Quem sabe o quê'],
+              ['pov', 'Por personagem'],
               ['leitor', 'O que o leitor sabe'],
               ['divergencias', 'Versões que divergem'],
             ] as const
@@ -53,16 +65,18 @@ function FactsTab() {
   const { universe, undoable, go } = useWorkspace()
   const [query, setQuery] = useState('')
   const [canon, setCanon] = useState<'todos' | Canon>('todos')
-  const [editorial, setEditorial] = useState<'todos' | Editorial>('todos')
   const [editing, setEditing] = useState<string | 'novo' | null>(null)
 
   const facts = useMemo(() => {
     const q = fold(query.trim())
     return universe.facts
       .filter((f) => canon === 'todos' || f.canon === canon)
-      .filter((f) => editorial === 'todos' || f.editorial === editorial)
       .filter((f) => !q || fold(factSentence(universe, f) + ' ' + f.quote + ' ' + f.note).includes(q))
-  }, [universe, query, canon, editorial])
+  }, [universe, query, canon])
+  // O que o leitor já viu ao fim do que está escrito.
+  const lastScene = manuscriptOrder(universe).at(-1)?.id
+  const hasScenes = Boolean(lastScene)
+  const readerSaw = useMemo(() => new Set(lastScene ? readerKnowsAt(universe, lastScene).map((f) => f.id) : []), [universe, lastScene])
 
   const fact = editing && editing !== 'novo' ? byId(universe, 'facts', editing) : undefined
 
@@ -70,8 +84,7 @@ function FactsTab() {
     <>
       <div className="filters-row">
         <input className="input" data-livre aria-label="Filtrar fatos" placeholder="Filtrar…" value={query} onChange={(e) => setQuery(e.target.value)} />
-        <Select label="Canon" value={canon} onChange={setCanon} options={[{ value: 'todos', label: 'Todo canon' }, ...CANON_STATES.map((c) => ({ value: c, label: CANON_LABEL[c] }))]} />
-        <Select label="Estado editorial" value={editorial} onChange={setEditorial} options={[{ value: 'todos', label: 'Todo estado' }, ...EDITORIAL_STATES.map((c) => ({ value: c, label: EDITORIAL_LABEL[c] }))]} />
+        <Select label="É verdade?" value={canon} onChange={setCanon} options={[{ value: 'todos', label: 'Verdade ou não' }, ...CANON_ORDER.map((c) => ({ value: c, label: CANON_LABEL[c] }))]} />
         <button type="button" className="btn btn-primary" onClick={() => setEditing('novo')}>
           <Plus size={16} /> Fato
         </button>
@@ -81,64 +94,48 @@ function FactsTab() {
           <p>No editor, selecione um trecho e escolha “Fato”. O trecho fica guardado como fonte.</p>
         </Empty>
       ) : (
-        <div className="table-wrap">
-          <table className="table table-cards">
-            <thead>
-              <tr>
-                <th>Fato</th>
-                <th>Segundo</th>
-                <th>Canon</th>
-                <th>Estado</th>
-                <th>Fonte</th>
-                <th>Quem sabe</th>
-                <th>
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {facts.map((f) => {
-                const holders = holdersOf(universe, f.id)
-                const scene = byId(universe, 'scenes', f.sourceSceneId)
-                return (
-                  <tr key={f.id}>
-                    <td>
-                      <span className="fact-sentence">{factSentence(universe, f)}</span>
-                      {f.quote && <span className="fact-quote">“{f.quote}”</span>}
-                    </td>
-                    <td className="small" data-label="Segundo">{f.speakerId ? entityName(universe, f.speakerId) : <span className="muted">Narrador</span>}</td>
-                    <td data-label="Canon">
-                      <CanonBadge canon={f.canon} />
-                    </td>
-                    <td data-label="Estado">
-                      <EditorialBadge editorial={f.editorial} />
-                    </td>
-                    <td className="small" data-label="Fonte">
-                      {scene ? (
-                        <button type="button" className="link-btn" onClick={() => go('escrever', scene.id)}>
-                          {scene.title || 'Sem título'}
-                        </button>
-                      ) : (
-                        <span className="muted">—</span>
-                      )}
-                    </td>
-                    <td className="small" data-label="Quem sabe">
-                      {holders.length ? holders.map((k) => `${entityName(universe, k.holderId)} (${KNOWLEDGE_LABEL[k.state].toLowerCase()})`).join(', ') : <span className="muted">—</span>}
-                    </td>
-                    <td className="row-actions">
-                      <button type="button" className="btn-icon btn-sm" aria-label="Editar fato" onClick={() => setEditing(f.id)}>
-                        <Pencil size={14} />
-                      </button>
-                      <ConfirmButton className="btn-icon btn-sm" title="Apagar fato" question="Apagar?" confirmLabel="Apagar" onConfirm={() => undoable('Fato apagado', (u) => removeFact(u, f.id))}>
-                        <Trash2 size={14} aria-label="Apagar fato" />
-                      </ConfirmButton>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        <ul className="fact-cards">
+          {facts.map((f) => {
+            const holders = holdersOf(universe, f.id)
+            const scene = byId(universe, 'scenes', f.sourceSceneId)
+            const sceneLink = scene && (
+              <button type="button" className="link-btn" onClick={() => go('escrever', scene.id)}>
+                {scene.title || 'Sem título'}
+              </button>
+            )
+            return (
+              <li key={f.id} className={`fact-card fact-${f.canon}`}>
+                <p className="fact-card-text">
+                  <strong>{factSentence(universe, f)}.</strong> {TRUTH[f.canon]}{' '}
+                  {f.speakerId ? (
+                    <>
+                      {entityName(universe, f.speakerId)} disse{sceneLink && <> em {sceneLink}</>}.
+                    </>
+                  ) : (
+                    sceneLink && <>Aparece em {sceneLink}.</>
+                  )}
+                </p>
+                {f.quote && <p className="fact-quote">“{f.quote}”</p>}
+                <div className="fact-who">
+                  {holders.map((k) => (
+                    <span key={k.id} className={`chip knows-chip knows-${k.state}`}>
+                      {entityName(universe, k.holderId)} {KNOWLEDGE_VERB[k.state]}
+                    </span>
+                  ))}
+                  {hasScenes && <span className={`chip reader-chip${readerSaw.has(f.id) ? ' is-seen' : ''}`}>{readerSaw.has(f.id) ? 'o leitor viu' : 'o leitor ainda não'}</span>}
+                </div>
+                <span className="row-actions">
+                  <button type="button" className="btn-icon btn-sm" aria-label="Editar fato" onClick={() => setEditing(f.id)}>
+                    <Pencil size={14} />
+                  </button>
+                  <ConfirmButton className="btn-icon btn-sm" title="Apagar fato" question="Apagar?" confirmLabel="Apagar" onConfirm={() => undoable('Fato apagado', (u) => removeFact(u, f.id))}>
+                    <Trash2 size={14} aria-label="Apagar fato" />
+                  </ConfirmButton>
+                </span>
+              </li>
+            )
+          })}
+        </ul>
       )}
       {editing === 'novo' && <FactDialog initial={{}} onClose={() => setEditing(null)} />}
       {fact && <FactDialog initial={fact} factId={fact.id} title="Editar fato" onClose={() => setEditing(null)} />}

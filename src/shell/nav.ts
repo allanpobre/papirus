@@ -1,8 +1,8 @@
 import {
-  BookMarked,
   BookOpenText,
   CalendarRange,
   Dices,
+  Earth,
   Feather,
   GraduationCap,
   House,
@@ -41,19 +41,15 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     ],
   },
   {
-    group: 'Mundo',
+    // Mundo e Trama: cada um com as suas partes no alto da tela (como Mapa · Página · Revisão na escrita).
+    group: '',
     items: [
-      { view: 'fichas', label: 'Fichas', icon: BookMarked },
-      { view: 'relacoes', label: 'Relações', icon: Network },
-      { view: 'timeline', label: 'Linha do tempo', icon: CalendarRange, words: 'timeline eventos calendário' },
-      { view: 'atlas', label: 'Atlas', icon: MapIcon },
-    ],
-  },
-  {
-    group: 'Trama',
-    items: [
-      { view: 'tramas', label: 'Pistas e mistérios', icon: Sprout, words: 'tramas sementes setup payoff' },
-      { view: 'conhecimento', label: 'Quem sabe o quê', icon: Lightbulb, words: 'conhecimento segredos fatos' },
+      { view: 'fichas', label: 'Mundo', icon: Earth, words: 'fichas personagens lugares wiki enciclopédia' },
+      { view: 'relacoes', label: 'Ligações', icon: Network, inside: 'fichas', words: 'relações grafo árvore da família parentes' },
+      { view: 'timeline', label: 'Linha do tempo', icon: CalendarRange, inside: 'fichas', words: 'timeline eventos calendário eras idades' },
+      { view: 'atlas', label: 'Atlas', icon: MapIcon, inside: 'fichas', words: 'mapas lugares marcadores caminho' },
+      { view: 'tramas', label: 'Trama', icon: Sprout, words: 'pistas e mistérios tramas sementes setup payoff' },
+      { view: 'conhecimento', label: 'Quem sabe o quê', icon: Lightbulb, inside: 'tramas', words: 'conhecimento segredos fatos' },
     ],
   },
   { group: 'Mesa', items: [{ view: 'rpg', label: 'RPG', icon: Dices }] },

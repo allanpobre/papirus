@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { openPart } from './areas.ts'
 
 /** Celular: o "voltar" do Android é o voltar do navegador. */
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
@@ -94,9 +95,11 @@ test('uma sequência longa de "voltar" refaz o caminho, e a cena aberta volta de
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await fichas(page).click()
   await page.locator('.entity-row-name', { hasText: /^Kael$/ }).click()
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Linha do tempo/ }).click()
+  // Com a ficha aberta, a outra parte do Mundo fica a dois toques: o Mundo e a parte.
+  await openPart(page, 'Linha do tempo')
   await expect(h1(page)).toHaveText('Linha do tempo')
+  await page.goBack()
+  await expect(page.getByRole('region', { name: 'Lista de fichas' })).toBeVisible()
   await page.goBack()
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Kael')
   await page.goBack()

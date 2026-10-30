@@ -330,7 +330,7 @@ const SECTORS: { id: SectorId; name: string; icon: typeof Dices; lede: string; s
         note: 'Na Página, só o texto. Na Revisão, os nomes que o mundo já conhece ficam sublinhados, e um trecho selecionado vira fato, ficha, comentário ou ideia.',
         render: (s) => <EditorScreen step={s} />,
       },
-      { id: 'ficha-mundo', label: 'Ficha do mundo', note: 'Cada ficha se lê como uma enciclopédia: retrato, quadro de resumo, segredos que só você vê e as cenas em que aparece.', render: (s) => <WorldSheetScreen step={s} /> },
+      { id: 'ficha-mundo', label: 'Ficha do mundo', note: 'Cada ficha se lê como uma enciclopédia: quadro de resumo, o lugar no mapa, segredos que só você vê e em quantas cenas aparece.', render: (s) => <WorldSheetScreen step={s} /> },
       { id: 'treino', label: 'Treino', note: 'O treino de escrita: um sprint com relógio e um mínimo de palavras ou caracteres. Cada tentativa fica guardada para refazer.', render: (s) => <TreinoScreen step={s} /> },
       { id: 'placar', label: 'Placar', note: 'O placar dos treinos, entre amigos ou de todo mundo: pontos por minutos com o mínimo batido, até 60 por dia.', render: (s) => <PlacarScreen step={s} /> },
     ],
@@ -543,6 +543,9 @@ function WorldSheetScreen({ step }: { step: number }) {
             <dd>341 DC</dd>
           </div>
         </dl>
+        <span className={`lp-mundo-map${step >= 2 ? ' is-on' : ''}`}>
+          <i />
+        </span>
       </div>
       <p className="lp-mundo-text">
         Treinou <span className="lp-link">Mira</span> em segredo.{' '}
@@ -550,7 +553,7 @@ function WorldSheetScreen({ step }: { step: number }) {
           <Lock size={10} /> Sabia quem era o homem pálido.
         </mark>
       </p>
-      <p className="lp-mundo-appears">Aparece em 4 cenas · 2 relações</p>
+      <p className="lp-mundo-appears">Aparece em 4 cenas · 2 ligações</p>
     </div>
   )
 }

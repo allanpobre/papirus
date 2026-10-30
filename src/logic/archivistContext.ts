@@ -163,6 +163,6 @@ Responda em português, de forma direta. Organize a resposta nestas seções, om
 - **Sugestões**: ideias opcionais para o autor, marcadas como sugestão.
 - **Desconhecido**: o que os registros não dizem.
 
-Respeite o canon de cada registro: rumor, lenda, disputado e falso não são verdade estabelecida; não os trate como tal.
+Respeite o canon de cada registro: rumor, lenda, fontes discordam, mentira e ainda não decidi não são verdade estabelecida; não os trate como tal.
 Mistérios e lacunas podem ser intencionais; não trate ausência de informação como erro.
 Use apenas o contexto enviado. Se a pergunta exigir algo que não está nele, diga isso.`

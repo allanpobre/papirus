@@ -379,7 +379,6 @@
 .shelf-publish {
   display: grid;
   gap: 0.6rem;
-  max-width: 44rem;
   margin: 1.5rem 0;
   padding: 1rem 1.1rem;
   border: 1px solid var(--line);

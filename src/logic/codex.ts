@@ -1,5 +1,5 @@
 import { unmarkReveals } from './reveals'
-import { CANON_LABEL, kindLabel, kindPlural } from '../model/labels'
+import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap, Entity, Fact, Relation, Revelation, Seed, Sheet, TimelineEvent, Universe } from '../model/schema'
 import { byId, entityName } from '../model/universe'
 import { stripSecrets } from './secrets'
@@ -200,8 +200,10 @@ export { kindLabel }
  * Como os jogadores veem a natureza de um fato revelado. Mentira e segredo nunca
  * aparecem como tais: mostram só quem disse. Boatos e lendas mantêm o rótulo.
  */
+const PLAYER_CANON: Partial<Record<Fact['canon'], string>> = { rumor: 'rumor', lenda: 'lenda', disputado: 'disputado', desconhecido: 'desconhecido' }
+
 export function playerTag(universe: Universe, f: Fact): string {
   const who = f.speakerId ? `segundo ${entityName(universe, f.speakerId)}` : ''
   if (f.canon === 'estabelecido' || f.canon === 'falso' || f.canon === 'secreto') return who
-  return [CANON_LABEL[f.canon].toLowerCase(), who].filter(Boolean).join(', ')
+  return [PLAYER_CANON[f.canon], who].filter(Boolean).join(', ')
 }

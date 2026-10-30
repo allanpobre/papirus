@@ -1,4 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
+import { openPart } from './areas.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) }).first()
@@ -23,12 +24,18 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
     await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
-    for (const area of ['Início', 'Escrever', 'Fichas', 'Relações', 'Linha do tempo', 'Atlas', 'Pistas e mistérios', 'Quem sabe o quê', 'RPG', 'Ideias', 'Perguntar ao mundo', 'Ajustes e dados']) {
+    for (const area of ['Início', 'Escrever', 'Mundo', 'Trama', 'RPG', 'Ideias', 'Perguntar ao mundo', 'Ajustes e dados']) {
       const button = nav(page, area)
       if (!(await button.count())) continue
       await button.click()
       await page.waitForTimeout(400)
       found.push(...(await audit(page, area)))
+    }
+    // As outras partes do Mundo e da Trama.
+    for (const part of ['Ligações', 'Linha do tempo', 'Atlas', 'Quem sabe o quê'] as const) {
+      await openPart(page, part)
+      await page.waitForTimeout(400)
+      found.push(...(await audit(page, part)))
     }
     // Os outros dois momentos da escrita: o Mapa e a Página.
     for (const mode of ['Mapa', 'Página']) {

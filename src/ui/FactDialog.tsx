@@ -120,11 +120,11 @@ export function FactDialog({
           value={f.speakerId}
           onChange={(v) => set('speakerId', v)}
         />
-        <Field label="Canon" hint="Natureza no universo">
+        <Field label="É verdade no mundo?" hint="Todas as opções: segredo, fontes que discordam, ainda não decidi…">
           {(id) => <CanonSelect id={id} value={f.canon} onChange={(v) => set('canon', v)} />}
         </Field>
-        <Field label="Estado editorial">
-          {(id) => <EditorialSelect id={id} value={f.editorial} onChange={(v) => set('editorial', v)} />}
+        <Field label="Quão pronto">
+          {(id) => <EditorialSelect id={id} label="Quão pronto" value={f.editorial} onChange={(v) => set('editorial', v)} />}
         </Field>
         <Field label="Nota" wide>
           {(id) => (

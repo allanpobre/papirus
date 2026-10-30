@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { openPart } from './areas.ts'
 import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
@@ -151,8 +152,8 @@ test('cria ficha a partir de uma seleção e a vê na margem e nas Fichas', asyn
   const margin = page.getByRole('complementary', { name: 'Margem viva' })
   await expect(margin.getByRole('button', { name: 'Kael', exact: true }).first()).toBeVisible()
 
-  await nav(page, 'Fichas').click()
-  await page.getByRole('button', { name: /^Kael/ }).click()
+  await nav(page, /^Mundo/).click()
+  await page.locator('.entity-row-name', { hasText: /^Kael$/ }).click()
   const ficha = page.getByRole('region', { name: 'Ficha' })
   await expect(ficha.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Kael')
   await expect(ficha.getByRole('button', { name: 'Nova cena', exact: true })).toBeVisible()
@@ -180,7 +181,7 @@ test('a revisão encontra nomes novos e cria fichas sem interromper a escrita', 
 
 test('captura um fato a partir de uma fala, como afirmação de personagem', async ({ page }) => {
   await newUniverse(page)
-  await nav(page, 'Fichas').click()
+  await nav(page, /^Mundo/).click()
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Vaelor')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
   await nav(page, 'Escrever').click()
@@ -191,15 +192,15 @@ test('captura um fato a partir de uma fala, como afirmação de personagem', asy
 
   const dialog = page.getByRole('dialog', { name: 'Capturar fato' })
   await expect(dialog.getByRole('button', { name: 'Vaelor' })).toBeVisible()
-  await expect(dialog.getByRole('combobox', { name: 'Canon' })).toHaveValue('rumor')
+  await expect(dialog.getByRole('combobox', { name: 'É verdade no mundo?' })).toHaveValue('rumor')
   await dialog.getByRole('combobox', { name: 'Relação' }).fill('tem olhos')
   await dialog.getByRole('textbox', { name: 'Valor em texto' }).fill('cinzentos')
   await dialog.getByRole('button', { name: 'Registrar' }).click()
 
-  await nav(page, 'Quem sabe o quê').click()
-  const row = page.getByRole('row').filter({ hasText: 'Vaelor tem olhos cinzentos' })
-  await expect(row).toContainText('Rumor')
-  await expect(row).toContainText('“Vaelor tem olhos cinzentos”')
+  await openPart(page, 'Quem sabe o quê')
+  // Cada fato numa frase: o que é, se é verdade, e o trecho de onde veio.
+  const fact = page.locator('.fact-card').filter({ hasText: 'Vaelor tem olhos cinzentos.' }).filter({ hasText: 'É boato.' })
+  await expect(fact).toContainText('“Vaelor tem olhos cinzentos”')
 })
 
 test('busca global encontra uma ficha pelo apelido, sem acento', async ({ page }) => {

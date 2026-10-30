@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { strFromU8, unzipSync } from 'fflate'
 import { createFakeSupabase, PASSWORD, SERVER, PEOPLE } from './fakeSupabase.ts'
 import { expect, test, type Page } from './fixtures.ts'
+import { openPart } from './areas.ts'
 
 /** Uma "foto" de teste: um PNG grande gerado no navegador (o app deve encolher). */
 async function photo(page: Page, color = '#2f6fae', w = 2400, h = 1600) {
@@ -54,7 +55,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   expect(await figure.evaluate((img: HTMLImageElement) => Math.max(img.naturalWidth, img.naturalHeight))).toBe(1600)
 
   // Retrato numa ficha.
-  await nav(page, 'Fichas').click()
+  await nav(page, 'Mundo').click()
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Mira')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
   await page.locator('.portrait-edit input[type=file]').setInputFiles(await photo(page, '#c0577a', 1200, 1500))
@@ -101,7 +102,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
 
 test('imagens: o mapa novo vai para as imagens (o universo fica leve)', async ({ page }) => {
   await newUniverse(page, 'Mapas')
-  await nav(page, 'Atlas').click()
+  await openPart(page, 'Atlas')
   await page.locator('.atlas-view input[type=file]').setInputFiles(await photo(page, '#4a5260', 3000, 2000))
   await expect(page.locator('.atlas-image')).toHaveAttribute('style', /blob:/)
   const stored = await page.evaluate(() => {
@@ -142,7 +143,7 @@ test('imagens: com conta, sobem sozinhas e aparecem no outro aparelho', async ({
   const a = await device(browser, fake)
   await newUniverse(a, 'Nuvem')
   await signIn(a, PEOPLE.ana.email)
-  await nav(a, 'Fichas').click()
+  await nav(a, 'Mundo').click()
   await a.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Kael')
   await a.getByRole('button', { name: 'Criar ficha' }).click()
   await a.locator('.portrait-edit input[type=file]').setInputFiles(await photo(a, '#7b5ea7', 900, 900))
@@ -161,9 +162,10 @@ test('imagens: com conta, sobem sozinhas e aparecem no outro aparelho', async ({
   await b.goto('/app/')
   await signIn(b, PEOPLE.ana.email)
   await b.getByRole('button', { name: /Nuvem/ }).click()
-  await nav(b, 'Fichas').click()
+  await nav(b, 'Mundo').click()
   await b.locator('.entity-row-name', { hasText: /^Kael$/ }).click()
-  await expect(b.getByRole('button', { name: 'Trocar a imagem da ficha' }).locator('img')).toHaveAttribute('src', /^blob:/)
+  // Noutro aparelho, a ficha abre para ler: o retrato fica no quadro de resumo.
+  await expect(b.getByRole('img', { name: 'Imagem de Kael' })).toHaveAttribute('src', /^blob:/)
 })
 
 test('imagens: quem lê pelo link (sem conta) vê a imagem da cena, vinda do servidor', async ({ browser }) => {
@@ -228,7 +230,7 @@ test('imagens: no Codex dos jogadores, a ficha revelada mostra o retrato (miniat
   await context.route(`${SERVER}/realtime/**`, (route) => route.abort())
 
   await page.goto('/app/?exemplo=ostria')
-  await nav(page, 'Fichas').click()
+  await nav(page, 'Mundo').click()
   await page.locator('.entity-row-name', { hasText: /^Ostria$/ }).click()
   await page.locator('.portrait-edit input[type=file]').setInputFiles(await photo(page, '#2f6fae', 1200, 900))
   await expect(page.locator('.entity-row-pic')).toBeVisible()

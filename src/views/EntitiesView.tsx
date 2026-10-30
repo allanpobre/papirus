@@ -7,7 +7,7 @@ import { factSentence } from '../logic/codex'
 import { fold, snippet } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
 import { RelationDetails } from './RelationDetails'
-import { formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, SEED_STATUS_LABEL } from '../model/labels'
+import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, SEED_STATUS_LABEL } from '../model/labels'
 import { ENTITY_KINDS, KNOWLEDGE_STATES, type Entity, type KnowledgeState } from '../model/schema'
 import {
   byId,
@@ -24,9 +24,12 @@ import {
 } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
-import { appearancesOf } from '../logic/appearances'
+import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityReader } from './EntityReader'
-import { CanonBadge, CanonSelect, EditorialBadge, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
+import { KindQuestions } from './KindQuestions'
+import { MapGlimpse } from './MapGlimpse'
+import { answer, askedKey, isBlank } from '../logic/kindQuestions'
+import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
 import { Fold } from '../ui/Fold'
 import { ArcCard } from './ArcCard'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -34,14 +37,17 @@ import { SecretTextarea } from '../ui/SecretText'
 import { RevealPicker } from '../ui/RevealPicker'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
-import { PageHelp } from '../ui/PageTour'
+import { AreaHead } from './AreaModes'
 
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly } = useWorkspace()
-  // Ler ou editar: a escolha fica lembrada; quem só pode ler, lê.
-  const [mode, setMode] = useState<'ler' | 'editar'>(() => (readOnly || recall('ficha-modo') === 'ler' ? 'ler' : 'editar'))
+  // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
+  const [mode, setMode] = useState<'ler' | 'editar'>(() => (!readOnly && recall('ficha-modo') === 'editar' ? 'editar' : 'ler'))
+  // A ficha que acabou de nascer aqui abre para editar.
+  const [fresh, setFresh] = useState<string | null>(null)
   const changeMode = (m: 'ler' | 'editar') => {
     setMode(m)
+    setFresh(null)
     remember('ficha-modo', m)
   }
   const [query, setQuery] = useState('')
@@ -57,13 +63,20 @@ export default function EntitiesView() {
     return [...all]
   }, [universe.entities])
 
+  // Em quantas cenas cada ficha aparece: o que a história usa e o que está só nas notas (sem cobrança).
+  const counts = useMemo(() => sceneCounts(universe), [universe])
+  const hasScenes = universe.scenes.some((sc) => sc.text.trim())
+  const [where, setWhere] = useState<'tudo' | 'cenas' | 'notas'>('tudo')
+  const inScenes = universe.entities.filter((e) => counts.get(e.id)).length
+
   const list = useMemo(() => {
     const q = fold(query.trim())
     return universe.entities
       .filter((e) => kind === 'todos' || e.kind === kind)
+      .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
       .filter((e) => !q || namesOf(e).some((n) => fold(n).includes(q)) || fold(e.summary).includes(q) || e.tags.some((t) => fold(t).includes(q)))
       .sort((a, b) => a.name.localeCompare(b.name, 'pt'))
-  }, [universe.entities, kind, query])
+  }, [universe.entities, kind, query, where, counts])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,17 +89,14 @@ export default function EntitiesView() {
       return next
     })
     setNewName('')
+    setFresh(id)
     go('fichas', id)
   }
 
   return (
-    <div className={`view split${selected ? ' has-detail' : ''}`}>
+    <div className={`view split fichas-view${selected ? ' has-detail' : ''}`}>
+      <AreaHead current="fichas" tour="fichas" />
       <section className="split-list" aria-label="Lista de fichas">
-        <header className="view-head">
-          <h1>Fichas</h1>
-          <PageHelp tour="fichas" />
-          <span className="muted">{universe.entities.length}</span>
-        </header>
         <form className="quick-create" onSubmit={create}>
           <label htmlFor="nova-ficha" className="sr-only">
             Nome da nova ficha
@@ -101,7 +111,7 @@ export default function EntitiesView() {
         <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Filtrar por nome, apelido, etiqueta…" value={query} onChange={(e) => setQuery(e.target.value)} />
         <div className="filter-chips" role="radiogroup" aria-label="Tipo">
           <button type="button" role="radio" aria-checked={kind === 'todos'} className="chip" onClick={() => setKind('todos')}>
-            Todas
+            Todas <span className="chip-count">{universe.entities.length}</span>
           </button>
           {kinds.map((k) => (
             <button key={k} type="button" role="radio" aria-checked={kind === k} className="chip" onClick={() => setKind(k)}>
@@ -109,6 +119,16 @@ export default function EntitiesView() {
             </button>
           ))}
         </div>
+        {hasScenes && universe.entities.length > 0 && (
+          <div className="filter-chips where-chips" role="group" aria-label="Onde aparece">
+            <button type="button" className="chip" aria-pressed={where === 'cenas'} onClick={() => setWhere(where === 'cenas' ? 'tudo' : 'cenas')}>
+              Nas cenas <span className="chip-count">{inScenes}</span>
+            </button>
+            <button type="button" className="chip" aria-pressed={where === 'notas'} onClick={() => setWhere(where === 'notas' ? 'tudo' : 'notas')}>
+              Só nas notas <span className="chip-count">{universe.entities.length - inScenes}</span>
+            </button>
+          </div>
+        )}
         {list.length === 0 ? (
           <Empty icon={<BookMarked size={28} />} title={universe.entities.length ? 'Nada com esse filtro.' : 'Nenhuma ficha ainda.'}>
             {!universe.entities.length && <p>Crie uma acima, ou selecione um nome no texto e escolha “Ficha”.</p>}
@@ -120,8 +140,12 @@ export default function EntitiesView() {
                 <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
                   {e.image ? <Picture value={e.image} className="entity-row-pic" /> : <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />}
                   <span className="entity-row-name">{e.name || 'Sem nome'}</span>
-                  <span className="entity-row-kind">{kindLabel(e.kind)}</span>
-                  {e.summary && <span className="entity-row-summary">{e.summary}</span>}
+                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{kindLabel(e.kind)}</span>}
+                  <span className="entity-row-summary">
+                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}</span>}
+                    {hasScenes && e.summary && ' · '}
+                    {e.summary}
+                  </span>
                 </button>
               </li>
             ))}
@@ -131,11 +155,19 @@ export default function EntitiesView() {
 
       <section className="split-detail" aria-label="Ficha">
         {selected ? (
-          mode === 'ler' || readOnly ? (
-            <EntityReader key={selected.id} entity={selected} order={list} modeSwitch={!readOnly && <ModeSwitch mode="ler" onChange={changeMode} />} />
+          (fresh === selected.id ? 'editar' : mode) === 'ler' || readOnly ? (
+            <EntityReader
+              key={selected.id}
+              entity={selected}
+              order={list}
+              modeSwitch={!readOnly && <ModeSwitch mode="ler" onChange={changeMode} />}
+              onEdit={readOnly ? undefined : () => setFresh(selected.id)}
+            />
           ) : (
             <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" onChange={changeMode} />} />
           )
+        ) : universe.entities.length ? (
+          <WorldOverview counts={counts} hasScenes={hasScenes} />
         ) : (
           <Empty icon={<BookMarked size={32} />} title="Escolha uma ficha">
             <p>Fichas podem ser mínimas: um nome basta. O resto vem quando for útil.</p>
@@ -144,6 +176,77 @@ export default function EntitiesView() {
       </section>
     </div>
   )
+}
+
+/**
+ * Sem ficha aberta (no computador): o mundo em resumo. O que a história mais usa, o que está
+ * só nas notas (a parte do iceberg embaixo d'água, que não precisa entrar no livro) e o que
+ * ainda é só um nome.
+ */
+function WorldOverview({ counts, hasScenes }: { counts: Map<string, number>; hasScenes: boolean }) {
+  const { universe, go } = useWorkspace()
+  const ents = universe.entities
+  const kinds = [...new Set(ents.map((e) => e.kind))].map((k) => [k, ents.filter((e) => e.kind === k).length] as const).sort((a, b) => b[1] - a[1])
+  const top = ents
+    .filter((e) => counts.get(e.id))
+    .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+    .slice(0, 6)
+  const notes = ents.filter((e) => !counts.get(e.id))
+  const blank = ents.filter(isBlank)
+  const chips = (list: Entity[]) => (
+    <div className="chips">
+      {list.slice(0, 12).map((e) => (
+        <button key={e.id} type="button" className="chip chip-entity" onClick={() => go('fichas', e.id)}>
+          {e.name || 'Sem nome'}
+        </button>
+      ))}
+      {list.length > 12 && <span className="muted small">e mais {list.length - 12}</span>}
+    </div>
+  )
+  return (
+    <section className="world-overview" aria-label="O mundo em resumo">
+      <header>
+        <h2 className="section-title">O mundo até aqui</h2>
+        <p className="muted">
+          {ents.length} {ents.length === 1 ? 'ficha' : 'fichas'}: {kinds.map(([k, n]) => `${n} ${(n === 1 ? kindLabel(k) : kindPlural(k)).toLowerCase()}`).join(', ')}. Escolha uma na lista para ler.
+        </p>
+      </header>
+      {hasScenes && top.length > 0 && (
+        <div className="world-overview-part">
+          <h3 className="section-label">Mais presentes nas cenas</h3>
+          <ol className="world-overview-top">
+            {top.map((e) => (
+              <li key={e.id}>
+                <button type="button" className="link-btn" onClick={() => go('fichas', e.id)}>
+                  {e.name || 'Sem nome'}
+                </button>
+                <span className="muted small"> · {counts.get(e.id)} {counts.get(e.id) === 1 ? 'cena' : 'cenas'}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {hasScenes && notes.length > 0 && (
+        <div className="world-overview-part">
+          <h3 className="section-label">Só nas notas</h3>
+          <p className="muted small">Ainda não aparecem nas cenas. Tudo bem: parte do mundo fica embaixo d'água, como num iceberg.</p>
+          {chips(notes)}
+        </div>
+      )}
+      {blank.length > 0 && (
+        <div className="world-overview-part">
+          <h3 className="section-label">Só com o nome</h3>
+          <p className="muted small">Abra uma e responda as perguntas do tipo dela, se quiser.</p>
+          {chips(blank)}
+        </div>
+      )}
+    </section>
+  )
+}
+
+/** "6 cenas" ou "só nas notas": quanto a história já usa desta ficha. */
+function SceneCount({ n }: { n: number }) {
+  return <span className={`entity-row-count${n ? '' : ' is-notes'}`}>{n ? `${n} ${n === 1 ? 'cena' : 'cenas'}` : 'só nas notas'}</span>
 }
 
 /** O retrato (ou imagem) da ficha: toque para escolher; com imagem, dá para trocar ou tirar. */
@@ -185,6 +288,8 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
   const summaryRef = useRef<HTMLInputElement>(null)
   const suffix = universe.settings.calendarSuffix
+  // Ficha vazia: perguntas do tipo dela para começar (até sair da ficha, mesmo depois da primeira resposta).
+  const [asking, setAsking] = useState(() => isBlank(e) && !skippedQuestions().includes(e.id))
 
   const outgoing = universe.relations.filter((r) => r.fromId === e.id)
   const incoming = universe.relations.filter((r) => r.toId === e.id)
@@ -208,11 +313,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             Nome
           </label>
           <input id="entity-name" className="entity-name" value={e.name} placeholder="Sem nome" onChange={(ev) => set({ name: ev.target.value })} />
-          <div className="entity-badges">
-            <span className="eyebrow">{kindLabel(e.kind)}</span>
-            <CanonBadge canon={e.canon} />
-            <EditorialBadge editorial={e.editorial} />
-          </div>
+          <span className="eyebrow">{kindLabel(e.kind)}</span>
         </div>
         {modeSwitch}
         <ConfirmButton
@@ -231,30 +332,18 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
       <div className="entity-body">
         <div className="entity-main">
+          {asking && (
+            <KindQuestions
+              entity={e}
+              onAnswer={(key, value) => set({ fields: answer(e.fields, key, value) })}
+              onSkip={() => {
+                skipQuestions(e.id)
+                setAsking(false)
+              }}
+            />
+          )}
+
           <div className="form-grid">
-            <Field label="Tipo" hint="Escolha ou digite um tipo próprio">
-              {(id) => (
-<KindInput id={id} value={e.kind} onChange={(kind) => set({ kind })} />
-              )}
-            </Field>
-            <EntityPicker label="Dentro de" value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Lugar, facção, reino…" />
-            <Field label="Canon" hint="Natureza no universo">
-              {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
-            </Field>
-            <Field label="Estado editorial" hint="Maturidade para você">
-              {(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}
-            </Field>
-            <div className="field">
-              <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
-              <div className="inline-fields">
-                <YearInput label="Ano de início" value={e.startYear} onChange={(v) => set({ startYear: v })} placeholder="Início" />
-                <span className="muted">—</span>
-                <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
-              </div>
-            </div>
-            <div className="field-wide">
-              <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
-            </div>
             <Field label="Resumo" wide>
               {(id) => (
                 <div className="with-reveal">
@@ -263,29 +352,53 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
                 </div>
               )}
             </Field>
-            <Field label="Descrição" wide>
-              {(id) => (
-                <SecretTextarea id={id} value={e.description} placeholder="Escreva livremente." onChange={(v) => set({ description: v })} />
-              )}
+            <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
+            <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
+              {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
             </Field>
-            <div className="field-wide">
-              <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} />
-            </div>
+            <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
           </div>
 
+          <Field label="Descrição" wide>
+            {(id) => <SecretTextarea id={id} value={e.description} placeholder="Escreva livremente." onChange={(v) => set({ description: v })} />}
+          </Field>
+
           <Fold id="ficha-campos" title="Campos">
-            {e.fields.map((f, i) => (
-              <div key={i} className="kv-row">
-                <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
-                <FieldValue value={f.value} label={f.key || 'Valor'} onChange={(v) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, value: v } : x)) })} />
-                <button type="button" className="btn-icon btn-sm" aria-label="Remover campo" onClick={() => set({ fields: e.fields.filter((_, j) => j !== i) })}>
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
+            {e.fields.map((f, i) =>
+              // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela.
+              asking && askedKey(e.kind, f.key) ? null : (
+                <div key={i} className="kv-row">
+                  <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
+                  <FieldValue value={f.value} label={f.key || 'Valor'} onChange={(v) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, value: v } : x)) })} />
+                  <button type="button" className="btn-icon btn-sm" aria-label="Remover campo" onClick={() => set({ fields: e.fields.filter((_, j) => j !== i) })}>
+                    <X size={14} />
+                  </button>
+                </div>
+              ),
+            )}
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => set({ fields: [...e.fields, { key: '', value: '' }] })}>
               <Plus size={14} /> Campo
             </button>
+          </Fold>
+
+          <Fold id="ficha-mais-detalhes" title="Mais detalhes" defaultOpen={false}>
+            <div className="form-grid">
+              <EntityPicker label="Fica dentro de" value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Lugar, facção, reino…" />
+              <div className="field">
+                <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
+                <div className="inline-fields">
+                  <YearInput label="Ano de início" value={e.startYear} onChange={(v) => set({ startYear: v })} placeholder="Início" />
+                  <span className="muted">—</span>
+                  <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
+                </div>
+              </div>
+              <div className="field-wide">
+                <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
+              </div>
+              <div className="field-wide">
+                <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} />
+              </div>
+            </div>
           </Fold>
 
           <RelationsSection entity={e} outgoing={outgoing} incoming={incoming} />
@@ -318,6 +431,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
         </div>
 
         <aside className="entity-side">
+          <MapGlimpse entity={e} />
           <Fold id="ficha-apari-es" title="Aparições">
             {appearances.length === 0 ? (
               <p className="muted small">Ainda não aparece no manuscrito.</p>
@@ -390,7 +504,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           )}
 
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('relacoes', e.id)}>
-            Ver no grafo de relações
+            Ver nas Ligações
           </button>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => peek(e.id)}>
             Espiar
@@ -403,34 +517,75 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   )
 }
 
-/** Tipo de ficha: um dos tipos comuns ou um tipo próprio. Vazio volta ao anterior. */
-function KindInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
-  const [draft, setDraft] = useState(value)
+/** Tipo de ficha: um dos tipos comuns (pelo nome de verdade) ou um tipo próprio, em “Outro…”. */
+function KindSelect({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const { universe } = useWorkspace()
+  const known = (ENTITY_KINDS as readonly string[]).includes(value)
+  const [typing, setTyping] = useState(false)
+  const [draft, setDraft] = useState(known ? '' : value)
+  // Os tipos próprios que já existem no universo também entram na lista.
+  const own = [...new Set(universe.entities.map((x) => x.kind))].filter((k) => !(ENTITY_KINDS as readonly string[]).includes(k)).sort((a, b) => a.localeCompare(b, 'pt'))
   const commit = () => {
     const v = draft.trim()
     if (v) onChange(v)
-    else setDraft(value)
+    setTyping(false)
   }
-  return (
-    <>
+  if (typing)
+    return (
       <input
         id={id}
         className="input"
-        list="tipos-ficha"
+        autoFocus
+        placeholder="Nome do tipo: navio, doença, idioma…"
         value={draft}
         onChange={(ev) => setDraft(ev.target.value)}
         onBlur={commit}
-        onKeyDown={(ev) => ev.key === 'Enter' && commit()}
+        onKeyDown={(ev) => {
+          if (ev.key === 'Enter') commit()
+          if (ev.key === 'Escape') setTyping(false)
+        }}
       />
-      <datalist id="tipos-ficha">
-        {ENTITY_KINDS.map((k) => (
-          <option key={k} value={k}>
-            {KIND_LABEL[k]}
-          </option>
-        ))}
-      </datalist>
-    </>
+    )
+  return (
+    <select
+      id={id}
+      className="input select"
+      value={value}
+      onChange={(ev) => {
+        if (ev.target.value === '__outro') {
+          setDraft('')
+          setTyping(true)
+        } else onChange(ev.target.value)
+      }}
+    >
+      {ENTITY_KINDS.map((k) => (
+        <option key={k} value={k}>
+          {KIND_LABEL[k]}
+        </option>
+      ))}
+      {own.map((k) => (
+        <option key={k} value={k}>
+          {k}
+        </option>
+      ))}
+      <option value="__outro">Outro…</option>
+    </select>
   )
+}
+
+const SKIPPED = 'perguntas-puladas'
+
+/** As fichas em que a pessoa pulou as perguntas (neste navegador). */
+function skippedQuestions(): string[] {
+  try {
+    return JSON.parse(recall(SKIPPED) ?? '[]') as string[]
+  } catch {
+    return []
+  }
+}
+
+function skipQuestions(id: string) {
+  remember(SKIPPED, JSON.stringify([...skippedQuestions(), id].slice(-300)))
 }
 
 const RELATION_TYPES = [
@@ -526,7 +681,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
   )
 
   return (
-    <Fold id="ficha-rela-es" title="Relações">
+    <Fold id="ficha-rela-es" title="Ligações">
       {outgoing.length + incoming.length === 0 && <p className="muted small">Nenhuma relação ainda.</p>}
       <ul className="relation-list">
         {group(outgoing).map(outRow)}

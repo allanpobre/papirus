@@ -511,7 +511,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               const items = g.items.filter((item) => !item.inside && (!hidden.includes(item.view) || area === item.view))
               if (!items.length) return null
               return (
-                <div key={g.group} className="rail-group">
+                <div key={g.group || g.items[0].view} className="rail-group">
                   {g.group && <span className="rail-group-label rail-label">{g.group}</span>}
                   {items.map((item) => (
                     <RailButton key={item.view} item={item} active={area === item.view} onClick={() => go(item.view)} />
@@ -858,8 +858,12 @@ function PhoneNav({
   useBackLayer(() => setOpen(false), open)
   const [editing, setEditing] = useState(false)
   const byView = (v: View) => items.find((i) => i.view === v)
-  // Os escolhidos (que estão visíveis), completados com os padrões até 4.
-  const picked = [...chosen, ...defaults].filter((v, i, all) => all.indexOf(v) === i && byView(v)).slice(0, 4)
+  // Os escolhidos (que estão visíveis), completados com os padrões até 4. Um atalho antigo para uma
+  // parte (o Atlas, por exemplo) vira a área em que ela mora (o Mundo).
+  const picked = [...chosen, ...defaults]
+    .map((v) => ALL_ITEMS.find((i) => i.view === v)?.inside ?? v)
+    .filter((v, i, all) => all.indexOf(v) === i && byView(v))
+    .slice(0, 4)
   // A área aberta sempre aparece entre os atalhos.
   const views = picked.includes(current) || !byView(current) ? picked : [...picked.slice(0, 3), current]
   const shortcuts = views.map(byView).filter((i): i is NavItem => Boolean(i))

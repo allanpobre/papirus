@@ -1,5 +1,6 @@
 import { CalendarRange, Feather, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
 import { formatYear } from '../model/labels'
 import type { TimelineEvent } from '../model/schema'
@@ -9,11 +10,17 @@ import { CanonBadge, CanonSelect, Empty, Field, Select, YearInput } from '../ui/
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityMultiPicker, EntityPicker } from '../ui/EntityPicker'
 import { Modal } from '../ui/Modal'
-import { PageHelp } from '../ui/PageTour'
+import { AreaHead } from './AreaModes'
 
 export default function TimelineView() {
   const { universe, update, nav, go, undoable } = useWorkspace()
   const suffix = universe.settings.calendarSuffix
+  // Quem participa, com a idade naquele ano (como no Aeon Timeline): "Kael (23 anos)".
+  const withAge = (id: string, year: number) => {
+    const e = byId(universe, 'entities', id)
+    const age = e?.kind === 'personagem' ? ageIn(e, year) : null
+    return age === null ? entityName(universe, id) : `${entityName(universe, id)} (${ageLabel(age)})`
+  }
   const [filterIds, setFilterIds] = useState<string[]>([])
   const [minImportance, setMinImportance] = useState(1)
   const [showScenes, setShowScenes] = useState(true)
@@ -70,9 +77,8 @@ export default function TimelineView() {
 
   return (
     <div className="view timeline-view">
-      <header className="view-head view-head-wide">
-        <h1>Linha do tempo</h1>
-        <PageHelp tour="timeline" />
+      <AreaHead current="timeline" tour="timeline" />
+      <header className="view-head view-head-wide area-tools">
         <form className="quick-create" onSubmit={create}>
           <label htmlFor="novo-evento" className="sr-only">
             Novo evento
@@ -156,7 +162,7 @@ export default function TimelineView() {
                         {r.ev.description && <span className="tl-desc">{r.ev.description}</span>}
                         {(r.ev.entityIds.length > 0 || r.ev.placeId) && (
                           <span className="tl-who">
-                            {[...r.ev.entityIds.map((id) => entityName(universe, id)), r.ev.placeId ? `em ${entityName(universe, r.ev.placeId)}` : ''].filter(Boolean).join(', ')}
+                            {[...r.ev.entityIds.map((id) => withAge(id, r.ev.year)), r.ev.placeId ? `em ${entityName(universe, r.ev.placeId)}` : ''].filter(Boolean).join(', ')}
                           </span>
                         )}
                       </button>

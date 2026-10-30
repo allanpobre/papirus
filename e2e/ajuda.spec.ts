@@ -1,4 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
+import { openPart } from './areas.ts'
 import { runPageTour } from './pageTour.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
@@ -26,18 +27,24 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
     ['Início', 'Início'],
     ['Escrever', 'Escrever'],
     ['Livro', 'Livro'],
-    ['Fichas', 'Fichas'],
-    ['Relações', 'Relações'],
-    ['Linha do tempo', 'Linha do tempo'],
-    ['Atlas', 'Atlas'],
-    ['Pistas e mistérios', 'Pistas e mistérios'],
-    ['Quem sabe o quê', 'Quem sabe o quê'],
+    ['Mundo', 'Fichas'],
+    ['Trama', 'Pistas e mistérios'],
     ['Ideias', 'Ideias'],
     ['Perguntar ao mundo', 'Perguntar ao mundo'],
     ['Ajustes e dados', 'Ajustes'],
   ]
   for (const [area, title] of areas) {
     await nav(page, area).click()
+    expect(spotted(await runPageTour(page, title)), title).toBeGreaterThan(0)
+  }
+  // As partes do Mundo e da Trama: cada uma com o seu (?).
+  for (const [part, title] of [
+    ['Ligações', 'Ligações'],
+    ['Linha do tempo', 'Linha do tempo'],
+    ['Atlas', 'Atlas'],
+    ['Quem sabe o quê', 'Quem sabe o quê'],
+  ] as const) {
+    await openPart(page, part)
     expect(spotted(await runPageTour(page, title)), title).toBeGreaterThan(0)
   }
 
@@ -200,10 +207,10 @@ test('Atlas com mapa e o Mapa da história em cada aba: o (?) explica o que est�
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
-  await nav(page, 'Atlas').click()
+  await openPart(page, 'Atlas')
   await expect(page.locator('.atlas-scroll')).toBeVisible()
   const atlas = await runPageTour(page, 'Atlas')
-  expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['Mapas', 'Marcar lugares', 'Caminho de', 'O mapa'])
+  expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['O mundo em quatro partes', 'Mapas', 'Marcar lugares', 'Caminho de', 'O mapa'])
 
   await nav(page, 'Escrever').click()
   await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Mapa' }).click()

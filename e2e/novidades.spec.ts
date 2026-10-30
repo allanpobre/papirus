@@ -7,8 +7,8 @@ const nav = (page: Page, name: string) => page.getByRole('navigation', { name: '
 
 test('arco na história: onde o boticário aparece e quando muda de lado', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await nav(page, 'Fichas').click()
-  await page.getByRole('button', { name: /^Crispim Soares/ }).click()
+  await nav(page, 'Mundo').click()
+  await page.locator('.entity-row-name', { hasText: /^Crispim Soares$/ }).click()
   const strip = page.getByRole('list', { name: 'Onde Crispim Soares aparece, cena a cena' })
   await expect(strip.getByRole('listitem')).toHaveCount(13)
   await expect(strip.getByRole('listitem').first()).toHaveAccessibleName(/^1\. De como Itaguaí ganhou uma casa de orates: presente/)
