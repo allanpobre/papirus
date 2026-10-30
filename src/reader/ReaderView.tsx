@@ -266,7 +266,7 @@ export function ReaderView({
         <ReadAloudButton onStart={voice.start} />
         <div className="leitor-aids-wrap">
           <button type="button" className="btn btn-sm btn-ghost" aria-expanded={aidsOpen} aria-controls="leitor-ajudas" onClick={() => setAidsOpen(!aidsOpen)}>
-            <SlidersHorizontal size={15} /> Como ler
+            <SlidersHorizontal size={15} aria-hidden="true" /> <span className="leitor-btn-label">Como ler</span>
           </button>
           {aidsOpen && <AidsPanel aids={aids} onChange={setAids} look={look} onLook={setLook} onClose={() => setAidsOpen(false)} />}
         </div>
@@ -281,7 +281,7 @@ export function ReaderView({
             setFresh(0)
           }}
         >
-          <NotebookPen size={15} /> Caderno
+          <NotebookPen size={15} aria-hidden="true" /> <span className="leitor-btn-label">Caderno</span>
           {fresh > 0 && aids.novidades && (
             <span className="leitor-new-count" aria-label={`${fresh} novidades`}>
               +{fresh}

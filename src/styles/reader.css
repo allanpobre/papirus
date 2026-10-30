@@ -954,3 +954,48 @@ button.leitor-found-card {
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 12%, transparent);
   transition: background 0.3s;
 }
+
+@media (max-width: 640px) {
+  /* No celular, a barra do leitor numa linha só: fechar, o capítulo e os ícones; o progresso vira um fio embaixo. */
+  .leitor-top {
+    position: relative;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    padding-inline: 10px;
+  }
+
+  .leitor-book {
+    display: none;
+  }
+
+  .leitor-where {
+    flex: 1 1 auto;
+  }
+
+  .leitor-jump {
+    width: 100%;
+    max-width: none;
+  }
+
+  .leitor-top .btn-sm {
+    padding-inline: 0.45rem;
+  }
+
+  .leitor-btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .leitor-top .leitor-progress {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 3px;
+    border-radius: 0;
+  }
+}
