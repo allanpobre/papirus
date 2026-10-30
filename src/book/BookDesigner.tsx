@@ -179,7 +179,7 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
   const [paper, setPaper] = useState<Paper>('creme')
   const downloadTemplate = () => {
     if (pages === null) return
-    downloadText(fileNameFor(`molde da capa - ${book.title}`, 'svg'), coverTemplateSvg(design, pages, paper, book.title), 'image/svg+xml')
+    downloadText(fileNameFor(`molde da capa ${book.title}`, 'svg'), coverTemplateSvg(design, pages, paper, book.title), 'image/svg+xml')
     toast('Molde baixado: mande para quem vai fazer a capa. Confira a lombada com a gráfica.')
   }
   // Vindo do "Capa para gráfica" da página do Livro: abre e mostra essa parte.
