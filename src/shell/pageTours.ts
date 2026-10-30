@@ -307,6 +307,7 @@ export const PAGE_TOURS = {
   'revisar-livro': {
     title: 'Revisar o livro',
     steps: [
+      { target: '.review', title: 'Só apontamentos', body: 'O livro é seu: nada aqui muda sozinho. Primeiro o que o Papirus arruma; depois, cena a cena, o que vale olhar.' },
       { target: '[aria-label="O Papirus arruma"]', title: 'O Papirus arruma', body: 'Tipografia de livro (travessões, aspas, reticências, espaços): “Arrumar tudo” corrige no livro todo de uma vez, e dá para desfazer.', optional: true },
       {
         target: '[aria-label="Vale olhar"]',
