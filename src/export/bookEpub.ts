@@ -2,7 +2,7 @@ import { strToU8 as encode, zipSync, type Zippable } from 'fflate'
 import type { BookDesign, Universe } from '../model/schema'
 import { BOOK_FONTS, type BookFontKey } from './bookFonts'
 import { dataUrlBytes, epubImageFiles } from './epubImages'
-import { CHAPTER_CSS, bookContent, bookTitle, esc, fontFamily, fontsOf, numberWords, paragraphs } from './bookDesign'
+import { CHAPTER_CSS, alsoByHtml, bookContent, bookTitle, esc, fontFamily, fontsOf, numberWords, paragraphs } from './bookDesign'
 
 /**
  * E-book (EPUB 3) com a mesma cara do livro impresso: a capa do autor, as fontes
@@ -90,6 +90,8 @@ ${CHAPTER_CSS[d.chapterStyle](title, d)}
 hr.scene-break.line{border:0;border-top:1px solid #888;width:22%;margin:1.3em auto}
 .scene-break.space{height:1.4em}
 .back-matter p{margin-bottom:.7em}
+.also-by ul{list-style:none;margin:0;padding:0;text-align:center}
+.also-by li{font-style:italic;margin:.4em 0}
 `
 }
 
@@ -148,6 +150,8 @@ export function designedEpub(universe: Universe, d: BookDesign, opts: { fonts?: 
   if (d.acknowledgments.trim()) pages.push({ id: 'agradecimentos', file: 'agradecimentos.xhtml', title: 'Agradecimentos', body: `<section class="back-matter" epub:type="acknowledgments"><h2>Agradecimentos</h2>${paragraphs(d.acknowledgments)}</section>` })
   if (d.aboutAuthor.trim())
     pages.push({ id: 'autoria', file: 'autoria.xhtml', title: 'Sobre a autoria', body: `<section class="back-matter"><h2>${author ? `Sobre ${esc(author)}` : 'Sobre o autor'}</h2>${paragraphs(d.aboutAuthor)}</section>` })
+  const also = alsoByHtml(universe, d)
+  if (also) pages.push({ id: 'tambem', file: 'tambem.xhtml', title: author ? `Também de ${author}` : 'Também nesta estante', body: also })
 
   const navItems = toc.map((t) => `<li${t.part ? ' class="part"' : ''}><a href="${t.file}">${esc(t.label)}</a></li>`).join('')
   const files: Zippable = {

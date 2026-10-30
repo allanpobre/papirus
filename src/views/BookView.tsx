@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenText, Check, Copy, FileDown, FileText, FileType, Palette, Plus, Printer, Trash2, Upload } from 'lucide-react'
+import { BookOpen, BookOpenText, Check, Copy, FileDown, FileText, FileType, Palette, Plus, Printer, Ruler, Trash2, Upload } from 'lucide-react'
 import { ReviewDialog } from '../book/ReviewDialog'
 import { useMemo, useState } from 'react'
 import { BOOK_FONTS } from '../export/bookFonts'
@@ -314,6 +314,22 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
               Texto (.md)<small className="more-menu-hint">só o texto, em Markdown</small>
             </span>
           </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="more-menu-item"
+              disabled={!chapters}
+              onClick={() => {
+                close()
+                openBookDesigner(book.id, 'grafica')
+              }}
+            >
+              <Ruler size={16} />{' '}
+              <span>
+                Capa para gráfica<small className="more-menu-hint">lombada, capa inteira e o molde</small>
+              </span>
+            </button>
+          )}
         </>
       )}
     </MoreMenu>

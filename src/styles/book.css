@@ -1141,3 +1141,55 @@
 .review-words-hint {
   flex-basis: 100%;
 }
+
+/* A diagramação na ordem do livro: começo, miolo e fim. */
+.book-group-label {
+  margin: 0.9rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.book-group-label:first-child {
+  margin-top: 0.2rem;
+}
+
+.book-measure {
+  margin: 0;
+}
+
+.book-measure.is-off {
+  color: var(--ochre);
+}
+
+.book-wrap-size {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.book-wrap-size > div {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+}
+
+.book-wrap-size dt {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+
+.book-wrap-size dd {
+  margin: 0.1rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.book-top .more-menu-pop {
+  min-width: 17rem;
+}

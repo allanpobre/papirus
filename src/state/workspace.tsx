@@ -80,8 +80,8 @@ export interface Workspace {
   openShare: () => void
   /** Abre o modo leitor (o livro com o caderno sem spoiler). */
   openReader: () => void
-  /** Abre a diagramação do livro (PDF para imprimir). */
-  openBookDesigner: (bookId?: string) => void
+  /** Abre a diagramação do livro (PDF para imprimir); `focus` abre direto numa parte. */
+  openBookDesigner: (bookId?: string, focus?: 'grafica') => void
   /** Escrita ou campanha: decide o menu e a tela de abertura. */
   kind: UniverseKind
   /** Áreas escondidas do menu neste universo. */

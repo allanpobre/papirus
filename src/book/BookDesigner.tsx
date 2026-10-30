@@ -1,8 +1,9 @@
-import { BookOpen, Columns2, Download, FileText, ImagePlus, Minus, Plus, Printer, Trash2, X } from 'lucide-react'
+import { BookOpen, Columns2, Download, FileText, ImagePlus, Minus, Plus, Printer, Ruler, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import polyfill from '../../node_modules/pagedjs/dist/paged.polyfill.min.js?raw'
 import { downloadText, fileNameFor } from '../export/download'
-import { BOOK_PRESETS, PAGE_SIZES, bookTitle, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
+import { BOOK_PRESETS, PAGE_SIZES, alsoByTitles, bookTitle, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
+import { PAPERS, charsPerLine, cm, coverTemplateSvg, lineComfort, mm, spineMm, wrapSize, type Paper } from '../export/printCover'
 import { BOOK_FONTS, fontFaces } from '../export/bookFonts'
 import { shelf, styleOf, updateBook } from '../export/shelf'
 import { downloadEpub } from './epubDownload'
@@ -11,6 +12,7 @@ import { useBackLayer } from '../ui/useBackLayer'
 import type { BookDesign } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
+import { MoreMenu } from '../ui/MoreMenu'
 import { PageHelp } from '../ui/PageTour'
 
 type Key = keyof BookDesign
@@ -93,7 +95,7 @@ function bookDocument(title: string, html: string, css: string, fonts: string, p
  * Diagramar o livro: o autor escolhe a capa, o Papirus monta o miolo. Prévia página
  * por página, e o PDF sai pela impressão do navegador ("Salvar como PDF").
  */
-export default function BookDesigner({ bookId, onClose }: { bookId: string; onClose: () => void }) {
+export default function BookDesigner({ bookId, focus, onClose }: { bookId: string; focus?: 'grafica'; onClose: () => void }) {
   const { universe, update, toast } = useWorkspace()
   useBackLayer(onClose)
   // O livro da estante (um objeto estável, para não paginar de novo a cada desenho).
@@ -174,6 +176,18 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
     }
   }
 
+  const [paper, setPaper] = useState<Paper>('creme')
+  const downloadTemplate = () => {
+    if (pages === null) return
+    downloadText(fileNameFor(`molde da capa - ${book.title}`, 'svg'), coverTemplateSvg(design, pages, paper, book.title), 'image/svg+xml')
+    toast('Molde baixado: mande para quem vai fazer a capa. Confira a lombada com a gráfica.')
+  }
+  // Vindo do "Capa para gráfica" da página do Livro: abre e mostra essa parte.
+  const gfx = useRef<HTMLDetailsElement>(null)
+  useEffect(() => {
+    if (focus === 'grafica') gfx.current?.scrollIntoView({ block: 'start' })
+  }, [focus])
+
   const download = () => {
     downloadText(fileNameFor(book.title, 'html'), bookDocument(book.title, book.html, book.css, fonts, previewCss(design), false), 'text/html')
     toast('Abra o arquivo no navegador (Chrome ou Edge) e use Imprimir → Salvar como PDF.')
@@ -217,6 +231,8 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
     </div>
   )
 
+  const chars = charsPerLine(design)
+  const alsoBy = alsoByTitles(universe, { ...design, alsoBy: true })
   const allStories = universe.stories
   const chosen = design.storyIds.length ? design.storyIds : allStories.map((s) => s.id)
 
@@ -237,46 +253,36 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
         <button type="button" className="btn btn-sm btn-ghost book-panel-toggle" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
           {panelOpen ? 'Ver páginas' : 'Opções'}
         </button>
-        <button
-          type="button"
-          className="btn btn-sm btn-ghost"
-          title="E-book com a mesma capa, fontes e estilo (Kindle, Kobo, Apple Livros, Google Play Livros)"
-          onClick={() => void downloadEpub(universe, design).then(() => toast('E-book baixado. No Kindle, use “Enviar para o Kindle” com o arquivo EPUB.'))}
-        >
-          <BookOpen size={15} /> E-book (EPUB)
-        </button>
-        <button type="button" className="btn btn-sm btn-ghost" onClick={download} title="Arquivo com o livro pronto: abra no navegador e imprima em PDF">
-          <Download size={15} /> Baixar para imprimir
-        </button>
-        <button type="button" className="btn btn-sm btn-primary" disabled={pages === null} onClick={print}>
-          <Printer size={15} /> Imprimir ou salvar PDF
-        </button>
+        <MoreMenu label={`Baixar “${book.title}”`} buttonClass="btn btn-sm btn-primary" button={<><Download size={15} aria-hidden="true" /> Baixar</>}>
+          {(close) => (
+            <>
+              <button type="button" className="more-menu-item" disabled={pages === null} onClick={() => { close(); print() }}>
+                <Printer size={16} /> <span>PDF: imprimir ou salvar<small className="more-menu-hint">{pages === null ? 'paginando…' : 'na janela de impressão, “Salvar como PDF”'}</small></span>
+              </button>
+              <button type="button" className="more-menu-item" onClick={() => { close(); download() }}>
+                <FileText size={16} /> <span>Arquivo para imprimir depois<small className="more-menu-hint">abra no navegador e imprima em PDF</small></span>
+              </button>
+              <button
+                type="button"
+                className="more-menu-item"
+                onClick={() => {
+                  close()
+                  void downloadEpub(universe, design).then(() => toast('E-book baixado. No Kindle, use “Enviar para o Kindle” com o arquivo EPUB.'))
+                }}
+              >
+                <BookOpen size={16} /> <span>E-book (EPUB)<small className="more-menu-hint">Kindle, Kobo, Apple Livros, Google Play</small></span>
+              </button>
+              <button type="button" className="more-menu-item" disabled={pages === null} onClick={() => { close(); downloadTemplate() }}>
+                <Ruler size={16} /> <span>Molde da capa para gráfica<small className="more-menu-hint">{pages === null ? 'paginando…' : `lombada de ${mm(spineMm(pages, paper))}`}</small></span>
+              </button>
+            </>
+          )}
+        </MoreMenu>
       </header>
 
       <div className={`book-body${panelOpen ? ' panel-open' : ''}`}>
         <aside className="book-panel" aria-label="Opções do livro">
-          <Section title="Modelo" open>
-            <p className="muted tiny">Um ponto de partida. Depois, mude o que quiser.</p>
-            {others.length > 0 && (
-              <div className="book-presets">
-                {others.map((o) => (
-                  <button key={o.id} type="button" className="book-preset book-preset-series" onClick={() => set(styleOf(o))}>
-                    <strong>Mesmo estilo de “{bookTitle(universe, o)}”</strong>
-                    <span className="muted tiny">Fontes, capítulos, margens e símbolos iguais; título, capa e histórias ficam.</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="book-presets">
-              {Object.entries(BOOK_PRESETS).map(([k, p]) => (
-                <button key={k} type="button" className="book-preset" onClick={() => set(p.design)}>
-                  <strong>{p.label}</strong>
-                  <span className="muted tiny">{p.hint}</span>
-                </button>
-              ))}
-            </div>
-          </Section>
-
+          <h3 className="book-group-label">Começo</h3>
           <Section title="Capa" open>
             <p className="muted tiny">
               A capa é sua: envie a imagem pronta ({PAGE_SIZES[design.pageSize].label.replace(/ \(.*/, '')}, em pé). Ela ocupa a página inteira, sem margens.
@@ -302,6 +308,44 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
               ))}
               <input ref={coverInput} type="file" accept="image/*" hidden aria-label="Imagem da capa" onChange={(e) => void cover('cover')(e.target.files?.[0]).then(() => (e.target.value = ''))} />
               <input ref={backInput} type="file" accept="image/*" hidden aria-label="Imagem da contracapa" onChange={(e) => void cover('backCover')(e.target.files?.[0]).then(() => (e.target.value = ''))} />
+            </div>
+          </Section>
+
+          <Section title="Folha de rosto">
+            {text('title', 'Título', { placeholder: book.title })}
+            {text('subtitle', 'Subtítulo')}
+            {text('author', 'Autoria', { placeholder: 'Seu nome ou pseudônimo' })}
+            {text('publisher', 'Editora ou selo', { placeholder: 'Opcional' })}
+            {text('year', 'Ano', { placeholder: thisYear })}
+            {text('copyright', 'Direitos autorais', { area: true, placeholder: '© ano Autoria. Todos os direitos reservados.', hint: 'Vazio = texto padrão com o seu nome.' })}
+          </Section>
+
+          <Section title="Dedicatória e epígrafe">
+            {text('dedication', 'Dedicatória', { area: true, placeholder: 'Para…' })}
+            {text('epigraph', 'Epígrafe', { area: true })}
+            {text('epigraphSource', 'Autor da epígrafe')}
+          </Section>
+
+          <h3 className="book-group-label">Miolo</h3>
+          <Section title="Modelo" open>
+            <p className="muted tiny">Um ponto de partida. Depois, mude o que quiser.</p>
+            {others.length > 0 && (
+              <div className="book-presets">
+                {others.map((o) => (
+                  <button key={o.id} type="button" className="book-preset book-preset-series" onClick={() => set(styleOf(o))}>
+                    <strong>Mesmo estilo de “{bookTitle(universe, o)}”</strong>
+                    <span className="muted tiny">Fontes, capítulos, margens e símbolos iguais; título, capa e histórias ficam.</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="book-presets">
+              {Object.entries(BOOK_PRESETS).map(([k, p]) => (
+                <button key={k} type="button" className="book-preset" onClick={() => set(p.design)}>
+                  <strong>{p.label}</strong>
+                  <span className="muted tiny">{p.hint}</span>
+                </button>
+              ))}
             </div>
           </Section>
 
@@ -340,20 +384,6 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
             {toggle('parts', 'Com mais de uma história: cada uma abre uma "Parte"')}
           </Section>
 
-          <Section title="Folha de rosto e textos">
-            {text('title', 'Título', { placeholder: book.title })}
-            {text('subtitle', 'Subtítulo')}
-            {text('author', 'Autoria', { placeholder: 'Seu nome ou pseudônimo' })}
-            {text('publisher', 'Editora ou selo', { placeholder: 'Opcional' })}
-            {text('year', 'Ano', { placeholder: thisYear })}
-            {text('dedication', 'Dedicatória', { area: true, placeholder: 'Para…' })}
-            {text('epigraph', 'Epígrafe', { area: true })}
-            {text('epigraphSource', 'Autor da epígrafe')}
-            {text('copyright', 'Direitos autorais', { area: true, placeholder: '© ano Autoria. Todos os direitos reservados.', hint: 'Vazio = texto padrão com o seu nome.' })}
-            {text('acknowledgments', 'Agradecimentos (no fim)', { area: true })}
-            {text('aboutAuthor', 'Sobre a autoria (no fim)', { area: true })}
-          </Section>
-
           <Section title="Página">
             <Field label="Tamanho">
               {(id) => <Select id={id} value={design.pageSize} onChange={(v) => set({ pageSize: v })} options={Object.entries(PAGE_SIZES).map(([v, s]) => ({ value: v as BookDesign['pageSize'], label: s.label }))} />}
@@ -376,6 +406,9 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
             </div>
             <Range label="Tamanho da letra" min={9} max={13} step={0.5} value={design.fontSize} unit=" pt" onChange={(v) => set({ fontSize: v })} />
             <Range label="Entrelinha" min={1.2} max={2} step={0.05} value={design.lineHeight} onChange={(v) => set({ lineHeight: v })} />
+            <p className={`muted tiny book-measure${chars < 45 || chars > 75 ? ' is-off' : ''}`}>
+              Cerca de {chars} caracteres por linha: {lineComfort(chars)}.
+            </p>
             {choices('paragraph', 'Parágrafos', [
               { value: 'recuo', label: 'Com recuo (livro)' },
               { value: 'espaco', label: 'Com espaço entre eles' },
@@ -416,6 +449,55 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
               { value: 'nenhum', label: 'Sem número' },
             ])}
           </Section>
+          <h3 className="book-group-label">Fim</h3>
+          <Section title="Agradecimentos e sobre a autoria">
+            {text('acknowledgments', 'Agradecimentos', { area: true })}
+            {text('aboutAuthor', 'Sobre a autoria', { area: true })}
+          </Section>
+
+          <Section title="Também de">
+            {alsoBy.length ? (
+              <>
+                {toggle('alsoBy', `Página “Também de” no fim, com os outros livros da estante`)}
+                <p className="muted tiny">{alsoBy.join(' · ')}</p>
+              </>
+            ) : (
+              <p className="muted tiny">Com outro livro na estante, aqui entra a página “Também de”, com os títulos dele. Ela se monta sozinha.</p>
+            )}
+          </Section>
+
+          <Section title="Capa para gráfica" open={focus === 'grafica'} innerRef={gfx}>
+            <p className="muted tiny">Para imprimir numa gráfica ou na Amazon (KDP): a capa inteira tem contracapa, lombada e capa, com sangria em volta. A lombada depende das páginas e do papel.</p>
+            <Field label="Papel">
+              {(id) => <Select id={id} value={paper} onChange={setPaper} options={Object.entries(PAPERS).map(([v, p]) => ({ value: v as Paper, label: p.label }))} />}
+            </Field>
+            {pages === null ? (
+              <p className="muted tiny">Paginando…</p>
+            ) : (
+              (() => {
+                const size = wrapSize(design, pages, paper)
+                return (
+                  <dl className="book-wrap-size">
+                    <div>
+                      <dt>Lombada</dt>
+                      <dd>{mm(size.spine)}</dd>
+                    </div>
+                    <div>
+                      <dt>Capa inteira, com sangria</dt>
+                      <dd>
+                        {cm(size.width)} × {cm(size.height)}
+                      </dd>
+                    </div>
+                  </dl>
+                )
+              })()
+            )}
+            <button type="button" className="btn btn-sm" disabled={pages === null} onClick={downloadTemplate}>
+              <Ruler size={14} /> Baixar o molde da capa (SVG)
+            </button>
+            <p className="muted tiny">A espessura do papel muda de gráfica para gráfica: confira a lombada com ela (na KDP, na calculadora de capa). Abaixo de 80 páginas, a KDP não põe texto na lombada.</p>
+          </Section>
+
           <p className="muted tiny book-note">
             <FileText size={12} aria-hidden="true" /> Só o texto das cenas entra: comentários, notas e segredos das fichas ficam no Papirus.
           </p>
@@ -454,9 +536,9 @@ export default function BookDesigner({ bookId, onClose }: { bookId: string; onCl
   )
 }
 
-function Section({ title, open, children }: { title: string; open?: boolean; children: ReactNode }) {
+function Section({ title, open, children, innerRef }: { title: string; open?: boolean; children: ReactNode; innerRef?: React.Ref<HTMLDetailsElement> }) {
   return (
-    <details className="book-section" open={open}>
+    <details className="book-section" open={open} ref={innerRef}>
       <summary>{title}</summary>
       <div className="book-section-body">{children}</div>
     </details>
