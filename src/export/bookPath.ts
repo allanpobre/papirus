@@ -38,10 +38,19 @@ export function textStep(universe: Universe, design: BookDesign, issues: ReviewI
 /** Os tipos que o Papirus corrige sozinho (tipografia) e os que são para o autor olhar. */
 export const LOOK_KINDS = ['frase-longa', 'repeticao', 'cena-curta', 'grafia'] as const
 
-/** Revisar: quanto o Papirus arruma sozinho e em quantas cenas vale olhar. */
+/** O nome curto de cada correção de tipografia, para a frase do passo. */
+const FIX_NAME: Partial<Record<ReviewIssue['kind'], string>> = { aspas: 'aspas', reticencias: 'reticências', travessao: 'travessões', espacos: 'espaços' }
+
+/** "a, b e c". */
+export const listPt = (items: string[]) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`)
+
+/** Revisar: o que o Papirus arruma sozinho (e onde) e em quantas cenas vale olhar. */
 export function reviewStep(issues: ReviewIssue[]): PathStep & { fix: number; look: number } {
-  const fix = issues.filter((i) => REVIEW_INFO[i.kind].fixable).length
+  const fixing = issues.filter((i) => REVIEW_INFO[i.kind].fixable)
+  const kinds = [...new Set(fixing.map((i) => i.kind))].map((k) => FIX_NAME[k] ?? k)
+  const fix = new Set(fixing.map((i) => i.sceneId)).size
   const look = new Set(issues.filter((i) => (LOOK_KINDS as readonly string[]).includes(i.kind)).map((i) => i.sceneId)).size
-  const detail = [fix && `${plural(fix, 'coisa', 'coisas')} que o Papirus arruma sozinho`, look && `${plural(look, 'cena', 'cenas')} para olhar`].filter(Boolean).join(' · ')
+  const named = listPt(kinds)
+  const detail = [fix && `${named.charAt(0).toUpperCase()}${named.slice(1)}: o Papirus arruma sozinho`, look && `${plural(look, 'cena', 'cenas')} para olhar`].filter(Boolean).join(' · ')
   return { state: fix ? 'olhar' : look ? 'neutro' : 'ok', detail: detail || 'Nada para apontar.', fix, look }
 }

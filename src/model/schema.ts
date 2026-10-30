@@ -578,6 +578,8 @@ export const bookDesignSchema = z.object({
   shelfVisibility: z.enum(['privado', 'amigos', 'publico']).default('privado'),
   /** Quem vê o livro na estante também pode ler o texto ali (sem o que é secreto). */
   shelfReadable: z.boolean().default(false),
+  /** Palavras que o Revisar não aponta como repetição (um tema do livro, não um descuido). */
+  reviewIgnore: z.array(z.string()).default([]),
 })
 
 /** Um livro da estante: a diagramação com um id (um universo pode ter vários: série, contos…). */

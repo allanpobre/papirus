@@ -1047,3 +1047,97 @@
     font-size: 0.78rem;
   }
 }
+
+/* Revisar em partes: antes de tudo, o que o Papirus arruma e o que vale olhar. */
+.review-part {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.4rem;
+}
+
+.review-part > .section-title {
+  margin: 0;
+}
+
+.review-part > p {
+  margin: 0;
+}
+
+.review-part-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.review-part-head .section-title {
+  margin: 0;
+}
+
+.review-scenes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.review-scene {
+  padding: 0.45rem 0.7rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.review-scene > summary {
+  display: grid;
+  gap: 0.3rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.review-scene > summary::-webkit-details-marker {
+  display: none;
+}
+
+.review-scene > :not(summary) {
+  margin-top: 0.5rem;
+}
+
+.review-scene-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.2rem 0.8rem;
+}
+
+.review-bar {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.review-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ochre);
+}
+
+.review-words {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.review-word {
+  gap: 0.25rem;
+}
+
+.review-words-hint {
+  flex-basis: 100%;
+}
