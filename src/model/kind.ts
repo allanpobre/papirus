@@ -17,7 +17,7 @@ export function universeKind(u: Universe): UniverseKind {
 export const CAMPAIGN_HIDDEN: View[] = ['escrever', 'organizar', 'livro', 'conhecimento']
 
 /** Atalhos da barra de baixo no celular, numa campanha. */
-export const CAMPAIGN_SHORTCUTS: View[] = ['rpg', 'fichas', 'atlas', 'timeline']
+export const CAMPAIGN_SHORTCUTS: View[] = ['rpg', 'fichas', 'tramas', 'inbox']
 
 /**
  * Áreas escondidas do menu neste universo: o que a pessoa escolheu para esse tipo, ou o

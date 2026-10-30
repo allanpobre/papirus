@@ -1,6 +1,7 @@
 import { draftSheet } from '../rpg/sheets'
 import { systemFromTemplate } from '../rpg/systems'
 import { docFromParagraphs } from './doc'
+import { OSTRIA_MAP, OSTRIA_MAP_H, OSTRIA_MAP_W } from './sampleMap'
 import type { Universe } from './schema'
 import {
   addScene,
@@ -489,5 +490,23 @@ export function ostriaUniverse(): Universe {
     ...draftRelation(mira.id, vaelor.id, 'teme'),
     scope: { kind: 'historia', fromYear: null, toYear: null, storyIds: [story.id], sceneIds: [] },
   })
+
+  // ─── Atlas: a capital no penhasco e o vale ao norte (o caminho do Kael pelas cenas aparece nele) ───
+  {
+    const pin = (entityId: string, x: number, y: number, label: string) => ({ id: crypto.randomUUID(), entityId, x, y, label })
+    ;[u] = insert(u, 'maps', {
+      name: 'Reino de Ostria',
+      image: OSTRIA_MAP,
+      width: OSTRIA_MAP_W,
+      height: OSTRIA_MAP_H,
+      pins: [
+        pin(ostria.id, 0.54, 0.6, 'Ostria'),
+        pin(paco.id, 0.61, 0.43, 'Paço do Regente'),
+        pin(torre.id, 0.722, 0.31, 'Torre de Marfim'),
+        pin(anzol.id, 0.39, 0.66, 'Taverna do Anzol'),
+        pin(brumas.id, 0.84, 0.17, 'Vale das Brumas'),
+      ],
+    })
+  }
   return u
 }

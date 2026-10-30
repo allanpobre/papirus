@@ -1,3 +1,4 @@
+import { openPart } from './areas.ts'
 import { expect, test } from './fixtures.ts'
 
 test.describe('no celular', () => {
@@ -6,8 +7,7 @@ test.describe('no celular', () => {
   test('atlas: arrastar o dedo não move o marcador; mover é de propósito, e dá para desfazer', async ({ page }) => {
     await page.goto('/app/')
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-    await page.getByRole('button', { name: 'Mais', exact: true }).click()
-    await page.locator('#menu-mais').getByRole('button', { name: 'Atlas' }).click()
+    await openPart(page, 'Atlas')
     const pin = page.getByRole('button', { name: /^Casa Verde/ })
     const style = () => pin.getAttribute('style')
     const before = await style()

@@ -11,7 +11,7 @@ import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
-import { PageHelp } from '../ui/PageTour'
+import { AreaHead } from './AreaModes'
 
 /** Um pergaminho em branco, para posicionar lugares sem ter um mapa desenhado. */
 function blankParchment(): { data: string; width: number; height: number } {
@@ -41,8 +41,9 @@ function blankParchment(): { data: string; width: number; height: number } {
 }
 
 export default function AtlasView() {
-  const { universe, update, toast } = useWorkspace()
-  const [mapId, setMapId] = useState<string | null>(universe.maps[0]?.id ?? null)
+  const { universe, update, toast, nav } = useWorkspace()
+  // Vindo de uma ficha, abre no mapa em que ela está.
+  const [mapId, setMapId] = useState<string | null>((nav.view === 'atlas' && nav.id) || universe.maps[0]?.id || null)
   const fileRef = useRef<HTMLInputElement>(null)
   const map = (mapId && byId(universe, 'maps', mapId)) || universe.maps[0]
 
@@ -64,9 +65,8 @@ export default function AtlasView() {
 
   return (
     <div className="view atlas-view">
-      <header className="view-head view-head-wide">
-        <h1>Atlas</h1>
-        <PageHelp tour="atlas" />
+      <AreaHead current="atlas" tour="atlas" />
+      <header className="view-head view-head-wide area-tools">
         <div className="tabs tabs-inline" role="tablist" onKeyDown={tabListKeys} aria-label="Mapas">
           {universe.maps.map((m) => (
             <button key={m.id} type="button" role="tab" className="tab" aria-selected={m.id === map?.id} tabIndex={m.id === map?.id ? 0 : -1} onClick={() => setMapId(m.id)}>

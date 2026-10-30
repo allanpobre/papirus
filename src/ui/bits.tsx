@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
-import { CANON_HINT, CANON_LABEL, EDITORIAL_LABEL } from '../model/labels'
-import { CANON_STATES, EDITORIAL_STATES, type Canon, type Editorial } from '../model/schema'
+import { CANON_HINT, CANON_LABEL, CANON_ORDER, EDITORIAL_LABEL } from '../model/labels'
+import { EDITORIAL_STATES, type Canon, type Editorial } from '../model/schema'
 
 export function CanonBadge({ canon }: { canon: Canon }) {
   return (
@@ -67,19 +67,19 @@ export function CanonSelect({ id, value, onChange }: { id?: string; value: Canon
   return (
     <Select
       id={id}
-      label="Canon"
+      label="É verdade no mundo?"
       value={value}
       onChange={onChange}
-      options={CANON_STATES.map((c) => ({ value: c, label: `${CANON_LABEL[c]} — ${CANON_HINT[c].toLowerCase()}` }))}
+      options={CANON_ORDER.map((c) => ({ value: c, label: c === 'secreto' ? 'Segredo (verdade escondida)' : CANON_LABEL[c] }))}
     />
   )
 }
 
-export function EditorialSelect({ id, value, onChange }: { id?: string; value: Editorial; onChange: (v: Editorial) => void }) {
+export function EditorialSelect({ id, value, onChange, label = 'Quão pronta' }: { id?: string; value: Editorial; onChange: (v: Editorial) => void; label?: string }) {
   return (
     <Select
       id={id}
-      label="Estado editorial"
+      label={label}
       value={value}
       onChange={onChange}
       options={EDITORIAL_STATES.map((c) => ({ value: c, label: EDITORIAL_LABEL[c] }))}

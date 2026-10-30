@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures.ts'
+import { openPart } from './areas.ts'
 
 const transform = (page: import('@playwright/test').Page) => page.locator('.graph > g').getAttribute('transform')
 
@@ -12,7 +13,7 @@ test('mover o mapa funciona mesmo quando o navegador dá largura 0 ao SVG (Safar
   )
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Relações/ }).click()
+  await openPart(page, 'Ligações')
   await page.locator('.node').first().waitFor()
   const box = (await page.locator('.graph').boundingBox())!
   await page.mouse.move(box.x + 60, box.y + 60)
@@ -30,8 +31,7 @@ test.describe('no celular', () => {
   test('um dedo move, dois dedos dão zoom, e a página não rola', async ({ page }) => {
     await page.goto('/app/')
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-    await page.getByRole('button', { name: 'Mais', exact: true }).click()
-    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Relações' }).click()
+    await openPart(page, 'Ligações')
     await page.locator('.node').first().waitFor()
     const box = (await page.locator('.graph').boundingBox())!
     const cdp = await page.context().newCDPSession(page)
@@ -55,8 +55,7 @@ test.describe('no celular', () => {
 test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Relações' }).click()
+  await openPart(page, 'Ligações')
   const card = page.getByRole('complementary', { name: 'Ficha selecionada' })
   const node = page.locator('.node').first()
   await node.click()

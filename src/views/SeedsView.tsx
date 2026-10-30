@@ -8,7 +8,7 @@ import { Empty, Field, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityMultiPicker } from '../ui/EntityPicker'
 import { Modal } from '../ui/Modal'
-import { PageHelp } from '../ui/PageTour'
+import { AreaHead } from './AreaModes'
 
 export default function SeedsView() {
   const { universe, update, nav } = useWorkspace()
@@ -24,9 +24,8 @@ export default function SeedsView() {
 
   return (
     <div className="view seeds-view">
-      <header className="view-head view-head-wide">
-        <h1>Pistas e mistérios</h1>
-        <PageHelp tour="tramas" />
+      <AreaHead current="tramas" tour="tramas" />
+      <header className="view-head view-head-wide area-tools">
         <form
           className="quick-create"
           onSubmit={(e) => {

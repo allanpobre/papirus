@@ -2,7 +2,7 @@ import { expect, test } from './fixtures.ts'
 
 test('lixeira e histórico: apagar, recuperar e voltar como estava', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Fichas' }).first().click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
   const resumo = page.getByRole('textbox', { name: 'Resumo' })
   const original = await resumo.inputValue()
@@ -27,7 +27,7 @@ test('lixeira e histórico: apagar, recuperar e voltar como estava', async ({ pa
 
   // Voltar a como estava antes da edição do resumo.
   await historico.getByRole('listitem').filter({ hasText: 'editou a ficha' }).getByRole('button', { name: 'Voltar a como estava' }).click()
-  await page.getByRole('button', { name: 'Fichas' }).first().click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
   await expect(page.getByRole('textbox', { name: 'Resumo' })).toHaveValue(original)
 })

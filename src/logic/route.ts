@@ -47,3 +47,38 @@ export function rangeText(ns: number[]): string {
   }
   return parts.join(', ')
 }
+
+export interface MapGlimpse {
+  map: AtlasMap
+  /** O marcador da ficha, ou do lugar que a contém (`inside` diz qual). */
+  pin: AtlasMap['pins'][number] | null
+  inside: string | null
+  route: RouteStop[]
+}
+
+/**
+ * Onde a ficha está no mapa, para mostrar dentro dela: o marcador dela, o caminho (de um
+ * personagem pelas cenas) ou o marcador do lugar que a contém. O primeiro mapa que tiver algo.
+ */
+export function glimpseOf(universe: Universe, entityId: string): MapGlimpse | null {
+  const e = byId(universe, 'entities', entityId)
+  if (!e) return null
+  let best: MapGlimpse | null = null
+  for (const map of universe.maps) {
+    const pin = map.pins.find((p) => p.entityId === entityId) ?? null
+    const route = e.kind === 'personagem' ? routeOn(universe, map, entityId) : []
+    if (pin || route.length > 1) return { map, pin, inside: null, route }
+    if (best) continue
+    const seen = new Set([entityId])
+    for (let id = e.parentId; id && !seen.has(id); id = byId(universe, 'entities', id)?.parentId ?? null) {
+      seen.add(id)
+      const up = map.pins.find((p) => p.entityId === id)
+      if (up) {
+        best = { map, pin: up, inside: id, route }
+        break
+      }
+    }
+    if (!best && route.length === 1) best = { map, pin: null, inside: null, route }
+  }
+  return best
+}

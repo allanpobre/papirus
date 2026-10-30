@@ -1,6 +1,6 @@
 import { FamilyTree } from './FamilyTree'
 import { familyLinks } from '../logic/family'
-import { Maximize, Minus, Network, Pause, Play, Plus, X } from 'lucide-react'
+import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { forceLayout, neighborhood, type GraphEdge, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
@@ -12,7 +12,7 @@ import { byId, entityName, manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
-import { PageHelp } from '../ui/PageTour'
+import { AreaHead } from './AreaModes'
 
 const W = 1200
 const H = 800
@@ -195,15 +195,21 @@ export default function GraphView() {
   const highlight = focus ? new Set([focus, ...focusEdges.flatMap((e) => [e.from, e.to, ...(e.relation ? [e.relation.fromId, e.relation.toId] : [])])]) : null
   const selRelations = sel ? universe.relations.filter((r) => r.fromId === sel.id || r.toId === sel.id || r.via.some((v) => v.entityId === sel.id)) : []
 
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  // Quantos filtros mudaram do padrão (para o botão do celular dizer que há algo ligado).
+  const filterCount = [focusId, hiddenKinds.size > 0, inTime, !showDerived, !onlyConnected].filter(Boolean).length
   const hasFamily = useMemo(() => familyLinks(universe).length > 0, [universe])
   const [mode, setMode] = useState<'ligacoes' | 'familia'>('ligacoes')
   const zoom = (f: number) => setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, v.k * f)) }))
 
   return (
-    <div className="view graph-view">
-      <header className="view-head view-head-wide">
-        <h1>Relações</h1>
-        <PageHelp tour="relacoes" />
+    <div className={`view graph-view${filtersOpen ? ' filters-open' : ''}`}>
+      <AreaHead current="relacoes" tour="relacoes" />
+      <header className="view-head view-head-wide area-tools">
+        {/* No celular, o grafo vem primeiro: os filtros ficam atrás deste botão. */}
+        <button type="button" className="btn btn-sm graph-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+          <SlidersHorizontal size={14} aria-hidden="true" /> Filtros{filterCount > 0 && <span className="chip-count"> {filterCount}</span>}
+        </button>
         <div className="graph-controls">
           <EntityPicker
             label="Centrar em"

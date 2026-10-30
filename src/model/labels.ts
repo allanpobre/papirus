@@ -29,31 +29,36 @@ export const KIND_PLURAL: Record<string, string> = {
 export const kindLabel = (kind: string) => KIND_LABEL[kind] ?? kind
 export const kindPlural = (kind: string) => KIND_PLURAL[kind] ?? kind
 
+/** "É verdade no mundo?": em palavras simples (os valores guardados continuam os mesmos). */
 export const CANON_LABEL: Record<Canon, string> = {
-  estabelecido: 'Estabelecido',
+  estabelecido: 'Verdade',
   rumor: 'Rumor',
   lenda: 'Lenda',
-  disputado: 'Disputado',
-  secreto: 'Secreto',
-  falso: 'Falso',
-  desconhecido: 'Desconhecido',
+  disputado: 'Fontes discordam',
+  secreto: 'Segredo',
+  falso: 'Mentira',
+  desconhecido: 'Ainda não decidi',
 }
 
 export const CANON_HINT: Record<Canon, string> = {
-  estabelecido: 'Verdade no universo',
-  rumor: 'Circula, mas sem confirmação',
+  estabelecido: 'É verdade no mundo',
+  rumor: 'Circula, mas ninguém confirmou',
   lenda: 'Contada como lenda; pode ou não ser verdade',
-  disputado: 'Fontes discordam',
-  secreto: 'Verdade, mas escondida',
-  falso: 'Mentira ou engano registrado',
-  desconhecido: 'Nem o autor decidiu',
+  disputado: 'Cada fonte conta de um jeito',
+  secreto: 'É verdade, mas escondida',
+  falso: 'Mentira ou engano',
+  desconhecido: 'Nem você decidiu ainda',
 }
 
+/** A ordem das opções: primeiro o que é verdade (às claras ou escondida), depois o que se diz. */
+export const CANON_ORDER: Canon[] = ['estabelecido', 'secreto', 'rumor', 'lenda', 'disputado', 'falso', 'desconhecido']
+
+/** "Quão pronta": a ficha (ou o fato) para você. */
 export const EDITORIAL_LABEL: Record<Editorial, string> = {
   rascunho: 'Rascunho',
-  provisorio: 'Provisório',
-  definido: 'Definido',
-  'nao-decidido': 'Não decidido',
+  provisorio: 'Quase',
+  definido: 'Pronta',
+  'nao-decidido': 'Ainda não decidi',
 }
 
 export const SCENE_STATUS_LABEL: Record<SceneStatus, string> = {

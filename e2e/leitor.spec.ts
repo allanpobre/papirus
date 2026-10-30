@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures.ts'
+import { openPart } from './areas.ts'
 
 test('modo leitor: o caderno se preenche conforme a leitura, sem spoiler', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
@@ -95,7 +96,7 @@ test('ficha: marcar um trecho para revelar a partir de uma cena', async ({ page 
 
 test('relações mudam ao longo da história do exemplo', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Relações' }).first().click()
+  await openPart(page, 'Ligações')
   await page.getByRole('button', { name: /Ver cena a cena/ }).click()
   const slider = page.getByRole('slider', { name: 'Cena' })
   const changes = page.getByRole('list', { name: 'O que muda nesta cena' })

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { openPart } from './areas.ts'
 import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
@@ -130,7 +131,7 @@ test('calendário próprio: meses nomeados nas datas das cenas', async ({ page }
 
 test('Codex mostra eventos revelados e nunca os segredos da ficha', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'Fichas').click()
+  await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Ostria/ }).first().click()
   const desc = page.getByRole('textbox', { name: 'Descrição' })
   await desc.fill('Cidade portuária. [segredo]O porto é dos contrabandistas.[/segredo]')
@@ -205,7 +206,7 @@ test('importa um livro em Markdown e exporta como Word e EPUB', async ({ page })
 
 test('relação com várias fichas: "criado por" duas pessoas numa linha só', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'Fichas').click()
+  await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Lâmina de vidro negro/ }).first().click()
   await page.getByRole('combobox', { name: 'Nova relação' }).fill('criado por')
   const com = page.getByRole('combobox', { name: 'Com' })
@@ -230,8 +231,9 @@ test('no celular, o menu "Mais" leva a todas as áreas e a página não rola de 
   await page.setViewportSize({ width: 390, height: 844 })
   await openSample(page)
   await page.getByRole('button', { name: 'Mais', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Quem sabe o quê' }).click()
-  await expect(page.getByRole('heading', { name: 'Quem sabe o quê' })).toBeVisible()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Trama' }).click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Quem sabe o quê' }).click()
+  await expect(page.getByRole('heading', { name: 'Quem sabe o quê' })).toBeAttached()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   await page.getByRole('button', { name: 'Mais', exact: true }).click()
   await page.keyboard.press('Escape')
@@ -249,7 +251,7 @@ test('a barra da seleção some quando a janela do fato abre, e dá para marcar 
   await expect(bubble).toBeHidden()
   await dialog.getByRole('radio', { name: 'Mentira ou engano' }).click()
   await expect(dialog.getByText('Quem conta a mentira?')).toBeVisible()
-  await expect(dialog.getByRole('combobox', { name: 'Canon' })).toHaveValue('falso')
+  await expect(dialog.getByRole('combobox', { name: 'É verdade no mundo?' })).toHaveValue('falso')
 })
 
 test('ajustes por categoria: busca, cor de destaque e tema rápido', async ({ page }) => {
@@ -275,7 +277,7 @@ test('ajustes por categoria: busca, cor de destaque e tema rápido', async ({ pa
 
 test('relação indireta e com tempo: "envenenou, a mando de", só num período, no grafo', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'Fichas').click()
+  await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
   await page.getByRole('combobox', { name: 'Nova relação' }).fill('envenenou')
   await page.getByRole('combobox', { name: 'Com', exact: true }).fill('Vaelor')
@@ -295,7 +297,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
   await expect(page.locator('.relation-involved')).toContainText('a mando de: Kael envenenou Vaelor')
 
   // No grafo: a linha tracejada de quem está por trás; no ponto da história (359), a relação ainda não vale.
-  await nav(page, 'Relações').click()
+  await openPart(page, 'Ligações')
   await expect(page.locator('.edge-via')).toHaveCount(3)
   await page.locator('.node', { hasText: 'Kael' }).click()
   await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toContainText('Kael envenenou Vaelor, a mando de Mira · a partir de 360 DC')
@@ -309,7 +311,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
 
 test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'Relações').click()
+  await openPart(page, 'Ligações')
   const graph = page.locator('.graph')
   await expect(page.locator('.node').first()).toBeVisible()
   const box = (await graph.boundingBox())!
@@ -324,10 +326,11 @@ test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', asy
   await page.getByRole('button', { name: 'Enquadrar' }).click()
   await page.locator('.node', { hasText: 'Kael' }).dblclick({ force: true })
   expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('')
-  await nav(page, 'Relações').click()
+  await openPart(page, 'Ligações')
   const stage = page.locator('.stage')
-  const before = await stage.evaluate((el) => el.scrollTop)
+  // Pôr o mouse em cima já traz o grafo para a tela; a conta começa depois disso.
   await page.locator('.graph').hover()
+  const before = await stage.evaluate((el) => el.scrollTop)
   await page.mouse.wheel(0, 600)
   await page.waitForTimeout(200)
   expect(await stage.evaluate((el) => el.scrollTop)).toBe(before)
@@ -335,7 +338,7 @@ test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', asy
 
 test('arrastar o grafo por cima de nomes e de texto selecionado não inicia o "arrastar e soltar"', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'Relações').click()
+  await openPart(page, 'Ligações')
   await expect(page.locator('.node').first()).toBeVisible()
   await page.waitForTimeout(1200)
   await page.evaluate(() => {
@@ -363,7 +366,7 @@ test('modelo de universo: fantasia já traz o Livro I e campos sugeridos nas fic
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Eldra')
   await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Fantasia' }).click()
   await page.getByRole('button', { name: 'Criar universo' }).click()
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Fichas' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Kael')
   await page.keyboard.press('Enter')
   await expect(page.getByRole('textbox', { name: 'Campo' }).first()).toHaveValue('Idade')
@@ -400,11 +403,11 @@ test.describe('no celular', () => {
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'RPG', exact: true }).click()
     // Na mesa: atalhos de mestre e o clima da mesa, também nas fichas.
     await expect(bar.getByRole('button', { name: 'Escrever', exact: true })).toHaveCount(0)
-    await expect(bar.getByRole('button', { name: 'Atlas', exact: true })).toBeVisible()
-    await bar.getByRole('button', { name: 'Fichas', exact: true }).click()
+    await expect(bar.getByRole('button', { name: 'Trama', exact: true })).toBeVisible()
+    await bar.getByRole('button', { name: 'Mundo', exact: true }).click()
     await expect(page.locator('body')).toHaveAttribute('data-sector', 'mesa')
     await page.reload()
-    await expect(bar.getByRole('button', { name: 'Atlas', exact: true })).toBeVisible()
+    await expect(bar.getByRole('button', { name: 'Trama', exact: true })).toBeVisible()
     // "Voltar à escrita" no Mais devolve o livro.
     await bar.getByRole('button', { name: 'Mais', exact: true }).click()
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Voltar à escrita/ }).click()
@@ -448,7 +451,7 @@ test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', asyn
   const reader = page.getByRole('article', { name: 'Ler a ficha D. Evarista' })
   await expect(reader.getByRole('heading', { level: 1, name: 'D. Evarista' })).toBeVisible()
   await expect(reader).not.toContainText('[a partir de')
-  await expect(reader.getByRole('heading', { name: 'Relações' })).toBeVisible()
+  await expect(reader.getByRole('heading', { name: 'Ligações' })).toBeVisible()
   // Um nome no texto vira link para a outra ficha.
   await reader.getByRole('button', { name: 'Simão Bacamarte' }).first().click()
   await expect(page.getByRole('heading', { level: 1, name: 'Simão Bacamarte' })).toBeVisible()
@@ -462,7 +465,7 @@ test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', asyn
 
 test('segredo na ficha: quem escreve vê o trecho pintado, não código, e consegue desfazer', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'Fichas').click()
+  await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Ostria/ }).first().click()
   const desc = page.getByRole('textbox', { name: 'Descrição' })
   await desc.fill('Cidade portuária. O porto é dos contrabandistas.')

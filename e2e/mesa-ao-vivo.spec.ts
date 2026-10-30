@@ -454,7 +454,7 @@ test('modo sessão: o app vira a mesa, sai e volta de qualquer lugar, e no celul
   await more(page, 'Sair do modo sessão')
   await expect(areas).toBeVisible()
   await expect(page.getByRole('button', { name: 'Voltar para a sessão' })).toBeVisible()
-  await nav(page, 'Fichas').click()
+  await nav(page, /^Mundo/).click()
   await page.getByRole('button', { name: /Sessão 2 ao vivo · Voltar/ }).click()
   await expect(page.locator('.session-mode-view')).toBeVisible()
   await expect(areas).toBeHidden()

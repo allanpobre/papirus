@@ -9,6 +9,8 @@ export const test = base.extend({
         if (!('tourDone' in prefs)) localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, tourDone: true }))
         // A maioria dos testes da escrita é sobre a margem: começam na Revisão (os da Página trocam de modo).
         if (localStorage.getItem('papirus:escrita-modo') === null) localStorage.setItem('papirus:escrita-modo', 'revisao')
+        // A ficha abre para ler; os testes das fichas são sobre o formulário e começam em Editar (os da leitura trocam).
+        if (localStorage.getItem('papirus:ficha-modo') === null) localStorage.setItem('papirus:ficha-modo', 'editar')
       } catch {
         // Sem armazenamento: o teste segue sem pular o tour.
       }

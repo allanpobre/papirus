@@ -373,9 +373,9 @@ export function Landing() {
 }
 
 const FEATURES = [
-  { icon: BookMarked, title: 'Fichas', text: 'Personagens, lugares, facções e o que mais você inventar, com retrato, campos livres e um modo de leitura como enciclopédia.' },
-  { icon: Network, title: 'Relações', text: 'Quem é filho, rival ou criador de quem, num grafo que você navega. Uma relação pode ter vários nomes.' },
-  { icon: CalendarRange, title: 'Linha do tempo', text: 'Eras, eventos e cenas datadas, com um calendário próprio: “12 de Neblina de 359 DC”.' },
+  { icon: BookMarked, title: 'Fichas', text: 'Personagens, lugares, facções e o que mais você inventar. Cada ficha se lê como enciclopédia, com o lugar no mapa, e a ficha vazia traz perguntas para começar.' },
+  { icon: Network, title: 'Ligações', text: 'Quem é filho, rival ou criador de quem, num grafo que você navega cena a cena. Uma ligação pode ter vários nomes.' },
+  { icon: CalendarRange, title: 'Linha do tempo', text: 'Eras, eventos e cenas datadas, com um calendário próprio (“12 de Neblina de 359 DC”) e a idade de cada um em cada evento.' },
   { icon: MapIcon, title: 'Atlas', text: 'Suba a imagem do seu mapa e marque os lugares. Revele à mesa só os marcadores que ela conhece.' },
   { icon: EyeOff, title: 'Segredos e spoilers', text: 'Trechos secretos nas fichas, fatos falsos com quem os contou e partes que o leitor só vê depois de certa cena.' },
   { icon: ImageIcon, title: 'Imagens', text: 'Capa do universo, retratos, mapas e imagens nas cenas, encolhidas sozinhas para não pesar.' },
@@ -393,7 +393,7 @@ const SECTORS = [
     icon: Feather,
     name: 'Escrita',
     title: 'Escreva e veja o mundo crescer',
-    items: ['Editor que reconhece os nomes', 'Fichas, relações, linha do tempo e mapas', 'Modo leitor, áudio, Word, EPUB e PDF', 'Amigos, estante e desafios'],
+    items: ['Editor que reconhece os nomes', 'Fichas, ligações, linha do tempo e mapas', 'Modo leitor, áudio, Word, EPUB e PDF', 'Amigos, estante e desafios'],
     href: '#escrever',
   },
   {
