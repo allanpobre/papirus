@@ -5,7 +5,18 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
  * Botão "⋯" com ações menos usadas, para a barra não ficar cheia de ícones.
  * Fecha ao clicar fora ou com Esc. `children` recebe uma função para fechar.
  */
-export function MoreMenu({ label, children }: { label: string; children: (close: () => void) => ReactNode }) {
+export function MoreMenu({
+  label,
+  children,
+  button,
+  buttonClass = 'btn-icon',
+}: {
+  label: string
+  children: (close: () => void) => ReactNode
+  /** O que o botão mostra (padrão: "⋯", só com o rótulo para leitores de tela). */
+  button?: ReactNode
+  buttonClass?: string
+}) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -25,8 +36,8 @@ export function MoreMenu({ label, children }: { label: string; children: (close:
   }, [open])
   return (
     <div className="more-menu" ref={ref}>
-      <button type="button" className="btn-icon" aria-label={label} title={label} aria-expanded={open} onClick={() => setOpen(!open)}>
-        <MoreHorizontal size={18} />
+      <button type="button" className={buttonClass} aria-label={button ? undefined : label} title={button ? undefined : label} aria-expanded={open} onClick={() => setOpen(!open)}>
+        {button ?? <MoreHorizontal size={18} />}
       </button>
       {open && (
         <div className="more-menu-pop" role="group" aria-label={label}>

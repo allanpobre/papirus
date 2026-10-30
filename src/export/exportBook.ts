@@ -1,8 +1,10 @@
 import { strToU8 as encode, zipSync, type Zippable } from 'fflate'
-import type { Scene, SceneDoc, Story, Universe } from '../model/schema'
+import type { BookDesign, Scene, SceneDoc, Story, Universe } from '../model/schema'
 import { scenesOf } from '../model/universe'
 import { bookImageSrc } from '../images/bookImages'
+import { bookTitle, storiesOf } from './bookDesign'
 import { epubImageFiles } from './epubImages'
+import { docToMarkdown, sceneToMarkdown } from './markdown'
 
 /**
  * Exporta uma história como livro: Word (.docx) ou EPUB 3.
@@ -32,6 +34,23 @@ export function bookFrom(universe: Universe, story: Story | null, opts: { author
     scenes: scenesOf(universe, story?.id ?? null),
     sceneTitles: opts.sceneTitles ?? true,
   }
+}
+
+/**
+ * O livro da estante como ele é: as histórias que entram (na ordem do livro), o título e o
+ * autor da capa. Cenas sem texto ficam de fora, como no PDF.
+ */
+export function bookFromDesign(universe: Universe, design: BookDesign): BookExport {
+  const stories = storiesOf(universe, design)
+  const scenes = stories.length ? stories.flatMap((s) => scenesOf(universe, s.id)) : scenesOf(universe, null)
+  return { title: bookTitle(universe, design), author: design.author.trim(), scenes: scenes.filter((s) => s.text.trim()), sceneTitles: design.chapterTitles }
+}
+
+/** O livro em Markdown: título, autor e cada cena com o seu título. */
+export function bookToMarkdown(book: BookExport): string {
+  const head = [`# ${book.title}`, ...(book.author ? [`*${book.author}*`] : [])]
+  const body = book.scenes.map((s) => (book.sceneTitles ? sceneToMarkdown(s, 2) : docToMarkdown(s.doc)).trimEnd())
+  return [...head, ...body].join('\n\n') + '\n'
 }
 
 /** Bytes no Uint8Array deste ambiente (o do TextEncoder pode ser de outro, e o zip os ignoraria). */
