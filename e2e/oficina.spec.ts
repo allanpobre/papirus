@@ -73,6 +73,11 @@ test('meta com prazo e calendário de escrita no Início', async ({ page }) => {
   await page.keyboard.type(' Mais umas palavras para hoje contar.')
   await expect(page.getByRole('status').first()).toHaveText('Salvo')
   await nav(page, 'Início').click()
+  // No alto, o dia; o prazo e o calendário ficam no "Seu ritmo", dobrado.
+  await expect(page.locator('.home-stats')).toContainText('1 dia seguido')
+  await expect(page.getByRole('img', { name: 'Esta semana: escreveu em 1 de 7 dias' })).toBeVisible()
+  await expect(page.locator('.deadline-line')).toHaveCount(0)
+  await page.getByText('Seu ritmo', { exact: true }).click()
   await expect(page.locator('.deadline-line')).toContainText('de 5.000 palavras até')
   await expect(page.getByText(/palavras por dia para chegar lá/)).toBeVisible()
   await expect(page.getByRole('img', { name: /Calendário de escrita: 1 dia com escrita|Calendário de escrita: \d+ dias com escrita/ })).toBeVisible()
@@ -126,9 +131,10 @@ test('ouvir o livro: lê em voz alta e segue para o capítulo seguinte', async (
 
 test('a dica do dia no Início leva à Oficina', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  const tip = page.getByRole('region', { name: 'Dica do dia' })
-  await expect(tip).toBeVisible()
-  await tip.getByRole('button', { name: 'Ver mais na Oficina' }).click()
+  // Uma linha no pé do treino de hoje, que abre.
+  const card = page.getByRole('region', { name: 'Treino de hoje' })
+  await card.getByText('Dica do dia:').click()
+  await card.getByRole('button', { name: /^Ver mais na Oficina/ }).click()
   await expect(page.getByRole('dialog', { name: 'Oficina' })).toBeVisible()
 })
 
@@ -167,7 +173,8 @@ test('desafio do dia é o treino de hoje: bater o mínimo conta para a medalha',
   await expect(treino.getByText('Mínimo batido!')).toBeVisible()
   await treino.getByRole('button', { name: 'Fechar o treino' }).click()
   await expect(card).toContainText('Feito hoje: 105 palavras em 5 min')
-  // As medalhas, com as que faltam.
+  // As medalhas, com as que faltam (no "Seu ritmo", dobrado).
+  await page.getByText('Seu ritmo', { exact: true }).click()
   await page.getByRole('button', { name: /Medalhas: \d+ de \d+/ }).click()
   const medalhas = page.getByRole('dialog', { name: 'Medalhas' })
   await expect(medalhas.getByRole('listitem').filter({ hasText: 'Topei o desafio' })).toHaveClass(/is-got/)

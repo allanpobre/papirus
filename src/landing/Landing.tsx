@@ -381,7 +381,7 @@ const FEATURES = [
   { icon: ImageIcon, title: 'Imagens', text: 'Capa do universo, retratos, mapas e imagens nas cenas, encolhidas sozinhas para não pesar.' },
   { icon: Headphones, title: 'Ler e ouvir', text: 'Leia como livro, com um caderno que não dá spoiler, ou ouça o texto em voz alta para revisar.' },
   { icon: Printer, title: 'Livro pronto', text: 'Do manuscrito ao livro em cinco passos: revisar, o que os leitores disseram, diagramar e baixar em PDF, EPUB ou Word, com a lombada e o molde da capa para a gráfica.' },
-  { icon: Target, title: 'Metas e calendário', text: 'Meta do dia, meta com prazo e um calendário de quanto você escreveu, com a sequência de dias.' },
+  { icon: Target, title: 'Começar sem travar', text: 'O Início abre na cena em que você parou, com a última frase e o bilhete que você deixou para amanhã. Meta do dia (ou a do prazo), a semana e o calendário de escrita.' },
   { icon: MessageSquareText, title: 'Comentários e versões', text: 'Notas presas ao texto e versões de cada cena para comparar e voltar atrás.' },
   { icon: WifiOff, title: 'Instala e funciona offline', text: 'Vira app no celular e no computador e abre sem internet. Backup em arquivo, numa pasta ou na conta.' },
   { icon: ScrollText, title: 'Perguntar ao mundo (opcional)', text: 'Pergunte à sua lore com IA, usando a sua chave. Ele só lê o que você manda e nunca muda nada.' },

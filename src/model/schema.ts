@@ -510,6 +510,11 @@ export const universeSettingsSchema = z.object({
   cover: z.string().nullable().optional(),
   /** Escrita ou campanha de RPG: o setor em que o universo fica. Sem valor, o Papirus deduz. */
   kind: z.enum(['escrita', 'campanha']).optional(),
+  /**
+   * Bilhete para amanhã: uma linha que quem escreve deixa ao parar, sobre o que vem depois
+   * (Hemingway parava sabendo o que vinha a seguir). Aparece no Início e no fim da cena.
+   */
+  nextNote: z.object({ text: z.string(), sceneId: z.string().nullable(), at: z.string() }).nullable().default(null),
 })
 
 /**

@@ -172,6 +172,8 @@ test('as janelas que funcionam como tela também têm o (?)', async ({ page }) =
   await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: /Seus treinos/ }).click()
   await runPageTour(page, 'Seus treinos')
   await page.getByRole('dialog', { name: 'Seus treinos' }).getByRole('button', { name: 'Fechar' }).click()
+  // O nível e as medalhas ficam no "Seu ritmo", dobrado.
+  await page.getByText('Seu ritmo', { exact: true }).click()
   await page.getByRole('button', { name: /^Medalhas:/ }).click()
   await runPageTour(page, 'Medalhas')
   await page.getByRole('dialog', { name: 'Medalhas' }).getByRole('button', { name: 'Fechar' }).click()

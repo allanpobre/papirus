@@ -1635,6 +1635,12 @@ body.escrevendo-no-celular .shared-banner {
   -webkit-box-orient: vertical;
 }
 
+/* O bilhete para amanhã, no "onde você parou" da Página. */
+.resume-note {
+  flex: 1 1 100%;
+  color: var(--ink);
+}
+
 /* Rodapé da Página: as perguntas esperam a Revisão. */
 .write-waiting {
   display: inline-flex;

@@ -431,13 +431,14 @@ test('uma falha que ninguém tratou aparece num aviso (e falta de internet não)
   await expect(page.getByText('Não deu certo:')).toHaveCount(0)
 })
 
-test('o Início tem saudação, resumo do dia e portas para as áreas do mundo', async ({ page }) => {
+test('o Início tem saudação, o dia e o mundo numa linha que leva a cada parte', async ({ page }) => {
   await openSample(page)
   await expect(page.getByText(/^(Bom dia|Boa tarde|Boa noite) · /)).toBeVisible()
   await expect(page.getByText(/de 500 hoje/)).toBeVisible()
-  const doors = page.getByRole('navigation', { name: 'O seu mundo' })
-  await expect(doors.getByRole('button', { name: /Fichas \d+ fichas/ })).toBeVisible()
-  await doors.getByRole('button', { name: /Atlas/ }).click()
+  const world = page.getByRole('navigation', { name: 'O seu mundo' })
+  await expect(world.getByRole('button', { name: '17 fichas' })).toBeVisible()
+  await expect(world.getByRole('button', { name: '2 pistas em aberto' })).toBeVisible()
+  await world.getByRole('button', { name: '1 mapa' }).click()
   await expect(page.getByRole('heading', { name: 'Atlas', level: 1 })).toBeVisible()
 })
 
@@ -445,7 +446,7 @@ test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', asyn
   // O Alienista: fichas com texto longo, relações e marcas de spoiler.
   await page.goto('/')
   await page.getByRole('link', { name: 'Ver um mundo de exemplo' }).click()
-  await page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /Fichas/ }).click()
+  await page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /\d+ fichas$/ }).click()
   await page.locator('.entity-row-name', { hasText: /^D\. Evarista$/ }).click()
   await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
   const reader = page.getByRole('article', { name: 'Ler a ficha D. Evarista' })

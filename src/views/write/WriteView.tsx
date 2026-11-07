@@ -63,6 +63,8 @@ import { ReviewDialog } from './ReviewDialog'
 import { VersionsDialog } from './VersionsDialog'
 import { PageHelp } from '../../ui/PageTour'
 import { SceneReview } from './SceneReview'
+import { NextNote } from '../NextNote'
+import { nextNoteOf } from '../../logic/homeToday'
 import { SceneFrame, saveMode, savedMode, WritingModes, type WritingMode } from './WritingModes'
 
 type Dialog =
@@ -92,6 +94,7 @@ export default function WriteView() {
   // Página (porta fechada: só o texto) ou Revisão (porta aberta: a margem e as perguntas).
   const [mode, setModeState] = useState<'pagina' | 'revisao'>(savedMode)
   const drafting = mode === 'pagina'
+  const note = nextNoteOf(universe)
   const [treeOpen, setTreeOpen] = useState(() => savedMode() === 'revisao' && recall('arvore') !== 'fechada' && !matchMedia('(max-width: 760px)').matches)
   const [narrowMargin, setNarrowMargin] = useState(
     () => savedMode() === 'revisao' && matchMedia('(max-width: 1180px)').matches && !matchMedia('(max-width: 760px)').matches,
@@ -446,6 +449,11 @@ export default function WriteView() {
               <div className="resume" role="status">
                 <span className="resume-label">Onde você parou</span>
                 <span className="resume-text">“{lastSentence(scene.text)}”</span>
+                {note?.sceneId === scene.id && (
+                  <span className="resume-note">
+                    <strong>Seu bilhete:</strong> {note.text}
+                  </span>
+                )}
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
@@ -553,6 +561,7 @@ export default function WriteView() {
               typewriter={prefs.typewriter}
               keySound={prefs.keySound}
             />
+            {scene.text.trim() && !focus && <NextNote sceneId={scene.id} place="pagina" />}
           </article>
         </div>
 
