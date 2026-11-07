@@ -3616,10 +3616,10 @@ code {
   text-align: center;
 }
 
-/* Início do universo */
+/* Início do universo: uma porta, não um painel. */
 .home {
   max-width: 1080px;
-  gap: 1.4rem;
+  gap: 1rem;
 }
 
 /* Em telas largas, as páginas com largura máxima ficam no meio: o que sobra se divide dos dois lados. */
@@ -3629,83 +3629,104 @@ code {
   margin-inline: auto;
 }
 
-/* O topo: a capa do universo, com saudação, resumo do dia e atalhos. */
-.home-hero {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1.3rem 1.4rem 1.2rem;
+/* No alto, o dia: o universo, as palavras de hoje, a semana e os atalhos, numa faixa fina. */
+.home-today {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'id quick'
+    'id stats';
+  align-items: center;
+  gap: 0.3rem 1.2rem;
+  padding: 0.85rem 1rem;
   border-radius: var(--radius-l);
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
   background:
-    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-    linear-gradient(160deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface));
+    radial-gradient(90% 160% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 65%),
+    var(--surface);
 }
 
-.home-hero > * {
-  position: relative;
+.home-id {
+  grid-area: id;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
 }
 
-.home-hero-mark {
-  position: absolute;
-  right: -0.05em;
-  bottom: -0.16em;
+.home-thumb {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px -6px rgb(0 0 0 / 0.4);
+}
+
+.home-thumb.is-letter {
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent);
   font-family: var(--font-display);
-  font-size: clamp(9rem, 22vw, 15rem);
-  line-height: 1;
-  color: color-mix(in srgb, var(--accent) 13%, transparent);
-  pointer-events: none;
-  user-select: none;
+  font-size: 1.7rem;
+  box-shadow: none;
 }
 
-.home-hero .eyebrow {
+.home-id-text {
+  min-width: 0;
+}
+
+.home-id .eyebrow {
   margin: 0;
 }
 
-.home-hero h1 {
-  margin: 0.1rem 0 0;
-  font-size: clamp(2rem, 5vw, 2.9rem);
+.home-id h1 {
+  margin: 0.05rem 0 0;
+  font-size: clamp(1.45rem, 3.4vw, 2rem);
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 .home-desc {
-  margin: 0;
+  margin: 0.15rem 0 0;
   max-width: 40em;
   font-family: var(--font-text);
+  font-size: 0.92rem;
+  color: var(--ink-2);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.home-stats {
+  grid-area: stats;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem 1.1rem;
+}
+
+.home-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+
+.home-stat strong {
+  font-size: 0.98rem;
+}
+
+.home-stat-sub {
   color: var(--ink-2);
 }
 
-.home-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-.home-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.3rem 0.75rem 0.3rem 0.45rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-  border: 1px solid var(--line);
-  font-size: 0.86rem;
-}
-
-.home-chip:not(:has(.home-ring)) {
-  padding-left: 0.75rem;
-}
-
-.home-chip strong {
-  font-size: 0.95rem;
-}
-
 .home-ring {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex: none;
   border-radius: 50%;
   background:
@@ -3713,23 +3734,48 @@ code {
     conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-3) 0);
 }
 
+/* A semana em bolinhas: escreveu ou não; hoje com um anel. */
+.home-week {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.home-week i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--surface-3);
+}
+
+.home-week i.is-on {
+  background: var(--accent);
+}
+
+.home-week i.is-today {
+  outline: 2px solid var(--ochre-line);
+  outline-offset: 1px;
+}
+
 .home-quick {
+  grid-area: quick;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.4rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  margin-right: -0.4rem;
 }
 
 .home-quick-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.7rem;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: 0;
   border-radius: var(--radius-s);
   background: transparent;
   color: var(--ink-2);
-  font-size: 0.86rem;
 }
 
 .home-quick-btn:hover {
@@ -3737,39 +3783,43 @@ code {
   color: var(--ink);
 }
 
-/* O resto: no computador, duas colunas; no celular, uma, na ordem do código. */
+/* O resto: no computador, o próximo passo e uma coluna estreita; embaixo, o mundo e o ritmo. */
 .home-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   grid-template-areas:
-    'continue challenge'
-    'doors doors'
-    'day side';
+    'next side'
+    'world world'
+    'day day';
   gap: 1rem;
   align-items: start;
 }
 
-.home-continue {
-  grid-area: continue;
+.home-next {
+  grid-area: next;
   align-self: stretch;
+  background: var(--paper);
+  box-shadow: var(--shadow-page);
+  gap: 0.7rem;
 }
 
-.home-challenge {
-  grid-area: challenge;
-  align-self: stretch;
+.home-next h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.7rem;
+}
+
+.home-next-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
 }
 
-.home-challenge > .home-card {
-  flex: 1;
-}
-
-.home-doors {
-  grid-area: doors;
-}
-
-.home-day {
-  grid-area: day;
+.home-others {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.7rem;
 }
 
 .home-side {
@@ -3780,77 +3830,93 @@ code {
   min-width: 0;
 }
 
-.home-doors .section-title {
-  margin: 0 0 0.5rem;
+.home-challenge {
+  display: flex;
 }
 
-.home-doors ul {
-  list-style: none;
+.home-challenge > .home-card {
+  flex: 1;
+}
+
+/* O mundo numa linha: os números levam ao lugar. */
+.home-world {
+  grid-area: world;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-l);
+  font-size: 0.9rem;
+}
+
+.home-world-title {
+  font-weight: 600;
+}
+
+.home-world ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.6rem;
+  list-style: none;
 }
 
-.home-door {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  column-gap: 0.7rem;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  padding: 0.8rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-  color: var(--ink);
-  text-align: left;
-  transition:
-    transform 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+.home-world .link-btn {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  text-decoration: none;
+  font-weight: 500;
 }
 
-@media (hover: hover) {
-  .home-door:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-    box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--accent) 60%, transparent);
-  }
+.home-world .link-btn:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-.home-door-icon {
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: var(--accent);
+/* O ritmo: dobrado; abre com o calendário, o prazo, o nível e as medalhas. */
+.home-card.home-day {
+  grid-area: day;
+  padding: 0;
+  gap: 0;
 }
 
-.home-door-label {
+.home-day > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  padding: 0.75rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.home-day > summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-day > summary::after {
+  content: '▾';
+  margin-left: auto;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.home-day[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.home-day-title {
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.home-door-detail {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-door,
-  .home-door:hover {
-    transition: none;
-    transform: none;
-  }
+.home-day-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 1.1rem 1.1rem;
 }
 
 .home-card {
@@ -3874,17 +3940,6 @@ code {
   margin: 0;
 }
 
-.home-continue {
-  background: var(--paper);
-  box-shadow: var(--shadow-page);
-}
-
-.home-continue h2 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 1.6rem;
-}
-
 .home-excerpt {
   font-family: var(--font-text);
   font-size: 1.02rem;
@@ -3892,56 +3947,6 @@ code {
   color: var(--ink-2);
   border-left: 2px solid var(--ochre-line);
   padding-left: 0.9rem;
-}
-
-.home-today {
-  font-size: 1rem;
-}
-
-.home-today strong {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 2.2rem;
-  line-height: 1;
-  margin-right: 0.2rem;
-}
-
-.home-goal {
-  height: 6px;
-}
-
-.home-week {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.35rem;
-  height: 84px;
-  align-items: end;
-}
-
-.home-week-day {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.25rem;
-  height: 100%;
-}
-
-.home-week-bar {
-  width: 100%;
-  max-width: 26px;
-  border-radius: 4px 4px 2px 2px;
-  background: var(--accent);
-}
-
-.home-week-bar[data-empty] {
-  background: var(--surface-3);
-}
-
-.home-week-label {
-  font-size: 0.7rem;
-  color: var(--muted);
-  text-transform: uppercase;
 }
 
 .home-list {
@@ -3952,10 +3957,13 @@ code {
   flex-direction: column;
 }
 
+.home-list li + li {
+  border-top: 1px dashed var(--line);
+}
+
 .home-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 0.2rem 0.5rem;
   width: 100%;
   padding: 0.5rem 0.4rem;
@@ -3968,6 +3976,7 @@ code {
 }
 
 .home-row svg {
+  flex: none;
   color: var(--accent);
 }
 
@@ -3978,65 +3987,189 @@ code {
 .home-row-title {
   flex: 1 1 auto;
   min-width: 0;
-  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.home-session {
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--line);
+/* A dica do dia, no pé do cartão do treino: uma linha que abre. */
+.home-tip {
+  padding-top: 0.55rem;
+  border-top: 1px dashed var(--line);
+  font-size: 0.86rem;
 }
 
-.home-session .section-label {
+.home-tip > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.home-tip > summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-tip > summary svg {
+  vertical-align: -2px;
+  color: var(--accent);
+}
+
+.home-tip p.small {
+  margin: 0.45rem 0 0.35rem;
+}
+
+/* O bilhete para amanhã: no Início, embaixo da última frase; na Página, no fim do texto. */
+.next-note {
   display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-s);
+  background: var(--ochre-soft);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.next-note p {
+  flex: 1;
+  margin: 0;
+}
+
+.next-note-icon {
+  flex: none;
+  margin-top: 0.15rem;
+  color: var(--ochre);
+}
+
+.next-note-tools {
+  display: inline-flex;
+  flex: none;
+  gap: 0.1rem;
+}
+
+.next-note.is-editing {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.next-note-label {
+  display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.next-note-input {
+  resize: vertical;
+  font-family: var(--font-text);
+}
+
+.next-note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
+.next-note-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.next-note-add:hover {
+  color: var(--accent);
+}
+
+.next-note-pagina {
+  margin-top: 2rem;
 }
 
 @media (max-width: 860px) {
-  .home-layout {
+  .home-today {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'continue' 'challenge' 'doors' 'day' 'side';
+    grid-template-areas: 'id' 'stats' 'quick';
   }
-  .home-doors ul {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .home-stats,
+  .home-quick {
+    justify-content: flex-start;
+  }
+  .home-quick {
+    margin: 0 0 -0.3rem -0.45rem;
+  }
+  /* Celular: o próximo passo, o que pede um olhar, o mundo, o treino e o ritmo, nesta ordem. */
+  .home-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+  .home-side {
+    display: contents;
+  }
+  .home-next {
+    order: 0;
+  }
+  .home-later {
+    order: 1;
+  }
+  .home-world {
+    order: 2;
+  }
+  .home-challenge {
+    order: 3;
+  }
+  .home-day {
+    order: 4;
   }
 }
 
 @media (max-width: 520px) {
-  .home-hero {
-    padding: 1.1rem 1rem 0.9rem;
+  .home {
+    gap: 0.8rem;
   }
-  .home-quick {
-    gap: 0;
-    margin-left: -0.4rem;
+  .home-today {
+    gap: 0.55rem 0.9rem;
+    padding: 0.75rem 0.85rem;
   }
-  .home-chip {
-    font-size: 0.8rem;
-  }
-  .home-quick-btn {
-    padding: 0.35rem 0.45rem;
-    font-size: 0.82rem;
-  }
-  .home-door {
-    padding: 0.65rem 0.7rem;
-    column-gap: 0.55rem;
-  }
-  .home-door-icon {
-    width: 34px;
-    height: 34px;
+  .home-thumb {
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
   }
-}
-
-.home-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  .home-thumb.is-letter {
+    font-size: 1.4rem;
+  }
+  .home-desc {
+    display: none;
+  }
+  .home-stat-sub {
+    font-size: 0.82rem;
+  }
+  .home-quick-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .home-card {
+    padding: 0.95rem 1rem;
+  }
+  .home-next h2 {
+    font-size: 1.45rem;
+  }
+  .home-excerpt {
+    font-size: 0.96rem;
+    line-height: 1.6;
+  }
+  .home-next-actions .btn-primary {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
 }
 
 /* Ajustes por categoria */
@@ -5290,21 +5423,6 @@ button.arc-dot {
   margin: 0;
 }
 
-/* Início: dica do dia, vinda da Oficina. */
-.home-tip .eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-.home-tip-title {
-  margin: 0.2rem 0 0;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-}
-.home-tip p.small {
-  margin: 0.3rem 0 0.4rem;
-}
-
 /* Sugerir nomes (fichas). */
 .name-ideas {
   display: flex;
@@ -5707,59 +5825,6 @@ button.arc-dot {
     width: 52px;
     height: 52px;
   }
-}
-
-/* Início com capa: a imagem ao fundo, escurecida embaixo para o texto ler bem. */
-.home-hero.has-cover {
-  min-height: 300px;
-  justify-content: flex-end;
-  border-color: transparent;
-  color: #fff;
-  background: #1c1b19;
-}
-.home-hero.has-cover > * {
-  z-index: 2;
-}
-.home-hero > .home-hero-cover {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.home-hero.has-cover::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.78), rgb(0 0 0 / 0.35) 55%, rgb(0 0 0 / 0.12));
-  pointer-events: none;
-}
-.home-hero.has-cover .eyebrow,
-.home-hero.has-cover .home-desc,
-.home-hero.has-cover .home-quick-btn,
-.home-hero.has-cover .btn-ghost {
-  color: rgb(255 255 255 / 0.88);
-}
-.home-hero.has-cover h1 {
-  color: #fff;
-  text-shadow: 0 2px 12px rgb(0 0 0 / 0.35);
-}
-.home-hero.has-cover .home-chip {
-  background: rgb(0 0 0 / 0.35);
-  border-color: rgb(255 255 255 / 0.2);
-  color: #fff;
-}
-.home-hero.has-cover .home-ring {
-  background:
-    radial-gradient(closest-side, #2a2926 64%, transparent 66%),
-    conic-gradient(#fff calc(var(--p) * 1%), rgb(255 255 255 / 0.25) 0);
-}
-.home-hero.has-cover .home-quick-btn:hover,
-.home-hero.has-cover .btn-ghost:hover {
-  background: rgb(255 255 255 / 0.14);
-  color: #fff;
 }
 
 /* Capa nos Ajustes. */

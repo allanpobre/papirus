@@ -5,7 +5,7 @@ import { openPart } from './areas.ts'
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
 const h1 = (page: Page) => page.locator('main h1').first()
-const fichas = (page: Page) => page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /^Fichas/ })
+const fichas = (page: Page) => page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /\d+ fichas$/ })
 
 test('voltar do aparelho: telas, ficha aberta e lista, sem sair do app', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')

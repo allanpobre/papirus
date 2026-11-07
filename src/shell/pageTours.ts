@@ -28,19 +28,27 @@ export const PAGE_TOURS = {
   inicio: {
     title: 'Início',
     steps: [
-      { target: '.home-chips', title: 'O seu dia', body: 'As palavras escritas hoje (com a meta, se você tiver uma) e quantos dias seguidos você escreveu.' },
-      { target: '.home-quick', title: 'Atalhos', body: `Anotar uma ideia, buscar em tudo (${modKey} K), compartilhar o universo com alguém e pôr uma capa.` },
+      {
+        target: '.home-stats',
+        title: 'O seu dia',
+        body: 'As palavras de hoje, com a meta do dia (ou a que sai do prazo do livro), a semana em bolinhas e os dias seguidos. Se ontem não deu, tudo bem: hoje conta.',
+      },
+      { target: '.home-quick', title: 'Atalhos', body: `Anotar uma ideia, buscar em tudo (${modKey} K), ler o livro como leitor, compartilhar, pôr uma capa, esta ajuda e voltar aos seus universos.` },
       {
         target: '[data-tour="continuar"]',
-        title: 'Onde você parou',
-        body: 'A última cena em que você mexeu, com o fim do texto. Continue, comece uma cena nova ou leia o livro como um leitor, sem spoiler. Numa campanha sem texto, aqui aparece a próxima sessão da mesa.',
+        title: 'O próximo passo',
+        body: 'A cena em que você parou, com a última frase. Continue, faça um sprint de 15 minutos ou comece uma cena nova. Embaixo, outras cenas recentes. Numa campanha, aqui aparece a próxima sessão da mesa.',
       },
-      { target: '.home-challenge', title: 'Treino de hoje', body: 'Uma proposta por dia num sprint com tempo e um mínimo de palavras ou caracteres. Cada tentativa fica guardada, e o texto pode virar uma cena.' },
-      { target: '.home-doors', title: 'O seu mundo', body: 'Cada parte do universo, com quanto já tem nela. Toque para ir até lá.' },
-      { target: '.home-day', title: 'Seu ritmo', body: 'O prazo (se você tiver uma meta com prazo), o calendário de quanto escreveu em cada dia e o seu progresso.' },
-      { target: '.home-tip', title: 'Dica do dia', body: 'Uma dica da Oficina, puxada pelo gênero do seu mundo. “Ver mais” abre a Oficina.', optional: true },
-      { target: '[aria-label="Pede atenção"]', title: 'Pede atenção', body: 'Perguntas de continuidade, ideias esperando, fichas em rascunho, tramas abertas e a próxima sessão da mesa. Toque para resolver.', optional: true },
-      { target: '[aria-label="Mexido por último"]', title: 'Mexido por último', body: 'As cenas e fichas em que você mexeu por último, para voltar rápido.', optional: true },
+      {
+        target: '.next-note, .next-note-add',
+        title: 'Bilhete para amanhã',
+        body: 'Antes de parar, deixe uma linha sobre o que vem depois. Ela aparece aqui e no fim da cena, para amanhã começar sem travar.',
+        optional: true,
+      },
+      { target: '.home-later', title: 'Para quando der', body: 'Até três coisas que pedem um olhar: perguntas da Revisão, ideias esperando e a próxima sessão da mesa. Nada aqui é urgente.', optional: true },
+      { target: '.home-challenge', title: 'Treino de hoje', body: 'Uma proposta por dia num sprint com tempo e um mínimo de palavras. O texto pode virar cena. No pé do cartão, a dica do dia da Oficina.' },
+      { target: '.home-world', title: 'O seu mundo', body: 'Quanto já tem em cada parte do universo, numa linha. Toque num número para ir até lá.', optional: true },
+      { target: '.home-day', title: 'Seu ritmo', body: 'Dobrado para não pesar: o prazo, o calendário de escrita, o nível e as medalhas. Abra quando quiser.', optional: true },
     ],
   },
   escrever: {

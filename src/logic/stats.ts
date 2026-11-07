@@ -6,6 +6,15 @@ import { MentionMatcher } from './detection'
 export const todayKey = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
+/** Dias seguidos escrevendo, terminando hoje (ou ontem, se hoje ainda não teve nada). */
+export function currentStreak(days: { words: number }[]): number {
+  let i = days.length - 1
+  if (i >= 0 && days[i].words === 0) i--
+  let n = 0
+  for (; i >= 0 && days[i].words > 0; i--) n++
+  return n
+}
+
 /** Palavras escritas hoje, a partir do total registrado no início do dia. */
 export function wordsToday(universe: Universe): number {
   const start = universe.dailyStart[todayKey()]

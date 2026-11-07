@@ -1,5 +1,5 @@
 import { Check, Dices, Flame, GraduationCap, History, Play, Timer, Trophy } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { promptOfTheDay } from '../logic/play'
 import { useOficinaProgress } from '../oficina/progress'
@@ -17,7 +17,21 @@ import { syncTreinosNow, useTreinoSync } from './useTreinoSync'
  * a proposta do dia num sprint com tempo e mínimo. Fica no início do app (setor Escrita) e
  * no Início de cada universo; dentro de um universo, o texto pode virar cena.
  */
-export function TreinoCard({ onKeepScene, onAccount, compact = false }: { onKeepScene?: (t: Treino) => void; onAccount?: () => void; compact?: boolean }) {
+export function TreinoCard({
+  onKeepScene,
+  onAccount,
+  compact = false,
+  quiet = false,
+  extra,
+}: {
+  onKeepScene?: (t: Treino) => void
+  onAccount?: () => void
+  compact?: boolean
+  /** Sem botão cheio: no Início, o botão principal é o de continuar a cena. */
+  quiet?: boolean
+  /** O que vem no pé do cartão (no Início, a dica do dia). */
+  extra?: ReactNode
+}) {
   const list = useTreinos()
   const cloud = useTreinoSync()
   const [running, setRunning] = useState<TreinoStart | null>(null)
@@ -62,11 +76,11 @@ export function TreinoCard({ onKeepScene, onAccount, compact = false }: { onKeep
       )}
       <div className="treino-card-actions">
         {trail && (
-          <button type="button" className="btn btn-sm btn-primary" onClick={() => setStep(trail)}>
+          <button type="button" className={`btn btn-sm${quiet ? '' : ' btn-primary'}`} onClick={() => setStep(trail)}>
             <Play size={14} /> Fazer o passo
           </button>
         )}
-        <button type="button" className={`btn btn-sm${best?.done || trail ? (trail ? ' btn-ghost' : '') : ' btn-primary'}`} onClick={() => setRunning({ prompt, daily: true })}>
+        <button type="button" className={`btn btn-sm${best?.done || trail ? (trail ? ' btn-ghost' : '') : quiet ? '' : ' btn-primary'}`} onClick={() => setRunning({ prompt, daily: true })}>
           {trail ? <Dices size={14} /> : <Play size={14} />} {draft ? 'Continuar o treino' : trail ? 'Proposta sorteada' : best ? 'Treinar de novo' : 'Começar o treino'}
         </button>
         <button type="button" className="btn btn-sm btn-ghost" onClick={() => setHistory(true)}>
@@ -76,7 +90,8 @@ export function TreinoCard({ onKeepScene, onAccount, compact = false }: { onKeep
           <Trophy size={14} /> Placar
         </button>
       </div>
-      {!best && <p className="muted tiny">Sprint com tempo e um mínimo de palavras ou caracteres. Cada tentativa fica guardada para refazer depois.</p>}
+      {!best && !quiet && <p className="muted tiny">Sprint com tempo e um mínimo de palavras ou caracteres. Cada tentativa fica guardada para refazer depois.</p>}
+      {extra}
 
       {step && (
         <StepPage

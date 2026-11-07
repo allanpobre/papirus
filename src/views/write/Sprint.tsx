@@ -3,30 +3,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import { playKey, unlockAudio } from '../../editor/keySounds'
 import { countWords } from '../../persistence/repository'
 import { useWorkspace } from '../../state/workspace'
-
-/**
- * Sprint de escrita: X minutos para escrever o quanto der. Continua contando se você
- * sair do Escrever; no fim, um aviso com quantas palavras saíram.
- */
-interface SprintState {
-  universeId: string
-  endsAt: number
-  minutes: number
-  startWords: number
-}
-
-let current: SprintState | null = null
-const listeners = new Set<() => void>()
-const set = (s: SprintState | null) => {
-  current = s
-  for (const l of listeners) l()
-}
-const subscribe = (cb: () => void) => {
-  listeners.add(cb)
-  return () => {
-    listeners.delete(cb)
-  }
-}
+import { setSprint as set, sprintNow, subscribeSprint as subscribe } from './sprintClock'
 
 const OPTIONS = [10, 15, 25] as const
 const mmss = (ms: number) => {
@@ -36,7 +13,7 @@ const mmss = (ms: number) => {
 
 export function SprintButton() {
   const { universe, toast, prefs } = useWorkspace()
-  const sprint = useSyncExternalStore(subscribe, () => current)
+  const sprint = useSyncExternalStore(subscribe, sprintNow)
   const [open, setOpen] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const mine = sprint && sprint.universeId === universe.id ? sprint : null

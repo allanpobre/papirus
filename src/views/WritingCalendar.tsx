@@ -1,19 +1,10 @@
 import { useMemo } from 'react'
 import { deadlinePlan } from '../logic/deadline'
-import { wordsByDay } from '../logic/stats'
+import { currentStreak, wordsByDay } from '../logic/stats'
 import type { Universe } from '../model/schema'
 
 const WEEKS = 16
 const dayFmt = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short' })
-
-/** Dias seguidos escrevendo, terminando hoje (ou ontem, se hoje ainda não teve nada). */
-export function currentStreak(days: { words: number }[]): number {
-  let i = days.length - 1
-  if (i >= 0 && days[i].words === 0) i--
-  let n = 0
-  for (; i >= 0 && days[i].words > 0; i--) n++
-  return n
-}
 
 function bestStreak(days: { words: number }[]): number {
   let best = 0

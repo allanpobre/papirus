@@ -508,5 +508,7 @@ export function ostriaUniverse(): Universe {
       ],
     })
   }
+  // O bilhete para amanhã, deixado no fim da primeira cena.
+  u = { ...u, settings: { ...u.settings, nextNote: { text: 'Kael segue o estranho até a taverna e descobre como ele pagou a viagem.', sceneId: c1.id, at: new Date().toISOString() } } }
   return u
 }
