@@ -65,15 +65,15 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   await expect(page.getByRole('img', { name: 'Imagem de Mira' })).toBeVisible()
   expect(await page.getByRole('img', { name: 'Imagem de Mira' }).evaluate((img: HTMLImageElement) => img.naturalHeight)).toBe(800)
 
-  // Capa do universo, no Início.
+  // Capa do universo, no Início (em miniatura, na faixa do alto).
   await nav(page, 'Início').click()
   await page.locator('.home-quick input[type=file]').setInputFiles(await photo(page, '#1d6b58'))
-  await expect(page.locator('.home-hero.has-cover img.home-hero-cover')).toHaveAttribute('src', /^blob:/)
+  await expect(page.locator('.home-id img.home-thumb')).toHaveAttribute('src', /^blob:/)
 
   // Tudo continua depois de recarregar (as imagens ficam neste navegador).
   await expect(page.getByRole('status').first()).toHaveText('Salvo')
   await page.reload()
-  await expect(page.locator('.home-hero.has-cover img.home-hero-cover')).toHaveAttribute('src', /^blob:/)
+  await expect(page.locator('.home-id img.home-thumb')).toHaveAttribute('src', /^blob:/)
   await page.getByRole('button', { name: 'Seus universos' }).click()
   await expect(page.locator('.hub-continue-cover')).toHaveAttribute('src', /^blob:/)
   await page.getByRole('button', { name: /Ilhas/ }).click()
@@ -96,7 +96,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   const p2 = await other.newPage()
   await p2.goto('/app/')
   await p2.locator('input[type=file][accept*="json"]').first().setInputFiles(file)
-  await expect(p2.locator('.home-hero.has-cover img.home-hero-cover')).toHaveAttribute('src', /^blob:/)
+  await expect(p2.locator('.home-id img.home-thumb')).toHaveAttribute('src', /^blob:/)
   await other.close()
 })
 
