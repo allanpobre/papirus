@@ -1,6 +1,6 @@
 # Papirus
 
-**Versão 1.4.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
+**Versão 1.5.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
 
 Escrita, mesa de RPG e oficina num app só. Para quem escreve histórias, mestra campanhas e constrói mundos.
 
@@ -24,7 +24,11 @@ O app abre num início com três setores. Cada um tem a sua cara (cores, letras 
   - Linha do tempo com calendário próprio e a idade de cada um em cada evento.
   - Atlas sobre a imagem do seu mapa.
 - **Trama:** pistas e mistérios, e quem sabe o quê (cada fato numa frase: se é verdade, quem sabe e se o leitor já viu). Segredos e trechos que o leitor só vê a partir de certa cena.
-- **Livro:** modo leitor com caderno sem spoiler, ouvir em voz alta, importação de .docx e .md, exportação em Word, EPUB e PDF diagramado para imprimir.
+- **Livro:** do manuscrito ao livro em cinco passos, cada um com o que achou: o texto, revisar, o que os leitores disseram, diagramar e baixar.
+  - Um “Baixar” só, sempre do livro: PDF diagramado para imprimir, EPUB, Word e texto.
+  - Revisar em duas partes: a tipografia que o Papirus arruma sozinho e o que vale olhar, cena a cena.
+  - Diagramação em começo, miolo e fim, com a página “Também de” e a capa para gráfica (lombada, capa inteira e molde).
+  - Modo leitor com caderno sem spoiler e ouvir em voz alta. Importação de .docx, .md e .txt.
 - **Revisão:** perguntas de continuidade (alguém em dois lugares no mesmo dia, um morto que reaparece), versões de cada cena e leitores beta com comentários presos ao texto.
 - **Treino de escrita:** o desafio do dia num sprint com tempo e mínimo de palavras ou de caracteres. Cada tentativa fica guardada (e na nuvem, com conta) para refazer depois, com recorde, dias seguidos e um **placar** entre amigos e de todo mundo.
 - **Metas:** meta do dia, meta com prazo, calendário de escrita, nível e medalhas.

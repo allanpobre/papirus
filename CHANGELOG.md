@@ -1,5 +1,54 @@
 # Novidades
 
+## 1.5.0 — 7 de novembro de 2026
+
+**O Livro: do manuscrito ao livro na mão.** A parte de fazer o livro já era forte; o que atrapalhava era o caminho. Agora a página do Livro é um caminho em cinco passos, com um “Baixar” só.
+
+**A página do Livro**
+- **Cinco passos:** o texto, revisar, leitores, diagramar e baixar e publicar.
+  - Cada um diz o que achou e leva aonde resolver. Nada é cobrado.
+  - Exemplo: “13 capítulos · 16.767 palavras”, “Reticências e espaços: o Papirus arruma sozinho · 13 cenas para olhar”.
+- **Três botões:** Diagramar, Ler e Baixar. No “⋯”, o próximo volume com o mesmo estilo e tirar da estante.
+- **Um “Baixar” só, sempre do livro**, com o título, a autoria e as histórias da capa: PDF para imprimir, e-book (EPUB), Word, texto (.md) e capa para gráfica.
+- **Sai o cartão de exportar repetido**, com a “Autoria” solta que ficava vazia.
+  - “Importar” foi para o alto, ao lado de “Novo livro”.
+  - Exportar uma história só continua em Ajustes → Livros.
+- **As explicações** só aparecem com a estante vazia. No celular, com um livro, a capa encolhe e o caminho cabe na tela.
+
+**Revisar por onde começar**
+- **Antes de tudo:** cenas vazias e capítulos sem título.
+- **O Papirus arruma:** travessões, aspas, reticências e espaços, com “Arrumar tudo” e um desfazer só.
+- **Vale olhar:** cena a cena, começando pela que tem mais, com uma barra.
+  - As repetições se juntam por palavra, do jeito que está no texto e com quantas vezes aparece (“homem ×10”); ficam as 8 que mais se repetem.
+  - O olho riscado ignora uma palavra que é tema do livro, com “Desfazer”.
+
+**O que os leitores disseram**
+- Num lugar só, capítulo a capítulo: os comentários de quem lê pelo link de leitura, com o trecho, e as reações de quem lê na estante.
+- Tocar num capítulo abre a cena na Revisão, onde a margem mostra os comentários.
+- Sem conta, ou no exemplo, a janela explica como mandar o link.
+
+**Leitor no celular:** a barra fica numa linha só (fechar, o capítulo, ouvir, como ler e caderno), e o progresso vira um fio embaixo.
+
+**Diagramação**
+- **Na ordem do livro:**
+  - **Começo:** capa, folha de rosto, dedicatória e epígrafe.
+  - **Miolo:** modelo, o que entra, página, texto, capítulos, quebras e cabeçalho.
+  - **Fim:** agradecimentos e sobre a autoria, “Também de” e capa para gráfica.
+- **Uma saída só, “Baixar”:** PDF (imprimir ou salvar), arquivo para imprimir depois, e-book e molde da capa.
+- **“Também de”:** uma página no fim com os outros livros da estante, montada sozinha, no PDF e no e-book. Dá para desligar.
+- **Caracteres por linha:** “Cerca de 57 caracteres por linha: confortável (de 45 a 75)”, segundo Bringhurst.
+- **Capa para gráfica:**
+  - com as páginas e o papel (branco ou creme), mostra a lombada e a capa inteira com sangria;
+  - baixa um molde em SVG, em milímetros, com a sangria, o corte, as dobras da lombada e a área segura;
+  - n'O Alienista, com 68 páginas em papel creme, a lombada fica com 4,3 mm e a capa inteira com 29,1 × 21,6 cm;
+  - a espessura do papel é uma estimativa: a tela avisa para conferir a lombada com a gráfica.
+- **Atalho:** “Capa para gráfica”, no “Baixar” da página do Livro, abre a diagramação direto nessa parte.
+
+**Também**
+- Os tours (?) do Livro, do Revisar e da Diagramação acompanham as mudanças, e a apresentação fala do caminho e da capa para gráfica.
+- Livros antigos abrem sem mudança: os campos novos têm padrão.
+- Não precisa rodar nenhum script novo no servidor.
+
 ## 1.4.0 — 30 de outubro de 2026
 
 Quatro áreas redesenhadas a partir de livros e de outros apps: a escrita, a mesa de RPG, a Oficina e o mundo.
