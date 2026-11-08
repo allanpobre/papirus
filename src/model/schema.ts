@@ -532,6 +532,22 @@ export const universeSettingsSchema = z.object({
   fieldTemplates: z.record(z.string(), z.array(z.string())).default({}),
   /** Listas que cada tipo de ficha sugere ("Raças", "Criaturas" num reino). Sem isso, as do Papirus. */
   listTemplates: z.record(z.string(), z.array(z.string())).optional(),
+  /** Modelos de ficha ("Soldado do Clã"): a ficha nova sai preenchida a partir de um deles. */
+  entityTemplates: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        kind: z.string(),
+        summary: z.string().default(''),
+        description: z.string().default(''),
+        tags: z.array(z.string()).default([]),
+        fields: z.array(entityFieldSchema).default([]),
+        /** As listas em que a ficha nova entra (a dona e a lista). */
+        memberships: z.array(z.object({ ownerId: z.string(), listId: z.string(), role: z.string().optional() })).default([]),
+      }),
+    )
+    .optional(),
   /** Meta com prazo: chegar a tantas palavras (no universo todo) até a data (AAAA-MM-DD). */
   deadline: z.object({ words: z.number().int().positive(), date: z.string() }).nullable().default(null),
   /** Capa do universo ("img:…"): no Início e na lista de universos. */

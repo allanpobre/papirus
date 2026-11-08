@@ -7,6 +7,7 @@ import { useWorkspace } from '../state/workspace'
 import { ENTITY_KINDS } from '../model/schema'
 import { kindLabel } from '../model/labels'
 import { DEFAULT_LIST_TEMPLATES } from '../model/lists'
+import { removeTemplate, renameTemplate, templatesOf } from '../model/entityTemplates'
 
 const ACCENTS: { id: Accent; label: string }[] = [
   { id: 'viridiana', label: 'Viridiana' },
@@ -154,6 +155,34 @@ export function ListTemplatesCard() {
           </label>
         ))}
       </div>
+    </section>
+  )
+}
+
+/** Modelos de ficha: nome e apagar (criar é na própria ficha, em "Usar como modelo"). */
+export function EntityTemplatesCard() {
+  const { universe, update } = useWorkspace()
+  const templates = templatesOf(universe)
+  return (
+    <section className="settings-card">
+      <h2 className="section-title">Modelos de ficha</h2>
+      {templates.length === 0 ? (
+        <p className="muted small">Nenhum ainda. Numa ficha, “Usar como modelo” guarda o jeito dela (campos, etiquetas, listas) para criar outras iguais.</p>
+      ) : (
+        <ul className="plain-list template-list">
+          {templates.map((t) => (
+            <li key={t.id} className="inline-fields">
+              <input className="input input-sm" aria-label={`Nome do modelo ${t.name}`} value={t.name} onChange={(e) => update((u) => renameTemplate(u, t.id, e.target.value))} />
+              <span className="muted small">
+                {kindLabel(t.kind)} · {t.fields.length} {t.fields.length === 1 ? 'campo' : 'campos'}
+              </span>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => update((u) => removeTemplate(u, t.id))}>
+                Apagar
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

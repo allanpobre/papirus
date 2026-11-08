@@ -24,7 +24,7 @@ import { playKey, unlockAudio } from '../editor/keySounds'
 import { WikiCard } from './WikiCard'
 import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
-import { AccentPicker, AccountCard, FieldTemplatesCard, ListTemplatesCard } from './SettingsParts'
+import { AccentPicker, AccountCard, EntityTemplatesCard, FieldTemplatesCard, ListTemplatesCard } from './SettingsParts'
 import { categoryFrom, matches, SETTINGS_CATEGORIES, SETTINGS_GROUPS, type SettingsCategory } from './settingsCategories'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useBackLayer } from '../ui/useBackLayer'
@@ -538,6 +538,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 {show('universo') && <FieldTemplatesCard />}
 
 {show('universo') && <ListTemplatesCard />}
+
+{show('universo') && <EntityTemplatesCard />}
 
 {show('universo') && (
         <section className="settings-card">

@@ -1,5 +1,5 @@
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, BookOpen, Check, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, Check, Copy, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
@@ -43,12 +43,15 @@ import { openBookReplace } from './write/replaceEvents'
 import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
 import { InheritedRows, ListsSection, MembershipChips } from './EntityLists'
 import { SelectionBar } from './EntitySelection'
+import { EntityTable } from './EntityTable'
+import { createFromTemplate, saveAsTemplate, templatesOf } from '../model/entityTemplates'
+import { MoreMenu } from '../ui/MoreMenu'
 import { PLACE_KINDS } from '../model/lists'
 import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
 export default function EntitiesView() {
-  const { universe, update, nav, go, readOnly } = useWorkspace()
+  const { universe, update, nav, go, readOnly, peek } = useWorkspace()
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<'ler' | 'editar'>(() => (!readOnly && recall('ficha-modo') === 'editar' ? 'editar' : 'ler'))
   // A ficha que acabou de nascer aqui abre para editar.
@@ -68,6 +71,26 @@ export default function EntitiesView() {
   const [creating, setCreating] = useState<null | 'uma' | 'varias'>(null)
   // Selecionar várias: pôr numa lista, etiqueta, tipo ou apagar de uma vez.
   const [picked, setPicked] = useState<Set<string> | null>(null)
+  // Lista ou tabela (no computador): a tabela mostra as fichas lado a lado, com os campos em colunas.
+  const [layout, setLayout] = useState<'lista' | 'tabela'>(() => (recall('mundo-vista') === 'tabela' ? 'tabela' : 'lista'))
+  const changeLayout = (l: 'lista' | 'tabela') => {
+    setLayout(l)
+    remember('mundo-vista', l)
+    setPicked(null)
+  }
+  const table = layout === 'tabela' && !phone
+  const templates = templatesOf(universe)
+  const fromTemplate = (t: (typeof templates)[number]) => {
+    let id = ''
+    update((u) => {
+      const [next, ent] = createFromTemplate(u, t, newName.trim())
+      id = ent.id
+      return next
+    })
+    setNewName('')
+    setFresh(id)
+    go('fichas', id)
+  }
   const togglePick = (id: string) => setPicked((p) => (p ? (p.has(id) ? new Set([...p].filter((x) => x !== id)) : new Set([...p, id])) : p))
   type Order = 'nome' | 'cenas' | 'recentes'
   const [order, setOrder] = useState<Order>(() => {
@@ -133,7 +156,7 @@ export default function EntitiesView() {
   }
 
   return (
-    <div className={`view split fichas-view${selected ? ' has-detail' : ''}`}>
+    <div className={`view split fichas-view${selected ? ' has-detail' : ''}${table ? ' is-table' : ''}`}>
       <AreaHead current="fichas" tour="fichas" />
       <section className="split-list" aria-label="Lista de fichas">
         {/* No celular, a lista vem primeiro: criar fica no botão redondo. */}
@@ -151,6 +174,28 @@ export default function EntitiesView() {
               <button type="button" className="btn btn-ghost" aria-label="Criar várias de uma vez" title="Criar várias de uma vez (colar uma lista de nomes)" onClick={() => setCreating('varias')}>
                 <ListPlus size={16} />
               </button>
+              {templates.length > 0 && (
+                <MoreMenu label="Criar a partir de um modelo" buttonClass="btn btn-ghost" button={<Stamp size={16} aria-label="Criar a partir de um modelo" />}>
+                  {(close) => (
+                    <>
+                      <span className="more-menu-label">Nova ficha a partir de</span>
+                      {templates.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          className="more-menu-item"
+                          onClick={() => {
+                            close()
+                            fromTemplate(t)
+                          }}
+                        >
+                          <Copy size={15} /> {t.name}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </MoreMenu>
+              )}
             </form>
             <NameIdeas kind={newKind} onPick={setNewName} />
           </>
@@ -165,11 +210,6 @@ export default function EntitiesView() {
               options={[{ value: 'todos', label: `Todas (${universe.entities.length})` }, ...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
             />
           )}
-          {!readOnly && (
-            <button type="button" className="btn btn-ghost btn-sm" aria-pressed={picked !== null} onClick={() => setPicked(picked ? null : new Set())}>
-              {picked ? 'Pronto' : 'Selecionar'}
-            </button>
-          )}
           <Select<Order>
             label="Ordem da lista"
             value={order}
@@ -180,6 +220,23 @@ export default function EntitiesView() {
               { value: 'recentes', label: phone ? 'Recentes' : 'Mexidas por último' },
             ]}
           />
+        </div>
+        <div className="list-modes">
+          {!phone && (
+            <div className="segmented" role="radiogroup" aria-label="Vista do Mundo">
+              <button type="button" role="radio" aria-checked={!table} onClick={() => changeLayout('lista')}>
+                Lista
+              </button>
+              <button type="button" role="radio" aria-checked={table} onClick={() => changeLayout('tabela')}>
+                Tabela
+              </button>
+            </div>
+          )}
+          {!readOnly && !table && (
+            <button type="button" className="btn btn-ghost btn-sm" aria-pressed={picked !== null} onClick={() => setPicked(picked ? null : new Set())}>
+              {picked ? 'Pronto' : 'Selecionar'}
+            </button>
+          )}
         </div>
         {!phone && <div className="filter-chips" role="radiogroup" aria-label="Tipo">
           <button type="button" role="radio" aria-checked={kind === 'todos'} className="chip" onClick={() => setKind('todos')}>
@@ -269,8 +326,10 @@ export default function EntitiesView() {
         )}
       </section>
 
-      <section className="split-detail" aria-label="Ficha">
-        {selected ? (
+      <section className="split-detail" aria-label={table ? 'Tabela de fichas' : 'Ficha'}>
+        {table ? (
+          <EntityTable rows={list} kind={kind} counts={counts} onOpen={(id) => peek(id)} />
+        ) : selected ? (
           (fresh === selected.id ? 'editar' : mode) === 'ler' || readOnly ? (
             <EntityReader
               key={selected.id}
@@ -674,6 +733,17 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           </button>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => peek(e.id)}>
             Espiar
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            title="Fichas novas podem sair preenchidas como esta (campos, etiquetas, listas)"
+            onClick={() => {
+              update((u) => saveAsTemplate(u, e)[0])
+              toast(`“${e.name || 'Sem nome'}” virou modelo. Use no “+” do Mundo.`)
+            }}
+          >
+            <Stamp size={14} /> Usar como modelo
           </button>
         </aside>
       </div>

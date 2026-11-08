@@ -8401,3 +8401,159 @@ h3.cork-act {
     left: max(8px, env(safe-area-inset-left, 0px));
   }
 }
+
+/* ---------------------------------------------------------------- Mundo em tabela */
+
+.fichas-view.is-table .entity-list {
+  display: none;
+}
+
+.entity-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.entity-table-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.entity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: var(--surface);
+}
+
+.entity-table th,
+.entity-table td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.entity-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  background: var(--surface-2);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.table-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.table-sort:hover {
+  color: var(--ink);
+}
+
+.entity-table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table-name {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.table-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.table-cell {
+  display: block;
+  width: 100%;
+  min-height: 1.6rem;
+  padding: 0.1rem 0.2rem;
+  margin: -0.1rem -0.2rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.table-cell:hover,
+.table-cell:focus-visible {
+  border-color: var(--line);
+  background: var(--paper);
+}
+
+.table-from {
+  margin-left: 0.35rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.entity-table td.is-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.entity-table td.is-editing {
+  padding: 0.15rem 0.3rem;
+}
+
+.table-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 60vh;
+  padding: 0.4rem 0.6rem;
+  overflow-y: auto;
+}
+
+.more-menu-label {
+  padding: 0.3rem 0.6rem 0.2rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Na coluna da lista, o menu de modelos abre para dentro (não por baixo do menu lateral). */
+.quick-create .more-menu-pop {
+  right: auto;
+  left: 0;
+}
+
+.list-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.list-modes:empty {
+  display: none;
+}
