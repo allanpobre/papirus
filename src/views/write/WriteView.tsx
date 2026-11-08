@@ -1,6 +1,7 @@
 import type { Editor } from '@tiptap/react'
 import { useBackLayer } from '../../ui/useBackLayer'
 import {
+  ArrowRight,
   BookOpen,
   Download,
   Feather,
@@ -11,17 +12,17 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  Plus,
   SlidersHorizontal,
   Trash2,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { SceneEditor, type SelectionInfo } from '../../editor/SceneEditor'
 import { ageIn, ageLabel } from '../../logic/age'
 import { SprintButton } from './Sprint'
 import { downloadText, fileNameFor } from '../../export/download'
 import { sceneToMarkdown } from '../../export/markdown'
 import { continuityQuestions, isOpen } from '../../logic/continuity'
-import { deadlinePlan } from '../../logic/deadline'
 import { findCandidates, MentionMatcher } from '../../logic/detection'
 import { dayToMonth, formatDate, monthToDay, type Months } from '../../logic/calendar'
 import { isDialogue } from '../../logic/doc'
@@ -31,6 +32,7 @@ import { KIND_LABEL, SCENE_STATUS_LABEL } from '../../model/labels'
 import { ENTITY_KINDS, SCENE_STATUSES, type Scene, type SceneStatus } from '../../model/schema'
 import {
   addScene,
+  addSceneAfter,
   autoVersion,
   byId,
   draftEntity,
@@ -64,7 +66,8 @@ import { VersionsDialog } from './VersionsDialog'
 import { PageHelp } from '../../ui/PageTour'
 import { SceneReview } from './SceneReview'
 import { NextNote } from '../NextNote'
-import { nextNoteOf } from '../../logic/homeToday'
+import { nextNoteOf, todayTarget } from '../../logic/homeToday'
+import { TextMenu } from './TextMenu'
 import { SceneFrame, saveMode, savedMode, WritingModes, type WritingMode } from './WritingModes'
 
 type Dialog =
@@ -200,6 +203,20 @@ export default function WriteView() {
     setResume(false)
   }
 
+  /** "Nova cena depois desta": entra logo depois, na mesma história, com o título pronto para trocar. */
+  const newSceneAfter = (afterId: string) => {
+    let created: Scene | undefined
+    update((u) => {
+      const [next, s] = addSceneAfter(u, afterId)
+      created = s
+      return next
+    })
+    if (!created) return
+    select(created.id)
+    // Depois do editor (que leva o cursor ao fim do texto ao abrir a cena), o título fica selecionado para trocar.
+    setTimeout(() => (document.getElementById('scene-title') as HTMLTextAreaElement | null)?.select(), 120)
+  }
+
   const newLooseScene = () => {
     let created: Scene | undefined
     update((u) => {
@@ -299,13 +316,14 @@ export default function WriteView() {
 
   const words = wordCount(scene.text)
   const today = wordsToday(universe)
-  // Com meta do livro, a meta de hoje é o que o prazo pede (se for mais que a meta diária).
-  const plan = deadlinePlan(universe)
-  const goal = Math.max(universe.settings.dailyWordGoal, plan?.perDay ?? 0)
+  // A mesma meta de hoje do Início: a diária, ou a que sai do prazo do livro.
+  const goal = todayTarget(universe).target
   const set = (changes: Parameters<typeof updateScene>[2]) => update((u) => updateScene(u, scene.id, changes))
   const siblings = order.filter((x) => x.storyId === scene.storyId)
   const at = siblings.findIndex((x) => x.id === scene.id)
   const [prev, next] = [siblings[at - 1], siblings[at + 1]]
+  const story = scene.storyId ? byId(universe, 'stories', scene.storyId) : undefined
+  const storyName = story ? story.title || 'Sem título' : 'Cenas soltas'
 
   return (
     <div className={`view write is-${mode}${treeOpen && !treeOverlay ? '' : ' tree-closed'}${marginVisible ? '' : ' margin-closed'}${focus ? ' is-focus' : ''}`}>
@@ -333,12 +351,21 @@ export default function WriteView() {
           </button>
           <WritingModes current={mode} onPick={setMode} />
           <div className="write-bar-meta">
-            <span className={`status-dot status-${scene.status}`} aria-hidden="true" />
-            <span className="muted small">{SCENE_STATUS_LABEL[scene.status]}</span>
-            {scene.date && <span className="muted small">· {formatDate(universe, scene.date)}</span>}
+            {/* Onde esta cena está no livro; um toque abre a lista de cenas. */}
+            <button type="button" className="write-pos" title="Ver a lista de cenas" aria-expanded={treeOpen} onClick={() => setTreeOpen(!treeOpen)}>
+              <span className="write-pos-story">{storyName}</span>
+              <span className="write-pos-at">
+                {' '}
+                · cena {at + 1} de {siblings.length}
+              </span>
+            </button>
+            <span className={`status-dot status-${scene.status}`} title={SCENE_STATUS_LABEL[scene.status]} aria-hidden="true" />
+            <span className="muted small write-bar-status">{SCENE_STATUS_LABEL[scene.status]}</span>
+            {scene.date && <span className="muted small write-bar-date">· {formatDate(universe, scene.date)}</span>}
           </div>
           <div className="write-bar-actions">
             <PageHelp tour="escrever" />
+            <TextMenu phone={phone} />
             <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
               <SlidersHorizontal size={15} /> Detalhes da cena
             </button>
@@ -420,6 +447,12 @@ export default function WriteView() {
             style={{ ['--editor-size' as string]: `${prefs.editorSize}px` }}
             onInput={resume ? () => setResume(false) : undefined}
           >
+            {/* No celular a barra não tem lugar: a posição fica em cima do título. */}
+            {phone && !focus && (
+              <button type="button" className="page-pos" onClick={() => setTreeOpen(true)}>
+                {storyName} · cena {at + 1} de {siblings.length}
+              </button>
+            )}
             <label htmlFor="scene-title" className="sr-only">
               Título da cena
             </label>
@@ -494,12 +527,14 @@ export default function WriteView() {
                   <EntityPicker label="Local" kinds={['lugar', 'reino']} value={scene.placeId} onChange={(v) => set({ placeId: v })} />
                   <div className="field">
                     <span className="field-label">Data narrativa</span>
-                    <div className="inline-fields">
-                      <YearInput
-                        label="Ano"
-                        value={scene.date?.year ?? null}
-                        onChange={(y) => set({ date: y === null ? null : { year: y, day: scene.date?.day ?? null } })}
-                      />
+                    <div className="inline-fields date-parts">
+                      <DatePart label="Ano">
+                        <YearInput
+                          label="Ano"
+                          value={scene.date?.year ?? null}
+                          onChange={(y) => set({ date: y === null ? null : { year: y, day: scene.date?.day ?? null } })}
+                        />
+                      </DatePart>
                       {universe.settings.calendarMonths.length > 0 && scene.date ? (
                         <MonthDayInput
                           months={universe.settings.calendarMonths}
@@ -507,12 +542,14 @@ export default function WriteView() {
                           onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
                         />
                       ) : (
-                        <YearInput
-                          label="Dia"
-                          placeholder="Dia"
-                          value={scene.date?.day ?? null}
-                          onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
-                        />
+                        <DatePart label="Dia do ano">
+                          <YearInput
+                            label="Dia do ano"
+                            placeholder="Dia"
+                            value={scene.date?.day ?? null}
+                            onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
+                          />
+                        </DatePart>
                       )}
                     </div>
                   </div>
@@ -562,6 +599,22 @@ export default function WriteView() {
               keySound={prefs.keySound}
             />
             {scene.text.trim() && !focus && <NextNote sceneId={scene.id} place="pagina" />}
+            {scene.text.trim() && !focus && (
+              <nav className="scene-end" aria-label="Depois desta cena">
+                {next && (
+                  <button type="button" className="scene-end-next" onClick={() => select(next.id)}>
+                    <span className="scene-end-kick">Próxima cena</span>
+                    <span className="scene-end-title">{next.title || 'Sem título'}</span>
+                    <ArrowRight size={17} aria-hidden="true" />
+                  </button>
+                )}
+                {!ws.readOnly && (
+                  <button type="button" className="btn btn-ghost btn-sm scene-end-new" onClick={() => newSceneAfter(scene.id)}>
+                    <Plus size={14} aria-hidden="true" /> Nova cena depois desta
+                  </button>
+                )}
+              </nav>
+            )}
           </article>
         </div>
 
@@ -761,19 +814,33 @@ function MonthDayInput({ months, day, onChange }: { months: Months; day: number 
   const md = day === null ? null : dayToMonth(months, day)
   return (
     <>
-      <YearInput
-        label="Dia do mês"
-        placeholder="Dia"
-        value={md?.dayOfMonth ?? null}
-        onChange={(d) => onChange(d === null ? null : monthToDay(months, md?.month ?? 0, Math.max(1, Math.min(d, months[md?.month ?? 0].days))))}
-      />
-      <Select
-        label="Mês"
-        value={String(md?.month ?? '')}
-        onChange={(m) => onChange(m === '' ? null : monthToDay(months, Number(m), Math.min(md?.dayOfMonth ?? 1, months[Number(m)].days)))}
-        options={[{ value: '', label: 'Mês…' }, ...months.map((m, i) => ({ value: String(i), label: m.name }))]}
-      />
+      <DatePart label="Dia">
+        <YearInput
+          label="Dia do mês"
+          placeholder="Dia"
+          value={md?.dayOfMonth ?? null}
+          onChange={(d) => onChange(d === null ? null : monthToDay(months, md?.month ?? 0, Math.max(1, Math.min(d, months[md?.month ?? 0].days))))}
+        />
+      </DatePart>
+      <DatePart label="Mês">
+        <Select
+          label="Mês"
+          value={String(md?.month ?? '')}
+          onChange={(m) => onChange(m === '' ? null : monthToDay(months, Number(m), Math.min(md?.dayOfMonth ?? 1, months[Number(m)].days)))}
+          options={[{ value: '', label: 'Mês…' }, ...months.map((m, i) => ({ value: String(i), label: m.name }))]}
+        />
+      </DatePart>
     </>
+  )
+}
+
+/** Um pedaço da data com o nome à vista (antes era só a dica dentro do campo, que some ao digitar). */
+function DatePart({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="date-part">
+      <span className="date-part-label">{label}</span>
+      {children}
+    </label>
   )
 }
 

@@ -16,7 +16,7 @@ import type { SnapshotInfo } from '../persistence/repository'
 import { isStoragePersisted, requestPersistentStorage, storageEstimate } from '../persistence/storage'
 import { recall, remember, type Prefs } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
-import { Field, Kbd, Select, YearInput } from '../ui/bits'
+import { Field, Kbd, Select, Toggle, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { NAV, TOOLS } from '../shell/nav'
 import { daysInYear } from '../logic/calendar'
@@ -574,16 +574,6 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
       </div>
       </div>
     </div>
-  )
-}
-
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="toggle">
-      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="toggle-track" aria-hidden="true" />
-      <span>{label}</span>
-    </label>
   )
 }
 
