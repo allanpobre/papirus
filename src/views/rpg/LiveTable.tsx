@@ -97,7 +97,7 @@ export function InvitePanel({ group, compact = false }: { group: Group; compact?
     return (
       <div className="invite">
         <p className="small">Os jogadores entram por um link no celular, sem conta. Para isso, o Papirus precisa de um servidor (Supabase, plano grátis), configurado uma vez.</p>
-        <button type="button" className="btn btn-sm" onClick={() => go('config', 'conta')}>
+        <button type="button" className="btn btn-sm" onClick={() => go('config', 'servidor')}>
           <Settings size={14} /> Configurar o servidor
         </button>
       </div>

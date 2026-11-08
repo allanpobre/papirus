@@ -32,6 +32,24 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
     return () => previous?.focus?.()
   }, [])
 
+  // Se o botão com o foco some (ex.: "Criar o link" vira o link), o foco cai na página e o Esc
+  // não chegaria à janela: a janela de cima fecha mesmo assim.
+  const closeRef = useRef(onClose)
+  useEffect(() => {
+    closeRef.current = onClose
+  })
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      const active = document.activeElement
+      if (active && active !== document.body && active !== document.documentElement) return
+      const overlays = document.querySelectorAll('.overlay')
+      if (overlays[overlays.length - 1] === ref.current?.parentElement) closeRef.current()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
     <div
       className={side ? 'overlay overlay-side' : 'overlay'}

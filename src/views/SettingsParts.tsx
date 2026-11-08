@@ -63,6 +63,20 @@ export function AccountCard() {
   )
 }
 
+/** Um exemplo de campos para cada tipo de ficha (o placeholder do campo). */
+const FIELD_EXAMPLES: Record<string, string> = {
+  personagem: 'Ex.: Idade, Objetivo, Medo',
+  lugar: 'Ex.: Clima, Quem manda, Perigo',
+  faccao: 'Ex.: Líder, Objetivo, Inimigos',
+  cultura: 'Ex.: Costumes, Comida, Festas',
+  religiao: 'Ex.: Deuses, Ritos, Proibições',
+  magia: 'Ex.: Fonte, Custo, Limites',
+  artefato: 'Ex.: Origem, Poder, Dono',
+  especie: 'Ex.: Aparência, Habitat, Quanto vive',
+  reino: 'Ex.: Governo, Capital, Moeda',
+  conceito: 'Ex.: O que é, Quem sabe, Um exemplo',
+}
+
 /** Campos sugeridos por tipo de ficha: toda ficha nova do tipo já nasce com eles. */
 export function FieldTemplatesCard() {
   const { universe, update } = useWorkspace()
@@ -87,7 +101,7 @@ export function FieldTemplatesCard() {
         {kinds.map((k) => (
           <label key={k} className="field-template-row">
             <span className="field-label">{kindLabel(k)}</span>
-            <FieldTemplateInput value={(templates[k] ?? []).join(', ')} onCommit={(v) => setKind(k, v)} placeholder="Ex.: Idade, Objetivo, Medo" />
+            <FieldTemplateInput value={(templates[k] ?? []).join(', ')} onCommit={(v) => setKind(k, v)} placeholder={FIELD_EXAMPLES[k] ?? 'Ex.: Origem, Detalhe, Segredo'} />
           </label>
         ))}
       </div>

@@ -2,10 +2,8 @@ import { CAMPAIGN_HIDDEN } from '../model/kind'
 import { todayKey } from '../logic/stats'
 import { InstallButton } from '../ui/InstallButton'
 import { HistoryCard, TrashCard } from './HistoryCards'
-import { Camera, Compass, Search, Download, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
+import { BookOpen, Camera, ChevronLeft, ChevronRight, Compass, Search, FileJson, FileUp, FolderOpen, GitBranch, HardDrive, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { downloadText, fileNameFor } from '../export/download'
-import { universeToMarkdown } from '../export/markdown'
 import type { QuestionType } from '../logic/continuity'
 import { migrate } from '../model/migrations'
 import { restoreEmbeddedImages } from '../images/backup'
@@ -27,7 +25,10 @@ import { WikiCard } from './WikiCard'
 import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
-import { matches, SETTINGS_CATEGORIES, type SettingsCategory } from './settingsCategories'
+import { categoryFrom, matches, SETTINGS_CATEGORIES, SETTINGS_GROUPS, type SettingsCategory } from './settingsCategories'
+import { useMediaQuery } from '../ui/useMediaQuery'
+import { useBackLayer } from '../ui/useBackLayer'
+import { isConfigured } from '../share/server'
 import { PageHelp } from '../ui/PageTour'
 
 const QUESTION_LABEL: Record<QuestionType, string> = {
@@ -52,16 +53,20 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
   const [storage, setStorage] = useState<{ persisted: boolean; usage: number; quota: number } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const settings = universe.settings
-  const [cat, setCat] = useState<SettingsCategory>(() => {
-    const wanted = (ws.nav.id ?? recall('ajustes-aba')) as SettingsCategory | null
-    return SETTINGS_CATEGORIES.some((c) => c.id === wanted) ? wanted! : 'aparencia'
-  })
+  const [cat, setCat] = useState<SettingsCategory>(() => categoryFrom(ws.nav.id) ?? categoryFrom(recall('ajustes-aba')) ?? 'universo')
   const [query, setQuery] = useState('')
+  // No celular, os Ajustes são uma lista: um toque abre a categoria, e o "voltar" volta para a lista.
+  const phone = useMediaQuery('(max-width: 760px)')
+  const [panelOpen, setPanelOpen] = useState(() => Boolean(categoryFrom(ws.nav.id)))
+  useBackLayer(() => setPanelOpen(false), phone && panelOpen && !query)
   const choose = (c: SettingsCategory) => {
     setCat(c)
     setQuery('')
+    setPanelOpen(true)
     remember('ajustes-aba', c)
   }
+  const current = SETTINGS_CATEGORIES.find((c) => c.id === cat)!
+  const listOnPhone = phone && !panelOpen && !query
   const show = (id: SettingsCategory) => (query ? matches(SETTINGS_CATEGORIES.find((c) => c.id === id)!, query) : cat === id)
 
   const reloadSnapshots = () => void repo.listSnapshots().then(setSnapshots)
@@ -105,7 +110,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         <PageHelp tour="config" />
       </header>
 
-      <div className="settings-layout">
+      <div className={`settings-layout${listOnPhone ? ' is-list' : ' is-panel'}`}>
         <nav className="settings-nav" aria-label="Categorias dos ajustes">
           <div className="settings-search">
             <Search size={15} aria-hidden="true" />
@@ -114,24 +119,76 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             </label>
             <input id="ajustes-busca" className="input input-sm" type="search" placeholder="Procurar: tema, backup…" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
-          <ul>
-            {SETTINGS_CATEGORIES.map((c) => (
-              <li key={c.id}>
-                <button type="button" className="settings-nav-item" aria-current={!query && cat === c.id ? 'page' : undefined} onClick={() => choose(c.id)}>
-                  <c.icon size={16} aria-hidden="true" />
-                  <span>{c.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          {SETTINGS_GROUPS.map((g) => {
+            const items = (
+              <ul>
+                {SETTINGS_CATEGORIES.filter((c) => c.group === g.id).map((c) => (
+                  <li key={c.id}>
+                    <button type="button" className="settings-nav-item" aria-current={!query && cat === c.id && !listOnPhone ? 'page' : undefined} onClick={() => choose(c.id)}>
+                      <c.icon size={16} aria-hidden="true" />
+                      <span>{c.label}</span>
+                      <ChevronRight size={16} className="settings-nav-go" aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
+            // O avançado (servidor próprio) fica fechado: quem usa o Papirus publicado nunca precisa abrir.
+            if (g.id === 'avancado')
+              return (
+                <details key={g.id} className="settings-group settings-advanced" open={cat === 'servidor' || isConfigured(prefs.server) || undefined}>
+                  <summary className="settings-group-label">{g.label}</summary>
+                  {items}
+                </details>
+              )
+            return (
+              <div key={g.id} className="settings-group" role="group" aria-labelledby={`grupo-${g.id}`}>
+                <h2 id={`grupo-${g.id}`} className="settings-group-label">
+                  {g.label}
+                </h2>
+                {items}
+              </div>
+            )
+          })}
         </nav>
 
       <div className="settings-grid">
+        {!query && (
+          <header className="settings-panel-head">
+            {phone && (
+              <button type="button" className="btn btn-ghost btn-sm settings-back" onClick={() => setPanelOpen(false)}>
+                <ChevronLeft size={16} aria-hidden="true" /> Ajustes
+              </button>
+            )}
+            <h2 className="settings-panel-title">{current.label}</h2>
+            <p className="settings-scope">{current.scope}</p>
+          </header>
+        )}
         {query && !SETTINGS_CATEGORIES.some((c) => matches(c, query)) && <p className="muted">Nada encontrado para “{query}”.</p>}
         {query && <p className="muted small settings-found">Mostrando: {SETTINGS_CATEGORIES.filter((c) => matches(c, query)).map((c) => c.label).join(', ')}</p>}
 {show('universo') && (
         <section className="settings-card">
           <h2 className="section-title">Universo</h2>
+          <p className="field-label" id="tipo-universo">
+            Este universo é
+          </p>
+          <div className="segmented" role="radiogroup" aria-labelledby="tipo-universo">
+            {(
+              [
+                ['escrita', 'Escrita'],
+                ['campanha', 'Campanha de RPG'],
+              ] as const
+            ).map(([k, label]) => (
+              <button key={k} type="button" role="radio" aria-checked={ws.kind === k} onClick={() => setSetting('kind', k)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="muted small">
+            {ws.kind === 'campanha'
+              ? 'Fica no setor RPG do início e abre na mesa. O menu mostra o que serve para o mestre.'
+              : 'Fica no setor Escrita do início e abre no Início do universo.'}
+          </p>
           <div className="form-grid">
             <Field label="Nome" wide>
               {(id) => <input id={id} className="input" value={universe.name} onChange={(e) => update((u) => ({ ...u, name: e.target.value }))} />}
@@ -193,27 +250,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
 {show('menu') && (
         <section className="settings-card">
-          <h2 className="section-title">Tipo e menu</h2>
-          <p className="muted small" id="tipo-universo">
-            Este universo é
-          </p>
-          <div className="segmented" role="radiogroup" aria-labelledby="tipo-universo">
-            {(
-              [
-                ['escrita', 'Escrita'],
-                ['campanha', 'Campanha de RPG'],
-              ] as const
-            ).map(([k, label]) => (
-              <button key={k} type="button" role="radio" aria-checked={ws.kind === k} onClick={() => setSetting('kind', k)}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <p className="muted small">
-            {ws.kind === 'campanha'
-              ? 'Fica no setor RPG do início e abre na mesa. O menu mostra o que serve para o mestre.'
-              : 'Fica no setor Escrita do início e abre no Início do universo.'}
-          </p>
+          <h2 className="section-title">Menu</h2>
           <p className="muted small">Esconda o que você não usa (vale para todos os universos deste tipo). Tudo continua acessível pela busca, e nada é apagado.</p>
           <div className="area-toggles">
             {[...NAV.flatMap((g) => g.items.filter((item) => !item.inside)), ...TOOLS].map((item) => (
@@ -345,21 +382,6 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           {(Object.keys(QUESTION_LABEL) as QuestionType[]).map((t) => (
             <Toggle key={t} label={QUESTION_LABEL[t]} checked={prefs.continuity[t]} onChange={(v) => setPref('continuity', { ...prefs.continuity, [t]: v })} />
           ))}
-          <h3 className="section-label">Nomes ignorados pela descoberta</h3>
-          {settings.ignoredNames.length === 0 ? (
-            <p className="muted small">Nenhum.</p>
-          ) : (
-            <div className="chips">
-              {settings.ignoredNames.map((n) => (
-                <span key={n} className="chip">
-                  {n}
-                  <button type="button" className="chip-x" aria-label={`Voltar a sugerir ${n}`} onClick={() => setSetting('ignoredNames', settings.ignoredNames.filter((x) => x !== n))}>
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
         </section>
         )}
 
@@ -370,7 +392,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         {show('livros') && <WikiCard />}
 
         {show('conta') && <AccountCard />}
-        {show('conta') && <ServerCard />}
+        {show('servidor') && <ServerCard />}
 
 {show('dados') && (
         <section className="settings-card settings-data">
@@ -382,8 +404,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             <button type="button" className="btn btn-primary" onClick={backup}>
               <FileJson size={16} /> Baixar backup completo (.json)
             </button>
-            <button type="button" className="btn btn-ghost" onClick={() => downloadText(fileNameFor(universe.name, 'md'), universeToMarkdown(universe))}>
-              <Download size={16} /> Exportar manuscrito (.md)
+            <button type="button" className="btn btn-ghost" onClick={() => ws.go('livro')}>
+              <BookOpen size={16} /> Baixar o livro (Word, EPUB, PDF) no Livro
             </button>
           </div>
           <div className="import-row">
@@ -516,6 +538,27 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
 {show('universo') && (
         <section className="settings-card">
+          <h2 className="section-title">Nomes que a descoberta não sugere</h2>
+          <p className="muted small">Palavras que você marcou como “não é nome” na Revisão.</p>
+          {settings.ignoredNames.length === 0 ? (
+            <p className="muted small">Nenhum.</p>
+          ) : (
+            <div className="chips">
+              {settings.ignoredNames.map((n) => (
+                <span key={n} className="chip">
+                  {n}
+                  <button type="button" className="chip-x" aria-label={`Voltar a sugerir ${n}`} onClick={() => setSetting('ignoredNames', settings.ignoredNames.filter((x) => x !== n))}>
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+        )}
+
+{show('universo') && (
+        <section className="settings-card">
           <h2 className="section-title">E se…?</h2>
           <p className="muted small">
             Crie uma cópia isolada do universo para explorar uma realidade alternativa. O universo principal não muda.
@@ -545,6 +588,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <dl className="shortcuts">
             <div><dt><Kbd>{modKey}</Kbd> <Kbd>K</Kbd></dt><dd>Buscar em tudo</dd></div>
             <div><dt><Kbd>{modKey}</Kbd> <Kbd>Shift</Kbd> <Kbd>I</Kbd></dt><dd>Anotar uma ideia</dd></div>
+            <div><dt><Kbd>{modKey}</Kbd> <Kbd>F</Kbd></dt><dd>Procurar e trocar na cena (e no livro todo)</dd></div>
             <div><dt><Kbd>{modKey}</Kbd> <Kbd>Shift</Kbd> <Kbd>F</Kbd></dt><dd>Modo foco</dd></div>
             <div><dt><Kbd>{modKey}</Kbd> + clique</dt><dd>Espiar a ficha de um nome no texto</dd></div>
             <div><dt><Kbd>---</Kbd></dt><dd>Separador de cena</dd></div>
@@ -553,9 +597,10 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         </section>
         )}
 
-{show('perigo') && (
+{show('universo') && (
         <section className="settings-card settings-danger">
-          <h2 className="section-title">Zona de perigo</h2>
+          <h2 className="section-title">Apagar este universo</h2>
+          <p className="muted small">Apaga o universo e os snapshots deste navegador. Baixe um backup antes, se quiser guardar.</p>
           <ConfirmButton
             className="btn btn-danger"
             question="Apagar este universo e seus snapshots deste navegador? Baixe um backup antes."
@@ -567,7 +612,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               ws.closeUniverse()
             }}
           >
-            <Trash2 size={16} /> Apagar este universo
+            <Trash2 size={16} /> Apagar este universo…
           </ConfirmButton>
         </section>
         )}

@@ -7852,3 +7852,122 @@ h3.cork-act {
   font-size: 0.78rem;
   white-space: nowrap;
 }
+
+/* Ajustes em três grupos: este universo, este aparelho, sua conta (e o avançado, fechado). */
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.settings-group-label {
+  margin: 0.4rem 0 0.1rem;
+  padding: 0 0.65rem;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.settings-advanced > summary {
+  cursor: pointer;
+  list-style: revert;
+}
+
+.settings-nav-item span {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-nav-go {
+  display: none;
+  color: var(--muted);
+}
+
+.settings-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.settings-panel-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.settings-scope {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-faint);
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+
+.settings-back {
+  align-self: flex-start;
+  margin-left: -0.4rem;
+}
+
+.settings-danger .btn-danger {
+  align-self: flex-start;
+}
+
+@media (max-width: 860px) and (min-width: 761px) {
+  .settings-group ul {
+    flex-wrap: wrap;
+  }
+
+  .settings-group-label {
+    padding: 0;
+  }
+}
+
+/* No celular: uma lista com todas as categorias à vista; um toque abre, "voltar" volta. */
+@media (max-width: 760px) {
+  .settings-layout.is-list .settings-grid,
+  .settings-layout.is-panel .settings-nav {
+    display: none;
+  }
+
+  .settings-layout.is-list .settings-nav ul {
+    flex-direction: column;
+    overflow: visible;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .settings-layout.is-list .settings-nav li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  .settings-layout.is-list .settings-nav-item {
+    min-height: 48px;
+    padding: 0.7rem 0.85rem;
+    border: 0;
+    border-radius: 0;
+    white-space: normal;
+  }
+
+  .settings-layout.is-list .settings-nav-go {
+    display: block;
+  }
+
+  .settings-group-label {
+    padding: 0 0.2rem;
+  }
+
+  .settings-advanced {
+    margin-top: 0.3rem;
+  }
+}
+
+.settings-card > .segmented {
+  align-self: flex-start;
+}
