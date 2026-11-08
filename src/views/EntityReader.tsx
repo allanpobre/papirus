@@ -2,7 +2,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { Fragment, useMemo } from 'react'
 import { factSentence } from '../logic/codex'
 import { appearancesOf } from '../logic/appearances'
-import { derivedField } from '../logic/derivedFields'
+import { derivedField, derivedText, onlyName } from '../logic/derivedFields'
 import { answerOf, isBlank, questionsFor } from '../logic/kindQuestions'
 import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
@@ -10,7 +10,7 @@ import { glimpseOf } from '../logic/route'
 import { unmarkReveals } from '../logic/reveals'
 import { splitSecrets } from '../logic/secrets'
 import { fold, snippet } from '../logic/text'
-import { inheritedFields, isPast, listsOf, membersOf, membershipsOf } from '../model/lists'
+import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
 import { MembershipChips } from './EntityLists'
 import { formatYear, KNOWLEDGE_LABEL, kindLabel, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
@@ -70,7 +70,8 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
   const children = universe.entities.filter((x) => x.parentId === e.id)
   // As ligações de lista aparecem em "Faz parte de" e nas listas desta ficha.
   const relations = universe.relations.filter((r) => (r.fromId === e.id || r.toId === e.id) && !r.listId)
-  const ownKeys = new Set(e.fields.map((f) => fold(f.key.trim())))
+  // Campo próprio vazio não esconde o que vem da lista.
+  const ownKeys = new Set(e.fields.filter((f) => f.value.trim() || f.ref).map((f) => fold(f.key.trim())))
   const inherited = inheritedFields(universe, e.id).filter((i) => !ownKeys.has(fold(i.key.trim())))
   const lists = listsOf(e)
   const facts = universe.facts.filter((f) => f.subjectId === e.id || f.objectId === e.id)
@@ -88,9 +89,8 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
     .filter(Boolean)
 
   // O que já liga esta ficha ao resto do mundo, e as perguntas do tipo que nada ainda responde.
-  const connected =
-    relations.length > 0 || facts.length > 0 || events.length > 0 || e.aliases.length > 0 || e.tags.length > 0 || lists.some((l) => membersOf(universe, e.id, l.id).length > 0) || membershipsOf(universe, e.id).length > 0
-  const open = questionsFor(e.kind).filter((q) => !answerOf(e.fields, q.key).trim() && derivedField(universe, e, q.key).length === 0)
+  const connected = !onlyName(universe, e)
+  const open = questionsFor(e.kind).filter((q) => !answerOf(e.fields, q.key).trim() && derivedField(universe, e, q.key).length === 0 && !derivedText(universe, e, q.key))
 
   const at = order.findIndex((x) => x.id === e.id)
   const prev = at > 0 ? order[at - 1] : undefined
@@ -107,8 +107,12 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
       // Campo que aponta para uma ficha vira link; ano vem com o rótulo do calendário.
       if (f.type === 'ficha' && f.ref) return [[f.key || 'Campo', link(f.ref)]]
       if (f.value.trim()) return [[f.key || 'Campo', f.type === 'ano' && Number.isFinite(Number(f.value)) ? formatYear(Number(f.value), suffix) : rich(f.value)]]
-      const ids = f.key.trim() ? derivedField(universe, e, f.key) : []
-      return ids.length ? [[f.key, <>{links(ids)}</>]] : []
+      if (!f.key.trim()) return []
+      const ids = derivedField(universe, e, f.key)
+      if (ids.length) return [[f.key, <>{links(ids)}</>]]
+      // A idade pelo nascimento; o jogador e a classe pela ficha de jogo.
+      const text = derivedText(universe, e, f.key)
+      return text ? [[f.key, text.text]] : []
     }),
     // O que vem das listas (a espécie, o reino, o clã), com a origem.
     ...inherited.map((i) => [

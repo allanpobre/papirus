@@ -28,7 +28,7 @@ import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityReader } from './EntityReader'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
-import { derivedField } from '../logic/derivedFields'
+import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
 import { Fold } from '../ui/Fold'
@@ -376,7 +376,8 @@ function WorldOverview({ counts, hasScenes }: { counts: Map<string, number>; has
     .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
     .slice(0, 6)
   const notes = ents.filter((e) => !counts.get(e.id))
-  const blank = ents.filter(isBlank)
+  // Só o nome: nem texto, nem ligação, nem lista (uma facção com membros não está em branco).
+  const blank = ents.filter((e) => onlyName(universe, e))
   const chips = (list: Entity[]) => (
     <div className="chips">
       {list.slice(0, 12).map((e) => (
@@ -977,7 +978,10 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
 
   return (
     <Fold id="ficha-rela-es" title="Ligações">
-      {outgoing.length + incoming.length + fieldLinks.length + fieldBacklinks.length === 0 && <p className="muted small">Nenhuma relação ainda.</p>}
+      {outgoing.length + incoming.length + fieldLinks.length + fieldBacklinks.length === 0 && (
+        // Os membros e o "faz parte de" ficam nas listas: aqui só as outras ligações.
+        <p className="muted small">{universe.relations.some((r) => r.listId && (r.fromId === e.id || r.toId === e.id)) ? 'Fora das listas, nenhuma ligação ainda.' : 'Nenhuma relação ainda.'}</p>
+      )}
       <ul className="relation-list">
         {group(outgoing).map(outRow)}
         {group(incoming).map(inRow)}
@@ -1152,9 +1156,8 @@ function TypedValue({ entity: e, field: f, onChange }: { entity: Entity; field: 
         onChange={(id) => onChange({ ref: id, value: id ? (byId(universe, 'entities', id)?.name ?? '') : '' })}
       />
     )
-  // Vazio, mas as ligações já respondem ("Malkai líder de…" no campo Líder): aparece em cinza.
-  const derived = !f.value.trim() && f.key.trim() ? derivedField(universe, e, f.key) : []
-  const hint = derived.length ? `${derived.map((id) => entityName(universe, id)).join(', ')} · pelas ligações` : undefined
+  // Vazio, mas outra parte do app já responde ("Malkai líder de…" no Líder, a idade pelo nascimento): aparece em cinza.
+  const hint = (!f.value.trim() && f.key.trim() && derivedHint(universe, e, f.key)) || undefined
   return <FieldValue value={f.value} label={f.key || 'Valor'} placeholder={hint} onChange={(v) => onChange({ value: v })} />
 }
 

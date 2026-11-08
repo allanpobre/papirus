@@ -332,7 +332,8 @@ export function MemberPicker({ owner, list, onClose }: { owner: Entity; list: En
 /** As linhas que a ficha recebe das listas, com a origem; "Mudar só nela" cria o campo próprio. */
 export function InheritedRows({ entity: e }: { entity: Entity }) {
   const { universe, update } = useWorkspace()
-  const own = new Set(e.fields.map((f) => fold(f.key.trim())))
+  // Campo próprio vazio (o do modelo do tipo) não muda o que vem da lista.
+  const own = new Set(e.fields.filter((f) => f.value.trim() || f.ref).map((f) => fold(f.key.trim())))
   const rows = inheritedFields(universe, e.id)
   const conflicts = inheritedConflicts(universe, e.id)
   if (!rows.length) return null

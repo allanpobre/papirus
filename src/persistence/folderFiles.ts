@@ -66,7 +66,7 @@ export function universeToFiles(universe: Universe, file: SavedFile): FolderFile
     const span = [formatYear(e.startYear, suffix), formatYear(e.endYear, suffix)].filter(Boolean).join(' – ')
     if (span) lines.push(`- Período: ${span}`)
     if (e.tags.length) lines.push(`- Etiquetas: ${e.tags.join(', ')}`)
-    for (const f of e.fields) if (f.key) lines.push(`- ${f.key}: ${f.value}`)
+    for (const f of e.fields) if (f.key.trim() && f.value.trim()) lines.push(`- ${f.key}: ${f.value}`)
     if (e.summary) lines.push('', e.summary)
     if (e.description) lines.push('', e.description)
     const rels = universe.relations.filter((r) => r.fromId === e.id)

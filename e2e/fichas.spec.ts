@@ -189,4 +189,10 @@ test('em Ler, campo vazio some; o que as ligações já dizem preenche o campo',
   const box = page.getByRole('article', { name: 'Ler a ficha Ostria' }).getByRole('complementary', { name: 'Em resumo' })
   await expect(box.locator('div', { has: page.locator('dt', { hasText: 'Quem governa' }) }).locator('dd')).toHaveText('Cassian')
   await expect(box.locator('dt', { hasText: 'Clima' })).toHaveCount(0)
+  // No "Espiar", o mesmo: sem o campo vazio, com quem governa.
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await page.locator('.entity-side').getByRole('button', { name: 'Espiar' }).click()
+  const peek = page.getByRole('dialog', { name: 'Ostria' })
+  await expect(peek.locator('dl.kv')).toContainText('Quem governaCassian')
+  await expect(peek.locator('dl.kv')).not.toContainText('Clima')
 })

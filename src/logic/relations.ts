@@ -8,7 +8,15 @@ export const VIA_ROLES = ['a mando de', 'com ajuda de', 'por meio de', 'em nome 
 /** "Luan envenenou João, a mando de José." */
 export function relationSentence(universe: Universe, r: Relation): string {
   const via = r.via.map((v) => `${v.role || 'com'} ${entityName(universe, v.entityId)}`)
-  return `${entityName(universe, r.fromId)} ${r.type} ${entityName(universe, r.toId)}${via.length ? `, ${via.join(', ')}` : ''}`
+  return `${entityName(universe, r.fromId)} ${r.type} ${entityName(universe, r.toId)}${listPart(universe, r)}${via.length ? `, ${via.join(', ')}` : ''}`
+}
+
+/** Numa ligação de lista, de que lista e com que papel: " (Membros, líder)". Vazio nas outras. */
+export function listPart(universe: Universe, r: Relation): string {
+  if (!r.listId) return ''
+  const list = byId(universe, 'entities', r.toId)?.lists?.find((l) => l.id === r.listId)
+  const bits = [list?.name, r.role].filter(Boolean)
+  return bits.length ? ` (${bits.join(', ')})` : ''
 }
 
 /** Quando a relação vale, em poucas palavras. Vazio = sempre. */

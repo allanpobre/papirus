@@ -1,5 +1,6 @@
 import { unmarkReveals } from '../logic/reveals'
 import { codexFor, factSentence, playerTag } from '../logic/codex'
+import { listPart } from '../logic/relations'
 import { stripSecrets } from '../logic/secrets'
 import { formatYear, kindPlural } from '../model/labels'
 import type { GameSystem, Sheet, Universe } from '../model/schema'
@@ -243,7 +244,7 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
       const via = r.via.filter((v) => known.has(v.entityId)).map((v) => `${v.role || 'com'} ${entityName(universe, v.entityId)}`)
       const from = entityName(universe, r.fromId)
       const to = entityName(universe, r.toId)
-      return { from, to, text: `${from} ${r.type} ${to}${via.length ? `, ${via.join(', ')}` : ''}`, fresh: codex.fresh.has(r.id) }
+      return { from, to, text: `${from} ${r.type} ${to}${listPart(universe, r)}${via.length ? `, ${via.join(', ')}` : ''}`, fresh: codex.fresh.has(r.id) }
     }),
     facts: codex.facts.map((f) => ({ text: factSentence(universe, f), tag: playerTag(universe, f) })),
     clues: codex.clues.map(({ seed, clue }) => ({ text: clue.text, mystery: seed.kind === 'misterio' ? seed.title : '' })),
