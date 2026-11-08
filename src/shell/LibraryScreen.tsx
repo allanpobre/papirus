@@ -8,6 +8,7 @@ import { useMesaSector } from '../rpg/useMesaSector'
 import { useOficinaSector } from '../oficina/useOficinaSector'
 import {
   BookOpen,
+  Download,
   GraduationCap,
   Cloud,
   Coffee,
@@ -60,6 +61,10 @@ import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistenc
 import type { usePrefs } from '../state/prefs'
 import type { View } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { MoreMenu } from '../ui/MoreMenu'
+import { relativeDate } from '../logic/relativeDate'
+import { downloadText, fileNameFor } from '../export/download'
+import { embeddedImages } from '../images/backup'
 import { ProfilePage } from '../social/ProfilePage'
 import { Brand } from './Brand'
 import { PageHelp } from '../ui/PageTour'
@@ -194,6 +199,18 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     } catch (err) {
       setError(`Não foi possível importar “${file.name}”: ${err instanceof Error ? err.message : String(err)}`)
     }
+  }
+
+  /** Backup de um universo direto da lista, sem abrir (com as imagens dentro, como o de dentro do universo). */
+  const downloadBackup = async (e: LibraryEntry) => {
+    const repo = library.repository(e.id)
+    const u = await repo.load()
+    if (!u) return
+    const file = repo.toFile(u)
+    const images = await embeddedImages(u).catch(() => ({}))
+    const date = new Date().toISOString().slice(0, 10)
+    downloadText(fileNameFor(`${u.name}-backup-${date}`, 'json'), JSON.stringify(Object.keys(images).length ? { ...file, images } : file, null, 2), 'application/json')
+    setPref('backups', { ...p.backups, [e.id]: { ...p.backups[e.id], last: new Date().toISOString() } })
   }
 
   const chosen = UNIVERSE_TEMPLATES.find((t) => t.id === template) ?? UNIVERSE_TEMPLATES[0]
@@ -428,17 +445,47 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     } as React.CSSProperties
   }
 
+  const when = (e: LibraryEntry) => (
+    <time dateTime={e.updatedAt} title={dateFmt.format(new Date(e.updatedAt))}>
+      {relativeDate(e.updatedAt)}
+    </time>
+  )
+
   const universeItem = (e: LibraryEntry, view?: View) => (
-    <li key={e.id} className={`library-item${themeStyle(e) ? ' is-themed' : ''}`} style={themeStyle(e)}>
+    <li key={e.id} className={`library-item${themeStyle(e) ? ' is-themed' : ''}${e.sample ? ' is-sample' : ''}`} style={themeStyle(e)}>
       <button type="button" className="library-open" onClick={() => onOpen(e.id, view)}>
-        {e.cover ? <Picture value={e.cover} className="library-cover" /> : e.kind === 'campanha' ? <Dices size={20} aria-hidden="true" /> : <BookOpen size={20} aria-hidden="true" />}
-        <span className="library-name">{cleanName(e.name) || 'Sem nome'}</span>
+        {e.cover ? (
+          <Picture value={e.cover} className="library-cover" />
+        ) : e.kind === 'campanha' ? (
+          <Dices size={20} aria-hidden="true" />
+        ) : (
+          <span className="library-initial" aria-hidden="true">
+            {(cleanName(e.name) || '?').slice(0, 1).toLocaleUpperCase('pt-BR')}
+          </span>
+        )}
+        <span className="library-name">
+          {/* O selo já diz que é exemplo: o nome fica só com o título. */}
+          {e.sample ? (
+            <>
+              <span className="library-name-text">{cleanName(e.name).replace(/^Exemplo\s*[—–-]\s*/, '') || 'Sem nome'}</span>
+              <span className="sample-chip">Exemplo</span>
+            </>
+          ) : (
+            cleanName(e.name) || 'Sem nome'
+          )}
+        </span>
         <span className="library-meta">
-          {e.kind === 'campanha' || view === 'rpg'
-            ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'} · ${e.sheets ?? 0} ${e.sheets === 1 ? 'personagem' : 'personagens'}`
-            : `${e.words.toLocaleString('pt-BR')} palavras`}
-          {' · '}
-          {dateFmt.format(new Date(e.updatedAt))}
+          {e.sample
+            ? 'Só neste aparelho · mexa à vontade'
+            : e.kind === 'campanha' || view === 'rpg'
+              ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'} · ${e.sheets ?? 0} ${e.sheets === 1 ? 'personagem' : 'personagens'}`
+              : `${e.words.toLocaleString('pt-BR')} palavras`}
+          {!e.sample && (
+            <>
+              {' · '}
+              {when(e)}
+            </>
+          )}
           {isCloudCopy(e) ? (
             <>
               {' · '}
@@ -457,29 +504,86 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           )}
         </span>
       </button>
-      {/* Apagar fica no setor do próprio universo (um livro com mesa não some pelo RPG). */}
-      {!e.sample && !view && (
-        <ConfirmButton
-          className="btn-icon"
-          title={`Apagar ${cleanName(e.name)}`}
-          question={account.user ? 'Apagar de vez, aqui e na sua conta?' : 'Apagar de vez, com os snapshots?'}
-          confirmLabel={e.kind === 'campanha' ? 'Apagar campanha' : 'Apagar universo'}
-          onConfirm={async () => {
-            await library.remove(e.id)
-            if (account.user && account.server && synced[e.id]) {
-              try {
-                const sb = await authClient(account.server)
-                if (mine.has(e.id)) await stopSharing(sb, account.user.id, e.id)
-                await removeFromCloud(sb, account.user.id, e.id)
-              } catch (err) {
-                setError(`Apagado aqui, mas não na conta: ${err instanceof Error ? err.message : String(err)}`)
-              }
-            }
-            onChanged()
-          }}
-        >
-          <Trash2 size={16} aria-label={`Apagar ${cleanName(e.name)}${isCloudCopy(e) ? ' (versão da nuvem)' : ''}`} />
-        </ConfirmButton>
+      {/* Menos usado fica no ···: baixar o backup e apagar (apagar fica no setor do próprio universo; um livro com mesa não some pelo RPG). */}
+      {!view && (
+        <MoreMenu label={`Mais ações de ${cleanName(e.name) || 'Sem nome'}${isCloudCopy(e) ? ' (versão da nuvem)' : ''}`}>
+          {(close) => (
+            <>
+              <button
+                type="button"
+                className="more-menu-item"
+                onClick={() => {
+                  close()
+                  onOpen(e.id)
+                }}
+              >
+                <BookOpen size={16} /> Abrir
+              </button>
+              {e.sample ? (
+                <>
+                  <ConfirmButton
+                    className="more-menu-item"
+                    question="Desfazer o que você mexeu no exemplo e abrir de novo, como novo?"
+                    confirmLabel="Recomeçar"
+                    onConfirm={async () => {
+                      close()
+                      await library.remove(e.id)
+                      onCreated(await sampleUniverse())
+                    }}
+                  >
+                    <RotateCcw size={16} /> Recomeçar o exemplo
+                  </ConfirmButton>
+                  <ConfirmButton
+                    className="more-menu-item more-menu-danger"
+                    question="Tirar o exemplo daqui? Dá para abrir de novo quando quiser."
+                    confirmLabel="Tirar"
+                    onConfirm={async () => {
+                      close()
+                      await library.remove(e.id)
+                      onChanged()
+                    }}
+                  >
+                    <Trash2 size={16} /> Tirar o exemplo
+                  </ConfirmButton>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      void downloadBackup(e)
+                    }}
+                  >
+                    <Download size={16} /> Baixar backup (.json)
+                  </button>
+                  <ConfirmButton
+                    className="more-menu-item more-menu-danger"
+                    question={account.user ? 'Apagar de vez, aqui e na sua conta?' : 'Apagar de vez, com os snapshots?'}
+                    confirmLabel={e.kind === 'campanha' ? 'Apagar campanha' : 'Apagar universo'}
+                    onConfirm={async () => {
+                      close()
+                      await library.remove(e.id)
+                      if (account.user && account.server && synced[e.id]) {
+                        try {
+                          const sb = await authClient(account.server)
+                          if (mine.has(e.id)) await stopSharing(sb, account.user.id, e.id)
+                          await removeFromCloud(sb, account.user.id, e.id)
+                        } catch (err) {
+                          setError(`Apagado aqui, mas não na conta: ${err instanceof Error ? err.message : String(err)}`)
+                        }
+                      }
+                      onChanged()
+                    }}
+                  >
+                    <Trash2 size={16} /> Apagar…
+                  </ConfirmButton>
+                </>
+              )}
+            </>
+          )}
+        </MoreMenu>
       )}
     </li>
   )
@@ -492,7 +596,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <span className="hub-kicker">{label}</span>
         <strong className="hub-continue-name">{cleanName(e.name) || 'Sem nome'}</strong>
         <span className="muted small">
-          {e.kind === 'campanha' ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'}` : `${e.words.toLocaleString('pt-BR')} palavras`} · {dateFmt.format(new Date(e.updatedAt))}
+          {e.kind === 'campanha' ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'}` : `${e.words.toLocaleString('pt-BR')} palavras`} · {when(e)}
           {isCloudCopy(e) ? ' · versão da nuvem' : account.user && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
         </span>
       </span>
@@ -552,28 +656,33 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           </p>
         )}
       </section>
+      {/* Na primeira vez, criar vem primeiro; depois, o mais recente com "Continuar" e a lista (o exemplo no fim, com selo). */}
       {writing[0] && continueCard(writing[0], 'Continuar escrevendo')}
-      <TreinoCard compact onAccount={() => setAccountOpen(true)} />
-      {writing.length > 1 && (
+      {writing.length === 0 && form}
+      {(writing.length > 1 || (writing.length > 0 && sampleEntry)) && (
         <section aria-labelledby="universos-titulo">
           <h2 id="universos-titulo" className="hub-h">
             Todos os universos
           </h2>
           <ul className="library-list" aria-label="Universos">
             {writing.map((e) => universeItem(e))}
+            {sampleEntry && universeItem(sampleEntry)}
           </ul>
         </section>
       )}
       {sharedList}
-      {creating || writing.length === 0 ? (
-        form
-      ) : (
-        <button type="button" className="btn library-new" onClick={() => setCreating(true)}>
-          <Plus size={18} /> Novo universo
-        </button>
-      )}
+      {writing.length > 0 &&
+        (creating ? (
+          form
+        ) : (
+          <button type="button" className="btn library-new" onClick={() => setCreating(true)}>
+            <Plus size={18} /> Novo universo
+          </button>
+        ))}
+      <TreinoCard compact onAccount={() => setAccountOpen(true)} />
+      {writing.length === 0 && sampleCard}
       {socialCard}
-      {sampleCard}
+      {writing.length > 0 && !sampleEntry && sampleCard}
       {start}
     </>
   )
