@@ -1,8 +1,9 @@
-import { BookOpen, Compass, Download, FilePlus2, History, Library, Lightbulb, Moon, UserPlus, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, Compass, Download, FilePlus2, History, Library, Lightbulb, Moon, Replace, UserPlus, Users, type LucideIcon } from 'lucide-react'
 import { fold } from '../logic/text'
 import { addScene, draftEntity, insert, manuscriptOrder } from '../model/universe'
 import type { Workspace } from '../state/workspace'
 import { ALL_ITEMS } from './nav'
+import { openBookReplace } from '../views/write/replaceEvents'
 
 /** Uma ação do Ctrl+K: ir para uma área, criar algo, abrir uma ferramenta. */
 export interface Command {
@@ -58,6 +59,7 @@ export function commands(ws: Workspace): Command[] {
         },
       },
       { id: 'ideia', title: 'Anotar uma ideia', words: 'inbox captura nota rápida', icon: Lightbulb, run: (w) => w.openCapture() },
+      { id: 'trocar', title: 'Procurar e trocar no livro', words: 'substituir buscar trocar nome palavra texto cenas renomear', icon: Replace, run: () => openBookReplace() },
     )
   }
   out.push(

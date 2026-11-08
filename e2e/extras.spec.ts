@@ -126,6 +126,8 @@ test('calendário próprio: meses nomeados nas datas das cenas', async ({ page }
   await page.getByRole('textbox', { name: 'Ano' }).fill('359')
   await page.getByRole('combobox', { name: 'Mês' }).selectOption({ label: 'Neblina' })
   await page.getByRole('textbox', { name: 'Dia do mês' }).fill('12')
+  // A data aparece na barra da Página (na Revisão com a lista e a margem abertas, a barra só mostra o essencial).
+  await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Página' }).click()
   await expect(page.getByText(/12 de Neblina de 359/).first()).toBeVisible()
 })
 

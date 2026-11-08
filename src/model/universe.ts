@@ -410,6 +410,18 @@ export function placeScene(universe: Universe, sceneId: string, storyId: string 
   }
 }
 
+/** Cria uma cena logo depois de outra, na mesma história (no fim, se a outra não existir). */
+export function addSceneAfter(universe: Universe, afterId: string, title = 'Nova cena'): [Universe, Scene] {
+  const after = byId(universe, 'scenes', afterId)
+  const storyId = after?.storyId ?? null
+  const [added, scene] = addScene(universe, storyId, title)
+  const list = scenesOf(added, storyId)
+  const at = list.findIndex((s) => s.id === afterId)
+  const beforeId = at >= 0 ? (list[at + 1]?.id ?? null) : null
+  const placed = beforeId && beforeId !== scene.id ? placeScene(added, scene.id, storyId, beforeId) : added
+  return [placed, byId(placed, 'scenes', scene.id) ?? scene]
+}
+
 /** Move a cena para outra história (ou para as cenas soltas), no fim da lista. */
 export function moveSceneTo(universe: Universe, sceneId: string, storyId: string | null): Universe {
   return patch(universe, 'scenes', sceneId, { storyId, order: nextOrder(universe, storyId) })

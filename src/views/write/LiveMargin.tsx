@@ -23,6 +23,8 @@ interface Props {
   onReview: () => void
   /** Em telas estreitas, a margem abre como painel por cima do texto. */
   overlay?: boolean
+  /** No celular: dentro da gaveta de baixo (quem fecha é a alça da gaveta). */
+  sheet?: boolean
   onClose?: () => void
   focusedComment?: string | null
   /** Tira a marca do comentário do texto (o editor é quem sabe onde ela está). */
@@ -35,7 +37,7 @@ interface Props {
  * Margem viva: o contexto da cena e do parágrafo onde está o cursor. Só mostra;
  * não interrompe e não muda nada sem um clique do autor.
  */
-export function LiveMargin({ scene, paragraph, matcher, questions, candidates, onReview, overlay, onClose, focusedComment, onRemoveCommentMark, top }: Props) {
+export function LiveMargin({ scene, paragraph, matcher, questions, candidates, onReview, overlay, sheet, onClose, focusedComment, onRemoveCommentMark, top }: Props) {
   const { universe, update, peek, go } = useWorkspace()
 
   const here = useMemo(() => {
@@ -76,7 +78,7 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
   const open = questions.filter(isOpen)
 
   return (
-    <aside className={`margin${overlay ? ' write-overlay write-overlay-right' : ''}`} aria-label="Margem viva" data-tour="margem">
+    <aside className={`margin${overlay ? ' write-overlay write-overlay-right' : ''}${sheet ? ' margin-in-sheet' : ''}`} aria-label="Margem viva" data-tour="margem">
       {overlay && (
         <button type="button" className="btn btn-ghost btn-sm margin-close" onClick={onClose}>
           Fechar margem

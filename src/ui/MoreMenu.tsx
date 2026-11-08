@@ -10,12 +10,15 @@ export function MoreMenu({
   children,
   button,
   buttonClass = 'btn-icon',
+  popClass,
 }: {
   label: string
   children: (close: () => void) => ReactNode
   /** O que o botão mostra (padrão: "⋯", só com o rótulo para leitores de tela). */
   button?: ReactNode
   buttonClass?: string
+  /** Classe extra do painel (ex.: um painel mais largo, com controles). */
+  popClass?: string
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -40,7 +43,7 @@ export function MoreMenu({
         {button ?? <MoreHorizontal size={18} />}
       </button>
       {open && (
-        <div className="more-menu-pop" role="group" aria-label={label}>
+        <div className={`more-menu-pop${popClass ? ` ${popClass}` : ''}`} role="group" aria-label={label}>
           {children(() => setOpen(false))}
         </div>
       )}

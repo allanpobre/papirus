@@ -180,3 +180,21 @@ describe('pôr a cena em outro lugar', () => {
     expect(scenesOf(u, null).map((s) => s.title)).toEqual(['B'])
   })
 })
+
+describe('nova cena depois desta', () => {
+  it('entra logo depois, na mesma história, e no fim se for a última', async () => {
+    const { addSceneAfter } = await import('./universe')
+    let u = createUniverse('T')
+    let a, b, st, n
+    ;[u, st] = addStory(u, 'Livro')
+    ;[u, a] = addScene(u, st.id, 'A')
+    ;[u, b] = addScene(u, st.id, 'B')
+    ;[u, n] = addSceneAfter(u, a.id, 'N')
+    expect(scenesOf(u, st.id).map((s) => s.title)).toEqual(['A', 'N', 'B'])
+    expect(n.storyId).toBe(st.id)
+    ;[u] = addSceneAfter(u, b.id, 'Z')
+    expect(scenesOf(u, st.id).map((s) => s.title)).toEqual(['A', 'N', 'B', 'Z'])
+    ;[u] = addSceneAfter(u, 'nao-existe', 'S')
+    expect(scenesOf(u, null).map((s) => s.title)).toEqual(['S'])
+  })
+})

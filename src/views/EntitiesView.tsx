@@ -38,6 +38,8 @@ import { RevealPicker } from '../ui/RevealPicker'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
 import { AreaHead } from './AreaModes'
+import { findRanges } from '../editor/find'
+import { openBookReplace } from './write/replaceEvents'
 
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly } = useWorkspace()
@@ -283,7 +285,21 @@ function ModeSwitch({ mode, onChange }: { mode: 'ler' | 'editar'; onChange: (m: 
 }
 
 function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: React.ReactNode }) {
-  const { universe, update, go, goBack, peek, undoable } = useWorkspace()
+  const { universe, update, go, goBack, peek, undoable, toast, readOnly } = useWorkspace()
+  // Ao renomear a ficha, o nome antigo continua no texto: o Papirus oferece trocar (mostrando cada trecho antes).
+  const nameAtFocus = useRef<string | null>(null)
+  const offerRename = () => {
+    const old = nameAtFocus.current?.trim()
+    const now = e.name.trim()
+    nameAtFocus.current = null
+    if (readOnly || !old || !now || old === now) return
+    const opts = { wholeWord: true, matchCase: true }
+    const n = universe.scenes.reduce((sum, s) => sum + findRanges(s.text, old, opts).length + findRanges(s.title, old, opts).length, 0)
+    if (!n) return
+    toast(`“${old}” aparece ${n === 1 ? '1 vez' : `${n} vezes`} nas cenas. Trocar por “${now}”?`, {
+      action: { label: 'Ver e trocar', run: () => openBookReplace({ find: old, replace: now, opts }) },
+    })
+  }
   const [factFor, setFactFor] = useState<boolean>(false)
   const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
   const summaryRef = useRef<HTMLInputElement>(null)
@@ -312,7 +328,15 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           <label htmlFor="entity-name" className="sr-only">
             Nome
           </label>
-          <input id="entity-name" className="entity-name" value={e.name} placeholder="Sem nome" onChange={(ev) => set({ name: ev.target.value })} />
+          <input
+            id="entity-name"
+            className="entity-name"
+            value={e.name}
+            placeholder="Sem nome"
+            onFocus={() => (nameAtFocus.current = e.name)}
+            onBlur={offerRename}
+            onChange={(ev) => set({ name: ev.target.value })}
+          />
           <span className="eyebrow">{kindLabel(e.kind)}</span>
         </div>
         {modeSwitch}

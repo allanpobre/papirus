@@ -53,6 +53,7 @@ import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } f
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
 import { SearchPalette } from './SearchPalette'
+import { ReplaceHost } from '../views/write/ReplaceDialog'
 import { modKey } from '../ui/keys'
 
 const HomeView = lazy(() => import('../views/HomeView'))
@@ -731,6 +732,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           }
         />
       )}
+      {!readOnly && <ReplaceHost />}
       {readerOpen &&
         createPortal(
           <ReaderOverlay

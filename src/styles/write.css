@@ -7,6 +7,24 @@
   min-height: 0;
 }
 
+/* Com uma faixa no alto (exemplo, backup, compartilhado), a Página usa só o que sobra:
+   o rodapé (palavras, meta, 15 minutos) nunca sai da tela. */
+.stage:has(> .view.write) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.stage:has(> .view.write) > * {
+  flex: none;
+}
+
+.stage:has(> .view.write) > .view.write {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+}
+
 .write.tree-closed {
   grid-template-columns: minmax(0, 1fr) 290px;
 }
@@ -1774,4 +1792,517 @@ body.escrevendo-no-celular .shared-banner {
   .scene-frame {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ---------------------------------------------------------------- Página: onde estou, para onde vou, "Aa" */
+
+/* "Livro I · cena 3 de 8" na barra: um toque abre a lista de cenas. */
+.write-pos {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 22rem;
+  padding: 0.15rem 0.45rem;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.write-pos:hover,
+.write-pos:focus-visible {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.write-pos-story {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.write-pos-at {
+  flex: none;
+  white-space: pre;
+}
+
+/* Na barra apertada (margem aberta ao lado, ou tela estreita), o nome do estado e a data saem
+   (fica a bolinha, com o nome ao passar o mouse). */
+@media (max-width: 1500px) {
+  .write:not(.margin-closed) .write-bar-status,
+  .write:not(.margin-closed) .write-bar-date {
+    display: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .write-bar-status,
+  .write-bar-date {
+    display: none;
+  }
+}
+
+/* No celular: a posição em cima do título. */
+.page-pos {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 0.2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* O "Aa": letra, largura e foco sem sair da cena. */
+.text-menu-btn {
+  font-family: var(--font-display, serif);
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink-2);
+}
+
+.more-menu-pop.text-menu {
+  width: min(19rem, calc(100vw - 24px));
+  gap: 0.7rem;
+  padding: 0.8rem 0.85rem 0.7rem;
+}
+
+.text-menu-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.text-menu-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.text-menu .segmented {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.text-menu .segmented button {
+  flex: 1 1 0;
+  padding-inline: 0.3rem;
+  white-space: nowrap;
+}
+
+.text-menu-size {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.text-menu-value {
+  min-width: 2.2rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+}
+
+.text-menu-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.text-menu-toggles .toggle {
+  font-size: 0.88rem;
+}
+
+.text-menu-foot {
+  margin: 0.1rem 0 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+}
+
+/* No fim da cena: a próxima e "nova cena depois desta". */
+.scene-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  margin-top: 2.2rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--line);
+  font-family: var(--font-ui);
+}
+
+.scene-end-next {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'kick arrow'
+    'title arrow';
+  align-items: center;
+  column-gap: 0.7rem;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  color: var(--ink);
+}
+
+.scene-end-next:hover,
+.scene-end-next:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.scene-end-kick {
+  grid-area: kick;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.scene-end-title {
+  grid-area: title;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.scene-end-next svg {
+  grid-area: arrow;
+  color: var(--accent);
+}
+
+.scene-end-new {
+  color: var(--ink-2);
+}
+
+/* Ano, dia e mês com o nome à vista. */
+.date-parts {
+  align-items: flex-end;
+}
+
+.date-part {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.date-part-label {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+/* No celular, o "Aa" abre como uma folha embaixo, na largura da tela (como o Aa dos leitores de livro). */
+@media (max-width: 760px) {
+  .more-menu-pop.text-menu {
+    position: fixed;
+    top: auto;
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    left: max(8px, env(safe-area-inset-left, 0px));
+    width: auto;
+    max-height: 70dvh;
+    overflow-y: auto;
+    z-index: 60;
+  }
+}
+
+/* ---------------------------------------------------------------- procurar e trocar */
+
+.find-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem max(16px, env(safe-area-inset-right, 0px)) 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.find-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.4rem;
+}
+
+.find-input {
+  flex: 0 1 16rem;
+  min-width: 9rem;
+}
+
+.find-count {
+  min-width: 4.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.find-book {
+  margin-left: auto;
+}
+
+.find-opts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin-left: 0.4rem;
+}
+
+.find-opts .check {
+  font-size: 0.82rem;
+}
+
+.scene-text .search-hit {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ochre-line) 38%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ochre-line) 38%, transparent);
+}
+
+.scene-text .search-hit.is-current {
+  background: var(--ochre-line);
+  box-shadow: 0 0 0 2px var(--ochre-line);
+  color: var(--paper, #fff);
+}
+
+@media (max-width: 760px) {
+  .find-bar {
+    padding-inline: max(8px, env(safe-area-inset-left, 0px)) max(8px, env(safe-area-inset-right, 0px));
+  }
+
+  .find-input {
+    flex: 1 1 8rem;
+  }
+
+  .find-count {
+    min-width: 0;
+  }
+
+  .find-book {
+    margin-left: 0;
+  }
+
+  .find-opts {
+    margin-left: 0;
+  }
+}
+
+/* No livro todo: cada trecho com o que sai e o que entra. */
+.replace-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.7rem;
+}
+
+.replace-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.replace-opts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  margin-top: 0.7rem;
+}
+
+.replace-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+.replace-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+}
+
+.replace-all {
+  display: inline-flex;
+  gap: 0.9rem;
+  font-size: 0.85rem;
+}
+
+.replace-scene {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.replace-scene-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.replace-open {
+  margin-left: auto;
+}
+
+.replace-hits {
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+}
+
+.replace-hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-text, var(--font-ui));
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.replace-hit input {
+  flex: none;
+  margin-top: 0.3rem;
+}
+
+.replace-hit mark {
+  padding: 0 0.1em;
+  border-radius: 2px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  text-decoration: line-through;
+}
+
+.replace-hit mark.is-off {
+  background: color-mix(in srgb, var(--ochre-line) 30%, transparent);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.replace-hit ins {
+  margin-left: 0.15em;
+  padding: 0 0.1em;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.replace-hit ins:empty {
+  display: none;
+}
+
+.replace-where {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.replace-foot-note {
+  margin-right: auto;
+}
+
+@media (max-width: 560px) {
+  .replace-foot-note {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------- Revisão no celular: a margem numa gaveta */
+
+.margin-sheet {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 14px 14px 0 0;
+  background: var(--surface-2);
+  box-shadow: 0 -6px 18px rgb(0 0 0 / 0.07);
+}
+
+.margin-sheet.is-open {
+  flex: 0 0 58%;
+}
+
+.margin-sheet-handle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem max(16px, env(safe-area-inset-right, 0px)) 0.45rem max(16px, env(safe-area-inset-left, 0px));
+  border: 0;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.margin-sheet-grip {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+
+.margin-sheet-title {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.margin.margin-in-sheet {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-left: 0;
+  padding-top: 0.2rem;
+}
+
+.write.sheet-open .write-foot {
+  display: none;
+}
+
+/* Revisão com a lista de cenas e a margem abertas: a coluna do meio fica estreita, e a barra encolhe
+   (botões só com ícone, só o modo atual com nome) em vez de apertar o "cena 3 de 8". */
+@media (min-width: 761px) and (max-width: 1700px) {
+  .write:not(.tree-closed):not(.margin-closed) .write-bar-actions .btn-sm {
+    font-size: 0;
+    gap: 0;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .write:not(.tree-closed):not(.margin-closed) .writing-modes button:not([aria-current='page']) span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Com a lista de cenas aberta ao lado, ela já mostra onde você está. */
+.write:not(.tree-closed) .write-pos {
+  display: none;
 }
