@@ -178,10 +178,10 @@ test('Na mesa: começa a sessão, anota, rola e ajusta recursos', async ({ page 
   }
 })
 
-test('importa um livro em Markdown e exporta como Word e EPUB', async ({ page }) => {
+test('importa um livro em Markdown e baixa como Word e EPUB pelo Livro', async ({ page }) => {
   await newUniverse(page)
   await nav(page, 'Ajustes e dados').click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Livros' }).click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Importar e wiki' }).click()
   await page.getByLabel('Arquivo do livro').setInputFiles({
     name: 'sal.md',
     mimeType: 'text/markdown',
@@ -189,15 +189,21 @@ test('importa um livro em Markdown e exporta como Word e EPUB', async ({ page })
   })
   await expect(page.getByText('“O Sal” importado em 2 cenas.')).toBeVisible()
 
-  await page.getByRole('combobox', { name: 'História' }).selectOption({ label: 'O Sal' })
+  // Baixar fica num lugar só: o atalho dos Ajustes leva ao Livro.
+  await page.getByRole('button', { name: 'Abrir o Livro' }).click()
+  await page.getByRole('button', { name: 'Criar o livro' }).click()
+  await page.getByRole('dialog', { name: 'Diagramar o livro' }).getByRole('button', { name: 'Fechar' }).click()
+  const baixar = () => page.locator('[data-tour="livro-acoes"]').getByRole('button', { name: 'Baixar' }).click()
   const docx = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Word (.docx)' }).click()
+  await baixar()
+  await page.getByRole('button', { name: /^Word/ }).click()
   const d = await docx
-  expect(d.suggestedFilename()).toBe('o-sal.docx')
+  expect(d.suggestedFilename()).toMatch(/\.docx$/)
   expect((await readFile(await d.path())).subarray(0, 2).toString()).toBe('PK')
   const epub = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'EPUB' }).click()
-  expect((await epub).suggestedFilename()).toBe('o-sal.epub')
+  await baixar()
+  await page.getByRole('button', { name: /^E-book \(EPUB\)/ }).click()
+  expect((await epub).suggestedFilename()).toMatch(/\.epub$/)
 
   await nav(page, 'Escrever').click()
   const tree = page.getByRole('complementary', { name: 'Manuscrito' })

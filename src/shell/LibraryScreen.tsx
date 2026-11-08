@@ -720,7 +720,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <h2 id="mesas-livros" className="hub-h">
             Mesas dentro dos seus universos
           </h2>
-          <p className="small muted hub-note">Universos de escrita que também têm uma mesa. Se um deles é mesmo uma campanha, mude o tipo em Ajustes → Menu e ajuda, e ele passa a morar aqui.</p>
+          <p className="small muted hub-note">Universos de escrita que também têm uma mesa. Se um deles é mesmo uma campanha, mude o tipo em Ajustes → Universo, e ele passa a morar aqui.</p>
           <ul className="library-list" aria-label="Mesas dentro dos seus universos">
             {tablesInBooks.map((e) => universeItem(e, 'rpg'))}
           </ul>
