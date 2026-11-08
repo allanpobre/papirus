@@ -1,3 +1,4 @@
+import { inheritedFields } from '../model/lists'
 import { formatYear } from '../model/labels'
 import type { ContinuityAnswer, Universe } from '../model/schema'
 import { byId, entityName, manuscriptOrder } from '../model/universe'
@@ -15,6 +16,7 @@ export type QuestionType =
   | 'morto-reaparece'
   | 'nome-parecido'
   | 'data-impossivel'
+  | 'difere-da-lista'
 
 export interface Question {
   /** Assinatura estável: a mesma pergunta mantém a mesma resposta. */
@@ -137,11 +139,36 @@ export function continuityQuestions(universe: Universe, toggles: QuestionToggles
   if (on('morto-reaparece')) out.push(...deathQuestions(universe, scenes))
   if (on('nome-parecido')) out.push(...nameQuestions(universe, scenes))
   if (on('data-impossivel')) out.push(...dateQuestions(universe, scenes))
+  if (on('difere-da-lista')) out.push(...listQuestions(universe, scenes))
 
   return out.map((q) => ({ ...q, answer: answers.get(q.key) }))
 }
 
 type Scenes = ReturnType<typeof manuscriptOrder>
+
+/** "Mira tem Vive: 80 anos, e todos de Elfo têm uns 700 anos": a ficha muda o que a lista diz. É de propósito? */
+function listQuestions(universe: Universe, scenes: Scenes): Question[] {
+  const out: Question[] = []
+  for (const e of universe.entities) {
+    if (!e.fields.length || !universe.relations.some((r) => r.fromId === e.id && r.listId)) continue
+    const own = new Map(e.fields.filter((f) => f.key.trim()).map((f) => [fold(f.key.trim()), f]))
+    for (const i of inheritedFields(universe, e.id)) {
+      const mine = own.get(fold(i.key.trim()))
+      if (!mine || !mine.value.trim() || fold(mine.value.trim()) === fold(i.value.trim())) continue
+      const where = scenes.filter((s) => s.povId === e.id || s.presentIds.includes(e.id)).map((s) => s.id)
+      out.push({
+        key: `difere-da-lista:${e.id}:${fold(i.key.trim())}`,
+        type: 'difere-da-lista',
+        sceneId: where[0] ?? null,
+        sceneIds: where,
+        entityId: e.id,
+        factIds: [],
+        text: `${e.name} tem “${mine.key}: ${mine.value}”, e todos de ${entityName(universe, i.ownerId)} têm “${i.value}”. É de propósito?`,
+      })
+    }
+  }
+  return out
+}
 
 // ─── Olhos e cabelo que mudam de cor ─────────────────────────────────
 

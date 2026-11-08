@@ -8097,3 +8097,463 @@ h3.cork-act {
 .relation-done {
   margin-left: auto;
 }
+
+/* ---------------------------------------------------------------- listas das fichas */
+
+.memberships {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.4rem;
+}
+
+.memberships-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.chip .chip-sub {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.chip.is-past,
+.is-past {
+  opacity: 0.6;
+}
+
+.entity-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.lists-new {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chip.chip-add {
+  border-style: dashed;
+}
+
+.list-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.list-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.list-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.15rem 0.3rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.list-name:hover,
+.list-name:focus {
+  border-color: var(--line);
+  background: var(--paper);
+}
+
+.list-members {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.15rem 0.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list-members > li.is-past .member-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--line);
+}
+
+.member-line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.member-line .member-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-edit-btn {
+  opacity: 0;
+  color: var(--muted);
+}
+
+.member-line:hover .member-edit-btn,
+.member-edit-btn:focus-visible {
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .member-edit-btn {
+    opacity: 1;
+  }
+}
+
+.member-edit {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.role-chip {
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.shared-add {
+  align-self: flex-start;
+}
+
+.shared-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-s);
+  background: var(--accent-faint);
+}
+
+.more-menu-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem 0.5rem;
+  max-width: 18rem;
+}
+
+/* O que vem das listas, nos campos da ficha. */
+.inherited {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dashed var(--line);
+}
+
+.inherited-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) auto auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.inherited-key {
+  color: var(--ink-2);
+}
+
+.inherited-row.is-overridden .inherited-value {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+@media (max-width: 560px) {
+  .inherited-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+
+  .inherited-from {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Adicionar a uma lista: filtros e caixinhas. */
+.picker-filters {
+  margin-top: 0.5rem;
+}
+
+.picker-all {
+  margin-top: 0.6rem;
+  font-weight: 600;
+}
+
+.member-pick-list {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  min-height: 5rem;
+  max-height: min(48vh, 26rem);
+  margin: 0.4rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  list-style: none;
+}
+
+.member-pick-list > li {
+  padding: 0.35rem 0.6rem;
+  border-top: 1px solid var(--line);
+}
+
+.member-pick-list > li:first-child {
+  border-top: 0;
+}
+
+.member-pick-list .check {
+  display: flex;
+  width: 100%;
+}
+
+.picker-name {
+  flex: 1 1 auto;
+  color: var(--ink);
+}
+
+.picker-extra {
+  margin-top: 0.7rem;
+}
+
+/* Selecionar várias no Mundo. */
+.entity-row.is-picking {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'check name kind';
+  cursor: pointer;
+}
+
+.entity-row.is-picking > input {
+  grid-area: check;
+}
+
+.entity-row.is-picking > .entity-row-name {
+  grid-area: name;
+}
+
+.entity-row.is-picking > .entity-row-kind {
+  grid-area: kind;
+}
+
+.entity-row.is-picked {
+  background: var(--accent-faint);
+}
+
+.selection-bar {
+  position: sticky;
+  bottom: 0.5rem;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--shadow-2, 0 10px 24px -10px rgb(0 0 0 / 0.5));
+}
+
+.selection-bar .btn:not(.btn-primary) {
+  border-color: color-mix(in srgb, var(--bg) 30%, transparent);
+  background: transparent;
+  color: var(--bg);
+}
+
+.selection-bar .selection-close {
+  margin-left: auto;
+  color: var(--bg);
+}
+
+.selection-count {
+  margin-right: 0.2rem;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 760px) {
+  .selection-bar {
+    position: fixed;
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    left: max(8px, env(safe-area-inset-left, 0px));
+  }
+}
+
+/* ---------------------------------------------------------------- Mundo em tabela */
+
+.fichas-view.is-table .entity-list {
+  display: none;
+}
+
+.entity-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.entity-table-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.entity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: var(--surface);
+}
+
+.entity-table th,
+.entity-table td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.entity-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  background: var(--surface-2);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.table-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.table-sort:hover {
+  color: var(--ink);
+}
+
+.entity-table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table-name {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.table-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.table-cell {
+  display: block;
+  width: 100%;
+  min-height: 1.6rem;
+  padding: 0.1rem 0.2rem;
+  margin: -0.1rem -0.2rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.table-cell:hover,
+.table-cell:focus-visible {
+  border-color: var(--line);
+  background: var(--paper);
+}
+
+.table-from {
+  margin-left: 0.35rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.entity-table td.is-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.entity-table td.is-editing {
+  padding: 0.15rem 0.3rem;
+}
+
+.table-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 60vh;
+  padding: 0.4rem 0.6rem;
+  overflow-y: auto;
+}
+
+.more-menu-label {
+  padding: 0.3rem 0.6rem 0.2rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Na coluna da lista, o menu de modelos abre para dentro (não por baixo do menu lateral). */
+.quick-create .more-menu-pop {
+  right: auto;
+  left: 0;
+}
+
+.list-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.list-modes:empty {
+  display: none;
+}

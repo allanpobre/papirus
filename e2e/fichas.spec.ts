@@ -96,3 +96,81 @@ test.describe('no celular', () => {
     await expect(row(page, 'Selma')).toBeVisible()
   })
 })
+
+test('listas: Habitantes do reino, vários de uma vez, e o que todos têm aparece em cada um', async ({ page }) => {
+  await mundo(page)
+  await row(page, 'Reino de Ostria').click()
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  const listas = page.getByRole('region', { name: 'Listas' })
+  // O reino sugere as listas dele; um toque cria.
+  await listas.getByRole('button', { name: 'Habitantes' }).click()
+  const card = listas.getByRole('article', { name: 'Habitantes' })
+  await card.getByRole('button', { name: '+ O que todos desta lista têm' }).click()
+  await card.getByRole('button', { name: 'Campo para todos' }).click()
+  await card.getByRole('textbox', { name: 'Campo que todos têm' }).fill('Idioma')
+  await card.getByRole('textbox', { name: 'Valor de Idioma para todos' }).fill('ostriano')
+  await card.getByRole('button', { name: 'Adicionar' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Adicionar a Habitantes de Reino de Ostria' })
+  await dialog.getByText(/^Marcar as \d+ da lista$/).click()
+  await dialog.getByRole('button', { name: /^Adicionar \d+$/ }).click()
+  await expect(card.locator('.member-name')).toContainText(['Cassian', 'Ilsa', 'Kael'])
+
+  // Do outro lado: "Faz parte de" e o idioma, com a origem.
+  await row(page, 'Kael').click()
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  const ler = page.getByRole('article', { name: 'Ler a ficha Kael' })
+  await expect(ler.getByLabel('Faz parte de')).toContainText('Reino de Ostria · Habitantes')
+  await expect(ler.locator('.reader-infobox')).toContainText('ostriano · de Reino de Ostria')
+  // Mudar só nele.
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: 'Mudar só nesta' }).click()
+  await expect(page.locator('.inherited-row.is-overridden')).toContainText('diferente nesta ficha')
+})
+
+test('selecionar várias no Mundo e pôr uma etiqueta em todas; a tabela compara e edita na célula', async ({ page }) => {
+  await mundo(page)
+  await page.getByRole('button', { name: 'Selecionar' }).click()
+  await page.getByRole('checkbox', { name: 'Marcar Mira' }).check()
+  await page.getByRole('checkbox', { name: 'Marcar Ilsa' }).check()
+  const bar = page.getByRole('toolbar', { name: 'Fichas marcadas' })
+  await expect(bar).toContainText('2 marcadas')
+  await bar.getByRole('button', { name: 'Etiqueta' }).click()
+  await page.getByRole('dialog', { name: 'Etiqueta em 2 fichas' }).getByRole('textbox', { name: 'Etiqueta' }).fill('torre')
+  await page.getByRole('button', { name: 'Pôr a etiqueta' }).click()
+  await page.getByRole('textbox', { name: 'Filtrar fichas' }).fill('torre')
+  await expect(row(page, 'Mira')).toBeVisible()
+  await expect(row(page, 'Ilsa')).toBeVisible()
+  await page.getByRole('textbox', { name: 'Filtrar fichas' }).fill('')
+
+  // Tabela: os personagens lado a lado; a célula edita ali mesmo.
+  await page.getByRole('radiogroup', { name: 'Tipo' }).getByRole('radio', { name: 'Personagens' }).click()
+  await page.getByRole('radiogroup', { name: 'Vista do Mundo' }).getByRole('radio', { name: 'Tabela' }).click()
+  const table = page.getByRole('region', { name: 'Tabela de fichas' })
+  await expect(table.getByRole('columnheader', { name: /Cenas/ })).toBeVisible()
+  await table.getByRole('button', { name: /^Olhos de Kael/ }).click()
+  await page.keyboard.type('castanhos')
+  await page.keyboard.press('Enter')
+  await expect(table.getByRole('button', { name: 'Olhos de Kael: castanhos' })).toBeVisible()
+  await table.getByRole('columnheader', { name: /Cenas/ }).getByRole('button').click()
+  await expect(table.locator('tbody th').first()).toHaveText(/Odo|Cassian|Rhea/)
+})
+
+test('modelo de ficha: "Usar como modelo" e criar outra já preenchida', async ({ page }) => {
+  await mundo(page)
+  await row(page, 'Kael').click()
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: 'Campo', exact: true }).click()
+  await page.locator('.kv-typed').last().getByRole('textbox', { name: 'Campo' }).fill('Ofício')
+  await page.locator('.kv-typed').last().getByRole('textbox', { name: 'Valor' }).fill('contrabandista')
+  await page.getByRole('button', { name: 'Usar como modelo' }).click()
+  await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Doran')
+  await page.getByRole('button', { name: 'Criar a partir de um modelo' }).click()
+  await page.locator('.more-menu-pop').getByRole('button', { name: 'Kael' }).click()
+  await expect(page.locator('#entity-name')).toHaveValue('Doran')
+  await expect(
+    page
+      .locator('.kv-typed')
+      .filter({ has: page.locator('input[value="Ofício"]') })
+      .getByRole('textbox', { name: 'Valor' }),
+  ).toHaveValue('contrabandista')
+})

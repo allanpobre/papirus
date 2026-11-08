@@ -8,7 +8,9 @@ import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
 import { unmarkReveals } from '../logic/reveals'
 import { splitSecrets } from '../logic/secrets'
-import { snippet } from '../logic/text'
+import { fold, snippet } from '../logic/text'
+import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
+import { MembershipChips } from './EntityLists'
 import { formatYear, KNOWLEDGE_LABEL, kindLabel, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
 import { byId, entityName } from '../model/universe'
@@ -54,7 +56,11 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
 
   const parent = e.parentId ? byId(universe, 'entities', e.parentId) : undefined
   const children = universe.entities.filter((x) => x.parentId === e.id)
-  const relations = universe.relations.filter((r) => r.fromId === e.id || r.toId === e.id)
+  // As ligações de lista aparecem em "Faz parte de" e nas listas desta ficha.
+  const relations = universe.relations.filter((r) => (r.fromId === e.id || r.toId === e.id) && !r.listId)
+  const ownKeys = new Set(e.fields.map((f) => fold(f.key.trim())))
+  const inherited = inheritedFields(universe, e.id).filter((i) => !ownKeys.has(fold(i.key.trim())))
+  const lists = listsOf(e)
   const facts = universe.facts.filter((f) => f.subjectId === e.id || f.objectId === e.id)
   const knows = universe.knowledge.filter((k) => k.holderId === e.id)
   const events = universe.events.filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id).sort((a, b) => a.year - b.year)
@@ -86,6 +92,13 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
         // Campo que aponta para uma ficha vira link; ano vem com o rótulo do calendário.
         f.type === 'ficha' && f.ref ? link(f.ref) : f.type === 'ano' && f.value.trim() && Number.isFinite(Number(f.value)) ? formatYear(Number(f.value), suffix) : rich(f.value),
       ]),
+    // O que vem das listas (a espécie, o reino, o clã), com a origem.
+    ...inherited.map((i) => [
+      i.key,
+      <>
+        {i.value} <span className="muted small">· de {link(i.ownerId)}</span>
+      </>,
+    ]),
   ].filter(Boolean) as [string, React.ReactNode][]
 
   return (
@@ -111,6 +124,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           </div>
         )}
         {e.summary && <p className="reader-lede">{rich(e.summary)}</p>}
+        <MembershipChips entity={e} />
       </div>
 
       <div className="reader-body">
@@ -170,6 +184,35 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           ) : (
             <p className="muted">Ainda sem descrição. Em “Editar” você escreve sobre esta ficha.</p>
           )}
+
+          {lists.map((l) => {
+            const ms = membersOf(universe, e.id, l.id)
+            if (!ms.length && !l.shared.length) return null
+            return (
+              <section key={l.id} aria-label={l.name}>
+                <h2>{l.name}</h2>
+                {l.shared.length > 0 && (
+                  <p className="muted small">
+                    Todos têm: {l.shared.filter((x) => x.key.trim()).map((x) => `${x.key} · ${x.value}`).join('; ')}
+                  </p>
+                )}
+                {ms.length > 0 && (
+                  <p>
+                    {ms.map(({ relation: r, member }, i) => (
+                      <Fragment key={r.id}>
+                        {i > 0 && ', '}
+                        <span className={isPast(r) ? 'is-past' : undefined}>
+                          {link(member.id)}
+                          {r.role && <span className="muted"> ({r.role})</span>}
+                          {isPast(r) && <span className="muted"> · até {r.scope.toYear}</span>}
+                        </span>
+                      </Fragment>
+                    ))}
+                  </p>
+                )}
+              </section>
+            )
+          })}
 
           {relations.length + backlinks.length > 0 && (
             <section>

@@ -6,6 +6,8 @@ import type { Accent } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { ENTITY_KINDS } from '../model/schema'
 import { kindLabel } from '../model/labels'
+import { DEFAULT_LIST_TEMPLATES } from '../model/lists'
+import { removeTemplate, renameTemplate, templatesOf } from '../model/entityTemplates'
 
 const ACCENTS: { id: Accent; label: string }[] = [
   { id: 'viridiana', label: 'Viridiana' },
@@ -123,5 +125,64 @@ function FieldTemplateInput({ value, onCommit, placeholder }: { value: string; o
         setDraft(null)
       }}
     />
+  )
+}
+
+/** Listas que cada tipo de ficha sugere ("+ Raças", "+ Criaturas" num reino). */
+export function ListTemplatesCard() {
+  const { universe, update } = useWorkspace()
+  const own = universe.settings.listTemplates
+  const kinds = [...new Set([...Object.keys(DEFAULT_LIST_TEMPLATES), ...ENTITY_KINDS, ...universe.entities.map((e) => e.kind)])]
+  const current = (k: string) => (own?.[k] ?? DEFAULT_LIST_TEMPLATES[k] ?? []).join(', ')
+  const setKind = (kind: string, text: string) =>
+    update((u) => {
+      const list = text
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean)
+      const base = u.settings.listTemplates ?? { ...DEFAULT_LIST_TEMPLATES }
+      return { ...u, settings: { ...u.settings, listTemplates: { ...base, [kind]: list } }, updatedAt: new Date().toISOString() }
+    })
+  return (
+    <section className="settings-card">
+      <h2 className="section-title">Listas sugeridas nas fichas</h2>
+      <p className="muted small">Cada ficha do tipo mostra estas listas para criar com um toque (ex.: Raças, Criaturas e Habitantes num reino). Separe por vírgula.</p>
+      <div className="field-templates">
+        {kinds.map((k) => (
+          <label key={k} className="field-template-row">
+            <span className="field-label">{kindLabel(k)}</span>
+            <FieldTemplateInput value={current(k)} onCommit={(v) => setKind(k, v)} placeholder="Ex.: Membros, Aliados" />
+          </label>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/** Modelos de ficha: nome e apagar (criar é na própria ficha, em "Usar como modelo"). */
+export function EntityTemplatesCard() {
+  const { universe, update } = useWorkspace()
+  const templates = templatesOf(universe)
+  return (
+    <section className="settings-card">
+      <h2 className="section-title">Modelos de ficha</h2>
+      {templates.length === 0 ? (
+        <p className="muted small">Nenhum ainda. Numa ficha, “Usar como modelo” guarda o jeito dela (campos, etiquetas, listas) para criar outras iguais.</p>
+      ) : (
+        <ul className="plain-list template-list">
+          {templates.map((t) => (
+            <li key={t.id} className="inline-fields">
+              <input className="input input-sm" aria-label={`Nome do modelo ${t.name}`} value={t.name} onChange={(e) => update((u) => renameTemplate(u, t.id, e.target.value))} />
+              <span className="muted small">
+                {kindLabel(t.kind)} · {t.fields.length} {t.fields.length === 1 ? 'campo' : 'campos'}
+              </span>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => update((u) => removeTemplate(u, t.id))}>
+                Apagar
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
