@@ -1,5 +1,5 @@
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, BookOpen, ImagePlus, Loader2, PenLine, Plus, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, ImagePlus, ListPlus, Loader2, PenLine, Plus, Trash2, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
@@ -40,6 +40,8 @@ import { FactDialog } from '../ui/FactDialog'
 import { AreaHead } from './AreaModes'
 import { findRanges } from '../editor/find'
 import { openBookReplace } from './write/replaceEvents'
+import { BulkCreateDialog, NewEntityDialog, useKindOptions } from './EntityCreate'
+import { useMediaQuery } from '../ui/useMediaQuery'
 
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly } = useWorkspace()
@@ -56,6 +58,19 @@ export default function EntitiesView() {
   const [kind, setKind] = useState<string>('todos')
   const [newName, setNewName] = useState('')
   const [newKind, setNewKind] = useState('personagem')
+  const kindOptions = useKindOptions()
+  const phone = useMediaQuery('(max-width: 760px)')
+  // Criar uma (no celular, numa janela que não sai da lista) ou várias de uma vez.
+  const [creating, setCreating] = useState<null | 'uma' | 'varias'>(null)
+  type Order = 'nome' | 'cenas' | 'recentes'
+  const [order, setOrder] = useState<Order>(() => {
+    const o = recall('fichas-ordem')
+    return o === 'cenas' || o === 'recentes' ? o : 'nome'
+  })
+  const changeOrder = (o: Order) => {
+    setOrder(o)
+    remember('fichas-ordem', o)
+  }
 
   const selectedId = nav.view === 'fichas' ? (nav.id ?? null) : null
   const selected = selectedId ? byId(universe, 'entities', selectedId) : undefined
@@ -76,9 +91,24 @@ export default function EntitiesView() {
     return universe.entities
       .filter((e) => kind === 'todos' || e.kind === kind)
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
-      .filter((e) => !q || namesOf(e).some((n) => fold(n).includes(q)) || fold(e.summary).includes(q) || e.tags.some((t) => fold(t).includes(q)))
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt'))
-  }, [universe.entities, kind, query, where, counts])
+      .filter(
+        (e) =>
+          !q ||
+          namesOf(e).some((n) => fold(n).includes(q)) ||
+          fold(e.summary).includes(q) ||
+          e.tags.some((t) => fold(t).includes(q)) ||
+          // Também nos campos ("Espécie: elfo") e na descrição.
+          e.fields.some((f) => fold(`${f.key} ${f.value}`).includes(q)) ||
+          fold(e.description).includes(q),
+      )
+      .sort((a, b) =>
+        order === 'cenas'
+          ? (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) || a.name.localeCompare(b.name, 'pt')
+          : order === 'recentes'
+            ? b.updatedAt.localeCompare(a.updatedAt)
+            : a.name.localeCompare(b.name, 'pt'),
+      )
+  }, [universe.entities, kind, query, where, counts, order])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,19 +129,47 @@ export default function EntitiesView() {
     <div className={`view split fichas-view${selected ? ' has-detail' : ''}`}>
       <AreaHead current="fichas" tour="fichas" />
       <section className="split-list" aria-label="Lista de fichas">
-        <form className="quick-create" onSubmit={create}>
-          <label htmlFor="nova-ficha" className="sr-only">
-            Nome da nova ficha
-          </label>
-          <input id="nova-ficha" className="input" placeholder="Nova ficha…" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <Select label="Tipo da nova ficha" value={newKind} onChange={setNewKind} options={ENTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
-          <button type="submit" className="btn btn-primary" aria-label="Criar ficha">
-            <Plus size={16} />
-          </button>
-        </form>
-        <NameIdeas kind={newKind} onPick={setNewName} />
-        <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Filtrar por nome, apelido, etiqueta…" value={query} onChange={(e) => setQuery(e.target.value)} />
-        <div className="filter-chips" role="radiogroup" aria-label="Tipo">
+        {/* No celular, a lista vem primeiro: criar fica no botão redondo. */}
+        {!phone && !readOnly && (
+          <>
+            <form className="quick-create" onSubmit={create}>
+              <label htmlFor="nova-ficha" className="sr-only">
+                Nome da nova ficha
+              </label>
+              <input id="nova-ficha" className="input" placeholder="Nova ficha…" value={newName} onChange={(e) => setNewName(e.target.value)} />
+              <Select label="Tipo da nova ficha" value={newKind} onChange={setNewKind} options={kindOptions} />
+              <button type="submit" className="btn btn-primary" aria-label="Criar ficha">
+                <Plus size={16} />
+              </button>
+              <button type="button" className="btn btn-ghost" aria-label="Criar várias de uma vez" title="Criar várias de uma vez (colar uma lista de nomes)" onClick={() => setCreating('varias')}>
+                <ListPlus size={16} />
+              </button>
+            </form>
+            <NameIdeas kind={newKind} onPick={setNewName} />
+          </>
+        )}
+        <div className="list-tools">
+          <input className="input" data-livre aria-label="Filtrar fichas" placeholder={phone ? 'Procurar…' : 'Procurar (nome, campos, descrição…)'} value={query} onChange={(e) => setQuery(e.target.value)} />
+          {phone && (
+            <Select
+              label="Tipo"
+              value={kind}
+              onChange={setKind}
+              options={[{ value: 'todos', label: `Todas (${universe.entities.length})` }, ...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
+            />
+          )}
+          <Select<Order>
+            label="Ordem da lista"
+            value={order}
+            onChange={changeOrder}
+            options={[
+              { value: 'nome', label: phone ? 'A–Z' : 'Nome (A–Z)' },
+              { value: 'cenas', label: phone ? 'Cenas' : 'Mais nas cenas' },
+              { value: 'recentes', label: phone ? 'Recentes' : 'Mexidas por último' },
+            ]}
+          />
+        </div>
+        {!phone && <div className="filter-chips" role="radiogroup" aria-label="Tipo">
           <button type="button" role="radio" aria-checked={kind === 'todos'} className="chip" onClick={() => setKind('todos')}>
             Todas <span className="chip-count">{universe.entities.length}</span>
           </button>
@@ -120,8 +178,8 @@ export default function EntitiesView() {
               {kindPlural(k)}
             </button>
           ))}
-        </div>
-        {hasScenes && universe.entities.length > 0 && (
+        </div>}
+        {hasScenes && universe.entities.length > 0 && !phone && (
           <div className="filter-chips where-chips" role="group" aria-label="Onde aparece">
             <button type="button" className="chip" aria-pressed={where === 'cenas'} onClick={() => setWhere(where === 'cenas' ? 'tudo' : 'cenas')}>
               Nas cenas <span className="chip-count">{inScenes}</span>
@@ -152,6 +210,34 @@ export default function EntitiesView() {
               </li>
             ))}
           </ul>
+        )}
+        {phone && !readOnly && (
+          <button type="button" className="fab" aria-label="Nova ficha" onClick={() => setCreating('uma')}>
+            <Plus size={22} />
+          </button>
+        )}
+        {creating === 'uma' && (
+          <NewEntityDialog
+            initialKind={kind !== 'todos' ? kind : newKind}
+            onClose={() => setCreating(null)}
+            onMany={() => setCreating('varias')}
+            onOpen={(id) => {
+              setCreating(null)
+              setFresh(id)
+              go('fichas', id)
+            }}
+          />
+        )}
+        {creating === 'varias' && (
+          <BulkCreateDialog
+            initialKind={kind !== 'todos' ? kind : newKind}
+            onClose={() => setCreating(null)}
+            onDone={(k) => {
+              setCreating(null)
+              setKind(k)
+              setQuery('')
+            }}
+          />
         )}
       </section>
 
