@@ -2,14 +2,15 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { Fragment, useMemo } from 'react'
 import { factSentence } from '../logic/codex'
 import { appearancesOf } from '../logic/appearances'
-import { isBlank, questionsFor } from '../logic/kindQuestions'
+import { derivedField } from '../logic/derivedFields'
+import { answerOf, isBlank, questionsFor } from '../logic/kindQuestions'
 import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
 import { unmarkReveals } from '../logic/reveals'
 import { splitSecrets } from '../logic/secrets'
 import { fold, snippet } from '../logic/text'
-import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
+import { inheritedFields, isPast, listsOf, membersOf, membershipsOf } from '../model/lists'
 import { MembershipChips } from './EntityLists'
 import { formatYear, KNOWLEDGE_LABEL, kindLabel, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
@@ -29,6 +30,17 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
       {label ?? (entityName(universe, id) || 'Ficha removida')}
     </button>
   )
+  /** Várias fichas numa linha, a vírgula presa ao nome (para não começar a linha seguinte). */
+  const links = (ids: string[]) =>
+    ids.map((id, i) => (
+      <Fragment key={id}>
+        <span className="reader-item">
+          {link(id)}
+          {i < ids.length - 1 && ','}
+        </span>
+        {i < ids.length - 1 && ' '}
+      </Fragment>
+    ))
   /** Texto com os nomes de outras fichas virando links. */
   const linked = (text: string) => {
     const out: React.ReactNode[] = []
@@ -75,6 +87,11 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
     .map((p) => p.trim())
     .filter(Boolean)
 
+  // O que já liga esta ficha ao resto do mundo, e as perguntas do tipo que nada ainda responde.
+  const connected =
+    relations.length > 0 || facts.length > 0 || events.length > 0 || e.aliases.length > 0 || e.tags.length > 0 || lists.some((l) => membersOf(universe, e.id, l.id).length > 0) || membershipsOf(universe, e.id).length > 0
+  const open = questionsFor(e.kind).filter((q) => !answerOf(e.fields, q.key).trim() && derivedField(universe, e, q.key).length === 0)
+
   const at = order.findIndex((x) => x.id === e.id)
   const prev = at > 0 ? order[at - 1] : undefined
   const next = at >= 0 && at < order.length - 1 ? order[at + 1] : undefined
@@ -85,13 +102,14 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
     born && [isPerson ? 'Nascimento' : 'Início', born],
     died && [isPerson ? 'Morte' : 'Fim', died],
     e.aliases.length > 0 && ['Também conhecido como', e.aliases.join(', ')],
-    ...e.fields
-      .filter((f) => f.key.trim() || f.value.trim() || f.ref)
-      .map((f) => [
-        f.key || 'Campo',
-        // Campo que aponta para uma ficha vira link; ano vem com o rótulo do calendário.
-        f.type === 'ficha' && f.ref ? link(f.ref) : f.type === 'ano' && f.value.trim() && Number.isFinite(Number(f.value)) ? formatYear(Number(f.value), suffix) : rich(f.value),
-      ]),
+    // Campo vazio não aparece, a não ser que as ligações respondam ("Líder" ← "Malkai líder de…").
+    ...e.fields.flatMap((f): [string, React.ReactNode][] => {
+      // Campo que aponta para uma ficha vira link; ano vem com o rótulo do calendário.
+      if (f.type === 'ficha' && f.ref) return [[f.key || 'Campo', link(f.ref)]]
+      if (f.value.trim()) return [[f.key || 'Campo', f.type === 'ano' && Number.isFinite(Number(f.value)) ? formatYear(Number(f.value), suffix) : rich(f.value)]]
+      const ids = f.key.trim() ? derivedField(universe, e, f.key) : []
+      return ids.length ? [[f.key, <>{links(ids)}</>]] : []
+    }),
     // O que vem das listas (a espécie, o reino, o clã), com a origem.
     ...inherited.map((i) => [
       i.key,
@@ -145,14 +163,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             {children.length > 0 && (
               <div>
                 <p className="reader-infobox-label">Contém</p>
-                <p>
-                  {children.map((c, i) => (
-                    <Fragment key={c.id}>
-                      {i > 0 && ', '}
-                      {link(c.id)}
-                    </Fragment>
-                  ))}
-                </p>
+                <p>{links(children.map((c) => c.id))}</p>
               </div>
             )}
             {e.tags.length > 0 && (
@@ -172,10 +183,12 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             paragraphs.map((p, i) => (
               <p key={i}>{rich(p)}</p>
             ))
-          ) : onEdit && isBlank(e) ? (
+          ) : onEdit && isBlank(e) && open.length > 0 ? (
             <div className="reader-blank">
               <p>
-                Ficha em branco. {questionsFor(e.kind).length} perguntas sobre {kindLabel(e.kind).toLowerCase()} ajudam a começar.
+                {/* Com membros, ligações ou etiquetas, a ficha não está em branco: só falta o texto. */}
+                {connected ? 'Ainda sem descrição.' : 'Ficha em branco.'} {open.length === 1 ? '1 pergunta' : `${open.length} perguntas`} sobre {kindLabel(e.kind).toLowerCase()}{' '}
+                {open.length === 1 ? 'ajuda' : 'ajudam'} a começar.
               </p>
               <button type="button" className="btn btn-primary btn-sm" onClick={onEdit}>
                 Responder
@@ -200,12 +213,13 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
                   <p>
                     {ms.map(({ relation: r, member }, i) => (
                       <Fragment key={r.id}>
-                        {i > 0 && ', '}
-                        <span className={isPast(r) ? 'is-past' : undefined}>
+                        <span className={`reader-item${isPast(r) ? ' is-past' : ''}`}>
                           {link(member.id)}
                           {r.role && <span className="muted"> ({r.role})</span>}
                           {isPast(r) && <span className="muted"> · até {r.scope.toYear}</span>}
+                          {i < ms.length - 1 && ','}
                         </span>
+                        {i < ms.length - 1 && ' '}
                       </Fragment>
                     ))}
                   </p>

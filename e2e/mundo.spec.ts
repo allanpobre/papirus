@@ -75,6 +75,9 @@ test('ficha nova abre em Editar com perguntas do tipo dela, em palavras simples'
   await expect(page.getByRole('region', { name: 'Para começar' })).toHaveCount(0)
   await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
   await expect(page.getByText('Ficha em branco. 4 perguntas sobre lugar ajudam a começar.')).toBeVisible()
+  // "Responder" traz as perguntas de volta, mesmo depois de "Pular".
+  await page.getByRole('button', { name: 'Responder' }).click()
+  await expect(page.getByRole('region', { name: 'Para começar' })).toBeVisible()
 })
 
 test('Quem sabe o quê em frases: verdade, segredo, quem sabe e o que o leitor viu', async ({ page }) => {

@@ -28,6 +28,7 @@ import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityReader } from './EntityReader'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
+import { derivedField } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
 import { Fold } from '../ui/Fold'
@@ -336,7 +337,15 @@ export default function EntitiesView() {
               entity={selected}
               order={list}
               modeSwitch={!readOnly && <ModeSwitch mode="ler" onChange={changeMode} />}
-              onEdit={readOnly ? undefined : () => setFresh(selected.id)}
+              onEdit={
+                readOnly
+                  ? undefined
+                  : () => {
+                      // "Responder" traz as perguntas de volta, mesmo que tenham sido puladas antes.
+                      unskipQuestions(selected.id)
+                      setFresh(selected.id)
+                    }
+              }
             />
           ) : (
             <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" onChange={changeMode} />} />
@@ -820,6 +829,11 @@ function skippedQuestions(): string[] {
   }
 }
 
+function unskipQuestions(id: string) {
+  const skipped = skippedQuestions()
+  if (skipped.includes(id)) remember(SKIPPED, JSON.stringify(skipped.filter((x) => x !== id)))
+}
+
 function skipQuestions(id: string) {
   remember(SKIPPED, JSON.stringify([...skippedQuestions(), id].slice(-300)))
 }
@@ -1138,14 +1152,17 @@ function TypedValue({ entity: e, field: f, onChange }: { entity: Entity; field: 
         onChange={(id) => onChange({ ref: id, value: id ? (byId(universe, 'entities', id)?.name ?? '') : '' })}
       />
     )
-  return <FieldValue value={f.value} label={f.key || 'Valor'} onChange={(v) => onChange({ value: v })} />
+  // Vazio, mas as ligações já respondem ("Malkai líder de…" no campo Líder): aparece em cinza.
+  const derived = !f.value.trim() && f.key.trim() ? derivedField(universe, e, f.key) : []
+  const hint = derived.length ? `${derived.map((id) => entityName(universe, id)).join(', ')} · pelas ligações` : undefined
+  return <FieldValue value={f.value} label={f.key || 'Valor'} placeholder={hint} onChange={(v) => onChange({ value: v })} />
 }
 
-function FieldValue({ value, label, onChange }: { value: string; label: string; onChange: (v: string) => void }) {
+function FieldValue({ value, label, placeholder = 'Valor', onChange }: { value: string; label: string; placeholder?: string; onChange: (v: string) => void }) {
   const ref = useRef<HTMLInputElement>(null)
   return (
     <div className="with-reveal">
-      <input ref={ref} className="input" aria-label="Valor" placeholder="Valor" value={value} onChange={(ev) => onChange(ev.target.value)} />
+      <input ref={ref} className="input" aria-label="Valor" placeholder={placeholder} title={placeholder === 'Valor' ? undefined : placeholder} value={value} onChange={(ev) => onChange(ev.target.value)} />
       <RevealPicker label={label} value={value} inputRef={ref} onChange={onChange} />
     </div>
   )

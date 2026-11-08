@@ -5673,6 +5673,11 @@ button.arc-dot {
 .reader-link:hover {
   text-decoration-color: currentColor;
 }
+/* Um nome de uma lista e a vírgula dele: a vírgula não começa a linha seguinte. */
+.reader-item {
+  display: inline-block;
+  max-width: 100%;
+}
 .reader-infobox {
   grid-area: box;
   display: flex;
