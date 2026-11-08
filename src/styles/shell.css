@@ -2241,3 +2241,78 @@ body:has(.rail-phone) .live-return {
 .cloud-tag svg {
   color: var(--sky, var(--accent));
 }
+
+/* Lista de universos: a inicial no lugar da capa, o selo do exemplo e o ··· de cada um. */
+.library-initial {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  background: var(--accent-faint);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.library-name .sample-chip {
+  margin-left: 0.5rem;
+  vertical-align: 0.2em;
+}
+
+.sample-chip {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.library-item.is-sample .library-initial {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+
+.library-item > .more-menu {
+  flex: none;
+}
+
+.library-meta time {
+  white-space: nowrap;
+}
+
+/* O menu ··· sai da caixa da lista (os cantos arredondados ficam nos itens das pontas). */
+.library-list:has(.more-menu) {
+  overflow: visible;
+}
+
+.library-list:has(.more-menu) > .library-item:first-child .library-open {
+  border-top-left-radius: var(--radius-l);
+}
+
+.library-list:has(.more-menu) > .library-item:last-child .library-open {
+  border-bottom-left-radius: var(--radius-l);
+}
+
+.library-name:has(.sample-chip) {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.library-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-name .sample-chip {
+  flex: none;
+}
