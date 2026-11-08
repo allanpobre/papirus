@@ -17,7 +17,7 @@ export interface PageTourDef {
 
 /** O caminho até os nomes novos, que o Papirus conta mas não marca no texto. */
 const NOMES_NOVOS =
-  'O Papirus não marca nomes novos no texto: ele conta. Na margem, o botão Revisar mostra “1 nome novo” quando aparece uma palavra com maiúscula, no meio da frase, que ainda não tem ficha. Toque para ver a lista e, para cada nome, criar a ficha, juntar como apelido de outra ficha ou ignorar. No celular, abra a margem pelo botão no alto da página.'
+  'O Papirus não marca nomes novos no texto: ele conta. Na margem, o botão Revisar mostra “1 nome novo” quando aparece uma palavra com maiúscula, no meio da frase, que ainda não tem ficha. Toque para ver a lista e, para cada nome, criar a ficha, juntar como apelido de outra ficha ou ignorar. No celular, a margem fica na gaveta embaixo da página.'
 
 /**
  * Os tours de cada tela, abertos pelo botão (?) dela. Só explicam o que está na tela;
@@ -95,7 +95,7 @@ export const PAGE_TOURS = {
         body: 'Na Revisão: como a cena termina (melhor, pior ou igual), o cartão, as pistas que ela planta, avança ou paga e as perguntas abertas. As setas passam para a cena vizinha.',
         optional: true,
       },
-      { target: '.margin-review, [aria-label="Mostrar margem"]', title: 'Nomes novos', body: NOMES_NOVOS, optional: true },
+      { target: '.margin-review, [aria-label="Mostrar margem"], .margin-sheet-handle', title: 'Nomes novos', body: NOMES_NOVOS, optional: true },
       { target: '[data-tour="margem"]', title: 'A margem', body: 'Quem aparece no parágrafo e na cena, comentários, leitores beta, pistas ligadas a quem está em cena e perguntas de continuidade. Dá para fechar.', optional: true },
       {
         target: '.margin-sheet-handle',

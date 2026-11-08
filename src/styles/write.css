@@ -1828,8 +1828,16 @@ body.escrevendo-no-celular .shared-banner {
   white-space: pre;
 }
 
-/* Na barra apertada, o nome do estado sai (fica a bolinha, com o nome ao passar o mouse). */
+/* Na barra apertada (margem aberta ao lado, ou tela estreita), o nome do estado e a data saem
+   (fica a bolinha, com o nome ao passar o mouse). */
 @media (max-width: 1500px) {
+  .write:not(.margin-closed) .write-bar-status,
+  .write:not(.margin-closed) .write-bar-date {
+    display: none;
+  }
+}
+
+@media (max-width: 1180px) {
   .write-bar-status,
   .write-bar-date {
     display: none;

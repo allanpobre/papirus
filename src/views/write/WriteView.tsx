@@ -606,9 +606,9 @@ export default function WriteView() {
                           onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
                         />
                       ) : (
-                        <DatePart label="Dia do ano">
+                        <DatePart label="Dia">
                           <YearInput
-                            label="Dia do ano"
+                            label="Dia"
                             placeholder="Dia"
                             value={scene.date?.day ?? null}
                             onChange={(d) => scene.date && set({ date: { ...scene.date, day: d } })}
