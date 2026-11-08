@@ -295,7 +295,9 @@ test('o jogador vê a ficha completa no Codex, só para consultar', async ({ pag
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await nav(page, 'Ajustes e dados').click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /Conta/ }).click()
+  // O servidor próprio fica em Ajustes › Avançado (fechado).
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByText('Avançado').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Servidor próprio' }).click()
   await page.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
   await page.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
   await page.getByRole('textbox', { name: 'Endereço público do Papirus' }).fill(baseURL + '/')

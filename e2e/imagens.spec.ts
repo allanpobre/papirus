@@ -199,10 +199,13 @@ test('imagens: a imagem da cena vai para o e-book como arquivo', async ({ page }
   await page.locator('input[aria-label="Imagem para a cena"]').setInputFiles(await photo(page, '#8a2f3b', 900, 600))
   await expect(page.getByRole('textbox', { name: 'Texto da cena' }).locator('figure.scene-figure img')).toHaveAttribute('src', /^blob:/)
   await expect(page.getByRole('status').first()).toHaveText('Salvo')
-  await nav(page, 'Ajustes').click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Livros' }).click()
+  // Baixar o livro fica no Livro.
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('button', { name: 'Criar o livro' }).click()
+  await page.getByRole('dialog', { name: 'Diagramar o livro' }).getByRole('button', { name: 'Fechar' }).click()
   const epub = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'EPUB' }).click()
+  await page.locator('[data-tour="livro-acoes"]').getByRole('button', { name: 'Baixar' }).click()
+  await page.getByRole('button', { name: /^E-book \(EPUB\)/ }).click()
   const zip = unzipSync(new Uint8Array(await readFile(await (await epub).path())))
   const pics = Object.keys(zip).filter((k) => k.startsWith('OEBPS/imagens/cena-'))
   expect(pics).toHaveLength(1)
@@ -236,7 +239,9 @@ test('imagens: no Codex dos jogadores, a ficha revelada mostra o retrato (miniat
   await expect(page.locator('.entity-row-pic')).toBeVisible()
 
   await nav(page, 'Ajustes').click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /Conta/ }).click()
+  // O servidor próprio fica em Ajustes › Avançado (fechado).
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByText('Avançado').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Servidor próprio' }).click()
   await page.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
   await page.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
   await page.getByRole('textbox', { name: 'Endereço público do Papirus' }).fill(baseURL + '/')

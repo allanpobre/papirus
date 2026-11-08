@@ -20,7 +20,7 @@ test('arco na história: onde o boticário aparece e quando muda de lado', async
 test('wiki do mundo: só até uma cena, sem spoiler', async ({ page }) => {
   await page.goto('/app/?exemplo')
   await nav(page, 'Ajustes e dados').click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Livros e wiki' }).click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Importar e wiki' }).click()
   await page.getByRole('combobox', { name: 'O que entra' }).selectOption({ label: 'Só o que o leitor sabe até “De como Itaguaí ganhou uma casa de orates” (1)' })
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Baixar a wiki (.html)' }).click()
