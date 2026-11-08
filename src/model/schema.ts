@@ -116,6 +116,16 @@ export const entityFieldSchema = z.object({
   ref: z.string().nullable().optional(),
 })
 
+/** Uma lista de uma ficha ("Raças", "Membros"): quem entra vira uma ligação com o id dela. */
+export const entityListSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  /** Que tipos de ficha entram (vazio: qualquer um). */
+  accepts: z.array(z.string()).default([]),
+  /** O que todos da lista têm: passa para a ficha de cada um. */
+  shared: z.array(z.object({ key: z.string(), value: z.string() })).default([]),
+})
+
 export const entitySchema = z.object({
   id,
   kind: z.string().min(1),
@@ -135,6 +145,8 @@ export const entitySchema = z.object({
   fields: z.array(entityFieldSchema),
   /** Retrato ou imagem da ficha ("img:…"). */
   image: z.string().nullable().optional(),
+  /** As listas desta ficha (Raças, Criaturas, Membros…). */
+  lists: z.array(entityListSchema).optional(),
   ...timestamps,
 })
 
@@ -163,6 +175,10 @@ export const relationSchema = z.object({
    */
   via: z.array(z.object({ entityId: id, role: z.string() })).default([]),
   scope: relationScopeSchema.default({ kind: 'geral', fromYear: null, toYear: null, storyIds: [], sceneIds: [] }),
+  /** Ligação de lista: em que lista da ficha de destino esta ficha está ("Membros" do clã). */
+  listId: z.string().optional(),
+  /** O papel dentro da lista: "líder", "rainha". */
+  role: z.string().optional(),
   ...timestamps,
 })
 
@@ -514,6 +530,8 @@ export const universeSettingsSchema = z.object({
   calendarMonths: z.array(z.object({ name: z.string(), days: z.number().int().positive() })).default([]),
   /** Campos sugeridos por tipo de ficha: toda ficha nova daquele tipo já nasce com eles (vazios). */
   fieldTemplates: z.record(z.string(), z.array(z.string())).default({}),
+  /** Listas que cada tipo de ficha sugere ("Raças", "Criaturas" num reino). Sem isso, as do Papirus. */
+  listTemplates: z.record(z.string(), z.array(z.string())).optional(),
   /** Meta com prazo: chegar a tantas palavras (no universo todo) até a data (AAAA-MM-DD). */
   deadline: z.object({ words: z.number().int().positive(), date: z.string() }).nullable().default(null),
   /** Capa do universo ("img:…"): no Início e na lista de universos. */

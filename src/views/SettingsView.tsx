@@ -24,7 +24,7 @@ import { playKey, unlockAudio } from '../editor/keySounds'
 import { WikiCard } from './WikiCard'
 import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
-import { AccentPicker, AccountCard, FieldTemplatesCard } from './SettingsParts'
+import { AccentPicker, AccountCard, FieldTemplatesCard, ListTemplatesCard } from './SettingsParts'
 import { categoryFrom, matches, SETTINGS_CATEGORIES, SETTINGS_GROUPS, type SettingsCategory } from './settingsCategories'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useBackLayer } from '../ui/useBackLayer'
@@ -40,6 +40,7 @@ const QUESTION_LABEL: Record<QuestionType, string> = {
   'morto-reaparece': 'Personagem que morreu e aparece numa cena depois',
   'nome-parecido': 'Nome escrito quase igual a outro (erro de digitação?)',
   'data-impossivel': 'Datas impossíveis (fim antes do começo, dia fora do calendário)',
+  'difere-da-lista': 'Ficha que muda o que a lista dela diz (um elfo que vive 80 anos)',
 }
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
@@ -535,6 +536,8 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         )}
 
 {show('universo') && <FieldTemplatesCard />}
+
+{show('universo') && <ListTemplatesCard />}
 
 {show('universo') && (
         <section className="settings-card">

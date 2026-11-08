@@ -75,6 +75,7 @@ export const DEFAULT_PREFS: Prefs = {
     'morto-reaparece': true,
     'nome-parecido': true,
     'data-impossivel': true,
+    'difere-da-lista': true,
   },
   railCollapsed: false,
   hiddenViews: [],

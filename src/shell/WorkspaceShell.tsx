@@ -54,6 +54,7 @@ import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
 import { SearchPalette } from './SearchPalette'
 import { ReplaceHost } from '../views/write/ReplaceDialog'
+import { migrateParents } from '../model/lists'
 import { modKey } from '../ui/keys'
 
 const HomeView = lazy(() => import('../views/HomeView'))
@@ -100,6 +101,11 @@ interface ToastItem extends ToastOptions {
 export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose, onOpenOther, source = OWN }: Props) {
   const { universe, status, update: write, flush, repo } = useUniverse(library, initial, recovered)
   const readOnly = isReadOnly(source)
+  // "Fica dentro de" agora é só de lugar: quem não é lugar passa para uma lista da ficha (uma vez, ao abrir).
+  useEffect(() => {
+    if (!readOnly) write((u) => migrateParents(u))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [shareOpen, setShareOpen] = useState(false)
   const [readerOpen, setReaderOpen] = useState(false)
   // A Oficina é uma página à parte, por cima da área de trabalho.

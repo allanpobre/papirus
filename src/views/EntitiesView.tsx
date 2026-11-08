@@ -41,6 +41,9 @@ import { AreaHead } from './AreaModes'
 import { findRanges } from '../editor/find'
 import { openBookReplace } from './write/replaceEvents'
 import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
+import { InheritedRows, ListsSection, MembershipChips } from './EntityLists'
+import { SelectionBar } from './EntitySelection'
+import { PLACE_KINDS } from '../model/lists'
 import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
@@ -63,6 +66,9 @@ export default function EntitiesView() {
   const phone = useMediaQuery('(max-width: 760px)')
   // Criar uma (no celular, numa janela que não sai da lista) ou várias de uma vez.
   const [creating, setCreating] = useState<null | 'uma' | 'varias'>(null)
+  // Selecionar várias: pôr numa lista, etiqueta, tipo ou apagar de uma vez.
+  const [picked, setPicked] = useState<Set<string> | null>(null)
+  const togglePick = (id: string) => setPicked((p) => (p ? (p.has(id) ? new Set([...p].filter((x) => x !== id)) : new Set([...p, id])) : p))
   type Order = 'nome' | 'cenas' | 'recentes'
   const [order, setOrder] = useState<Order>(() => {
     const o = recall('fichas-ordem')
@@ -159,6 +165,11 @@ export default function EntitiesView() {
               options={[{ value: 'todos', label: `Todas (${universe.entities.length})` }, ...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
             />
           )}
+          {!readOnly && (
+            <button type="button" className="btn btn-ghost btn-sm" aria-pressed={picked !== null} onClick={() => setPicked(picked ? null : new Set())}>
+              {picked ? 'Pronto' : 'Selecionar'}
+            </button>
+          )}
           <Select<Order>
             label="Ordem da lista"
             value={order}
@@ -198,6 +209,13 @@ export default function EntitiesView() {
           <ul className="entity-list">
             {list.map((e) => (
               <li key={e.id}>
+                {picked ? (
+                  <label className={`entity-row is-picking${picked.has(e.id) ? ' is-picked' : ''}`}>
+                    <input type="checkbox" checked={picked.has(e.id)} onChange={() => togglePick(e.id)} aria-label={`Marcar ${e.name || 'Sem nome'}`} />
+                    <span className="entity-row-name">{e.name || 'Sem nome'}</span>
+                    <span className="entity-row-kind">{kindLabel(e.kind)}</span>
+                  </label>
+                ) : (
                 <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
                   {e.image ? <Picture value={e.image} className="entity-row-pic" /> : <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />}
                   <span className="entity-row-name">{e.name || 'Sem nome'}</span>
@@ -208,11 +226,20 @@ export default function EntitiesView() {
                     {e.summary}
                   </span>
                 </button>
+                )}
               </li>
             ))}
           </ul>
         )}
-        {phone && !readOnly && (
+        {picked && (
+          <>
+            <button type="button" className="link-btn small" onClick={() => setPicked(new Set(list.map((x) => x.id)))}>
+              Marcar as {list.length} da lista
+            </button>
+            <SelectionBar ids={[...picked]} onClear={() => setPicked(null)} />
+          </>
+        )}
+        {phone && !readOnly && !picked && (
           <button type="button" className="fab" aria-label="Nova ficha" onClick={() => setCreating('uma')}>
             <Plus size={22} />
           </button>
@@ -394,8 +421,9 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   // Ficha vazia: perguntas do tipo dela para começar (até sair da ficha, mesmo depois da primeira resposta).
   const [asking, setAsking] = useState(() => isBlank(e) && !skippedQuestions().includes(e.id))
 
-  const outgoing = universe.relations.filter((r) => r.fromId === e.id)
-  const incoming = universe.relations.filter((r) => r.toId === e.id)
+  // As ligações de lista ("faz parte de") aparecem em "Faz parte de" e nas listas, não aqui.
+  const outgoing = universe.relations.filter((r) => r.fromId === e.id && !r.listId)
+  const incoming = universe.relations.filter((r) => r.toId === e.id && !r.listId)
   const children = universe.entities.filter((x) => x.parentId === e.id)
   const facts = universe.facts.filter((f) => f.subjectId === e.id || f.objectId === e.id)
   const knows = universe.knowledge.filter((k) => k.holderId === e.id)
@@ -448,6 +476,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
             <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
           </div>
+          <MembershipChips entity={e} editable />
 
           {asking && (
             <KindQuestions
@@ -481,6 +510,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           </Field>
 
           <Fold id="ficha-campos" title="Campos">
+            <InheritedRows entity={e} />
             {e.fields.map((f, i) =>
               // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela.
               asking && askedKey(e.kind, f.key) ? null : (
@@ -518,9 +548,14 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             </button>
           </Fold>
 
+          <ListsSection entity={e} />
+
           <Fold id="ficha-mais-detalhes" title="Mais detalhes" defaultOpen={false}>
             <div className="form-grid">
-              <EntityPicker label="Fica dentro de" value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Lugar, facção, reino…" />
+              {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
+              {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
+                <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />
+              )}
               <div className="field">
                 <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
                 <div className="inline-fields">
