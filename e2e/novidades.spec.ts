@@ -35,6 +35,7 @@ test('wiki do mundo: só até uma cena, sem spoiler', async ({ page }) => {
 test('aparência: cor rosa, fonte de máquina e modo máquina de escrever', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Aparência' }).click()
   await page.getByRole('radio', { name: 'Rosa' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-accent', 'rosa')
   await page.getByRole('combobox', { name: 'Fonte do texto' }).selectOption('maquina')

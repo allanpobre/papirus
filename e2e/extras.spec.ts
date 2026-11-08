@@ -265,7 +265,8 @@ test('a barra da seleção some quando a janela do fato abre, e dá para marcar 
 test('ajustes por categoria: busca, cor de destaque e tema rápido', async ({ page }) => {
   await openSample(page)
   await nav(page, 'Ajustes e dados').click()
-  // Abre em Aparência, com a cor de destaque.
+  // A cor de destaque fica em Este aparelho › Aparência.
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Aparência' }).click()
   await page.getByRole('radio', { name: 'Azul' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-accent', 'azul')
   // A busca leva à categoria certa.
