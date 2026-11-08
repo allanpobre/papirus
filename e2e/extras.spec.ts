@@ -224,6 +224,9 @@ test('relação com várias fichas: "criado por" duas pessoas numa linha só', a
   await page.getByRole('option', { name: /^Mira/ }).first().click()
   await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
 
+  // Uma linha só: "criado por Kael, Mira". O lápis abre para mudar.
+  await expect(page.locator('.relation-row.is-line').filter({ hasText: 'criado por' }).locator('.chip-entity')).toHaveText(['Kael', 'Mira'])
+  await page.getByRole('button', { name: 'Editar a ligação “criado por”' }).click()
   const row = page.locator('.relation-row').filter({ has: page.locator('input[value="criado por"]') })
   await expect(row).toHaveCount(1)
   await expect(row.locator('.chip-entity')).toHaveText(['Kael', 'Mira'])
@@ -293,6 +296,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
   await page.getByRole('option', { name: /^Vaelor/ }).first().click()
   await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
 
+  await page.getByRole('button', { name: 'Editar a ligação “envenenou”' }).click()
   const row = page.locator('.relation-row').filter({ has: page.locator('input[value="envenenou"]') })
   await row.locator('summary').click()
   await row.getByRole('combobox', { name: 'Quem está por trás' }).fill('Mira')

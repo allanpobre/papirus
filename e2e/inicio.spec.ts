@@ -47,6 +47,8 @@ test('para quando der: até três coisas, sem cobrar rascunhos nem pistas aberta
   // Um treino só (com a dica numa linha) e o ritmo dobrado.
   await expect(page.getByRole('region', { name: 'Dica do dia' })).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Seu progresso' })).toHaveCount(0)
+  // A capa do livro abre por cima ao entrar; o contraste se mede depois que ela sai.
+  await expect(page.locator('.book-gate')).toHaveCount(0)
   const { violations } = await new AxeBuilder({ page }).include('.home').analyze()
   expect(violations.map((v) => v.id)).toEqual([])
   // As perguntas abrem a cena na Revisão, com a margem.
