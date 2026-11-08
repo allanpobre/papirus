@@ -104,7 +104,17 @@ export const ENTITY_KINDS = [
   'conceito',
 ] as const
 
-export const entityFieldSchema = z.object({ key: z.string(), value: z.string() })
+/** Que tipo de valor um campo guarda: texto livre, número, ano do calendário ou outra ficha. */
+export const FIELD_TYPES = ['texto', 'numero', 'ano', 'ficha'] as const
+
+export const entityFieldSchema = z.object({
+  key: z.string(),
+  value: z.string(),
+  /** Sem tipo é texto (fichas antigas). */
+  type: z.enum(FIELD_TYPES).optional(),
+  /** Campo do tipo ficha: para qual ficha ele aponta ("Mãe: Ilsa"). */
+  ref: z.string().nullable().optional(),
+})
 
 export const entitySchema = z.object({
   id,

@@ -1,5 +1,5 @@
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, BookOpen, ImagePlus, ListPlus, Loader2, PenLine, Plus, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, Check, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
@@ -8,7 +8,7 @@ import { fold, snippet } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
 import { RelationDetails } from './RelationDetails'
 import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, SEED_STATUS_LABEL } from '../model/labels'
-import { ENTITY_KINDS, KNOWLEDGE_STATES, type Entity, type KnowledgeState } from '../model/schema'
+import { ENTITY_KINDS, FIELD_TYPES, KNOWLEDGE_STATES, type Entity, type KnowledgeState } from '../model/schema'
 import {
   byId,
   draftEntity,
@@ -40,7 +40,8 @@ import { FactDialog } from '../ui/FactDialog'
 import { AreaHead } from './AreaModes'
 import { findRanges } from '../editor/find'
 import { openBookReplace } from './write/replaceEvents'
-import { BulkCreateDialog, NewEntityDialog, useKindOptions } from './EntityCreate'
+import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
+import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
 export default function EntitiesView() {
@@ -442,6 +443,12 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
       <div className="entity-body">
         <div className="entity-main">
+          {/* O que se usa sempre fica à vista: os outros nomes e as etiquetas. */}
+          <div className="entity-names">
+            <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
+            <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
+          </div>
+
           {asking && (
             <KindQuestions
               entity={e}
@@ -477,9 +484,29 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             {e.fields.map((f, i) =>
               // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela.
               asking && askedKey(e.kind, f.key) ? null : (
-                <div key={i} className="kv-row">
+                <div key={i} className="kv-row kv-typed">
                   <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
-                  <FieldValue value={f.value} label={f.key || 'Valor'} onChange={(v) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, value: v } : x)) })} />
+                  <TypedValue
+                    entity={e}
+                    field={f}
+                    onChange={(changes) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, ...changes } : x)) })}
+                  />
+                  <select
+                    className="input select field-type"
+                    aria-label={`Tipo do campo ${f.key || ''}`.trim()}
+                    title="Tipo do campo"
+                    value={f.type ?? 'texto'}
+                    onChange={(ev) => {
+                      const type = ev.target.value as NonNullable<typeof f.type>
+                      set({ fields: e.fields.map((x, j) => (j === i ? { ...x, type, ...(type === 'ficha' ? {} : { ref: null }) } : x)) })
+                    }}
+                  >
+                    {FIELD_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {FIELD_TYPE_LABEL[t]}
+                      </option>
+                    ))}
+                  </select>
                   <button type="button" className="btn-icon btn-sm" aria-label="Remover campo" onClick={() => set({ fields: e.fields.filter((_, j) => j !== i) })}>
                     <X size={14} />
                   </button>
@@ -501,12 +528,6 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
                   <span className="muted">—</span>
                   <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
                 </div>
-              </div>
-              <div className="field-wide">
-                <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
-              </div>
-              <div className="field-wide">
-                <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} />
               </div>
             </div>
           </Fold>
@@ -708,6 +729,28 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
   const [type, setType] = useState('')
   const [targets, setTargets] = useState<string[]>([])
   const involved = involvements(universe, e.id)
+  // Cada ligação é uma linha ("irmão de Mira"); o lápis abre o resto (tipo, verdade, período, quem está por trás).
+  const [open, setOpen] = useState<string | null>(null)
+  const editButton = (rs: Universe['relations']) => (
+    <button type="button" className="btn-icon btn-sm relation-edit" aria-label={`Editar a ligação “${rs[0].type || 'sem nome'}”`} title="Editar" onClick={() => setOpen(rs[0].id)}>
+      <Pencil size={13} />
+    </button>
+  )
+  const doneButton = (
+    <button type="button" className="btn btn-ghost btn-sm relation-done" onClick={() => setOpen(null)}>
+      <Check size={14} /> Pronto
+    </button>
+  )
+  const lineMeta = (rs: Universe['relations']) => (
+    <>
+      {scopeLabel(universe, rs[0]) && <span className="muted small">{scopeLabel(universe, rs[0])}</span>}
+      {rs[0].canon !== 'estabelecido' && <CanonBadge canon={rs[0].canon} />}
+      {rs[0].via.length > 0 && <span className="muted small">com {rs[0].via.map((v) => entityName(universe, v.entityId)).join(', ')}</span>}
+    </>
+  )
+  // Campos que apontam para fichas ("Mãe: Ilsa") também são ligações, dos dois lados.
+  const fieldLinks = e.fields.filter((f) => f.type === 'ficha' && f.ref)
+  const fieldBacklinks = universe.entities.flatMap((x) => (x.id === e.id ? [] : x.fields.filter((f) => f.type === 'ficha' && f.ref === e.id).map((f) => ({ from: x, key: f.key }))))
 
   const add = () => {
     if (!targets.length || !type.trim()) return
@@ -755,7 +798,17 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
     </>
   )
 
-  const outRow = (rs: Universe['relations']) => (
+  const outRow = (rs: Universe['relations']) =>
+    open !== rs[0].id ? (
+      <li key={rs[0].id} className="relation-row is-line">
+        <span className="relation-type-text">{rs[0].type || 'ligado a'}</span>
+        <span className="chips relation-targets">
+          {names(rs, 'toId', false)}
+          {lineMeta(rs)}
+        </span>
+        {editButton(rs)}
+      </li>
+    ) : (
     <li key={rs[0].id} className="relation-row">
       <span className="muted">{e.name}</span>
       <input
@@ -777,25 +830,66 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       </span>
       {groupControls(rs)}
       <RelationDetails relations={rs} exclude={[e.id, ...rs.map((r) => r.toId)]} />
+      {doneButton}
     </li>
-  )
+    )
 
-  const inRow = (rs: Universe['relations']) => (
-    <li key={rs[0].id} className="relation-row">
-      <span className="chips relation-targets">{names(rs, 'fromId', true)}</span>
-      <span className="relation-type-text">{rs[0].type}</span>
-      <span className="muted">{e.name}</span>
-      {groupControls(rs)}
-      <RelationDetails relations={rs} exclude={[e.id, ...rs.map((r) => r.fromId)]} />
-    </li>
-  )
+  const inRow = (rs: Universe['relations']) =>
+    open !== rs[0].id ? (
+      <li key={rs[0].id} className="relation-row is-line">
+        <span className="chips relation-targets">
+          {names(rs, 'fromId', false)}
+          <span className="relation-type-text">{rs[0].type}</span>
+          <span className="muted">{e.name}</span>
+          {lineMeta(rs)}
+        </span>
+        {editButton(rs)}
+      </li>
+    ) : (
+      <li key={rs[0].id} className="relation-row">
+        <span className="chips relation-targets">{names(rs, 'fromId', true)}</span>
+        <span className="relation-type-text">{rs[0].type}</span>
+        <span className="muted">{e.name}</span>
+        {groupControls(rs)}
+        <RelationDetails relations={rs} exclude={[e.id, ...rs.map((r) => r.fromId)]} />
+        {doneButton}
+      </li>
+    )
 
   return (
     <Fold id="ficha-rela-es" title="Ligações">
-      {outgoing.length + incoming.length === 0 && <p className="muted small">Nenhuma relação ainda.</p>}
+      {outgoing.length + incoming.length + fieldLinks.length + fieldBacklinks.length === 0 && <p className="muted small">Nenhuma relação ainda.</p>}
       <ul className="relation-list">
         {group(outgoing).map(outRow)}
         {group(incoming).map(inRow)}
+        {fieldLinks.map((f, i) => (
+          <li key={`campo-${i}`} className="relation-row is-line is-field">
+            <span className="relation-type-text">{f.key || 'Campo'}</span>
+            <span className="chips relation-targets">
+              <span className="chip chip-entity">
+                <button type="button" className="chip-link" onClick={() => peek(f.ref!)}>
+                  {entityName(universe, f.ref!) || f.value || 'Ficha removida'}
+                </button>
+              </span>
+            </span>
+            <span className="muted small">do campo</span>
+          </li>
+        ))}
+        {fieldBacklinks.map(({ from, key }, i) => (
+          <li key={`de-campo-${i}`} className="relation-row is-line is-field">
+            <span className="relation-type-text">
+              {key || 'Campo'} de
+            </span>
+            <span className="chips relation-targets">
+              <span className="chip chip-entity">
+                <button type="button" className="chip-link" onClick={() => peek(from.id)}>
+                  {from.name || 'Sem nome'}
+                </button>
+              </span>
+            </span>
+            <span className="muted small">do campo de {from.name || 'Sem nome'}</span>
+          </li>
+        ))}
       </ul>
       {involved.length > 0 && (
         <div className="relation-involved">
@@ -913,6 +1007,35 @@ function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Uni
 type Universe = ReturnType<typeof useWorkspace>['universe']
 
 /** Valor de um campo livre, com a marcação de spoiler para o modo leitor. */
+const FIELD_TYPE_LABEL: Record<(typeof FIELD_TYPES)[number], string> = { texto: 'Texto', numero: 'Número', ano: 'Ano', ficha: 'Ficha' }
+
+/** O valor do campo do jeito do tipo: texto (com segredo), número, ano do calendário ou uma ficha. */
+function TypedValue({ entity: e, field: f, onChange }: { entity: Entity; field: Entity['fields'][number]; onChange: (changes: Partial<Entity['fields'][number]>) => void }) {
+  const { universe } = useWorkspace()
+  const type = f.type ?? 'texto'
+  if (type === 'numero')
+    return <input className="input" inputMode="decimal" aria-label="Valor" placeholder="0" value={f.value} onChange={(ev) => onChange({ value: ev.target.value.replace(/[^\d.,\-\s\p{L}]/gu, '') })} />
+  if (type === 'ano')
+    return (
+      <div className="with-reveal">
+        <YearInput label="Valor (ano)" value={f.value.trim() && Number.isFinite(Number(f.value)) ? Number(f.value) : null} onChange={(y) => onChange({ value: y === null ? '' : String(y) })} />
+        {universe.settings.calendarSuffix && <span className="muted small">{universe.settings.calendarSuffix}</span>}
+      </div>
+    )
+  if (type === 'ficha')
+    return (
+      <EntityPicker
+        label={f.key ? `${f.key} (ficha)` : 'Valor (ficha)'}
+        hideLabel
+        placeholder="Qual ficha…"
+        value={f.ref ?? null}
+        exclude={[e.id]}
+        onChange={(id) => onChange({ ref: id, value: id ? (byId(universe, 'entities', id)?.name ?? '') : '' })}
+      />
+    )
+  return <FieldValue value={f.value} label={f.key || 'Valor'} onChange={(v) => onChange({ value: v })} />
+}
+
 function FieldValue({ value, label, onChange }: { value: string; label: string; onChange: (v: string) => void }) {
   const ref = useRef<HTMLInputElement>(null)
   return (

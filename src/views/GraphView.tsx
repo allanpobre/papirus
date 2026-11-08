@@ -141,6 +141,8 @@ export default function GraphView() {
     if (showDerived) {
       for (const e of universe.entities) {
         if (e.parentId) list.push({ id: `p-${e.id}`, from: e.id, to: e.parentId, label: 'fica em', kind: 'derivada' })
+        // Campos que apontam para fichas ("Mãe: Ilsa").
+        e.fields.forEach((f, i) => f.type === 'ficha' && f.ref && list.push({ id: `c-${e.id}-${i}`, from: e.id, to: f.ref, label: f.key.toLocaleLowerCase('pt-BR') || 'campo', kind: 'derivada' }))
       }
     }
     return list

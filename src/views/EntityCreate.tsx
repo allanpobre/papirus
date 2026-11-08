@@ -1,32 +1,10 @@
 import { useState } from 'react'
-import { KIND_LABEL } from '../model/labels'
-import { ENTITY_KINDS } from '../model/schema'
 import { draftEntity, insert } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
 import { Modal } from '../ui/Modal'
 import { NameIdeas } from './NameIdeas'
-
-/** Os tipos para escolher ao criar: os comuns e os próprios deste universo ("Navio", "Idioma"…). */
-export function useKindOptions() {
-  const { universe } = useWorkspace()
-  const own = [...new Set(universe.entities.map((e) => e.kind))].filter((k) => !(ENTITY_KINDS as readonly string[]).includes(k)).sort((a, b) => a.localeCompare(b, 'pt'))
-  return [...ENTITY_KINDS.map((k) => ({ value: k as string, label: KIND_LABEL[k] })), ...own.map((k) => ({ value: k, label: k }))]
-}
-
-/** Os nomes colados, um por linha, sem repetir e sem linhas vazias. */
-export function namesFromText(text: string): string[] {
-  const seen = new Set<string>()
-  return text
-    .split(/\r?\n/)
-    .map((l) => l.replace(/^\s*[-*•]\s*/, '').trim())
-    .filter((l) => {
-      const k = l.toLocaleLowerCase('pt-BR')
-      if (!l || seen.has(k)) return false
-      seen.add(k)
-      return true
-    })
-}
+import { namesFromText, useKindOptions } from './kindOptions'
 
 /** No celular: criar uma ficha sem sair da lista ("Criar e fazer outra") ou abrir a nova. */
 export function NewEntityDialog({ initialKind, onClose, onOpen, onMany }: { initialKind: string; onClose: () => void; onOpen: (id: string) => void; onMany: () => void }) {

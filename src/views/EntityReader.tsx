@@ -72,12 +72,20 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
   const at = order.findIndex((x) => x.id === e.id)
   const prev = at > 0 ? order[at - 1] : undefined
   const next = at >= 0 && at < order.length - 1 ? order[at + 1] : undefined
+  // Quem aponta para esta ficha num campo ("Mãe: Ilsa" na ficha de Kael → Ilsa é mãe de Kael).
+  const backlinks = universe.entities.flatMap((x) => (x.id === e.id ? [] : x.fields.filter((f) => f.type === 'ficha' && f.ref === e.id).map((f) => ({ from: x, key: f.key }))))
   const infobox = [
     parent && ['Fica em', link(parent.id)],
     born && [isPerson ? 'Nascimento' : 'Início', born],
     died && [isPerson ? 'Morte' : 'Fim', died],
     e.aliases.length > 0 && ['Também conhecido como', e.aliases.join(', ')],
-    ...e.fields.filter((f) => f.key.trim() || f.value.trim()).map((f) => [f.key || 'Campo', rich(f.value)]),
+    ...e.fields
+      .filter((f) => f.key.trim() || f.value.trim() || f.ref)
+      .map((f) => [
+        f.key || 'Campo',
+        // Campo que aponta para uma ficha vira link; ano vem com o rótulo do calendário.
+        f.type === 'ficha' && f.ref ? link(f.ref) : f.type === 'ano' && f.value.trim() && Number.isFinite(Number(f.value)) ? formatYear(Number(f.value), suffix) : rich(f.value),
+      ]),
   ].filter(Boolean) as [string, React.ReactNode][]
 
   return (
@@ -163,10 +171,15 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             <p className="muted">Ainda sem descrição. Em “Editar” você escreve sobre esta ficha.</p>
           )}
 
-          {relations.length > 0 && (
+          {relations.length + backlinks.length > 0 && (
             <section>
               <h2>Ligações</h2>
               <ul>
+                {backlinks.map(({ from, key }, i) => (
+                  <li key={`campo-${i}`}>
+                    {e.name} é {key.toLocaleLowerCase('pt-BR') || 'ligado a'} de {link(from.id)}
+                  </li>
+                ))}
                 {relations.map((r) => (
                   <li key={r.id}>
                     {r.fromId === e.id ? (

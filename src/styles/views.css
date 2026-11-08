@@ -8016,3 +8016,84 @@ h3.cork-act {
     padding-bottom: 72px;
   }
 }
+
+/* Ficha em Editar: outros nomes e etiquetas no alto, lado a lado. */
+.entity-names {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 0.6rem;
+}
+
+/* Campos com tipo: nome | valor | tipo | tirar. */
+.kv-row.kv-typed {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) 6.2rem auto;
+  align-items: center;
+}
+
+.field-type {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+@media (max-width: 560px) {
+  .kv-row.kv-typed {
+    grid-template-columns: minmax(0, 1fr) 5.6rem auto;
+  }
+
+  .kv-row.kv-typed > :nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+/* Ligações numa linha; o lápis abre o resto. */
+.relation-list:has(> .relation-row.is-line) {
+  gap: 0;
+}
+
+.relation-list > .relation-row.is-line {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  padding: 0.35rem 0.1rem;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+}
+
+.relation-list > .relation-row.is-line:last-child {
+  border-bottom: 0;
+}
+
+.relation-row.is-line > .relation-type-text {
+  flex: none;
+  padding-top: 0.15rem;
+}
+
+.relation-row.is-line > .relation-targets {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+}
+
+.relation-row.is-line > .relation-targets > .small {
+  white-space: nowrap;
+}
+
+.relation-row.is-line .relation-type-text {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.relation-row.is-line .relation-edit {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.relation-row.is-field .relation-type-text {
+  font-weight: 500;
+}
+
+.relation-done {
+  margin-left: auto;
+}
