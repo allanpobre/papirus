@@ -52,7 +52,11 @@ test('Ajustes em três grupos, cada painel dizendo para quem vale', async ({ pag
   await expect(page.getByRole('radiogroup', { name: 'Este universo é' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Apagar este universo…' })).toBeVisible()
   // Cada tipo de ficha com o seu exemplo de campos.
-  await expect(page.locator('.field-template-row').filter({ hasText: 'Lugar' }).getByRole('textbox')).toHaveAttribute('placeholder', 'Ex.: Clima, Quem manda, Perigo')
+  const campos = page.locator('section', { has: page.getByRole('heading', { name: 'Campos sugeridos nas fichas' }) })
+  await expect(campos.locator('.field-template-row').filter({ hasText: 'Lugar' }).getByRole('textbox')).toHaveAttribute('placeholder', 'Ex.: Clima, Quem manda, Perigo')
+  // E as listas que cada tipo sugere.
+  const listas = page.locator('section', { has: page.getByRole('heading', { name: 'Listas sugeridas nas fichas' }) })
+  await expect(listas.locator('.field-template-row').filter({ hasText: 'Reino' }).getByRole('textbox')).toHaveValue('Raças, Criaturas, Habitantes')
 
   await cats.getByRole('button', { name: 'Aparência' }).click()
   await expect(page.locator('.settings-scope')).toHaveText('Vale para este aparelho, em todos os universos.')
