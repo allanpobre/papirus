@@ -2008,3 +2008,210 @@ body.escrevendo-no-celular .shared-banner {
     z-index: 60;
   }
 }
+
+/* ---------------------------------------------------------------- procurar e trocar */
+
+.find-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem max(16px, env(safe-area-inset-right, 0px)) 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.find-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.4rem;
+}
+
+.find-input {
+  flex: 0 1 16rem;
+  min-width: 9rem;
+}
+
+.find-count {
+  min-width: 4.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.find-book {
+  margin-left: auto;
+}
+
+.find-opts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin-left: 0.4rem;
+}
+
+.find-opts .check {
+  font-size: 0.82rem;
+}
+
+.scene-text .search-hit {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ochre-line) 38%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ochre-line) 38%, transparent);
+}
+
+.scene-text .search-hit.is-current {
+  background: var(--ochre-line);
+  box-shadow: 0 0 0 2px var(--ochre-line);
+  color: var(--paper, #fff);
+}
+
+@media (max-width: 760px) {
+  .find-bar {
+    padding-inline: max(8px, env(safe-area-inset-left, 0px)) max(8px, env(safe-area-inset-right, 0px));
+  }
+
+  .find-input {
+    flex: 1 1 8rem;
+  }
+
+  .find-count {
+    min-width: 0;
+  }
+
+  .find-book {
+    margin-left: 0;
+  }
+
+  .find-opts {
+    margin-left: 0;
+  }
+}
+
+/* No livro todo: cada trecho com o que sai e o que entra. */
+.replace-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.7rem;
+}
+
+.replace-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.replace-opts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  margin-top: 0.7rem;
+}
+
+.replace-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+.replace-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+}
+
+.replace-all {
+  display: inline-flex;
+  gap: 0.9rem;
+  font-size: 0.85rem;
+}
+
+.replace-scene {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.replace-scene-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.replace-open {
+  margin-left: auto;
+}
+
+.replace-hits {
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+}
+
+.replace-hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-text, var(--font-ui));
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.replace-hit input {
+  flex: none;
+  margin-top: 0.3rem;
+}
+
+.replace-hit mark {
+  padding: 0 0.1em;
+  border-radius: 2px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  text-decoration: line-through;
+}
+
+.replace-hit mark.is-off {
+  background: color-mix(in srgb, var(--ochre-line) 30%, transparent);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.replace-hit ins {
+  margin-left: 0.15em;
+  padding: 0 0.1em;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.replace-hit ins:empty {
+  display: none;
+}
+
+.replace-where {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.replace-foot-note {
+  margin-right: auto;
+}
+
+@media (max-width: 560px) {
+  .replace-foot-note {
+    display: none;
+  }
+}

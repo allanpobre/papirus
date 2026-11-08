@@ -13,6 +13,7 @@ import {
   PanelRightClose,
   PanelRightOpen,
   Plus,
+  Search as SearchIcon,
   SlidersHorizontal,
   Trash2,
 } from 'lucide-react'
@@ -68,6 +69,7 @@ import { SceneReview } from './SceneReview'
 import { NextNote } from '../NextNote'
 import { nextNoteOf, todayTarget } from '../../logic/homeToday'
 import { TextMenu } from './TextMenu'
+import { FindBar } from './FindBar'
 import { SceneFrame, saveMode, savedMode, WritingModes, type WritingMode } from './WritingModes'
 
 type Dialog =
@@ -125,6 +127,14 @@ export default function WriteView() {
   const [editorNonce, setEditorNonce] = useState(0)
   const [focusedComment, setFocusedComment] = useState<string | null>(null)
   const editorRef = useRef<Editor | null>(null)
+  const [editor, setEditor] = useState<Editor | null>(null)
+  // Procurar na cena (Ctrl+F): o texto inicial e um número para reabrir do zero.
+  const [find, setFind] = useState<{ query: string; n: number } | null>(null)
+  const openFind = useCallback(() => {
+    const ed = editorRef.current
+    const sel = ed && !ed.isDestroyed ? ed.state.doc.textBetween(ed.state.selection.from, ed.state.selection.to, ' ') : ''
+    setFind((f) => ({ query: sel && sel.length <= 60 && !sel.includes('\n') ? sel : (f?.query ?? ''), n: (f?.n ?? 0) + 1 }))
+  }, [])
 
   // Navegação vinda de fora (busca, links): abre a cena pedida.
   useEffect(() => {
@@ -143,6 +153,24 @@ export default function WriteView() {
     return () => setEditingScene(null)
   }, [editingSceneId, setEditingScene])
   const editingHere = scene ? ws.others.filter((o) => o.sceneId === scene.id) : []
+
+  // Enquanto a cena está aberta, o editor é quem tem o texto. Se o texto mudar por fora
+  // (trocar no livro todo, desfazer), o editor recomeça com o texto novo.
+  const known = useRef<{ id: string; rev: number; doc: Scene['doc'] } | null>(null)
+  const rev = scene ? (ws.remoteRev[scene.id] ?? 0) : 0
+  const sceneDoc = scene?.doc
+  useEffect(() => {
+    if (!scene || !sceneDoc) return
+    const k = known.current
+    if (!k || k.id !== scene.id || k.rev !== rev) {
+      known.current = { id: scene.id, rev, doc: sceneDoc }
+      return
+    }
+    if (k.doc === sceneDoc) return
+    known.current = { ...k, doc: sceneDoc }
+    if (JSON.stringify(k.doc) !== JSON.stringify(sceneDoc)) setEditorNonce((n) => n + 1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scene?.id, sceneDoc, rev])
 
   useEffect(() => {
     if (scene) remember(`cena:${universe.id}`, scene.id)
@@ -189,11 +217,15 @@ export default function WriteView() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault()
         setFocus((f) => !f)
+      } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'f' && !document.querySelector('.overlay')) {
+        // Ctrl+F procura na cena (em vez da busca do navegador, que não acha nada dentro do editor direito).
+        e.preventDefault()
+        openFind()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [openFind])
 
   const select = (id: string) => {
     setSceneId(id)
@@ -231,7 +263,9 @@ export default function WriteView() {
   const onChange = useCallback(
     (doc: Scene['doc'], text: string) => {
       // Antes da primeira mudança do dia, a cena guarda como estava (Versões → "Guardada sozinha").
-      if (openSceneId) update((u) => updateScene(autoVersion(u, openSceneId), openSceneId, { doc, text }))
+      if (!openSceneId) return
+      if (known.current?.id === openSceneId) known.current = { ...known.current, doc }
+      update((u) => updateScene(autoVersion(u, openSceneId), openSceneId, { doc, text }))
     },
     [openSceneId, update],
   )
@@ -377,6 +411,16 @@ export default function WriteView() {
                     className="more-menu-item"
                     onClick={() => {
                       close()
+                      openFind()
+                    }}
+                  >
+                    <SearchIcon size={16} /> Procurar e trocar
+                  </button>
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
                       setDialog({ kind: 'versions' })
                     }}
                   >
@@ -439,6 +483,19 @@ export default function WriteView() {
             )}
           </div>
         </header>
+
+        {find && (
+          <FindBar
+            key={find.n}
+            editor={editor}
+            initial={find.query}
+            phone={phone}
+            onClose={() => {
+              setFind(null)
+              editorRef.current?.commands.focus()
+            }}
+          />
+        )}
 
         <div className="page-scroll">
           <article
@@ -594,7 +651,10 @@ export default function WriteView() {
               matcher={matcher}
               actions={actions}
               showToolbar={prefs.toolbar && !focus && !ws.readOnly}
-              onReady={(ed) => (editorRef.current = ed)}
+              onReady={(ed) => {
+                editorRef.current = ed
+                setEditor(ed)
+              }}
               typewriter={prefs.typewriter}
               keySound={prefs.keySound}
             />

@@ -5,6 +5,7 @@ import { CurrentBlock } from './currentBlock'
 import { DialogueDash, ProseBulletList } from './dialogue'
 import { Detection, Mention } from './mention'
 import { SceneImage } from './image'
+import { Search } from './search'
 
 /**
  * Formatação da prosa: negrito, itálico, tachado, citação, listas e separador de cena.
@@ -31,6 +32,7 @@ export const baseExtensions = [
 export const sceneExtensions = [
   ...baseExtensions,
   Detection,
+  Search,
   CurrentBlock,
   Placeholder.configure({ placeholder: 'Escreva. O resto pode esperar.' }),
 ]
