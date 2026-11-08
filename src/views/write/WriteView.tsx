@@ -12,6 +12,8 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  ChevronDown,
+  ChevronUp,
   Plus,
   Search as SearchIcon,
   SlidersHorizontal,
@@ -105,6 +107,8 @@ export default function WriteView() {
     () => savedMode() === 'revisao' && matchMedia('(max-width: 1180px)').matches && !matchMedia('(max-width: 760px)').matches,
   )
   const marginVisible = !drafting && (narrow ? narrowMargin : prefs.margin)
+  // No celular, a margem da Revisão é uma gaveta embaixo: o texto e as abas de cima continuam à vista.
+  const sheet = phone && !drafting
   // Na Página, a lista de cenas abre por cima do texto (e fecha ao escolher).
   const treeOverlay = phone || drafting
   // "Onde você parou": no toque o cursor não vai sozinho para o fim (abriria o teclado), então a
@@ -123,6 +127,7 @@ export default function WriteView() {
     return () => window.removeEventListener('keydown', onKey)
   }, [treeOverlay, treeOpen])
   useBackLayer(() => setFocus(false), focus)
+  useBackLayer(() => setNarrowMargin(false), sheet && narrowMargin && !focus)
   // Muda quando o texto da cena é trocado por fora (ex.: voltar a uma versão), para remontar o editor.
   const [editorNonce, setEditorNonce] = useState(0)
   const [focusedComment, setFocusedComment] = useState<string | null>(null)
@@ -360,7 +365,9 @@ export default function WriteView() {
   const storyName = story ? story.title || 'Sem título' : 'Cenas soltas'
 
   return (
-    <div className={`view write is-${mode}${treeOpen && !treeOverlay ? '' : ' tree-closed'}${marginVisible ? '' : ' margin-closed'}${focus ? ' is-focus' : ''}`}>
+    <div
+      className={`view write is-${mode}${treeOpen && !treeOverlay ? '' : ' tree-closed'}${marginVisible && !sheet ? '' : ' margin-closed'}${focus ? ' is-focus' : ''}${sheet && narrowMargin && !focus ? ' sheet-open' : ''}`}
+    >
       {treeOpen && !focus && (
         <aside className={`write-tree${treeOverlay ? ' write-overlay write-overlay-left' : ''}`} aria-label="Manuscrito">
           <ManuscriptTree selectedId={scene.id} onSelect={select} />
@@ -471,7 +478,7 @@ export default function WriteView() {
             >
               {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
             </button>
-            {!drafting && (
+            {!drafting && !sheet && (
               <button
                 type="button"
                 className="btn-icon"
@@ -678,6 +685,43 @@ export default function WriteView() {
           </article>
         </div>
 
+        {sheet && !focus && (
+          <section className={`margin-sheet${narrowMargin ? ' is-open' : ''}`} aria-label="Margem da Revisão">
+            <button type="button" className="margin-sheet-handle" aria-expanded={narrowMargin} onClick={() => setNarrowMargin(!narrowMargin)}>
+              <span className="margin-sheet-grip" aria-hidden="true" />
+              <span className="margin-sheet-title">
+                <strong>Margem</strong>
+                <span className="muted">
+                  {' '}
+                  ·{' '}
+                  {sceneQuestions.filter(isOpen).length === 0
+                    ? 'nada esperando'
+                    : sceneQuestions.filter(isOpen).length === 1
+                      ? '1 pergunta'
+                      : `${sceneQuestions.filter(isOpen).length} perguntas`}
+                </span>
+              </span>
+              {narrowMargin ? <ChevronDown size={18} aria-hidden="true" /> : <ChevronUp size={18} aria-hidden="true" />}
+            </button>
+            {narrowMargin && (
+              <LiveMargin
+                focusedComment={focusedComment}
+                onRemoveCommentMark={(id) => editorRef.current?.commands.removeComment(id)}
+                sheet
+                scene={scene}
+                paragraph={paragraph}
+                matcher={matcher}
+                questions={sceneQuestions}
+                candidates={candidates}
+                onReview={() => setDialog({ kind: 'review' })}
+                top={
+                  <SceneReview scene={scene} questions={sceneQuestions} onPrev={prev ? () => select(prev.id) : undefined} onNext={next ? () => select(next.id) : undefined} />
+                }
+              />
+            )}
+          </section>
+        )}
+
         <footer className="write-foot">
           <span>{words.toLocaleString('pt-BR')} palavras na cena</span>
           <span className="write-goal">
@@ -700,7 +744,8 @@ export default function WriteView() {
                 {sceneQuestions.filter(isOpen).length === 1 ? '1 pergunta esperando a revisão' : `${sceneQuestions.filter(isOpen).length} perguntas esperando a revisão`}
               </button>
             ) : (
-              !marginVisible && (
+              !marginVisible &&
+              !sheet && (
                 <button type="button" className="link-btn" onClick={() => setDialog({ kind: 'review' })}>
                   {sceneQuestions.filter(isOpen).length} perguntas
                 </button>
@@ -709,7 +754,7 @@ export default function WriteView() {
         </footer>
       </div>
 
-      {marginVisible && !focus && (
+      {marginVisible && !focus && !sheet && (
         <LiveMargin
           focusedComment={focusedComment}
           onRemoveCommentMark={(id) => editorRef.current?.commands.removeComment(id)}

@@ -77,9 +77,9 @@ function Corkboard() {
     if (!card) return { story, before: null }
     const box = card.getBoundingClientRect()
     const after = x > box.left + box.width / 2
-    // A próxima cena (pulando as divisões de ato entre os cartões).
-    let sib = card.nextElementSibling as HTMLElement | null
-    while (sib && !sib.dataset.scene) sib = sib.nextElementSibling as HTMLElement | null
+    // A próxima cena na ordem da história (os atos podem estar em colunas separadas).
+    const cards = [...group.querySelectorAll<HTMLElement>('[data-scene]')]
+    const sib = cards[cards.indexOf(card) + 1]
     const next = after ? (sib?.dataset.scene ?? null) : card.dataset.scene!
     return { story, before: next }
   }
@@ -99,19 +99,23 @@ function Corkboard() {
         return (
           <section key={g.id ?? 'soltas'} className={`cork-group${drag && drag.story === g.id ? ' is-target' : ''}`} data-group={g.id ?? ''}>
             {story ? <StoryMap storyId={story.id} title={g.title} structure={structure} map={map} /> : <h2 className="section-title">{g.title}</h2>}
-            <ol className="cork-cards">
-              {map.flatMap((m, i) => [
-                ...(m.act >= 0 && m.act !== map[i - 1]?.act
-                  ? [
-                      <li key={`ato-${m.act}`} className="cork-act">
-                        {acts[m.act].name}
-                      </li>,
-                    ]
-                  : []),
-                sceneCard(m, i),
-              ])}
-              {drag && drag.story === g.id && drag.before === null && <li className="cork-drop-end" aria-hidden="true" />}
-            </ol>
+            {/* Um bloco por ato; na tela larga, os atos ficam lado a lado. */}
+            <div className={`cork-acts${chunks(map).length > 1 ? ' has-acts' : ''}`}>
+              {chunks(map).map((c, ci, all) => (
+                <section key={`${c.act}-${ci}`} className="cork-act-col" aria-label={c.act >= 0 ? acts[c.act].name : undefined}>
+                  {c.act >= 0 && <h3 className="cork-act">{acts[c.act].name}</h3>}
+                  <ol className="cork-cards">
+                    {c.items.map(({ m, i }) => sceneCard(m, i))}
+                    {ci === all.length - 1 && drag && drag.story === g.id && drag.before === null && <li className="cork-drop-end" aria-hidden="true" />}
+                  </ol>
+                </section>
+              ))}
+              {map.length === 0 && drag && drag.story === g.id && (
+                <ol className="cork-cards">
+                  <li className="cork-drop-end" aria-hidden="true" />
+                </ol>
+              )}
+            </div>
           </section>
         )
       })}
@@ -192,6 +196,17 @@ function Corkboard() {
 }
 
 const pct = (x: number) => `${(x * 100).toFixed(2)}%`
+
+/** As cenas em blocos seguidos do mesmo ato (sem modelo, um bloco só). */
+function chunks(map: MapScene[]): { act: number; items: { m: MapScene; i: number }[] }[] {
+  const out: { act: number; items: { m: MapScene; i: number }[] }[] = []
+  map.forEach((m, i) => {
+    const last = out[out.length - 1]
+    if (last && last.act === m.act) last.items.push({ m, i })
+    else out.push({ act: m.act, items: [{ m, i }] })
+  })
+  return out
+}
 
 /** O alto de cada história no Mapa: o modelo, a faixa das cenas, as promessas e o que vale olhar. */
 function StoryMap({ storyId, title, structure, map }: { storyId: string; title: string; structure: Structure; map: MapScene[] }) {

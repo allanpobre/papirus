@@ -41,3 +41,25 @@ test('escrever no celular: barra acima do teclado, sem menu flutuante por cima d
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
   await expect(page.getByText('Mundo de exemplo', { exact: true })).toBeVisible()
 })
+
+test('Revisão no celular: a margem numa gaveta, sem cobrir o texto nem as abas', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Escrever' }).tap()
+  const modes = page.getByRole('navigation', { name: 'Momento da escrita' })
+  await modes.getByRole('button', { name: 'Revisão' }).tap()
+  const handle = page.getByRole('button', { name: /^Margem/ })
+  await expect(handle).toContainText('1 pergunta')
+  await expect(handle).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('complementary', { name: 'Margem viva' })).toBeVisible()
+  // O texto continua à vista em cima da gaveta.
+  const text = await page.getByRole('textbox', { name: 'Texto da cena' }).boundingBox()
+  const sheet = await page.locator('.margin-sheet').boundingBox()
+  expect(text!.y).toBeLessThan(sheet!.y)
+  // Fecha pela alça e abre de novo.
+  await handle.tap()
+  await expect(page.getByRole('complementary', { name: 'Margem viva' })).toHaveCount(0)
+  await handle.tap()
+  // As abas de cima continuam funcionando com a gaveta aberta.
+  await modes.getByRole('button', { name: 'Mapa' }).tap()
+  await expect(page.getByRole('heading', { name: 'Mapa da história' })).toBeAttached()
+})

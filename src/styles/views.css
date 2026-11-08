@@ -7807,3 +7807,48 @@ button.fight-line {
     padding: 1rem;
   }
 }
+
+/* Os atos do Mapa: um embaixo do outro; na tela larga, lado a lado. */
+.cork-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cork-act-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+h3.cork-act {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-weight: 500;
+}
+
+@media (min-width: 1700px) {
+  .cork-acts.has-acts {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 1.2rem;
+  }
+}
+
+/* Melhor / Pior / Igual numa linha só, e o estado embaixo. */
+.cork-foot .shift-picker {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.cork-foot .shift-picker button {
+  flex: 1 1 0;
+  justify-content: center;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}

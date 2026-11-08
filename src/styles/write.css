@@ -2215,3 +2215,86 @@ body.escrevendo-no-celular .shared-banner {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------- Revisão no celular: a margem numa gaveta */
+
+.margin-sheet {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 14px 14px 0 0;
+  background: var(--surface-2);
+  box-shadow: 0 -6px 18px rgb(0 0 0 / 0.07);
+}
+
+.margin-sheet.is-open {
+  flex: 0 0 58%;
+}
+
+.margin-sheet-handle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem max(16px, env(safe-area-inset-right, 0px)) 0.45rem max(16px, env(safe-area-inset-left, 0px));
+  border: 0;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.margin-sheet-grip {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+
+.margin-sheet-title {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.margin.margin-in-sheet {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-left: 0;
+  padding-top: 0.2rem;
+}
+
+.write.sheet-open .write-foot {
+  display: none;
+}
+
+/* Revisão com a lista de cenas e a margem abertas: a coluna do meio fica estreita, e a barra encolhe
+   (botões só com ícone, só o modo atual com nome) em vez de apertar o "cena 3 de 8". */
+@media (min-width: 761px) and (max-width: 1700px) {
+  .write:not(.tree-closed):not(.margin-closed) .write-bar-actions .btn-sm {
+    font-size: 0;
+    gap: 0;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .write:not(.tree-closed):not(.margin-closed) .writing-modes button:not([aria-current='page']) span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Com a lista de cenas aberta ao lado, ela já mostra onde você está. */
+.write:not(.tree-closed) .write-pos {
+  display: none;
+}
