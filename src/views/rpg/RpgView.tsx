@@ -458,8 +458,8 @@ export default function RpgView() {
         tab === 'dados' ? (
           <DiceTab />
         ) : (
-          <Empty icon={<Dices size={32} />} title="Use o mesmo mundo como campanha.">
-            <p>Crie um grupo de jogadores para registrar sessões, fichas e o que cada grupo já descobriu.</p>
+          <Empty icon={<Dices size={32} />} title="Jogar neste mundo">
+            <p>Crie o grupo de jogadores. As fichas, as ligações e os mapas deste mundo ficam à mão na Mesa, e o livro continua como está.</p>
             <form
               className="inline-fields"
               onSubmit={(e) => {
@@ -477,7 +477,7 @@ export default function RpgView() {
               <label htmlFor="novo-grupo" className="sr-only">
                 Nome do grupo
               </label>
-              <input id="novo-grupo" className="input" placeholder="Mesa de sexta" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
+              <input id="novo-grupo" className="input" placeholder="Grupo de sexta" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
               <button type="submit" className="btn btn-primary">
                 Criar grupo
               </button>

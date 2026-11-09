@@ -1,9 +1,9 @@
-import { CalendarRange, Feather, Plus, Trash2 } from 'lucide-react'
+import { CalendarRange, Dices, Feather, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
 import { formatYear } from '../model/labels'
-import type { TimelineEvent, Universe } from '../model/schema'
+import type { Session, TimelineEvent, Universe } from '../model/schema'
 import { byId, draftEvent, entityName, insert, manuscriptOrder, patch, remove, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, CanonSelect, Empty, Field, Select, YearInput } from '../ui/bits'
@@ -40,10 +40,17 @@ export default function TimelineView() {
     ? manuscriptOrder(universe).filter((s) => s.date && (filterIds.length === 0 || filterIds.some((id) => s.presentIds.includes(id) || s.povId === id || s.placeId === id)))
     : []
 
-  type Row = { year: number; day: number | null; kind: 'evento'; ev: TimelineEvent } | { year: number; day: number | null; kind: 'cena'; sceneId: string }
+  // As sessões de jogo com ano no mundo entram junto das cenas (vale o mesmo "Mostrar cenas e sessões").
+  const sessions = showScenes && filterIds.length === 0 ? universe.sessions.filter((s) => s.worldYear !== null && s.status !== 'planejada') : []
+
+  type Row =
+    | { year: number; day: number | null; kind: 'evento'; ev: TimelineEvent }
+    | { year: number; day: number | null; kind: 'cena'; sceneId: string }
+    | { year: number; day: number | null; kind: 'sessao'; session: Session }
   const rows: Row[] = [
     ...events.map((ev) => ({ year: ev.year, day: null, kind: 'evento' as const, ev })),
     ...scenes.map((s) => ({ year: s.date!.year, day: s.date!.day, kind: 'cena' as const, sceneId: s.id })),
+    ...sessions.map((s) => ({ year: s.worldYear!, day: null, kind: 'sessao' as const, session: s })),
   ].sort((a, b) => a.year - b.year || (a.day ?? -1) - (b.day ?? -1) || (a.kind === 'evento' ? -1 : 1))
 
   const years = [...rows.map((r) => r.year), ...eras.flatMap((e) => [e.year, e.endYear ?? e.year])]
@@ -110,7 +117,7 @@ export default function TimelineView() {
           )}
         </Field>
         <label className="check">
-          <input type="checkbox" checked={showScenes} onChange={(e) => setShowScenes(e.target.checked)} /> Mostrar cenas datadas
+          <input type="checkbox" checked={showScenes} onChange={(e) => setShowScenes(e.target.checked)} /> Mostrar cenas e sessões
         </label>
       </div>
 
@@ -165,6 +172,15 @@ export default function TimelineView() {
                             {[...r.ev.entityIds.map((id) => withAge(id, r.ev.year)), r.ev.placeId ? `em ${entityName(universe, r.ev.placeId)}` : ''].filter(Boolean).join(', ')}
                           </span>
                         )}
+                      </button>
+                    </li>
+                  ) : r.kind === 'sessao' ? (
+                    <li key={r.session.id} className="tl-item tl-scene tl-session">
+                      <button type="button" className="tl-card" onClick={() => go('rpg', r.session.id)}>
+                        <Dices size={14} aria-hidden="true" />
+                        <span className="tl-title">{r.session.title.trim() || `Sessão ${r.session.number}`}</span>
+                        <span className="muted small"> · sessão de jogo</span>
+                        {r.session.recap.trim() && <span className="tl-desc">{r.session.recap.trim().split('\n')[0]}</span>}
                       </button>
                     </li>
                   ) : (

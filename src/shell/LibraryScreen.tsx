@@ -221,6 +221,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const campaigns = own.filter((e) => e.kind === 'campanha')
   // Universos de escrita que também têm uma mesa (o exemplo, por exemplo).
   const tablesInBooks = entries.filter((e) => e.kind !== 'campanha' && e.sessions !== undefined)
+  // Livros sem Mesa: dá para começar uma Mesa no mesmo mundo.
+  const booksToPlay = writing.filter((e) => e.sessions === undefined)
   const openSample = () => (sampleEntry ? onOpen(sampleEntry.id) : void sampleUniverse().then(onCreated))
   const sector = p.sector
   const setSector = (s: typeof sector) => {
@@ -723,6 +725,17 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <p className="small muted hub-note">Livros em que você também mestra. Se um deles é mesmo uma campanha, mude o tipo em Ajustes → Universo, e ele passa a morar aqui.</p>
           <ul className="library-list" aria-label="Livros com Mesa">
             {tablesInBooks.map((e) => universeItem(e, 'rpg'))}
+          </ul>
+        </section>
+      )}
+      {booksToPlay.length > 0 && (
+        <section aria-labelledby="jogar-livro">
+          <h2 id="jogar-livro" className="hub-h">
+            Jogar num mundo que você já tem
+          </h2>
+          <p className="small muted hub-note">Uma Mesa dentro do livro, com as fichas, as ligações e os mapas dele. O livro continua como está.</p>
+          <ul className="library-list" aria-label="Livros para jogar">
+            {booksToPlay.map((e) => universeItem(e, 'rpg'))}
           </ul>
         </section>
       )}

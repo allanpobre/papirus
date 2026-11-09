@@ -1,5 +1,5 @@
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, BookOpen, Check, Copy, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
@@ -25,6 +25,7 @@ import {
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { appearancesOf, sceneCounts } from '../logic/appearances'
+import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
@@ -54,10 +55,13 @@ import { useMediaQuery } from '../ui/useMediaQuery'
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly, peek } = useWorkspace()
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
-  const [mode, setMode] = useState<'ler' | 'editar'>(() => (!readOnly && recall('ficha-modo') === 'editar' ? 'editar' : 'ler'))
+  const [mode, setMode] = useState<FichaMode>(() => {
+    const saved = recall('ficha-modo')
+    return !readOnly && (saved === 'editar' || saved === 'jogo') ? saved : 'ler'
+  })
   // A ficha que acabou de nascer aqui abre para editar.
   const [fresh, setFresh] = useState<string | null>(null)
-  const changeMode = (m: 'ler' | 'editar') => {
+  const changeMode = (m: FichaMode) => {
     setMode(m)
     setFresh(null)
     remember('ficha-modo', m)
@@ -105,6 +109,9 @@ export default function EntitiesView() {
 
   const selectedId = nav.view === 'fichas' ? (nav.id ?? null) : null
   const selected = selectedId ? byId(universe, 'entities', selectedId) : undefined
+  // A aba Jogo: só num personagem com ficha de jogo (na Mesa).
+  const hasGame = Boolean(selected && universe.sheets.some((x) => x.entityId === selected.id))
+  const shownMode: FichaMode = selected && fresh === selected.id ? 'editar' : mode === 'jogo' && !hasGame ? 'ler' : mode
 
   const kinds = useMemo(() => {
     const all = new Set([...ENTITY_KINDS.filter((k) => universe.entities.some((e) => e.kind === k)), ...universe.entities.map((e) => e.kind)])
@@ -331,12 +338,14 @@ export default function EntitiesView() {
         {table ? (
           <EntityTable rows={list} kind={kind} counts={counts} onOpen={(id) => peek(id)} />
         ) : selected ? (
-          (fresh === selected.id ? 'editar' : mode) === 'ler' || readOnly ? (
+          shownMode === 'jogo' && !readOnly ? (
+            <EntityGame key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="jogo" game onChange={changeMode} />} />
+          ) : shownMode === 'ler' || readOnly ? (
             <EntityReader
               key={selected.id}
               entity={selected}
               order={list}
-              modeSwitch={!readOnly && <ModeSwitch mode="ler" onChange={changeMode} />}
+              modeSwitch={!readOnly && <ModeSwitch mode="ler" game={hasGame} onChange={changeMode} />}
               onEdit={
                 readOnly
                   ? undefined
@@ -348,7 +357,7 @@ export default function EntitiesView() {
               }
             />
           ) : (
-            <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" onChange={changeMode} />} />
+            <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" game={hasGame} onChange={changeMode} />} />
           )
         ) : universe.entities.length ? (
           <WorldOverview counts={counts} hasScenes={hasScenes} />
@@ -453,8 +462,10 @@ function PortraitButton({ entity: e, onChange }: { entity: Entity; onChange: (im
   )
 }
 
-/** Alternar entre ler a ficha como uma página e editá-la. */
-function ModeSwitch({ mode, onChange }: { mode: 'ler' | 'editar'; onChange: (m: 'ler' | 'editar') => void }) {
+type FichaMode = 'ler' | 'editar' | 'jogo'
+
+/** Alternar entre ler a ficha como uma página, editá-la e (num personagem de jogo) ver a ficha de jogo. */
+function ModeSwitch({ mode, game = false, onChange }: { mode: FichaMode; game?: boolean; onChange: (m: FichaMode) => void }) {
   return (
     <div className="mode-switch" role="group" aria-label="Modo da ficha">
       <button type="button" aria-pressed={mode === 'ler'} onClick={() => onChange('ler')}>
@@ -463,6 +474,11 @@ function ModeSwitch({ mode, onChange }: { mode: 'ler' | 'editar'; onChange: (m: 
       <button type="button" aria-pressed={mode === 'editar'} onClick={() => onChange('editar')}>
         <PenLine size={15} aria-hidden="true" /> Editar
       </button>
+      {game && (
+        <button type="button" aria-pressed={mode === 'jogo'} onClick={() => onChange('jogo')}>
+          <Dices size={15} aria-hidden="true" /> Jogo
+        </button>
+      )}
     </div>
   )
 }

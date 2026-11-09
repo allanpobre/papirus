@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { withDailyStart } from '../logic/stats'
@@ -46,6 +46,7 @@ import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
+import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
@@ -252,6 +253,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   useReadOnlyInputs(readOnly)
   // Rolagens feitas pelos jogadores no Codex chegam aqui, vão para o registro e para a bandeja da mesa.
   useTableRolls(universe, prefs, tracked, !readOnly)
+  // Um personagem só: uma vez por universo, os personagens de jogador de antes ganham a ficha no Mundo.
+  const playersLinked = universe.settings.playersLinked
+  const hasSheets = universe.sheets.length > 0
+  useEffect(() => {
+    if (readOnly || playersLinked || !hasSheets) return
+    tracked((u) => {
+      const next = linkPlayerSheets(u)
+      return { ...next, settings: { ...next.settings, playersLinked: true } }
+    })
+  }, [readOnly, playersLinked, hasSheets, tracked])
 
   const applyRemote = useCallback(
     (next: Universe, changedScenes: string[]) => {
@@ -437,6 +448,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const phone = useMediaQuery('(max-width: 760px)')
   // Uma sessão de RPG ao vivo: de qualquer área, um toque volta para ela.
   const liveSession = universe.sessions.find((x) => x.status === 'em-andamento')
+  // Num livro sem Mesa: o caminho para jogar no mesmo mundo, com as fichas do livro.
+  const canPlayHere = kind === 'escrita' && universe.groups.length === 0 && !readOnly && nav.view !== 'rpg'
   const visibleItems = ALL_ITEMS.filter((item) => !item.inside && (item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view))
   // A área marcada no menu: o Mapa, por exemplo, fica dentro de Escrever.
   const area = ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view
@@ -458,6 +471,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
             defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
             onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
+            onPlay={canPlayHere ? () => go('rpg') : undefined}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
             onShare={source.kind === 'proprio' ? () => setShareOpen(true) : undefined}
@@ -508,6 +522,14 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
                 </div>
               )
             })}
+            {canPlayHere && (
+              <div className="rail-group">
+                <button type="button" className="rail-item rail-play" title="Usar este mundo numa Mesa de RPG, com as fichas do livro" onClick={() => go('rpg')}>
+                  <Dices size={18} aria-hidden="true" />
+                  <span className="rail-label">Jogar neste mundo</span>
+                </button>
+              </div>
+            )}
             <div className="rail-group rail-group-end">
               {TOOLS.filter((t) => t.view !== 'oficina' && (!hidden.includes(t.view) || nav.view === t.view)).map((t) => (
                 <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
@@ -817,6 +839,7 @@ function PhoneNav({
   shortcuts: chosen,
   defaults,
   onShortcuts,
+  onPlay,
   onGo,
   onSearch,
   onLibrary,
@@ -832,6 +855,8 @@ function PhoneNav({
   /** Os atalhos padrão deste tipo de universo. */
   defaults: View[]
   onShortcuts: (v: View[]) => void
+  /** Num livro sem Mesa: começar uma Mesa neste mesmo mundo. */
+  onPlay?: () => void
   onGo: (v: View) => void
   onSearch: () => void
   onLibrary: () => void
@@ -940,6 +965,22 @@ function PhoneNav({
                 )
               })}
             </div>
+            {onPlay && !editing && (
+              <button
+                type="button"
+                className="rail-more-universe rail-more-play"
+                onClick={() => {
+                  setOpen(false)
+                  onPlay()
+                }}
+              >
+                <Dices size={16} aria-hidden="true" />
+                <span className="rail-more-universe-text">
+                  <strong>Jogar neste mundo</strong>
+                  <span className="muted tiny">Uma Mesa de RPG com as fichas do livro</span>
+                </span>
+              </button>
+            )}
             <div className="rail-more-foot">
               <button type="button" className="btn btn-ghost btn-sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
                 <Pin size={15} aria-hidden="true" /> {editing ? 'Pronto' : 'Escolher atalhos'}

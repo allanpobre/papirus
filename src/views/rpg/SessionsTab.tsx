@@ -5,7 +5,8 @@ import { SESSION_STATUS_LABEL } from '../../model/labels'
 import { SESSION_STATUSES, type Group, type Revelation, type Session } from '../../model/schema'
 import { byId, draftRevelation, draftSession, insert, newId, patch, remove, removeSession } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
-import { Empty, Field, Select } from '../../ui/bits'
+import { storyNow } from '../../logic/derivedFields'
+import { Empty, Field, Select, YearInput } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { EntityPicker } from '../../ui/EntityPicker'
 import { AttendanceList } from './Attendance'
@@ -76,6 +77,8 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
   const [factId, setFactId] = useState('')
   // Em andamento por outro caminho (o Estado, uma nota): guarda a hora do começo também.
   const set = (c: Partial<Session>) => update((u) => patch(u, 'sessions', s.id, c.status === 'em-andamento' && !s.startedAt ? { ...c, startedAt: new Date().toISOString() } : c))
+  // Sugestão para o ano no mundo: o da sessão anterior com ano, ou o "agora" da história (a cena mais tardia).
+  const nowYear = [...universe.sessions].filter((x) => x.worldYear !== null && x.number < s.number).sort((a, b) => b.number - a.number)[0]?.worldYear ?? storyNow(universe)
   const revelations = universe.revelations.filter((r) => r.sessionId === s.id)
 
   const addNote = () => {
@@ -125,6 +128,9 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
         </Field>
         <Field label="Data do jogo">
           {(id) => <input id={id} type="date" className="input" value={s.playedOn} onChange={(e) => set({ playedOn: e.target.value })} />}
+        </Field>
+        <Field label="Ano no mundo" hint="Opcional. Com o ano, a sessão entra na Linha do tempo, junto das cenas.">
+          {(id) => <YearInput id={id} value={s.worldYear} onChange={(v) => set({ worldYear: v })} placeholder={nowYear !== null ? String(nowYear) : 'Ano'} />}
         </Field>
         <Field label="Estado">
           {(id) => (

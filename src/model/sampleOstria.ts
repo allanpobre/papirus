@@ -510,5 +510,7 @@ export function ostriaUniverse(): Universe {
   }
   // O bilhete para amanhã, deixado no fim da primeira cena.
   u = { ...u, settings: { ...u.settings, nextNote: { text: 'Kael segue o estranho até a taverna e descobre como ele pagou a viagem.', sceneId: c1.id, at: new Date().toISOString() } } }
+  // Os personagens de jogo do exemplo já estão como devem: não ganham fichas novas ao abrir.
+  u = { ...u, settings: { ...u.settings, playersLinked: true } }
   return u
 }

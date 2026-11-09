@@ -1,5 +1,6 @@
 import { roll } from '../logic/dice'
-import type { GameSystem, Monster, Session, Universe } from '../model/schema'
+import { fold } from '../logic/text'
+import type { Entity, GameSystem, Monster, Session, Universe } from '../model/schema'
 import { byId, newId, patch, type Draft } from '../model/universe'
 import { initiativeOrder, parseHp } from './combat'
 import { rollInitiative } from './rolls'
@@ -72,3 +73,15 @@ export function monsterFromEntry(entry: Entry, attack?: { bonus: number; damage:
 }
 
 export const sortedMonsters = (u: Universe): Monster[] => [...u.monsters].sort((a, b) => a.name.localeCompare(b.name, 'pt'))
+
+/**
+ * As criaturas do Mundo que ainda não estão no bestiário: as fichas do tipo Espécie, para virar
+ * inimigo pronto com um toque (o nome e o resumo vêm da ficha).
+ */
+export function creaturesToAdd(u: Universe): Entity[] {
+  const have = new Set(u.monsters.map((m) => fold(m.name.trim())))
+  return u.entities.filter((e) => e.kind === 'especie' && e.name.trim() && e.canon !== 'falso' && !have.has(fold(e.name.trim()))).sort((a, b) => a.name.localeCompare(b.name, 'pt'))
+}
+
+/** Um inimigo pronto a partir de uma criatura do Mundo. */
+export const monsterFromCreature = (e: Entity): Draft<'monsters'> => ({ ...draftMonster(e.name.trim()), notes: e.summary.trim() })

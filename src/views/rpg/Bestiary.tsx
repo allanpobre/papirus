@@ -2,7 +2,7 @@ import { Plus, Skull, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import type { Monster } from '../../model/schema'
 import { insert, newId, patch, remove } from '../../model/universe'
-import { draftMonster, sortedMonsters } from '../../rpg/bestiary'
+import { creaturesToAdd, draftMonster, monsterFromCreature, sortedMonsters } from '../../rpg/bestiary'
 import { defenseLabel } from '../../rpg/sheets'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
@@ -107,6 +107,7 @@ export function Bestiary() {
   const { system } = useRpg()
   const [open, setOpen] = useState<string | null>(null)
   const monsters = sortedMonsters(universe)
+  const creatures = creaturesToAdd(universe)
   const defLabel = defenseLabel(system)
 
   return (
@@ -131,6 +132,33 @@ export function Bestiary() {
         >
           <Plus size={14} /> Novo inimigo
         </button>
+      )}
+      {!readOnly && creatures.length > 0 && (
+        <div className="bestiary-world">
+          <p className="small">
+            <strong>Do Mundo:</strong> as espécies que você criou viram inimigos com um toque.
+          </p>
+          <div className="chips">
+            {creatures.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                className="chip"
+                onClick={() => {
+                  let id = ''
+                  update((u) => {
+                    const [next, m] = insert(u, 'monsters', monsterFromCreature(e))
+                    id = m.id
+                    return next
+                  })
+                  setOpen(id)
+                }}
+              >
+                <Plus size={12} aria-hidden="true" /> {e.name}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
       {monsters.length === 0 ? (
         <p className="muted small">Nenhum inimigo pronto ainda.</p>

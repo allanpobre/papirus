@@ -464,6 +464,8 @@ export const sessionSchema = z.object({
     .default([]),
   /** Condições com duração: acabam sozinhas quando começa a rodada `until`. */
   effects: z.array(z.object({ id, entryId: z.string(), name: z.string(), until: z.number().int() })).default([]),
+  /** Quando a sessão acontece no mundo (o ano do calendário do universo), para entrar na Linha do tempo. */
+  worldYear: z.number().nullable().default(null),
   /** O resumo da sessão para os jogadores (o diário da campanha no Codex). */
   recap: z.string().default(''),
   recapShared: z.boolean().default(false),
@@ -554,6 +556,8 @@ export const universeSettingsSchema = z.object({
   cover: z.string().nullable().optional(),
   /** Escrita ou campanha de RPG: o setor em que o universo fica. Sem valor, o Papirus deduz. */
   kind: z.enum(['escrita', 'campanha']).optional(),
+  /** Os personagens de jogador de antes já ganharam a ficha no Mundo (uma vez por universo). */
+  playersLinked: z.boolean().optional(),
   /**
    * Bilhete para amanhã: uma linha que quem escreve deixa ao parar, sobre o que vem depois
    * (Hemingway parava sabendo o que vinha a seguir). Aparece no Início e no fim da cena.

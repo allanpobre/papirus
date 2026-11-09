@@ -566,9 +566,10 @@ test('o mestre pede um teste, põe inimigos prontos no combate e publica o diár
   await page.getByRole('button', { name: 'Encerrar sessão', exact: true }).click()
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   const fim = page.getByRole('dialog', { name: 'Fim da sessão' })
-  await fim.getByRole('button', { name: 'Escrever o diário para os jogadores' }).click()
+  // "O que aconteceu?" já vem aberto no fim da sessão.
+  await expect(fim.getByRole('heading', { name: 'O que aconteceu?' })).toBeVisible()
   await fim.getByRole('button', { name: 'Começar pelas notas do registro' }).click()
-  const resumo = fim.getByRole('textbox', { name: 'Resumo para os jogadores' })
+  const resumo = fim.getByRole('textbox', { name: 'Resumo da sessão' })
   await expect(resumo).toHaveValue('Os goblins fugiram pelas falésias.')
   await resumo.fill('Os goblins fugiram pelas falésias. Ilsa observava da Torre.')
   await fim.getByText('Publicar no diário do Codex').click()

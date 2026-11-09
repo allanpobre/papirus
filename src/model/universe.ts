@@ -212,6 +212,7 @@ export const draftSession = (number: number, groupId: string | null): Draft<'ses
   notices: [],
   requests: [],
   effects: [],
+  worldYear: null,
   recap: '',
   recapShared: false,
   turn: 0,

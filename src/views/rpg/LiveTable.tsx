@@ -1,5 +1,5 @@
 import qrcode from 'qrcode-generator'
-import { BookOpen, Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
+import { Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Group, Session } from '../../model/schema'
 import { newId, patch } from '../../model/universe'
@@ -9,6 +9,7 @@ import { DEFAULT_PUBLIC_URL, deleteCodex, newShareKey, playerLink } from '../../
 import { codexSnapshot } from '../../share/snapshot'
 import { publishNow, serverFrom, useSyncState } from '../../share/useCodexSync'
 import { useWorkspace } from '../../state/workspace'
+import { Field, YearInput } from '../../ui/bits'
 import { Modal, trapFocus } from '../../ui/Modal'
 import { useBackLayer } from '../../ui/useBackLayer'
 import { RecapEditor } from './Journal'
@@ -318,9 +319,8 @@ export function SessionOpening({ group, session, previous, onClose }: { group: G
 
 /** O fim da sessão: quanto durou, o que rolou e para onde foi o registro. */
 export function SessionClosing({ group, session, onClose }: { group: Group; session: Session; onClose: () => void }) {
-  const { universe, go, readOnly } = useWorkspace()
+  const { universe, go, readOnly, update } = useWorkspace()
   const [now] = useState(() => Date.now())
-  const [writing, setWriting] = useState(false)
   const sum = sessionSummary(universe, session, now)
   const sent = playedLog(session).length > 0
   const title = customTitle(session)
@@ -355,16 +355,17 @@ export function SessionClosing({ group, session, onClose }: { group: Group; sess
         {sent ? 'O registro inteiro foi para Ideias: revise com calma e transforme o que aconteceu em fatos do mundo.' : 'Nada foi anotado nesta sessão.'}
         {group.share && ' Os celulares do grupo já sabem que a sessão terminou.'}
       </p>
-      {!readOnly &&
-        (writing ? (
-          <section className="session-opening-card" aria-label="Diário da campanha">
-            <RecapEditor session={session} />
-          </section>
-        ) : (
-          <button type="button" className="btn btn-ghost" onClick={() => setWriting(true)}>
-            <BookOpen size={16} /> Escrever o diário para os jogadores
-          </button>
-        ))}
+      {/* O que aconteceu: fica na sessão, entra na Linha do tempo e no "Aparece em" das fichas citadas. */}
+      {!readOnly && (
+        <section className="session-opening-card session-what" aria-labelledby="fim-o-que">
+          <h3 id="fim-o-que" className="session-what-title">
+            O que aconteceu?
+          </h3>
+          <p className="muted small">Em poucas linhas. Entra no “Aparece em” das fichas citadas e, com o ano no mundo, na Linha do tempo. Os jogadores só veem se você publicar.</p>
+          <RecapEditor session={session} />
+          <Field label="Ano no mundo">{(id) => <YearInput id={id} value={session.worldYear} onChange={(v) => update((u) => patch(u, 'sessions', session.id, { worldYear: v }))} />}</Field>
+        </section>
+      )}
       <div className="session-opening-actions">
         {sent && (
           <button

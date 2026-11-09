@@ -494,5 +494,7 @@ export function buildSample(chapters: { titulo: string; paragrafos: string[] }[]
     sourceName: '',
     status: 'aberto',
   })
+  // Os personagens de jogo do exemplo já estão como devem: não ganham fichas novas ao abrir.
+  u = { ...u, settings: { ...u.settings, playersLinked: true } }
   return u
 }

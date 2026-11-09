@@ -1295,6 +1295,19 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
   animation: opening-rise 0.6s ease-out 0.25s both;
 }
 
+.session-what {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.session-what-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
 .session-opening-card .section-label {
   display: flex;
   align-items: center;
@@ -2836,4 +2849,16 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
 
 .shield-mesa .sm-panel .shield-label {
   margin-bottom: 0.1rem;
+}
+
+/* As espécies do Mundo que viram inimigo com um toque. */
+.bestiary-world {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.2rem 0 0.6rem;
+}
+
+.bestiary-world p {
+  margin: 0;
 }
