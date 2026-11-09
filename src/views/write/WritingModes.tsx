@@ -1,4 +1,4 @@
-import { Map as MapIcon, PenLine, SearchCheck } from 'lucide-react'
+import { PanelsTopLeft, PenLine, SearchCheck } from 'lucide-react'
 import { useState } from 'react'
 import { SCENE_SHIFTS, type Scene } from '../../model/schema'
 import { updateScene } from '../../model/universe'
@@ -7,7 +7,7 @@ import { useWorkspace } from '../../state/workspace'
 
 /*
  * A escrita em três momentos (Stephen King: escreva com a porta fechada, revise com ela aberta):
- * o Mapa (planejar), a Página (escrever, sem nada em volta) e a Revisão (a margem e as perguntas).
+ * a Estrutura (planejar), a Página (escrever, sem nada em volta) e a Revisão (a margem e as perguntas).
  */
 
 export type WritingMode = 'mapa' | 'pagina' | 'revisao'
@@ -17,12 +17,12 @@ export const savedMode = (): 'pagina' | 'revisao' => (recall('escrita-modo') ===
 export const saveMode = (m: 'pagina' | 'revisao') => remember('escrita-modo', m)
 
 const MODES: [WritingMode, string, typeof PenLine][] = [
-  ['mapa', 'Mapa', MapIcon],
+  ['mapa', 'Estrutura', PanelsTopLeft],
   ['pagina', 'Página', PenLine],
   ['revisao', 'Revisão', SearchCheck],
 ]
 
-/** Mapa · Página · Revisão, no alto da Escrita. */
+/** Estrutura · Página · Revisão, no alto da Escrita. */
 export function WritingModes({ current, onPick }: { current: WritingMode; onPick: (m: WritingMode) => void }) {
   return (
     <nav className="writing-modes" aria-label="Momento da escrita" data-tour="modos">
@@ -72,7 +72,7 @@ const FIELDS: [keyof Pick<Scene, 'want' | 'obstacle' | 'outcome'>, string, strin
   ['outcome', 'Como termina', 'Pior: a guardiã a reconhece'],
 ]
 
-/** Os três campos do cartão, para editar (no Mapa e na Revisão). */
+/** Os três campos do cartão, para editar (na Estrutura e na Revisão). */
 export function CardFields({ scene, autoFocus = false }: { scene: Scene; autoFocus?: boolean }) {
   const { update, readOnly } = useWorkspace()
   return (

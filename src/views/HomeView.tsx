@@ -7,7 +7,7 @@ import { streakLine, todayTarget, weekDots, worldCounts } from '../logic/homeTod
 import { wordsToday } from '../logic/stats'
 import { universeKind } from '../model/kind'
 import { SESSION_STATUS_LABEL } from '../model/labels'
-import { addScene, byId, manuscriptOrder } from '../model/universe'
+import { addScene, byId, manuscriptOrder, sceneTitle } from '../model/universe'
 import { guessGuide, tipOfTheDay } from '../oficina/guides'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
@@ -206,13 +206,13 @@ export default function HomeView() {
           {mesaFirst ? (
             <>
               <p className="eyebrow">
-                <Dices size={13} aria-hidden="true" /> {universe.groups[0].name} · sua mesa
+                <Dices size={13} aria-hidden="true" /> Próxima sessão · {universe.groups[0].name}
               </p>
               <h2>{nextSession ? nextSession.title || 'Próxima sessão' : 'Nenhuma sessão marcada'}</h2>
-              {nextSession?.prep ? <p className="home-excerpt">{nextSession.prep}</p> : <p className="muted">Fichas dos personagens, sessões, dados e o Codex dos jogadores estão na mesa.</p>}
+              {nextSession?.prep ? <p className="home-excerpt">{nextSession.prep}</p> : <p className="muted">Fichas dos personagens, sessões, dados e o Codex dos jogadores estão na Mesa.</p>}
               <div className="home-next-actions">
                 <button type="button" className="btn btn-primary" onClick={() => go('rpg', nextSession?.id ?? null)}>
-                  <Dices size={16} /> Abrir a mesa
+                  <Dices size={16} /> Abrir a Mesa
                 </button>
                 {shown('escrever') && !readOnly && (
                   <button type="button" className="btn btn-ghost" onClick={newScene}>
@@ -223,8 +223,8 @@ export default function HomeView() {
             </>
           ) : last && hasText ? (
             <>
-              <p className="eyebrow">{story ? story.title : 'Cena solta'} · onde você parou</p>
-              <h2>{last.title || 'Sem título'}</h2>
+              <p className="eyebrow">{story ? story.title : 'Sem capítulo'} · onde você parou</p>
+              <h2>{sceneTitle(last)}</h2>
               {last.text.trim() ? <p className="home-excerpt">{lastLines(last.text, phone ? 170 : 360)}</p> : <p className="muted">Página em branco.</p>}
               <NextNote sceneId={last.id} place="inicio" />
               <div className="home-next-actions">
@@ -247,7 +247,7 @@ export default function HomeView() {
                   <span className="muted">Ou volte para:</span>{' '}
                   {others.map((s) => (
                     <button key={s.id} type="button" className="link-btn" onClick={() => go('escrever', s.id)}>
-                      {s.title || 'Sem título'}
+                      {sceneTitle(s)}
                     </button>
                   ))}
                 </p>

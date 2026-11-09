@@ -187,7 +187,7 @@ export function Landing() {
           <ol className="lp-steps">
             <li>
               <span className="lp-step-n">1</span>
-              <h3>Mapa: a história vista de cima</h3>
+              <h3>Estrutura: a história vista de cima</h3>
               <p>Cada cena do tamanho que tem no livro, na cor de como termina: melhor ou pior para quem a vive. Escolha um modelo (três atos, Save the Cat, Jornada do herói) e veja as pistas como linhas: plantada, avançou, paga.</p>
               <StepScreen n={1} />
             </li>
@@ -376,7 +376,7 @@ const FEATURES = [
   { icon: BookMarked, title: 'Fichas', text: 'Personagens, lugares, facções e o que mais você inventar. Cada ficha se lê como enciclopédia, com o lugar no mapa, e a ficha vazia traz perguntas para começar.' },
   { icon: Network, title: 'Ligações', text: 'Quem é filho, rival ou criador de quem, num grafo que você navega cena a cena. Uma ligação pode ter vários nomes.' },
   { icon: CalendarRange, title: 'Linha do tempo', text: 'Eras, eventos e cenas datadas, com um calendário próprio (“12 de Neblina de 359 DC”) e a idade de cada um em cada evento.' },
-  { icon: MapIcon, title: 'Atlas', text: 'Suba a imagem do seu mapa e marque os lugares. Revele à mesa só os marcadores que ela conhece.' },
+  { icon: MapIcon, title: 'Mapas', text: 'Suba a imagem do seu mapa e marque os lugares. Revele ao grupo só os marcadores que ele conhece.' },
   { icon: EyeOff, title: 'Segredos e spoilers', text: 'Trechos secretos nas fichas, fatos falsos com quem os contou e partes que o leitor só vê depois de certa cena.' },
   { icon: ImageIcon, title: 'Imagens', text: 'Capa do universo, retratos, mapas e imagens nas cenas, encolhidas sozinhas para não pesar.' },
   { icon: Headphones, title: 'Ler e ouvir', text: 'Leia como livro, com um caderno que não dá spoiler, ou ouça o texto em voz alta para revisar.' },

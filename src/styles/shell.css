@@ -657,9 +657,36 @@ body:has(.rail-phone) .toasts {
   gap: 0.1rem;
 }
 
-.rail-more-label {
+/* Cada botão da barra com o nome embaixo: ícone sozinho não diz para onde vai. */
+.rail.rail-phone .rail-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
   font-size: 0.66rem;
-  line-height: 1;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-more-search {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  margin-bottom: 0.4rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rail-more-search:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
 }
 
 .rail-phone .rail-badge:empty {

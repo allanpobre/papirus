@@ -102,7 +102,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
 
 test('imagens: o mapa novo vai para as imagens (o universo fica leve)', async ({ page }) => {
   await newUniverse(page, 'Mapas')
-  await openPart(page, 'Atlas')
+  await openPart(page, 'Mapas')
   await page.locator('.atlas-view input[type=file]').setInputFiles(await photo(page, '#4a5260', 3000, 2000))
   await expect(page.locator('.atlas-image')).toHaveAttribute('style', /blob:/)
   const stored = await page.evaluate(() => {
@@ -200,7 +200,7 @@ test('imagens: a imagem da cena vai para o e-book como arquivo', async ({ page }
   await expect(page.getByRole('textbox', { name: 'Texto da cena' }).locator('figure.scene-figure img')).toHaveAttribute('src', /^blob:/)
   await expect(page.getByRole('status').first()).toHaveText('Salvo')
   // Baixar o livro fica no Livro.
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await page.getByRole('button', { name: 'Criar o livro' }).click()
   await page.getByRole('dialog', { name: 'Diagramar o livro' }).getByRole('button', { name: 'Fechar' }).click()
   const epub = page.waitForEvent('download')
@@ -245,8 +245,8 @@ test('imagens: no Codex dos jogadores, a ficha revelada mostra o retrato (miniat
   await page.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
   await page.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
   await page.getByRole('textbox', { name: 'Endereço público do Papirus' }).fill(baseURL + '/')
-  await nav(page, 'RPG').click()
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  await nav(page, 'Mesa').click()
+  await page.getByRole('tab', { name: 'Codex' }).click()
   await page.getByRole('button', { name: 'Compartilhar ao vivo' }).click()
   const link = await page.getByRole('textbox', { name: 'Link para os jogadores' }).inputValue()
   await expect.poll(() => JSON.stringify(puts.at(-1) ?? '')).toContain('data:image/')

@@ -40,7 +40,7 @@ const TABS: [RpgTab, string, LucideIcon][] = [
   ['mestre', 'Painel do mestre', Crown],
   ['sessoes', 'Sessões', CalendarDays],
   ['personagens', 'Personagens', Users],
-  ['codex', 'Revelações e Codex', Eye],
+  ['codex', 'Codex', Eye],
   ['dados', 'Dados e tabelas', Dices],
   ['sistemas', 'Sistemas', Settings2],
 ]
@@ -49,8 +49,8 @@ const TABS: [RpgTab, string, LucideIcon][] = [
 function ThemePicker({ value, suggested, onChange, onClose, dark }: { value: string | null; suggested: string; onChange: (id: string | null) => void; onClose: () => void; dark: boolean }) {
   const current = value ?? suggested
   return (
-    <Modal title="Tema da mesa" onClose={onClose}>
-      <p className="muted small">Cada mesa tem o seu clima. Quem joga (aqui e no Codex) só escolhe claro ou escuro.</p>
+    <Modal title="Tema da Mesa" onClose={onClose}>
+      <p className="muted small">Cada grupo tem o seu clima. Quem joga (aqui e no Codex) só escolhe claro ou escuro.</p>
       <ul className="mesa-themes" role="radiogroup" aria-label="Tema da mesa">
         {MESA_THEMES.map((t) => {
           const [bg, card, accent] = dark ? t.dark : t.light
@@ -240,8 +240,8 @@ export default function RpgView() {
       <span className="mesa-dice-label">Dados</span>
       {(
         [
-          [true, 'Na mesa'],
-          [false, 'No app'],
+          [true, 'De verdade'],
+          [false, 'Do app'],
         ] as const
       ).map(([v, label]) => (
         <button
@@ -386,13 +386,13 @@ export default function RpgView() {
               <ArrowLeft size={15} aria-hidden="true" /> Voltar à escrita
             </button>
           )}
-          <p className="mesa-kicker">{universe.name || 'Sem nome'} · setor da mesa</p>
-          <h1>Mesa de RPG</h1>
+          <p className="mesa-kicker">{universe.name || 'Sem nome'}</p>
+          <h1>Mesa</h1>
           {universe.groups.length > 0 && (
             <div className="mesa-hero-meta">
               <label className="inline-label">
                 <Users size={15} aria-hidden="true" />
-                <span className="sr-only">Mesa</span>
+                <span className="sr-only">Grupo</span>
                 <select
                   className="input select input-sm"
                   value={group?.id ?? ''}
@@ -423,13 +423,13 @@ export default function RpgView() {
           <PageHelp tour={`rpg-${tab}`} />
           {diceMode}
           {group && !readOnly && (
-            <button type="button" className="btn btn-ghost btn-sm" aria-label="Tema da mesa" title="Tema da mesa" onClick={() => setPicking(true)}>
+            <button type="button" className="btn btn-ghost btn-sm" aria-label="Tema da Mesa" title="Tema da Mesa" onClick={() => setPicking(true)}>
               <Palette size={15} /> <span className="mesa-act-label">Tema</span>
             </button>
           )}
         </div>
       </header>
-      <div className="tabs mesa-tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Mesa de RPG">
+      <div className="tabs mesa-tabs" role="tablist" onKeyDown={tabListKeys} aria-label="Partes da Mesa">
         {TABS.map(([t, label, Icon]) => (
           <button key={t} type="button" role="tab" className="tab mesa-tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onClick={() => choose(t)}>
             <Icon size={18} aria-hidden="true" />
@@ -445,14 +445,14 @@ export default function RpgView() {
           <DiceTab />
         ) : (
           <Empty icon={<Dices size={32} />} title="Use o mesmo mundo como campanha.">
-            <p>Crie uma mesa (grupo de jogadores) para registrar sessões, fichas e o que cada mesa já descobriu.</p>
+            <p>Crie um grupo de jogadores para registrar sessões, fichas e o que cada grupo já descobriu.</p>
             <form
               className="inline-fields"
               onSubmit={(e) => {
                 e.preventDefault()
                 let id = ''
                 update((u) => {
-                  const [next, g] = insert(u, 'groups', draftGroup(groupName.trim() || 'Mesa principal'))
+                  const [next, g] = insert(u, 'groups', draftGroup(groupName.trim() || 'Meu grupo'))
                   id = g.id
                   return next
                 })
@@ -461,11 +461,11 @@ export default function RpgView() {
               }}
             >
               <label htmlFor="novo-grupo" className="sr-only">
-                Nome da mesa
+                Nome do grupo
               </label>
               <input id="novo-grupo" className="input" placeholder="Mesa de sexta" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
               <button type="submit" className="btn btn-primary">
-                Criar mesa
+                Criar grupo
               </button>
             </form>
           </Empty>

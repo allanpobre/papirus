@@ -4,7 +4,7 @@ import { PageHelp } from '../ui/PageTour'
 import type { PageTourId } from '../shell/pageTours'
 
 /*
- * Mundo e Trama, cada um com as suas partes no alto da tela (como Mapa · Página · Revisão na
+ * Mundo e Trama, cada um com as suas partes no alto da tela (como Estrutura · Página · Revisão na
  * escrita): tudo sobre o mundo numa entrada do menu, e as pistas com o que cada um sabe noutra.
  */
 
@@ -13,7 +13,7 @@ const PARTS: Record<'mundo' | 'trama', [View, string, LucideIcon][]> = {
     ['fichas', 'Fichas', BookMarked],
     ['relacoes', 'Ligações', Network],
     ['timeline', 'Linha do tempo', CalendarRange],
-    ['atlas', 'Atlas', MapIcon],
+    ['atlas', 'Mapas', MapIcon],
   ],
   trama: [
     ['tramas', 'Pistas e mistérios', Sprout],

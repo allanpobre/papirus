@@ -5,6 +5,12 @@ import { openPart } from './areas.ts'
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
 const h1 = (page: Page) => page.locator('main h1').first()
+/** A busca: no Início, o botão do alto; nas outras telas, pelo "Mais". */
+async function buscar(page: Page) {
+  const top = page.getByRole('button', { name: 'Buscar em tudo' }).first()
+  if (!(await top.isVisible())) await page.getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('button', { name: 'Buscar em tudo' }).first().click()
+}
 const fichas = (page: Page) => page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /\d+ fichas$/ })
 
 test('voltar do aparelho: telas, ficha aberta e lista, sem sair do app', async ({ page }) => {
@@ -49,21 +55,21 @@ test('voltar do aparelho fecha a janela de cima antes de sair da tela', async ({
   await expect(h1(page)).toHaveText('Fichas')
 
   // Busca: voltar fecha a busca e fica nas Fichas.
-  await page.getByRole('button', { name: 'Buscar' }).first().click()
+  await buscar(page)
   await expect(page.getByRole('dialog', { name: 'Buscar' })).toBeVisible()
   await page.goBack()
   await expect(page.getByRole('dialog', { name: 'Buscar' })).toHaveCount(0)
   await expect(h1(page)).toHaveText('Fichas')
 
   // Fechar pelo X não deixa passo sobrando: o próximo "voltar" já vai para o Início.
-  await page.getByRole('button', { name: 'Buscar' }).first().click()
+  await buscar(page)
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog', { name: 'Buscar' })).toHaveCount(0)
   await page.goBack()
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
 
   // Escolher um resultado da busca leva à ficha; "voltar" volta para onde estava.
-  await page.getByRole('button', { name: 'Buscar' }).first().click()
+  await buscar(page)
   await page.getByRole('combobox', { name: 'Buscar no universo' }).fill('Mira')
   await page.getByRole('option', { name: /Mira/ }).first().click()
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Mira')

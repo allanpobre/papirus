@@ -69,7 +69,7 @@ export function PresenceList({ groupId, empty }: { groupId: string; empty?: stri
   const people = useTablePresence(groupId)
   if (!people.length) return empty ? <p className="muted small presence-empty">{empty}</p> : null
   return (
-    <ul className="presence" aria-label="Na mesa agora">
+    <ul className="presence" aria-label="Conectados agora">
       {people.map((p, i) => (
         <li key={p.name ?? `alguem-${i}`} className={`presence-chip${p.name ? '' : ' is-unknown'}`}>
           <span className="presence-dot" aria-hidden="true" />
@@ -108,7 +108,7 @@ export function InvitePanel({ group, compact = false }: { group: Group; compact?
       <div className="invite">
         <p className="small">Crie o link da mesa: cada jogador abre no celular, escolhe o personagem e acompanha a sessão ao vivo. Não precisa de conta.</p>
         <button type="button" className="btn btn-primary" disabled={m.starting} onClick={() => void m.start().then((ok) => ok && setCreated(true))}>
-          <Radio size={15} /> {m.starting ? 'Criando o link…' : 'Criar o link da mesa'}
+          <Radio size={15} /> {m.starting ? 'Criando o link…' : 'Criar o link do grupo'}
         </button>
         {m.sync?.state === 'erro' && (
           <p className="notice notice-error small" role="alert">
@@ -137,7 +137,7 @@ export function InvitePanel({ group, compact = false }: { group: Group; compact?
             <button
               type="button"
               className="btn btn-sm"
-              onClick={() => void navigator.share({ title: `Mesa: ${group.name}`, text: `Entre na mesa “${group.name}” no Papirus:`, url: m.link }).catch(() => undefined)}
+              onClick={() => void navigator.share({ title: `Grupo: ${group.name}`, text: `Entre no grupo “${group.name}” no Papirus:`, url: m.link }).catch(() => undefined)}
             >
               <Send size={14} /> Enviar
             </button>
@@ -160,7 +160,7 @@ export function InviteDialog({ group, onClose }: { group: Group; onClose: () => 
       <InvitePanel group={group} />
       <section className="invite-who" aria-labelledby="convite-quem">
         <h3 id="convite-quem" className="section-label">
-          <Users size={14} aria-hidden="true" /> Na mesa agora
+          <Users size={14} aria-hidden="true" /> Conectados agora
         </h3>
         <PresenceList groupId={group.id} empty={group.share ? 'Ninguém entrou ainda. Quem abrir o link aparece aqui.' : 'Quando o link estiver criado, quem entrar aparece aqui.'} />
       </section>
@@ -176,7 +176,7 @@ export function MesaPresence({ group, onInvite }: { group: Group; onInvite: () =
       {people.length > 0 && (
         <span className="mesa-presence-who">
           <Users size={14} aria-hidden="true" />
-          <ul className="mesa-presence-list" aria-label="Na mesa agora">
+          <ul className="mesa-presence-list" aria-label="Conectados agora">
             {people.slice(0, 4).map((p, i) => (
               <li key={p.name ?? `alguem-${i}`} className="mesa-presence-chip">
                 <span className="presence-dot" aria-hidden="true" />
@@ -303,9 +303,9 @@ export function SessionOpening({ group, session, previous, onClose }: { group: G
 
       <section className="session-opening-card" aria-labelledby="abertura-quem">
         <h3 id="abertura-quem" className="section-label">
-          <Users size={14} aria-hidden="true" /> Na mesa agora
+          <Users size={14} aria-hidden="true" /> Conectados agora
         </h3>
-        <PresenceList groupId={group.id} empty={group.share ? 'Ninguém entrou ainda. Mostre o código para a mesa:' : undefined} />
+        <PresenceList groupId={group.id} empty={group.share ? 'Ninguém entrou ainda. Mostre o código para o grupo:' : undefined} />
         <InvitePanel group={group} compact />
       </section>
 
@@ -353,7 +353,7 @@ export function SessionClosing({ group, session, onClose }: { group: Group; sess
       </dl>
       <p className="session-opening-note">
         {sent ? 'O registro inteiro foi para Ideias: revise com calma e transforme o que aconteceu em fatos do mundo.' : 'Nada foi anotado nesta sessão.'}
-        {group.share && ' Os celulares da mesa já sabem que a sessão terminou.'}
+        {group.share && ' Os celulares do grupo já sabem que a sessão terminou.'}
       </p>
       {!readOnly &&
         (writing ? (

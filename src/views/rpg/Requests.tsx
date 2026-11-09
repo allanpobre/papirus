@@ -43,7 +43,7 @@ export function AskRollDialog({ onClose }: { onClose: () => void }) {
       return next
     })
     if (!sent) return
-    toast(group.share ? 'Teste pedido. Os celulares já mostram.' : 'Teste pedido. Sem o link da mesa, role por eles aqui.')
+    toast(group.share ? 'Teste pedido. Os celulares já mostram.' : 'Teste pedido. Sem o link do grupo, role por eles aqui.')
     onClose()
   }
 

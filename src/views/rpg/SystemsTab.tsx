@@ -68,7 +68,7 @@ export function SystemsTab() {
             </li>
           ))}
         </ul>
-        <p className="muted tiny">Modelos trazem só a estrutura (atributos, fórmulas, condições). Ajuste tudo à sua mesa.</p>
+        <p className="muted tiny">Modelos trazem só a estrutura (atributos, fórmulas, condições). Ajuste tudo ao seu jogo.</p>
       </section>
 
       <section className="split-detail" aria-label="Sistema">
@@ -120,7 +120,7 @@ function SystemEditor({ system: s, onDeleted, onDuplicated }: { system: GameSyst
           </label>
           <input id="system-name" className="entity-name" value={s.name} placeholder="Sem nome" onChange={(e) => set({ name: e.target.value })} />
           <span className="muted small">
-            {usedBy.length ? `Usado por: ${usedBy.map((g) => g.name).join(', ')}` : 'Nenhuma mesa usa este sistema ainda (escolha no Painel do mestre).'}
+            {usedBy.length ? `Usado por: ${usedBy.map((g) => g.name).join(', ')}` : 'Nenhum grupo usa este sistema ainda (escolha no Painel do mestre).'}
           </span>
         </div>
         <button
@@ -145,7 +145,7 @@ function SystemEditor({ system: s, onDeleted, onDuplicated }: { system: GameSyst
         <ConfirmButton
           className="btn-icon"
           title="Apagar sistema"
-          question="Apagar? Mesas e fichas ficam sem sistema."
+          question="Apagar? Grupos e fichas ficam sem sistema."
           confirmLabel="Apagar sistema"
           onConfirm={() => {
             undoable('Sistema apagado', (u) => removeSystem(u, s.id))

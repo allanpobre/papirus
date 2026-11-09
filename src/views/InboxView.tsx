@@ -178,7 +178,7 @@ function InboxCard({ item }: { item: InboxItem }) {
               id = e.id
               return next
             })
-            toast(`Ficha “${name}” criada em rascunho`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
+            toast(`Ficha “${name}” criada`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
           }}
         >
           <UserPlus size={14} /> Criar ficha
@@ -195,7 +195,7 @@ function InboxCard({ item }: { item: InboxItem }) {
               const paragraphs = item.text.split(/\n{2,}|\n/).map((p) => p.trim()).filter(Boolean)
               return patch(updateScene(next, s.id, { doc: docFromParagraphs(paragraphs), text: paragraphs.join('\n\n') }), 'inbox', item.id, { status: 'processado' })
             })
-            toast('Virou uma cena solta', { action: { label: 'Abrir', run: () => go('escrever', id) } })
+            toast('Virou uma cena', { action: { label: 'Abrir', run: () => go('escrever', id) } })
           }}
         >
           <Feather size={14} /> Virar cena

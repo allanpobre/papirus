@@ -292,10 +292,27 @@ export function removeStory(universe: Universe, storyId: string): Universe {
   }
 }
 
+/** O título que uma cena nova recebe. Para mostrar, conta como "sem título" (veja `sceneTitle`). */
+export const DEFAULT_SCENE_TITLE = 'Nova cena'
+
+/**
+ * O nome de uma cena para mostrar: o título que a pessoa deu, ou o começo do texto
+ * ("Era noite em Ostria quando Kaya…") no lugar de "Nova cena".
+ */
+export function sceneTitle(scene: { title: string; text: string }): string {
+  const t = scene.title.trim()
+  if (t && t !== DEFAULT_SCENE_TITLE) return t
+  const sentence = scene.text.trim().split(/(?<=[.!?…])\s/)[0] ?? ''
+  const words = sentence.split(/\s+/).filter(Boolean)
+  if (!words.length) return t || 'Sem título'
+  if (words.length <= 8) return sentence.replace(/[.,;:]$/, '')
+  return `${words.slice(0, 6).join(' ').replace(/[.,;:!?]+$/, '')}…`
+}
+
 export function addScene(
   universe: Universe,
   storyId: string | null,
-  title = 'Nova cena',
+  title = DEFAULT_SCENE_TITLE,
 ): [Universe, Scene] {
   return insert(universe, 'scenes', {
     title,
@@ -411,7 +428,7 @@ export function placeScene(universe: Universe, sceneId: string, storyId: string 
 }
 
 /** Cria uma cena logo depois de outra, na mesma história (no fim, se a outra não existir). */
-export function addSceneAfter(universe: Universe, afterId: string, title = 'Nova cena'): [Universe, Scene] {
+export function addSceneAfter(universe: Universe, afterId: string, title = DEFAULT_SCENE_TITLE): [Universe, Scene] {
   const after = byId(universe, 'scenes', afterId)
   const storyId = after?.storyId ?? null
   const [added, scene] = addScene(universe, storyId, title)

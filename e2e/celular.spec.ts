@@ -60,6 +60,6 @@ test('Revisão no celular: a margem numa gaveta, sem cobrir o texto nem as abas'
   await expect(page.getByRole('complementary', { name: 'Margem viva' })).toHaveCount(0)
   await handle.tap()
   // As abas de cima continuam funcionando com a gaveta aberta.
-  await modes.getByRole('button', { name: 'Mapa' }).tap()
-  await expect(page.getByRole('heading', { name: 'Mapa da história' })).toBeAttached()
+  await modes.getByRole('button', { name: 'Estrutura' }).tap()
+  await expect(page.getByRole('heading', { name: 'Estrutura' })).toBeAttached()
 })

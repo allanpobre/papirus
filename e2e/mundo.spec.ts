@@ -8,7 +8,7 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Mundo').click()
   const parts = page.getByRole('navigation', { name: 'Partes do mundo' })
-  await expect(parts.getByRole('button')).toHaveText(['Fichas', 'Ligações', 'Linha do tempo', 'Atlas'])
+  await expect(parts.getByRole('button')).toHaveText(['Fichas', 'Ligações', 'Linha do tempo', 'Mapas'])
   await expect(parts.getByRole('button', { name: 'Fichas' })).toHaveAttribute('aria-current', 'page')
 
   // Sem ficha aberta: o mundo em resumo, com o que está só nas notas.
@@ -27,8 +27,8 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
   await kael.click()
   const reader = page.getByRole('article', { name: 'Ler a ficha Kael' })
   await expect(reader).toContainText('O caminho de Kael pelas cenas: Ostria, Vale das Brumas, Ostria, Taverna do Anzol, Torre de Marfim')
-  await reader.getByRole('button', { name: 'Abrir “Reino de Ostria” no Atlas' }).click()
-  await expect(parts.getByRole('button', { name: 'Atlas' })).toHaveAttribute('aria-current', 'page')
+  await reader.getByRole('button', { name: 'Abrir “Reino de Ostria” em Mapas' }).click()
+  await expect(parts.getByRole('button', { name: 'Mapas' })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByRole('button', { name: /^Torre de Marfim/ })).toBeVisible()
 
   // Na linha do tempo, a idade de cada um no evento.

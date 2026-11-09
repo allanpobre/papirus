@@ -26,7 +26,7 @@ type Part = 'roteiro' | 'palco' | 'mesa'
 const PARTS: [Part, string, LucideIcon][] = [
   ['roteiro', 'Roteiro', NotebookPen],
   ['palco', 'Palco', Theater],
-  ['mesa', 'Mesa', Users],
+  ['mesa', 'Grupo', Users],
 ]
 
 /** Tempo de jogo desde o começo: "1:25". */
@@ -97,13 +97,13 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
     roteiro: <Roteiro session={session} onSheet={setSheetId} />,
     palco: <Palco session={session} onRoteiro={phone ? () => choose('roteiro') : undefined} />,
     mesa: (
-      <section className="shield-panel shield-mesa" aria-label="Mesa">
+      <section className="shield-panel shield-mesa" aria-label="Grupo">
         <header className="shield-head">
-          <h2 className="shield-title">Mesa</h2>
+          <h2 className="shield-title">Grupo</h2>
           <span className="muted tiny">quem joga hoje</span>
         </header>
-        <section className="table-panel sm-panel" aria-label="Grupo">
-          <h3 className="shield-label">Grupo</h3>
+        <section className="table-panel sm-panel" aria-label="Personagens">
+          <h3 className="shield-label">Personagens</h3>
           <PartyCards onSheet={setSheetId} />
         </section>
         <section className="table-panel sm-panel" aria-label="Registro">
@@ -180,7 +180,7 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
                       onTheme()
                     }}
                   >
-                    <Palette size={16} /> Tema da mesa
+                    <Palette size={16} /> Tema da Mesa
                   </button>
                 )}
                 <button

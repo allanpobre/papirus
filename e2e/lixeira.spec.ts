@@ -16,7 +16,7 @@ test('lixeira e histórico: apagar, recuperar e voltar como estava', async ({ pa
   await page.getByRole('button', { name: 'Ajustes e dados' }).click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Lixeira e histórico' }).click()
   const lixeira = page.getByRole('region', { name: 'Lixeira' })
-  await expect(lixeira).toContainText(/Kael \(e \d+ relaç/)
+  await expect(lixeira).toContainText(/Kael \(e \d+ ligaç/)
   const historico = page.getByRole('region', { name: 'Histórico de mudanças' })
   await expect(historico).toContainText('Você apagou a ficha Kael')
   await expect(historico).toContainText('Você editou a ficha')

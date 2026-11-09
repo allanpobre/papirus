@@ -93,17 +93,21 @@ export const DEFAULT_PREFS: Prefs = {
   shareProgress: true,
   celebrate: true,
   autoBackup: false,
-  phoneShortcuts: ['inicio', 'escrever', 'livro', 'fichas'],
+  phoneShortcuts: ['inicio', 'escrever', 'fichas', 'tramas'],
   campaignShortcuts: CAMPAIGN_SHORTCUTS,
 }
 
 const KEY = 'papirus:prefs'
+const OLD_PHONE_SHORTCUTS = 'inicio,escrever,livro,fichas'
 
 function read(): Prefs {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return DEFAULT_PREFS
     const saved = JSON.parse(raw) as Partial<Prefs>
+    // A barra padrão antiga (Início, Escrever, Livro, Mundo) foi gravada com as outras preferências
+    // por quem nunca escolheu atalhos: essa pessoa ganha a barra padrão nova.
+    if (saved.phoneShortcuts?.join() === OLD_PHONE_SHORTCUTS) delete saved.phoneShortcuts
     return { ...DEFAULT_PREFS, ...saved, continuity: { ...DEFAULT_PREFS.continuity, ...saved.continuity } }
   } catch {
     return DEFAULT_PREFS

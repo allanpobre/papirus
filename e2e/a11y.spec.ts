@@ -32,20 +32,20 @@ for (const scheme of ['light', 'dark'] as const) {
       found.push(...(await audit(page, area)))
     }
     // As outras partes do Mundo e da Trama.
-    for (const part of ['Ligações', 'Linha do tempo', 'Atlas', 'Quem sabe o quê'] as const) {
+    for (const part of ['Ligações', 'Linha do tempo', 'Mapas', 'Quem sabe o quê'] as const) {
       await openPart(page, part)
       await page.waitForTimeout(400)
       found.push(...(await audit(page, part)))
     }
     // Os outros dois momentos da escrita: o Mapa e a Página.
-    for (const mode of ['Mapa', 'Página']) {
+    for (const mode of ['Estrutura', 'Página']) {
       await nav(page, 'Escrever').click()
       await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: mode }).click()
       await page.waitForTimeout(400)
       found.push(...(await audit(page, `Escrita/${mode}`)))
     }
-    for (const tab of ['Sessões', 'Personagens', 'Revelações e Codex', 'Dados e tabelas', 'Sistemas']) {
-      await nav(page, 'RPG').click()
+    for (const tab of ['Sessões', 'Personagens', 'Codex', 'Dados e tabelas', 'Sistemas']) {
+      await nav(page, 'Mesa').click()
       const t = page.getByRole('tab', { name: tab })
       await t.click()
       await page.waitForTimeout(300)

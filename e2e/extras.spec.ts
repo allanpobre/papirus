@@ -39,11 +39,11 @@ async function selectText(page: Page, text: string) {
 test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a mesa; dá para mostrar tudo', async ({ page }) => {
   await page.goto('/app/')
   const setores = page.getByRole('navigation', { name: 'Setores' })
-  await setores.getByRole('button', { name: 'RPG' }).click()
+  await setores.getByRole('button', { name: 'Mesa' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Mar')
   await page.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(page.locator('.mesa-hero')).toBeVisible()
-  await expect(nav(page, 'RPG')).toBeVisible()
+  await expect(nav(page, 'Mesa')).toBeVisible()
   await expect(nav(page, 'Escrever')).toHaveCount(0)
 
   await nav(page, 'Ajustes e dados').click()
@@ -56,7 +56,7 @@ test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a m
   await expect(nav(page, 'Escrever')).toHaveCount(0)
 
   // De volta ao início: a campanha está no setor RPG, e um livro novo não tem a mesa no menu.
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   await page.getByRole('button', { name: 'Campanhas', exact: true }).click()
   await expect(page.getByRole('button', { name: /Continuar a campanha/ })).toContainText('Mar')
   // O cartão da campanha vem nas cores do tema da mesa (Tormenta: tempestade).
@@ -65,7 +65,7 @@ test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a m
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Livro')
   await page.getByRole('button', { name: 'Criar universo' }).click()
   await expect(nav(page, 'Escrever')).toBeVisible()
-  await expect(nav(page, 'RPG')).toHaveCount(0)
+  await expect(nav(page, 'Mesa')).toHaveCount(0)
 })
 
 test('lembra do backup depois de uma semana, e o adiamento vale', async ({ page }) => {
@@ -139,8 +139,8 @@ test('Codex mostra eventos revelados e nunca os segredos da ficha', async ({ pag
   await desc.fill('Cidade portuária. [segredo]O porto é dos contrabandistas.[/segredo]')
   await expect(page.getByText(/1 trecho secreto/)).toBeVisible()
 
-  await nav(page, 'RPG').click()
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  await nav(page, 'Mesa').click()
+  await page.getByRole('tab', { name: 'Codex' }).click()
   await page.getByRole('combobox', { name: 'O que revelar' }).selectOption({ label: 'Evento' })
   const events = page.getByRole('combobox', { name: 'Escolher evento' })
   await events.selectOption({ label: (await events.locator('option', { hasText: 'A Queda' }).textContent())! })
@@ -155,9 +155,9 @@ test('Codex mostra eventos revelados e nunca os segredos da ficha', async ({ pag
 
 test('Na mesa: começa a sessão, anota, rola e ajusta recursos', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   await page.getByRole('tab', { name: 'Painel do mestre' }).click()
-  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'No app' }).click()
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'Do app' }).click()
   await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('O grupo entrou na torre.')
@@ -216,7 +216,7 @@ test('relação com várias fichas: "criado por" duas pessoas numa linha só', a
   await openSample(page)
   await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Lâmina de vidro negro/ }).first().click()
-  await page.getByRole('combobox', { name: 'Nova relação' }).fill('criado por')
+  await page.getByRole('combobox', { name: 'Nova ligação' }).fill('criado por')
   const com = page.getByRole('combobox', { name: 'Com' })
   await com.fill('Kael')
   await page.getByRole('option', { name: /^Kael/ }).first().click()
@@ -234,7 +234,7 @@ test('relação com várias fichas: "criado por" duas pessoas numa linha só', a
   await more.fill('Ilsa')
   await page.getByRole('option', { name: /^Ilsa/ }).first().click()
   await expect(row.locator('.chip-entity')).toHaveText(['Kael', 'Mira', 'Ilsa'])
-  await row.getByRole('button', { name: 'Tirar Mira desta relação' }).click()
+  await row.getByRole('button', { name: 'Tirar Mira desta ligação' }).click()
   await expect(row.locator('.chip-entity')).toHaveText(['Kael', 'Ilsa'])
 })
 
@@ -291,7 +291,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
   await openSample(page)
   await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
-  await page.getByRole('combobox', { name: 'Nova relação' }).fill('envenenou')
+  await page.getByRole('combobox', { name: 'Nova ligação' }).fill('envenenou')
   await page.getByRole('combobox', { name: 'Com', exact: true }).fill('Vaelor')
   await page.getByRole('option', { name: /^Vaelor/ }).first().click()
   await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
@@ -393,39 +393,40 @@ test.describe('no celular', () => {
   test('dá para escolher os atalhos da barra de baixo, e a Oficina tem destaque no Mais', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
     const bar = page.getByRole('navigation', { name: 'Áreas' })
-    await expect(bar.getByRole('button', { name: 'RPG', exact: true })).toHaveCount(0)
+    await expect(bar.getByRole('button', { name: 'Mesa', exact: true })).toHaveCount(0)
     await bar.getByRole('button', { name: 'Mais', exact: true }).click()
     const mais = page.getByRole('group', { name: 'Todas as áreas' })
     await expect(mais.getByRole('button', { name: /^Oficina/ })).toContainText('Dicas, livros e exercícios')
     await mais.getByRole('button', { name: 'Escolher atalhos' }).click()
-    await mais.getByRole('button', { name: 'RPG' }).click()
-    await expect(mais.getByRole('button', { name: 'RPG' })).toHaveAttribute('aria-pressed', 'true')
+    await mais.getByRole('button', { name: 'Mesa' }).click()
+    await expect(mais.getByRole('button', { name: 'Mesa' })).toHaveAttribute('aria-pressed', 'true')
     await mais.getByRole('button', { name: 'Pronto' }).click()
     await page.keyboard.press('Escape')
-    await expect(bar.getByRole('button', { name: 'RPG', exact: true })).toBeVisible()
+    await expect(bar.getByRole('button', { name: 'Mesa', exact: true })).toBeVisible()
     // Fica guardado.
     await page.reload()
-    await expect(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'RPG', exact: true })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mesa', exact: true })).toBeVisible()
   })
 
-  test('a mesa de um livro também é um setor: a barra vira de mestre até voltar à escrita', async ({ page }) => {
+  test('a barra não muda sozinha: a Mesa de um livro acende o Mais, e o clima da Mesa fica só nela', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
     const bar = page.getByRole('navigation', { name: 'Áreas' })
-    await expect(bar.getByRole('button', { name: 'Escrever', exact: true })).toBeVisible()
+    const fixed = ['Início', 'Escrever', 'Mundo', 'Trama']
+    for (const name of fixed) await expect(bar.getByRole('button', { name, exact: true })).toBeVisible()
+    await expect(bar.getByRole('button', { name: 'Buscar' })).toHaveCount(0)
     await bar.getByRole('button', { name: 'Mais', exact: true }).click()
-    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'RPG', exact: true }).click()
-    // Na mesa: atalhos de mestre e o clima da mesa, também nas fichas.
-    await expect(bar.getByRole('button', { name: 'Escrever', exact: true })).toHaveCount(0)
-    await expect(bar.getByRole('button', { name: 'Trama', exact: true })).toBeVisible()
-    await bar.getByRole('button', { name: 'Mundo', exact: true }).click()
+    const mais = page.getByRole('group', { name: 'Todas as áreas' })
+    await expect(mais.getByRole('button', { name: 'Buscar em tudo' })).toBeVisible()
+    await mais.getByRole('button', { name: 'Mesa', exact: true }).click()
+    // Na Mesa: a mesma barra, com o "Mais" mostrando a área aberta, e o clima da Mesa.
+    for (const name of fixed) await expect(bar.getByRole('button', { name, exact: true })).toBeVisible()
+    await expect(bar.getByRole('button', { name: 'Mais (aberto: Mesa)' })).toHaveAttribute('aria-current', 'page')
     await expect(page.locator('body')).toHaveAttribute('data-sector', 'mesa')
-    await page.reload()
-    await expect(bar.getByRole('button', { name: 'Trama', exact: true })).toBeVisible()
-    // "Voltar à escrita" no Mais devolve o livro.
-    await bar.getByRole('button', { name: 'Mais', exact: true }).click()
-    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Voltar à escrita/ }).click()
-    await expect(bar.getByRole('button', { name: 'Escrever', exact: true })).toBeVisible()
+    // Saindo da Mesa, o clima volta ao do livro e a barra continua igual.
+    await bar.getByRole('button', { name: 'Mundo', exact: true }).click()
     await expect(page.locator('body')).not.toHaveAttribute('data-sector', 'mesa')
+    for (const name of fixed) await expect(bar.getByRole('button', { name, exact: true })).toBeVisible()
+    await expect(bar.getByRole('button', { name: 'Mais', exact: true })).not.toHaveAttribute('aria-current', 'page')
   })
 })
 
@@ -452,7 +453,7 @@ test('o Início tem saudação, o dia e o mundo numa linha que leva a cada parte
   await expect(world.getByRole('button', { name: '17 fichas' })).toBeVisible()
   await expect(world.getByRole('button', { name: '2 pistas em aberto' })).toBeVisible()
   await world.getByRole('button', { name: '1 mapa' }).click()
-  await expect(page.getByRole('heading', { name: 'Atlas', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Mapas', level: 1 })).toBeVisible()
 })
 
 test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', async ({ page }) => {

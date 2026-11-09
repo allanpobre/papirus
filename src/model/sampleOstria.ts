@@ -346,7 +346,7 @@ export function ostriaUniverse(): Universe {
   let sistema
   ;[u, sistema] = insert(u, 'systems', systemFromTemplate('d20-5e'))
   let grupo
-  ;[u, grupo] = insert(u, 'groups', draftGroup('Mesa de sexta', sistema.id))
+  ;[u, grupo] = insert(u, 'groups', draftGroup('Grupo de sexta', sistema.id))
   const attr = (abbr: string) => sistema.attributes.find((a) => a.abbr === abbr)!.id
   const skill = (name: string) => sistema.skills.find((k) => k.name === name)!.id
   const pv = sistema.resources[0].id

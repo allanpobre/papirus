@@ -276,7 +276,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                   <p className="muted tiny">
                     {linkMode === 'livro'
                       ? 'Abre o modo leitor: cena por cena, com um caderno que só mostra o que já foi lido.'
-                      : 'Abre todas as fichas, relações e a linha do tempo de uma vez (cuidado com spoilers).'}
+                      : 'Abre todas as fichas, ligações e a linha do tempo de uma vez (cuidado com spoilers).'}
                   </p>
                   <div className="share-link-row">
                     <input className="input input-sm" readOnly aria-label="Link de leitura" value={link} onFocus={(e) => e.target.select()} />
@@ -306,7 +306,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                 </>
               ) : (
                 <>
-                  <p className="small muted">Desligado. Ligue para mandar a quem não tem conta (leitores beta, a mesa de RPG…).</p>
+                  <p className="small muted">Desligado. Ligue para mandar a quem não tem conta (leitores beta, jogadores…).</p>
                   <button
                     type="button"
                     className="btn btn-sm"
@@ -341,7 +341,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                 Quem só pode ver (e o link) também vê o que é secreto
               </label>
               <p className="muted tiny">
-                Desmarcado, fichas, fatos e relações secretas e os trechos [segredo] não saem do seu Papirus para quem só lê. Quem pode editar vê tudo.
+                Desmarcado, fichas, fatos e ligações secretas e os trechos [segredo] não saem do seu Papirus para quem só lê. Quem pode editar vê tudo.
               </p>
             </section>
 

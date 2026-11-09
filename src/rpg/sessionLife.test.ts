@@ -123,9 +123,9 @@ describe('quem joga nesta sessão', () => {
   it('a chamada vai junto com o registro para Ideias', () => {
     let [u, , id, taren] = withParty()
     u = setAttendance(u, id, taren, 'mestre')
-    expect(rollCall(u, byId(u, 'sessions', id)!)).toBe('Na mesa: Brisa (Ana) · O mestre conduziu: Taren (Bruno)')
+    expect(rollCall(u, byId(u, 'sessions', id)!)).toBe('Jogaram: Brisa (Ana) · O mestre conduziu: Taren (Bruno)')
     const done = finishSession(u, id, 'Mesa de sexta')
-    expect(done.universe.inbox[0].text.split('\n')[1]).toBe('Na mesa: Brisa (Ana) · O mestre conduziu: Taren (Bruno)')
+    expect(done.universe.inbox[0].text.split('\n')[1]).toBe('Jogaram: Brisa (Ana) · O mestre conduziu: Taren (Bruno)')
   })
 })
 

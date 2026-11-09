@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-export type Part = 'Fichas' | 'Ligações' | 'Linha do tempo' | 'Atlas' | 'Pistas e mistérios' | 'Quem sabe o quê'
+export type Part = 'Fichas' | 'Ligações' | 'Linha do tempo' | 'Mapas' | 'Pistas e mistérios' | 'Quem sabe o quê'
 
 /**
  * Abre uma parte do Mundo ou da Trama: a entrada do menu (no celular, pelo "Mais") e depois a

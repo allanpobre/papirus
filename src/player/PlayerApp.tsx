@@ -285,8 +285,8 @@ function AtTable({ people, session, me }: { people: Present[]; session: CodexSna
   const names = [...new Set(people.filter((p) => p.role === 'jogador' && p.who !== me).map((p) => p.who ?? 'alguém'))]
   if (!gm && !names.length && !session) return null
   return (
-    <section className="player-people" aria-label="Na mesa agora">
-      <span className="player-people-h">{session ? [`Sessão ${session.number}`, sessionName(session.number, session.title)].filter(Boolean).join(' · ') : 'Na mesa agora'}</span>
+    <section className="player-people" aria-label="Conectados agora">
+      <span className="player-people-h">{session ? [`Sessão ${session.number}`, sessionName(session.number, session.title)].filter(Boolean).join(' · ') : 'Conectados agora'}</span>
       <span className="player-people-list">
         {gm && <span className="player-person is-gm">Mestre</span>}
         {names.map((n) => (

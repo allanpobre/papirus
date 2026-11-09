@@ -187,7 +187,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           </div>
           <p className="muted small">
             {ws.kind === 'campanha'
-              ? 'Fica no setor RPG do início e abre na mesa. O menu mostra o que serve para o mestre.'
+              ? 'Fica na aba Mesa de Seus universos e abre na Mesa. O menu mostra o que serve para o mestre.'
               : 'Fica no setor Escrita do início e abre no Início do universo.'}
           </p>
           <div className="form-grid">
@@ -406,7 +406,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               <FileJson size={16} /> Baixar backup completo (.json)
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => ws.go('livro')}>
-              <BookOpen size={16} /> Baixar o livro (Word, EPUB, PDF) no Livro
+              <BookOpen size={16} /> Baixar o livro (Word, EPUB, PDF) em Publicar
             </button>
           </div>
           <div className="import-row">

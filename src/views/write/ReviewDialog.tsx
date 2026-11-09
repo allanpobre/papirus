@@ -50,7 +50,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
   }
   const create = (texts: string[], kind: string) => {
     update((u) => texts.reduce((acc, t) => insert(acc, 'entities', draftEntity(kind, t))[0], u))
-    toast(texts.length === 1 ? `Ficha “${texts[0]}” criada em rascunho` : `${texts.length} fichas criadas em rascunho`)
+    toast(texts.length === 1 ? `Ficha “${texts[0]}” criada` : `${texts.length} fichas criadas`)
     hide(texts)
   }
   const ignore = (texts: string[]) => {

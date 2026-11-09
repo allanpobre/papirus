@@ -95,7 +95,7 @@ export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: (
         )}
         {relations.length > 0 && (
           <>
-            <h3 className="section-label">Relações</h3>
+            <h3 className="section-label">Ligações</h3>
             <ul className="plain-list">
               {relations.map((r) => (
                 <li key={r.id}>

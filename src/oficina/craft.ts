@@ -151,7 +151,7 @@ export const CRAFT_GUIDES: Guide[] = [
     expect: 'Um texto em que nada sobra: cada cena tem motivo, cada frase se lê sem tropeço.',
     works: [
       { title: 'Deixe descansar', text: 'Guarde o texto por alguns dias (ou semanas) antes de revisar. Com distância, você lê o que está escrito, e não o que quis escrever.' },
-      { title: 'Leia em voz alta', text: 'O ouvido pega repetições, frases tortas e diálogos falsos que o olho deixa passar. No Papirus, o “Ouvir” do Livro ajuda.' },
+      { title: 'Leia em voz alta', text: 'O ouvido pega repetições, frases tortas e diálogos falsos que o olho deixa passar. No Papirus, o “Ouvir” de Publicar ajuda.' },
       { title: 'Revise em camadas', text: 'Primeiro a história (cenas que sobram ou faltam), depois cada cena, por último as frases. Polir uma frase de uma cena que vai sair é tempo perdido.' },
       { title: 'Corte dez por cento', text: 'Quase todo rascunho fica melhor mais curto. Comece pelos advérbios, pelas explicações repetidas e pelos começos de cena.' },
       { title: 'Leitores com filtro', text: 'Quando vários leitores tropeçam no mesmo lugar, o problema é real, mesmo que a solução que sugerem não seja a melhor.' },

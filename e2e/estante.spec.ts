@@ -43,7 +43,7 @@ test('estante: ler ali mesmo, reagir a um capítulo, e capítulo novo chega aos 
   // Espera o exemplo abrir (antes disso, a tela é a lista de universos, que também tem "Entrar").
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await signIn(page, PEOPLE.ana.email)
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await page.getByRole('button', { name: 'Novo livro' }).click()
   await page.getByRole('textbox', { name: 'Título' }).fill('A Maré')
   await page.getByRole('button', { name: 'Criar livro' }).click()

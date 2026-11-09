@@ -47,7 +47,9 @@ import {
   namesOf,
   patch,
   removeScene,
+  sceneTitle,
   updateScene,
+  DEFAULT_SCENE_TITLE,
 } from '../../model/universe'
 import { wordCount } from '../../persistence/repository'
 import { recall, remember } from '../../state/prefs'
@@ -344,7 +346,7 @@ export default function WriteView() {
           <PageHelp tour="escrever-vazio" className="write-welcome-help" />
           <Feather size={36} aria-hidden="true" />
           <h1>Uma página em branco.</h1>
-          <p>Comece por uma cena solta. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>
+          <p>Comece por uma cena. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>
           <button type="button" className="btn btn-primary btn-lg" onClick={newLooseScene}>
             Começar a escrever
           </button>
@@ -362,7 +364,7 @@ export default function WriteView() {
   const at = siblings.findIndex((x) => x.id === scene.id)
   const [prev, next] = [siblings[at - 1], siblings[at + 1]]
   const story = scene.storyId ? byId(universe, 'stories', scene.storyId) : undefined
-  const storyName = story ? story.title || 'Sem título' : 'Cenas soltas'
+  const storyName = story ? story.title || 'Sem título' : 'Sem capítulo'
 
   return (
     <div
@@ -460,7 +462,7 @@ export default function WriteView() {
                     onConfirm={() => {
                       close()
                       const next = order.find((s) => s.id !== scene.id)
-                      undoable(`Cena “${scene.title || 'Sem título'}” apagada`, (u) => removeScene(u, scene.id))
+                      undoable(`Cena “${sceneTitle(scene)}” apagada`, (u) => removeScene(u, scene.id))
                       setSceneId(next?.id ?? null)
                     }}
                   >
@@ -525,8 +527,8 @@ export default function WriteView() {
               id="scene-title"
               className="scene-title"
               rows={1}
-              value={scene.title}
-              placeholder="Sem título"
+              value={scene.title === DEFAULT_SCENE_TITLE ? '' : scene.title}
+              placeholder="Título (opcional)"
               // O título quebra a linha em vez de ser cortado; Enter não cria parágrafo.
               ref={growTitle}
               onKeyDown={(e) => {
@@ -583,7 +585,7 @@ export default function WriteView() {
                         id={id}
                         value={scene.storyId ?? ''}
                         onChange={(v) => update((u) => moveSceneTo(u, scene.id, v || null))}
-                        options={[{ value: '', label: 'Cena solta' }, ...universe.stories.map((s) => ({ value: s.id, label: s.title || 'Sem título' }))]}
+                        options={[{ value: '', label: 'Sem capítulo' }, ...universe.stories.map((s) => ({ value: s.id, label: s.title || 'Sem título' }))]}
                       />
                     )}
                   </Field>
@@ -671,7 +673,7 @@ export default function WriteView() {
                 {next && (
                   <button type="button" className="scene-end-next" onClick={() => select(next.id)}>
                     <span className="scene-end-kick">Próxima cena</span>
-                    <span className="scene-end-title">{next.title || 'Sem título'}</span>
+                    <span className="scene-end-title">{sceneTitle(next)}</span>
                     <ArrowRight size={17} aria-hidden="true" />
                   </button>
                 )}
@@ -792,7 +794,7 @@ export default function WriteView() {
       {dialog?.kind === 'versions' && <VersionsDialog scene={scene} onClose={() => setDialog(null)} onRestored={() => setEditorNonce((n) => n + 1)} />}
       {dialog?.kind === 'reading' && (
         <ReadingMode
-          title={scene.storyId ? byId(universe, 'stories', scene.storyId)?.title || 'Sem título' : 'Cenas soltas'}
+          title={scene.storyId ? byId(universe, 'stories', scene.storyId)?.title || 'Sem título' : 'Sem capítulo'}
           scenes={order.filter((s) => s.storyId === scene.storyId)}
           startSceneId={scene.id}
           onClose={() => setDialog(null)}
@@ -827,7 +829,7 @@ export default function WriteView() {
               return next
             })
             editorRef.current?.chain().focus().setTextSelection({ from: dialog.sel.from, to: dialog.sel.to }).setMention(id).run()
-            toast(`Ficha “${name}” criada em rascunho`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
+            toast(`Ficha “${name}” criada`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
             setDialog(null)
           }}
         />
@@ -899,7 +901,7 @@ function NewEntityDialog({ name: initial, onClose, onCreate }: { name: string; o
             Cancelar
           </button>
           <button type="button" className="btn btn-primary" disabled={!name.trim()} onClick={() => onCreate(kind, name.trim())}>
-            Criar em rascunho
+            Criar ficha
           </button>
         </>
       }

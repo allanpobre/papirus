@@ -37,7 +37,7 @@ export const PAGE_TOURS = {
       {
         target: '[data-tour="continuar"]',
         title: 'O próximo passo',
-        body: 'A cena em que você parou, com a última frase. Continue, faça um sprint de 15 minutos ou comece uma cena nova. Embaixo, outras cenas recentes. Numa campanha, aqui aparece a próxima sessão da mesa.',
+        body: 'A cena em que você parou, com a última frase. Continue, faça um sprint de 15 minutos ou comece uma cena nova. Embaixo, outras cenas recentes. Numa campanha, aqui aparece a próxima sessão.',
       },
       {
         target: '.next-note, .next-note-add',
@@ -45,7 +45,7 @@ export const PAGE_TOURS = {
         body: 'Antes de parar, deixe uma linha sobre o que vem depois. Ela aparece aqui e no fim da cena, para amanhã começar sem travar.',
         optional: true,
       },
-      { target: '.home-later', title: 'Para quando der', body: 'Até três coisas que pedem um olhar: perguntas da Revisão, ideias esperando e a próxima sessão da mesa. Nada aqui é urgente.', optional: true },
+      { target: '.home-later', title: 'Para quando der', body: 'Até três coisas que pedem um olhar: perguntas da Revisão, ideias esperando e a próxima sessão. Nada aqui é urgente.', optional: true },
       { target: '.home-challenge', title: 'Treino de hoje', body: 'Uma proposta por dia num sprint com tempo e um mínimo de palavras. O texto pode virar cena. No pé do cartão, a dica do dia da Oficina.' },
       { target: '.home-world', title: 'O seu mundo', body: 'Quanto já tem em cada parte do universo, numa linha. Toque num número para ir até lá.', optional: true },
       { target: '.home-day', title: 'Seu ritmo', body: 'Dobrado para não pesar: o prazo, o calendário de escrita, o nível e as medalhas. Abra quando quiser.', optional: true },
@@ -56,8 +56,8 @@ export const PAGE_TOURS = {
     steps: [
       {
         target: '[data-tour="modos"]',
-        title: 'Mapa, Página e Revisão',
-        body: 'Três momentos da escrita. O Mapa mostra a história vista de cima. A Página é só o texto, sem nada em volta puxando o olho. A Revisão traz de volta a margem, com as perguntas e a lista da cena.',
+        title: 'Estrutura, Página e Revisão',
+        body: 'Três momentos da escrita. A Estrutura mostra a história vista de cima. A Página é só o texto, sem nada em volta puxando o olho. A Revisão traz de volta a margem, com as perguntas e a lista da cena.',
       },
       { target: '.write-tree', title: 'Manuscrito', body: 'Histórias, capítulos e cenas, na ordem do livro. Toque numa cena para abrir. O botão no canto da barra esconde ou mostra esta lista.', optional: true },
       {
@@ -120,7 +120,7 @@ export const PAGE_TOURS = {
   'escrever-vazio': {
     title: 'Escrever',
     steps: [
-      { target: '.write-welcome .btn', title: 'A primeira cena', body: 'Cria uma cena solta e abre a página para escrever. Histórias e capítulos podem vir depois, no Manuscrito, ou nunca.' },
+      { target: '.write-welcome .btn', title: 'A primeira cena', body: 'Cria uma cena e abre a página para escrever. Histórias e capítulos podem vir depois, no Manuscrito, ou nunca.' },
       {
         title: 'Depois da primeira cena',
         body: 'Esta tela vira a página de escrever. O (?) passa a mostrar o texto, a barra da seleção, os nomes novos (contados no botão Revisar da margem), os detalhes da cena e o rodapé com as metas e o Sprint.',
@@ -128,9 +128,9 @@ export const PAGE_TOURS = {
     ],
   },
   organizar: {
-    title: 'Mapa da história',
+    title: 'Estrutura',
     steps: [
-      { target: '[data-tour="modos"]', title: 'Mapa, Página e Revisão', body: 'O Mapa é o primeiro dos três momentos da escrita: planejar e olhar a história de cima. Página e Revisão voltam para o texto.' },
+      { target: '[data-tour="modos"]', title: 'Estrutura, Página e Revisão', body: 'A Estrutura é o primeiro dos três momentos da escrita: planejar e olhar a história de cima. Página e Revisão voltam para o texto.' },
       {
         target: '.story-map-structure',
         title: 'Modelo da história',
@@ -168,7 +168,7 @@ export const PAGE_TOURS = {
     ],
   },
   livro: {
-    title: 'Livro',
+    title: 'Publicar',
     steps: [
       { target: '.book-head-actions', title: 'Novo livro ou importar', body: 'Junte histórias num livro à parte, com a sua capa (uma série pode ter um por volume, no mesmo estilo). “Importar” traz um texto de .docx, .md ou .txt como história nova.', optional: true },
       { target: '.shelf', title: 'Estante', body: 'Com mais de um livro, escolha aqui qual ver.', optional: true },
@@ -192,7 +192,7 @@ export const PAGE_TOURS = {
   fichas: {
     title: 'Fichas',
     steps: [
-      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Atlas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       {
         target: '.split-list .quick-create, .fichas-view .fab',
         title: 'Nova ficha',
@@ -230,24 +230,24 @@ export const PAGE_TOURS = {
   relacoes: {
     title: 'Ligações',
     steps: [
-      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Atlas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.graph-filters-btn', title: 'Filtros', body: 'No celular, o grafo vem primeiro. Os filtros (centrar numa ficha, tipos, um ponto da história) ficam aqui.', optional: true },
       {
         target: '.graph-controls',
         optional: true,
         title: 'Centrar e filtrar',
-        body: 'Centre numa ficha para ver só quem está perto dela, e até que distância. “Incluir fica em” mostra onde cada lugar fica; “Só fichas com relações” esconde as soltas.',
+        body: 'Centre numa ficha para ver só quem está perto dela, e até que distância. “Incluir fica em” mostra onde cada lugar fica; “Só fichas com ligações” esconde as soltas.',
       },
-      { target: '.graph-mode', title: 'Ligações ou família', body: 'Com relações de família (pai de, casado com…), dá para ver a Árvore da família.', optional: true },
+      { target: '.graph-mode', title: 'Ligações ou família', body: 'Com ligações de família (pai de, casado com…), dá para ver a Árvore da família.', optional: true },
       { target: '.graph-bar', title: 'Tipos e tempo', body: 'Mostre ou esconda tipos de ficha. “Num ponto da história” mostra só o que vale numa cena, e o botão de tocar passa a história cena a cena.', optional: true },
-      { target: '.graph-wrap', title: 'O mapa', body: 'Arraste as fichas para arrumar e o fundo para mover. Os botões + e − aproximam e afastam. Toque numa ficha para ver as relações dela.', optional: true },
+      { target: '.graph-wrap', title: 'O mapa', body: 'Arraste as fichas para arrumar e o fundo para mover. Os botões + e − aproximam e afastam. Toque numa ficha para ver as ligações dela.', optional: true },
       { title: 'De onde vêm', body: 'As ligações nascem nas fichas: no modo Editar, adicione “irmão de”, “serve a”, “rival de”… Elas aparecem aqui sozinhas.' },
     ],
   },
   timeline: {
     title: 'Linha do tempo',
     steps: [
-      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Atlas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.timeline-view .quick-create', title: 'Novo evento', body: 'O nome e o ano, no calendário do seu mundo. Toque num evento para mudar o tipo (uma Era é uma faixa de tempo), a importância, quem participa e onde.' },
       { target: '.timeline-filters', title: 'Filtrar', body: 'Mostre só o que envolve certas fichas, só os eventos mais importantes, e escolha se as cenas com data aparecem.' },
       { target: '.era-strip', title: 'Eras', body: 'As faixas de tempo do mundo, uma por linha.', optional: true },
@@ -256,9 +256,9 @@ export const PAGE_TOURS = {
     ],
   },
   atlas: {
-    title: 'Atlas',
+    title: 'Mapas',
     steps: [
-      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Atlas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.atlas-view .area-tools', title: 'Mapas', body: 'Cada mapa numa aba. “Adicionar mapa” envia uma imagem: desenho à mão, Inkarnate, qualquer coisa.' },
       { target: '.atlas-toolbar', title: 'Marcar lugares', body: '“Marcar lugar” e toque no mapa para pôr um marcador ligado a uma ficha. Os botões − e + mudam o zoom, e os tipos mostram ou escondem marcadores.', optional: true },
       { target: '.atlas-route-pick', title: 'Caminho de', body: 'Escolha um personagem: o trajeto dele pelas cenas aparece no mapa, numerado na ordem.', optional: true },
@@ -292,7 +292,7 @@ export const PAGE_TOURS = {
         body: 'Se é verdade (ou segredo, boato, lenda, mentira), quem disse e onde. Embaixo, quem sabe ou suspeita, e se o leitor já viu até a última cena.',
         optional: true,
       },
-      { title: 'De onde vêm', body: 'No Escrever, selecione um trecho e escolha “Fato”: o trecho fica guardado como fonte. Um fato falso dito por alguém aparece no Codex da mesa só como “segundo fulano”.' },
+      { title: 'De onde vêm', body: 'No Escrever, selecione um trecho e escolha “Fato”: o trecho fica guardado como fonte. Um fato falso dito por alguém aparece no Codex dos jogadores só como “segundo fulano”.' },
     ],
   },
   inbox: {
@@ -323,7 +323,7 @@ export const PAGE_TOURS = {
         body: 'Este universo (nome, tipo, metas, calendário, dados e backup, lixeira, importar e wiki), este aparelho (aparência, escrita, menu) e a sua conta. O servidor próprio fica em Avançado, fechado: só quem hospeda o próprio Papirus precisa dele.',
       },
       { target: '.settings-scope', title: 'Para quem vale', body: 'Cada painel diz se vale só para este universo, para este aparelho ou para a conta.', optional: true },
-      { target: '.settings-grid', title: 'Os ajustes', body: 'Tudo muda na hora e fica salvo. Apagar o universo fica no fim de Universo e pede confirmação. Baixar o livro (Word, EPUB, PDF) fica no Livro.' },
+      { target: '.settings-grid', title: 'Os ajustes', body: 'Tudo muda na hora e fica salvo. Apagar o universo fica no fim de Universo e pede confirmação. Baixar o livro (Word, EPUB, PDF) fica em Publicar.' },
       { title: 'Ajuda', body: 'Em Menu e ajuda dá para refazer o tour completo. Em cada tela, o botão (?) explica só ela.' },
     ],
   },
@@ -376,8 +376,8 @@ export const PAGE_TOURS = {
       { target: '.share-intro', title: 'Três jeitos', body: 'Pode ver (lê tudo, não muda nada), Pode editar (escreve junto, ao vivo) e Link de leitura (quem tiver o link lê sem conta).', optional: true },
       { target: '.share-invite', title: 'Convidar', body: 'O e-mail da pessoa e o que ela pode fazer. Ela entra no Papirus com esse e-mail e o universo aparece em “Compartilhados com você”.', optional: true },
       { target: '.share-members', title: 'Quem tem acesso', body: 'Troque o que cada pessoa pode fazer, ou tire o acesso, quando quiser.', optional: true },
-      { target: '[aria-labelledby="share-link"]', title: 'Link de leitura', body: 'Para quem não tem conta: leitores beta, a mesa de RPG. Abre como livro ou como o universo inteiro. Trocar o link faz o antigo parar de funcionar.', optional: true },
-      { target: '[aria-labelledby="share-segredos"]', title: 'Segredos', body: 'Desmarcado, fichas, fatos e relações secretas e os trechos de segredo não saem do seu Papirus para quem só lê. Quem pode editar vê tudo.', optional: true },
+      { target: '[aria-labelledby="share-link"]', title: 'Link de leitura', body: 'Para quem não tem conta: leitores beta, jogadores. Abre como livro ou como o universo inteiro. Trocar o link faz o antigo parar de funcionar.', optional: true },
+      { target: '[aria-labelledby="share-segredos"]', title: 'Segredos', body: 'Desmarcado, fichas, fatos e ligações secretas e os trechos de segredo não saem do seu Papirus para quem só lê. Quem pode editar vê tudo.', optional: true },
       { title: 'Quem garante', body: 'Quem pode o quê é o servidor que garante, não só a tela.' },
     ],
   },
@@ -398,7 +398,7 @@ export const PAGE_TOURS = {
         title: 'As seções',
         body: 'Novidades (o que os amigos fizeram), Perfil (nome, foto, o seu link e se os amigos sabem quando você bate a meta), Amigos (procure pelo @ e aceite pedidos), Desafios (entre amigos) e Conta (sincronização dos universos e sair).',
       },
-      { title: 'Seus livros', body: 'Só aparecem no seu perfil se você escolher, livro por livro, na página Livro: só você, amigos ou todo mundo.' },
+      { title: 'Seus livros', body: 'Só aparecem no seu perfil se você escolher, livro por livro, em Publicar: só você, amigos ou todo mundo.' },
     ],
   },
   perfil: {
@@ -446,14 +446,14 @@ export const PAGE_TOURS = {
     title: 'Convidar jogadores',
     steps: [
       { target: '.invite-qr', title: 'O código', body: 'Cada jogador aponta a câmera do celular para o código e o Codex abre, sem conta e sem instalar nada.', optional: true },
-      { target: '.invite-side', title: 'O link', body: 'Copie e mande no grupo da mesa, ou use “Enviar” para escolher o aplicativo. É o mesmo link para todos.', optional: true },
-      { target: '.invite:not(.is-on)', title: 'Criar o link', body: 'A primeira vez, crie o link da mesa. Ele continua o mesmo nas próximas sessões.', optional: true },
-      { target: '.invite-who', title: 'Na mesa agora', body: 'Quem está com o Codex aberto, pelo personagem que escolheu. Aparece também no alto da mesa, ao lado de “Convidar”.' },
+      { target: '.invite-side', title: 'O link', body: 'Copie e mande no grupo de mensagens, ou use “Enviar” para escolher o aplicativo. É o mesmo link para todos.', optional: true },
+      { target: '.invite:not(.is-on)', title: 'Criar o link', body: 'A primeira vez, crie o link do grupo. Ele continua o mesmo nas próximas sessões.', optional: true },
+      { target: '.invite-who', title: 'Conectados agora', body: 'Quem está com o Codex aberto, pelo personagem que escolheu. Aparece também no alto da Mesa, ao lado de “Convidar”.' },
     ],
   },
 
   anunciar: {
-    title: 'Anunciar para a mesa',
+    title: 'Anunciar para o grupo',
     steps: [
       { target: '.announce-presets', title: 'Atalhos', body: 'Para improvisar rápido: um toque e o aviso fica pronto, já com o tom certo. Dá para mudar o texto depois.' },
       { target: '.announce-tones', title: 'O tom', body: 'Aviso (uma notícia, uma pausa), Perigo (o celular vibra mais forte) ou Mistério. Muda a cor do aviso no celular.' },
@@ -465,14 +465,14 @@ export const PAGE_TOURS = {
   sessao: {
     title: 'Modo sessão',
     steps: [
-      { target: '.sm-title', title: 'A sessão ao vivo', body: 'Com a sessão começada, o app vira o escudo do mestre: Roteiro, Palco e Mesa. Aqui, o nome da sessão.' },
+      { target: '.sm-title', title: 'A sessão ao vivo', body: 'Com a sessão começada, o app vira o escudo do mestre: Roteiro, Palco e Grupo. Aqui, o nome da sessão.' },
       { target: '.sm-clock', title: 'Tempo de jogo', body: 'Quanto tempo desde que a sessão começou.', optional: true },
-      { target: '.sm-bar .mesa-presence', title: 'Quem está na mesa', body: 'Os jogadores com o Codex aberto no celular. “Convidar” mostra o QR code e o link.', optional: true },
+      { target: '.sm-bar .mesa-presence', title: 'Quem está conectado', body: 'Os jogadores com o Codex aberto no celular. “Convidar” mostra o QR code e o link.', optional: true },
       { target: '.sm-ask', title: 'Pedir teste', body: '“Todos rolem Percepção”: escolha o quê, para quem e a dificuldade (só você vê). Aparece no meio da tela de cada celular com o botão que rola pela ficha.', optional: true },
       { target: '.sm-announce', title: 'Anunciar', body: 'Para improvisar: “Um inimigo aparece!”, “Emboscada!”, uma pausa. Aparece na tela inteira de cada celular, na hora.', optional: true },
       { target: '.shield-start', title: 'Roteiro: início forte', body: 'A primeira cena, já com algo acontecendo. O roteiro é a sua folha de preparação: só você vê.', optional: true },
       { target: '.beat-list', title: 'Cenas', body: 'As cenas que podem acontecer. Tocar numa cena começa ela (os celulares mostram); riscar a atual passa para a próxima.', optional: true },
-      { target: '.table-secrets', title: 'Segredos e pistas', body: 'O que a mesa ainda não sabe, com “Revelar” a um toque: vai na hora para o Codex dos jogadores.', optional: true },
+      { target: '.table-secrets', title: 'Segredos e pistas', body: 'O que o grupo ainda não sabe, com “Revelar” a um toque: vai na hora para o Codex dos jogadores.', optional: true },
       { target: '.stage-card', title: 'Palco: a cena atual', body: 'O que está acontecendo agora, com o clima. É o que aparece no alto do celular de cada jogador.', optional: true },
       { target: '.clocks', title: 'Relógios', body: 'O que está para acontecer (“A guarda chega”, 1 de 4). Um toque enche um pedaço; o olho esconde dos jogadores.', optional: true },
       {
@@ -481,10 +481,10 @@ export const PAGE_TOURS = {
         body: 'Escolha o jeito de iniciativa (clássica, por lados ou pipoca) e toque em “Combate!”. Ponha os inimigos e defina os turnos: a fila mostra quem age, com a vida de cada um.',
         optional: true,
       },
-      { target: '.sm-panel[aria-label="Grupo"]', title: 'Mesa: o grupo', body: 'A vida de cada um; um toque abre as rolagens, as condições e quem joga hoje. “Ficha” abre a ficha completa.', optional: true },
+      { target: '.sm-panel[aria-label="Personagens"]', title: 'Grupo: os personagens', body: 'A vida de cada um; um toque abre as rolagens, as condições e quem joga hoje. “Ficha” abre a ficha completa.', optional: true },
       { target: '.sm-panel[aria-label="Registro"]', title: 'Registro', body: 'O que aconteceu, com a hora (as rolagens e as cenas entram sozinhas).', optional: true },
-      { target: '.sm-dock', title: 'Os painéis', body: 'No celular, um painel por vez: Roteiro, Palco e Mesa. Arrastar para o lado também troca.', optional: true },
-      { target: '.sm-acts .more-menu', title: 'Mais', body: 'Dados (na mesa ou no app), o tema, a tela cheia, “Sair do modo sessão” (a sessão continua, e “Sessão ao vivo” traz você de volta) e “Encerrar sessão”, no fim do jogo.' },
+      { target: '.sm-dock', title: 'Os painéis', body: 'No celular, um painel por vez: Roteiro, Palco e Grupo. Arrastar para o lado também troca.', optional: true },
+      { target: '.sm-acts .more-menu', title: 'Mais', body: 'Dados (de verdade ou do app), o tema, a tela cheia, “Sair do modo sessão” (a sessão continua, e “Sessão ao vivo” traz você de volta) e “Encerrar sessão”, no fim do jogo.' },
     ],
   },
 
@@ -494,25 +494,25 @@ export const PAGE_TOURS = {
       { target: '#pedir-o-que', title: 'O que rolar', body: 'Uma perícia, um atributo ou uma rolagem livre (como 1d6 de Sorte). Cada jogador rola pela própria ficha, com o bônus dele.' },
       { target: '.ask-who', title: 'Para quem', body: 'Todos que estão na sessão, ou só alguns. Quem ficou de fora não entra.' },
       { target: '#pedir-cd', title: 'Dificuldade', body: 'Só você vê. Com ela, o Papirus diz quem passou e quem falhou, e o celular de cada um recebe o resultado.', optional: true },
-      { target: '.modal-footer', title: 'Pedir', body: 'O pedido aparece no celular de cada um. Na mesa, você vê quem já rolou; por quem você conduz (ou está sem celular), toque em “Rolar”.' },
+      { target: '.modal-footer', title: 'Pedir', body: 'O pedido aparece no celular de cada um. No painel Grupo, você vê quem já rolou; por quem você conduz (ou está sem celular), toque em “Rolar”.' },
     ],
   },
 
-  // ─── Mesa de RPG (uma aba de cada vez) ───────────────────────────
+  // ─── Mesa (uma aba de cada vez) ───────────────────────────
   'rpg-mestre': {
     title: 'Painel do mestre',
     steps: [
-      { target: '.mesa-hero-meta', title: 'A mesa', body: 'Qual mesa (grupo de jogadores), o sistema dela e se há uma sessão ao vivo, com a hora em que começou.', optional: true },
-      { target: '.mesa-presence', title: 'Quem está na mesa', body: 'Os jogadores com o Codex aberto no celular aparecem aqui, pelo personagem. “Convidar” mostra o QR code e o link para eles entrarem.', optional: true },
-      { target: '.mesa-dice-mode', title: 'Dados', body: 'Na mesa (o padrão): você rola os dados de verdade e diz o que saiu; o app soma o bônus e vê o crítico. No app: ele sorteia.' },
-      { target: '[aria-label="Tema da mesa"]', title: 'Tema', body: 'O clima da mesa, pelo gênero do jogo. Os jogadores veem o mesmo no Codex e só escolhem claro ou escuro.', optional: true },
-      { target: '.mesa-tabs', title: 'As abas', body: 'Sessões, Personagens, Revelações e Codex, Dados e tabelas (com os inimigos prontos) e Sistemas. Cada aba tem o seu (?). Durante o jogo, o app vira o modo sessão.' },
+      { target: '.mesa-hero-meta', title: 'O grupo', body: 'Qual grupo de jogadores, o sistema dele e se há uma sessão ao vivo, com a hora em que começou.', optional: true },
+      { target: '.mesa-presence', title: 'Quem está conectado', body: 'Os jogadores com o Codex aberto no celular aparecem aqui, pelo personagem. “Convidar” mostra o QR code e o link para eles entrarem.', optional: true },
+      { target: '.mesa-dice-mode', title: 'Dados', body: 'De verdade (o padrão): você rola os dados na mesa e diz o que saiu; o app soma o bônus e vê o crítico. Do app: ele sorteia.' },
+      { target: '[aria-label="Tema da Mesa"]', title: 'Tema', body: 'O clima da Mesa, pelo gênero do jogo. Os jogadores veem o mesmo no Codex e só escolhem claro ou escuro.', optional: true },
+      { target: '.mesa-tabs', title: 'As abas', body: 'Sessões, Personagens, Codex, Dados e tabelas (com os inimigos prontos) e Sistemas. Cada aba tem o seu (?). Durante o jogo, o app vira o modo sessão.' },
       { target: '.gm-next', title: 'Próxima sessão', body: 'A sessão marcada e a sua preparação. “Começar agora” abre a sessão na tela inteira e o app vira o modo sessão, com tudo do jogo.', optional: true },
-      { target: '[data-tour="gm-sistema"]', title: 'Sistema da mesa', body: 'As regras desta mesa: escolha um sistema que você já tem ou crie um a partir de um modelo. “Editar sistemas” abre a aba Sistemas.', optional: true },
+      { target: '[data-tour="gm-sistema"]', title: 'Sistema do grupo', body: 'As regras deste grupo: escolha um sistema que você já tem ou crie um a partir de um modelo. “Editar sistemas” abre a aba Sistemas.', optional: true },
       { target: '[data-tour="gm-grupo"]', title: 'Grupo', body: 'Os personagens de jogador, com a vida e as condições de cada um. “Convidar jogadores” manda o link do Codex para os celulares.', optional: true },
-      { target: '[data-tour="gm-segredos"]', title: 'Segredos ainda guardados', body: 'O que a mesa ainda não sabe, e o que ela conhece só em parte (o nome ou o resumo).', optional: true },
+      { target: '[data-tour="gm-segredos"]', title: 'Segredos ainda guardados', body: 'O que o grupo ainda não sabe, e o que ele conhece só em parte (o nome ou o resumo).', optional: true },
       { target: '[data-tour="gm-misterios"]', title: 'Mistérios em jogo', body: 'Os mistérios abertos e quantas pistas cada um tem. Toque para abrir em Pistas e mistérios.', optional: true },
-      { target: '[data-tour="gm-mesas"]', title: 'Mesas', body: 'Um universo pode ter várias mesas (grupos de jogadores), cada uma com o que já descobriu. Renomeie ou apague aqui.', optional: true },
+      { target: '[data-tour="gm-mesas"]', title: 'Grupos', body: 'Um universo pode ter vários grupos de jogadores, cada um com o que já descobriu. Renomeie ou apague aqui.', optional: true },
       { target: '.mesa-back', title: 'Sair', body: 'Volta para as campanhas (ou, num livro, para a escrita).' },
     ],
   },
@@ -520,12 +520,12 @@ export const PAGE_TOURS = {
     title: 'Sessões',
     steps: [
       { target: '.split-list[aria-label="Sessões"]', title: 'As sessões', body: 'Crie a próxima e toque numa para abrir. Cada uma tem número, data, preparação, registro e o que foi revelado nela.' },
-      { target: '.session-head', title: 'Começar e encerrar', body: '“Começar” abre a sessão na tela inteira e leva para a mesa; as rolagens vão para o registro dela. Ao encerrar, aparece o resumo e o registro vai para Ideias, para você revisar com calma.', optional: true },
+      { target: '.session-head', title: 'Começar e encerrar', body: '“Começar” abre a sessão na tela inteira; as rolagens vão para o registro dela. Ao encerrar, aparece o resumo e o registro vai para Ideias, para você revisar com calma.', optional: true },
       { target: '.session-attendance', title: 'Quem joga', body: 'Cada personagem com o seu jogador. Quem não veio: o mestre conduz o personagem nesta sessão, ou ele fica de fora. Dá para marcar antes, ao planejar.', optional: true },
       { target: '.session-journal', title: 'Diário', body: 'O resumo da sessão para os jogadores. Comece pelas notas do registro, revise e publique: aparece no Codex, no diário da campanha. Segredos só vão se você escrever.', optional: true },
       { target: '.session-log', title: 'Registro da mesa', body: 'O que aconteceu, com a hora. Nada vira canon sem a sua revisão.', optional: true },
       { target: '.session-reveal', title: 'Revelado nesta sessão', body: 'Revele uma ficha (só o nome, nome e resumo, ou tudo) ou um fato. O Codex dos jogadores recebe na hora.', optional: true },
-      { target: '.session .initiative', title: 'Iniciativa', body: 'A ordem do combate desta sessão, a mesma da aba Na mesa.', optional: true },
+      { target: '.session .initiative', title: 'Iniciativa', body: 'A ordem do combate desta sessão, a mesma do Palco.', optional: true },
     ],
   },
   'rpg-personagens': {
@@ -542,10 +542,10 @@ export const PAGE_TOURS = {
     ],
   },
   'rpg-codex': {
-    title: 'Revelações e Codex',
+    title: 'Codex',
     steps: [
       { target: '.codex-manage', title: 'Revelações', body: 'Só entra no Codex o que você revelar: fichas, fatos, eventos, pistas, mapas, marcadores e ligações. Trechos secretos das fichas nunca aparecem.' },
-      { target: '.codex-preview', title: 'Como a mesa vê', body: 'Exatamente o que os jogadores veem. Dá para copiar ou baixar.' },
+      { target: '.codex-preview', title: 'Como os jogadores veem', body: 'Exatamente o que os jogadores veem. Dá para copiar ou baixar.' },
       {
         target: '.share-panel',
         title: 'Codex ao vivo',
@@ -572,7 +572,7 @@ export const PAGE_TOURS = {
   'rpg-sistemas': {
     title: 'Sistemas',
     steps: [
-      { target: '.split-list[aria-label="Sistemas"]', title: 'Os sistemas', body: 'As regras das suas mesas. Cada mesa usa um; várias podem usar o mesmo.' },
+      { target: '.split-list[aria-label="Sistemas"]', title: 'Os sistemas', body: 'As regras dos seus grupos. Cada grupo usa um; vários podem usar o mesmo.' },
       { target: '.template-picker', title: 'Começar de um modelo', body: 'D&D 5e, Tormenta 20, Ordem Paranormal, Call of Cthulhu, parada de dados ou sem sistema. Os modelos trazem só a estrutura; ajuste tudo.', optional: true },
       { target: '.system-editor', title: 'Editar', body: 'Atributos, recursos (PV, PM, Defesa), perícias, fórmulas de rolagem e condições. As fichas da mesa seguem o sistema.', optional: true },
     ],
@@ -582,7 +582,7 @@ export const PAGE_TOURS = {
   'hub-escrita': {
     title: 'Escrita',
     steps: [
-      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita (livros e mundos), RPG (campanhas) e Oficina (aprender). Cada um com a sua cara.' },
+      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita (livros e mundos), Mesa (campanhas) e Oficina (aprender). Cada um com a sua cara.' },
       { target: '.hub-continue', title: 'Continuar', body: 'O universo em que você mexeu por último, a um toque.', optional: true },
       { target: '.treino-card', title: 'Treino de hoje', body: 'A proposta do dia num sprint com tempo e mínimo de palavras ou caracteres. Seus treinos ficam guardados, e há um placar entre amigos.' },
       {
@@ -599,11 +599,11 @@ export const PAGE_TOURS = {
     ],
   },
   'hub-rpg': {
-    title: 'RPG',
+    title: 'Mesa',
     steps: [
-      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita, RPG e Oficina. Aqui ficam as campanhas.' },
+      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita, Mesa e Oficina. Aqui ficam as campanhas.' },
       { target: '.hub-continue', title: 'Continuar a campanha', body: 'A campanha em que você mexeu por último.', optional: true },
-      { target: '.library-list[aria-label="Campanhas"]', title: 'Suas campanhas', body: 'Toque para abrir a mesa.', optional: true },
+      { target: '.library-list[aria-label="Campanhas"]', title: 'Suas campanhas', body: 'Toque para abrir a Mesa.', optional: true },
       { target: '.start-card, .library-new', title: 'Nova campanha', body: 'Dê um nome e escolha o sistema. A mesa já vem pronta: o sistema, a sessão 1 e uma tabela de rumores.' },
       { target: '.hub-player', title: 'É jogador?', body: 'Peça ao mestre o link do Codex. Ele abre no navegador, sem conta, com a sua ficha, o mapa e o que o grupo já descobriu, e dá para rolar por ele.', optional: true },
     ],
@@ -611,7 +611,7 @@ export const PAGE_TOURS = {
   'hub-oficina': {
     title: 'Oficina',
     steps: [
-      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita, RPG e Oficina. Aqui você aprende.' },
+      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita, Mesa e Oficina. Aqui você aprende.' },
       { target: '.oficina-hero', title: 'Oficina', body: 'Gêneros, técnicas e guias para mestres: dicas, armadilhas, livros para estudar, curiosidades e exercícios. O seu progresso fica marcado.' },
       { target: '.oficina-tip', title: 'Dica do dia', body: 'Uma dica nova por dia. Toque para abrir o guia dela.' },
       { target: '.oficina-shelf-section', title: 'Os guias', body: 'Toque num gênero ou técnica para abrir o guia.' },
@@ -697,10 +697,10 @@ export const PAGE_TOURS = {
     steps: [
       { target: '.player-live', title: 'Ao vivo', body: 'O Codex se atualiza sozinho quando o mestre revela algo. “Novidades do mestre” aparece quando chega coisa nova.' },
       { target: '.player-session', title: 'Sessão ao vivo', body: 'Aparece quando o mestre começa a sessão. O celular vibra no começo e avisa quando ela termina.', optional: true },
-      { target: '.player-tabs', title: 'Eu, Mesa e Codex', body: 'Eu: a sua ficha para jogar. Mesa: a cena, o combate e as rolagens de todos. Codex: o que o grupo já sabe.', optional: true },
+      { target: '.player-tabs', title: 'Eu, Palco e Codex', body: 'Eu: a sua ficha para jogar. Palco: a cena, o combate e as rolagens de todos. Codex: o que o grupo já sabe.', optional: true },
       { target: '.player-who', title: 'Quem é você?', body: 'Escolha o seu personagem para rolar pela ficha dele. Fica lembrado neste aparelho.', optional: true },
       { target: '.me-card', title: 'A sua ficha', body: 'A vida, a defesa, os ataques e os testes a um toque. A ficha completa fica embaixo, recolhida.', optional: true },
-      { target: '.player-people', title: 'Na mesa agora', body: 'O mestre e os outros jogadores que estão com o Codex aberto, pelo personagem.', optional: true },
+      { target: '.player-people', title: 'Conectados agora', body: 'O mestre e os outros jogadores que estão com o Codex aberto, pelo personagem.', optional: true },
       { target: '.stage-card', title: 'A cena', body: 'O que está acontecendo, com o clima que o mestre escreveu. Os relógios mostram o que está para acontecer.', optional: true },
       {
         target: '.player-combat',

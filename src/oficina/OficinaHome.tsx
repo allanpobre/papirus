@@ -475,7 +475,7 @@ function Library({ genre, progress, onChoose }: { genre?: GuideId; progress: Ofi
                     </span>
                     <span className="oficina-genre-name">{g.label}</span>
                     <span className="oficina-genre-lede">{g.lede}</span>
-                    {g.id === mine && <span className="oficina-genre-tag">{forTable ? 'a sua mesa' : 'o seu universo'}</span>}
+                    {g.id === mine && <span className="oficina-genre-tag">{forTable ? 'a sua campanha' : 'o seu universo'}</span>}
                     {read && (
                       <span className="oficina-genre-done">
                         <Check size={12} aria-hidden="true" /> {done > 0 ? `${done}/${g.exercises.length} feitos` : 'lido'}

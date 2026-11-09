@@ -71,7 +71,7 @@ export function worldCounts(u: Universe, hidden: View[] = [], withMesa = false):
     ['fichas', u.entities.length, plural(u.entities.length, 'ficha', 'fichas')],
     ['atlas', u.maps.length, plural(u.maps.length, 'mapa', 'mapas')],
     ['timeline', u.events.length, plural(u.events.length, 'evento', 'eventos')],
-    ['relacoes', u.relations.length, plural(u.relations.length, 'laço', 'laços')],
+    ['relacoes', u.relations.length, plural(u.relations.length, 'ligação', 'ligações')],
     ['tramas', openSeeds, plural(openSeeds, 'pista em aberto', 'pistas em aberto')],
     ['rpg', withMesa ? u.sessions.length : 0, plural(u.sessions.length, 'sessão', 'sessões')],
     ['livro', words, `${plural(scenes, 'cena', 'cenas')}, ${plural(words, 'palavra', 'palavras')}`],

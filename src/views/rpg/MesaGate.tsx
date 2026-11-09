@@ -40,7 +40,7 @@ export function MesaGate({ name }: { name: string }) {
         <span className="mesa-gate-emblem">
           <Dices size={34} />
         </span>
-        <span className="mesa-gate-title">Mesa de RPG</span>
+        <span className="mesa-gate-title">Mesa</span>
         <span className="mesa-gate-sub">{name}</span>
       </span>
     </div>

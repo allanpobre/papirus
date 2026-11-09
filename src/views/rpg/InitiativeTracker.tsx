@@ -108,7 +108,7 @@ function RollingInitiative({ session }: { session: Session }) {
   const status = !session.initiative.length
     ? 'Ninguém no combate ainda.'
     : waiting.length
-      ? `Esperando ${names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`} rolar.${group.share ? '' : ' Sem o link da mesa, role ou digite por eles.'}`
+      ? `Esperando ${names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`} rolar.${group.share ? '' : ' Sem o link do grupo, role ou digite por eles.'}`
       : mode === 'lados'
         ? session.sides
           ? `Começam os ${firstSide(session) === 'herois' ? 'heróis' : 'inimigos'}.`
@@ -707,7 +707,7 @@ function AddCombatants({ session }: { session: Session }) {
       {sheets.length > 0 && (
         <select
           className="input select input-sm"
-          aria-label="Pôr personagem da mesa"
+          aria-label="Pôr personagem do grupo"
           value=""
           onChange={(e) => {
             const s = sheets.find((x) => x.id === e.target.value)
@@ -720,7 +720,7 @@ function AddCombatants({ session }: { session: Session }) {
               )
           }}
         >
-          <option value="">+ Personagem da mesa</option>
+          <option value="">+ Personagem do grupo</option>
           {sheets.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}

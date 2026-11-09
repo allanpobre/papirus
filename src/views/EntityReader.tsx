@@ -14,7 +14,7 @@ import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
 import { MembershipChips } from './EntityLists'
 import { formatYear, KNOWLEDGE_LABEL, kindLabel, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
-import { byId, entityName } from '../model/universe'
+import { byId, entityName, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge } from '../ui/bits'
 import { Picture } from '../images/Picture'
@@ -336,7 +336,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
                 {appearances.map(({ scene, roles, found }) => (
                   <li key={scene.id}>
                     <button type="button" className="link-btn" onClick={() => go('escrever', scene.id)}>
-                      {scene.title || 'Sem título'}
+                      {sceneTitle(scene)}
                     </button>
                     <span className="muted small"> {roles.join(' · ')}</span>
                     {found[0] && <p className="appearance-snippet">{snippet(scene.text, found[0].from, found[0].to, 50)}</p>}

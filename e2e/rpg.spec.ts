@@ -11,14 +11,14 @@ async function newUniverseWithTable(page: Page) {
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Menu e ajuda' }).click()
   await page.getByRole('button', { name: 'Mostrar tudo' }).click()
-  await nav(page, 'RPG').click()
-  await page.getByRole('textbox', { name: 'Nome da mesa' }).fill('Mesa de domingo')
-  await page.getByRole('button', { name: 'Criar mesa' }).click()
+  await nav(page, 'Mesa').click()
+  await page.getByRole('textbox', { name: 'Nome do grupo' }).fill('Mesa de domingo')
+  await page.getByRole('button', { name: 'Criar grupo' }).click()
 }
 
 test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão', async ({ page }) => {
   await newUniverseWithTable(page)
-  await page.getByRole('combobox', { name: 'Sistema da mesa' }).selectOption({ label: '+ Novo: estilo Ordem Paranormal' })
+  await page.getByRole('combobox', { name: 'Sistema do grupo' }).selectOption({ label: '+ Novo: estilo Ordem Paranormal' })
   await expect(page.getByText(/5 atributos, 4 recursos, 28 perícias/)).toBeVisible()
 
   // Sessão em andamento: as rolagens vão para o registro.
@@ -55,10 +55,10 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
   await expect(tray(page)).toContainText('no registro')
 
   // No app: o app sorteia, sem perguntar.
-  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'No app' }).click()
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'Do app' }).click()
   await page.getByRole('button', { name: /^Furtividade/ }).click()
   await expect(quanto).toHaveCount(0)
-  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'Na mesa' }).click()
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'De verdade' }).click()
 
   await page.getByRole('tab', { name: 'Sessões' }).click()
   await expect(page.locator('.log-roll')).toHaveCount(2)
@@ -68,7 +68,7 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
 
 test('recursos: dano e cura respeitam o máximo', async ({ page }) => {
   await newUniverseWithTable(page)
-  await page.getByRole('combobox', { name: 'Sistema da mesa' }).selectOption({ label: '+ Novo: estilo D&D 5e' })
+  await page.getByRole('combobox', { name: 'Sistema do grupo' }).selectOption({ label: '+ Novo: estilo D&D 5e' })
   await page.getByRole('tab', { name: 'Personagens' }).click()
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Taren')
   await page.getByRole('button', { name: 'Criar personagem' }).click()
@@ -94,7 +94,7 @@ test('recursos: dano e cura respeitam o máximo', async ({ page }) => {
 test('iniciativa: cada um rola, "Definir turnos" fecha a ordem, e vez e rodada continuam após recarregar', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
   await page.getByRole('button', { name: 'Começar', exact: true }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
@@ -146,14 +146,14 @@ test('sistema próprio: criar do zero, adicionar atributo e testar a fórmula', 
 
   // A mesa passa a usar o sistema.
   await page.getByRole('tab', { name: 'Painel do mestre' }).click()
-  await page.getByRole('combobox', { name: 'Sistema da mesa' }).selectOption({ label: 'Meu sistema' })
+  await page.getByRole('combobox', { name: 'Sistema do grupo' }).selectOption({ label: 'Meu sistema' })
   await expect(page.locator('.rpg-view .mesa-hero')).toContainText('Meu sistema')
 })
 
 test('tabela aleatória sorteia uma das opções', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
   const card = page.locator('.table-card').filter({ has: page.getByRole('textbox', { name: 'Nome da tabela' }) }).first()
   await card.getByRole('button', { name: 'Rolar' }).click()
@@ -162,8 +162,8 @@ test('tabela aleatória sorteia uma das opções', async ({ page }) => {
 
 test('Codex: revelar uma ligação coloca no mapa dos jogadores, marcada como nova', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await nav(page, 'RPG').click()
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  await nav(page, 'Mesa').click()
+  await page.getByRole('tab', { name: 'Codex' }).click()
   const codex = page.locator('.codex-doc').first()
   await expect(codex.getByRole('img', { name: /^Mapa com 5 fichas e 3 ligações/ })).toBeVisible()
   await page.getByRole('combobox', { name: 'O que revelar' }).selectOption({ label: 'Ligação' })
@@ -173,36 +173,40 @@ test('Codex: revelar uma ligação coloca no mapa dos jogadores, marcada como no
   await expect(codex.getByText('Kael protege Homem Pálido')).toBeVisible()
 })
 
-test('a mesa é outro setor: o app muda de clima ao entrar e volta ao sair', async ({ page }) => {
+test('a Mesa tem o seu clima: muda ao entrar e volta ao sair, sem mexer no menu', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
   const before = await bg()
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^RPG/ }).click()
-  await expect(page.getByRole('heading', { name: 'Mesa de RPG', level: 1 })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mesa/ }).click()
+  await expect(page.getByRole('heading', { name: 'Mesa', level: 1, exact: true })).toBeVisible()
   await expect(page.locator('body')).toHaveAttribute('data-sector', 'mesa')
   expect(await bg()).not.toBe(before)
-  await expect(page.getByRole('tablist', { name: 'Mesa de RPG' }).getByRole('tab')).toHaveCount(6)
+  await expect(page.getByRole('tablist', { name: 'Partes da Mesa' }).getByRole('tab')).toHaveCount(6)
+  // O menu fica na mesma ordem dentro e fora da Mesa.
+  const order = () => page.getByRole('navigation', { name: 'Áreas' }).locator('.rail-groups .rail-item').allInnerTexts()
+  const inside = await order()
   await page.getByRole('button', { name: 'Voltar à escrita' }).click()
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await expect(page.locator('body')).not.toHaveAttribute('data-sector', 'mesa')
   expect(await bg()).toBe(before)
+  expect(await order()).toEqual(inside)
 })
 
 test('o mestre escolhe o tema da mesa pelo gênero; claro ou escuro segue cada pessoa', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^RPG/ }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mesa/ }).click()
   // Sem escolha, vale o sugerido pelo sistema (D&D → Pergaminho).
   await expect(page.locator('body')).toHaveAttribute('data-mesa-tema', 'pergaminho')
-  await page.getByRole('button', { name: 'Tema da mesa' }).click()
-  const temas = page.getByRole('dialog', { name: 'Tema da mesa' })
+  await page.getByRole('button', { name: 'Tema da Mesa' }).click()
+  const temas = page.getByRole('dialog', { name: 'Tema da Mesa' })
   await expect(temas.getByRole('radio', { name: /Pergaminho.*sugerido/ })).toHaveAttribute('aria-checked', 'true')
   await temas.getByRole('radio', { name: /^Abismo/ }).click()
   await expect(page.locator('body')).toHaveAttribute('data-mesa-tema', 'abismo')
   await temas.getByRole('button', { name: 'Fechar' }).click()
   // "Sem tema": as cores de sempre.
-  await page.getByRole('button', { name: 'Tema da mesa' }).click()
+  await page.getByRole('button', { name: 'Tema da Mesa' }).click()
   await temas.getByRole('radio', { name: /^Sem tema/ }).click()
   await expect(page.locator('body')).not.toHaveAttribute('data-mesa-tema', /.+/)
 })
@@ -210,7 +214,7 @@ test('o mestre escolhe o tema da mesa pelo gênero; claro ou escuro segue cada p
 test('campanha de Tormenta: criar, montar a ficha e jogar com dado físico', async ({ page }) => {
   await page.goto('/app/')
   // O RPG é um setor à parte: a campanha nasce ali e abre direto na mesa.
-  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'RPG' }).click()
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mesa' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Arton')
   await expect(page.getByRole('radio', { name: 'Tormenta 20' })).toHaveAttribute('aria-checked', 'true')
   await page.getByRole('button', { name: 'Criar campanha' }).click()
@@ -301,14 +305,14 @@ test('o jogador vê a ficha completa no Codex, só para consultar', async ({ pag
   await page.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
   await page.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
   await page.getByRole('textbox', { name: 'Endereço público do Papirus' }).fill(baseURL + '/')
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   // A Brisa leva dano e ganha um item antes de o mestre compartilhar.
   await page.getByRole('tab', { name: 'Personagens' }).click()
   await page.locator('.entity-row-name', { hasText: /^Brisa$/ }).click()
   await page.getByRole('button', { name: 'Menos 1 PV' }).click()
   await page.getByRole('textbox', { name: 'Novo item' }).fill('2 poções')
   await page.keyboard.press('Enter')
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  await page.getByRole('tab', { name: 'Codex' }).click()
   await page.getByRole('button', { name: 'Compartilhar ao vivo' }).click()
   const link = await page.getByRole('textbox', { name: 'Link para os jogadores' }).inputValue()
 

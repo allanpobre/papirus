@@ -14,7 +14,7 @@ export function BookCard() {
       <p className="muted small">Traga um texto de .docx, .md ou .txt. Vira uma história nova, dividida em cenas. Nada vira ficha sozinho.</p>
       <BookImport />
       <h3 className="section-label">Baixar o livro</h3>
-      <p className="muted small">Word, EPUB, PDF para imprimir e Markdown ficam no Livro, com a capa, os capítulos e a prévia.</p>
+      <p className="muted small">Word, EPUB, PDF para imprimir e Markdown ficam em Publicar, com a capa, os capítulos e a prévia.</p>
       <div className="inline-fields">
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('livro')}>
           <BookOpen size={14} /> Abrir o Livro

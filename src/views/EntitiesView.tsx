@@ -897,7 +897,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
           {entityName(universe, r[side]) || 'Ficha removida'}
         </button>
         {editable && (
-          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta relação`} onClick={() => update((u) => remove(u, 'relations', r.id))}>
+          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta ligação`} onClick={() => update((u) => remove(u, 'relations', r.id))}>
             <X size={12} />
           </button>
         )}
@@ -910,7 +910,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       <button
         type="button"
         className="btn-icon btn-sm relation-remove"
-        aria-label={rs.length > 1 ? 'Remover estas relações' : 'Remover relação'}
+        aria-label={rs.length > 1 ? 'Remover estas ligações' : 'Remover ligação'}
         onClick={() => update((u) => rs.reduce((acc, r) => remove(acc, 'relations', r.id), u))}
       >
         <X size={14} />
@@ -933,7 +933,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       <span className="muted">{e.name}</span>
       <input
         className="input input-sm relation-type"
-        aria-label="Tipo da relação"
+        aria-label="Tipo da ligação"
         value={rs[0].type}
         onChange={(ev) => update((u) => rs.reduce((acc, r) => patch(acc, 'relations', r.id, { type: ev.target.value }), u))}
       />
@@ -980,7 +980,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
     <Fold id="ficha-rela-es" title="Ligações">
       {outgoing.length + incoming.length + fieldLinks.length + fieldBacklinks.length === 0 && (
         // Os membros e o "faz parte de" ficam nas listas: aqui só as outras ligações.
-        <p className="muted small">{universe.relations.some((r) => r.listId && (r.fromId === e.id || r.toId === e.id)) ? 'Fora das listas, nenhuma ligação ainda.' : 'Nenhuma relação ainda.'}</p>
+        <p className="muted small">{universe.relations.some((r) => r.listId && (r.fromId === e.id || r.toId === e.id)) ? 'Fora das listas, nenhuma ligação ainda.' : 'Nenhuma ligação ainda.'}</p>
       )}
       <ul className="relation-list">
         {group(outgoing).map(outRow)}
@@ -1036,7 +1036,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       )}
       <div className="relation-add">
         <span className="muted small">{e.name || 'Esta ficha'}</span>
-        <input className="input input-sm" aria-label="Nova relação" list="tipos-relacao" placeholder="é irmão de…" value={type} onChange={(ev) => setType(ev.target.value)} />
+        <input className="input input-sm" aria-label="Nova ligação" list="tipos-relacao" placeholder="é irmão de…" value={type} onChange={(ev) => setType(ev.target.value)} />
         {targets.length > 0 && (
           <span className="chips">
             {targets.map((t) => (

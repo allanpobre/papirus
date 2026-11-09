@@ -41,7 +41,7 @@ test('diagramar o livro: modelo, capa do autor, prévia paginada com sumário', 
 
   // Fica guardado no universo; e o livro tem lugar próprio no menu.
   await designer.getByRole('button', { name: 'Fechar' }).click()
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await expect(page.getByRole('img', { name: /^Capa de / })).toBeVisible()
   await page.locator('[data-tour="livro-acoes"]').getByRole('button', { name: 'Diagramar', exact: true }).click()
   await expect(designer.getByRole('img', { name: 'Capa escolhida' })).toBeVisible()
@@ -52,7 +52,7 @@ test('diagramar o livro: modelo, capa do autor, prévia paginada com sumário', 
 
 test('estante: segundo volume com o mesmo estilo do primeiro', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Seu primeiro livro' })).toBeVisible()
   await page.getByRole('button', { name: 'Criar o livro' }).click()
   const designer = page.getByRole('dialog', { name: 'Diagramar o livro' })
@@ -98,7 +98,7 @@ test('revisar antes de publicar: aponta e corrige a tipografia com desfazer', as
   await expect(text.locator('ul')).toHaveCount(0)
   await expect(page.getByRole('status').filter({ hasText: 'Salvo' }).first()).toBeVisible()
 
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await page.getByRole('button', { name: 'Criar o livro' }).click()
   await page.getByRole('dialog', { name: 'Diagramar o livro' }).getByRole('button', { name: 'Fechar' }).click()
   // O caminho diz o que o Papirus arruma sozinho.
@@ -119,7 +119,7 @@ test('revisar antes de publicar: aponta e corrige a tipografia com desfazer', as
   await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toContainText('— Espere… — disse Mira.')
 
   // As palavras repetidas, com quantas vezes; uma que é tema do livro pode ser ignorada.
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await path.getByRole('button', { name: 'Revisar' }).click()
   const top = review.locator('.review-scene').first()
   await top.locator('summary').click()
@@ -133,7 +133,7 @@ test('revisar antes de publicar: aponta e corrige a tipografia com desfazer', as
 
 test('o caminho do livro: passos, um Baixar só, leitores, capa para gráfica e "Também de"', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
 
   // Cinco passos, cada um com o que achou.
   const path = page.getByRole('list', { name: 'Do manuscrito ao livro' })
@@ -185,7 +185,7 @@ test('o caminho do livro: passos, um Baixar só, leitores, capa para gráfica e 
 
 test('importar pelo Livro: o texto vira uma história nova', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Livro', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await page.getByRole('button', { name: 'Importar' }).click()
   await page.getByLabel('Arquivo do livro').setInputFiles({ name: 'sal.md', mimeType: 'text/markdown', buffer: Buffer.from('# O Sal\n\n## Chegada\n\nKael desceu.\n') })
   await expect(page.getByText('“O Sal” importado em 1 cena.')).toBeVisible()

@@ -116,7 +116,7 @@ test('remover uma história preserva as cenas como cenas soltas', async ({ page 
   await livro.getByRole('button', { name: 'Remover história' }).click()
 
   await expect(tree(page).getByRole('region', { name: 'Livro um' })).toHaveCount(0)
-  await expect(tree(page).getByRole('region', { name: 'Cenas soltas' }).getByRole('button', { name: /Prólogo/ })).toBeVisible()
+  await expect(tree(page).getByRole('region', { name: 'Sem capítulo' }).getByRole('button', { name: /Prólogo/ })).toBeVisible()
 })
 
 test('apagar uma cena pede confirmação e pode ser desfeito', async ({ page }) => {
@@ -146,7 +146,7 @@ test('cria ficha a partir de uma seleção e a vê na margem e nas Fichas', asyn
   await selectText(page, 'Kael')
   await page.getByRole('toolbar', { name: 'Ações da seleção' }).getByRole('button', { name: 'Ficha' }).click()
   await expect(page.getByRole('dialog', { name: 'Nova ficha' })).toBeVisible()
-  await page.getByRole('button', { name: 'Criar em rascunho' }).click()
+  await page.getByRole('dialog', { name: 'Nova ficha' }).getByRole('button', { name: 'Criar ficha' }).click()
 
   await expect(editor(page).locator('.mention')).toHaveText('Kael')
   const margin = page.getByRole('complementary', { name: 'Margem viva' })
@@ -213,8 +213,8 @@ test('busca global encontra uma ficha pelo apelido, sem acento', async ({ page }
 
 test('RPG: revelar uma ficha a um grupo coloca no Codex dos jogadores', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'RPG').click()
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  await nav(page, 'Mesa').click()
+  await page.getByRole('tab', { name: 'Codex' }).click()
 
   const codex = page.getByRole('region', { name: 'Codex como os jogadores veem' })
   await expect(codex.getByRole('heading', { name: 'Ostria' })).toBeVisible()
@@ -229,7 +229,7 @@ test('RPG: revelar uma ficha a um grupo coloca no Codex dos jogadores', async ({
 
 test('RPG: registro de sessão vai para Ideias ao encerrar', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
   await page.getByRole('button', { name: 'Começar', exact: true }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
@@ -247,9 +247,9 @@ test('RPG: registro de sessão vai para Ideias ao encerrar', async ({ page }) =>
 
 test('dados: rola expressões e recusa as inválidas', async ({ page }) => {
   await openSample(page)
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
-  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'No app' }).click()
+  await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'Do app' }).click()
   await page.getByRole('textbox', { name: 'Rolagem' }).fill('2d6+100')
   await page.getByRole('button', { name: 'Rolar', exact: true }).first().click()
   const total = Number(await page.locator('.dice-total').textContent())
@@ -451,8 +451,8 @@ test('Mapa, Página e Revisão: escreve com a porta fechada e revisa com ela abe
   await expect(page.getByRole('textbox', { name: 'Título da cena' })).toHaveValue('A Torre fechada')
 
   // Mapa: a faixa, as promessas, o modelo e as perguntas (tiradas só do que foi marcado).
-  await modes.getByRole('button', { name: 'Mapa' }).click()
-  await expect(page.getByRole('heading', { name: 'Mapa da história' })).toBeAttached()
+  await modes.getByRole('button', { name: 'Estrutura' }).click()
+  await expect(page.getByRole('heading', { name: 'Estrutura' })).toBeAttached()
   await expect(page.getByRole('button', { name: 'A chegada: termina melhor' })).toBeVisible()
   const promises = page.getByRole('region', { name: 'Promessas' })
   await expect(promises.getByRole('listitem').filter({ hasText: 'Os trezentos e doze degraus' })).toContainText('parada')
@@ -471,7 +471,7 @@ test('Mapa, Página e Revisão: escreve com a porta fechada e revisa com ela abe
 
 test('no Mapa, o cartão da cena se escreve ali mesmo', async ({ page }) => {
   await openSample(page)
-  await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Mapa' }).click()
+  await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Estrutura' }).click()
   const card = page.locator('[data-scene]').filter({ hasText: 'Nas brumas' })
   await card.getByRole('button', { name: '+ O que esta cena precisa fazer' }).click()
   await card.getByRole('textbox', { name: 'Quem quer o quê' }).fill('Kael quer achar o caminho')
@@ -498,7 +498,9 @@ test('Página: onde estou, próxima cena e nova cena logo depois desta', async (
   await expect(page.locator('.write-pos')).toContainText('cena 2 de 8')
 
   await page.getByRole('navigation', { name: 'Depois desta cena' }).getByRole('button', { name: 'Nova cena depois desta' }).click()
-  await expect(title).toHaveValue('Nova cena')
+  // Cena nova sem título: o campo fica vazio (a lista mostra o começo do texto no lugar de "Nova cena").
+  await expect(title).toHaveValue('')
+  await expect(title).toHaveAttribute('placeholder', 'Título (opcional)')
   await expect(title).toBeFocused()
   await page.keyboard.type('Entre as duas')
   await expect(page.locator('.write-pos')).toContainText('cena 3 de 9')

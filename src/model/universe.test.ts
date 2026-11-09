@@ -6,6 +6,7 @@ import {
   removeScene,
   removeStory,
   renameStory,
+  sceneTitle,
   scenesOf,
   updateScene,
 } from './universe'
@@ -196,5 +197,15 @@ describe('nova cena depois desta', () => {
     expect(scenesOf(u, st.id).map((s) => s.title)).toEqual(['A', 'N', 'B', 'Z'])
     ;[u] = addSceneAfter(u, 'nao-existe', 'S')
     expect(scenesOf(u, null).map((s) => s.title)).toEqual(['S'])
+  })
+})
+
+describe('o nome de uma cena para mostrar', () => {
+  it('sem título (ou com o "Nova cena" de quando foi criada), mostra o começo do texto', () => {
+    expect(sceneTitle({ title: 'A chegada', text: 'Era noite.' })).toBe('A chegada')
+    expect(sceneTitle({ title: 'Nova cena', text: 'Era noite em Ostria. Kaya desceu do navio.' })).toBe('Era noite em Ostria')
+    expect(sceneTitle({ title: '', text: 'Era noite em Ostria quando Kaya desceu do navio, sem olhar para trás.' })).toBe('Era noite em Ostria quando Kaya…')
+    expect(sceneTitle({ title: 'Nova cena', text: '' })).toBe('Nova cena')
+    expect(sceneTitle({ title: '  ', text: '' })).toBe('Sem título')
   })
 })

@@ -20,7 +20,7 @@ const H = 800
 interface Edge extends GraphEdge {
   id: string
   label: string
-  /** "fica em" (vem da ficha), relação comum, ou quem está por trás de uma relação. */
+  /** "fica em" (vem da ficha), relação comum, ou quem está por trás de uma ligação. */
   kind: 'derivada' | 'relacao' | 'por-tras'
   relation?: Relation
   canon?: string
@@ -237,7 +237,7 @@ export default function GraphView() {
           </label>
           {!focusId && (
             <label className="check">
-              <input type="checkbox" checked={onlyConnected} onChange={(e) => setOnlyConnected(e.target.checked)} /> Só fichas com relações
+              <input type="checkbox" checked={onlyConnected} onChange={(e) => setOnlyConnected(e.target.checked)} /> Só fichas com ligações
             </label>
           )}
         </div>
@@ -278,7 +278,7 @@ export default function GraphView() {
             </button>
           ))}
         </div>
-        <div className="segmented" role="radiogroup" aria-label="Quais relações">
+        <div className="segmented" role="radiogroup" aria-label="Quais ligações">
           <button type="button" role="radio" aria-checked={!inTime} onClick={() => { setInTime(false); setPlaying(false) }}>
             Todas
           </button>
@@ -290,7 +290,7 @@ export default function GraphView() {
 
       {!inTime && scenes.length > 1 && universe.relations.some((r) => r.scope.kind !== 'geral') && (
         <button type="button" className="graph-time-hint" onClick={() => setInTime(true)}>
-          <Play size={14} aria-hidden="true" /> Algumas relações mudam ao longo da história. Ver cena a cena
+          <Play size={14} aria-hidden="true" /> Algumas ligações mudam ao longo da história. Ver cena a cena
         </button>
       )}
 
@@ -363,8 +363,8 @@ export default function GraphView() {
       )}
 
       {nodes.length === 0 ? (
-        <Empty icon={<Network size={32} />} title="Nenhuma relação para mostrar.">
-          <p>Adicione relações nas fichas (“irmão de”, “serve a”…). Elas aparecem aqui como um mapa.</p>
+        <Empty icon={<Network size={32} />} title="Nenhuma ligação para mostrar.">
+          <p>Adicione ligações nas fichas (“irmão de”, “serve a”…). Elas aparecem aqui como um mapa.</p>
         </Empty>
       ) : (
         <div className="graph-wrap">
@@ -373,7 +373,7 @@ export default function GraphView() {
             className="graph"
             viewBox={`0 0 ${W} ${H}`}
             role="group"
-            aria-label={`Grafo com ${shownNodes.length} fichas e ${visibleEdges.filter((e) => active(e) && appeared(e.from) && appeared(e.to)).length} relações`}
+            aria-label={`Grafo com ${shownNodes.length} fichas e ${visibleEdges.filter((e) => active(e) && appeared(e.from) && appeared(e.to)).length} ligações`}
             onPointerDown={(e) => {
               // Arrastar o grafo nunca seleciona texto (no app do Claude, texto selecionado abre uma camada que escurece a tela).
               e.preventDefault()
@@ -579,7 +579,7 @@ export default function GraphView() {
         </div>
       )}
       <p className="muted small graph-hint">
-        Arraste para mover, role para aproximar, passe o mouse ou clique numa ficha para destacar, duplo clique para abrir. Linhas tracejadas: quem está por trás de uma relação.
+        Arraste para mover, role para aproximar, passe o mouse ou clique numa ficha para destacar, duplo clique para abrir. Linhas tracejadas: quem está por trás de uma ligação.
       </p>
         </>
       )}

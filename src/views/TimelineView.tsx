@@ -3,8 +3,8 @@ import { useMemo, useState } from 'react'
 import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
 import { formatYear } from '../model/labels'
-import type { TimelineEvent } from '../model/schema'
-import { byId, draftEvent, entityName, insert, manuscriptOrder, patch, remove } from '../model/universe'
+import type { TimelineEvent, Universe } from '../model/schema'
+import { byId, draftEvent, entityName, insert, manuscriptOrder, patch, remove, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, CanonSelect, Empty, Field, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -171,7 +171,7 @@ export default function TimelineView() {
                     <li key={r.sceneId} className="tl-item tl-scene">
                       <button type="button" className="tl-card" onClick={() => go('escrever', r.sceneId)}>
                         <Feather size={14} aria-hidden="true" />
-                        <span className="tl-title">{byId(universe, 'scenes', r.sceneId)?.title || 'Sem título'}</span>
+                        <span className="tl-title">{sceneName(universe, r.sceneId)}</span>
                         {r.day !== null && <span className="muted small"> · {formatDate(universe, { year: r.year, day: r.day })}</span>}
                         <span className="muted small"> · cena</span>
                       </button>
@@ -211,6 +211,12 @@ export default function TimelineView() {
       )}
     </div>
   )
+}
+
+/** O nome da cena com data, como aparece no resto do app. */
+function sceneName(universe: Universe, id: string) {
+  const scene = byId(universe, 'scenes', id)
+  return scene ? sceneTitle(scene) : 'Sem título'
 }
 
 function EventForm({ ev, onChange }: { ev: TimelineEvent; onChange: (c: Partial<TimelineEvent>) => void }) {
