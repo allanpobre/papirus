@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Dices, Feather, GraduationCap, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Timer, Users, X } from 'lucide-react'
+import { BookOpen, Dices, Feather, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Timer, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
@@ -8,14 +8,12 @@ import { wordsToday } from '../logic/stats'
 import { universeKind } from '../model/kind'
 import { SESSION_STATUS_LABEL } from '../model/labels'
 import { addScene, byId, manuscriptOrder, sceneTitle } from '../model/universe'
-import { guessGuide, tipOfTheDay } from '../oficina/guides'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
-import { sceneFromTreino } from '../treino/sceneFromTreino'
-import { TreinoCard } from '../treino/TreinoCard'
 import { MoreMenu } from '../ui/MoreMenu'
 import { PageHelp } from '../ui/PageTour'
 import { useMediaQuery } from '../ui/useMediaQuery'
+import { FirstSteps } from './FirstSteps'
 import { NextNote } from './NextNote'
 import { ProgressSection } from './PlayCards'
 import { startSprint } from './write/sprintClock'
@@ -306,20 +304,8 @@ export default function HomeView() {
             </section>
           )}
 
-          <div className="home-challenge">
-            <TreinoCard
-              quiet
-              extra={<TipLine />}
-              onKeepScene={
-                readOnly
-                  ? undefined
-                  : (t) => {
-                      update((u) => sceneFromTreino(u, t))
-                      toast('O treino virou uma cena (em Escrever, fora dos capítulos).')
-                    }
-              }
-            />
-          </div>
+          {/* O treino da Oficina mora na Oficina: o Início é do universo. */}
+          <FirstSteps onScene={() => (last ? go('escrever', last.id) : newScene())} />
         </div>
 
         {world.length > 0 && (
@@ -378,21 +364,4 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function greeting(h = new Date().getHours()) {
   return h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite'
-}
-
-/** A dica do dia, tirada da Oficina, numa linha que abre: fica no pé do cartão do treino. */
-function TipLine() {
-  const { universe, go } = useWorkspace()
-  const [tip] = useState(() => tipOfTheDay(guessGuide(universe.settings.fieldTemplates)))
-  return (
-    <details className="home-tip">
-      <summary>
-        <GraduationCap size={14} aria-hidden="true" /> <span className="muted">Dica do dia:</span> <strong>{tip.title}</strong>
-      </summary>
-      <p className="small">{tip.text}</p>
-      <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('oficina')}>
-        Ver mais na Oficina ({tip.guide.label}) <ArrowRight size={14} />
-      </button>
-    </details>
-  )
 }

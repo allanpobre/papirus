@@ -50,13 +50,16 @@ interface Props {
   /** Modo máquina de escrever: a linha do cursor fica no meio da tela. */
   typewriter?: boolean
   keySound?: 'nenhum' | 'suave' | 'maquina'
+  /** Os nomes novos que o Papirus percebeu no texto: no celular, ficam na barra acima do teclado. */
+  newNames?: number
+  onNames?: () => void
 }
 
 /**
  * Editor de uma cena. Deve ser montado com `key={scene.id}`: o conteúdo inicial
  * só é lido na montagem, e o editor passa a ser a fonte da verdade do texto.
  */
-export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions, showToolbar, onReady, editable = true, typewriter = false, keySound = 'nenhum' }: Props) {
+export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions, showToolbar, onReady, editable = true, typewriter = false, keySound = 'nenhum', newNames = 0, onNames }: Props) {
   const cb = useRef({ onChange, onCursorParagraph, actions, typewriter, keySound })
   useLayoutEffect(() => {
     cb.current = { onChange, onCursorParagraph, actions, typewriter, keySound }
@@ -214,7 +217,7 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
         </div>
       )}
 
-      {touch && <PhoneDock editor={editor} actions={actions} selection={selection} pickImage={pickImage} />}
+      {touch && <PhoneDock editor={editor} actions={actions} selection={selection} pickImage={pickImage} newNames={newNames} onNames={onNames} />}
       {!touch && (
       <BubbleMenu
         editor={editor}

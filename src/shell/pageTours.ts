@@ -17,7 +17,7 @@ export interface PageTourDef {
 
 /** O caminho até os nomes novos, que o Papirus conta mas não marca no texto. */
 const NOMES_NOVOS =
-  'O Papirus não marca nomes novos no texto: ele conta. Na margem, o botão Revisar mostra “1 nome novo” quando aparece uma palavra com maiúscula, no meio da frase, que ainda não tem ficha. Toque para ver a lista e, para cada nome, criar a ficha, juntar como apelido de outra ficha ou ignorar. No celular, a margem fica na gaveta embaixo da página.'
+  'O Papirus não marca nomes novos no texto: ele conta. Quando aparece uma palavra com maiúscula, no meio da frase, que ainda não tem ficha, o rodapé da Página mostra “1 nome novo” (no celular, a barra acima do teclado também). Na Revisão, o botão Revisar mostra “1 nome novo” na margem. Um toque abre a lista e, para cada nome, dá para criar a ficha, juntar como apelido de outra ficha ou ignorar.'
 
 /**
  * Os tours de cada tela, abertos pelo botão (?) dela. Só explicam o que está na tela;
@@ -46,7 +46,7 @@ export const PAGE_TOURS = {
         optional: true,
       },
       { target: '.home-later', title: 'Para quando der', body: 'Até três coisas que pedem um olhar: perguntas da Revisão, ideias esperando e a próxima sessão. Nada aqui é urgente.', optional: true },
-      { target: '.home-challenge', title: 'Treino de hoje', body: 'Uma proposta por dia num sprint com tempo e um mínimo de palavras. O texto pode virar cena. No pé do cartão, a dica do dia da Oficina.' },
+      { target: '.home-first', title: 'Primeiros passos', body: 'Num universo novo, três passos que levam ao lugar certo e ficam riscados quando estão feitos. Dá para esconder; o treino de escrita fica na Oficina.', optional: true },
       { target: '.home-world', title: 'O seu mundo', body: 'Quanto já tem em cada parte do universo, numa linha. Toque num número para ir até lá.', optional: true },
       { target: '.home-day', title: 'Seu ritmo', body: 'Dobrado para não pesar: o prazo, o calendário de escrita, o nível e as medalhas. Abra quando quiser.', optional: true },
     ],

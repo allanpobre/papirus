@@ -128,12 +128,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [universe, readOnly])
   const [accountOpen, setAccountOpen] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
-  // Primeira vez num universo: o tour começa sozinho (dá para pular e refazer).
-  useEffect(() => {
-    if (prefs.tourDone || source.kind !== 'proprio') return
-    const t = setTimeout(() => setTourOpen(true), 700)
-    return () => clearTimeout(t)
-  }, [prefs.tourDone, source.kind])
+  // O tour não abre sozinho: a primeira vez começa pelos Primeiros passos do Início. Ele fica no
+  // (?) de cada tela, no "Refazer o tour" dos Ajustes e no fim dos Primeiros passos.
   const [nav, setNav] = useState<Nav>(() => {
     // Reaberto pelo Android (ou recarregado): volta para a mesma tela e o mesmo registro.
     const back = backState()
@@ -657,6 +653,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           <Tour
             onGo={tourGo}
             hidden={hidden}
+            campaign={kind === 'campanha'}
             onClose={() => {
               setTourOpen(false)
               setPref('tourDone', true)

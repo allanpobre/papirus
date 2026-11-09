@@ -696,6 +696,8 @@ export default function WriteView() {
               }}
               typewriter={prefs.typewriter}
               keySound={prefs.keySound}
+              newNames={ws.readOnly ? 0 : candidates}
+              onNames={() => setDialog({ kind: 'review' })}
             />
             {scene.text.trim() && !focus && <NextNote sceneId={scene.id} place="pagina" />}
             {scene.text.trim() && !focus && (
@@ -726,11 +728,7 @@ export default function WriteView() {
                 <span className="muted">
                   {' '}
                   ·{' '}
-                  {sceneQuestions.filter(isOpen).length === 0
-                    ? 'nada esperando'
-                    : sceneQuestions.filter(isOpen).length === 1
-                      ? '1 pergunta'
-                      : `${sceneQuestions.filter(isOpen).length} perguntas`}
+                  {waitingLabel(sceneQuestions.filter(isOpen).length, candidates)}
                 </span>
               </span>
               {narrowMargin ? <ChevronDown size={18} aria-hidden="true" /> : <ChevronUp size={18} aria-hidden="true" />}
@@ -769,6 +767,13 @@ export default function WriteView() {
             )}
           </span>
           {!ws.readOnly && <SprintButton />}
+          {/* Os nomes que o Papirus percebeu no texto, à vista enquanto se escreve: um toque abre a lista. */}
+          {!ws.readOnly && candidates > 0 && (
+            <button type="button" className="link-btn write-waiting write-names" onClick={() => setDialog({ kind: 'review' })}>
+              <span className="write-waiting-dot" aria-hidden="true" />
+              {candidates === 1 ? '1 nome novo' : `${candidates} nomes novos`}
+            </button>
+          )}
           {sceneQuestions.filter(isOpen).length > 0 &&
             (drafting ? (
               <button type="button" className="link-btn write-waiting" onClick={() => setMode('revisao')}>
@@ -1018,4 +1023,10 @@ function CommentDialog({ sel, onClose, onSave }: { sel: SelectionInfo; onClose: 
       <p className="muted small">Só você vê. Comentários não saem na exportação.</p>
     </Modal>
   )
+}
+
+/** O que espera na margem: as perguntas e os nomes novos ("nada esperando" só quando não há nenhum). */
+function waitingLabel(questions: number, names: number) {
+  const parts = [questions ? (questions === 1 ? '1 pergunta' : `${questions} perguntas`) : '', names ? (names === 1 ? '1 nome novo' : `${names} nomes novos`) : ''].filter(Boolean)
+  return parts.length ? parts.join(' · ') : 'nada esperando'
 }

@@ -125,6 +125,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   useEffect(() => {
     setImageServer(accountServer)
   }, [accountServer])
+  // Vindo de "Começar a mestrar" na apresentação: abre já na aba Mesa.
+  useEffect(() => {
+    if (!new URLSearchParams(location.search).has('mestrar')) return
+    history.replaceState(history.state, '', location.pathname)
+    setPref('sector', 'rpg')
+  }, [setPref])
   const [sharedNonce, setSharedNonce] = useState(0)
   useEffect(() => {
     if (!userId || !userEmail || !accountServer) return

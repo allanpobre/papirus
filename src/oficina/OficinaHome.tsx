@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { tabListKeys } from '../ui/keys'
 import { recall, remember } from '../state/prefs'
 import { treinoStreak, useTreinos, type Treino } from '../treino/treino'
+import { TreinoCard } from '../treino/TreinoCard'
 import { GUIDES, sectionOf, type Guide, type GuideId } from './guides'
 import { IdeaGenerator } from './IdeaGenerator'
 import { LOOK, SECTIONS } from './look'
@@ -137,6 +138,9 @@ function TodayTab({
           </button>
         </section>
       )}
+
+      {/* Dentro de um universo, o treino do dia mora aqui (e o texto vira cena, se quiser). */}
+      {links.onKeepScene && <TreinoCard onKeepScene={links.onKeepScene} />}
 
       {started.length > 0 && (
         <section aria-labelledby="oficina-suas">

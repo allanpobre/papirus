@@ -96,9 +96,9 @@ test.describe('no celular', () => {
     await expect(next(page).getByRole('button', { name: 'Continuar escrevendo' })).toBeInViewport()
     const height = await page.locator('.stage').evaluate((el) => el.scrollHeight)
     expect(height).toBeLessThan(844 * 2)
-    const world = await page.getByRole('navigation', { name: 'O seu mundo' }).boundingBox()
-    const treino = await page.getByRole('region', { name: 'Treino de hoje' }).boundingBox()
-    expect(world!.y).toBeLessThan(treino!.y)
+    // O treino do dia saiu do Início: mora na Oficina.
+    await expect(page.getByRole('navigation', { name: 'O seu mundo' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Treino de hoje' })).toHaveCount(0)
     // Os atalhos têm nome à vista; capa e "Seus universos" ficam no ⋯.
     await expect(page.getByRole('button', { name: 'Anotar uma ideia' })).toContainText('Ideia')
     await page.getByRole('button', { name: 'Mais do universo' }).click()

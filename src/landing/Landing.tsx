@@ -131,6 +131,12 @@ export function Landing() {
               <a className="btn btn-primary btn-lg" href={APP}>
                 {primary} <ArrowRight size={18} />
               </a>
+              {/* Quem chega para mestrar não precisa passar pela escrita: abre já na aba Mesa. */}
+              {!hasWork && (
+                <a className="btn btn-lg" href={`${APP}?mestrar`}>
+                  <Dices size={18} /> Começar a mestrar
+                </a>
+              )}
               <a className="btn btn-ghost btn-lg" href={`${APP}?exemplo`}>
                 <Sparkles size={18} /> Ver um mundo de exemplo
               </a>

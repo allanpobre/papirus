@@ -109,6 +109,13 @@ test('fora do universo: setores, Oficina, treino, leitor e diagramação têm o 
   await page.getByRole('button', { name: 'Terminar' }).click()
   await runPageTour(page, 'Resultado do treino')
   await page.getByRole('button', { name: 'Fechar o treino' }).click()
+  // O placar e os seus treinos, no cartão do treino de hoje.
+  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Placar' }).click()
+  await runPageTour(page, 'Placar')
+  await page.getByRole('dialog', { name: 'Placar dos treinos' }).getByRole('button', { name: 'Fechar' }).click()
+  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: /Seus treinos/ }).click()
+  await runPageTour(page, 'Seus treinos')
+  await page.getByRole('dialog', { name: 'Seus treinos' }).getByRole('button', { name: 'Fechar' }).click()
 
   // O modo leitor e a diagramação do livro.
   await page.goto('/app/?exemplo=ostria')
@@ -166,13 +173,8 @@ test('as janelas que funcionam como tela também têm o (?)', async ({ page }) =
   await runPageTour(page, 'Revisar o livro')
   await page.getByRole('dialog', { name: /^Revisar/ }).getByRole('button', { name: 'Fechar' }).click()
 
+  // (O placar e os seus treinos ficam no cartão do treino, fora do universo: veja o teste de fora.)
   await nav(page, 'Início').click()
-  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Placar' }).click()
-  await runPageTour(page, 'Placar')
-  await page.getByRole('dialog', { name: 'Placar dos treinos' }).getByRole('button', { name: 'Fechar' }).click()
-  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: /Seus treinos/ }).click()
-  await runPageTour(page, 'Seus treinos')
-  await page.getByRole('dialog', { name: 'Seus treinos' }).getByRole('button', { name: 'Fechar' }).click()
   // O nível e as medalhas ficam no "Seu ritmo", dobrado.
   await page.getByText('Seu ritmo', { exact: true }).click()
   await page.getByRole('button', { name: /^Medalhas:/ }).click()

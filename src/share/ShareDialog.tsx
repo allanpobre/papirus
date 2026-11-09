@@ -1,5 +1,5 @@
 import { isLocalOnly } from '../model/sample'
-import { Copy, Eye, Link2, LogIn, Pencil, Trash2, Users } from 'lucide-react'
+import { BookOpen, Copy, Download, Eye, Link2, LogIn, Pencil, Trash2, Users } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { authClient, useAccount } from '../account/auth'
 import { upload } from '../account/cloud'
@@ -81,6 +81,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
     return (
       <Modal title="Compartilhar" size="sm" onClose={onClose}>
         <div className="share">
+          <ShareWays onClose={onClose} />
           <p className="small">O exemplo é só para conhecer o Papirus: fica neste aparelho e não pode ser compartilhado. Crie um universo seu para mandar a outras pessoas.</p>
         </div>
       </Modal>
@@ -90,6 +91,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
     return (
       <Modal title="Compartilhar" size="sm" onClose={onClose}>
         <div className="share">
+          <ShareWays onClose={onClose} />
           <p className="small">
             Para compartilhar “{universe.name}”, entre na sua conta. O universo vai para a nuvem e você escolhe quem pode ver e quem pode editar.
           </p>
@@ -156,6 +158,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
   return (
     <Modal title="Compartilhar" size="md" onClose={onClose} help="compartilhar">
       <div className="share">
+          <ShareWays onClose={onClose} />
         {share === undefined ? (
           <p className="muted small" aria-busy="true">
             Carregando…
@@ -383,5 +386,43 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
         )}
       </div>
     </Modal>
+  )
+}
+
+/**
+ * Compartilhar é a porta única para mostrar o texto: ler aqui como leitor e baixar o livro não
+ * precisam de conta; o link e o convite (logo abaixo) precisam.
+ */
+function ShareWays({ onClose }: { onClose: () => void }) {
+  const { universe, openReader, go, hiddenViews } = useWorkspace()
+  if (!universe.scenes.some((s) => s.text.trim())) return null
+  return (
+    <section className="share-ways" aria-label="Sem conta">
+      <p className="small muted">Sem conta, dá para ler aqui como leitor ou baixar o livro. Para mandar um link ou convidar alguém, veja abaixo.</p>
+      <div className="inline-fields">
+        <button
+          type="button"
+          className="btn btn-sm"
+          onClick={() => {
+            onClose()
+            openReader()
+          }}
+        >
+          <BookOpen size={14} /> Ler aqui, como leitor
+        </button>
+        {!hiddenViews.includes('livro') && (
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => {
+              onClose()
+              go('livro')
+            }}
+          >
+            <Download size={14} /> Baixar PDF, EPUB ou Word
+          </button>
+        )}
+      </div>
+    </section>
   )
 }

@@ -94,12 +94,46 @@ const DEEP: Step[] = [
   { title: 'Pronto!', body: 'Agora você conhece tudo. Nada disso é obrigatório: use só o que ajudar a sua história. E em cada tela, o (?) explica só ela.' },
 ]
 
+/** O tour de uma campanha: a Mesa primeiro, sem a parte de escrever o livro. */
+const CAMPAIGN: Step[] = [
+  QUICK[0],
+  QUICK[1],
+  QUICK[2],
+  {
+    target: '.rpg-view [data-tour="partes"]',
+    view: 'rpg',
+    title: 'A Mesa',
+    body: 'Quatro partes: Preparar (o painel e as sessões), Grupo (o personagem de cada jogador), Codex (o que o grupo já sabe) e Regras (sistemas, dados e tabelas).',
+  },
+  { target: '.mesa-invite', view: 'rpg', title: 'Convidar', body: 'Os jogadores entram por um link no celular, sem conta, e escolhem o personagem.' },
+  { target: '.gm-next', view: 'rpg', title: 'A sessão', body: '“Começar agora” abre a sessão na tela inteira: roteiro, palco e grupo. No fim, “Encerrar” pergunta o que aconteceu.' },
+  {
+    target: '[data-tour="nav-fichas"]',
+    title: 'Mundo',
+    body: 'Lugares, facções e personagens, inclusive os dos jogadores (com a aba Jogo). O que você revelar aparece no Codex do grupo.',
+  },
+  QUICK[9],
+  QUICK[10],
+  { ...QUICK[11], view: 'rpg' },
+  { title: 'Pronto!', body: 'É isso. Comece criando o personagem de cada jogador, em Mesa › Grupo, e convide o grupo. Quando tiver um tempinho, faça o tour completo.' },
+]
+
+/** O tour completo da campanha: o da Mesa e, antes do fim, as partes do Mundo e da Trama. */
+const CAMPAIGN_DEEP: Step[] = [
+  ...CAMPAIGN.slice(0, -1),
+  ...DEEP.filter((s) => s.view === 'relacoes' || s.view === 'timeline' || s.view === 'atlas' || s.view === 'tramas' || s.view === 'conhecimento' || s.view === 'inbox'),
+  { title: 'Pronto!', body: 'Agora você conhece tudo. Nada disso é obrigatório: use só o que ajudar a sua mesa. E em cada tela, o (?) explica só ela.' },
+]
+
 export type TourMode = 'rapido' | 'completo'
 
 
-export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; onClose: () => void; hidden?: View[] }) {
+export function Tour({ onGo, onClose, hidden = [], campaign = false }: { onGo: (v: View) => void; onClose: () => void; hidden?: View[]; campaign?: boolean }) {
   const [mode, setMode] = useState<TourMode | null>(null)
-  const STEPS = useMemo(() => [INTRO, ...(mode === 'completo' ? DEEP : QUICK).filter((s) => !s.view || !hidden.includes(s.view))], [mode, hidden])
+  const STEPS = useMemo(() => {
+    const list = campaign ? (mode === 'completo' ? CAMPAIGN_DEEP : CAMPAIGN) : mode === 'completo' ? DEEP : QUICK
+    return [INTRO, ...list.filter((s) => !s.view || !hidden.includes(s.view))]
+  }, [mode, hidden, campaign])
   const [index, setIndex] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const [cardH, setCardH] = useState(200)
@@ -110,9 +144,9 @@ export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; 
   const step = STEPS[index]
 
   const finish = useCallback(() => {
-    onGo('inicio')
+    onGo(campaign ? 'rpg' : 'inicio')
     onClose()
-  }, [onGo, onClose])
+  }, [onGo, onClose, campaign])
   // O "voltar" do aparelho encerra o tour (como "Pular").
   useBackLayer(finish)
 

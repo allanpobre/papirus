@@ -54,13 +54,17 @@ test('treino de escrita: sprint com tempo e mínimo, resultado, histórico e ref
   await expect(page.getByRole('region', { name: 'Treino de hoje' })).toContainText('Feito hoje')
 })
 
-test('treino em andamento sobrevive ao app fechar, e no universo o texto vira cena', async ({ page }) => {
+test('treino em andamento sobrevive ao app fechar, e no universo (pela Oficina) o texto vira cena', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
+  // Dentro do universo, o treino do dia mora na Oficina (o Início é do universo).
+  const oficina = async () => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Oficina/ }).click()
+  await oficina()
   await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Começar o treino' }).click()
   const treino = page.getByRole('dialog', { name: 'Treino de escrita' })
   await treino.getByRole('button', { name: /^Começar/ }).click()
   await treino.getByRole('textbox', { name: 'Texto do treino' }).fill('Primeira linha do treino.\nSegunda linha.')
   await page.reload()
+  if (!(await page.getByRole('region', { name: 'Treino de hoje' }).count())) await oficina()
   await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Continuar o treino' }).click()
   await expect(treino.getByRole('textbox', { name: 'Texto do treino' })).toHaveValue('Primeira linha do treino.\nSegunda linha.')
   await expect(treino.getByText('Relógio parado.', { exact: false })).toBeVisible()
@@ -68,6 +72,8 @@ test('treino em andamento sobrevive ao app fechar, e no universo o texto vira ce
   await treino.getByRole('button', { name: 'Guardar como cena' }).click()
   await expect(treino.getByRole('button', { name: 'Virou uma cena' })).toBeDisabled()
   await page.keyboard.press('Escape')
+  const fechar = page.getByRole('button', { name: 'Fechar a Oficina' })
+  if (await fechar.count()) await fechar.click()
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Escrever/ }).click()
   await expect(page.getByText(/^Treino: /).first()).toBeVisible()
 })
