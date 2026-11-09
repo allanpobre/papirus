@@ -80,6 +80,7 @@ test('voltar do aparelho fecha a janela de cima antes de sair da tela', async ({
 test('voltar entre a lista de universos e o universo, e reabrir no mesmo lugar', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
+  await page.getByRole('button', { name: 'Mais do universo' }).click()
   await page.getByRole('button', { name: 'Seus universos' }).click()
   await expect(page.getByRole('navigation', { name: 'Setores' })).toBeVisible()
   await page.goBack()

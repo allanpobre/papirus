@@ -13,6 +13,7 @@ import { recall, remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
 import { sceneFromTreino } from '../treino/sceneFromTreino'
 import { TreinoCard } from '../treino/TreinoCard'
+import { MoreMenu } from '../ui/MoreMenu'
 import { PageHelp } from '../ui/PageTour'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { NextNote } from './NextNote'
@@ -152,52 +153,71 @@ export default function HomeView() {
         </div>
 
         <div className="home-quick">
-          <button type="button" className="home-quick-btn" aria-label="Anotar uma ideia" title="Anotar uma ideia" onClick={openCapture}>
-            <Lightbulb size={17} aria-hidden="true" />
+          <button type="button" className="home-quick-btn has-label" aria-label="Anotar uma ideia" title="Anotar uma ideia" onClick={openCapture}>
+            <Lightbulb size={16} aria-hidden="true" /> <span>Ideia</span>
           </button>
-          <button type="button" className="home-quick-btn" aria-label="Buscar em tudo" title="Buscar em tudo" onClick={openSearch}>
-            <Search size={17} aria-hidden="true" />
+          <button type="button" className="home-quick-btn has-label" aria-label="Buscar em tudo" title="Buscar em tudo" onClick={openSearch}>
+            <Search size={16} aria-hidden="true" /> <span>Buscar</span>
           </button>
           {hasText && (
             <button
               type="button"
-              className="home-quick-btn"
+              className="home-quick-btn has-label"
               aria-label={source.kind === 'proprio' || source.kind === 'editar' ? 'Ler como leitor' : 'Ler como livro'}
               title="O livro cena a cena, com o caderno do leitor (sem spoiler)"
               onClick={openReader}
             >
-              <BookOpen size={17} aria-hidden="true" />
+              <BookOpen size={16} aria-hidden="true" /> <span>Ler</span>
             </button>
           )}
           {source.kind === 'proprio' && (
-            <button type="button" className="home-quick-btn" aria-label="Compartilhar" title="Compartilhar" onClick={openShare}>
-              <Users size={17} aria-hidden="true" />
+            <button type="button" className="home-quick-btn has-label" aria-label="Compartilhar" title="Compartilhar" onClick={openShare}>
+              <Users size={16} aria-hidden="true" /> <span>Compartilhar</span>
             </button>
           )}
-          {!readOnly && (
-            <>
-              {coverPicker.field}
-              <button
-                type="button"
-                className="home-quick-btn"
-                aria-label={cover ? 'Trocar a capa do universo' : 'Pôr uma capa no universo'}
-                title={cover ? 'Trocar a capa' : 'Pôr uma capa'}
-                onClick={coverPicker.open}
-                disabled={coverPicker.busy}
-              >
-                {coverPicker.busy ? <Loader2 size={17} className="spin" aria-hidden="true" /> : <ImagePlus size={17} aria-hidden="true" />}
-              </button>
-              {cover && (
-                <button type="button" className="home-quick-btn" aria-label="Tirar a capa do universo" title="Tirar a capa" onClick={() => setCover(null)}>
-                  <X size={17} aria-hidden="true" />
-                </button>
-              )}
-            </>
-          )}
           <PageHelp tour="inicio" />
-          <button type="button" className="home-quick-btn" aria-label="Seus universos" title="Seus universos" onClick={() => void closeUniverse()}>
-            <Library size={17} aria-hidden="true" />
-          </button>
+          {!readOnly && coverPicker.field}
+          <MoreMenu label="Mais do universo" buttonClass="home-quick-btn">
+            {(close) => (
+              <>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    disabled={coverPicker.busy}
+                    onClick={() => {
+                      close()
+                      coverPicker.open()
+                    }}
+                  >
+                    {coverPicker.busy ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <ImagePlus size={16} aria-hidden="true" />} {cover ? 'Trocar a capa do universo' : 'Pôr uma capa no universo'}
+                  </button>
+                )}
+                {!readOnly && cover && (
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      setCover(null)
+                    }}
+                  >
+                    <X size={16} aria-hidden="true" /> Tirar a capa do universo
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="more-menu-item"
+                  onClick={() => {
+                    close()
+                    void closeUniverse()
+                  }}
+                >
+                  <Library size={16} aria-hidden="true" /> Seus universos
+                </button>
+              </>
+            )}
+          </MoreMenu>
         </div>
       </header>
 

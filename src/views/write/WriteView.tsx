@@ -409,12 +409,40 @@ export default function WriteView() {
           <div className="write-bar-actions">
             <PageHelp tour="escrever" />
             <TextMenu phone={phone} />
-            <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
-              <SlidersHorizontal size={15} /> Detalhes da cena
-            </button>
+            {/* No celular, Detalhes da cena e Modo foco moram no ⋯: assim os três modos cabem com o nome. */}
+            {!phone && (
+              <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
+                <SlidersHorizontal size={15} /> Detalhes da cena
+              </button>
+            )}
             <MoreMenu label="Mais ações da cena">
               {(close) => (
                 <>
+                  {phone && (
+                    <button
+                      type="button"
+                      className="more-menu-item"
+                      aria-expanded={metaOpen}
+                      onClick={() => {
+                        close()
+                        setMetaOpen(!metaOpen)
+                      }}
+                    >
+                      <SlidersHorizontal size={16} /> Detalhes da cena
+                    </button>
+                  )}
+                  {phone && (
+                    <button
+                      type="button"
+                      className="more-menu-item"
+                      onClick={() => {
+                        close()
+                        setFocus(!focus)
+                      }}
+                    >
+                      {focus ? <Minimize2 size={16} /> : <Maximize2 size={16} />} {focus ? 'Sair do modo foco' : 'Modo foco'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="more-menu-item"
@@ -471,15 +499,17 @@ export default function WriteView() {
                 </>
               )}
             </MoreMenu>
-            <button
-              type="button"
-              className="btn-icon"
-              aria-label={focus ? 'Sair do modo foco' : 'Modo foco'}
-              title={focus ? 'Sair do modo foco (Esc)' : 'Modo foco (Ctrl+Shift+F)'}
-              onClick={() => setFocus(!focus)}
-            >
-              {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
-            </button>
+            {!phone && (
+              <button
+                type="button"
+                className="btn-icon"
+                aria-label={focus ? 'Sair do modo foco' : 'Modo foco'}
+                title={focus ? 'Sair do modo foco (Esc)' : 'Modo foco (Ctrl+Shift+F)'}
+                onClick={() => setFocus(!focus)}
+              >
+                {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+              </button>
+            )}
             {!drafting && !sheet && (
               <button
                 type="button"

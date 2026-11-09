@@ -74,6 +74,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   await expect(page.getByRole('status').first()).toHaveText('Salvo')
   await page.reload()
   await expect(page.locator('.home-id img.home-thumb')).toHaveAttribute('src', /^blob:/)
+  await page.getByRole('button', { name: 'Mais do universo' }).click()
   await page.getByRole('button', { name: 'Seus universos' }).click()
   await expect(page.locator('.hub-continue-cover')).toHaveAttribute('src', /^blob:/)
   await page.getByRole('button', { name: /Ilhas/ }).click()

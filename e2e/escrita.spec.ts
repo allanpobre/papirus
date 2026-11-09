@@ -230,6 +230,7 @@ test('RPG: revelar uma ficha a um grupo coloca no Codex dos jogadores', async ({
 test('RPG: registro de sessão vai para Ideias ao encerrar', async ({ page }) => {
   await openSample(page)
   await nav(page, 'Mesa').click()
+  await page.getByRole('tab', { name: 'Preparar' }).click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
   await page.getByRole('button', { name: 'Começar', exact: true }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
@@ -248,8 +249,11 @@ test('RPG: registro de sessão vai para Ideias ao encerrar', async ({ page }) =>
 test('dados: rola expressões e recusa as inválidas', async ({ page }) => {
   await openSample(page)
   await nav(page, 'Mesa').click()
+  await page.getByRole('tab', { name: 'Regras' }).click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
+  await page.getByRole('button', { name: 'Mais da Mesa' }).click()
   await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'Do app' }).click()
+  await page.keyboard.press('Escape')
   await page.getByRole('textbox', { name: 'Rolagem' }).fill('2d6+100')
   await page.getByRole('button', { name: 'Rolar', exact: true }).first().click()
   const total = Number(await page.locator('.dice-total').textContent())

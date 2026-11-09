@@ -58,6 +58,7 @@ test('dá para sair do mundo de exemplo', async ({ page }) => {
   // O exemplo fica à parte dos universos da pessoa.
   await expect(page.getByRole('list', { name: 'Universos' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Continuar o exemplo' }).click()
+  await page.getByRole('button', { name: 'Mais do universo' }).click()
   await page.getByRole('button', { name: 'Seus universos' }).click()
   await expect(page.getByRole('navigation', { name: 'Setores' })).toBeVisible()
 })

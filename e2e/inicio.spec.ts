@@ -99,8 +99,9 @@ test.describe('no celular', () => {
     const world = await page.getByRole('navigation', { name: 'O seu mundo' }).boundingBox()
     const treino = await page.getByRole('region', { name: 'Treino de hoje' }).boundingBox()
     expect(world!.y).toBeLessThan(treino!.y)
-    // Os atalhos viram ícones, com nome para leitores de tela.
-    await expect(page.getByRole('button', { name: 'Anotar uma ideia' })).toBeVisible()
+    // Os atalhos têm nome à vista; capa e "Seus universos" ficam no ⋯.
+    await expect(page.getByRole('button', { name: 'Anotar uma ideia' })).toContainText('Ideia')
+    await page.getByRole('button', { name: 'Mais do universo' }).click()
     await expect(page.getByRole('button', { name: 'Seus universos' })).toBeVisible()
   })
 })

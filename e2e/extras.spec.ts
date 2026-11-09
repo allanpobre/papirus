@@ -42,7 +42,7 @@ test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a m
   await setores.getByRole('button', { name: 'Mesa' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Mar')
   await page.getByRole('button', { name: 'Criar campanha' }).click()
-  await expect(page.locator('.mesa-hero')).toBeVisible()
+  await expect(page.locator('.mesa-bar')).toBeVisible()
   await expect(nav(page, 'Mesa')).toBeVisible()
   await expect(nav(page, 'Escrever')).toHaveCount(0)
 
@@ -57,7 +57,7 @@ test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a m
 
   // De volta ao início: a campanha está no setor RPG, e um livro novo não tem a mesa no menu.
   await nav(page, 'Mesa').click()
-  await page.getByRole('button', { name: 'Campanhas', exact: true }).click()
+  await page.getByRole('button', { name: /trocar de universo/ }).click()
   await expect(page.getByRole('button', { name: /Continuar a campanha/ })).toContainText('Mar')
   // O cartão da campanha vem nas cores do tema da mesa (Tormenta: tempestade).
   await expect(page.locator('.hub-continue.is-themed')).toBeVisible()
@@ -156,8 +156,11 @@ test('Codex mostra eventos revelados e nunca os segredos da ficha', async ({ pag
 test('Na mesa: começa a sessão, anota, rola e ajusta recursos', async ({ page }) => {
   await openSample(page)
   await nav(page, 'Mesa').click()
-  await page.getByRole('tab', { name: 'Painel do mestre' }).click()
+  await page.getByRole('tab', { name: 'Preparar' }).click()
+  await page.getByRole('tab', { name: 'Painel', exact: true }).click()
+  await page.getByRole('button', { name: 'Mais da Mesa' }).click()
   await page.getByRole('radiogroup', { name: 'Dados' }).getByRole('radio', { name: 'Do app' }).click()
+  await page.keyboard.press('Escape')
   await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('O grupo entrou na torre.')

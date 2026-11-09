@@ -59,25 +59,26 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   // Na mesa, cada aba tem o seu tour.
   await nav(page, 'Mesa').click()
   for (const [tab, title] of [
-    ['Painel do mestre', 'Painel do mestre'],
+    ['Preparar', 'Preparar'],
     ['Sessões', 'Sessões'],
-    ['Personagens', 'Personagens'],
+    ['Grupo', 'Grupo'],
     ['Codex', 'Codex'],
+    ['Regras', 'Sistemas'],
     ['Dados e tabelas', 'Dados e tabelas'],
-    ['Sistemas', 'Sistemas'],
   ]) {
-    await page.getByRole('tab', { name: tab }).click()
+    await page.getByRole('tab', { name: tab, exact: true }).click()
     expect(spotted(await runPageTour(page, title)), title).toBeGreaterThan(0)
   }
   // Em combate, o tour da mesa mostra a iniciativa e a vez.
-  await page.getByRole('tab', { name: 'Painel do mestre' }).click()
+  await page.getByRole('tab', { name: 'Preparar' }).click()
+  await page.getByRole('tab', { name: 'Painel', exact: true }).click()
   await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('button', { name: 'Combate!' }).click()
   // Com a sessão começada, o app vira o modo sessão, e o (?) explica a mesa inteira.
   const sessao = await runPageTour(page, 'Modo sessão')
   expect(sessao.filter((s) => s.spot).map((s) => s.title)).toEqual(
-    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Pedir teste', 'Anunciar', 'Roteiro: início forte', 'Cenas', 'Segredos e pistas', 'Palco: a cena atual', 'Relógios', 'Combate', 'Grupo: os personagens', 'Registro', 'Mais']),
+    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Pedir teste', 'Anunciar', 'Roteiro: início forte', 'Cenas', 'Segredos e pistas', 'Palco: a cena atual', 'Relógios', 'Combate', 'Grupo: os personagens', 'Registro', 'Encerrar', 'Mais']),
   )
 })
 
@@ -180,7 +181,7 @@ test('as janelas que funcionam como tela também têm o (?)', async ({ page }) =
 
   // Na mesa, a janela do dado de verdade.
   await nav(page, 'Mesa').click()
-  await page.getByRole('tab', { name: 'Personagens' }).click()
+  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
   await page.locator('.entity-row-name', { hasText: /^Brisa$/ }).click()
   await page.getByRole('button', { name: /^Rolar Destreza/ }).click()
   const dado = page.getByRole('dialog', { name: 'Quanto saiu no dado?' })

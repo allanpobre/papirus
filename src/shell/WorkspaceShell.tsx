@@ -45,7 +45,6 @@ import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
-import { MesaGate } from '../views/rpg/MesaGate'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { mesaTheme } from '../rpg/themes'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
@@ -545,12 +544,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
-          {/* A entrada do setor: a porta da mesa numa campanha, a capa do livro na escrita (abrindo direto na mesa, quem recebe é a mesa). */}
-          {kind === 'campanha' ? (
-            <MesaGate name={universe.name || 'Sem nome'} />
-          ) : (
-            openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />
-          )}
+          {/* A capa do livro ao abrir um livro (não ao abrir direto na Mesa). A Mesa não tem porta: a abertura é a da sessão. */}
+          {kind !== 'campanha' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
           {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
           {isSample(universe) && !sampleNoteClosed && (
             <div className="sample-banner" role="status">

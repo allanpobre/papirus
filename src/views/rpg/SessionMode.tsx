@@ -11,7 +11,6 @@ import { PageHelp } from '../../ui/PageTour'
 import { useMediaQuery } from '../../ui/useMediaQuery'
 import { AnnounceDialog } from './Announce'
 import { MesaPresence } from './LiveTable'
-import { markMesaGate } from './MesaGate'
 import { useRpg } from './rpgContext'
 import { AskRollDialog } from './Requests'
 import { Palco } from './Palco'
@@ -73,7 +72,6 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
 
   // Enquanto a sessão está na tela, o resto do app (o menu da escrita) sai de cena.
   useEffect(() => {
-    markMesaGate()
     document.documentElement.classList.add('session-mode')
     return () => document.documentElement.classList.remove('session-mode')
   }, [])
@@ -166,6 +164,11 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
               <Megaphone size={15} /> Anunciar
             </button>
           )}
+          {!readOnly && (
+            <ConfirmButton className="btn btn-sm sm-end" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(session.id)}>
+              <Flag size={15} /> Encerrar<span className="sm-end-more"> sessão</span>
+            </ConfirmButton>
+          )}
           <PageHelp tour="sessao" />
           <MoreMenu label="Mais da sessão">
             {(close) => (
@@ -204,11 +207,6 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
                 >
                   <X size={16} /> Sair do modo sessão
                 </button>
-                {!readOnly && (
-                  <ConfirmButton className="more-menu-item more-menu-danger sm-end" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(session.id)}>
-                    <Flag size={16} /> Encerrar sessão
-                  </ConfirmButton>
-                )}
               </div>
             )}
           </MoreMenu>

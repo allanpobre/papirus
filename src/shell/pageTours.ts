@@ -33,7 +33,7 @@ export const PAGE_TOURS = {
         title: 'O seu dia',
         body: 'As palavras de hoje, com a meta do dia (ou a que sai do prazo do livro), a semana em bolinhas e os dias seguidos. Se ontem não deu, tudo bem: hoje conta.',
       },
-      { target: '.home-quick', title: 'Atalhos', body: `Anotar uma ideia, buscar em tudo (${modKey} K), ler o livro como leitor, compartilhar, pôr uma capa, esta ajuda e voltar aos seus universos.` },
+      { target: '.home-quick', title: 'Atalhos', body: `Ideia (anotar rápido), Buscar (${modKey} K), Ler (o livro como leitor) e Compartilhar. No ⋯ ficam a capa do universo e Seus universos.` },
       {
         target: '[data-tour="continuar"]',
         title: 'O próximo passo',
@@ -299,7 +299,7 @@ export const PAGE_TOURS = {
     title: 'Ideias',
     steps: [
       { target: '.inbox-capture', title: 'Anotar', body: `Escreva antes que fuja e guarde. De qualquer tela: ${modKey} Shift I.` },
-      { target: '.inbox-view .view-head .btn', title: 'Importar', body: 'Traga notas de um arquivo .txt ou .md; textos longos viram vários itens.' },
+      { target: '.inbox-view .view-top .btn', title: 'Importar', body: 'Traga notas de um arquivo .txt ou .md; textos longos viram vários itens.' },
       { target: '.inbox-view .filter-chips', title: 'Abertos e guardados', body: 'O que ainda espera, o que você já resolveu (Feito) e o que arquivou.' },
       { target: '.inbox-actions', title: 'O que fazer com cada ideia', body: 'Criar ficha, Virar cena, guardar como Fato ou procurar Nomes novos no texto. Depois, marque como Feito ou arquive. Nada vira ficha sozinho.', optional: true },
     ],
@@ -307,7 +307,7 @@ export const PAGE_TOURS = {
   archivist: {
     title: 'Perguntar ao mundo',
     steps: [
-      { target: '.archivist-view .view-head .btn', title: 'Chave e modelo', body: 'Usa a sua chave da API da Anthropic, guardada só neste navegador; cada pergunta é cobrada na sua conta. Escolha o modelo e a profundidade.' },
+      { target: '.archivist-view .view-top .btn', title: 'Chave e modelo', body: 'Usa a sua chave da API da Anthropic, guardada só neste navegador; cada pergunta é cobrada na sua conta. Escolha o modelo e a profundidade.' },
       { target: '.archivist-ask', title: 'Pergunte', body: 'Sobre a sua lore: quem sabe o quê, o que não fecha, como algo aconteceu. A resposta só lê; nunca muda nada no universo.' },
       { target: '.archivist-options', title: 'O que vai junto', body: 'Só vai o que tem a ver com a pergunta. Escolha fichas extras, se vão segredos e trechos do manuscrito, e veja exatamente o que será enviado antes.' },
       { target: '.archivist-history', title: 'Respostas', body: 'Ficam só nesta visita. Guarde em Ideias o que quiser manter.', optional: true },
@@ -484,7 +484,8 @@ export const PAGE_TOURS = {
       { target: '.sm-panel[aria-label="Personagens"]', title: 'Grupo: os personagens', body: 'A vida de cada um; um toque abre as rolagens, as condições e quem joga hoje. “Ficha” abre a ficha completa.', optional: true },
       { target: '.sm-panel[aria-label="Registro"]', title: 'Registro', body: 'O que aconteceu, com a hora (as rolagens e as cenas entram sozinhas).', optional: true },
       { target: '.sm-dock', title: 'Os painéis', body: 'No celular, um painel por vez: Roteiro, Palco e Grupo. Arrastar para o lado também troca.', optional: true },
-      { target: '.sm-acts .more-menu', title: 'Mais', body: 'Dados (de verdade ou do app), o tema, a tela cheia, “Sair do modo sessão” (a sessão continua, e “Sessão ao vivo” traz você de volta) e “Encerrar sessão”, no fim do jogo.' },
+      { target: '.sm-end', title: 'Encerrar', body: 'No fim do jogo: aparece o resumo da sessão e o registro vai para Ideias.' },
+      { target: '.sm-acts .more-menu', title: 'Mais', body: 'Dados (de verdade ou do app), o tema, a tela cheia e “Sair do modo sessão” (a sessão continua, e “Sessão ao vivo” traz você de volta).' },
     ],
   },
 
@@ -500,20 +501,20 @@ export const PAGE_TOURS = {
 
   // ─── Mesa (uma aba de cada vez) ───────────────────────────
   'rpg-mestre': {
-    title: 'Painel do mestre',
+    title: 'Preparar',
     steps: [
-      { target: '.mesa-hero-meta', title: 'O grupo', body: 'Qual grupo de jogadores, o sistema dele e se há uma sessão ao vivo, com a hora em que começou.', optional: true },
+      { target: '.rpg-view [data-tour="partes"]', title: 'A Mesa em quatro partes', body: 'Preparar (o painel e as sessões), Grupo (os personagens), Codex (o que os jogadores já sabem) e Regras (sistemas, dados e tabelas). Cada uma tem o seu (?). Durante o jogo, o app vira o modo sessão.' },
+      { target: '.mesa-bar', title: 'O grupo', body: 'Qual grupo de jogadores, o sistema dele e se há uma sessão ao vivo, com a hora em que começou.', optional: true },
       { target: '.mesa-presence', title: 'Quem está conectado', body: 'Os jogadores com o Codex aberto no celular aparecem aqui, pelo personagem. “Convidar” mostra o QR code e o link para eles entrarem.', optional: true },
       { target: '.mesa-dice-mode', title: 'Dados', body: 'De verdade (o padrão): você rola os dados na mesa e diz o que saiu; o app soma o bônus e vê o crítico. Do app: ele sorteia.' },
       { target: '[aria-label="Tema da Mesa"]', title: 'Tema', body: 'O clima da Mesa, pelo gênero do jogo. Os jogadores veem o mesmo no Codex e só escolhem claro ou escuro.', optional: true },
-      { target: '.mesa-tabs', title: 'As abas', body: 'Sessões, Personagens, Codex, Dados e tabelas (com os inimigos prontos) e Sistemas. Cada aba tem o seu (?). Durante o jogo, o app vira o modo sessão.' },
+      { target: '.mesa-sub', title: 'Painel e Sessões', body: 'O Painel mostra o que importa agora; Sessões tem todas, com a preparação, o registro e o diário de cada uma.', optional: true },
       { target: '.gm-next', title: 'Próxima sessão', body: 'A sessão marcada e a sua preparação. “Começar agora” abre a sessão na tela inteira e o app vira o modo sessão, com tudo do jogo.', optional: true },
-      { target: '[data-tour="gm-sistema"]', title: 'Sistema do grupo', body: 'As regras deste grupo: escolha um sistema que você já tem ou crie um a partir de um modelo. “Editar sistemas” abre a aba Sistemas.', optional: true },
+      { target: '[data-tour="gm-sistema"]', title: 'Sistema do grupo', body: 'As regras deste grupo: escolha um sistema que você já tem ou crie um a partir de um modelo. “Editar sistemas” abre Regras.', optional: true },
       { target: '[data-tour="gm-grupo"]', title: 'Grupo', body: 'Os personagens de jogador, com a vida e as condições de cada um. “Convidar jogadores” manda o link do Codex para os celulares.', optional: true },
       { target: '[data-tour="gm-segredos"]', title: 'Segredos ainda guardados', body: 'O que o grupo ainda não sabe, e o que ele conhece só em parte (o nome ou o resumo).', optional: true },
       { target: '[data-tour="gm-misterios"]', title: 'Mistérios em jogo', body: 'Os mistérios abertos e quantas pistas cada um tem. Toque para abrir em Pistas e mistérios.', optional: true },
       { target: '[data-tour="gm-mesas"]', title: 'Grupos', body: 'Um universo pode ter vários grupos de jogadores, cada um com o que já descobriu. Renomeie ou apague aqui.', optional: true },
-      { target: '.mesa-back', title: 'Sair', body: 'Volta para as campanhas (ou, num livro, para a escrita).' },
     ],
   },
   'rpg-sessoes': {
@@ -529,7 +530,7 @@ export const PAGE_TOURS = {
     ],
   },
   'rpg-personagens': {
-    title: 'Personagens',
+    title: 'Grupo',
     steps: [
       { target: '[aria-label="Personagens da mesa"] .quick-create', title: 'Novo personagem', body: 'De jogador ou NPC, já com os atributos e recursos do sistema da mesa.' },
       { target: '[aria-label="Personagens da mesa"] .filter-chips', title: 'Mostrar', body: 'Todos, só os jogadores ou só os NPCs.' },

@@ -291,7 +291,7 @@ test('sessão ao vivo: convidar, ver quem está na mesa, a abertura e o fim, no 
   await expect(page.getByRole('region', { name: 'Registro' })).toContainText('A sessão começou.')
 
   // Encerrar: o resumo para o mestre, o aviso no celular e o registro em Ideias.
-  await more(page, 'Encerrar sessão')
+  await page.getByRole('button', { name: 'Encerrar sessão', exact: true }).click()
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   const fim = page.getByRole('dialog', { name: 'Fim da sessão' })
   await expect(fim).toContainText('Notas1')
@@ -428,7 +428,7 @@ test('modo sessão: o app vira a mesa, sai e volta de qualquer lugar, e no celul
   // Sem o menu da escrita: só a mesa, com a sessão no alto.
   const areas = page.getByRole('navigation', { name: 'Áreas' })
   await expect(areas).toBeHidden()
-  await expect(page.getByRole('tab', { name: 'Painel do mestre' })).toHaveCount(0)
+  await expect(page.getByRole('tab', { name: 'Preparar' })).toHaveCount(0)
   await expect(page.locator('.sm-name')).toHaveText('A Torre')
   await expect(page.getByRole('timer', { name: /Tempo de jogo/ })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Preparação da sessão' })).toHaveValue(/Luz na janela da Torre/)
@@ -480,7 +480,7 @@ test('modo sessão: o app vira a mesa, sai e volta de qualquer lugar, e no celul
   }
 
   // Encerrar: o resumo, e o app volta ao normal, sem a pílula.
-  await more(page, 'Encerrar sessão')
+  await page.getByRole('button', { name: 'Encerrar sessão', exact: true }).click()
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   await page.getByRole('dialog', { name: 'Fim da sessão' }).getByRole('button', { name: 'Fechar' }).click()
   await expect(page.locator('.session-mode-view')).toHaveCount(0)
@@ -563,7 +563,7 @@ test('o mestre pede um teste, põe inimigos prontos no combate e publica o diár
   // O diário: o mestre começa pelas notas, revisa e publica; o Codex dos jogadores mostra.
   await page.getByRole('textbox', { name: 'Anotar no registro' }).fill('Os goblins fugiram pelas falésias.')
   await page.getByRole('button', { name: 'Anotar' }).click()
-  await more(page, 'Encerrar sessão')
+  await page.getByRole('button', { name: 'Encerrar sessão', exact: true }).click()
   await page.getByRole('group', { name: 'Encerrar a sessão?' }).getByRole('button', { name: 'Encerrar' }).click()
   const fim = page.getByRole('dialog', { name: 'Fim da sessão' })
   await fim.getByRole('button', { name: 'Escrever o diário para os jogadores' }).click()
@@ -584,6 +584,7 @@ test('o mestre pede um teste, põe inimigos prontos no combate e publica o diár
   }
 
   // O bestiário fica em Dados e tabelas, para criar e acertar os inimigos.
+  await page.getByRole('tab', { name: 'Regras' }).click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
   const bestiario = page.getByRole('region', { name: 'Inimigos prontos' })
   await expect(bestiario).toContainText('Goblin das falésias')

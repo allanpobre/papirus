@@ -44,12 +44,18 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.waitForTimeout(400)
       found.push(...(await audit(page, `Escrita/${mode}`)))
     }
-    for (const tab of ['Sessões', 'Personagens', 'Codex', 'Dados e tabelas', 'Sistemas']) {
+    for (const [part, tab] of [
+      ['Preparar', 'Sessões'],
+      ['Grupo', ''],
+      ['Codex', ''],
+      ['Regras', 'Sistemas'],
+      ['Regras', 'Dados e tabelas'],
+    ]) {
       await nav(page, 'Mesa').click()
-      const t = page.getByRole('tab', { name: tab })
-      await t.click()
+      await page.getByRole('tab', { name: part, exact: true }).click()
+      if (tab) await page.getByRole('tab', { name: tab, exact: true }).click()
       await page.waitForTimeout(300)
-      found.push(...(await audit(page, `RPG/${tab}`)))
+      found.push(...(await audit(page, `Mesa/${part}${tab ? `/${tab}` : ''}`)))
     }
     console.log(found.join('\n'))
     expect(found).toEqual([])

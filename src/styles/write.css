@@ -1779,14 +1779,9 @@ body.escrevendo-no-celular .shared-banner {
     padding: 0.3rem 0.5rem;
   }
 
-  /* No celular, só o modo atual mostra o nome. */
-  .writing-modes button:not([aria-current='page']) span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  /* No celular, os três modos com o nome e sem o ícone: o nome diz para onde vai. */
+  .write-bar .writing-modes button > svg {
+    display: none;
   }
 
   .scene-frame {
