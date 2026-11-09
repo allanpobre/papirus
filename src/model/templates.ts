@@ -135,13 +135,13 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
     id: 'rpg',
     label: 'Campanha de RPG',
     short: 'Mesa d20 e sessão 1',
-    hint: 'Uma mesa com o sistema escolhido, a sessão 1 e uma tabela de rumores.',
+    hint: 'Uma Mesa com o sistema escolhido, a sessão 1 e uma tabela de rumores.',
     apply: (u, options) => {
       u = { ...u, settings: { ...u.settings, kind: 'campanha', calendarSuffix: 'DC', fieldTemplates: { ...FANTASY_FIELDS, personagem: ['Classe', 'Jogador', 'Objetivo', 'Ganchos', 'Segredo'] } } }
       let system
       ;[u, system] = insert(u, 'systems', systemFromTemplate(options?.system ?? 'd20-5e'))
       let group
-      ;[u, group] = insert(u, 'groups', draftGroup('Minha mesa', system.id))
+      ;[u, group] = insert(u, 'groups', draftGroup('Meu grupo', system.id))
       ;[u] = insert(u, 'sessions', { ...draftSession(1, group.id), title: 'Sessão 1', prep: 'Onde a história começa? Quem os jogadores encontram primeiro?' })
       ;[u] = insert(u, 'tables', { name: 'Rumores da taverna', entries: ['Alguém viu luzes na torre abandonada.', 'O ferreiro está devendo para a guilda.', 'Um mercador procura escolta, pagando bem.', 'Ninguém volta da floresta ao norte.'] })
       return u

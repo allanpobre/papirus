@@ -47,7 +47,9 @@ import {
   namesOf,
   patch,
   removeScene,
+  sceneTitle,
   updateScene,
+  DEFAULT_SCENE_TITLE,
 } from '../../model/universe'
 import { wordCount } from '../../persistence/repository'
 import { recall, remember } from '../../state/prefs'
@@ -344,7 +346,7 @@ export default function WriteView() {
           <PageHelp tour="escrever-vazio" className="write-welcome-help" />
           <Feather size={36} aria-hidden="true" />
           <h1>Uma página em branco.</h1>
-          <p>Comece por uma cena solta. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>
+          <p>Comece por uma cena. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>
           <button type="button" className="btn btn-primary btn-lg" onClick={newLooseScene}>
             Começar a escrever
           </button>
@@ -362,7 +364,7 @@ export default function WriteView() {
   const at = siblings.findIndex((x) => x.id === scene.id)
   const [prev, next] = [siblings[at - 1], siblings[at + 1]]
   const story = scene.storyId ? byId(universe, 'stories', scene.storyId) : undefined
-  const storyName = story ? story.title || 'Sem título' : 'Cenas soltas'
+  const storyName = story ? story.title || 'Sem título' : 'Sem capítulo'
 
   return (
     <div
@@ -407,12 +409,40 @@ export default function WriteView() {
           <div className="write-bar-actions">
             <PageHelp tour="escrever" />
             <TextMenu phone={phone} />
-            <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
-              <SlidersHorizontal size={15} /> Detalhes da cena
-            </button>
+            {/* No celular, Detalhes da cena e Modo foco moram no ⋯: assim os três modos cabem com o nome. */}
+            {!phone && (
+              <button type="button" className="btn btn-ghost btn-sm" aria-expanded={metaOpen} onClick={() => setMetaOpen(!metaOpen)}>
+                <SlidersHorizontal size={15} /> Detalhes da cena
+              </button>
+            )}
             <MoreMenu label="Mais ações da cena">
               {(close) => (
                 <>
+                  {phone && (
+                    <button
+                      type="button"
+                      className="more-menu-item"
+                      aria-expanded={metaOpen}
+                      onClick={() => {
+                        close()
+                        setMetaOpen(!metaOpen)
+                      }}
+                    >
+                      <SlidersHorizontal size={16} /> Detalhes da cena
+                    </button>
+                  )}
+                  {phone && (
+                    <button
+                      type="button"
+                      className="more-menu-item"
+                      onClick={() => {
+                        close()
+                        setFocus(!focus)
+                      }}
+                    >
+                      {focus ? <Minimize2 size={16} /> : <Maximize2 size={16} />} {focus ? 'Sair do modo foco' : 'Modo foco'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="more-menu-item"
@@ -460,7 +490,7 @@ export default function WriteView() {
                     onConfirm={() => {
                       close()
                       const next = order.find((s) => s.id !== scene.id)
-                      undoable(`Cena “${scene.title || 'Sem título'}” apagada`, (u) => removeScene(u, scene.id))
+                      undoable(`Cena “${sceneTitle(scene)}” apagada`, (u) => removeScene(u, scene.id))
                       setSceneId(next?.id ?? null)
                     }}
                   >
@@ -469,15 +499,17 @@ export default function WriteView() {
                 </>
               )}
             </MoreMenu>
-            <button
-              type="button"
-              className="btn-icon"
-              aria-label={focus ? 'Sair do modo foco' : 'Modo foco'}
-              title={focus ? 'Sair do modo foco (Esc)' : 'Modo foco (Ctrl+Shift+F)'}
-              onClick={() => setFocus(!focus)}
-            >
-              {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
-            </button>
+            {!phone && (
+              <button
+                type="button"
+                className="btn-icon"
+                aria-label={focus ? 'Sair do modo foco' : 'Modo foco'}
+                title={focus ? 'Sair do modo foco (Esc)' : 'Modo foco (Ctrl+Shift+F)'}
+                onClick={() => setFocus(!focus)}
+              >
+                {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+              </button>
+            )}
             {!drafting && !sheet && (
               <button
                 type="button"
@@ -525,8 +557,8 @@ export default function WriteView() {
               id="scene-title"
               className="scene-title"
               rows={1}
-              value={scene.title}
-              placeholder="Sem título"
+              value={scene.title === DEFAULT_SCENE_TITLE ? '' : scene.title}
+              placeholder="Título (opcional)"
               // O título quebra a linha em vez de ser cortado; Enter não cria parágrafo.
               ref={growTitle}
               onKeyDown={(e) => {
@@ -583,7 +615,7 @@ export default function WriteView() {
                         id={id}
                         value={scene.storyId ?? ''}
                         onChange={(v) => update((u) => moveSceneTo(u, scene.id, v || null))}
-                        options={[{ value: '', label: 'Cena solta' }, ...universe.stories.map((s) => ({ value: s.id, label: s.title || 'Sem título' }))]}
+                        options={[{ value: '', label: 'Sem capítulo' }, ...universe.stories.map((s) => ({ value: s.id, label: s.title || 'Sem título' }))]}
                       />
                     )}
                   </Field>
@@ -664,6 +696,8 @@ export default function WriteView() {
               }}
               typewriter={prefs.typewriter}
               keySound={prefs.keySound}
+              newNames={ws.readOnly ? 0 : candidates}
+              onNames={() => setDialog({ kind: 'review' })}
             />
             {scene.text.trim() && !focus && <NextNote sceneId={scene.id} place="pagina" />}
             {scene.text.trim() && !focus && (
@@ -671,7 +705,7 @@ export default function WriteView() {
                 {next && (
                   <button type="button" className="scene-end-next" onClick={() => select(next.id)}>
                     <span className="scene-end-kick">Próxima cena</span>
-                    <span className="scene-end-title">{next.title || 'Sem título'}</span>
+                    <span className="scene-end-title">{sceneTitle(next)}</span>
                     <ArrowRight size={17} aria-hidden="true" />
                   </button>
                 )}
@@ -694,11 +728,7 @@ export default function WriteView() {
                 <span className="muted">
                   {' '}
                   ·{' '}
-                  {sceneQuestions.filter(isOpen).length === 0
-                    ? 'nada esperando'
-                    : sceneQuestions.filter(isOpen).length === 1
-                      ? '1 pergunta'
-                      : `${sceneQuestions.filter(isOpen).length} perguntas`}
+                  {waitingLabel(sceneQuestions.filter(isOpen).length, candidates)}
                 </span>
               </span>
               {narrowMargin ? <ChevronDown size={18} aria-hidden="true" /> : <ChevronUp size={18} aria-hidden="true" />}
@@ -737,6 +767,13 @@ export default function WriteView() {
             )}
           </span>
           {!ws.readOnly && <SprintButton />}
+          {/* Os nomes que o Papirus percebeu no texto, à vista enquanto se escreve: um toque abre a lista. */}
+          {!ws.readOnly && candidates > 0 && (
+            <button type="button" className="link-btn write-waiting write-names" onClick={() => setDialog({ kind: 'review' })}>
+              <span className="write-waiting-dot" aria-hidden="true" />
+              {candidates === 1 ? '1 nome novo' : `${candidates} nomes novos`}
+            </button>
+          )}
           {sceneQuestions.filter(isOpen).length > 0 &&
             (drafting ? (
               <button type="button" className="link-btn write-waiting" onClick={() => setMode('revisao')}>
@@ -792,7 +829,7 @@ export default function WriteView() {
       {dialog?.kind === 'versions' && <VersionsDialog scene={scene} onClose={() => setDialog(null)} onRestored={() => setEditorNonce((n) => n + 1)} />}
       {dialog?.kind === 'reading' && (
         <ReadingMode
-          title={scene.storyId ? byId(universe, 'stories', scene.storyId)?.title || 'Sem título' : 'Cenas soltas'}
+          title={scene.storyId ? byId(universe, 'stories', scene.storyId)?.title || 'Sem título' : 'Sem capítulo'}
           scenes={order.filter((s) => s.storyId === scene.storyId)}
           startSceneId={scene.id}
           onClose={() => setDialog(null)}
@@ -827,7 +864,7 @@ export default function WriteView() {
               return next
             })
             editorRef.current?.chain().focus().setTextSelection({ from: dialog.sel.from, to: dialog.sel.to }).setMention(id).run()
-            toast(`Ficha “${name}” criada em rascunho`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
+            toast(`Ficha “${name}” criada`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
             setDialog(null)
           }}
         />
@@ -899,7 +936,7 @@ function NewEntityDialog({ name: initial, onClose, onCreate }: { name: string; o
             Cancelar
           </button>
           <button type="button" className="btn btn-primary" disabled={!name.trim()} onClick={() => onCreate(kind, name.trim())}>
-            Criar em rascunho
+            Criar ficha
           </button>
         </>
       }
@@ -986,4 +1023,10 @@ function CommentDialog({ sel, onClose, onSave }: { sel: SelectionInfo; onClose: 
       <p className="muted small">Só você vê. Comentários não saem na exportação.</p>
     </Modal>
   )
+}
+
+/** O que espera na margem: as perguntas e os nomes novos ("nada esperando" só quando não há nenhum). */
+function waitingLabel(questions: number, names: number) {
+  const parts = [questions ? (questions === 1 ? '1 pergunta' : `${questions} perguntas`) : '', names ? (names === 1 ? '1 nome novo' : `${names} nomes novos`) : ''].filter(Boolean)
+  return parts.length ? parts.join(' · ') : 'nada esperando'
 }

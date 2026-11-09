@@ -16,7 +16,7 @@ export function FamilyTree() {
   if (!links.length)
     return (
       <p className="empty-inline">
-        Nenhuma relação de família ainda. Ligue as fichas com “pai de”, “filha de”, “casado com”, “irmã de”, “avô de”… e a árvore se monta sozinha.
+        Nenhuma ligação de família ainda. Ligue as fichas com “pai de”, “filha de”, “casado com”, “irmã de”, “avô de”… e a árvore se monta sozinha.
       </p>
     )
   const at = new Map(nodes.map((n) => [n.id, { x: n.x * (W + GAP_X), y: n.gen * (H + GAP_Y) }]))

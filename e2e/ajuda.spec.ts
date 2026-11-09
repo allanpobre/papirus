@@ -26,7 +26,7 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   const areas: [string, string][] = [
     ['Início', 'Início'],
     ['Escrever', 'Escrever'],
-    ['Livro', 'Livro'],
+    ['Publicar', 'Publicar'],
     ['Mundo', 'Fichas'],
     ['Trama', 'Pistas e mistérios'],
     ['Ideias', 'Ideias'],
@@ -41,7 +41,7 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   for (const [part, title] of [
     ['Ligações', 'Ligações'],
     ['Linha do tempo', 'Linha do tempo'],
-    ['Atlas', 'Atlas'],
+    ['Mapas', 'Mapas'],
     ['Quem sabe o quê', 'Quem sabe o quê'],
   ] as const) {
     await openPart(page, part)
@@ -57,27 +57,28 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   await page.keyboard.press('Escape')
 
   // Na mesa, cada aba tem o seu tour.
-  await nav(page, 'RPG').click()
+  await nav(page, 'Mesa').click()
   for (const [tab, title] of [
-    ['Painel do mestre', 'Painel do mestre'],
+    ['Preparar', 'Preparar'],
     ['Sessões', 'Sessões'],
-    ['Personagens', 'Personagens'],
-    ['Revelações e Codex', 'Revelações e Codex'],
+    ['Grupo', 'Grupo'],
+    ['Codex', 'Codex'],
+    ['Regras', 'Sistemas'],
     ['Dados e tabelas', 'Dados e tabelas'],
-    ['Sistemas', 'Sistemas'],
   ]) {
-    await page.getByRole('tab', { name: tab }).click()
+    await page.getByRole('tab', { name: tab, exact: true }).click()
     expect(spotted(await runPageTour(page, title)), title).toBeGreaterThan(0)
   }
   // Em combate, o tour da mesa mostra a iniciativa e a vez.
-  await page.getByRole('tab', { name: 'Painel do mestre' }).click()
+  await page.getByRole('tab', { name: 'Preparar' }).click()
+  await page.getByRole('tab', { name: 'Painel', exact: true }).click()
   await page.getByRole('button', { name: 'Começar agora' }).click()
   await page.getByRole('button', { name: 'Começar a jogar' }).click()
   await page.getByRole('button', { name: 'Combate!' }).click()
   // Com a sessão começada, o app vira o modo sessão, e o (?) explica a mesa inteira.
   const sessao = await runPageTour(page, 'Modo sessão')
   expect(sessao.filter((s) => s.spot).map((s) => s.title)).toEqual(
-    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Pedir teste', 'Anunciar', 'Roteiro: início forte', 'Cenas', 'Segredos e pistas', 'Palco: a cena atual', 'Relógios', 'Combate', 'Mesa: o grupo', 'Registro', 'Mais']),
+    expect.arrayContaining(['A sessão ao vivo', 'Tempo de jogo', 'Pedir teste', 'Anunciar', 'Roteiro: início forte', 'Cenas', 'Segredos e pistas', 'Palco: a cena atual', 'Relógios', 'Combate', 'Grupo: os personagens', 'Registro', 'Encerrar', 'Mais']),
   )
 })
 
@@ -86,8 +87,8 @@ test('fora do universo: setores, Oficina, treino, leitor e diagramação têm o 
   await page.goto('/app/')
   const setores = page.getByRole('navigation', { name: 'Setores' })
   await runPageTour(page, 'Escrita')
-  await setores.getByRole('button', { name: 'RPG' }).click()
-  await runPageTour(page, 'RPG')
+  await setores.getByRole('button', { name: 'Mesa' }).click()
+  await runPageTour(page, 'Mesa')
   await setores.getByRole('button', { name: 'Oficina' }).click()
   await runPageTour(page, 'Oficina')
 
@@ -108,13 +109,20 @@ test('fora do universo: setores, Oficina, treino, leitor e diagramação têm o 
   await page.getByRole('button', { name: 'Terminar' }).click()
   await runPageTour(page, 'Resultado do treino')
   await page.getByRole('button', { name: 'Fechar o treino' }).click()
+  // O placar e os seus treinos, no cartão do treino de hoje.
+  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Placar' }).click()
+  await runPageTour(page, 'Placar')
+  await page.getByRole('dialog', { name: 'Placar dos treinos' }).getByRole('button', { name: 'Fechar' }).click()
+  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: /Seus treinos/ }).click()
+  await runPageTour(page, 'Seus treinos')
+  await page.getByRole('dialog', { name: 'Seus treinos' }).getByRole('button', { name: 'Fechar' }).click()
 
   // O modo leitor e a diagramação do livro.
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Ler como leitor' }).click()
   await runPageTour(page, 'Modo leitor')
   await page.keyboard.press('Escape')
-  await nav(page, 'Livro').click()
+  await nav(page, 'Publicar').click()
   await page.getByRole('button', { name: /^(Diagramar|Criar o livro)$/ }).first().click()
   await runPageTour(page, 'Diagramar')
 })
@@ -158,20 +166,15 @@ test('as janelas que funcionam como tela também têm o (?)', async ({ page }) =
   await page.getByRole('dialog', { name: /^Versões/ }).getByRole('button', { name: 'Fechar' }).click()
 
   // O livro revisado, o placar, os treinos e as medalhas.
-  await nav(page, 'Livro').click()
+  await nav(page, 'Publicar').click()
   await page.getByRole('button', { name: 'Criar o livro' }).click()
   await page.getByRole('dialog', { name: 'Diagramar o livro' }).getByRole('button', { name: 'Fechar' }).click()
   await page.getByRole('button', { name: 'Revisar' }).click()
   await runPageTour(page, 'Revisar o livro')
   await page.getByRole('dialog', { name: /^Revisar/ }).getByRole('button', { name: 'Fechar' }).click()
 
+  // (O placar e os seus treinos ficam no cartão do treino, fora do universo: veja o teste de fora.)
   await nav(page, 'Início').click()
-  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Placar' }).click()
-  await runPageTour(page, 'Placar')
-  await page.getByRole('dialog', { name: 'Placar dos treinos' }).getByRole('button', { name: 'Fechar' }).click()
-  await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: /Seus treinos/ }).click()
-  await runPageTour(page, 'Seus treinos')
-  await page.getByRole('dialog', { name: 'Seus treinos' }).getByRole('button', { name: 'Fechar' }).click()
   // O nível e as medalhas ficam no "Seu ritmo", dobrado.
   await page.getByText('Seu ritmo', { exact: true }).click()
   await page.getByRole('button', { name: /^Medalhas:/ }).click()
@@ -179,8 +182,8 @@ test('as janelas que funcionam como tela também têm o (?)', async ({ page }) =
   await page.getByRole('dialog', { name: 'Medalhas' }).getByRole('button', { name: 'Fechar' }).click()
 
   // Na mesa, a janela do dado de verdade.
-  await nav(page, 'RPG').click()
-  await page.getByRole('tab', { name: 'Personagens' }).click()
+  await nav(page, 'Mesa').click()
+  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
   await page.locator('.entity-row-name', { hasText: /^Brisa$/ }).click()
   await page.getByRole('button', { name: /^Rolar Destreza/ }).click()
   const dado = page.getByRole('dialog', { name: 'Quanto saiu no dado?' })
@@ -209,13 +212,13 @@ test('Atlas com mapa e o Mapa da história em cada aba: o (?) explica o que est�
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
-  await openPart(page, 'Atlas')
+  await openPart(page, 'Mapas')
   await expect(page.locator('.atlas-scroll')).toBeVisible()
-  const atlas = await runPageTour(page, 'Atlas')
+  const atlas = await runPageTour(page, 'Mapas')
   expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['O mundo em quatro partes', 'Mapas', 'Marcar lugares', 'Caminho de', 'O mapa'])
 
   await nav(page, 'Escrever').click()
-  await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Mapa' }).click()
+  await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Estrutura' }).click()
   const abas: [string, string[]][] = [
     ['Cenas', ['Modelo da história', 'A faixa', 'Promessas', 'Vale olhar', 'Os cartões', 'Três jeitos de ver']],
     ['Presença', ['Três jeitos de ver', 'Presença']],
@@ -223,7 +226,7 @@ test('Atlas com mapa e o Mapa da história em cada aba: o (?) explica o que est�
   ]
   for (const [aba, passos] of abas) {
     await page.getByRole('tab', { name: aba }).click()
-    const steps = await runPageTour(page, 'Mapa da história')
-    expect(steps.filter((s) => s.spot).map((s) => s.title), aba).toEqual(['Mapa, Página e Revisão', ...passos])
+    const steps = await runPageTour(page, 'Estrutura')
+    expect(steps.filter((s) => s.spot).map((s) => s.title), aba).toEqual(['Estrutura, Página e Revisão', ...passos])
   }
 })

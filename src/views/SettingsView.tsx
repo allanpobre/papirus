@@ -29,7 +29,7 @@ import { categoryFrom, matches, SETTINGS_CATEGORIES, SETTINGS_GROUPS, type Setti
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useBackLayer } from '../ui/useBackLayer'
 import { isConfigured } from '../share/server'
-import { PageHelp } from '../ui/PageTour'
+import { ViewTop } from '../ui/ViewTop'
 
 const QUESTION_LABEL: Record<QuestionType, string> = {
   'presenca-dupla': 'Personagem em dois lugares no mesmo dia',
@@ -106,10 +106,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
   return (
     <div className="view settings-view">
-      <header className="view-head">
-        <h1>Ajustes e dados</h1>
-        <PageHelp tour="config" />
-      </header>
+      <ViewTop area="Ajustes e dados" tour="config" />
 
       <div className={`settings-layout${listOnPhone ? ' is-list' : ' is-panel'}`}>
         <nav className="settings-nav" aria-label="Categorias dos ajustes">
@@ -187,7 +184,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           </div>
           <p className="muted small">
             {ws.kind === 'campanha'
-              ? 'Fica no setor RPG do início e abre na mesa. O menu mostra o que serve para o mestre.'
+              ? 'Fica na aba Mesa de Seus universos e abre na Mesa. O menu mostra o que serve para o mestre.'
               : 'Fica no setor Escrita do início e abre no Início do universo.'}
           </p>
           <div className="form-grid">
@@ -406,7 +403,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               <FileJson size={16} /> Baixar backup completo (.json)
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => ws.go('livro')}>
-              <BookOpen size={16} /> Baixar o livro (Word, EPUB, PDF) no Livro
+              <BookOpen size={16} /> Baixar o livro (Word, EPUB, PDF) em Publicar
             </button>
           </div>
           <div className="import-row">

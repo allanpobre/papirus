@@ -8,7 +8,7 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Mundo').click()
   const parts = page.getByRole('navigation', { name: 'Partes do mundo' })
-  await expect(parts.getByRole('button')).toHaveText(['Fichas', 'Ligações', 'Linha do tempo', 'Atlas'])
+  await expect(parts.getByRole('button')).toHaveText(['Fichas', 'Ligações', 'Linha do tempo', 'Mapas'])
   await expect(parts.getByRole('button', { name: 'Fichas' })).toHaveAttribute('aria-current', 'page')
 
   // Sem ficha aberta: o mundo em resumo, com o que está só nas notas.
@@ -27,8 +27,8 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
   await kael.click()
   const reader = page.getByRole('article', { name: 'Ler a ficha Kael' })
   await expect(reader).toContainText('O caminho de Kael pelas cenas: Ostria, Vale das Brumas, Ostria, Taverna do Anzol, Torre de Marfim')
-  await reader.getByRole('button', { name: 'Abrir “Reino de Ostria” no Atlas' }).click()
-  await expect(parts.getByRole('button', { name: 'Atlas' })).toHaveAttribute('aria-current', 'page')
+  await reader.getByRole('button', { name: 'Abrir “Reino de Ostria” em Mapas' }).click()
+  await expect(parts.getByRole('button', { name: 'Mapas' })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByRole('button', { name: /^Torre de Marfim/ })).toBeVisible()
 
   // Na linha do tempo, a idade de cada um no evento.
@@ -75,6 +75,9 @@ test('ficha nova abre em Editar com perguntas do tipo dela, em palavras simples'
   await expect(page.getByRole('region', { name: 'Para começar' })).toHaveCount(0)
   await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
   await expect(page.getByText('Ficha em branco. 4 perguntas sobre lugar ajudam a começar.')).toBeVisible()
+  // "Responder" traz as perguntas de volta, mesmo depois de "Pular".
+  await page.getByRole('button', { name: 'Responder' }).click()
+  await expect(page.getByRole('region', { name: 'Para começar' })).toBeVisible()
 })
 
 test('Quem sabe o quê em frases: verdade, segredo, quem sabe e o que o leitor viu', async ({ page }) => {

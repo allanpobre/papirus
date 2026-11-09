@@ -49,7 +49,7 @@ export function RevealPicker({ value, onChange, inputRef, label }: { value: stri
         }}
       >
         <option value="" disabled>
-          A partir de qual cena?
+          Até qual cena?
         </option>
         {order.map((s, i) => (
           <option key={s.id} value={s.id}>
@@ -64,7 +64,7 @@ export function RevealPicker({ value, onChange, inputRef, label }: { value: stri
       type="button"
       className="btn-icon btn-sm"
       title="Spoiler? O leitor só vê a partir de uma cena (marca a seleção, ou o campo todo)"
-      aria-label={`${label}: revelar a partir de…`}
+      aria-label={`${label}: esconder do leitor até…`}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => setPicking(true)}
     >

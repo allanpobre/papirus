@@ -34,13 +34,13 @@ export function AnnounceDialog({ onClose }: { onClose: () => void }) {
     })
     if (!sent) return
     sendNoticeNow(group.id, sent)
-    toast(group.share ? 'Aviso enviado para a mesa.' : 'Aviso no registro. Para chegar aos celulares, convide os jogadores.')
+    toast(group.share ? 'Aviso enviado para o grupo.' : 'Aviso no registro. Para chegar aos celulares, convide os jogadores.')
     onClose()
   }
 
   return (
     <Modal
-      title="Anunciar para a mesa"
+      title="Anunciar para o grupo"
       onClose={onClose}
       help="anunciar"
       footer={
@@ -79,7 +79,7 @@ export function AnnounceDialog({ onClose }: { onClose: () => void }) {
             className="input textarea"
             rows={2}
             maxLength={160}
-            placeholder="Escreva o que a mesa precisa saber agora…"
+            placeholder="Escreva o que o grupo precisa saber agora…"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
@@ -111,7 +111,7 @@ export function AnnounceDialog({ onClose }: { onClose: () => void }) {
             <label className="toggle">
               <input type="checkbox" role="switch" checked={known || reveal} disabled={known} onChange={(e) => setReveal(e.target.checked)} />
               <span className="toggle-track" aria-hidden="true" />
-              <span>{known ? 'A mesa já conhece' : 'Mostrar o nome no Codex'}</span>
+              <span>{known ? 'O grupo já conhece' : 'Mostrar o nome no Codex'}</span>
             </label>
             <label className="toggle">
               <input type="checkbox" role="switch" checked={fight} onChange={(e) => setFight(e.target.checked)} />

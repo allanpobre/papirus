@@ -37,7 +37,21 @@ function DockButton({ label, onClick, pressed, children, wide }: { label: string
  * (onde brigaria com o "copiar, selecionar tudo" do próprio celular).
  * Sem seleção: formatação, travessão para falas, desfazer. Com seleção: ficha, fato, comentar…
  */
-export function PhoneDock({ editor, actions, selection, pickImage }: { editor: Editor; actions: SceneEditorActions; selection: () => SelectionInfo; pickImage: () => void }) {
+export function PhoneDock({
+  editor,
+  actions,
+  selection,
+  pickImage,
+  newNames = 0,
+  onNames,
+}: {
+  editor: Editor
+  actions: SceneEditorActions
+  selection: () => SelectionInfo
+  pickImage: () => void
+  newNames?: number
+  onNames?: () => void
+}) {
   const inset = useKeyboardInset()
   const state = useEditorState({
     editor,
@@ -103,6 +117,12 @@ export function PhoneDock({ editor, actions, selection, pickImage }: { editor: E
             <ImagePlus size={18} />
           </DockButton>
           <span className="dock-space" />
+          {/* Os nomes que o Papirus percebeu, à vista enquanto se escreve (o rodapé fica embaixo do teclado). */}
+          {newNames > 0 && onNames && (
+            <DockButton label={newNames === 1 ? '1 nome novo' : `${newNames} nomes novos`} onClick={onNames} wide>
+              <UserPlus size={16} /> {newNames}
+            </DockButton>
+          )}
           <DockButton label="Desfazer" onClick={() => state.canUndo && chain().undo().run()}>
             <Undo2 size={18} />
           </DockButton>

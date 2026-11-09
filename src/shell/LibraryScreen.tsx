@@ -125,6 +125,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   useEffect(() => {
     setImageServer(accountServer)
   }, [accountServer])
+  // Vindo de "Começar a mestrar" na apresentação: abre já na aba Mesa.
+  useEffect(() => {
+    if (!new URLSearchParams(location.search).has('mestrar')) return
+    history.replaceState(history.state, '', location.pathname)
+    setPref('sector', 'rpg')
+  }, [setPref])
   const [sharedNonce, setSharedNonce] = useState(0)
   useEffect(() => {
     if (!userId || !userEmail || !accountServer) return
@@ -221,6 +227,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const campaigns = own.filter((e) => e.kind === 'campanha')
   // Universos de escrita que também têm uma mesa (o exemplo, por exemplo).
   const tablesInBooks = entries.filter((e) => e.kind !== 'campanha' && e.sessions !== undefined)
+  // Livros sem Mesa: dá para começar uma Mesa no mesmo mundo.
+  const booksToPlay = writing.filter((e) => e.sessions === undefined)
   const openSample = () => (sampleEntry ? onOpen(sampleEntry.id) : void sampleUniverse().then(onCreated))
   const sector = p.sector
   const setSector = (s: typeof sector) => {
@@ -317,7 +325,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <p className="small muted">
           {sampleEntry
             ? `${sampleEntry.words.toLocaleString('pt-BR')} palavras. Fica só neste aparelho e não conta nas suas metas.`
-            : 'O Alienista, de Machado de Assis, já montado: fichas, relações, mapa e linha do tempo. Fica só neste aparelho; mexa à vontade.'}
+            : 'O Alienista, de Machado de Assis, já montado: fichas, ligações, mapas e linha do tempo. Fica só neste aparelho; mexa à vontade.'}
         </p>
         <div className="sample-actions">
           <button type="button" className={`btn btn-sm${first ? ' btn-primary' : ''}`} onClick={openSample}>
@@ -692,7 +700,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       <MesaClimate dark={dark} />
       <section className="hub-hero hub-hero-mesa">
         <p className="hub-kicker">
-          <Swords size={14} aria-hidden="true" /> Mesa de RPG
+          <Swords size={14} aria-hidden="true" /> Mesa
         </p>
         <h1>{campaigns.length ? 'Suas campanhas' : 'Mestre uma campanha'}</h1>
         <p className="lede">Os dados são os de verdade. O Papirus guarda as fichas, a iniciativa e as sessões, e mostra aos jogadores um Codex no celular deles.</p>
@@ -718,17 +726,28 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {tablesInBooks.length > 0 && (
         <section aria-labelledby="mesas-livros">
           <h2 id="mesas-livros" className="hub-h">
-            Mesas dentro dos seus universos
+            Livros com Mesa
           </h2>
-          <p className="small muted hub-note">Universos de escrita que também têm uma mesa. Se um deles é mesmo uma campanha, mude o tipo em Ajustes → Universo, e ele passa a morar aqui.</p>
-          <ul className="library-list" aria-label="Mesas dentro dos seus universos">
+          <p className="small muted hub-note">Livros em que você também mestra. Se um deles é mesmo uma campanha, mude o tipo em Ajustes → Universo, e ele passa a morar aqui.</p>
+          <ul className="library-list" aria-label="Livros com Mesa">
             {tablesInBooks.map((e) => universeItem(e, 'rpg'))}
+          </ul>
+        </section>
+      )}
+      {booksToPlay.length > 0 && (
+        <section aria-labelledby="jogar-livro">
+          <h2 id="jogar-livro" className="hub-h">
+            Jogar num mundo que você já tem
+          </h2>
+          <p className="small muted hub-note">Uma Mesa dentro do livro, com as fichas, as ligações e os mapas dele. O livro continua como está.</p>
+          <ul className="library-list" aria-label="Livros para jogar">
+            {booksToPlay.map((e) => universeItem(e, 'rpg'))}
           </ul>
         </section>
       )}
       <section className="hub-player" aria-labelledby="jogador-titulo">
         <h2 id="jogador-titulo" className="hub-h">
-          <Crown size={17} aria-hidden="true" /> Vai jogar na mesa de alguém?
+          <Crown size={17} aria-hidden="true" /> Vai jogar com outro mestre?
         </h2>
         <p className="small muted">Peça ao mestre o link do Codex. Ele abre no navegador, sem conta, com a sua ficha, o mapa e o que o grupo já descobriu.</p>
       </section>
@@ -744,7 +763,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
   const SECTORS = [
     ['escrita', 'Escrita', Feather],
-    ['rpg', 'RPG', Dices],
+    ['rpg', 'Mesa', Dices],
     ['oficina', 'Oficina', GraduationCap],
   ] as const
 

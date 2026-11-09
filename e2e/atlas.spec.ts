@@ -7,7 +7,7 @@ test.describe('no celular', () => {
   test('atlas: arrastar o dedo não move o marcador; mover é de propósito, e dá para desfazer', async ({ page }) => {
     await page.goto('/app/')
     await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-    await openPart(page, 'Atlas')
+    await openPart(page, 'Mapas')
     const pin = page.getByRole('button', { name: /^Casa Verde/ })
     const style = () => pin.getAttribute('style')
     const before = await style()

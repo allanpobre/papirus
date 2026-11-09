@@ -24,4 +24,14 @@ describe('árvore da família', () => {
     expect(generations).toBe(3)
     expect([gen.get(avo), gen.get(pai), gen.get(mae), gen.get(filha), gen.get(filho)]).toEqual([0, 1, 1, 2, 2])
   })
+
+  it('"Mãe: Ilsa" num campo também entra na árvore, e a mesma ligação escrita duas vezes conta uma', () => {
+    let u = createUniverse('T')
+    let ilsa, kael
+    ;[u, ilsa] = insert(u, 'entities', draftEntity('personagem', 'Ilsa'))
+    ;[u, kael] = insert(u, 'entities', { ...draftEntity('personagem', 'Kael'), fields: [{ key: 'Mãe', value: 'Ilsa', type: 'ficha' as const, ref: ilsa.id }] })
+    expect(familyLinks(u)).toEqual([{ kind: 'pais', a: ilsa.id, b: kael.id }])
+    ;[u] = insert(u, 'relations', draftRelation(ilsa.id, kael.id, 'mãe de'))
+    expect(familyLinks(u)).toHaveLength(1)
+  })
 })

@@ -128,7 +128,7 @@ export function SecretTextarea({ id, value, onChange, rows = 8, placeholder }: {
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setPicking(true)}
             >
-              <BookOpenCheck size={14} /> Revelar a partir de…
+              <BookOpenCheck size={14} /> Esconder do leitor até…
             </button>
           ))
         )}

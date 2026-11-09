@@ -28,7 +28,7 @@ export function SharePanel({ group }: { group: Group }) {
   }
 
   const start = async () => {
-    if (await startLink()) toast('Codex ao vivo. Mande o link para a mesa.')
+    if (await startLink()) toast('Codex ao vivo. Mande o link para o grupo.')
   }
 
   if (!share) {

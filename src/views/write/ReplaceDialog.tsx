@@ -174,7 +174,7 @@ export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; o
                     />
                     <strong>{scene?.title || 'Sem título'}</strong>
                   </label>
-                  <span className="muted tiny">{story ? story.title || 'Sem título' : 'Cena solta'}</span>
+                  <span className="muted tiny">{story ? story.title || 'Sem título' : 'Sem capítulo'}</span>
                   <button
                     type="button"
                     className="link-btn tiny replace-open"

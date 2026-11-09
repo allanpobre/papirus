@@ -36,7 +36,7 @@ export function universeToFiles(universe: Universe, file: SavedFile): FolderFile
       `${BACKUP_FILE}: backup completo. Para reabrir, use "Abrir de uma pasta" ou "Importar backup" no Papirus.`,
       'manuscrito/: cada cena em Markdown, na ordem do manuscrito.',
       'fichas/: cada ficha do mundo num arquivo.',
-      'codex/: o que cada mesa de RPG já descobriu.',
+      'codex/: o que cada grupo já descobriu.',
       '',
       'Os arquivos .md são cópias para leitura: editar um deles não muda o universo no Papirus.',
       '',
@@ -66,11 +66,11 @@ export function universeToFiles(universe: Universe, file: SavedFile): FolderFile
     const span = [formatYear(e.startYear, suffix), formatYear(e.endYear, suffix)].filter(Boolean).join(' – ')
     if (span) lines.push(`- Período: ${span}`)
     if (e.tags.length) lines.push(`- Etiquetas: ${e.tags.join(', ')}`)
-    for (const f of e.fields) if (f.key) lines.push(`- ${f.key}: ${f.value}`)
+    for (const f of e.fields) if (f.key.trim() && f.value.trim()) lines.push(`- ${f.key}: ${f.value}`)
     if (e.summary) lines.push('', e.summary)
     if (e.description) lines.push('', e.description)
     const rels = universe.relations.filter((r) => r.fromId === e.id)
-    if (rels.length) lines.push('', '## Relações', '', ...rels.map((r) => `- ${r.type} ${entityName(universe, r.toId)}`))
+    if (rels.length) lines.push('', '## Ligações', '', ...rels.map((r) => `- ${r.type} ${entityName(universe, r.toId)}`))
     files.push({ path, content: lines.join('\n') + '\n' })
   }
 

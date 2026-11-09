@@ -1,5 +1,5 @@
 import qrcode from 'qrcode-generator'
-import { BookOpen, Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
+import { Copy, Dices, ExternalLink, Flag, Inbox, Play, Radio, Send, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Group, Session } from '../../model/schema'
 import { newId, patch } from '../../model/universe'
@@ -9,6 +9,7 @@ import { DEFAULT_PUBLIC_URL, deleteCodex, newShareKey, playerLink } from '../../
 import { codexSnapshot } from '../../share/snapshot'
 import { publishNow, serverFrom, useSyncState } from '../../share/useCodexSync'
 import { useWorkspace } from '../../state/workspace'
+import { Field, YearInput } from '../../ui/bits'
 import { Modal, trapFocus } from '../../ui/Modal'
 import { useBackLayer } from '../../ui/useBackLayer'
 import { RecapEditor } from './Journal'
@@ -69,7 +70,7 @@ export function PresenceList({ groupId, empty }: { groupId: string; empty?: stri
   const people = useTablePresence(groupId)
   if (!people.length) return empty ? <p className="muted small presence-empty">{empty}</p> : null
   return (
-    <ul className="presence" aria-label="Na mesa agora">
+    <ul className="presence" aria-label="Conectados agora">
       {people.map((p, i) => (
         <li key={p.name ?? `alguem-${i}`} className={`presence-chip${p.name ? '' : ' is-unknown'}`}>
           <span className="presence-dot" aria-hidden="true" />
@@ -108,7 +109,7 @@ export function InvitePanel({ group, compact = false }: { group: Group; compact?
       <div className="invite">
         <p className="small">Crie o link da mesa: cada jogador abre no celular, escolhe o personagem e acompanha a sessão ao vivo. Não precisa de conta.</p>
         <button type="button" className="btn btn-primary" disabled={m.starting} onClick={() => void m.start().then((ok) => ok && setCreated(true))}>
-          <Radio size={15} /> {m.starting ? 'Criando o link…' : 'Criar o link da mesa'}
+          <Radio size={15} /> {m.starting ? 'Criando o link…' : 'Criar o link do grupo'}
         </button>
         {m.sync?.state === 'erro' && (
           <p className="notice notice-error small" role="alert">
@@ -137,7 +138,7 @@ export function InvitePanel({ group, compact = false }: { group: Group; compact?
             <button
               type="button"
               className="btn btn-sm"
-              onClick={() => void navigator.share({ title: `Mesa: ${group.name}`, text: `Entre na mesa “${group.name}” no Papirus:`, url: m.link }).catch(() => undefined)}
+              onClick={() => void navigator.share({ title: `Grupo: ${group.name}`, text: `Entre no grupo “${group.name}” no Papirus:`, url: m.link }).catch(() => undefined)}
             >
               <Send size={14} /> Enviar
             </button>
@@ -160,7 +161,7 @@ export function InviteDialog({ group, onClose }: { group: Group; onClose: () => 
       <InvitePanel group={group} />
       <section className="invite-who" aria-labelledby="convite-quem">
         <h3 id="convite-quem" className="section-label">
-          <Users size={14} aria-hidden="true" /> Na mesa agora
+          <Users size={14} aria-hidden="true" /> Conectados agora
         </h3>
         <PresenceList groupId={group.id} empty={group.share ? 'Ninguém entrou ainda. Quem abrir o link aparece aqui.' : 'Quando o link estiver criado, quem entrar aparece aqui.'} />
       </section>
@@ -176,7 +177,7 @@ export function MesaPresence({ group, onInvite }: { group: Group; onInvite: () =
       {people.length > 0 && (
         <span className="mesa-presence-who">
           <Users size={14} aria-hidden="true" />
-          <ul className="mesa-presence-list" aria-label="Na mesa agora">
+          <ul className="mesa-presence-list" aria-label="Conectados agora">
             {people.slice(0, 4).map((p, i) => (
               <li key={p.name ?? `alguem-${i}`} className="mesa-presence-chip">
                 <span className="presence-dot" aria-hidden="true" />
@@ -303,9 +304,9 @@ export function SessionOpening({ group, session, previous, onClose }: { group: G
 
       <section className="session-opening-card" aria-labelledby="abertura-quem">
         <h3 id="abertura-quem" className="section-label">
-          <Users size={14} aria-hidden="true" /> Na mesa agora
+          <Users size={14} aria-hidden="true" /> Conectados agora
         </h3>
-        <PresenceList groupId={group.id} empty={group.share ? 'Ninguém entrou ainda. Mostre o código para a mesa:' : undefined} />
+        <PresenceList groupId={group.id} empty={group.share ? 'Ninguém entrou ainda. Mostre o código para o grupo:' : undefined} />
         <InvitePanel group={group} compact />
       </section>
 
@@ -318,9 +319,8 @@ export function SessionOpening({ group, session, previous, onClose }: { group: G
 
 /** O fim da sessão: quanto durou, o que rolou e para onde foi o registro. */
 export function SessionClosing({ group, session, onClose }: { group: Group; session: Session; onClose: () => void }) {
-  const { universe, go, readOnly } = useWorkspace()
+  const { universe, go, readOnly, update } = useWorkspace()
   const [now] = useState(() => Date.now())
-  const [writing, setWriting] = useState(false)
   const sum = sessionSummary(universe, session, now)
   const sent = playedLog(session).length > 0
   const title = customTitle(session)
@@ -353,18 +353,19 @@ export function SessionClosing({ group, session, onClose }: { group: Group; sess
       </dl>
       <p className="session-opening-note">
         {sent ? 'O registro inteiro foi para Ideias: revise com calma e transforme o que aconteceu em fatos do mundo.' : 'Nada foi anotado nesta sessão.'}
-        {group.share && ' Os celulares da mesa já sabem que a sessão terminou.'}
+        {group.share && ' Os celulares do grupo já sabem que a sessão terminou.'}
       </p>
-      {!readOnly &&
-        (writing ? (
-          <section className="session-opening-card" aria-label="Diário da campanha">
-            <RecapEditor session={session} />
-          </section>
-        ) : (
-          <button type="button" className="btn btn-ghost" onClick={() => setWriting(true)}>
-            <BookOpen size={16} /> Escrever o diário para os jogadores
-          </button>
-        ))}
+      {/* O que aconteceu: fica na sessão, entra na Linha do tempo e no "Aparece em" das fichas citadas. */}
+      {!readOnly && (
+        <section className="session-opening-card session-what" aria-labelledby="fim-o-que">
+          <h3 id="fim-o-que" className="session-what-title">
+            O que aconteceu?
+          </h3>
+          <p className="muted small">Em poucas linhas. Entra no “Aparece em” das fichas citadas e, com o ano no mundo, na Linha do tempo. Os jogadores só veem se você publicar.</p>
+          <RecapEditor session={session} />
+          <Field label="Ano no mundo">{(id) => <YearInput id={id} value={session.worldYear} onChange={(v) => update((u) => patch(u, 'sessions', session.id, { worldYear: v }))} />}</Field>
+        </section>
+      )}
       <div className="session-opening-actions">
         {sent && (
           <button

@@ -32,7 +32,7 @@ const plain = (paragraphs: string[]) =>
 
 /** Descrição do universo de exemplo; também serve para reconhecê-lo (se o autor mudar, vira dele). */
 export const SAMPLE_DESCRIPTION =
-  'Universo de exemplo: O Alienista, de Machado de Assis (1882, domínio público), com a grafia de hoje. Fichas, relações, linha do tempo e mesa de RPG montadas a partir do livro.'
+  'Universo de exemplo: O Alienista, de Machado de Assis (1882, domínio público), com a grafia de hoje. Fichas, ligações, linha do tempo e uma Mesa montadas a partir do livro.'
 
 /** Exemplos de versões antigas do Papirus: ao abrir, são trocados pelo atual. */
 const OLD_SAMPLE_DESCRIPTIONS = [
@@ -377,7 +377,7 @@ export function buildSample(chapters: { titulo: string; paragrafos: string[] }[]
   let sistema
   ;[u, sistema] = insert(u, 'systems', systemFromTemplate('parada'))
   let grupo
-  ;[u, grupo] = insert(u, 'groups', draftGroup('Mesa de sexta', sistema.id))
+  ;[u, grupo] = insert(u, 'groups', draftGroup('Grupo de sexta', sistema.id))
   const attr = (abbr: string) => sistema.attributes.find((a) => a.abbr === abbr)!.id
   const skill = (name: string) => sistema.skills.find((k) => k.name === name)!.id
   const [vit, von] = sistema.resources.map((r) => r.id)
@@ -494,5 +494,7 @@ export function buildSample(chapters: { titulo: string; paragrafos: string[] }[]
     sourceName: '',
     status: 'aberto',
   })
+  // Os personagens de jogo do exemplo já estão como devem: não ganham fichas novas ao abrir.
+  u = { ...u, settings: { ...u.settings, playersLinked: true } }
   return u
 }

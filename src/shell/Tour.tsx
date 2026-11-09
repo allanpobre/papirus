@@ -32,11 +32,11 @@ const QUICK: Step[] = [
   {
     target: '[data-tour="modos"]',
     view: 'escrever',
-    title: 'Mapa, Página e Revisão',
-    body: 'Três momentos. O Mapa mostra a história de cima: atos, viradas e promessas. A Página é só o texto. A Revisão traz a margem: quem aparece, comentários, perguntas de continuidade e os nomes novos (o botão Revisar conta os nomes com maiúscula que ainda não têm ficha).',
+    title: 'Estrutura, Página e Revisão',
+    body: 'Três momentos. A Estrutura mostra a história de cima: atos, viradas e promessas. A Página é só o texto. A Revisão traz a margem: quem aparece, comentários, perguntas de continuidade e os nomes novos (o botão Revisar conta os nomes com maiúscula que ainda não têm ficha).',
   },
   { target: '[data-tour="nav-fichas"]', title: 'Mundo', body: 'Fichas de personagens, lugares, facções e o que mais você inventar, com as ligações, a linha do tempo e os mapas. Cada ficha abre como uma página de enciclopédia.' },
-  { target: '[data-tour="nav-livro"]', title: 'Livro', body: 'Quando quiser ver o livro pronto: você escolhe a capa, o Papirus diagrama e gera o PDF. Também exporta Word e EPUB.' },
+  { target: '[data-tour="nav-livro"]', title: 'Publicar', body: 'Quando quiser ver o livro pronto: você escolhe a capa, o Papirus diagrama e gera o PDF. Também exporta Word e EPUB.' },
   { target: '[data-tour="nav-oficina"]', title: 'Oficina', body: 'Dicas de escrita por gênero, livros para estudar, curiosidades e exercícios que viram cena. Abre numa página à parte.' },
   { target: '[data-tour="conta"]', title: 'Conta (opcional)', body: 'Sem conta, tudo fica neste navegador. Com conta, seus universos aparecem em todos os seus aparelhos, e você ganha perfil, amigos e desafios.' },
   { target: '[data-tour="salvo"]', title: 'Salvo sozinho', body: 'Cada mudança é salva na hora. Daqui a uma semana, o Papirus lembra você de fazer um backup.' },
@@ -61,25 +61,25 @@ const DEEP: Step[] = [
   {
     view: 'fichas',
     title: 'O Mundo',
-    body: 'Fichas, Ligações, Linha do tempo e Atlas, numa entrada só. A ficha abre para ler, com tudo dela: ligações, o mapa, as pistas e as cenas em que aparece. Em Editar ficam o resumo, os campos e os segredos (só você vê).',
+    body: 'Fichas, Ligações, Linha do tempo e Mapas, numa entrada só. A ficha abre para ler, com tudo dela: ligações, o mapa, as pistas e as cenas em que aparece. Em Editar ficam o resumo, os campos e os segredos (só você vê).',
   },
   {
     view: 'relacoes',
     title: 'Ligações',
-    body: 'O mapa de quem se liga a quem, montado do que você registra. Arraste para mover, use a régua para ver como era em cada cena. Com relações de família (pai de, casado com…), aparece a Árvore da família.',
+    body: 'O mapa de quem se liga a quem, montado do que você registra. Arraste para mover, use a régua para ver como era em cada cena. Com ligações de família (pai de, casado com…), aparece a Árvore da família.',
   },
   { view: 'timeline', title: 'Linha do tempo', body: 'Os eventos do mundo, com calendário próprio (meses e eras inventados). As cenas com data entram aqui, e o Papirus avisa datas impossíveis.' },
-  { view: 'atlas', title: 'Atlas', body: 'Suba a imagem de um mapa e marque os lugares. Em “Caminho de”, escolha um personagem: o trajeto dele pelas cenas é desenhado sobre o mapa.' },
+  { view: 'atlas', title: 'Mapas', body: 'Suba a imagem de um mapa e marque os lugares. Em “Caminho de”, escolha um personagem: o trajeto dele pelas cenas é desenhado sobre o mapa.' },
   { view: 'tramas', title: 'A Trama', body: 'Pistas e mistérios: pistas plantadas e onde elas se pagam. O Papirus lembra das que ainda estão abertas quando um personagem ligado a elas volta à cena.' },
   { view: 'conhecimento', title: 'Quem sabe o quê', body: 'Cada fato numa frase: se é verdade, quem sabe, desde quando e se o leitor já viu. Útil para não deixar um personagem saber algo antes da hora.' },
   {
     view: 'organizar',
     target: '.story-map',
-    title: 'Mapa da história',
+    title: 'Estrutura',
     body: 'A história vista de cima: cada cena do tamanho que tem, na cor de como termina, com os atos do modelo que você escolher e as promessas como linhas. Embaixo, os cartões: arraste pela alça para mudar a ordem.',
   },
-  { view: 'livro', title: 'Livro', body: 'Escolha capa, fonte e estilo: o Papirus diagrama e gera PDF, Word ou EPUB. Daqui o livro também vai para a sua estante, para amigos ou para todo mundo.' },
-  { view: 'rpg', title: 'Mesa de RPG', body: 'Sessões, fichas de jogo, iniciativa, dados e o Codex: o que os jogadores já descobriram, ao vivo no celular deles.' },
+  { view: 'livro', title: 'Publicar', body: 'Escolha capa, fonte e estilo: o Papirus diagrama e gera PDF, Word ou EPUB. Daqui o livro também vai para a sua estante, para amigos ou para todo mundo.' },
+  { view: 'rpg', title: 'Mesa', body: 'Sessões, grupos, fichas de jogo, iniciativa, dados e o Codex: o que os jogadores já descobriram, ao vivo no celular deles.' },
   { target: '[data-tour="nav-oficina"]', title: 'Oficina', body: 'Uma página à parte com dicas de escrita por gênero, livros para estudar, curiosidades e exercícios. Cada exercício vira uma cena para você praticar.' },
   { view: 'inbox', title: 'Ideias', body: `Ideias rápidas esperam aqui até você decidir o que fazer. Anote de qualquer lugar com ${modKey} Shift I.` },
   {
@@ -94,12 +94,46 @@ const DEEP: Step[] = [
   { title: 'Pronto!', body: 'Agora você conhece tudo. Nada disso é obrigatório: use só o que ajudar a sua história. E em cada tela, o (?) explica só ela.' },
 ]
 
+/** O tour de uma campanha: a Mesa primeiro, sem a parte de escrever o livro. */
+const CAMPAIGN: Step[] = [
+  QUICK[0],
+  QUICK[1],
+  QUICK[2],
+  {
+    target: '.rpg-view [data-tour="partes"]',
+    view: 'rpg',
+    title: 'A Mesa',
+    body: 'Quatro partes: Preparar (o painel e as sessões), Grupo (o personagem de cada jogador), Codex (o que o grupo já sabe) e Regras (sistemas, dados e tabelas).',
+  },
+  { target: '.mesa-invite', view: 'rpg', title: 'Convidar', body: 'Os jogadores entram por um link no celular, sem conta, e escolhem o personagem.' },
+  { target: '.gm-next', view: 'rpg', title: 'A sessão', body: '“Começar agora” abre a sessão na tela inteira: roteiro, palco e grupo. No fim, “Encerrar” pergunta o que aconteceu.' },
+  {
+    target: '[data-tour="nav-fichas"]',
+    title: 'Mundo',
+    body: 'Lugares, facções e personagens, inclusive os dos jogadores (com a aba Jogo). O que você revelar aparece no Codex do grupo.',
+  },
+  QUICK[9],
+  QUICK[10],
+  { ...QUICK[11], view: 'rpg' },
+  { title: 'Pronto!', body: 'É isso. Comece criando o personagem de cada jogador, em Mesa › Grupo, e convide o grupo. Quando tiver um tempinho, faça o tour completo.' },
+]
+
+/** O tour completo da campanha: o da Mesa e, antes do fim, as partes do Mundo e da Trama. */
+const CAMPAIGN_DEEP: Step[] = [
+  ...CAMPAIGN.slice(0, -1),
+  ...DEEP.filter((s) => s.view === 'relacoes' || s.view === 'timeline' || s.view === 'atlas' || s.view === 'tramas' || s.view === 'conhecimento' || s.view === 'inbox'),
+  { title: 'Pronto!', body: 'Agora você conhece tudo. Nada disso é obrigatório: use só o que ajudar a sua mesa. E em cada tela, o (?) explica só ela.' },
+]
+
 export type TourMode = 'rapido' | 'completo'
 
 
-export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; onClose: () => void; hidden?: View[] }) {
+export function Tour({ onGo, onClose, hidden = [], campaign = false }: { onGo: (v: View) => void; onClose: () => void; hidden?: View[]; campaign?: boolean }) {
   const [mode, setMode] = useState<TourMode | null>(null)
-  const STEPS = useMemo(() => [INTRO, ...(mode === 'completo' ? DEEP : QUICK).filter((s) => !s.view || !hidden.includes(s.view))], [mode, hidden])
+  const STEPS = useMemo(() => {
+    const list = campaign ? (mode === 'completo' ? CAMPAIGN_DEEP : CAMPAIGN) : mode === 'completo' ? DEEP : QUICK
+    return [INTRO, ...list.filter((s) => !s.view || !hidden.includes(s.view))]
+  }, [mode, hidden, campaign])
   const [index, setIndex] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const [cardH, setCardH] = useState(200)
@@ -110,9 +144,9 @@ export function Tour({ onGo, onClose, hidden = [] }: { onGo: (v: View) => void; 
   const step = STEPS[index]
 
   const finish = useCallback(() => {
-    onGo('inicio')
+    onGo(campaign ? 'rpg' : 'inicio')
     onClose()
-  }, [onGo, onClose])
+  }, [onGo, onClose, campaign])
   // O "voltar" do aparelho encerra o tour (como "Pular").
   useBackLayer(finish)
 

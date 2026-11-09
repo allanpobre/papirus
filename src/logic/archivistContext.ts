@@ -5,6 +5,7 @@ import { byId, entityName, manuscriptOrder } from '../model/universe'
 import { factSentence } from './codex'
 import { MentionMatcher } from './detection'
 import { searchUniverse } from './search'
+import { derivedValue } from './derivedFields'
 import { scopeLabel } from './relations'
 import { stripSecrets } from './secrets'
 import { snippet } from './text'
@@ -90,7 +91,11 @@ export function buildArchivistContext(universe: Universe, question: string, opti
     const clean = (t: string) => unmarkReveals(options.includeSecrets ? t : stripSecrets(t))
     if (clean(e.summary)) lines.push(`Resumo: ${clean(e.summary)}`)
     if (clean(e.description)) lines.push(`Descrição: ${clean(e.description)}`)
-    for (const f of e.fields) if (f.key || f.value) lines.push(`${f.key}: ${f.value}`)
+    // Campo vazio não conta; o que as ligações (ou o nascimento) já respondem, sim.
+    for (const f of e.fields) {
+      const value = f.value.trim() || (f.key.trim() ? derivedValue(universe, e, f.key, { openOnly: !options.includeSecrets })?.text : null)
+      if (value) lines.push(`${f.key}: ${value}`)
+    }
     if (e.tags.length) lines.push(`Etiquetas: ${e.tags.join(', ')}`)
   }
 

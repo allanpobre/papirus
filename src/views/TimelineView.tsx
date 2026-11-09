@@ -1,10 +1,10 @@
-import { CalendarRange, Feather, Plus, Trash2 } from 'lucide-react'
+import { CalendarRange, Dices, Feather, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
 import { formatYear } from '../model/labels'
-import type { TimelineEvent } from '../model/schema'
-import { byId, draftEvent, entityName, insert, manuscriptOrder, patch, remove } from '../model/universe'
+import type { Session, TimelineEvent, Universe } from '../model/schema'
+import { byId, draftEvent, entityName, insert, manuscriptOrder, patch, remove, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, CanonSelect, Empty, Field, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -40,10 +40,17 @@ export default function TimelineView() {
     ? manuscriptOrder(universe).filter((s) => s.date && (filterIds.length === 0 || filterIds.some((id) => s.presentIds.includes(id) || s.povId === id || s.placeId === id)))
     : []
 
-  type Row = { year: number; day: number | null; kind: 'evento'; ev: TimelineEvent } | { year: number; day: number | null; kind: 'cena'; sceneId: string }
+  // As sessões de jogo com ano no mundo entram junto das cenas (vale o mesmo "Mostrar cenas e sessões").
+  const sessions = showScenes && filterIds.length === 0 ? universe.sessions.filter((s) => s.worldYear !== null && s.status !== 'planejada') : []
+
+  type Row =
+    | { year: number; day: number | null; kind: 'evento'; ev: TimelineEvent }
+    | { year: number; day: number | null; kind: 'cena'; sceneId: string }
+    | { year: number; day: number | null; kind: 'sessao'; session: Session }
   const rows: Row[] = [
     ...events.map((ev) => ({ year: ev.year, day: null, kind: 'evento' as const, ev })),
     ...scenes.map((s) => ({ year: s.date!.year, day: s.date!.day, kind: 'cena' as const, sceneId: s.id })),
+    ...sessions.map((s) => ({ year: s.worldYear!, day: null, kind: 'sessao' as const, session: s })),
   ].sort((a, b) => a.year - b.year || (a.day ?? -1) - (b.day ?? -1) || (a.kind === 'evento' ? -1 : 1))
 
   const years = [...rows.map((r) => r.year), ...eras.flatMap((e) => [e.year, e.endYear ?? e.year])]
@@ -110,7 +117,7 @@ export default function TimelineView() {
           )}
         </Field>
         <label className="check">
-          <input type="checkbox" checked={showScenes} onChange={(e) => setShowScenes(e.target.checked)} /> Mostrar cenas datadas
+          <input type="checkbox" checked={showScenes} onChange={(e) => setShowScenes(e.target.checked)} /> Mostrar cenas e sessões
         </label>
       </div>
 
@@ -167,11 +174,20 @@ export default function TimelineView() {
                         )}
                       </button>
                     </li>
+                  ) : r.kind === 'sessao' ? (
+                    <li key={r.session.id} className="tl-item tl-scene tl-session">
+                      <button type="button" className="tl-card" onClick={() => go('rpg', r.session.id)}>
+                        <Dices size={14} aria-hidden="true" />
+                        <span className="tl-title">{r.session.title.trim() || `Sessão ${r.session.number}`}</span>
+                        <span className="muted small"> · sessão de jogo</span>
+                        {r.session.recap.trim() && <span className="tl-desc">{r.session.recap.trim().split('\n')[0]}</span>}
+                      </button>
+                    </li>
                   ) : (
                     <li key={r.sceneId} className="tl-item tl-scene">
                       <button type="button" className="tl-card" onClick={() => go('escrever', r.sceneId)}>
                         <Feather size={14} aria-hidden="true" />
-                        <span className="tl-title">{byId(universe, 'scenes', r.sceneId)?.title || 'Sem título'}</span>
+                        <span className="tl-title">{sceneName(universe, r.sceneId)}</span>
                         {r.day !== null && <span className="muted small"> · {formatDate(universe, { year: r.year, day: r.day })}</span>}
                         <span className="muted small"> · cena</span>
                       </button>
@@ -211,6 +227,12 @@ export default function TimelineView() {
       )}
     </div>
   )
+}
+
+/** O nome da cena com data, como aparece no resto do app. */
+function sceneName(universe: Universe, id: string) {
+  const scene = byId(universe, 'scenes', id)
+  return scene ? sceneTitle(scene) : 'Sem título'
 }
 
 function EventForm({ ev, onChange }: { ev: TimelineEvent; onChange: (c: Partial<TimelineEvent>) => void }) {

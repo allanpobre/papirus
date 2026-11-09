@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Dices, Feather, GraduationCap, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Timer, Users, X } from 'lucide-react'
+import { BookOpen, Dices, Feather, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Timer, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
@@ -7,14 +7,13 @@ import { streakLine, todayTarget, weekDots, worldCounts } from '../logic/homeTod
 import { wordsToday } from '../logic/stats'
 import { universeKind } from '../model/kind'
 import { SESSION_STATUS_LABEL } from '../model/labels'
-import { addScene, byId, manuscriptOrder } from '../model/universe'
-import { guessGuide, tipOfTheDay } from '../oficina/guides'
+import { addScene, byId, manuscriptOrder, sceneTitle } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
-import { sceneFromTreino } from '../treino/sceneFromTreino'
-import { TreinoCard } from '../treino/TreinoCard'
+import { MoreMenu } from '../ui/MoreMenu'
 import { PageHelp } from '../ui/PageTour'
 import { useMediaQuery } from '../ui/useMediaQuery'
+import { FirstSteps } from './FirstSteps'
 import { NextNote } from './NextNote'
 import { ProgressSection } from './PlayCards'
 import { startSprint } from './write/sprintClock'
@@ -152,52 +151,71 @@ export default function HomeView() {
         </div>
 
         <div className="home-quick">
-          <button type="button" className="home-quick-btn" aria-label="Anotar uma ideia" title="Anotar uma ideia" onClick={openCapture}>
-            <Lightbulb size={17} aria-hidden="true" />
+          <button type="button" className="home-quick-btn has-label" aria-label="Anotar uma ideia" title="Anotar uma ideia" onClick={openCapture}>
+            <Lightbulb size={16} aria-hidden="true" /> <span>Ideia</span>
           </button>
-          <button type="button" className="home-quick-btn" aria-label="Buscar em tudo" title="Buscar em tudo" onClick={openSearch}>
-            <Search size={17} aria-hidden="true" />
+          <button type="button" className="home-quick-btn has-label" aria-label="Buscar em tudo" title="Buscar em tudo" onClick={openSearch}>
+            <Search size={16} aria-hidden="true" /> <span>Buscar</span>
           </button>
           {hasText && (
             <button
               type="button"
-              className="home-quick-btn"
+              className="home-quick-btn has-label"
               aria-label={source.kind === 'proprio' || source.kind === 'editar' ? 'Ler como leitor' : 'Ler como livro'}
               title="O livro cena a cena, com o caderno do leitor (sem spoiler)"
               onClick={openReader}
             >
-              <BookOpen size={17} aria-hidden="true" />
+              <BookOpen size={16} aria-hidden="true" /> <span>Ler</span>
             </button>
           )}
           {source.kind === 'proprio' && (
-            <button type="button" className="home-quick-btn" aria-label="Compartilhar" title="Compartilhar" onClick={openShare}>
-              <Users size={17} aria-hidden="true" />
+            <button type="button" className="home-quick-btn has-label" aria-label="Compartilhar" title="Compartilhar" onClick={openShare}>
+              <Users size={16} aria-hidden="true" /> <span>Compartilhar</span>
             </button>
           )}
-          {!readOnly && (
-            <>
-              {coverPicker.field}
-              <button
-                type="button"
-                className="home-quick-btn"
-                aria-label={cover ? 'Trocar a capa do universo' : 'Pôr uma capa no universo'}
-                title={cover ? 'Trocar a capa' : 'Pôr uma capa'}
-                onClick={coverPicker.open}
-                disabled={coverPicker.busy}
-              >
-                {coverPicker.busy ? <Loader2 size={17} className="spin" aria-hidden="true" /> : <ImagePlus size={17} aria-hidden="true" />}
-              </button>
-              {cover && (
-                <button type="button" className="home-quick-btn" aria-label="Tirar a capa do universo" title="Tirar a capa" onClick={() => setCover(null)}>
-                  <X size={17} aria-hidden="true" />
-                </button>
-              )}
-            </>
-          )}
           <PageHelp tour="inicio" />
-          <button type="button" className="home-quick-btn" aria-label="Seus universos" title="Seus universos" onClick={() => void closeUniverse()}>
-            <Library size={17} aria-hidden="true" />
-          </button>
+          {!readOnly && coverPicker.field}
+          <MoreMenu label="Mais do universo" buttonClass="home-quick-btn">
+            {(close) => (
+              <>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    disabled={coverPicker.busy}
+                    onClick={() => {
+                      close()
+                      coverPicker.open()
+                    }}
+                  >
+                    {coverPicker.busy ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <ImagePlus size={16} aria-hidden="true" />} {cover ? 'Trocar a capa do universo' : 'Pôr uma capa no universo'}
+                  </button>
+                )}
+                {!readOnly && cover && (
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      setCover(null)
+                    }}
+                  >
+                    <X size={16} aria-hidden="true" /> Tirar a capa do universo
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="more-menu-item"
+                  onClick={() => {
+                    close()
+                    void closeUniverse()
+                  }}
+                >
+                  <Library size={16} aria-hidden="true" /> Seus universos
+                </button>
+              </>
+            )}
+          </MoreMenu>
         </div>
       </header>
 
@@ -206,13 +224,13 @@ export default function HomeView() {
           {mesaFirst ? (
             <>
               <p className="eyebrow">
-                <Dices size={13} aria-hidden="true" /> {universe.groups[0].name} · sua mesa
+                <Dices size={13} aria-hidden="true" /> Próxima sessão · {universe.groups[0].name}
               </p>
               <h2>{nextSession ? nextSession.title || 'Próxima sessão' : 'Nenhuma sessão marcada'}</h2>
-              {nextSession?.prep ? <p className="home-excerpt">{nextSession.prep}</p> : <p className="muted">Fichas dos personagens, sessões, dados e o Codex dos jogadores estão na mesa.</p>}
+              {nextSession?.prep ? <p className="home-excerpt">{nextSession.prep}</p> : <p className="muted">Fichas dos personagens, sessões, dados e o Codex dos jogadores estão na Mesa.</p>}
               <div className="home-next-actions">
                 <button type="button" className="btn btn-primary" onClick={() => go('rpg', nextSession?.id ?? null)}>
-                  <Dices size={16} /> Abrir a mesa
+                  <Dices size={16} /> Abrir a Mesa
                 </button>
                 {shown('escrever') && !readOnly && (
                   <button type="button" className="btn btn-ghost" onClick={newScene}>
@@ -223,8 +241,8 @@ export default function HomeView() {
             </>
           ) : last && hasText ? (
             <>
-              <p className="eyebrow">{story ? story.title : 'Cena solta'} · onde você parou</p>
-              <h2>{last.title || 'Sem título'}</h2>
+              <p className="eyebrow">{story ? story.title : 'Sem capítulo'} · onde você parou</p>
+              <h2>{sceneTitle(last)}</h2>
               {last.text.trim() ? <p className="home-excerpt">{lastLines(last.text, phone ? 170 : 360)}</p> : <p className="muted">Página em branco.</p>}
               <NextNote sceneId={last.id} place="inicio" />
               <div className="home-next-actions">
@@ -247,7 +265,7 @@ export default function HomeView() {
                   <span className="muted">Ou volte para:</span>{' '}
                   {others.map((s) => (
                     <button key={s.id} type="button" className="link-btn" onClick={() => go('escrever', s.id)}>
-                      {s.title || 'Sem título'}
+                      {sceneTitle(s)}
                     </button>
                   ))}
                 </p>
@@ -286,20 +304,8 @@ export default function HomeView() {
             </section>
           )}
 
-          <div className="home-challenge">
-            <TreinoCard
-              quiet
-              extra={<TipLine />}
-              onKeepScene={
-                readOnly
-                  ? undefined
-                  : (t) => {
-                      update((u) => sceneFromTreino(u, t))
-                      toast('O treino virou uma cena (em Escrever, fora dos capítulos).')
-                    }
-              }
-            />
-          </div>
+          {/* O treino da Oficina mora na Oficina: o Início é do universo. */}
+          <FirstSteps onScene={() => (last ? go('escrever', last.id) : newScene())} />
         </div>
 
         {world.length > 0 && (
@@ -358,21 +364,4 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function greeting(h = new Date().getHours()) {
   return h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite'
-}
-
-/** A dica do dia, tirada da Oficina, numa linha que abre: fica no pé do cartão do treino. */
-function TipLine() {
-  const { universe, go } = useWorkspace()
-  const [tip] = useState(() => tipOfTheDay(guessGuide(universe.settings.fieldTemplates)))
-  return (
-    <details className="home-tip">
-      <summary>
-        <GraduationCap size={14} aria-hidden="true" /> <span className="muted">Dica do dia:</span> <strong>{tip.title}</strong>
-      </summary>
-      <p className="small">{tip.text}</p>
-      <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('oficina')}>
-        Ver mais na Oficina ({tip.guide.label}) <ArrowRight size={14} />
-      </button>
-    </details>
-  )
 }

@@ -124,7 +124,7 @@ export function rollCall(u: Universe, s: Session): string {
   const name = (p: Sheet) => (p.player ? `${p.name} (${p.player})` : p.name)
   const by = (a: Attendance) => party.filter((p) => attendanceOf(s, p.id) === a).map(name)
   return [
-    by('joga').length ? `Na mesa: ${by('joga').join(', ')}` : '',
+    by('joga').length ? `Jogaram: ${by('joga').join(', ')}` : '',
     by('mestre').length ? `O mestre conduziu: ${by('mestre').join(', ')}` : '',
     by('fora').length ? `De fora: ${by('fora').join(', ')}` : '',
   ]

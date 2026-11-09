@@ -174,3 +174,25 @@ test('modelo de ficha: "Usar como modelo" e criar outra já preenchida', async (
       .getByRole('textbox', { name: 'Valor' }),
   ).toHaveValue('contrabandista')
 })
+
+test('em Ler, campo vazio some; o que as ligações já dizem preenche o campo', async ({ page }) => {
+  await mundo(page)
+  await row(page, 'Ostria').click()
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  // Dois campos vazios: "Clima" e "Quem governa" (Cassian governa Ostria, pelas ligações).
+  for (const key of ['Clima', 'Quem governa']) {
+    await page.getByRole('button', { name: 'Campo', exact: true }).click()
+    await page.locator('.kv-typed').last().getByRole('textbox', { name: 'Campo' }).fill(key)
+  }
+  await expect(page.locator('.kv-typed').last().getByRole('textbox', { name: 'Valor' })).toHaveAttribute('placeholder', 'Cassian · pelas ligações')
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  const box = page.getByRole('article', { name: 'Ler a ficha Ostria' }).getByRole('complementary', { name: 'Em resumo' })
+  await expect(box.locator('div', { has: page.locator('dt', { hasText: 'Quem governa' }) }).locator('dd')).toHaveText('Cassian')
+  await expect(box.locator('dt', { hasText: 'Clima' })).toHaveCount(0)
+  // No "Espiar", o mesmo: sem o campo vazio, com quem governa.
+  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await page.locator('.entity-side').getByRole('button', { name: 'Espiar' }).click()
+  const peek = page.getByRole('dialog', { name: 'Ostria' })
+  await expect(peek.locator('dl.kv')).toContainText('Quem governaCassian')
+  await expect(peek.locator('dl.kv')).not.toContainText('Clima')
+})

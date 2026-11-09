@@ -32,7 +32,7 @@ describe('universo como arquivos', () => {
   })
 
   it('inclui o Codex de cada mesa', () => {
-    expect(paths).toContain('codex/mesa-de-sexta.md')
+    expect(paths).toContain('codex/grupo-de-sexta.md')
   })
 
   it('não gera caminhos duplicados', () => {

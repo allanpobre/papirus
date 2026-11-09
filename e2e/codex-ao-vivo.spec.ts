@@ -39,8 +39,8 @@ test('Codex ao vivo: o mestre compartilha, o jogador vê e recebe as novas revel
   const nav = page.getByRole('navigation', { name: 'Áreas' })
 
   // Sem servidor, o Codex aponta para os Ajustes.
-  await nav.getByRole('button', { name: /^RPG/ }).click()
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  await nav.getByRole('button', { name: /^Mesa/ }).click()
+  await page.getByRole('tab', { name: 'Codex' }).click()
   await page.getByRole('button', { name: 'Configurar servidor' }).click()
 
   await page.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
@@ -49,10 +49,10 @@ test('Codex ao vivo: o mestre compartilha, o jogador vê e recebe as novas revel
   await page.getByRole('button', { name: 'Testar conexão' }).click()
   await expect(page.getByText('Conectado. O servidor está pronto')).toBeVisible()
 
-  await nav.getByRole('button', { name: /^RPG/ }).click()
-  await page.getByRole('tab', { name: 'Revelações e Codex' }).click()
+  await nav.getByRole('button', { name: /^Mesa/ }).click()
+  await page.getByRole('tab', { name: 'Codex' }).click()
   await page.getByRole('button', { name: 'Compartilhar ao vivo' }).click()
-  await expect(page.getByText('Codex ao vivo. Mande o link para a mesa.')).toBeVisible()
+  await expect(page.getByText('Codex ao vivo. Mande o link para o grupo.')).toBeVisible()
   const link = await page.getByRole('textbox', { name: 'Link para os jogadores' }).inputValue()
   expect(link).toContain('?mesa=')
   await expect(page.getByRole('img', { name: 'QR code do link para os jogadores' }).locator('svg')).toBeVisible()

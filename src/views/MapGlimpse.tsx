@@ -4,7 +4,7 @@ import type { Entity } from '../model/schema'
 import { entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 
-/** O pedaço do mapa de uma ficha, dentro dela: o marcador ou o caminho. Leva ao Atlas. */
+/** O pedaço do mapa de uma ficha, dentro dela: o marcador ou o caminho. Leva a Mapas. */
 export function MapGlimpse({ entity: e }: { entity: Entity }) {
   const { universe, go } = useWorkspace()
   const g = glimpseOf(universe, e.id)
@@ -26,7 +26,7 @@ export function MapGlimpse({ entity: e }: { entity: Entity }) {
         type="button"
         className="map-glimpse-img"
         style={{ aspectRatio: `${map.width} / ${map.height}`, backgroundImage: src ? `url("${src}")` : undefined }}
-        aria-label={`Abrir “${map.name || 'Mapa'}” no Atlas`}
+        aria-label={`Abrir “${map.name || 'Mapa'}” em Mapas`}
         onClick={() => go('atlas', map.id)}
       >
         {route.length > 1 && (

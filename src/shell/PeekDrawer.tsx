@@ -1,6 +1,8 @@
 import { ArrowUpRight } from 'lucide-react'
 import { factSentence } from '../logic/codex'
+import { derivedValue } from '../logic/derivedFields'
 import { relationDetails } from '../logic/relations'
+import { isPast, listsOf, membersOf, membershipsOf } from '../model/lists'
 import { formatYear, kindLabel } from '../model/labels'
 import { byId, entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
@@ -23,7 +25,19 @@ export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: (
     )
   }
 
-  const relations = universe.relations.filter((r) => r.fromId === e.id || r.toId === e.id)
+  // As ligações de lista aparecem como listas ("Membros: …") e em "Faz parte de", não uma a uma.
+  const relations = universe.relations.filter((r) => (r.fromId === e.id || r.toId === e.id) && !r.listId)
+  const lists = listsOf(e)
+    .map((l) => ({ list: l, members: membersOf(universe, e.id, l.id).filter((m) => !isPast(m.relation)) }))
+    .filter((x) => x.members.length > 0)
+  const partOf = membershipsOf(universe, e.id).filter((m) => !isPast(m.relation))
+  // Campo vazio não aparece, a não ser que as ligações (ou o nascimento) já respondam.
+  const fields = e.fields.flatMap((f) => {
+    if (!f.key.trim() && !f.value.trim()) return []
+    if (f.value.trim()) return [{ key: f.key || 'Campo', value: f.value }]
+    const derived = f.key.trim() ? derivedValue(universe, e, f.key) : null
+    return derived ? [{ key: f.key, value: derived.text }] : []
+  })
   const facts = universe.facts.filter((f) => f.subjectId === e.id).slice(0, 6)
   const span = [formatYear(e.startYear, suffix), formatYear(e.endYear, suffix)].filter(Boolean).join(' — ')
 
@@ -57,19 +71,31 @@ export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: (
         {span && <p className="muted small">{span}</p>}
         {e.summary ? <p className="peek-summary">{e.summary}</p> : <p className="muted">Sem resumo ainda.</p>}
         {e.description && <SecretAwareText className="peek-desc" text={e.description} />}
-        {e.fields.length > 0 && (
+        {(fields.length > 0 || lists.length > 0 || partOf.length > 0) && (
           <dl className="kv">
-            {e.fields.map((f, i) => (
-              <div key={i}>
+            {fields.map((f, i) => (
+              <div key={`campo-${i}`}>
                 <dt>{f.key}</dt>
                 <dd>{f.value}</dd>
               </div>
             ))}
+            {lists.map(({ list, members }) => (
+              <div key={list.id}>
+                <dt>{list.name}</dt>
+                <dd>{members.map((m) => `${m.member.name}${m.relation.role ? ` (${m.relation.role})` : ''}`).join(', ')}</dd>
+              </div>
+            ))}
+            {partOf.length > 0 && (
+              <div>
+                <dt>Faz parte de</dt>
+                <dd>{partOf.map((m) => `${m.owner.name} · ${m.list.name}`).join(', ')}</dd>
+              </div>
+            )}
           </dl>
         )}
         {relations.length > 0 && (
           <>
-            <h3 className="section-label">Relações</h3>
+            <h3 className="section-label">Ligações</h3>
             <ul className="plain-list">
               {relations.map((r) => (
                 <li key={r.id}>

@@ -129,15 +129,6 @@ test('ouvir o livro: lê em voz alta e segue para o capítulo seguinte', async (
   await expect(leitor.getByRole('group', { name: 'Leitura em voz alta' })).toHaveCount(0)
 })
 
-test('a dica do dia no Início leva à Oficina', async ({ page }) => {
-  await page.goto('/app/?exemplo=ostria')
-  // Uma linha no pé do treino de hoje, que abre.
-  const card = page.getByRole('region', { name: 'Treino de hoje' })
-  await card.getByText('Dica do dia:').click()
-  await card.getByRole('button', { name: /^Ver mais na Oficina/ }).click()
-  await expect(page.getByRole('dialog', { name: 'Oficina' })).toBeVisible()
-})
-
 test('Oficina funciona mesmo quando o navegador (ou uma extensão) muda o scrollTo', async ({ page }) => {
   // Algumas extensões de rolagem suave fazem scrollTo devolver um número; isso derrubava o app.
   await page.addInitScript(() => {
@@ -160,6 +151,8 @@ test('Oficina funciona mesmo quando o navegador (ou uma extensão) muda o scroll
 
 test('desafio do dia é o treino de hoje: bater o mínimo conta para a medalha', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
+  // Dentro do universo, o treino de hoje fica na Oficina.
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Oficina/ }).click()
   const card = page.getByRole('region', { name: 'Treino de hoje' })
   await expect(card).toBeVisible()
   const prompt = (await card.locator('.play-prompt').innerText()).trim()
@@ -173,7 +166,8 @@ test('desafio do dia é o treino de hoje: bater o mínimo conta para a medalha',
   await expect(treino.getByText('Mínimo batido!')).toBeVisible()
   await treino.getByRole('button', { name: 'Fechar o treino' }).click()
   await expect(card).toContainText('Feito hoje: 105 palavras em 5 min')
-  // As medalhas, com as que faltam (no "Seu ritmo", dobrado).
+  // As medalhas, com as que faltam (no "Seu ritmo" do Início, dobrado).
+  await page.getByRole('button', { name: 'Fechar a Oficina' }).click()
   await page.getByText('Seu ritmo', { exact: true }).click()
   await page.getByRole('button', { name: /Medalhas: \d+ de \d+/ }).click()
   const medalhas = page.getByRole('dialog', { name: 'Medalhas' })

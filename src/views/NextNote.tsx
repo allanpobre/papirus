@@ -1,7 +1,7 @@
 import { NotebookPen, Pencil, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { nextNoteOf, setNextNote } from '../logic/homeToday'
-import { byId } from '../model/universe'
+import { byId, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 
 /**
@@ -76,7 +76,7 @@ export function NextNote({ sceneId, place }: { sceneId: string | null; place: 'p
             <>
               {' '}
               <button type="button" className="link-btn" onClick={() => go('escrever', other.id)}>
-                (em “{other.title || 'Sem título'}”)
+                (em “{sceneTitle(other)}”)
               </button>
             </>
           )}

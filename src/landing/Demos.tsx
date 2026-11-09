@@ -79,7 +79,7 @@ export function MesaDemo() {
               <Dices size={14} />
             </span>
             <span className="lp-tablet-title">A Torre</span>
-            <span className="lp-tablet-sub">Mesa de sexta · Sessão 2</span>
+            <span className="lp-tablet-sub">Grupo de sexta · Sessão 2</span>
             <span className="lp-live-pill is-on">
               <span className="lp-live-dot" /> 1:24
             </span>
@@ -191,7 +191,7 @@ function CodexPhone({ me, mode, step, order }: { me: 'Kaya' | 'Taren'; mode: 'cl
     <div className={`lp-phone lp-codex lp-codex-${mode}`}>
       <div className="lp-phone-screen">
         <div className="lp-phone-top">
-          <span>Mesa de sexta</span>
+          <span>Grupo de sexta</span>
           <span className="lp-live">
             <Radio size={10} /> ao vivo
           </span>
@@ -320,7 +320,7 @@ const SECTORS: { id: SectorId; name: string; icon: typeof Dices; lede: string; s
     screens: [
       {
         id: 'mapa',
-        label: 'Mapa',
+        label: 'Estrutura',
         note: 'A história vista de cima: cada cena do tamanho que tem, na cor de como termina, com os atos do modelo e as pistas como linhas. As perguntas vêm só do que você marcou.',
         render: (s) => <MapaScreen step={s} />,
       },
@@ -880,7 +880,7 @@ export function StepScreen({ n }: { n: 1 | 2 | 3 }) {
     return (
       <div className="lp-mini lp-mini-map" aria-hidden="true">
         <p className="lp-mini-bar">
-          <MapIcon size={11} /> Mapa · Três atos
+          <MapIcon size={11} /> Estrutura · Três atos
         </p>
         <p className="lp-mini-strip">
           <i className="is-pior" style={{ flex: 3 }} />

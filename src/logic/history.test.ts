@@ -10,7 +10,7 @@ describe('lixeira e histórico', () => {
   it('apagar leva o item (e o que saiu junto) para a lixeira, e dá para recuperar', () => {
     const after = track(u, removeEntity(u, kael.id), 'ana')
     expect(after.trash).toHaveLength(1)
-    expect(after.trash[0].label).toMatch(/^Kael \(e \d+ relaç/)
+    expect(after.trash[0].label).toMatch(/^Kael \(e \d+ ligaç/)
     expect(after.history[0]).toMatchObject({ action: 'apagou', label: 'Kael', by: 'ana' })
     const back = restoreTrash(after, after.trash[0].id, 'bia')
     expect(back.entities.some((e) => e.id === kael.id)).toBe(true)

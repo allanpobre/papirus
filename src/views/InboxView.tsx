@@ -6,11 +6,11 @@ import { KIND_LABEL } from '../model/labels'
 import { ENTITY_KINDS, type InboxItem } from '../model/schema'
 import { addScene, draftEntity, draftInbox, insert, patch, remove, updateScene } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
-import { Empty, Select} from '../ui/bits'
+import { Empty, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { FactDialog } from '../ui/FactDialog'
 import { modKey } from '../ui/keys'
-import { PageHelp } from '../ui/PageTour'
+import { ViewTop } from '../ui/ViewTop'
 
 /** Tamanho máximo de cada item vindo de arquivo; arquivos maiores viram vários itens. */
 const CHUNK = 6000
@@ -43,27 +43,27 @@ export default function InboxView() {
 
   return (
     <div className="view inbox-view">
-      <header className="view-head view-head-wide">
-        <h1>Ideias</h1>
-        <PageHelp tour="inbox" />
-        <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
-          <FileUp size={16} /> Importar .txt ou .md
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".txt,.md,.markdown,text/plain,text/markdown"
-          multiple
-          hidden
-          onChange={(e) => {
-            if (e.target.files) void importFiles(e.target.files)
-            e.target.value = ''
-          }}
-        />
-      </header>
-      <p className="muted small view-lede">
-        Capturas rápidas, notas de sessão e arquivos esperam aqui. Nada vira ficha ou canon até você decidir. Captura de qualquer lugar: {modKey}+Shift+I.
-      </p>
+      <ViewTop
+        area="Ideias"
+        tour="inbox"
+        actions={
+          <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
+            <FileUp size={16} /> Importar .txt ou .md
+          </button>
+        }
+      />
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".txt,.md,.markdown,text/plain,text/markdown"
+        multiple
+        hidden
+        onChange={(e) => {
+          if (e.target.files) void importFiles(e.target.files)
+          e.target.value = ''
+        }}
+      />
+      <p className="muted small view-lede">Capturas rápidas, notas de sessão e arquivos esperam aqui. Nada vira ficha ou canon até você decidir. Captura de qualquer lugar: {modKey}+Shift+I.</p>
 
       <form
         className="inbox-capture"
@@ -178,7 +178,7 @@ function InboxCard({ item }: { item: InboxItem }) {
               id = e.id
               return next
             })
-            toast(`Ficha “${name}” criada em rascunho`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
+            toast(`Ficha “${name}” criada`, { action: { label: 'Abrir', run: () => go('fichas', id) } })
           }}
         >
           <UserPlus size={14} /> Criar ficha
@@ -192,10 +192,13 @@ function InboxCard({ item }: { item: InboxItem }) {
             update((u) => {
               const [next, s] = addScene(u, null, item.sourceName || 'De Ideias')
               id = s.id
-              const paragraphs = item.text.split(/\n{2,}|\n/).map((p) => p.trim()).filter(Boolean)
+              const paragraphs = item.text
+                .split(/\n{2,}|\n/)
+                .map((p) => p.trim())
+                .filter(Boolean)
               return patch(updateScene(next, s.id, { doc: docFromParagraphs(paragraphs), text: paragraphs.join('\n\n') }), 'inbox', item.id, { status: 'processado' })
             })
-            toast('Virou uma cena solta', { action: { label: 'Abrir', run: () => go('escrever', id) } })
+            toast('Virou uma cena', { action: { label: 'Abrir', run: () => go('escrever', id) } })
           }}
         >
           <Feather size={14} /> Virar cena

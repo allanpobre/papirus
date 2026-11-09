@@ -1,3 +1,4 @@
+import { derivedValue } from '../logic/derivedFields'
 import { factSentence } from '../logic/codex'
 import { MentionMatcher } from '../logic/detection'
 import { readerBook, readerEntities } from '../logic/reader'
@@ -42,7 +43,10 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
       entity: e,
       summary: unmarkReveals(e.summary),
       description: unmarkReveals(e.description),
-      fields: e.fields.map((f) => ({ key: f.key, value: unmarkReveals(f.value) })).filter((f) => f.key.trim() && f.value.trim()),
+      // Campo vazio fica de fora, a não ser que as ligações (ou o nascimento) respondam por ele.
+      fields: e.fields
+        .map((f) => ({ key: f.key, value: unmarkReveals(f.value).trim() || (f.key.trim() ? (derivedValue(safe, e, f.key, { openOnly: true })?.text ?? '') : '') }))
+        .filter((f) => f.key.trim() && f.value.trim()),
     }))
     facts = safe.facts.map((f) => ({ text: factSentence(safe, f), ids: [f.subjectId, f.objectId].filter((x): x is string => Boolean(x)) }))
     relations = safe.relations.map((r) => ({ text: relationSentence(safe, r), ids: [r.fromId, r.toId, ...r.via.map((v) => v.entityId)] }))

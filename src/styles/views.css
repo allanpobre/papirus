@@ -3783,6 +3783,17 @@ code {
   color: var(--ink);
 }
 
+/* Os botões do alto do Início com nome: ícone sozinho não diz o que faz. */
+.home-quick-btn.has-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: auto;
+  padding-inline: 0.55rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 /* O resto: no computador, o próximo passo e uma coluna estreita; embaixo, o mundo e o ritmo. */
 .home-layout {
   display: grid;
@@ -4101,6 +4112,7 @@ code {
     justify-content: flex-start;
   }
   .home-quick {
+    flex-wrap: wrap;
     margin: 0 0 -0.3rem -0.45rem;
   }
   /* Celular: o próximo passo, o que pede um olhar, o mundo, o treino e o ritmo, nesta ordem. */
@@ -5672,6 +5684,11 @@ button.arc-dot {
 }
 .reader-link:hover {
   text-decoration-color: currentColor;
+}
+/* Um nome de uma lista e a vírgula dele: a vírgula não começa a linha seguinte. */
+.reader-item {
+  display: inline-block;
+  max-width: 100%;
 }
 .reader-infobox {
   grid-area: box;
@@ -8556,4 +8573,281 @@ h3.cork-act {
 
 .list-modes:empty {
   display: none;
+}
+
+/* ---------------------------------------------------------------- O alto de toda tela */
+
+/* O nome da área, as partes, e no fim a busca (celular), o (?) e o botão principal. */
+.view-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-width: 0;
+}
+
+.view-top-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.view-top-parts {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.view-top-parts button[aria-selected='true'] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+
+.view-top-end {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.view-top-search {
+  display: none;
+}
+
+.view.split > .view-top {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 760px) {
+  .view-top-search {
+    display: inline-flex;
+  }
+
+  /* No celular, com partes, a barra de baixo já diz a área: uma linha só, com as partes, a busca e o (?). */
+  .view-top.has-parts {
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+  }
+
+  .view-top.has-parts .view-top-title {
+    display: none;
+  }
+
+  .view-top.has-parts .view-top-parts {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .view-top.has-parts .view-top-end {
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 0.1rem;
+  }
+
+  /* As partes só com o nome, todas (não só a atual, como nos modos da escrita). */
+  .view-top .view-top-parts button > svg {
+    display: none;
+  }
+
+  .view-top .view-top-parts button:not([aria-current='page']) span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  .view-top .view-top-parts button {
+    padding-inline: 0.45rem;
+  }
+}
+
+/* ---------------------------------------------------------------- A aba Jogo da ficha */
+
+.entity-game {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.entity-game-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.entity-game-name {
+  font-size: 1.6rem;
+}
+
+.entity-game-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.entity-game-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.entity-game-pools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entity-game-pools li {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.entity-game-pool-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.entity-game-bar {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.entity-game-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.entity-game-attrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.entity-game-attrs > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 3.2rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+}
+
+.entity-game-attrs dt {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.entity-game-attrs dd {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.entity-game-line {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+
+/* ---------------------------------------------------------------- Primeiros passos (Início) */
+
+.home-first {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.home-first-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.first-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.first-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.first-step-icon {
+  flex: none;
+  margin-top: 0.1rem;
+  color: var(--line-strong);
+}
+
+.first-steps .is-done .first-step-icon {
+  color: var(--accent);
+}
+
+.first-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.first-step-label {
+  font-weight: 600;
+  text-align: left;
+}
+
+.first-steps .is-done .first-step-label {
+  color: var(--muted);
+  font-weight: 500;
+  text-decoration: line-through;
+}
+
+/* Compartilhar: os jeitos sem conta (ler aqui, baixar) antes do link e do convite. */
+.share-ways {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-bottom: 0.8rem;
+  margin-bottom: 0.2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.share-ways p {
+  margin: 0;
 }

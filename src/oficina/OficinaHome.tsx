@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { tabListKeys } from '../ui/keys'
 import { recall, remember } from '../state/prefs'
 import { treinoStreak, useTreinos, type Treino } from '../treino/treino'
+import { TreinoCard } from '../treino/TreinoCard'
 import { GUIDES, sectionOf, type Guide, type GuideId } from './guides'
 import { IdeaGenerator } from './IdeaGenerator'
 import { LOOK, SECTIONS } from './look'
@@ -137,6 +138,9 @@ function TodayTab({
           </button>
         </section>
       )}
+
+      {/* Dentro de um universo, o treino do dia mora aqui (e o texto vira cena, se quiser). */}
+      {links.onKeepScene && <TreinoCard onKeepScene={links.onKeepScene} />}
 
       {started.length > 0 && (
         <section aria-labelledby="oficina-suas">
@@ -475,7 +479,7 @@ function Library({ genre, progress, onChoose }: { genre?: GuideId; progress: Ofi
                     </span>
                     <span className="oficina-genre-name">{g.label}</span>
                     <span className="oficina-genre-lede">{g.lede}</span>
-                    {g.id === mine && <span className="oficina-genre-tag">{forTable ? 'a sua mesa' : 'o seu universo'}</span>}
+                    {g.id === mine && <span className="oficina-genre-tag">{forTable ? 'a sua campanha' : 'o seu universo'}</span>}
                     {read && (
                       <span className="oficina-genre-done">
                         <Check size={12} aria-hidden="true" /> {done > 0 ? `${done}/${g.exercises.length} feitos` : 'lido'}

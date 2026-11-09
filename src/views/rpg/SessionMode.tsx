@@ -11,7 +11,6 @@ import { PageHelp } from '../../ui/PageTour'
 import { useMediaQuery } from '../../ui/useMediaQuery'
 import { AnnounceDialog } from './Announce'
 import { MesaPresence } from './LiveTable'
-import { markMesaGate } from './MesaGate'
 import { useRpg } from './rpgContext'
 import { AskRollDialog } from './Requests'
 import { Palco } from './Palco'
@@ -26,7 +25,7 @@ type Part = 'roteiro' | 'palco' | 'mesa'
 const PARTS: [Part, string, LucideIcon][] = [
   ['roteiro', 'Roteiro', NotebookPen],
   ['palco', 'Palco', Theater],
-  ['mesa', 'Mesa', Users],
+  ['mesa', 'Grupo', Users],
 ]
 
 /** Tempo de jogo desde o começo: "1:25". */
@@ -73,7 +72,6 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
 
   // Enquanto a sessão está na tela, o resto do app (o menu da escrita) sai de cena.
   useEffect(() => {
-    markMesaGate()
     document.documentElement.classList.add('session-mode')
     return () => document.documentElement.classList.remove('session-mode')
   }, [])
@@ -97,13 +95,13 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
     roteiro: <Roteiro session={session} onSheet={setSheetId} />,
     palco: <Palco session={session} onRoteiro={phone ? () => choose('roteiro') : undefined} />,
     mesa: (
-      <section className="shield-panel shield-mesa" aria-label="Mesa">
+      <section className="shield-panel shield-mesa" aria-label="Grupo">
         <header className="shield-head">
-          <h2 className="shield-title">Mesa</h2>
+          <h2 className="shield-title">Grupo</h2>
           <span className="muted tiny">quem joga hoje</span>
         </header>
-        <section className="table-panel sm-panel" aria-label="Grupo">
-          <h3 className="shield-label">Grupo</h3>
+        <section className="table-panel sm-panel" aria-label="Personagens">
+          <h3 className="shield-label">Personagens</h3>
           <PartyCards onSheet={setSheetId} />
         </section>
         <section className="table-panel sm-panel" aria-label="Registro">
@@ -166,6 +164,11 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
               <Megaphone size={15} /> Anunciar
             </button>
           )}
+          {!readOnly && (
+            <ConfirmButton className="btn btn-sm sm-end" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(session.id)}>
+              <Flag size={15} /> Encerrar<span className="sm-end-more"> sessão</span>
+            </ConfirmButton>
+          )}
           <PageHelp tour="sessao" />
           <MoreMenu label="Mais da sessão">
             {(close) => (
@@ -180,7 +183,7 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
                       onTheme()
                     }}
                   >
-                    <Palette size={16} /> Tema da mesa
+                    <Palette size={16} /> Tema da Mesa
                   </button>
                 )}
                 <button
@@ -204,11 +207,6 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
                 >
                   <X size={16} /> Sair do modo sessão
                 </button>
-                {!readOnly && (
-                  <ConfirmButton className="more-menu-item more-menu-danger sm-end" question="Encerrar a sessão?" confirmLabel="Encerrar" onConfirm={() => endSession(session.id)}>
-                    <Flag size={16} /> Encerrar sessão
-                  </ConfirmButton>
-                )}
               </div>
             )}
           </MoreMenu>

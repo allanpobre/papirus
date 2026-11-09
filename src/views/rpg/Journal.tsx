@@ -17,14 +17,14 @@ export function RecapEditor({ session: s }: { session: Session }) {
   return (
     <div className="recap">
       <label htmlFor={id} className="field-label">
-        Resumo para os jogadores
+        Resumo da sessão
       </label>
       <textarea
         id={id}
         className="input textarea"
         rows={5}
         readOnly={readOnly}
-        placeholder="O que os personagens viveram nesta sessão, do jeito que eles sabem. Segredos ficam de fora: só vai o que você escrever aqui."
+        placeholder="O que os personagens viveram nesta sessão. Se for publicar para os jogadores, deixe os segredos de fora: só vai o que estiver aqui."
         value={s.recap}
         onChange={(e) => set({ recap: e.target.value })}
       />

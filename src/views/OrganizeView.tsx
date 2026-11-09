@@ -5,7 +5,7 @@ import { mapNotices, promiseLines, STRUCTURE_LABEL, STRUCTURES, storyMap, withou
 import { longestAbsence, presenceMatrix } from '../logic/stats'
 import { SCENE_STATUS_LABEL, SEED_STATUS_LABEL } from '../model/labels'
 import { SCENE_STATUSES, STORY_STRUCTURES, type SceneStatus } from '../model/schema'
-import { byId, entityName, manuscriptOrder, moveScene, patch, placeScene, scenesOf, updateScene } from '../model/universe'
+import { byId, entityName, manuscriptOrder, moveScene, patch, placeScene, sceneTitle, scenesOf, updateScene } from '../model/universe'
 import { countWords } from '../persistence/repository'
 import { useWorkspace } from '../state/workspace'
 import { Empty, Select } from '../ui/bits'
@@ -24,7 +24,7 @@ export default function OrganizeView() {
   return (
     <div className="view organize-view">
       <header className="view-head view-head-wide map-view-head">
-        <h1 className="sr-only">Mapa da história</h1>
+        <h1 className="sr-only">Estrutura</h1>
         <WritingModes
           current="mapa"
           onPick={(m) => {
@@ -65,7 +65,7 @@ export default function OrganizeView() {
 
 function Corkboard() {
   const { universe, update, go } = useWorkspace()
-  const groups = [...universe.stories.map((s) => ({ id: s.id, title: s.title || 'Sem título' })), { id: null as string | null, title: 'Cenas soltas' }]
+  const groups = [...universe.stories.map((s) => ({ id: s.id, title: s.title || 'Sem título' })), { id: null as string | null, title: 'Sem capítulo' }]
   // Arrastar pela alça (mouse ou dedo): mostra onde a cena vai cair e solta lá.
   const [drag, setDrag] = useState<{ id: string; story: string | null; before: string | null } | null>(null)
   const target = (x: number, y: number): { story: string | null; before: string | null } | null => {
@@ -138,7 +138,7 @@ function Corkboard() {
         <button
           type="button"
           className="cork-handle"
-          aria-label={`Mover “${s.title || 'Sem título'}” (setas mudam a posição)`}
+          aria-label={`Mover “${sceneTitle(s)}” (setas mudam a posição)`}
           title="Arraste para mudar a ordem"
           onPointerDown={(e) => {
             e.preventDefault()
@@ -166,7 +166,7 @@ function Corkboard() {
         </button>
         <span className="cork-num">{i + 1}</span>
         <button type="button" className="cork-title" onClick={() => go('escrever', s.id)}>
-          {s.title || 'Sem título'}
+          {sceneTitle(s)}
         </button>
         {m.beats.length > 0 && (
           <p className="cork-beats">
@@ -272,8 +272,8 @@ function MapStrip({ map, structure }: { map: MapScene[]; structure: Structure })
             type="button"
             className={`map-seg shift-${m.scene.shift || 'sem'}`}
             style={{ left: pct(m.from), width: pct(m.to - m.from) }}
-            aria-label={`${m.scene.title || 'Sem título'}: ${m.scene.shift ? `termina ${m.scene.shift}` : 'sem marca'}`}
-            title={`${m.scene.title || 'Sem título'}${m.scene.shift ? ` · ${SHIFT_LABEL[m.scene.shift]}` : ''}`}
+            aria-label={`${sceneTitle(m.scene)}: ${m.scene.shift ? `termina ${m.scene.shift}` : 'sem marca'}`}
+            title={`${sceneTitle(m.scene)}${m.scene.shift ? ` · ${SHIFT_LABEL[m.scene.shift]}` : ''}`}
             onClick={() => jump(m.scene.id)}
           />
         ))}
@@ -314,7 +314,10 @@ const POINT_LABEL: Record<PromiseLine['points'][number]['kind'], string> = { pla
 /** As promessas (pistas e mistérios) como linhas: onde foram plantadas, avançaram e foram pagas. */
 function PromiseTracks({ lines }: { lines: PromiseLine[] }) {
   const { universe, go } = useWorkspace()
-  const sceneTitle = (id: string) => byId(universe, 'scenes', id)?.title || 'Sem título'
+  const titleOf = (id: string) => {
+    const scene = byId(universe, 'scenes', id)
+    return scene ? sceneTitle(scene) : 'Sem título'
+  }
   return (
     <section className="map-promises" aria-label="Promessas">
       <h3 className="section-label">
@@ -334,10 +337,10 @@ function PromiseTracks({ lines }: { lines: PromiseLine[] }) {
                 <span className="map-track-line" style={{ left: pct(first), width: pct(end - first) }} />
                 {l.stalled && <span className="map-track-stall" style={{ left: pct(end), width: pct(1 - end) }} />}
                 {l.points.map((p, i) => (
-                  <i key={i} className={`map-pt map-pt-${p.kind}`} style={{ left: pct(p.at) }} title={`${POINT_LABEL[p.kind]} em “${sceneTitle(p.sceneId)}”`} />
+                  <i key={i} className={`map-pt map-pt-${p.kind}`} style={{ left: pct(p.at) }} title={`${POINT_LABEL[p.kind]} em “${titleOf(p.sceneId)}”`} />
                 ))}
               </span>
-              <span className="sr-only">{l.points.map((p) => `${POINT_LABEL[p.kind]} em “${sceneTitle(p.sceneId)}”`).join(', ')}</span>
+              <span className="sr-only">{l.points.map((p) => `${POINT_LABEL[p.kind]} em “${titleOf(p.sceneId)}”`).join(', ')}</span>
             </li>
           )
         })}
@@ -407,7 +410,7 @@ function PresenceTab() {
               <tr key={r.scene.id}>
                 <th scope="row">
                   <button type="button" className="link-btn" onClick={() => go('escrever', r.scene.id)}>
-                    {r.scene.title || 'Sem título'}
+                    {sceneTitle(r.scene)}
                   </button>
                 </th>
                 {columns.map((c) => {
@@ -458,7 +461,7 @@ function RhythmTab() {
           {rows.map((r) => (
             <li key={r.scene.id}>
               <button type="button" className="bar-label link-btn" onClick={() => go('escrever', r.scene.id)}>
-                {r.scene.title || 'Sem título'}
+                {sceneTitle(r.scene)}
               </button>
               <span className="bar" aria-hidden="true">
                 <span style={{ width: `${(r.words / max) * 100}%` }} />

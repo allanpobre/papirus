@@ -1,11 +1,21 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
-test('tour na primeira vez: destaca as partes, pode ser pulado e refeito', async ({ page }) => {
+test('o tour não abre sozinho; pelos Ajustes, destaca as partes, pode ser pulado e refeito', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
 
-  // Começa sozinho.
+  // Não começa sozinho: a primeira vez é dos Primeiros passos, no Início.
+  await page.waitForTimeout(1200)
+  await expect(page.locator('.tour')).toHaveCount(0)
+
+  const refazer = async () => {
+    await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Ajustes e dados' }).click()
+    await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Menu e ajuda' }).click()
+    await page.getByRole('button', { name: 'Refazer o tour' }).click()
+  }
+  await refazer()
   const tour = page.getByRole('dialog', { name: 'Bem-vindo ao Papirus' })
   await expect(tour).toBeVisible()
   await expect(tour.getByRole('button', { name: 'Rápido' })).toBeVisible()
@@ -58,6 +68,7 @@ test('dá para sair do mundo de exemplo', async ({ page }) => {
   // O exemplo fica à parte dos universos da pessoa.
   await expect(page.getByRole('list', { name: 'Universos' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Continuar o exemplo' }).click()
+  await page.getByRole('button', { name: 'Mais do universo' }).click()
   await page.getByRole('button', { name: 'Seus universos' }).click()
   await expect(page.getByRole('navigation', { name: 'Setores' })).toBeVisible()
 })

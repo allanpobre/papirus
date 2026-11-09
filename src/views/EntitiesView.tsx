@@ -1,5 +1,5 @@
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, BookOpen, Check, Copy, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
@@ -25,9 +25,11 @@ import {
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { appearancesOf, sceneCounts } from '../logic/appearances'
+import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
+import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
 import { Fold } from '../ui/Fold'
@@ -53,10 +55,13 @@ import { useMediaQuery } from '../ui/useMediaQuery'
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly, peek } = useWorkspace()
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
-  const [mode, setMode] = useState<'ler' | 'editar'>(() => (!readOnly && recall('ficha-modo') === 'editar' ? 'editar' : 'ler'))
+  const [mode, setMode] = useState<FichaMode>(() => {
+    const saved = recall('ficha-modo')
+    return !readOnly && (saved === 'editar' || saved === 'jogo') ? saved : 'ler'
+  })
   // A ficha que acabou de nascer aqui abre para editar.
   const [fresh, setFresh] = useState<string | null>(null)
-  const changeMode = (m: 'ler' | 'editar') => {
+  const changeMode = (m: FichaMode) => {
     setMode(m)
     setFresh(null)
     remember('ficha-modo', m)
@@ -104,6 +109,9 @@ export default function EntitiesView() {
 
   const selectedId = nav.view === 'fichas' ? (nav.id ?? null) : null
   const selected = selectedId ? byId(universe, 'entities', selectedId) : undefined
+  // A aba Jogo: só num personagem com ficha de jogo (na Mesa).
+  const hasGame = Boolean(selected && universe.sheets.some((x) => x.entityId === selected.id))
+  const shownMode: FichaMode = selected && fresh === selected.id ? 'editar' : mode === 'jogo' && !hasGame ? 'ler' : mode
 
   const kinds = useMemo(() => {
     const all = new Set([...ENTITY_KINDS.filter((k) => universe.entities.some((e) => e.kind === k)), ...universe.entities.map((e) => e.kind)])
@@ -330,16 +338,26 @@ export default function EntitiesView() {
         {table ? (
           <EntityTable rows={list} kind={kind} counts={counts} onOpen={(id) => peek(id)} />
         ) : selected ? (
-          (fresh === selected.id ? 'editar' : mode) === 'ler' || readOnly ? (
+          shownMode === 'jogo' && !readOnly ? (
+            <EntityGame key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="jogo" game onChange={changeMode} />} />
+          ) : shownMode === 'ler' || readOnly ? (
             <EntityReader
               key={selected.id}
               entity={selected}
               order={list}
-              modeSwitch={!readOnly && <ModeSwitch mode="ler" onChange={changeMode} />}
-              onEdit={readOnly ? undefined : () => setFresh(selected.id)}
+              modeSwitch={!readOnly && <ModeSwitch mode="ler" game={hasGame} onChange={changeMode} />}
+              onEdit={
+                readOnly
+                  ? undefined
+                  : () => {
+                      // "Responder" traz as perguntas de volta, mesmo que tenham sido puladas antes.
+                      unskipQuestions(selected.id)
+                      setFresh(selected.id)
+                    }
+              }
             />
           ) : (
-            <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" onChange={changeMode} />} />
+            <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" game={hasGame} onChange={changeMode} />} />
           )
         ) : universe.entities.length ? (
           <WorldOverview counts={counts} hasScenes={hasScenes} />
@@ -367,7 +385,8 @@ function WorldOverview({ counts, hasScenes }: { counts: Map<string, number>; has
     .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
     .slice(0, 6)
   const notes = ents.filter((e) => !counts.get(e.id))
-  const blank = ents.filter(isBlank)
+  // Só o nome: nem texto, nem ligação, nem lista (uma facção com membros não está em branco).
+  const blank = ents.filter((e) => onlyName(universe, e))
   const chips = (list: Entity[]) => (
     <div className="chips">
       {list.slice(0, 12).map((e) => (
@@ -443,8 +462,10 @@ function PortraitButton({ entity: e, onChange }: { entity: Entity; onChange: (im
   )
 }
 
-/** Alternar entre ler a ficha como uma página e editá-la. */
-function ModeSwitch({ mode, onChange }: { mode: 'ler' | 'editar'; onChange: (m: 'ler' | 'editar') => void }) {
+type FichaMode = 'ler' | 'editar' | 'jogo'
+
+/** Alternar entre ler a ficha como uma página, editá-la e (num personagem de jogo) ver a ficha de jogo. */
+function ModeSwitch({ mode, game = false, onChange }: { mode: FichaMode; game?: boolean; onChange: (m: FichaMode) => void }) {
   return (
     <div className="mode-switch" role="group" aria-label="Modo da ficha">
       <button type="button" aria-pressed={mode === 'ler'} onClick={() => onChange('ler')}>
@@ -453,6 +474,11 @@ function ModeSwitch({ mode, onChange }: { mode: 'ler' | 'editar'; onChange: (m: 
       <button type="button" aria-pressed={mode === 'editar'} onClick={() => onChange('editar')}>
         <PenLine size={15} aria-hidden="true" /> Editar
       </button>
+      {game && (
+        <button type="button" aria-pressed={mode === 'jogo'} onClick={() => onChange('jogo')}>
+          <Dices size={15} aria-hidden="true" /> Jogo
+        </button>
+      )}
     </div>
   )
 }
@@ -820,6 +846,11 @@ function skippedQuestions(): string[] {
   }
 }
 
+function unskipQuestions(id: string) {
+  const skipped = skippedQuestions()
+  if (skipped.includes(id)) remember(SKIPPED, JSON.stringify(skipped.filter((x) => x !== id)))
+}
+
 function skipQuestions(id: string) {
   remember(SKIPPED, JSON.stringify([...skippedQuestions(), id].slice(-300)))
 }
@@ -882,7 +913,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
           {entityName(universe, r[side]) || 'Ficha removida'}
         </button>
         {editable && (
-          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta relação`} onClick={() => update((u) => remove(u, 'relations', r.id))}>
+          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta ligação`} onClick={() => update((u) => remove(u, 'relations', r.id))}>
             <X size={12} />
           </button>
         )}
@@ -895,7 +926,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       <button
         type="button"
         className="btn-icon btn-sm relation-remove"
-        aria-label={rs.length > 1 ? 'Remover estas relações' : 'Remover relação'}
+        aria-label={rs.length > 1 ? 'Remover estas ligações' : 'Remover ligação'}
         onClick={() => update((u) => rs.reduce((acc, r) => remove(acc, 'relations', r.id), u))}
       >
         <X size={14} />
@@ -918,7 +949,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       <span className="muted">{e.name}</span>
       <input
         className="input input-sm relation-type"
-        aria-label="Tipo da relação"
+        aria-label="Tipo da ligação"
         value={rs[0].type}
         onChange={(ev) => update((u) => rs.reduce((acc, r) => patch(acc, 'relations', r.id, { type: ev.target.value }), u))}
       />
@@ -963,7 +994,10 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
 
   return (
     <Fold id="ficha-rela-es" title="Ligações">
-      {outgoing.length + incoming.length + fieldLinks.length + fieldBacklinks.length === 0 && <p className="muted small">Nenhuma relação ainda.</p>}
+      {outgoing.length + incoming.length + fieldLinks.length + fieldBacklinks.length === 0 && (
+        // Os membros e o "faz parte de" ficam nas listas: aqui só as outras ligações.
+        <p className="muted small">{universe.relations.some((r) => r.listId && (r.fromId === e.id || r.toId === e.id)) ? 'Fora das listas, nenhuma ligação ainda.' : 'Nenhuma ligação ainda.'}</p>
+      )}
       <ul className="relation-list">
         {group(outgoing).map(outRow)}
         {group(incoming).map(inRow)}
@@ -1018,7 +1052,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
       )}
       <div className="relation-add">
         <span className="muted small">{e.name || 'Esta ficha'}</span>
-        <input className="input input-sm" aria-label="Nova relação" list="tipos-relacao" placeholder="é irmão de…" value={type} onChange={(ev) => setType(ev.target.value)} />
+        <input className="input input-sm" aria-label="Nova ligação" list="tipos-relacao" placeholder="é irmão de…" value={type} onChange={(ev) => setType(ev.target.value)} />
         {targets.length > 0 && (
           <span className="chips">
             {targets.map((t) => (
@@ -1138,14 +1172,16 @@ function TypedValue({ entity: e, field: f, onChange }: { entity: Entity; field: 
         onChange={(id) => onChange({ ref: id, value: id ? (byId(universe, 'entities', id)?.name ?? '') : '' })}
       />
     )
-  return <FieldValue value={f.value} label={f.key || 'Valor'} onChange={(v) => onChange({ value: v })} />
+  // Vazio, mas outra parte do app já responde ("Malkai líder de…" no Líder, a idade pelo nascimento): aparece em cinza.
+  const hint = (!f.value.trim() && f.key.trim() && derivedHint(universe, e, f.key)) || undefined
+  return <FieldValue value={f.value} label={f.key || 'Valor'} placeholder={hint} onChange={(v) => onChange({ value: v })} />
 }
 
-function FieldValue({ value, label, onChange }: { value: string; label: string; onChange: (v: string) => void }) {
+function FieldValue({ value, label, placeholder = 'Valor', onChange }: { value: string; label: string; placeholder?: string; onChange: (v: string) => void }) {
   const ref = useRef<HTMLInputElement>(null)
   return (
     <div className="with-reveal">
-      <input ref={ref} className="input" aria-label="Valor" placeholder="Valor" value={value} onChange={(ev) => onChange(ev.target.value)} />
+      <input ref={ref} className="input" aria-label="Valor" placeholder={placeholder} title={placeholder === 'Valor' ? undefined : placeholder} value={value} onChange={(ev) => onChange(ev.target.value)} />
       <RevealPicker label={label} value={value} inputRef={ref} onChange={onChange} />
     </div>
   )

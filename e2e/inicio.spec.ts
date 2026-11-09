@@ -49,6 +49,8 @@ test('para quando der: até três coisas, sem cobrar rascunhos nem pistas aberta
   await expect(page.getByRole('region', { name: 'Seu progresso' })).toHaveCount(0)
   // A capa do livro abre por cima ao entrar; o contraste se mede depois que ela sai.
   await expect(page.locator('.book-gate')).toHaveCount(0)
+  // E depois que as entradas animadas terminam (no meio do fade, a cor ainda não é a final).
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity))
   const { violations } = await new AxeBuilder({ page }).include('.home').analyze()
   expect(violations.map((v) => v.id)).toEqual([])
   // As perguntas abrem a cena na Revisão, com a margem.
@@ -94,11 +96,12 @@ test.describe('no celular', () => {
     await expect(next(page).getByRole('button', { name: 'Continuar escrevendo' })).toBeInViewport()
     const height = await page.locator('.stage').evaluate((el) => el.scrollHeight)
     expect(height).toBeLessThan(844 * 2)
-    const world = await page.getByRole('navigation', { name: 'O seu mundo' }).boundingBox()
-    const treino = await page.getByRole('region', { name: 'Treino de hoje' }).boundingBox()
-    expect(world!.y).toBeLessThan(treino!.y)
-    // Os atalhos viram ícones, com nome para leitores de tela.
-    await expect(page.getByRole('button', { name: 'Anotar uma ideia' })).toBeVisible()
+    // O treino do dia saiu do Início: mora na Oficina.
+    await expect(page.getByRole('navigation', { name: 'O seu mundo' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Treino de hoje' })).toHaveCount(0)
+    // Os atalhos têm nome à vista; capa e "Seus universos" ficam no ⋯.
+    await expect(page.getByRole('button', { name: 'Anotar uma ideia' })).toContainText('Ideia')
+    await page.getByRole('button', { name: 'Mais do universo' }).click()
     await expect(page.getByRole('button', { name: 'Seus universos' })).toBeVisible()
   })
 })

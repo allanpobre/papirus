@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowLeftRight, BookOpen, Feather, ChevronsLeft, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { withDailyStart } from '../logic/stats'
@@ -45,10 +45,10 @@ import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
-import { MesaGate } from '../views/rpg/MesaGate'
 import { useMesaSector } from '../rpg/useMesaSector'
+import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
-import { firstView, hiddenViewsFor, mesaModeAfter, universeKind, CAMPAIGN_SHORTCUTS } from '../model/kind'
+import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
@@ -128,12 +128,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [universe, readOnly])
   const [accountOpen, setAccountOpen] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
-  // Primeira vez num universo: o tour começa sozinho (dá para pular e refazer).
-  useEffect(() => {
-    if (prefs.tourDone || source.kind !== 'proprio') return
-    const t = setTimeout(() => setTourOpen(true), 700)
-    return () => clearTimeout(t)
-  }, [prefs.tourDone, source.kind])
+  // O tour não abre sozinho: a primeira vez começa pelos Primeiros passos do Início. Ele fica no
+  // (?) de cada tela, no "Refazer o tour" dos Ajustes e no fim dos Primeiros passos.
   const [nav, setNav] = useState<Nav>(() => {
     // Reaberto pelo Android (ou recarregado): volta para a mesma tela e o mesmo registro.
     const back = backState()
@@ -253,6 +249,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   useReadOnlyInputs(readOnly)
   // Rolagens feitas pelos jogadores no Codex chegam aqui, vão para o registro e para a bandeja da mesa.
   useTableRolls(universe, prefs, tracked, !readOnly)
+  // Um personagem só: uma vez por universo, os personagens de jogador de antes ganham a ficha no Mundo.
+  const playersLinked = universe.settings.playersLinked
+  const hasSheets = universe.sheets.length > 0
+  useEffect(() => {
+    if (readOnly || playersLinked || !hasSheets) return
+    tracked((u) => {
+      const next = linkPlayerSheets(u)
+      return { ...next, settings: { ...next.settings, playersLinked: true } }
+    })
+  }, [readOnly, playersLinked, hasSheets, tracked])
 
   const applyRemote = useCallback(
     (next: Universe, changedScenes: string[]) => {
@@ -335,34 +341,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [backupDue, prefs.autoBackup, downloadBackup, toast])
 
   const kind = universeKind(universe)
-  // Num livro, a mesa também é um setor: ao entrar nela, o menu e o clima ficam de mesa até voltar à escrita.
-  const [bookMesa, setBookMesa] = useState(() => {
-    try {
-      return nav.view === 'rpg' || (nav.view !== 'inicio' && sessionStorage.getItem(`papirus:setor-mesa:${initial.id}`) === '1')
-    } catch {
-      return nav.view === 'rpg'
-    }
-  })
-  const [seenView, setSeenView] = useState(nav.view)
-  if (seenView !== nav.view) {
-    setSeenView(nav.view)
-    setBookMesa(mesaModeAfter(bookMesa, nav.view))
-  }
-  useEffect(() => {
-    try {
-      if (bookMesa) sessionStorage.setItem(`papirus:setor-mesa:${initial.id}`, '1')
-      else sessionStorage.removeItem(`papirus:setor-mesa:${initial.id}`)
-    } catch {
-      // Sem armazenamento: só não lembra depois de recarregar.
-    }
-  }, [bookMesa, initial.id])
-  /** Menu, atalhos e clima de mesa: numa campanha sempre; num livro, enquanto estiver na mesa. */
-  const mesaSector = kind === 'campanha' || bookMesa
+  /**
+   * O clima da Mesa (cores e letras do tema): numa campanha, o universo inteiro; num livro, só
+   * dentro da Mesa. O menu não muda com o caminho: a ordem é a do tipo do universo.
+   */
+  const mesaClimate = kind === 'campanha' || nav.view === 'rpg'
   // Numa campanha, o universo inteiro fica no clima da mesa (o tema do grupo aberto).
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const campaignGroup = universe.groups.find((g) => g.id === recall(`rpg-grupo:${universe.id}`)) ?? universe.groups[0]
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
-  useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaSector)
+  useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
   const hidden = useMemo(() => hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), [universe, prefs.menus, prefs.hiddenViews])
   const ws: Workspace = useMemo(
     () => ({
@@ -456,6 +444,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const phone = useMediaQuery('(max-width: 760px)')
   // Uma sessão de RPG ao vivo: de qualquer área, um toque volta para ela.
   const liveSession = universe.sessions.find((x) => x.status === 'em-andamento')
+  // Num livro sem Mesa: o caminho para jogar no mesmo mundo, com as fichas do livro.
+  const canPlayHere = kind === 'escrita' && universe.groups.length === 0 && !readOnly && nav.view !== 'rpg'
   const visibleItems = ALL_ITEMS.filter((item) => !item.inside && (item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view))
   // A área marcada no menu: o Mapa, por exemplo, fica dentro de Escrever.
   const area = ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view
@@ -474,10 +464,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
-            shortcuts={mesaSector ? prefs.campaignShortcuts : prefs.phoneShortcuts}
-            defaults={mesaSector ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
-            onShortcuts={(v) => setPref(mesaSector ? 'campaignShortcuts' : 'phoneShortcuts', v)}
-            onBackToWriting={kind === 'escrita' && bookMesa ? () => go('inicio') : undefined}
+            shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
+            defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
+            onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
+            onPlay={canPlayHere ? () => go('rpg') : undefined}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
             onShare={source.kind === 'proprio' ? () => setShareOpen(true) : undefined}
@@ -515,7 +505,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           </button>
 
           <div className="rail-groups">
-            {(mesaSector ? [NAV[0], ...NAV.filter((g) => g.group === 'Mesa'), ...NAV.slice(1).filter((g) => g.group !== 'Mesa')] : NAV).map((g) => {
+            {navFor(kind).map((g) => {
               // Áreas escondidas somem do menu, mas a aberta continua visível.
               const items = g.items.filter((item) => !item.inside && (!hidden.includes(item.view) || area === item.view))
               if (!items.length) return null
@@ -528,6 +518,14 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
                 </div>
               )
             })}
+            {canPlayHere && (
+              <div className="rail-group">
+                <button type="button" className="rail-item rail-play" title="Usar este mundo numa Mesa de RPG, com as fichas do livro" onClick={() => go('rpg')}>
+                  <Dices size={18} aria-hidden="true" />
+                  <span className="rail-label">Jogar neste mundo</span>
+                </button>
+              </div>
+            )}
             <div className="rail-group rail-group-end">
               {TOOLS.filter((t) => t.view !== 'oficina' && (!hidden.includes(t.view) || nav.view === t.view)).map((t) => (
                 <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
@@ -564,12 +562,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
-          {/* A entrada do setor: a porta da mesa numa campanha, a capa do livro na escrita (abrindo direto na mesa, quem recebe é a mesa). */}
-          {kind === 'campanha' ? (
-            <MesaGate name={universe.name || 'Sem nome'} />
-          ) : (
-            openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />
-          )}
+          {/* A capa do livro ao abrir um livro (não ao abrir direto na Mesa). A Mesa não tem porta: a abertura é a da sessão. */}
+          {kind !== 'campanha' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
           {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
           {isSample(universe) && !sampleNoteClosed && (
             <div className="sample-banner" role="status">
@@ -659,6 +653,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           <Tour
             onGo={tourGo}
             hidden={hidden}
+            campaign={kind === 'campanha'}
             onClose={() => {
               setTourOpen(false)
               setPref('tourDone', true)
@@ -829,7 +824,10 @@ function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | 
   }
 }
 
-/** Menu do celular: busca, as primeiras áreas e "Mais" com todas. */
+/**
+ * Menu do celular: quatro áreas fixas, com nome, e "Mais" com todas. A barra não troca sozinha:
+ * aberta uma área que não está nela, o "Mais" acende com o nome dessa área.
+ */
 function PhoneNav({
   items,
   current,
@@ -838,7 +836,7 @@ function PhoneNav({
   shortcuts: chosen,
   defaults,
   onShortcuts,
-  onBackToWriting,
+  onPlay,
   onGo,
   onSearch,
   onLibrary,
@@ -854,8 +852,8 @@ function PhoneNav({
   /** Os atalhos padrão deste tipo de universo. */
   defaults: View[]
   onShortcuts: (v: View[]) => void
-  /** Na mesa de um livro: sair do setor da mesa e voltar à escrita. */
-  onBackToWriting?: () => void
+  /** Num livro sem Mesa: começar uma Mesa neste mesmo mundo. */
+  onPlay?: () => void
   onGo: (v: View) => void
   onSearch: () => void
   onLibrary: () => void
@@ -874,9 +872,9 @@ function PhoneNav({
     .map((v) => ALL_ITEMS.find((i) => i.view === v)?.inside ?? v)
     .filter((v, i, all) => all.indexOf(v) === i && byView(v))
     .slice(0, 4)
-  // A área aberta sempre aparece entre os atalhos.
-  const views = picked.includes(current) || !byView(current) ? picked : [...picked.slice(0, 3), current]
-  const shortcuts = views.map(byView).filter((i): i is NavItem => Boolean(i))
+  const shortcuts = picked.map(byView).filter((i): i is NavItem => Boolean(i))
+  // A área aberta fora da barra: o "Mais" mostra o nome dela.
+  const elsewhere = picked.includes(current) ? undefined : (byView(current) ?? ALL_ITEMS.find((i) => i.view === current))
   const choose = (v: View) => {
     setOpen(false)
     setEditing(false)
@@ -889,6 +887,7 @@ function PhoneNav({
   }
   const grid = items.filter((i) => i.view !== 'oficina')
   const oficina = items.find((i) => i.view === 'oficina')
+  const MoreIcon = elsewhere?.icon ?? Menu
 
   useEffect(() => {
     if (!open) return
@@ -899,55 +898,49 @@ function PhoneNav({
 
   return (
     <nav className="rail rail-phone" aria-label="Áreas" data-tour="menu">
-      <button type="button" className="rail-item" title="Buscar" aria-label="Buscar" onClick={onSearch}>
-        <Search size={18} aria-hidden="true" />
-      </button>
       {shortcuts.map((item) => (
         <RailButton key={item.view} item={item} active={current === item.view} badge={item.view === 'inbox' && inboxCount ? inboxCount : undefined} onClick={() => choose(item.view)} />
       ))}
       <button
         type="button"
-        className="rail-item"
+        className={`rail-item rail-more-btn${elsewhere ? ' is-elsewhere' : ''}`}
         aria-expanded={open}
         aria-controls="menu-mais"
-        aria-label="Mais"
+        aria-current={elsewhere ? 'page' : undefined}
+        aria-label={elsewhere ? `Mais (aberto: ${elsewhere.label})` : 'Mais'}
         title="Mais áreas"
         onClick={() => {
           setOpen(!open)
           setEditing(false)
         }}
       >
-        <Menu size={18} aria-hidden="true" />
-        <span className="rail-more-label">Mais</span>
+        <MoreIcon size={18} aria-hidden="true" />
+        <span className="rail-label">{elsewhere ? elsewhere.label : 'Mais'}</span>
         {inboxCount > 0 && !shortcuts.some((i) => i.view === 'inbox') && <span className="rail-badge" aria-hidden="true" />}
       </button>
       {open && (
         <>
           <div className="rail-more-backdrop" aria-hidden="true" onClick={() => setOpen(false)} />
           <div id="menu-mais" className="rail-more" role="group" aria-label="Todas as áreas">
-            <button type="button" className="rail-more-universe" aria-label={`Voltar ao início (sair de ${universeName || 'Sem nome'})`} onClick={onLibrary}>
+            <button
+              type="button"
+              className="rail-more-search"
+              data-tour="busca"
+              onClick={() => {
+                setOpen(false)
+                onSearch()
+              }}
+            >
+              <Search size={17} aria-hidden="true" />
+              <span>Buscar em tudo</span>
+            </button>
+            <button type="button" className="rail-more-universe" aria-label={`Seus universos (sair de ${universeName || 'Sem nome'})`} onClick={onLibrary}>
               <ArrowLeft size={16} aria-hidden="true" />
               <span className="rail-more-universe-text">
-                <strong>Voltar ao início</strong>
-                <span className="muted tiny">Sair de “{universeName || 'Sem nome'}” · Escrita, RPG e Oficina</span>
+                <strong>Seus universos</strong>
+                <span className="muted tiny">Sair de “{universeName || 'Sem nome'}” e ver os outros</span>
               </span>
             </button>
-            {onBackToWriting && (
-              <button
-                type="button"
-                className="rail-more-universe"
-                onClick={() => {
-                  setOpen(false)
-                  onBackToWriting()
-                }}
-              >
-                <Feather size={16} aria-hidden="true" />
-                <span className="rail-more-universe-text">
-                  <strong>Voltar à escrita</strong>
-                  <span className="muted tiny">Sair da mesa e voltar ao livro</span>
-                </span>
-              </button>
-            )}
             {oficina && !editing && <OficinaCard onClick={() => choose('oficina')} />}
             {editing && <p className="small rail-more-hint">Toque para pôr ou tirar da barra de baixo (até 4; o novo entra no lugar do último).</p>}
             <div className="rail-more-grid">
@@ -969,6 +962,22 @@ function PhoneNav({
                 )
               })}
             </div>
+            {onPlay && !editing && (
+              <button
+                type="button"
+                className="rail-more-universe rail-more-play"
+                onClick={() => {
+                  setOpen(false)
+                  onPlay()
+                }}
+              >
+                <Dices size={16} aria-hidden="true" />
+                <span className="rail-more-universe-text">
+                  <strong>Jogar neste mundo</strong>
+                  <span className="muted tiny">Uma Mesa de RPG com as fichas do livro</span>
+                </span>
+              </button>
+            )}
             <div className="rail-more-foot">
               <button type="button" className="btn btn-ghost btn-sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
                 <Pin size={15} aria-hidden="true" /> {editing ? 'Pronto' : 'Escolher atalhos'}
@@ -993,6 +1002,13 @@ function PhoneNav({
       )}
     </nav>
   )
+}
+
+/** A ordem do menu, fixa para cada tipo de universo: numa campanha, a Mesa vem logo depois do Início. */
+function navFor(kind: UniverseKind) {
+  if (kind !== 'campanha') return NAV
+  const mesa = NAV.filter((g) => g.items.some((i) => i.view === 'rpg'))
+  return [NAV[0], ...mesa, ...NAV.slice(1).filter((g) => !mesa.includes(g))]
 }
 
 /** Faixa no topo de um universo de outra pessoa: de quem é e o que dá para fazer. */
@@ -1055,7 +1071,7 @@ function ReaderOverlay({
         footer={
           preview ? (
             <p className="leitor-preview-note muted tiny">
-              Prévia: é assim que um leitor vê, sem nada secreto. Para esconder um spoiler numa ficha, selecione o trecho e use “Revelar a partir de…”.
+              Prévia: é assim que um leitor vê, sem nada secreto. Para esconder um spoiler numa ficha, selecione o trecho e use “Esconder do leitor até…”.
             </p>
           ) : undefined
         }

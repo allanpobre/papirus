@@ -59,7 +59,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
             <div className="inline-fields">
               {next.status === 'em-andamento' ? (
                 <button type="button" className="btn btn-primary btn-sm" onClick={enterSession}>
-                  <Swords size={14} /> Voltar para a mesa
+                  <Swords size={14} /> Entrar na sessão
                 </button>
               ) : (
                 !readOnly && (
@@ -84,9 +84,9 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
       </section>
 
       <section className="gm-card" data-tour="gm-sistema">
-        <h2 className="section-title">Sistema da mesa</h2>
+        <h2 className="section-title">Sistema do grupo</h2>
         <Select
-          label="Sistema da mesa"
+          label="Sistema do grupo"
           value={group.systemId ?? ''}
           onChange={chooseSystem}
           options={[
@@ -103,7 +103,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
         <p className="muted small">
           {system
             ? `${system.attributes.length} atributos, ${system.resources.length} recursos, ${system.skills.length} perícias. Iniciativa: ${system.initiativeFormula}.`
-            : 'Sem sistema, a mesa usa d20 simples e fichas só com anotações.'}
+            : 'Sem sistema, o grupo usa d20 simples e fichas só com anotações.'}
         </p>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => onGo('sistemas')}>
           Editar sistemas
@@ -168,7 +168,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
           <EyeOff size={15} aria-hidden="true" /> Segredos ainda guardados
         </h2>
         {secrets.length === 0 && secretFacts.length === 0 ? (
-          <p className="muted small">Nada secreto escondido desta mesa.</p>
+          <p className="muted small">Nada secreto escondido deste grupo.</p>
         ) : (
           <ul className="plain-list small">
             {secrets.map((e) => (
@@ -222,13 +222,13 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
       </section>
 
       <section className="gm-card" data-tour="gm-mesas">
-        <h2 className="section-title">Mesas</h2>
+        <h2 className="section-title">Grupos</h2>
         <ul className="plain-list">
           {universe.groups.map((g) => (
             <li key={g.id} className="group-row">
-              <input className="input input-sm" aria-label="Nome da mesa" value={g.name} onChange={(e) => update((u) => patch(u, 'groups', g.id, { name: e.target.value }))} />
-              <ConfirmButton className="btn-icon btn-sm" title="Apagar mesa" question="Apagar a mesa e suas revelações?" confirmLabel="Apagar" onConfirm={() => undoable('Mesa apagada', (u) => removeGroup(u, g.id))}>
-                <Trash2 size={14} aria-label="Apagar mesa" />
+              <input className="input input-sm" aria-label="Nome do grupo" value={g.name} onChange={(e) => update((u) => patch(u, 'groups', g.id, { name: e.target.value }))} />
+              <ConfirmButton className="btn-icon btn-sm" title="Apagar grupo" question="Apagar o grupo e as revelações dele?" confirmLabel="Apagar" onConfirm={() => undoable('Grupo apagado', (u) => removeGroup(u, g.id))}>
+                <Trash2 size={14} aria-label="Apagar grupo" />
               </ConfirmButton>
             </li>
           ))}
@@ -243,14 +243,14 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
           }}
         >
           <label htmlFor="grupo-extra" className="sr-only">
-            Nova mesa
+            Novo grupo
           </label>
-          <input id="grupo-extra" className="input input-sm" placeholder="Outra mesa…" value={newGroup} onChange={(e) => setNewGroup(e.target.value)} />
+          <input id="grupo-extra" className="input input-sm" placeholder="Outro grupo…" value={newGroup} onChange={(e) => setNewGroup(e.target.value)} />
           <button type="submit" className="btn btn-ghost btn-sm">
-            <Plus size={14} /> Mesa
+            <Plus size={14} /> Grupo
           </button>
         </form>
-        <p className="muted tiny">Cada mesa tem o próprio sistema, personagens e Codex: duas mesas no mesmo mundo podem saber coisas diferentes.</p>
+        <p className="muted tiny">Cada grupo tem o próprio sistema, personagens e Codex: dois grupos no mesmo mundo podem saber coisas diferentes.</p>
       </section>
     </div>
   )

@@ -19,14 +19,23 @@ const RULES: [RegExp, FamilyLink['kind'], boolean][] = [
 
 export function familyLinks(universe: Universe): FamilyLink[] {
   const out: FamilyLink[] = []
-  for (const r of universe.relations) {
-    const t = fold(r.type.trim())
+  const seen = new Set<string>()
+  const add = (fromId: string, toId: string, type: string) => {
+    const t = fold(type.trim())
     const rule = RULES.find(([re]) => re.test(t))
-    if (!rule) continue
+    if (!rule || fromId === toId) return
     const [, kind, invert] = rule
     // Em "pais"/"avos", a = o mais velho.
-    out.push(invert ? { kind, a: r.toId, b: r.fromId } : { kind, a: r.fromId, b: r.toId })
+    const link = invert ? { kind, a: toId, b: fromId } : { kind, a: fromId, b: toId }
+    // A mesma ligação escrita duas vezes (na relação e num campo) entra uma vez só.
+    const key = kind === 'casal' || kind === 'irmaos' ? `${kind}:${[link.a, link.b].sort().join(':')}` : `${kind}:${link.a}:${link.b}`
+    if (seen.has(key)) return
+    seen.add(key)
+    out.push(link)
   }
+  for (const r of universe.relations) add(r.fromId, r.toId, r.type)
+  // Campos que apontam para outra ficha também contam: "Mãe: Ilsa" na ficha do Kael é "Ilsa mãe de Kael".
+  for (const e of universe.entities) for (const f of e.fields) if (f.type === 'ficha' && f.ref) add(f.ref, e.id, f.key)
   return out
 }
 

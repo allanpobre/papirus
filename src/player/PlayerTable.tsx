@@ -18,7 +18,7 @@ const FREE = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
 type Tab = 'eu' | 'mesa' | 'codex'
 const TABS: [Tab, string, LucideIcon][] = [
   ['eu', 'Eu', UserRound],
-  ['mesa', 'Mesa', Theater],
+  ['mesa', 'Palco', Theater],
   ['codex', 'Codex', BookOpen],
 ]
 
@@ -173,7 +173,7 @@ export function PlayerTable({
   const whoAmI = (
         <section className="player-who" aria-labelledby="player-who">
           <h2 id="player-who" className="player-who-title">
-            Quem é você na mesa?
+            Qual é o seu personagem?
           </h2>
           <p className="muted small">Para rolar pela sua ficha. As rolagens aparecem para o mestre e para o grupo.</p>
           <div className="chips">
@@ -206,7 +206,7 @@ export function PlayerTable({
       </section>
     ),
     mesa: (
-      <section key="mesa" className="player-panel player-live-board" aria-label="Mesa" hidden={off('mesa')}>
+      <section key="mesa" className="player-panel player-live-board" aria-label="Palco" hidden={off('mesa')}>
         {live}
         <SceneBoard codex={codex} />
         {combat && <CombatBoard combat={combat} me={me} />}

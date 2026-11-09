@@ -1,5 +1,6 @@
 import { kindLabel } from '../model/labels'
 import type { Universe } from '../model/schema'
+import { sceneTitle } from '../model/universe'
 import { factSentence } from './codex'
 import { fold, snippet } from './text'
 
@@ -42,7 +43,7 @@ export function searchUniverse(universe: Universe, query: string, limit = 30): S
     results.push({
       kind: 'cena',
       id: sc.id,
-      title: sc.title || 'Sem título',
+      title: sceneTitle(sc),
       detail: i >= 0 ? snippet(sc.text, i, i + q.length, 40) : sc.synopsis || 'Cena',
       score: s,
     })

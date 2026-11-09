@@ -4,6 +4,7 @@ import { fold } from '../../logic/text'
 import type { GameSystem, Sheet } from '../../model/schema'
 import { byId, insert, patch, removeSheet } from '../../model/universe'
 import { modifier } from '../../rpg/rolls'
+import { linkToWorld } from '../../rpg/oneCharacter'
 import { adjustResource, attributeOf, draftSheet, isPool } from '../../rpg/sheets'
 import { recall, remember } from '../../state/prefs'
 import { Picture } from '../../images/Picture'
@@ -28,7 +29,12 @@ export function SheetsTab() {
   const sheets = universe.sheets
     .filter((s) => s.groupId === group.id && (role === 'todos' || s.role === role))
     .sort((a, b) => (a.role === b.role ? a.name.localeCompare(b.name, 'pt') : a.role === 'pj' ? -1 : 1))
-  const [openId, setOpenId] = useState<string | null>(sheets[0]?.id ?? null)
+  // Vindo da aba Jogo de uma ficha do Mundo, abre aquela ficha de jogo.
+  const [openId, setOpenId] = useState<string | null>(() => {
+    const asked = recall('rpg-ficha')
+    if (asked) remember('rpg-ficha', null)
+    return sheets.find((s) => s.id === asked)?.id ?? sheets[0]?.id ?? null
+  })
   const open = openId ? byId(universe, 'sheets', openId) : undefined
 
   return (
@@ -43,7 +49,8 @@ export function SheetsTab() {
             update((u) => {
               const [next, s] = insert(u, 'sheets', draftSheet(name.trim(), system ?? null, { role: newRole, groupId: group.id, player: newRole === 'pj' ? player.trim() : '' }))
               id = s.id
-              return next
+              // Personagem de jogador é um personagem do Mundo também: ganha a ficha lá (ou liga à de mesmo nome).
+              return newRole === 'pj' ? linkToWorld(next, s.id) : next
             })
             setName('')
             setPlayer('')

@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, FilePlus2, FolderPlus, Trash2 } from 'lucide-react'
 import { SCENE_STATUS_LABEL } from '../../model/labels'
 import type { Scene } from '../../model/schema'
-import { addScene, addStory, moveScene, removeStory, renameStory, scenesOf } from '../../model/universe'
+import { addScene, addStory, moveScene, removeStory, renameStory, sceneTitle, scenesOf } from '../../model/universe'
 import { wordCount } from '../../persistence/repository'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
@@ -31,14 +31,14 @@ export function ManuscriptTree({ selectedId, onSelect }: { selectedId: string | 
             onClick={() => onSelect(s.id)}
           >
             <span className={`status-dot status-${s.status}`} title={SCENE_STATUS_LABEL[s.status]} aria-hidden="true" />
-            <span className="tree-scene-title">{s.title || 'Sem título'}</span>
+            <span className="tree-scene-title">{sceneTitle(s)}</span>
             <span className="tree-scene-words">{wordCount(s.text) || ''}</span>
           </button>
           <span className="tree-scene-move">
             <button
               type="button"
               className="btn-icon btn-xs"
-              aria-label={`Subir ${s.title}`}
+              aria-label={`Subir ${sceneTitle(s)}`}
               disabled={i === 0}
               onClick={() => update((u) => moveScene(u, s.id, -1))}
             >
@@ -47,7 +47,7 @@ export function ManuscriptTree({ selectedId, onSelect }: { selectedId: string | 
             <button
               type="button"
               className="btn-icon btn-xs"
-              aria-label={`Descer ${s.title}`}
+              aria-label={`Descer ${sceneTitle(s)}`}
               disabled={i === scenes.length - 1}
               onClick={() => update((u) => moveScene(u, s.id, 1))}
             >
@@ -91,13 +91,13 @@ export function ManuscriptTree({ selectedId, onSelect }: { selectedId: string | 
         )
       })}
 
-      <section className="tree-story" aria-label="Cenas soltas">
+      <section className="tree-story" aria-label="Sem capítulo">
         <div className="tree-story-head">
-          <h3 className="tree-loose">Cenas soltas</h3>
+          <h3 className="tree-loose">Sem capítulo</h3>
         </div>
         {list(scenesOf(universe, null))}
         <button type="button" className="tree-add" onClick={() => newScene(null)}>
-          <FilePlus2 size={14} /> Nova cena solta
+          <FilePlus2 size={14} /> Nova cena sem capítulo
         </button>
       </section>
 

@@ -7,7 +7,7 @@ import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { Empty, Field, Select } from '../ui/bits'
 import { EntityMultiPicker } from '../ui/EntityPicker'
-import { PageHelp } from '../ui/PageTour'
+import { ViewTop } from '../ui/ViewTop'
 
 interface Exchange {
   question: string
@@ -98,13 +98,15 @@ export default function ArchivistView() {
 
   return (
     <div className="view archivist-view">
-      <header className="view-head view-head-wide">
-        <h1>Perguntar ao mundo</h1>
-        <PageHelp tour="archivist" />
-        <button type="button" className="btn btn-ghost" aria-expanded={showKey} onClick={() => setShowKey(!showKey)}>
-          <KeyRound size={16} /> Chave e modelo
-        </button>
-      </header>
+      <ViewTop
+        area="Perguntar ao mundo"
+        tour="archivist"
+        actions={
+          <button type="button" className="btn btn-ghost" aria-expanded={showKey} onClick={() => setShowKey(!showKey)}>
+            <KeyRound size={16} /> Chave e modelo
+          </button>
+        }
+      />
       <p className="muted small view-lede">
         Opcional. Pergunte sobre a sua lore: lacunas, contradições, consequências. O Archivist só lê os registros enviados, separa o registrado do inferido e
         nunca muda nada sozinho. Tudo o mais no Papirus funciona sem IA.

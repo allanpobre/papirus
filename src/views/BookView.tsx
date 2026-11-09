@@ -19,7 +19,7 @@ import { useShelfStatus } from '../social/useShelfSync'
 import { BookImport } from './BookImport'
 import { BookReadersDialog } from './BookReaders'
 import { readersSummary, useBookReaders } from './readersData'
-import { PageHelp } from '../ui/PageTour'
+import { ViewTop } from '../ui/ViewTop'
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
 
@@ -61,27 +61,29 @@ export default function BookView() {
 
   return (
     <div className="view book-view">
-      <header className="view-head">
-        <h1>Livros</h1>
-        <PageHelp tour="livro" />
-        {!readOnly && (
-          <span className="book-head-actions">
-            <button type="button" className="btn btn-sm btn-ghost" aria-expanded={importing} onClick={() => setImporting(!importing)}>
-              <Upload size={15} /> Importar
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm"
-              onClick={() => {
-                setStyleFrom(selected?.id ?? '')
-                setAdding(true)
-              }}
-            >
-              <Plus size={15} /> Novo livro
-            </button>
-          </span>
-        )}
-      </header>
+      <ViewTop
+        area="Publicar"
+        tour="livro"
+        actions={
+          !readOnly && (
+            <span className="book-head-actions">
+              <button type="button" className="btn btn-sm btn-ghost" aria-expanded={importing} onClick={() => setImporting(!importing)}>
+                <Upload size={15} /> Importar
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => {
+                  setStyleFrom(selected?.id ?? '')
+                  setAdding(true)
+                }}
+              >
+                <Plus size={15} /> Novo livro
+              </button>
+            </span>
+          )
+        }
+      />
 
       {importing && (
         <section className="book-new" aria-label="Importar um texto">
@@ -341,7 +343,7 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
       ...text,
       action: (
         <button type="button" className="btn btn-sm btn-ghost" onClick={() => go('organizar')}>
-          Ver no Mapa
+          Ver na Estrutura
         </button>
       ),
     },

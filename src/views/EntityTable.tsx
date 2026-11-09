@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { ageIn } from '../logic/age'
 import { unmarkReveals } from '../logic/reveals'
 import { fold } from '../logic/text'
+import { derivedValue } from '../logic/derivedFields'
 import { inheritedFields, membershipsOf } from '../model/lists'
 import { kindLabel } from '../model/labels'
 import type { Entity } from '../model/schema'
@@ -66,11 +67,14 @@ export function EntityTable({ rows, kind, counts, onOpen }: { rows: Entity[]; ki
   const [sort, setSort] = useState<{ col: string; dir: 1 | -1 }>({ col: 'nome', dir: 1 })
   const [editing, setEditing] = useState<{ id: string; col: string } | null>(null)
 
+  // O valor da célula: o da ficha; se vazio, o da lista ("de Ostria"); se não, o que as ligações ou o nascimento dizem.
   const fieldValue = (e: Entity, key: string): { value: string; from?: string } => {
     const own = e.fields.find((f) => fold(f.key.trim()) === key)
-    if (own) return { value: own.type === 'ficha' && own.ref ? own.value : own.value }
+    if (own && (own.value.trim() || own.ref)) return { value: own.value }
     const inh = (inherited.get(e.id) ?? []).find((i) => fold(i.key.trim()) === key)
-    return inh ? { value: inh.value, from: universe.entities.find((x) => x.id === inh.ownerId)?.name } : { value: '' }
+    if (inh) return { value: inh.value, from: `de ${universe.entities.find((x) => x.id === inh.ownerId)?.name ?? 'uma lista'}` }
+    const derived = own ? derivedValue(universe, e, own.key) : null
+    return derived ? { value: derived.text, from: derived.via } : { value: '' }
   }
   const text = (e: Entity, col: string): string => {
     if (col === 'nome') return e.name
@@ -135,7 +139,7 @@ export function EntityTable({ rows, kind, counts, onOpen }: { rows: Entity[]; ki
         {c.editable && !readOnly ? (
           <button type="button" className="table-cell" aria-label={`${c.label} de ${e.name}: ${value || 'vazio'}`} onClick={() => setEditing({ id: e.id, col: c.id })}>
             {value || <span className="muted">—</span>}
-            {f?.from && <span className="table-from">de {f.from}</span>}
+            {f?.from && <span className="table-from">{f.from}</span>}
           </button>
         ) : (
           value
