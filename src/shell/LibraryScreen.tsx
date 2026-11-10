@@ -49,6 +49,7 @@ import { migrate } from '../model/migrations'
 import { restoreEmbeddedImages } from '../images/backup'
 import { setImageServer } from '../images/resolve'
 import { Picture } from '../images/Picture'
+import { GeneratedCover } from '../ui/GeneratedCover'
 import { sampleUniverse } from '../model/sample'
 import type { Universe } from '../model/schema'
 import { createUniverse, newId } from '../model/universe'
@@ -453,6 +454,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     } as React.CSSProperties
   }
 
+  /** O nome que dá a cor e o desenho da capa gerada (o exemplo, sem o "Exemplo —"). */
+  const coverName = (e: LibraryEntry) => cleanName(e.name).replace(/^Exemplo\s*[—–-]\s*/, '') || 'Sem nome'
+
   const when = (e: LibraryEntry) => (
     <time dateTime={e.updatedAt} title={dateFmt.format(new Date(e.updatedAt))}>
       {relativeDate(e.updatedAt)}
@@ -462,15 +466,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const universeItem = (e: LibraryEntry, view?: View) => (
     <li key={e.id} className={`library-item${themeStyle(e) ? ' is-themed' : ''}${e.sample ? ' is-sample' : ''}`} style={themeStyle(e)}>
       <button type="button" className="library-open" onClick={() => onOpen(e.id, view)}>
-        {e.cover ? (
-          <Picture value={e.cover} className="library-cover" />
-        ) : e.kind === 'campanha' ? (
-          <Dices size={20} aria-hidden="true" />
-        ) : (
-          <span className="library-initial" aria-hidden="true">
-            {(cleanName(e.name) || '?').slice(0, 1).toLocaleUpperCase('pt-BR')}
-          </span>
-        )}
+        {e.cover ? <Picture value={e.cover} className="library-cover" /> : <GeneratedCover name={coverName(e)} tone={themeStyle(e) ? 'var(--accent)' : undefined} className="library-cover" />}
         <span className="library-name">
           {/* O selo já diz que é exemplo: o nome fica só com o título. */}
           {e.sample ? (
@@ -599,7 +595,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   /** O cartão grande do começo: voltar para onde parou. */
   const continueCard = (e: LibraryEntry, label: string, view?: View) => (
     <button type="button" className={`hub-continue${themeStyle(e) ? ' is-themed' : ''}`} style={themeStyle(e)} onClick={() => onOpen(e.id, view)}>
-      {e.cover ? <Picture value={e.cover} className="hub-continue-cover" /> : <span className="hub-continue-cover hub-continue-blank" aria-hidden="true">{(e.name || '?').slice(0, 1)}</span>}
+      {e.cover ? <Picture value={e.cover} className="hub-continue-cover" /> : <GeneratedCover name={coverName(e)} tone={themeStyle(e) ? 'var(--accent)' : undefined} className="hub-continue-cover" />}
       <span className="hub-continue-text">
         <span className="hub-kicker">{label}</span>
         <strong className="hub-continue-name">{cleanName(e.name) || 'Sem nome'}</strong>

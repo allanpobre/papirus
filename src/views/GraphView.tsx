@@ -1,8 +1,9 @@
 import { FamilyTree } from './FamilyTree'
 import { familyLinks } from '../logic/family'
 import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { forceLayout, neighborhood, type GraphEdge, type Point } from '../logic/graph'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useImageSrc } from '../images/resolve'
+import { forceLayout, neighborhood, placeLabels, type GraphEdge, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
 import { appearances } from '../logic/reader'
 import { formatDate } from '../logic/calendar'
@@ -14,8 +15,11 @@ import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
 import { AreaHead } from './AreaModes'
 
-const W = 1200
-const H = 800
+/** Tamanho do desenho antes de medir a tela (e nos testes sem tela). */
+const FALLBACK = { w: 1200, h: 800 }
+const LABEL_SIZE = 13
+/** Altura da faixa dos botões de zoom, no celular (deitados, embaixo). */
+const CONTROLS = 52
 
 interface Edge extends GraphEdge {
   id: string
@@ -33,7 +37,7 @@ const ease = (t: number) => 1 - Math.pow(1 - t, 3)
  * Posições mostradas na tela, animadas até o alvo do layout. Ao abrir, as fichas
  * saem do centro e se acomodam; ao mudar o filtro, deslizam para o novo lugar.
  */
-function useAnimatedPositions(target: Map<string, Point>): Map<string, Point> {
+function useAnimatedPositions(target: Map<string, Point>, center: Point): Map<string, Point> {
   const [shown, setShown] = useState<Map<string, Point>>(() => (calm() ? target : new Map()))
   const shownRef = useRef(shown)
   useEffect(() => {
@@ -51,7 +55,7 @@ function useAnimatedPositions(target: Map<string, Point>): Map<string, Point> {
       const prev = shownRef.current.get(id)
       // Fichas novas nascem perto do centro, cada uma num ângulo, e "abrem" para o lugar delas.
       const a = i++ * 2.399963
-      from.set(id, prev ?? { x: W / 2 + Math.cos(a) * 30, y: H / 2 + Math.sin(a) * 30 })
+      from.set(id, prev ?? { x: center.x + Math.cos(a) * 30, y: center.y + Math.sin(a) * 30 })
     }
     const start = performance.now()
     const duration = 900
@@ -69,9 +73,57 @@ function useAnimatedPositions(target: Map<string, Point>): Map<string, Point> {
     }
     frame = requestAnimationFrame(step)
     return () => cancelAnimationFrame(frame)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target])
 
   return shown
+}
+
+/**
+ * O tamanho da área do desenho na tela, em pixels (arredondado, para o desenho não se refazer a
+ * cada pixel ao redimensionar). O grafo é desenhado nessa medida: 1 unidade = 1 pixel, então os
+ * nomes têm o mesmo tamanho no celular e no monitor largo, e o desenho ocupa a área que há.
+ */
+function useBoxSize(): [(el: HTMLElement | null) => void, { w: number; h: number } | null] {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null)
+  const observer = useRef<ResizeObserver | null>(null)
+  const ref = useCallback((el: HTMLElement | null) => {
+    observer.current?.disconnect()
+    observer.current = null
+    if (!el) return
+    const measure = () => {
+      const r = el.getBoundingClientRect()
+      if (!(r.width > 0 && r.height > 0)) return
+      const next = { w: Math.max(280, Math.round(r.width / 20) * 20), h: Math.max(320, Math.round(r.height / 20) * 20) }
+      setSize((s) => (s && s.w === next.w && s.h === next.h ? s : next))
+    }
+    measure()
+    if (typeof ResizeObserver !== 'undefined') {
+      observer.current = new ResizeObserver(measure)
+      observer.current.observe(el)
+    }
+  }, [])
+  return [ref, size]
+}
+
+/** O retrato da ficha dentro da bolinha (se ela tem imagem); senão, a inicial. */
+function NodeFace({ id, name, image, r }: { id: string; name: string; image: string | null | undefined; r: number }) {
+  const src = useImageSrc(image)
+  if (src) {
+    return (
+      <>
+        <clipPath id={`rosto-${id}`}>
+          <circle r={r - 1.5} />
+        </clipPath>
+        <image className="node-face" href={src} x={-r} y={-r} width={2 * r} height={2 * r} preserveAspectRatio="xMidYMid slice" clipPath={`url(#rosto-${id})`} aria-hidden="true" />
+      </>
+    )
+  }
+  return (
+    <text className="node-face node-initial" dy="0.36em" fontSize={Math.round(r * 0.95)} aria-hidden="true">
+      {(name.trim()[0] ?? '?').toLocaleUpperCase('pt-BR')}
+    </text>
+  )
 }
 
 export default function GraphView() {
@@ -89,6 +141,9 @@ export default function GraphView() {
   const [playing, setPlaying] = useState(false)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const [wrapRef, measured] = useBoxSize()
+  const { w: W, h: H } = measured ?? FALLBACK
+  const narrow = W < 560
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<{ d: number; k: number } | null>(null)
   const endPointer = (e: React.PointerEvent) => {
@@ -163,16 +218,18 @@ export default function GraphView() {
   }, [universe.entities, edges, hiddenKinds, focusId, depth, onlyConnected])
 
   // O layout usa todas as ligações visíveis (não só as do momento), para que as fichas não pulem com o tempo.
-  const layoutKey = nodes.map((n) => n.id).join(',') + '|' + visibleEdges.map((e) => e.from + e.to).join(',')
+  const layoutKey = nodes.map((n) => n.id).join(',') + '|' + visibleEdges.map((e) => e.from + e.to).join(',') + `|${W}x${H}`
   const target = useMemo(
     () => {
       const springs = [...visibleEdges, ...visibleEdges.filter((e) => e.kind === 'por-tras').map((e) => ({ from: e.from, to: e.relation!.toId }))]
-      return forceLayout(nodes.map((n) => ({ id: n.id })), springs, { width: W, height: H })
+      // A margem deixa lugar para os nomes em volta das bolinhas da borda.
+      // No celular, a faixa de baixo fica para os botões de zoom.
+      return forceLayout(nodes.map((n) => ({ id: n.id })), springs, { width: W, height: narrow ? H - CONTROLS : H, margin: narrow ? 56 : 80, stretch: narrow ? 1.7 : 2.2 })
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [layoutKey],
   )
-  const pos = useAnimatedPositions(target)
+  const pos = useAnimatedPositions(target, { x: W / 2, y: H / 2 })
 
   // Num ponto da história, só entra no mapa quem já apareceu até a cena (no texto, no elenco, como POV ou lugar).
   const firstSeen = useMemo(() => appearances(scenes, universe.entities).first, [scenes, universe.entities])
@@ -189,7 +246,20 @@ export default function GraphView() {
     degree.set(e.from, (degree.get(e.from) ?? 0) + 1)
     degree.set(e.to, (degree.get(e.to) ?? 0) + 1)
   }
-  const radius = (id: string) => 13 + Math.min(10, (degree.get(id) ?? 0) * 1.5)
+  const radius = (id: string) => (narrow ? 11 + Math.min(7, (degree.get(id) ?? 0) * 1.1) : 14 + Math.min(10, (degree.get(id) ?? 0) * 1.5))
+  // Os nomes desviam uns dos outros e das bolinhas; quem tem mais ligações escolhe o lugar primeiro.
+  const labels = useMemo(
+    () =>
+      placeLabels(
+        [...nodes]
+          .sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0))
+          .map((n) => ({ id: n.id, width: (n.name || 'Sem nome').length * LABEL_SIZE * 0.6 + 8, height: LABEL_SIZE * 1.3, r: radius(n.id) })),
+        target,
+        { width: W, height: narrow ? H - CONTROLS : H, pad: 8, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [target, nodes],
+  )
   const kinds = [...new Set(universe.entities.map((e) => e.kind))]
   const sel = selected ? byId(universe, 'entities', selected) : undefined
   const focus = hovered ?? selected
@@ -367,7 +437,7 @@ export default function GraphView() {
           <p>Adicione ligações nas fichas (“irmão de”, “serve a”…). Elas aparecem aqui como um mapa.</p>
         </Empty>
       ) : (
-        <div className="graph-wrap">
+        <div className="graph-wrap" ref={wrapRef}>
           <svg
             ref={svgRef}
             className="graph"
@@ -466,7 +536,8 @@ export default function GraphView() {
                   >
                     <path d={`M${a.x},${a.y} L${bx},${by}`} pathLength={e.kind === 'relacao' && e.canon !== 'rumor' ? 1 : undefined} markerEnd="url(#arrow)" />
                     {lit && (
-                      <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 5} className="edge-label">
+                      // Duas ligações entre as mesmas fichas ("desconfia de" e "protege"): um nome em cima do outro, não por cima.
+                      <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 5 - 15 * focusEdges.filter((f) => f.kind !== 'por-tras' && ((f.from === e.from && f.to === e.to) || (f.from === e.to && f.to === e.from))).indexOf(e)} className="edge-label">
                         {e.label}
                       </text>
                     )}
@@ -504,7 +575,8 @@ export default function GraphView() {
                   >
                     {n.id === selected && <circle r={r + 7} className="node-ring" />}
                     <circle r={r} />
-                    <text y={r + 17} className="node-label">
+                    <NodeFace id={n.id} name={n.name} image={n.image} r={r} />
+                    <text x={labels.get(n.id)?.dx ?? 0} y={labels.get(n.id)?.dy ?? r + 17} textAnchor={labels.get(n.id)?.anchor ?? 'middle'} className="node-label">
                       {n.name}
                     </text>
                   </g>

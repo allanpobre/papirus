@@ -12,6 +12,7 @@ import { recall, remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
 import { MoreMenu } from '../ui/MoreMenu'
 import { PageHelp } from '../ui/PageTour'
+import { GeneratedCover } from '../ui/GeneratedCover'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { FirstSteps } from './FirstSteps'
 import { NextNote } from './NextNote'
@@ -111,13 +112,7 @@ export default function HomeView() {
     <div className="view home">
       <header className="home-today" data-tour="hoje">
         <div className="home-id">
-          {cover ? (
-            <Picture value={cover} className="home-thumb" />
-          ) : (
-            <span className="home-thumb is-letter" aria-hidden="true">
-              {(universe.name || 'P').trim().charAt(0).toUpperCase()}
-            </span>
-          )}
+          {cover ? <Picture value={cover} className="home-thumb" /> : <GeneratedCover name={universe.name.replace(/^Exemplo\s*[—–-]\s*/, '')} tone={universeKind(universe) === 'campanha' ? 'var(--accent)' : undefined} className="home-thumb" />}
           <div className="home-id-text">
             <p className="eyebrow">
               {greeting()} · {todayLabel}
@@ -168,7 +163,8 @@ export default function HomeView() {
               <BookOpen size={16} aria-hidden="true" /> <span>Ler</span>
             </button>
           )}
-          {source.kind === 'proprio' && (
+          {/* No celular, os botões cabem numa linha: Compartilhar vai para o ⋯ (e está no "Mais" da barra de baixo). */}
+          {source.kind === 'proprio' && !phone && (
             <button type="button" className="home-quick-btn has-label" aria-label="Compartilhar" title="Compartilhar" onClick={openShare}>
               <Users size={16} aria-hidden="true" /> <span>Compartilhar</span>
             </button>
@@ -178,6 +174,18 @@ export default function HomeView() {
           <MoreMenu label="Mais do universo" buttonClass="home-quick-btn">
             {(close) => (
               <>
+                {source.kind === 'proprio' && phone && (
+                  <button
+                    type="button"
+                    className="more-menu-item"
+                    onClick={() => {
+                      close()
+                      openShare()
+                    }}
+                  >
+                    <Users size={16} aria-hidden="true" /> Compartilhar
+                  </button>
+                )}
                 {!readOnly && (
                   <button
                     type="button"

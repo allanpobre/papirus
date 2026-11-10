@@ -268,7 +268,7 @@ export default function EntitiesView() {
         )}
         {list.length === 0 ? (
           <Empty icon={<BookMarked size={28} />} title={universe.entities.length ? 'Nada com esse filtro.' : 'Nenhuma ficha ainda.'}>
-            {!universe.entities.length && <p>Crie uma acima, ou selecione um nome no texto e escolha “Ficha”.</p>}
+            {!universe.entities.length && <p>{phone ? 'Toque no + para criar uma' : 'Crie uma acima'}, ou selecione um nome no texto e escolha “Ficha”.</p>}
           </Empty>
         ) : (
           <ul className="entity-list">

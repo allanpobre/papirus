@@ -1799,14 +1799,6 @@ body:has(.rail-phone) .toasts {
   box-shadow: var(--shadow-1);
 }
 
-.hub-continue-blank {
-  display: grid;
-  place-items: center;
-  background: linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--ink)));
-  color: var(--accent-ink);
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-}
 
 .hub-continue-text {
   flex: 1;
@@ -2100,7 +2092,7 @@ body:has(.rail-phone) .toasts {
     var(--bg);
 }
 
-.hub-escrita .hub-continue-blank {
+.hub-escrita .hub-continue-cover.gen-cover {
   animation: hub-book 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
   transform-origin: left center;
 }
@@ -2269,21 +2261,7 @@ body:has(.rail-phone) .live-return {
   color: var(--sky, var(--accent));
 }
 
-/* Lista de universos: a inicial no lugar da capa, o selo do exemplo e o ··· de cada um. */
-.library-initial {
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  background: var(--accent-faint);
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
+/* Lista de universos: o selo do exemplo e o ··· de cada um. */
 .library-name .sample-chip {
   margin-left: 0.5rem;
   vertical-align: 0.2em;
@@ -2299,11 +2277,6 @@ body:has(.rail-phone) .live-return {
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-.library-item.is-sample .library-initial {
-  background: var(--ochre-soft);
-  color: var(--ochre);
 }
 
 .library-item > .more-menu {
