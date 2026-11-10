@@ -39,11 +39,11 @@ import {
   Wand2,
 } from 'lucide-react'
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
-import { cleanName, isCloudCopy } from '../persistence/cloudCopy'
+import { cleanName, families } from '../persistence/cloudCopy'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
 import { useCloudStatus } from '../account/useCloud'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { leaveShared, mySharedIds, sharedWithMe, shortName, stopSharing, type SharedWithMe } from '../share/sharing'
 import { migrate } from '../model/migrations'
 import { restoreEmbeddedImages } from '../images/backup'
@@ -222,12 +222,16 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
   const chosen = UNIVERSE_TEMPLATES.find((t) => t.id === template) ?? UNIVERSE_TEMPLATES[0]
   const [creating, setCreating] = useState(false)
-  const sampleEntry = entries.find((e) => e.sample)
-  const own = entries.filter((e) => e !== sampleEntry)
+  // Um item por universo: as versões guardadas (cópias de quando os dois lados mudaram) ficam dentro do universo delas.
+  const fams = useMemo(() => families(entries), [entries])
+  const versionsOf = useMemo(() => new Map(fams.map((f) => [f.main.id, f.versions])), [fams])
+  const mains = useMemo(() => fams.map((f) => f.main), [fams])
+  const sampleEntry = mains.find((e) => e.sample)
+  const own = mains.filter((e) => e !== sampleEntry)
   const writing = own.filter((e) => e.kind !== 'campanha')
   const campaigns = own.filter((e) => e.kind === 'campanha')
   // Universos de escrita que também têm uma mesa (o exemplo, por exemplo).
-  const tablesInBooks = entries.filter((e) => e.kind !== 'campanha' && e.sessions !== undefined)
+  const tablesInBooks = mains.filter((e) => e.kind !== 'campanha' && e.sessions !== undefined)
   // Livros sem Mesa: dá para começar uma Mesa no mesmo mundo.
   const booksToPlay = writing.filter((e) => e.sessions === undefined)
   const openSample = () => (sampleEntry ? onOpen(sampleEntry.id) : void sampleUniverse().then(onCreated))
@@ -463,7 +467,31 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     </time>
   )
 
-  const universeItem = (e: LibraryEntry, view?: View) => (
+  /** Apaga daqui e, se subiu algum dia, da conta. */
+  const removeEverywhere = async (e: LibraryEntry) => {
+    await library.remove(e.id)
+    if (!account.user || !account.server || !synced[e.id]) return
+    try {
+      const sb = await authClient(account.server)
+      if (mine.has(e.id)) await stopSharing(sb, account.user.id, e.id)
+      await removeFromCloud(sb, account.user.id, e.id)
+    } catch (err) {
+      setError(`Apagado aqui, mas não na conta: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  /** O lado da nuvem da dupla: igual ao deste aparelho, a caminho, ou parado. */
+  const cloudSide = (e: LibraryEntry): { state: 'ok' | 'busy' | 'warn'; text: string } => {
+    const last = synced[e.id]
+    if (last && Date.parse(last) === Date.parse(e.updatedAt)) return { state: 'ok', text: 'igual' }
+    if (cloud.state === 'sincronizando') return { state: 'busy', text: 'enviando…' }
+    if (cloud.state === 'erro') return { state: 'warn', text: 'não sincronizou' }
+    return { state: 'busy', text: 'falta enviar' }
+  }
+
+  const universeItem = (e: LibraryEntry, view?: View) => {
+    const versions = versionsOf.get(e.id) ?? []
+    return (
     <li key={e.id} className={`library-item${themeStyle(e) ? ' is-themed' : ''}${e.sample ? ' is-sample' : ''}`} style={themeStyle(e)}>
       <button type="button" className="library-open" onClick={() => onOpen(e.id, view)}>
         {e.cover ? <Picture value={e.cover} className="library-cover" /> : <GeneratedCover name={coverName(e)} tone={themeStyle(e) ? 'var(--accent)' : undefined} className="library-cover" />}
@@ -490,16 +518,6 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
               {when(e)}
             </>
           )}
-          {isCloudCopy(e) ? (
-            <>
-              {' · '}
-              <span className="cloud-tag" title="Este universo mudou aqui e em outro aparelho ao mesmo tempo: esta é a versão que estava na nuvem, guardada ao lado.">
-                <Cloud size={13} aria-hidden="true" /> versão da nuvem
-              </span>
-            </>
-          ) : (
-            account.user && !e.sample && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')
-          )}
           {account.user && mine.has(e.id) && (
             <>
               {' '}
@@ -510,7 +528,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       </button>
       {/* Menos usado fica no ···: baixar o backup e apagar (apagar fica no setor do próprio universo; um livro com mesa não some pelo RPG). */}
       {!view && (
-        <MoreMenu label={`Mais ações de ${cleanName(e.name) || 'Sem nome'}${isCloudCopy(e) ? ' (versão da nuvem)' : ''}`}>
+        <MoreMenu label={`Mais ações de ${cleanName(e.name) || 'Sem nome'}`}>
           {(close) => (
             <>
               <button
@@ -564,20 +582,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                   </button>
                   <ConfirmButton
                     className="more-menu-item more-menu-danger"
-                    question={account.user ? 'Apagar de vez, aqui e na sua conta?' : 'Apagar de vez, com os snapshots?'}
+                    question={`${account.user ? 'Apagar de vez, aqui e na sua conta' : 'Apagar de vez, com os snapshots'}${versions.length ? ` (e ${versions.length === 1 ? 'a versão guardada' : `as ${versions.length} versões guardadas`})` : ''}?`}
                     confirmLabel={e.kind === 'campanha' ? 'Apagar campanha' : 'Apagar universo'}
                     onConfirm={async () => {
                       close()
-                      await library.remove(e.id)
-                      if (account.user && account.server && synced[e.id]) {
-                        try {
-                          const sb = await authClient(account.server)
-                          if (mine.has(e.id)) await stopSharing(sb, account.user.id, e.id)
-                          await removeFromCloud(sb, account.user.id, e.id)
-                        } catch (err) {
-                          setError(`Apagado aqui, mas não na conta: ${err instanceof Error ? err.message : String(err)}`)
-                        }
-                      }
+                      // As versões guardadas são deste universo: vão junto.
+                      for (const v of [...versions, e]) await removeEverywhere(v)
                       onChanged()
                     }}
                   >
@@ -589,8 +599,62 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           )}
         </MoreMenu>
       )}
+      {!view && !e.sample && (account.user || versions.length > 0) && (
+        <div className="library-extra">
+          {/* A dupla: o deste aparelho e o da nuvem são o mesmo universo. */}
+          {account.user && (
+            <div className="library-pair" role="group" aria-label={`Onde está ${cleanName(e.name) || 'este universo'}`}>
+              <span className="pair-side">
+                <span className="pair-label">Neste aparelho</span>
+                <span className="pair-value">{when(e)}</span>
+              </span>
+              <span className={`pair-side is-${cloudSide(e).state}`}>
+                <span className="pair-label">Na nuvem</span>
+                <span className="pair-value">{cloudSide(e).text}</span>
+              </span>
+            </div>
+          )}
+          {versions.length > 0 && (
+            <details className="library-versions">
+              <summary>
+                {versions.length === 1 ? '1 versão guardada' : `${versions.length} versões guardadas`}
+                <span className="muted"> · só neste aparelho</span>
+              </summary>
+              <p className="tiny muted">Quando o universo mudou aqui e em outro aparelho ao mesmo tempo, a versão que estava na nuvem ficou guardada aqui. Ela não vai para a nuvem.</p>
+              <ul className="library-version-list" aria-label={`Versões guardadas de ${cleanName(e.name) || 'Sem nome'}`}>
+                {versions.map((v) => (
+                  <li key={v.id} className="library-version">
+                    <span className="library-version-what">
+                      <Cloud size={13} aria-hidden="true" /> versão da nuvem · {when(v)} · {v.words.toLocaleString('pt-BR')} palavras
+                    </span>
+                    <button type="button" className="btn btn-sm btn-ghost" onClick={() => onOpen(v.id)}>
+                      Abrir
+                    </button>
+                    <button type="button" className="btn-icon btn-sm" aria-label="Baixar backup desta versão" title="Baixar backup (.json)" onClick={() => void downloadBackup(v)}>
+                      <Download size={15} />
+                    </button>
+                    <ConfirmButton
+                      className="btn-icon btn-sm"
+                      title="Apagar esta versão"
+                      question="Apagar esta versão guardada? O universo continua como está."
+                      confirmLabel="Apagar versão"
+                      onConfirm={async () => {
+                        await removeEverywhere(v)
+                        onChanged()
+                      }}
+                    >
+                      <Trash2 size={15} aria-label="Apagar esta versão" />
+                    </ConfirmButton>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
     </li>
   )
+  }
 
   /** O cartão grande do começo: voltar para onde parou. */
   const continueCard = (e: LibraryEntry, label: string, view?: View) => (
@@ -601,7 +665,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <strong className="hub-continue-name">{cleanName(e.name) || 'Sem nome'}</strong>
         <span className="muted small">
           {e.kind === 'campanha' ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'}` : `${e.words.toLocaleString('pt-BR')} palavras`} · {when(e)}
-          {isCloudCopy(e) ? ' · versão da nuvem' : account.user && (synced[e.id] ? ' · na conta' : ' · só neste aparelho')}
+          {account.user && ` · na nuvem: ${cloudSide(e).text}`}
         </span>
       </span>
       <ArrowRight size={20} className="hub-continue-go" aria-hidden="true" />
@@ -663,7 +727,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {/* Na primeira vez, criar vem primeiro; depois, o mais recente com "Continuar" e a lista (o exemplo no fim, com selo). */}
       {writing[0] && continueCard(writing[0], 'Continuar escrevendo')}
       {writing.length === 0 && form}
-      {(writing.length > 1 || (writing.length > 0 && sampleEntry)) && (
+      {/* Com um universo só, o cartão de cima basta; a lista aparece se há mais, o exemplo, ou versões guardadas para mostrar. */}
+      {(writing.length > 1 || (writing.length > 0 && (sampleEntry || versionsOf.get(writing[0].id)?.length))) && (
         <section aria-labelledby="universos-titulo">
           <h2 id="universos-titulo" className="hub-h">
             Todos os universos
@@ -702,7 +767,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <p className="lede">Os dados são os de verdade. O Papirus guarda as fichas, a iniciativa e as sessões, e mostra aos jogadores um Codex no celular deles.</p>
       </section>
       {campaigns[0] && continueCard(campaigns[0], 'Continuar a campanha')}
-      {campaigns.length > 1 && (
+      {(campaigns.length > 1 || (campaigns.length > 0 && versionsOf.get(campaigns[0].id)?.length)) && (
         <section aria-labelledby="campanhas-titulo">
           <h2 id="campanhas-titulo" className="hub-h">
             Todas as campanhas

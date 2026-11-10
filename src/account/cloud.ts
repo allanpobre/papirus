@@ -199,5 +199,15 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
     setSynced(userId, id, u.updatedAt)
     report.downloaded++
   }
+
+  // Uma versão guardada cujo universo não existe mais (nem aqui, nem na conta) é a única que sobrou:
+  // volta a ser um universo, e sobe na próxima sincronização.
+  const here = await lib.list()
+  const ids = new Set(here.map((e) => e.id))
+  for (const e of here) {
+    if (!e.cloudCopyOf || ids.has(e.cloudCopyOf)) continue
+    const u = await lib.repository(e.id).load()
+    if (u) await saveLocal(lib, { ...u, cloudCopyOf: null })
+  }
   return report
 }

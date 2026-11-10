@@ -3,6 +3,7 @@ import { universeKind, type UniverseKind } from '../model/kind'
 import { isLocalOnly } from '../model/sample'
 import { migrate } from '../model/migrations'
 import { CURRENT_SCHEMA_VERSION, type SavedFile, type Universe } from '../model/schema'
+import { cleanName, hasOldCopyName, originalOf } from './cloudCopy'
 import type { KeyValueStore } from './storage'
 
 const keys = (universeId: string) => ({
@@ -230,7 +231,35 @@ export class Library {
       }
       await this.store.set(LIBRARY_KEY, list)
     }
+    await this.adoptOldCopies(list)
     return [...list].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  }
+
+  /**
+   * Cópias de antes da marca ("Nome (versão da nuvem)", um universo a mais a cada conflito): cada uma
+   * vira versão guardada do universo dela, com o nome limpo. Marcada, ela não sobe mais para a nuvem
+   * e aparece dentro do universo, não solta na lista. Sem original aqui, fica como está.
+   */
+  private async adoptOldCopies(list: LibraryEntry[]): Promise<void> {
+    const loose = list.filter((e) => !e.cloudCopyOf && !e.sample && hasOldCopyName(e.name))
+    if (!loose.length) return
+    let changed = false
+    for (const copy of loose) {
+      try {
+        const original = await originalOf(this, copy, list)
+        if (!original) continue
+        const repo = this.repository(copy.id)
+        const u = await repo.load()
+        if (!u) continue
+        await repo.save({ ...u, name: cleanName(u.name), cloudCopyOf: original.id })
+        copy.name = cleanName(copy.name)
+        copy.cloudCopyOf = original.id
+        changed = true
+      } catch {
+        // Não deu para ler ou gravar: fica como está e tenta de novo na próxima.
+      }
+    }
+    if (changed) await this.store.set(LIBRARY_KEY, list)
   }
 
   /** Registra ou atualiza o universo no índice. */

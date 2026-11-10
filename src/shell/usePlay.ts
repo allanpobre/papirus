@@ -12,8 +12,9 @@ import { celebrate } from '../ui/Confetti'
 /** Palavras em todos os universos deste aparelho (sem o exemplo), com o aberto já atualizado. */
 export async function totalWritten(library: Library, current: Universe): Promise<number> {
   const entries = await library.list()
-  const others = entries.filter((e) => e.id !== current.id && !e.sample).reduce((n, e) => n + e.words, 0)
-  return others + (isLocalOnly(current) ? 0 : countWords(current))
+  // As versões guardadas de um universo são o mesmo texto de novo: não contam.
+  const others = entries.filter((e) => e.id !== current.id && !e.sample && !e.cloudCopyOf).reduce((n, e) => n + e.words, 0)
+  return others + (isLocalOnly(current) || current.cloudCopyOf ? 0 : countWords(current))
 }
 
 /**

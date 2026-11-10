@@ -77,8 +77,8 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
   const userEmail = account.user?.email ?? ''
   const server = source.kind === 'link' ? source.server : account.server
   const ownerId = source.kind === 'proprio' ? userId : source.kind === 'link' ? null : source.ownerId
-  // O exemplo fica só neste aparelho: não vai para a conta.
-  const active = source.kind === 'link' || Boolean(userId && server && !(source.kind === 'proprio' && isLocalOnly(universe)))
+  // O exemplo fica só neste aparelho: não vai para a conta. Uma versão guardada também não: na nuvem, cada universo tem um registro só.
+  const active = source.kind === 'link' || Boolean(userId && server && !(source.kind === 'proprio' && (isLocalOnly(universe) || universe.cloudCopyOf)))
   const started = useRef(false)
 
   const run = useRef<() => Promise<void>>(async () => {})

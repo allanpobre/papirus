@@ -109,6 +109,141 @@
   border-bottom: 0;
 }
 
+/* A dupla (neste aparelho + na nuvem) e as versões guardadas, embaixo do nome do universo. */
+.library-item {
+  flex-wrap: wrap;
+}
+
+.library-extra {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  /* Alinhado ao nome: depois da capa. */
+  margin: -0.45rem 0 0.85rem calc(1.1rem + 52px + 0.85rem);
+  min-width: 0;
+}
+
+.library-pair {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  align-self: flex-start;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+
+.pair-side {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.22rem 0.6rem;
+  min-width: 0;
+}
+
+.pair-side + .pair-side {
+  border-left: 1px solid var(--line);
+}
+
+.pair-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.pair-value {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.pair-side.is-ok .pair-value {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.pair-side.is-warn {
+  background: var(--ochre-soft);
+}
+
+.pair-side.is-warn .pair-value {
+  color: var(--ochre);
+  font-weight: 600;
+}
+
+.library-versions {
+  font-size: 0.84rem;
+  color: var(--ink-2);
+}
+
+.library-versions > summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 0.1rem 0;
+  font-weight: 600;
+}
+
+.library-versions > summary .muted {
+  font-weight: 400;
+}
+
+.library-versions > p {
+  margin: 0.3rem 0 0.4rem;
+  max-width: 60ch;
+}
+
+.library-version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.library-version {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.4rem;
+  padding: 0.25rem 0.3rem 0.25rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.library-version-what {
+  flex: 1 1 12rem;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.library-version-what svg {
+  flex: none;
+  color: var(--sky, var(--accent));
+}
+
+@media (max-width: 560px) {
+  .library-extra {
+    margin-left: 1.1rem;
+  }
+
+  .library-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pair-side + .pair-side {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
 .library-open {
   flex: 1;
   min-width: 0;

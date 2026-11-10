@@ -118,6 +118,30 @@ describe('universos na nuvem', () => {
     expect(copies.map((e) => [e.id, e.name])).toEqual([[copy.id, 'Ostria (lá 2)']])
   })
 
+  it('na nuvem, um só: cópia antiga não sobe mais, e versão sem universo volta a ser universo', async () => {
+    const a = await device()
+    const sb = fakeSupabase(cloud, 'ana')
+    const u = createUniverse('Ostria')
+    // Como era antes: a cópia de um conflito era um universo a mais, e subia.
+    const old: Universe = { ...u, id: crypto.randomUUID(), name: 'Ostria (versão da nuvem)' }
+    await put(a, u)
+    await put(a, old)
+    await syncAll(sb, 'ana', a)
+    // Ao listar, a cópia já virou versão guardada de "Ostria"; o que subiu antes continua lá, mas ela não sobe mais.
+    const before = cloud.get(old.id)?.updated_at
+    await put(a, later({ ...old, name: 'Ostria', cloudCopyOf: u.id }, 5000))
+    expect(await syncAll(sb, 'ana', a)).toMatchObject({ uploaded: 0, downloaded: 0 })
+    expect(cloud.get(old.id)?.updated_at).toBe(before)
+    expect((await a.list()).find((e) => e.id === old.id)?.cloudCopyOf).toBe(u.id)
+
+    // O universo dela some (apagado aqui e na conta): a versão é a única que sobrou e volta a ser universo.
+    await a.remove(u.id)
+    await removeFromCloud(sb, 'ana', u.id)
+    await syncAll(sb, 'ana', a)
+    expect((await a.list()).find((e) => e.id === old.id)?.cloudCopyOf).toBeUndefined()
+    expect((await a.repository(old.id).load())?.cloudCopyOf).toBeNull()
+  })
+
   it('se os dois lados ficaram iguais, não guarda cópia', async () => {
     const a = await device()
     const sb = fakeSupabase(cloud, 'ana')

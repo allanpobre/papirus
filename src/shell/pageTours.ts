@@ -589,7 +589,7 @@ export const PAGE_TOURS = {
       {
         target: '.library-list[aria-label="Universos"]',
         title: 'Seus universos',
-        body: 'Todos os seus mundos de escrita, o exemplo no fim. Toque para abrir; no ··· de cada um, baixar o backup ou apagar.',
+        body: 'Todos os seus mundos de escrita, o exemplo no fim. Toque para abrir; no ··· de cada um, baixar o backup ou apagar. Com uma conta, cada um mostra os dois lados: neste aparelho e na nuvem.',
         optional: true,
       },
       { target: '.start-card, .library-new', title: 'Novo universo', body: 'Dê um nome e comece. Dá para começar em branco ou com um modelo de gênero.' },

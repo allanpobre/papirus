@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test, type BrowserContext } from './fixtures.ts'
 
 const SERVER = 'https://papirus-teste.supabase.co'
@@ -77,9 +78,9 @@ test('conta opcional: entrar, levar os universos para a nuvem e sair sem perder 
   await expect.poll(() => rows.size, { timeout: 15_000 }).toBe(1)
   await expect.poll(() => JSON.stringify([...rows.values()][0].data), { timeout: 15_000 }).toContain('Kael esperava')
 
-  // Na biblioteca, aparece como guardado na conta.
+  // Na biblioteca, o lado da nuvem está igual ao deste aparelho.
   await page.getByTitle('Trocar de universo').first().click()
-  await expect(page.getByText(/· na conta/)).toBeVisible()
+  await expect(page.getByText(/na nuvem: igual/)).toBeVisible()
 
   // Sair não apaga nada deste navegador.
   await page.getByRole('button', { name: 'Conta: ana@exemplo.com' }).click()
@@ -90,4 +91,68 @@ test('conta opcional: entrar, levar os universos para a nuvem e sair sem perder 
   await page.goto('/app/')
   await expect(page.getByRole('button', { name: 'Entrar', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Continuar escrevendo Ostria/ })).toBeVisible()
+})
+
+test('duplas: a cópia antiga vira versão guardada dentro do universo, e na nuvem fica um só', async ({ page, context }) => {
+  const rows = await fakeAccounts(context)
+  await page.goto('/app/')
+  await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Ostria')
+  await page.getByRole('button', { name: 'Criar universo' }).click()
+  await page.getByRole('button', { name: 'Começar a escrever' }).click()
+  await page.keyboard.type('Era noite em Ostria.')
+  await expect(page.getByRole('status').first()).toHaveText('Salvo')
+
+  // Como as versões antigas faziam: a cada conflito, a cópia da nuvem virava outro universo, "Nome (versão da nuvem)".
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /Ajustes e dados/ }).click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Dados e backup' }).click()
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: /Baixar backup/ }).first().click()
+  const file = JSON.parse(await readFile(await (await download).path(), 'utf8')) as { universe: { id: string; name: string } }
+  file.universe = { ...file.universe, id: '99999999-9999-4999-8999-999999999999', name: 'Ostria (versão da nuvem)' }
+  await page.getByTitle('Trocar de universo').first().click()
+  await page.locator('input[type=file][accept*="json"]').first().setInputFiles({ name: 'copia.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(file)) })
+  await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
+
+  // Na lista: um item só, com a cópia dentro dele como versão guardada.
+  await page.getByTitle('Trocar de universo').first().click()
+  const list = page.getByRole('list', { name: 'Universos', exact: true })
+  await expect(list.locator('> li')).toHaveCount(1)
+  await expect(list.locator('> li .library-name')).toHaveText('Ostria')
+  await list.getByText('1 versão guardada').click()
+  const versions = page.getByRole('list', { name: 'Versões guardadas de Ostria' })
+  await expect(versions.getByRole('listitem')).toHaveCount(1)
+  await expect(versions).toContainText('versão da nuvem')
+
+  // Com a conta, só o universo sobe: na nuvem, um registro. A dupla mostra os dois lados iguais.
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Entrar no Papirus' })
+  await dialog.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
+  await dialog.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
+  await dialog.getByRole('button', { name: 'Pronto' }).click()
+  await dialog.getByRole('textbox', { name: 'E-mail' }).fill('ana@exemplo.com')
+  await dialog.getByLabel('Senha').fill('segredo123')
+  await dialog.getByRole('button', { name: 'Entrar', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Sua conta' }).getByRole('button', { name: 'Fechar' }).click()
+  const pair = page.getByRole('group', { name: 'Onde está Ostria' })
+  await expect(pair).toContainText('igual', { timeout: 15_000 })
+  expect([...rows.values()].map((r) => r.name)).toEqual(['Ostria'])
+
+  // A versão aberta e mexida continua só neste aparelho.
+  await page.getByRole('list', { name: 'Versões guardadas de Ostria' }).getByRole('button', { name: 'Abrir' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Escrever/ }).click()
+  await page.getByRole('textbox', { name: 'Texto da cena' }).click()
+  await page.keyboard.type(' Só na versão.')
+  await expect(page.getByRole('status').first()).toHaveText('Salvo')
+  await page.waitForTimeout(1500)
+  expect(rows.size).toBe(1)
+  expect(JSON.stringify([...rows.values()][0].data)).not.toContain('Só na versão')
+
+  // Apagar a versão não mexe no universo.
+  await page.getByTitle('Trocar de universo').first().click()
+  await page.getByRole('list', { name: 'Universos', exact: true }).getByText('1 versão guardada').click()
+  await page.getByRole('list', { name: 'Versões guardadas de Ostria' }).getByRole('button', { name: 'Apagar esta versão' }).click()
+  await page.getByRole('button', { name: 'Apagar versão' }).click()
+  await expect(page.getByRole('button', { name: /^Continuar escrevendo Ostria/ })).toBeVisible()
+  await expect(page.getByText('versão guardada')).toHaveCount(0)
+  expect([...rows.values()].filter((r) => !r.deleted).map((r) => r.name)).toEqual(['Ostria'])
 })
