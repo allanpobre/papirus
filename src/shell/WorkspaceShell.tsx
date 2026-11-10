@@ -1,4 +1,7 @@
 import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ConfirmButton } from '../ui/ConfirmButton'
+import { relativeDate } from '../logic/relativeDate'
+import { keepVersion, versionLabel } from '../persistence/versions'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { withDailyStart } from '../logic/stats'
@@ -565,6 +568,41 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           {/* A capa do livro ao abrir um livro (não ao abrir direto na Mesa). A Mesa não tem porta: a abertura é a da sessão. */}
           {kind !== 'campanha' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
           {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
+          {/* Uma versão guardada aberta: fica claro que não é o universo, e dá para ficar com ela daqui. */}
+          {universe.cloudCopyOf && source.kind === 'proprio' && (
+            <div className="sample-banner version-banner" role="status">
+              <span className="sample-banner-text">
+                <strong>Versão guardada</strong>
+                <span className="sample-banner-more">
+                  {' '}
+                  · {versionLabel(universe.versionKind)} de {relativeDate(universe.updatedAt)}; fica só neste aparelho
+                </span>
+              </span>
+              <ConfirmButton
+                className="btn btn-sm btn-primary"
+                question="Trocar o universo por esta versão? O que está no universo agora fica guardado como versão."
+                confirmLabel="Ficar com esta"
+                onConfirm={async () => {
+                  const mainId = universe.cloudCopyOf!
+                  // Grava o que falta desta versão antes da troca; depois, abre o universo já com ela.
+                  await flush()
+                  try {
+                    await keepVersion(library, mainId, universe.id)
+                  } catch (err) {
+                    toast(err instanceof Error ? err.message : String(err))
+                    return
+                  }
+                  const main = await library.repository(mainId).load()
+                  if (main) onOpenOther(main)
+                }}
+              >
+                Ficar com esta versão
+              </ConfirmButton>
+              <button type="button" className="btn btn-sm btn-ghost" onClick={() => void ws.closeUniverse()}>
+                Sair
+              </button>
+            </div>
+          )}
           {isSample(universe) && !sampleNoteClosed && (
             <div className="sample-banner" role="status">
               <span className="sample-banner-text">

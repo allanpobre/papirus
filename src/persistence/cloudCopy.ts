@@ -16,7 +16,7 @@ export const isCloudCopy = (e: { name: string; cloudCopyOf?: string | null }) =>
 
 /** O mesmo conteúdo dos dois lados (fora datas, histórico e contagem do dia): não precisa de cópia. */
 export function sameUniverse(a: Universe, b: Universe): boolean {
-  const strip = ({ updatedAt: _u, history: _h, dailyStart: _d, cloudCopyOf: _c, ...rest }: Universe) => rest
+  const strip = ({ updatedAt: _u, history: _h, dailyStart: _d, cloudCopyOf: _c, versionKind: _k, ...rest }: Universe) => rest
   return JSON.stringify(strip(a)) === JSON.stringify(strip(b))
 }
 
@@ -25,8 +25,9 @@ export function sameUniverse(a: Universe, b: Universe): boolean {
  * deste universo aqui, ela é trocada pela nova (em vez de empilhar cópias).
  */
 export async function keepCloudCopy(lib: Library, originalId: string, theirs: Universe): Promise<Universe> {
-  const existing = (await lib.list()).find((e) => e.cloudCopyOf === originalId)
-  const copy: Universe = { ...theirs, id: existing?.id ?? newId(), name: cleanName(theirs.name), cloudCopyOf: originalId }
+  // Só troca a versão que veio da nuvem: um backup importado ou a versão de antes de uma troca ficam como estão.
+  const existing = (await lib.list()).find((e) => e.cloudCopyOf === originalId && (e.versionKind ?? 'nuvem') === 'nuvem')
+  const copy: Universe = { ...theirs, id: existing?.id ?? newId(), name: cleanName(theirs.name), cloudCopyOf: originalId, versionKind: 'nuvem' }
   await lib.repository(copy.id).save(copy)
   await lib.touch(copy)
   return copy

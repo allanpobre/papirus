@@ -207,7 +207,7 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
   for (const e of here) {
     if (!e.cloudCopyOf || ids.has(e.cloudCopyOf)) continue
     const u = await lib.repository(e.id).load()
-    if (u) await saveLocal(lib, { ...u, cloudCopyOf: null })
+    if (u) await saveLocal(lib, { ...u, cloudCopyOf: null, versionKind: null })
   }
   return report
 }

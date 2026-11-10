@@ -192,8 +192,10 @@ export interface LibraryEntry {
   sheets?: number
   /** Tema da mesa (o do primeiro grupo), para o cartão no setor RPG. "nenhum" = cores do app. */
   theme?: string
-  /** É a versão da nuvem de outro universo, guardada ao lado (o id do original). */
+  /** É uma versão guardada de outro universo (o id dele): fica dentro dele na lista e não sobe para a nuvem. */
   cloudCopyOf?: string
+  /** De onde veio a versão guardada. */
+  versionKind?: 'nuvem' | 'backup' | 'anterior'
 }
 
 /** Índice dos universos guardados neste navegador. */
@@ -251,9 +253,10 @@ export class Library {
         const repo = this.repository(copy.id)
         const u = await repo.load()
         if (!u) continue
-        await repo.save({ ...u, name: cleanName(u.name), cloudCopyOf: original.id })
+        await repo.save({ ...u, name: cleanName(u.name), cloudCopyOf: original.id, versionKind: 'nuvem' })
         copy.name = cleanName(copy.name)
         copy.cloudCopyOf = original.id
+        copy.versionKind = 'nuvem'
         changed = true
       } catch {
         // Não deu para ler ou gravar: fica como está e tenta de novo na próxima.
@@ -274,7 +277,7 @@ export class Library {
       ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
       kind: universeKind(universe),
       ...(universe.groups.length ? tableInfo(universe) : {}),
-      ...(universe.cloudCopyOf ? { cloudCopyOf: universe.cloudCopyOf } : {}),
+      ...(universe.cloudCopyOf ? { cloudCopyOf: universe.cloudCopyOf, versionKind: universe.versionKind ?? 'nuvem' } : {}),
     }
     const i = list.findIndex((e) => e.id === universe.id)
     if (i >= 0) list[i] = entry

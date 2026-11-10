@@ -33,6 +33,8 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Layers,
+  X,
   Sun,
   Trash2,
   Users,
@@ -42,7 +44,11 @@ import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { cleanName, families } from '../persistence/cloudCopy'
 import { authClient, useAccount } from '../account/auth'
 import { removeFromCloud, syncedMap } from '../account/cloud'
-import { useCloudStatus } from '../account/useCloud'
+import { syncLibrary, useCloudStatus } from '../account/useCloud'
+import { addVersion, baseName, keepVersion, repeatHints, replaceWith, trimVersions, versionLabel } from '../persistence/versions'
+import { recall, remember } from '../state/prefs'
+import { Modal } from '../ui/Modal'
+import { TidyDialog } from './TidyDialog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { leaveShared, mySharedIds, sharedWithMe, shortName, stopSharing, type SharedWithMe } from '../share/sharing'
 import { migrate } from '../model/migrations'
@@ -57,7 +63,7 @@ import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../mod
 import { SYSTEM_TEMPLATES } from '../rpg/systems'
 import { MESA_THEMES } from '../rpg/themes'
 import { TreinoCard } from '../treino/TreinoCard'
-import type { Library, LibraryEntry } from '../persistence/repository'
+import { countWords, type Library, type LibraryEntry } from '../persistence/repository'
 import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistence/folder'
 import type { usePrefs } from '../state/prefs'
 import type { View } from '../state/workspace'
@@ -199,10 +205,11 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       const raw: unknown = JSON.parse(await file.text())
       const file_ = migrate(raw)
       await restoreEmbeddedImages(raw)
-      let u = file_.universe
-      // Importar nunca sobrescreve: se o ID já existe, vira uma cópia.
-      if (entries.some((e) => e.id === u.id)) u = { ...u, id: newId(), name: `${u.name} (importado)` }
-      onCreated(u)
+      const u = file_.universe
+      // Importar nunca sobrescreve sozinho: se este universo já está aqui, a pessoa escolhe o que fazer com o backup.
+      const here = entries.find((e) => e.id === u.id)
+      if (here) setImporting({ backup: u, here: here.cloudCopyOf ? (entries.find((e) => e.id === here.cloudCopyOf) ?? here) : here })
+      else onCreated(u)
     } catch (err) {
       setError(`Não foi possível importar “${file.name}”: ${err instanceof Error ? err.message : String(err)}`)
     }
@@ -219,6 +226,35 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     downloadText(fileNameFor(`${u.name}-backup-${date}`, 'json'), JSON.stringify(Object.keys(images).length ? { ...file, images } : file, null, 2), 'application/json')
     setPref('backups', { ...p.backups, [e.id]: { ...p.backups[e.id], last: new Date().toISOString() } })
   }
+
+  // Backup de um universo que já está aqui: esperando a escolha (versão, substituir ou outro universo).
+  const [importing, setImporting] = useState<{ backup: Universe; here: LibraryEntry } | null>(null)
+  /** Depois de mexer em versões: mostra a lista de novo e, com conta, leva para a nuvem o que mudou. */
+  const afterVersions = () => {
+    onChanged()
+    if (account.user && account.server) void syncLibrary(library, account.server, account.user.id).then(() => onChanged())
+  }
+  /** Tira da nuvem os que deixaram de ser universo (viraram versão ou foram apagados). */
+  const leaveCloud = async (ids: string[]) => {
+    if (!account.user || !account.server || !ids.length) return
+    const sb = await authClient(account.server)
+    for (const id of ids) {
+      if (mine.has(id)) await stopSharing(sb, account.user.id, id)
+      await removeFromCloud(sb, account.user.id, id)
+    }
+  }
+  // "São universos diferentes": pares de nome igual que a pessoa já disse que não são o mesmo livro.
+  const [different, setDifferent] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(recall('repetidos-diferentes') ?? '[]') as string[])
+    } catch {
+      return new Set()
+    }
+  })
+  const [tidying, setTidying] = useState(false)
+  // O que há para arrumar: versões guardadas que ainda estão na nuvem, ou universos de mesmo nome.
+  const repeats = repeatHints(entries, (id) => Boolean(synced[id]), different)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const chosen = UNIVERSE_TEMPLATES.find((t) => t.id === template) ?? UNIVERSE_TEMPLATES[0]
   const [creating, setCreating] = useState(false)
@@ -620,16 +656,29 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                 {versions.length === 1 ? '1 versão guardada' : `${versions.length} versões guardadas`}
                 <span className="muted"> · só neste aparelho</span>
               </summary>
-              <p className="tiny muted">Quando o universo mudou aqui e em outro aparelho ao mesmo tempo, a versão que estava na nuvem ficou guardada aqui. Ela não vai para a nuvem.</p>
+              <p className="tiny muted">Outras versões deste universo: a que estava na nuvem quando ele mudou em dois aparelhos, um backup importado, ou a que ele era antes de uma troca. Ficam só neste aparelho.</p>
               <ul className="library-version-list" aria-label={`Versões guardadas de ${cleanName(e.name) || 'Sem nome'}`}>
                 {versions.map((v) => (
                   <li key={v.id} className="library-version">
                     <span className="library-version-what">
-                      <Cloud size={13} aria-hidden="true" /> versão da nuvem · {when(v)} · {v.words.toLocaleString('pt-BR')} palavras
+                      {v.versionKind === 'backup' || v.versionKind === 'anterior' ? <Layers size={13} aria-hidden="true" /> : <Cloud size={13} aria-hidden="true" />} {versionLabel(v.versionKind)} · {when(v)} ·{' '}
+                      {v.words.toLocaleString('pt-BR')} palavras
                     </span>
                     <button type="button" className="btn btn-sm btn-ghost" onClick={() => onOpen(v.id)}>
                       Abrir
                     </button>
+                    <ConfirmButton
+                      className="btn btn-sm btn-ghost"
+                      question="Trocar o universo por esta versão? O que está no universo agora fica guardado como versão."
+                      confirmLabel="Ficar com esta"
+                      onConfirm={async () => {
+                        await keepVersion(library, e.id, v.id)
+                        setNotice(`“${cleanName(e.name) || 'Sem nome'}” agora é a versão de ${relativeDate(v.updatedAt)}. A que estava antes ficou guardada.`)
+                        afterVersions()
+                      }}
+                    >
+                      Ficar com esta
+                    </ConfirmButton>
                     <button type="button" className="btn-icon btn-sm" aria-label="Baixar backup desta versão" title="Baixar backup (.json)" onClick={() => void downloadBackup(v)}>
                       <Download size={15} />
                     </button>
@@ -655,6 +704,97 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     </li>
   )
   }
+
+  /** Aviso de que há livros repetidos para arrumar, e o recado do que acabou de ser feito com uma versão. */
+  const tidyCard = (
+    <>
+      {notice && (
+        <p className="library-notice" role="status">
+          <span>{notice}</span>
+          <button type="button" className="btn-icon btn-sm" aria-label="Fechar o aviso" onClick={() => setNotice(null)}>
+            <X size={14} />
+          </button>
+        </p>
+      )}
+      {repeats.length > 0 && (
+        <section className="tidy-card" aria-label="Livros repetidos">
+          <Layers size={20} aria-hidden="true" />
+          <p>
+            <strong>{repeats.length === 1 ? 'Um livro aparece mais de uma vez.' : `${repeats.length} livros aparecem mais de uma vez.`}</strong> Arrumar deixa um universo por livro
+            {account.user ? ', e um só na nuvem' : ''}. Você escolhe qual fica; os outros viram versões guardadas.
+          </p>
+          <button type="button" className="btn btn-sm btn-primary" onClick={() => setTidying(true)}>
+            Arrumar
+          </button>
+        </section>
+      )}
+    </>
+  )
+
+  /** Backup de um universo que já está aqui: o que fazer com ele. */
+  const importChoice = importing && (
+    <Modal title="Este universo já está aqui" onClose={() => setImporting(null)} size="sm">
+      <p>O backup é de “{cleanName(importing.here.name) || 'Sem nome'}”, que já está neste aparelho.</p>
+      <dl className="import-compare">
+        <div>
+          <dt>Aqui</dt>
+          <dd>
+            {when(importing.here)} · {importing.here.words.toLocaleString('pt-BR')} palavras
+          </dd>
+        </div>
+        <div>
+          <dt>No backup</dt>
+          <dd>
+            {relativeDate(importing.backup.updatedAt)} · {countWords(importing.backup).toLocaleString('pt-BR')} palavras
+          </dd>
+        </div>
+      </dl>
+      <div className="import-actions">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={async () => {
+            const { backup, here } = importing
+            setImporting(null)
+            await addVersion(library, here.id, backup, 'backup')
+            const out = await trimVersions(library, here.id)
+            await leaveCloud(out.map((e) => e.id).filter((id) => synced[id])).catch(() => undefined)
+            setNotice(`O backup ficou guardado como versão de “${cleanName(here.name) || 'Sem nome'}”.${out.length ? ' A versão mais antiga saiu para dar lugar (ficam 5).' : ''}`)
+            afterVersions()
+          }}
+        >
+          Guardar como versão
+        </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={async () => {
+            const { backup, here } = importing
+            setImporting(null)
+            await replaceWith(library, here.id, backup)
+            const out = await trimVersions(library, here.id)
+            await leaveCloud(out.map((e) => e.id).filter((id) => synced[id])).catch(() => undefined)
+            setNotice(`“${baseName(backup.name) || 'Sem nome'}” agora é o do backup. O que estava aqui ficou guardado como versão.`)
+            afterVersions()
+          }}
+        >
+          Substituir pelo backup
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => {
+            const { backup } = importing
+            setImporting(null)
+            onCreated({ ...backup, id: newId(), name: `${backup.name} (importado)` })
+          }}
+        >
+          Criar outro universo
+        </button>
+      </div>
+      <p className="tiny muted">Guardando como versão, o universo não muda: o backup fica dentro dele, para abrir ou ficar com ele depois. Substituindo, o que está aqui agora vira versão guardada.</p>
+    </Modal>
+  )
 
   /** O cartão grande do começo: voltar para onde parou. */
   const continueCard = (e: LibraryEntry, label: string, view?: View) => (
@@ -724,6 +864,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           </p>
         )}
       </section>
+      {tidyCard}
       {/* Na primeira vez, criar vem primeiro; depois, o mais recente com "Continuar" e a lista (o exemplo no fim, com selo). */}
       {writing[0] && continueCard(writing[0], 'Continuar escrevendo')}
       {writing.length === 0 && form}
@@ -766,6 +907,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <h1>{campaigns.length ? 'Suas campanhas' : 'Mestre uma campanha'}</h1>
         <p className="lede">Os dados são os de verdade. O Papirus guarda as fichas, a iniciativa e as sessões, e mostra aos jogadores um Codex no celular deles.</p>
       </section>
+      {tidyCard}
       {campaigns[0] && continueCard(campaigns[0], 'Continuar a campanha')}
       {(campaigns.length > 1 || (campaigns.length > 0 && versionsOf.get(campaigns[0].id)?.length)) && (
         <section aria-labelledby="campanhas-titulo">
@@ -869,6 +1011,24 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       </main>
 
       {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
+      {importChoice}
+      {tidying && (
+        <TidyDialog
+          library={library}
+          candidates={repeats}
+          inCloud={(id) => Boolean(synced[id])}
+          leaveCloud={leaveCloud}
+          onDifferent={(ids) => {
+            const next = new Set(different)
+            for (const a of ids) for (const b of ids) if (a < b) next.add(`${a}|${b}`)
+            setDifferent(next)
+            remember('repetidos-diferentes', JSON.stringify([...next]))
+          }}
+          onDownload={downloadBackup}
+          onChanged={afterVersions}
+          onClose={() => setTidying(false)}
+        />
+      )}
       {socialTab && account.user && (
         <SocialDialog
           initialTab={socialTab}
