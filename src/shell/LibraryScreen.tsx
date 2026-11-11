@@ -255,7 +255,16 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   })
   const [tidying, setTidying] = useState(false)
   // O que há para arrumar: versões guardadas que ainda estão na nuvem, ou universos de mesmo nome.
-  const repeats = repeatHints(entries, (id) => Boolean(synced[id]), different)
+  // "Agora não": grupos dispensados (pela lista dos ids); um grupo que muda volta a avisar.
+  const groupKey = (g: LibraryEntry[]) => g.map((e) => e.id).sort().join('|')
+  const [dismissed, setDismissed] = useState<string[]>(() => {
+    try {
+      return JSON.parse(recall('repetidos-dispensados') ?? '[]') as string[]
+    } catch {
+      return []
+    }
+  })
+  const repeats = repeatHints(entries, (id) => Boolean(synced[id]), different).filter((g) => !dismissed.includes(groupKey(g)))
   const [notice, setNotice] = useState<string | null>(null)
   // O universo cuja escolha (juntar, ficar com um lado) está sendo aplicada.
   const [resolving, setResolving] = useState<string | null>(null)
@@ -803,9 +812,22 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             <strong>{repeats.length === 1 ? 'Um livro aparece mais de uma vez.' : `${repeats.length} livros aparecem mais de uma vez.`}</strong> Arrumar deixa um universo por livro
             {account.user ? ', e um só na nuvem' : ''}. Você escolhe qual fica; os outros viram versões guardadas.
           </p>
-          <button type="button" className="btn btn-sm btn-primary" onClick={() => setTidying(true)}>
-            Arrumar
-          </button>
+          <span className="tidy-card-actions">
+            <button type="button" className="btn btn-sm btn-primary" onClick={() => setTidying(true)}>
+              Arrumar
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-ghost"
+              onClick={() => {
+                const next = [...dismissed, ...repeats.map(groupKey)]
+                setDismissed(next)
+                remember('repetidos-dispensados', JSON.stringify(next))
+              }}
+            >
+              Agora não
+            </button>
+          </span>
         </section>
       )}
     </>

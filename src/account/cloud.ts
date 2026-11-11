@@ -221,7 +221,12 @@ export async function syncAll(sb: SupabaseClient, userId: string, lib: Library):
 
   for (const [id, entry] of local) {
     // O exemplo fica só neste aparelho; a versão da nuvem guardada ao lado também.
-    if (entry.sample || entry.cloudCopyOf) continue
+    if (entry.sample || entry.cloudCopyOf) {
+      // Versão guardada que já não está na nuvem (ou nunca esteve): deixa de contar como "na nuvem".
+      const row = cloud.get(id)
+      if (entry.cloudCopyOf && synced[id] && (!row || row.deleted)) setSynced(userId, id, null)
+      continue
+    }
     const row = cloud.get(id)
     const last = synced[id]
     const localChanged = !last || time(entry.updatedAt) !== time(last)

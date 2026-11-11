@@ -301,8 +301,11 @@
   font-size: 0.92rem;
 }
 
-.tidy-card > .btn {
+.tidy-card-actions {
   flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .library-notice {
