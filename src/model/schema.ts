@@ -147,6 +147,8 @@ export const entitySchema = z.object({
   image: z.string().nullable().optional(),
   /** As listas desta ficha (Raças, Criaturas, Membros…). */
   lists: z.array(entityListSchema).optional(),
+  /** Fica fora da wiki do mundo, sem ser segredo (o nome pode aparecer no texto de outras fichas). */
+  wikiHidden: z.boolean().optional(),
   ...timestamps,
 })
 
@@ -522,6 +524,26 @@ export const continuityAnswerSchema = z.object({
   at: z.string(),
 })
 
+/** Como a wiki do mundo sai: abertura, o que entra, seções e aparência. Tudo opcional. */
+export const WIKI_FONTS = ['serifada', 'sem-serifa', 'livro'] as const
+export const wikiSettingsSchema = z.object({
+  title: z.string().optional(),
+  intro: z.string().optional(),
+  author: z.string().optional(),
+  /** Tipos de ficha que ficam de fora (os novos entram sozinhos). */
+  hiddenKinds: z.array(z.string()).optional(),
+  /** Campos que não aparecem, pelo nome ("Notas do mestre"). */
+  hiddenFields: z.array(z.string()).optional(),
+  timeline: z.boolean().optional(),
+  maps: z.boolean().optional(),
+  cites: z.boolean().optional(),
+  portraits: z.boolean().optional(),
+  /** Cor da wiki (#rrggbb); sem valor, a cor da capa do universo. */
+  color: z.string().nullable().optional(),
+  font: z.enum(WIKI_FONTS).optional(),
+})
+export type WikiSettings = z.infer<typeof wikiSettingsSchema>
+
 export const universeSettingsSchema = z.object({
   /** Rótulo depois do ano: "DC", "da Coroa"… */
   calendarSuffix: z.string(),
@@ -554,6 +576,8 @@ export const universeSettingsSchema = z.object({
   deadline: z.object({ words: z.number().int().positive(), date: z.string() }).nullable().default(null),
   /** Capa do universo ("img:…"): no Início e na lista de universos. */
   cover: z.string().nullable().optional(),
+  /** Como a wiki do mundo sai (Mundo › Wiki › Personalizar). */
+  wiki: wikiSettingsSchema.optional(),
   /** Escrita ou campanha de RPG: o setor em que o universo fica. Sem valor, o Papirus deduz. */
   kind: z.enum(['escrita', 'campanha']).optional(),
   /** Os personagens de jogador de antes já ganharam a ficha no Mundo (uma vez por universo). */

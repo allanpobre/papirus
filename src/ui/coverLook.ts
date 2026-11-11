@@ -1,5 +1,5 @@
 /** Cores de capa: as tintas do Papirus, escuras o bastante para a letra clara por cima. */
-const TONES = ['#1d6b58', '#2d6290', '#8b2f52', '#6a4ea3', '#8a5a12', '#0f6f7a', '#a4462a', '#3a4a44', '#55752a']
+export const TONES = ['#1d6b58', '#2d6290', '#8b2f52', '#6a4ea3', '#8a5a12', '#0f6f7a', '#a4462a', '#3a4a44', '#55752a']
 const MOTIFS = 6
 
 /** Um número a partir do texto (FNV-1a): o mesmo nome dá sempre a mesma capa. */
