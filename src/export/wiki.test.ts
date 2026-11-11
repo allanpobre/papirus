@@ -95,3 +95,29 @@ describe('frases das ligações', () => {
     expect(buildWiki(ostriaUniverse(), { upTo: null }).html).toContain('Kael é irmão de')
   })
 })
+
+describe('wiki personalizada', () => {
+  it('respeita título, autor, tipos e fichas de fora, campos escondidos, seções, cor e letra', () => {
+    const base = ostriaUniverse()
+    const kael = base.entities.find((e) => e.name === 'Kael')!
+    const u = {
+      ...base,
+      entities: base.entities.map((e) => (e.name === 'Mira' ? { ...e, wikiHidden: true } : e)),
+      settings: {
+        ...base.settings,
+        wiki: { title: 'Ostria para jogadores', author: 'Ana', hiddenKinds: ['religiao'], hiddenFields: [kael.fields[0]?.key ?? 'x'], timeline: false, cites: false, color: '#123456', font: 'sem-serifa' as const },
+      },
+    }
+    const { html, data } = buildWiki(u, { upTo: null })
+    expect(html).toContain('<h1>Ostria para jogadores</h1>')
+    expect(html).toContain('por Ana')
+    expect(html).not.toContain('<h2>Mira</h2>')
+    expect(html).not.toContain('<h2>Fé da Maré</h2>')
+    expect(html).not.toContain('id="linha-do-tempo"')
+    expect(html).not.toContain('<h3>Citado em</h3>')
+    expect(html).toContain('--tone:#123456')
+    expect(html).toContain('--font:system-ui')
+    if (kael.fields[0]) expect(data.fichas.find((f) => f.nome === 'Kael')!.campos.map((c) => c.nome)).not.toContain(kael.fields[0].key)
+    expect(data.mundo).toMatchObject({ nome: 'Ostria para jogadores', autor: 'Ana' })
+  })
+})

@@ -5,7 +5,7 @@ import { readerBook, readerEntities } from '../logic/reader'
 import { relationSentence } from '../logic/relations'
 import { unmarkReveals } from '../logic/reveals'
 import { formatYear, kindLabel, kindPlural } from '../model/labels'
-import type { Entity, Universe } from '../model/schema'
+import type { Entity, Universe, WikiSettings } from '../model/schema'
 import { manuscriptOrder } from '../model/universe'
 import { readerCopy } from '../share/readerCopy'
 import { coverLook } from '../ui/coverLook'
@@ -36,7 +36,7 @@ const anchor = (id: string) => `f-${id.slice(0, 12)}`
 export interface WikiData {
   formato: 'papirus-wiki'
   versao: 1
-  mundo: { nome: string; descricao: string }
+  mundo: { nome: string; descricao: string; autor: string }
   recorte: string
   fichas: {
     id: string
@@ -95,6 +95,18 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
     events = book.events.filter((e) => e.at <= upTo).map((e) => ({ ...e, ids: e.entityIds }))
   }
   entries.sort((a, b) => a.entity.name.localeCompare(b.entity.name, 'pt-BR'))
+  // O que o escritor escolheu em Personalizar: fichas e tipos de fora, campos escondidos, seções e aparência.
+  const ws: WikiSettings = universe.settings.wiki ?? {}
+  const fold = (t: string) => t.trim().toLocaleLowerCase('pt-BR')
+  const hiddenKinds = new Set(ws.hiddenKinds ?? [])
+  const hiddenFields = new Set((ws.hiddenFields ?? []).map(fold).filter(Boolean))
+  entries = entries
+    .filter((x) => !x.entity.wikiHidden && !hiddenKinds.has(x.entity.kind))
+    .map((x) => (hiddenFields.size ? { ...x, fields: x.fields.filter((f) => !hiddenFields.has(fold(f.key))) } : x))
+  const show = { timeline: ws.timeline !== false, maps: ws.maps !== false, cites: ws.cites !== false, portraits: ws.portraits !== false }
+  const title = ws.title?.trim() || universe.name
+  const intro = ws.intro?.trim() || universe.description
+  const author = ws.author?.trim() || ''
   const visible = new Set(entries.map((e) => e.entity.id))
   const matcher = new MentionMatcher(entries.map((e) => e.entity))
 
@@ -120,7 +132,8 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   for (const e of entries) byKind.set(e.entity.kind, [...(byKind.get(e.entity.kind) ?? []), e])
   const kinds = [...byKind.keys()].sort((a, b) => kindPlural(a).localeCompare(kindPlural(b), 'pt-BR'))
   const img = (ref: string | null | undefined) => (ref ? (images?.get(ref) ?? null) : null)
-  const tone = coverLook(universe.name).tone
+  const tone = ws.color && /^#[0-9a-f]{6}$/i.test(ws.color) ? ws.color : coverLook(universe.name).tone
+  const font = { serifada: "Georgia,'Iowan Old Style',serif", 'sem-serifa': "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif", livro: "'Palatino Linotype','Book Antiqua',Palatino,'URW Palladio L',Georgia,serif" }[ws.font ?? 'serifada']
 
   /** Quem cita quem: nomes de uma ficha que aparecem no texto de outra (os "Citado em"). */
   const citedBy = new Map<string, Set<string>>()
@@ -131,10 +144,10 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
       citedBy.set(m.entityId, (citedBy.get(m.entityId) ?? new Set()).add(x.entity.id))
     }
   }
-  const sortedEvents = [...events].sort((a, b) => a.year - b.year)
+  const sortedEvents = show.timeline ? [...events].sort((a, b) => a.year - b.year) : []
   // Ligado ao evento ou citado no texto dele.
   const eventsOf = (id: string) => sortedEvents.filter((ev) => ev.ids.includes(id) || matcher.find(`${ev.title}\n${ev.description}`).some((m) => m.entityId === id))
-  const maps = safe.maps
+  const maps = (show.maps ? safe.maps : [])
     .filter((m) => img(m.image))
     .map((m) => ({ ...m, pins: m.pins.filter((p) => visible.has(p.entityId)) }))
   const mapsOf = (id: string) => maps.filter((m) => m.pins.some((p) => p.entityId === id))
@@ -146,11 +159,11 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
     const children = entries.filter((x) => x.entity.parentId === e.id)
     const rels = relations.filter((r) => r.ids.includes(e.id))
     const fs = facts.filter((f) => f.ids.includes(e.id))
-    const cites = [...(citedBy.get(e.id) ?? [])].sort((a, b) => nameOf(a).localeCompare(nameOf(b), 'pt-BR'))
+    const cites = [...((show.cites && citedBy.get(e.id)) || [])].sort((a, b) => nameOf(a).localeCompare(nameOf(b), 'pt-BR'))
     const evs = eventsOf(e.id)
     const onMaps = mapsOf(e.id)
     const search = [e.name, ...e.aliases, kindLabel(e.kind)].join(' ')
-    const portrait = img(e.image)
+    const portrait = show.portraits ? img(e.image) : null
     const box = [
       portrait ? `<img class="portrait" src="${portrait}" alt="${esc(e.name)}"/>` : '',
       fields.length ? `<dl>${fields.map((f) => `<dt>${esc(f.key)}</dt><dd>${linked(f.value, e.id)}</dd>`).join('')}</dl>` : '',
@@ -196,7 +209,7 @@ ${cites.length ? `<h3>Citado em</h3><p class="cites">${cites.map((id) => link(id
   const initial = (s: string) => esc((s.trim()[0] ?? '?').toLocaleUpperCase('pt-BR'))
   const short = (s: string) => (s.length > 110 ? `${s.slice(0, 107).trimEnd()}…` : s)
   const home = `<section class="page" id="inicio">
-<div class="hero"${cover ? ` style="background-image:linear-gradient(180deg,rgb(0 0 0/.15),rgb(0 0 0/.65)),url(${cover})"` : ''}><h1>${esc(universe.name)}</h1>${universe.description ? `<p>${esc(universe.description)}</p>` : ''}<p class="small">Wiki do mundo · ${esc(until)} · ${entries.length} ${entries.length === 1 ? 'ficha' : 'fichas'}</p></div>
+<div class="hero"${cover ? ` style="background-image:linear-gradient(180deg,rgb(0 0 0/.15),rgb(0 0 0/.65)),url(${cover})"` : ''}><h1>${esc(title)}</h1>${author ? `<p class="small">por ${esc(author)}</p>` : ''}${intro.split(/\n+/).map((t) => t.trim()).filter(Boolean).map((t) => `<p>${linked(t, '')}</p>`).join('')}<p class="small">Wiki do mundo · ${esc(until)} · ${entries.length} ${entries.length === 1 ? 'ficha' : 'fichas'}</p></div>
 ${timeline || atlas ? `<div class="more">${timeline ? '<a href="#linha-do-tempo">Linha do tempo</a>' : ''}${atlas ? `<a href="#mapas">${maps.length === 1 ? 'Mapa' : 'Mapas'}</a>` : ''}</div>` : ''}
 ${kinds
   .map(
@@ -214,12 +227,12 @@ ${kinds
 
   const html = `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(universe.name)} — wiki</title>
+<title>${esc(title)} — wiki</title>
 <meta name="theme-color" content="${tone}">
 <style>
-:root{--bg:#f7f6f2;--paper:#fff;--ink:#1d2420;--muted:#5f6a64;--line:#dedbd2;--tone:${tone};--accent:var(--tone);--soft:color-mix(in srgb,var(--tone) 10%,var(--paper))}
+:root{--bg:#f7f6f2;--paper:#fff;--ink:#1d2420;--muted:#5f6a64;--line:#dedbd2;--tone:${tone};--accent:var(--tone);--soft:color-mix(in srgb,var(--tone) 10%,var(--paper));--font:${font}}
 @media (prefers-color-scheme:dark){:root{--bg:#121514;--paper:#1a1e1c;--ink:#e3e8e5;--muted:#9aa59f;--line:#2c3330;--accent:color-mix(in srgb,var(--tone) 45%,#fff);--soft:color-mix(in srgb,var(--tone) 22%,var(--paper))}}
-*{box-sizing:border-box}html{scroll-padding-top:72px}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 Georgia,'Iowan Old Style',serif}
+*{box-sizing:border-box}html{scroll-padding-top:72px}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--font)}
 a{color:var(--accent)}.sans,nav,.bar,.kind,.meta,dt,.when,.small,.card small,.pager,footer,h3,.group{font-family:system-ui,sans-serif}
 .bar{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;padding:10px 16px;background:var(--tone);color:#fff}
 .bar .home{color:#fff;text-decoration:none;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0}
@@ -249,7 +262,7 @@ ul{margin:0;padding-left:1.2rem}.cites{margin:0}.when{color:var(--muted);font-si
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .card{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);text-decoration:none;color:var(--ink)}
 .card:hover{border-color:var(--accent)}.card strong{display:block;color:var(--accent)}.card small{display:block;color:var(--muted);font-size:13px;line-height:1.4;margin-top:2px}
-.thumb{flex:none;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--tone) center/cover;color:#fff;font:600 18px Georgia,serif}.thumb.img{color:transparent}
+.thumb{flex:none;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--tone) center/cover;color:#fff;font:600 18px var(--font)}.thumb.img{color:transparent}
 .results{list-style:none;padding:0;margin:0;display:grid;gap:8px}.results .card{width:100%}.empty{color:var(--muted)}
 .map{margin:16px 0 0}.map-box{position:relative}.map-box>img{display:block;width:100%;height:auto;border-radius:10px}
 .pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;text-decoration:none}
@@ -263,18 +276,19 @@ footer{max-width:1160px;margin:0 auto;padding:0 16px 32px;color:var(--muted);fon
 .js nav#indice{display:none;position:static;max-height:none;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
 .js nav#indice.aberto{display:block}nav#indice li a{padding:9px 8px}
 .entry{padding:18px 16px}.infobox{float:none;width:auto;margin:12px 0}.portrait{max-height:340px}.hero{padding:28px 18px 18px;min-height:160px}}
+${ws.font === 'livro' ? '.entry p{text-align:justify;hyphens:auto}.entry p:not(.summary)+p{text-indent:1.4em;margin-top:-.6em}' : ''}
 @media print{.bar,nav#indice,.pager{display:none!important}.page{display:block!important}.wrap{display:block}.entry{break-inside:avoid}}
 </style></head><body>
-<header class="bar"><a class="home" href="#inicio">${esc(universe.name)}</a><input type="search" id="busca" placeholder="Procurar…" aria-label="Procurar na wiki"><button type="button" id="menu" aria-expanded="false" aria-controls="indice">Índice</button></header>
+<header class="bar"><a class="home" href="#inicio">${esc(title)}</a><input type="search" id="busca" placeholder="Procurar…" aria-label="Procurar na wiki"><button type="button" id="menu" aria-expanded="false" aria-controls="indice">Índice</button></header>
 <div class="wrap">
-<nav id="indice" aria-label="Índice"><h2>Início</h2><ul><li><a href="#inicio">${esc(universe.name)}</a></li>${timeline ? '<li><a href="#linha-do-tempo">Linha do tempo</a></li>' : ''}${atlas ? `<li><a href="#mapas">${maps.length === 1 ? 'Mapa' : 'Mapas'}</a></li>` : ''}</ul>
+<nav id="indice" aria-label="Índice"><h2>Início</h2><ul><li><a href="#inicio">${esc(title)}</a></li>${timeline ? '<li><a href="#linha-do-tempo">Linha do tempo</a></li>' : ''}${atlas ? `<li><a href="#mapas">${maps.length === 1 ? 'Mapa' : 'Mapas'}</a></li>` : ''}</ul>
 ${kinds.map((k) => `<h2>${esc(kindPlural(k))}</h2><ul>${byKind.get(k)!.map((e) => `<li><a href="#${anchor(e.entity.id)}">${esc(e.entity.name)}</a></li>`).join('')}</ul>`).join('')}
 </nav>
 <main>${home}
 <section class="page" id="resultados" hidden><h2 class="group">Resultados</h2><ul class="results"></ul></section>
 ${entries.map(article).join('\n')}${timeline}${atlas}</main>
 </div>
-<footer>Feito com o Papirus. Sem segredos do autor.</footer>
+<footer>${author ? `${esc(author)} · ` : ''}Feito com o Papirus. Sem segredos do autor.</footer>
 <script>
 (function(){var d=document,root=d.documentElement;root.classList.add('js');
 var q=d.getElementById('busca'),nav=d.getElementById('indice'),btn=d.getElementById('menu'),res=d.getElementById('resultados'),list=res.querySelector('ul'),base=d.title;
@@ -297,7 +311,7 @@ window.addEventListener('hashchange',route);route()})();
   const data: WikiData = {
     formato: 'papirus-wiki',
     versao: 1,
-    mundo: { nome: universe.name, descricao: universe.description },
+    mundo: { nome: title, descricao: intro, autor: author },
     recorte: until,
     fichas: entries.map(({ entity: e, summary, description, fields }) => ({
       id: e.id,
@@ -325,6 +339,7 @@ window.addEventListener('hashchange',route);route()})();
 /** A wiki em Markdown: um arquivo de texto que abre em qualquer editor (e no Obsidian). */
 export function wikiMarkdown(data: WikiData): string {
   const out: string[] = [`# ${data.mundo.nome}`, '']
+  if (data.mundo.autor) out.push(`_por ${data.mundo.autor}_`, '')
   if (data.mundo.descricao) out.push(data.mundo.descricao, '')
   out.push(`_Wiki do mundo · ${data.recorte} · ${data.fichas.length} fichas_`, '')
   const kinds = [...new Set(data.fichas.map((f) => f.grupo))].sort((a, b) => a.localeCompare(b, 'pt-BR'))

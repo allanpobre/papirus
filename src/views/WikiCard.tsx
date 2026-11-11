@@ -1,7 +1,10 @@
-import { Download, ExternalLink, Globe } from 'lucide-react'
+import { Download, ExternalLink, Globe, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
+import { kindPlural } from '../model/labels'
+import type { WikiSettings } from '../model/schema'
 import { manuscriptOrder } from '../model/universe'
+import { coverLook, TONES } from '../ui/coverLook'
 import { useWorkspace } from '../state/workspace'
 import { imageDataUrl } from '../images/resolve'
 
@@ -67,6 +70,7 @@ export function WikiCard() {
           <option value="json">Dados (.json): para outros programas</option>
         </select>
       </label>
+      <WikiCustomize />
       <div className="button-stack">
         <button type="button" className="btn btn-primary" onClick={() => void download()}>
           <Download size={16} /> Baixar a wiki ({FORMATS[format]})
@@ -86,5 +90,144 @@ export function WikiCard() {
         </button>
       </div>
     </section>
+  )
+}
+
+const FONT_LABELS: Record<NonNullable<WikiSettings['font']>, string> = { serifada: 'Com serifa', 'sem-serifa': 'Sem serifa', livro: 'De livro (justificado)' }
+const SECTIONS: [keyof Pick<WikiSettings, 'timeline' | 'maps' | 'cites' | 'portraits'>, string][] = [
+  ['timeline', 'Linha do tempo'],
+  ['maps', 'Mapas'],
+  ['cites', '“Citado em”'],
+  ['portraits', 'Retratos'],
+]
+
+/** Personalizar a wiki: guardado no universo, vale para o site, o texto e os dados. */
+function WikiCustomize() {
+  const { universe, update } = useWorkspace()
+  const ws: WikiSettings = universe.settings.wiki ?? {}
+  const set = (patch: Partial<WikiSettings>) => update((u) => ({ ...u, settings: { ...u.settings, wiki: { ...u.settings.wiki, ...patch } } }))
+  const kinds = [...new Set(universe.entities.map((e) => e.kind))].sort((a, b) => kindPlural(a).localeCompare(kindPlural(b), 'pt-BR'))
+  const hiddenKinds = new Set(ws.hiddenKinds ?? [])
+  const [fieldsText, setFieldsText] = useState((ws.hiddenFields ?? []).join(', '))
+  const outside = universe.entities.filter((e) => e.wikiHidden).length
+  const cover = coverLook(universe.name).tone
+  const color = ws.color ?? null
+  const changed = Object.values(ws).some((v) => v !== undefined)
+
+  return (
+    <details className="wiki-custom">
+      <summary>
+        <SlidersHorizontal size={15} aria-hidden="true" /> Personalizar
+        {changed && <span className="wiki-custom-mark">do seu jeito</span>}
+      </summary>
+
+      <fieldset className="wiki-custom-group">
+        <legend>Abertura</legend>
+        <label className="field">
+          <span className="field-label">Título</span>
+          <input className="input" value={ws.title ?? ''} placeholder={universe.name} onChange={(e) => set({ title: e.target.value || undefined })} />
+        </label>
+        <label className="field">
+          <span className="field-label">Texto de boas-vindas</span>
+          <textarea className="input" rows={3} value={ws.intro ?? ''} placeholder={universe.description || 'Para quem chega: do que é este mundo, por onde começar.'} onChange={(e) => set({ intro: e.target.value || undefined })} />
+        </label>
+        <label className="field">
+          <span className="field-label">Autor</span>
+          <input className="input" value={ws.author ?? ''} placeholder="Seu nome (opcional)" onChange={(e) => set({ author: e.target.value || undefined })} />
+        </label>
+      </fieldset>
+
+      <fieldset className="wiki-custom-group">
+        <legend>O que entra</legend>
+        {kinds.length > 0 && (
+          <div className="wiki-custom-checks" role="group" aria-label="Tipos de ficha">
+            {kinds.map((k) => (
+              <label key={k} className="wiki-check">
+                <input
+                  type="checkbox"
+                  checked={!hiddenKinds.has(k)}
+                  onChange={(e) => {
+                    const next = new Set(hiddenKinds)
+                    if (e.target.checked) next.delete(k)
+                    else next.add(k)
+                    set({ hiddenKinds: next.size ? [...next] : undefined })
+                  }}
+                />
+                {kindPlural(k)}
+              </label>
+            ))}
+          </div>
+        )}
+        <label className="field">
+          <span className="field-label">Campos escondidos</span>
+          <input
+            className="input"
+            value={fieldsText}
+            placeholder="Ex.: Notas do mestre, Fraqueza"
+            onChange={(e) => setFieldsText(e.target.value)}
+            onBlur={() => {
+              const list = fieldsText.split(',').map((t) => t.trim()).filter(Boolean)
+              set({ hiddenFields: list.length ? list : undefined })
+            }}
+          />
+        </label>
+        <p className="small muted">
+          Para tirar uma ficha só, desligue “Entra na wiki” na própria ficha (Editar).{' '}
+          {outside > 0 && `Agora: ${outside} ${outside === 1 ? 'ficha fora' : 'fichas fora'}.`}
+        </p>
+      </fieldset>
+
+      <fieldset className="wiki-custom-group">
+        <legend>Seções</legend>
+        <div className="wiki-custom-checks">
+          {SECTIONS.map(([key, label]) => (
+            <label key={key} className="wiki-check">
+              <input type="checkbox" checked={ws[key] !== false} onChange={(e) => set({ [key]: e.target.checked ? undefined : false })} />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="wiki-custom-group">
+        <legend>Aparência</legend>
+        <div className="wiki-swatches" role="radiogroup" aria-label="Cor da wiki">
+          <button type="button" role="radio" aria-checked={color === null} className="wiki-swatch" style={{ background: cover }} title="A cor da capa" onClick={() => set({ color: undefined })}>
+            <span className="sr-only">A cor da capa</span>
+          </button>
+          {TONES.filter((t) => t !== cover).map((t) => (
+            <button key={t} type="button" role="radio" aria-checked={color === t} className="wiki-swatch" style={{ background: t }} onClick={() => set({ color: t })}>
+              <span className="sr-only">Cor {t}</span>
+            </button>
+          ))}
+          <label className="wiki-swatch wiki-swatch-pick" title="Outra cor">
+            <input type="color" value={color ?? cover} onChange={(e) => set({ color: e.target.value })} aria-label="Outra cor" />
+          </label>
+        </div>
+        <label className="field">
+          <span className="field-label">Letra</span>
+          <select className="input" value={ws.font ?? 'serifada'} onChange={(e) => set({ font: e.target.value === 'serifada' ? undefined : (e.target.value as WikiSettings['font']) })}>
+            {Object.entries(FONT_LABELS).map(([v, label]) => (
+              <option key={v} value={v}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </fieldset>
+
+      {changed && (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() => {
+            setFieldsText('')
+            update((u) => ({ ...u, settings: { ...u.settings, wiki: undefined } }))
+          }}
+        >
+          Voltar ao padrão
+        </button>
+      )}
+    </details>
   )
 }

@@ -42,6 +42,31 @@ test('wiki do mundo: só até uma cena, sem spoiler', async ({ page }) => {
   expect(md).not.toContain('### Porfírio')
 })
 
+test('wiki do mundo: personalizar título e o que entra', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await nav(page, 'Ajustes e dados').click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Importar e wiki' }).click()
+  await page.getByText('Personalizar', { exact: true }).click()
+  await page.getByRole('textbox', { name: 'Título' }).fill('Itaguaí para leitores')
+  await page.getByRole('textbox', { name: 'Autor' }).fill('Ana')
+  const kinds = page.getByRole('group', { name: 'Tipos de ficha' })
+  await kinds.getByRole('checkbox', { name: 'Personagens' }).uncheck()
+  await page.getByRole('radio', { name: 'Cor #6a4ea3' }).click()
+  await page.getByRole('combobox', { name: 'Letra' }).selectOption('livro')
+  await expect(page.getByText('do seu jeito')).toBeVisible()
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Baixar a wiki (.html)' }).click()
+  const html = await readFile((await (await download).path())!, 'utf8')
+  expect(html).toContain('<h1>Itaguaí para leitores</h1>')
+  expect(html).toContain('por Ana')
+  expect(html).not.toContain('<h2>Simão Bacamarte</h2>')
+  expect(html).toContain('--tone:#6a4ea3')
+  // Voltar ao padrão desfaz tudo.
+  await page.getByRole('button', { name: 'Voltar ao padrão' }).click()
+  await expect(page.getByText('do seu jeito')).toBeHidden()
+  await expect(page.getByRole('textbox', { name: 'Título' })).toHaveValue('')
+})
+
 test('aparência: cor rosa, fonte de máquina e modo máquina de escrever', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Ajustes e dados').click()

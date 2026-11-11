@@ -588,6 +588,11 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
             </Field>
             <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
+            <label className="toggle entity-wiki-toggle">
+              <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
+              <span className="toggle-track" aria-hidden="true" />
+              <span>Entra na wiki</span>
+            </label>
           </div>
 
           <Field label="Descrição" wide>
