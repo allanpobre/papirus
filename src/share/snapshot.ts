@@ -13,6 +13,7 @@ import { fightPhase, sideTurn, turnQueue } from '../rpg/fight'
 import { currentBeat, sharedClocks } from '../rpg/stage'
 import { attributeExpression, bonusLabel, damageExpression, expandFormula, skillExpression, type RollRules } from '../rpg/rolls'
 import { costResource, critFrom, critMult, isPool } from '../rpg/sheets'
+import { playerSheetsFull } from '../rpg/joinSheets'
 
 /**
  * O Codex de uma mesa como os jogadores o veem, em dados simples e já filtrados:
@@ -54,6 +55,11 @@ export interface CodexSnapshot {
   theme?: string | null
   /** Como ler as rolagens feitas pelo Codex (sem sistema, não há rolagens). */
   rules?: RollRules
+  /**
+   * O que um jogador preenche para criar o próprio personagem pelo convite: os atributos e os
+   * campos do sistema do grupo. `full` = o grupo já tem o máximo de personagens de jogador.
+   */
+  create?: { attrs: { id: string; abbr: string; name: string; def: number; min: number; max: number }[]; fields: string[]; full?: boolean }
   /** A sessão em andamento: os jogadores veem quando ela começa e quando termina. */
   session?: { number: number; title: string; startedAt: string | null } | null
   /** Os testes que o mestre pediu e ainda estão abertos (sem a dificuldade): para quem, e quem já rolou. */
@@ -171,6 +177,16 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
     group: group?.name ?? '',
     theme: mesaTheme(group?.theme, system?.name),
     ...(system ? { rules: { resolution: system.resolution, successTarget: system.successTarget } } : {}),
+    // O Codex "até a sessão N" é só para ver; no de agora, o jogador pode criar o próprio personagem.
+    ...(untilSession === undefined
+      ? {
+          create: {
+            attrs: (system?.attributes ?? []).map((a) => ({ id: a.id, abbr: a.abbr, name: a.name, def: a.default, min: a.min, max: a.max })),
+            fields: system?.fields ?? [],
+            ...(playerSheetsFull(universe, groupId) ? { full: true } : {}),
+          },
+        }
+      : {}),
     session: liveSession(universe, groupId),
     notices: recentNotices(live),
     scene: (() => {

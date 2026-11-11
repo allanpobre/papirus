@@ -1,12 +1,13 @@
-import { BookOpen, Crosshair, Dices, ListChecks, Search, Swords, Theater, UserRound, type LucideIcon } from 'lucide-react'
+import { BookOpen, Crosshair, Dices, ListChecks, Plus, Search, Swords, Theater, UserRound, type LucideIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { fold } from '../logic/text'
 import { bonusLabel, critDamage, facesOf, resolveRoll, type RollOutcome, type RollRules } from '../rpg/rolls'
-import type { TableRoll } from '../share/server'
+import type { TableRoll, TableSheet } from '../share/server'
 import type { CodexRoll, CodexSnapshot } from '../share/snapshot'
 import { recall, remember } from '../state/prefs'
 import { Modal } from '../ui/Modal'
 import { useMediaQuery } from '../ui/useMediaQuery'
+import { CreateSheetDialog } from './CreateSheet'
 import { CombatBoard, Feed, MeCard, SceneBoard, YourTurn } from './PlayerPanels'
 import { PhysicalRollDialog } from '../views/rpg/PhysicalRollDialog'
 
@@ -54,6 +55,10 @@ export function PlayerTable({
   onTurn,
   live,
   codexView,
+  pendingSheet,
+  onCreate,
+  onCancelCreate,
+  gmHere,
 }: {
   codex: CodexSnapshot
   me: string | null
@@ -66,6 +71,12 @@ export function PlayerTable({
   live: ReactNode
   /** O Codex (a aba Codex). */
   codexView: ReactNode
+  /** O personagem que este jogador criou e ainda não chegou ao mestre. */
+  pendingSheet: TableSheet | null
+  onCreate: (s: TableSheet) => void
+  onCancelCreate: () => void
+  /** O Papirus do mestre está com a Mesa aberta agora (é ele que recebe a ficha). */
+  gmHere: boolean
 }) {
   const wide = useMediaQuery('(min-width: 960px)')
   const [tab, setTab] = useState<Tab>(() => {
@@ -80,6 +91,7 @@ export function PlayerTable({
   // A vez que o jogador já fechou (ou terminou): o aviso não volta até a próxima.
   const [closedTurn, setClosedTurn] = useState<string | null>(null)
   const [rolling, setRolling] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [aiming, setAiming] = useState<Pending | null>(null)
   const [asking, setAsking] = useState<{ outcome: RollOutcome; pending: Pending; aim?: TableRoll['aim'] } | null>(null)
   const [physical, setPhysical] = useState(() => recall('codex-dados') !== 'app')
@@ -170,21 +182,44 @@ export function PlayerTable({
     onTurn(to)
   }
 
+  // O jogador pode criar o próprio personagem (se o mestre não criou): vai para o Papirus do mestre.
+  const createOwn = pendingSheet ? (
+    <p className="player-pending small" role="status">
+      <span>
+        <strong>{pendingSheet.name}</strong> foi para o mestre. {gmHere ? 'Aparece aqui em instantes.' : 'O mestre não está com a Mesa aberta agora: a ficha chega quando ele abrir.'}
+      </span>
+      <button type="button" className="link-btn" onClick={onCancelCreate}>
+        Cancelar
+      </button>
+    </p>
+  ) : codex.create && !codex.create.full ? (
+    <button type="button" className="btn btn-sm player-create-btn" onClick={() => setCreating(true)}>
+      <Plus size={15} aria-hidden="true" /> Criar o meu personagem
+    </button>
+  ) : null
+
   const whoAmI = (
         <section className="player-who" aria-labelledby="player-who">
           <h2 id="player-who" className="player-who-title">
             Qual é o seu personagem?
           </h2>
-          <p className="muted small">Para rolar pela sua ficha. As rolagens aparecem para o mestre e para o grupo.</p>
-          <div className="chips">
-            {codex.party.map((p) => (
-              <button key={p.name} type="button" className={`chip player-who-chip${p.away ? ' is-away' : ''}`} onClick={() => onMe(p.name)}>
-                {p.name}
-                {p.player && <span className="player-who-player">{p.player}</span>}
-                {p.away && <span className="player-who-away">{p.away === 'fora' ? 'fora hoje' : 'com o mestre hoje'}</span>}
-              </button>
-            ))}
-          </div>
+          {codex.party.length > 0 ? (
+            <p className="muted small">Para rolar pela sua ficha. As rolagens aparecem para o mestre e para o grupo.</p>
+          ) : (
+            <p className="muted small">Esta mesa ainda não tem personagens.{createOwn ? ' Crie o seu:' : ' Enquanto isso, role pelo botão “Rolar”.'}</p>
+          )}
+          {codex.party.length > 0 && (
+            <div className="chips">
+              {codex.party.map((p) => (
+                <button key={p.name} type="button" className={`chip player-who-chip${p.away ? ' is-away' : ''}`} onClick={() => onMe(p.name)}>
+                  {p.name}
+                  {p.player && <span className="player-who-player">{p.player}</span>}
+                  {p.away && <span className="player-who-away">{p.away === 'fora' ? 'fora hoje' : 'com o mestre hoje'}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+          {createOwn}
         </section>
   )
 
@@ -198,10 +233,8 @@ export function PlayerTable({
       <section key="eu" className="player-panel player-eu" aria-label="Eu" hidden={off('eu')}>
         {pc && me ? (
           <MeCard pc={pc} rolls={rolls} onRoll={(r) => start(pick(r))} onAll={() => setRolling(true)} onChange={() => onMe(null)} />
-        ) : codex.party.length > 0 ? (
-          whoAmI
         ) : (
-          <p className="muted small">Esta mesa ainda não tem fichas no Codex. Role pelo botão "Rolar".</p>
+          whoAmI
         )}
       </section>
     ),
@@ -310,6 +343,17 @@ export function PlayerTable({
         <YourTurn me={me} combat={combat} attacks={attacks} onAttack={(r) => start(pick(r))} onOther={() => setRolling(true)} onDone={done} onClose={() => setClosedTurn(turnKey)} />
       )}
 
+      {creating && codex.create && (
+        <CreateSheetDialog
+          form={codex.create}
+          taken={codex.party.map((p) => p.name)}
+          onClose={() => setCreating(false)}
+          onSend={(s) => {
+            setCreating(false)
+            onCreate(s)
+          }}
+        />
+      )}
       {rolling && (
         <RollSheet
           me={me}

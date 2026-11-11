@@ -8,6 +8,7 @@ import { makeSystem } from '../rpg/systems'
 import { judge, recordResult } from '../rpg/requests'
 import { playerTurn } from '../rpg/fight'
 import type { Prefs } from '../state/prefs'
+import { acceptSheet } from '../rpg/joinSheets'
 import { forgetGroup, noteLeft, notePresence, PRESENCE_EVERY } from './presence'
 import { joinTable, type TableNotice, type TableRoll } from './server'
 import { serverFrom } from './useCodexSync'
@@ -32,6 +33,21 @@ export function sendNoticeNow(groupId: string, n: TableNotice) {
     .get(groupId)
     ?.sendNotice(n)
     .catch(() => undefined)
+}
+
+/** Um personagem que um jogador criou pelo convite e já entrou no grupo. */
+export interface IncomingSheet {
+  groupId: string
+  sheetId: string
+  name: string
+  player: string
+}
+
+const sheetListeners = new Set<(s: IncomingSheet) => void>()
+/** O Papirus do mestre avisa por aqui quando um jogador cria o próprio personagem. */
+export function onIncomingSheet(fn: (s: IncomingSheet) => void): () => void {
+  sheetListeners.add(fn)
+  return () => sheetListeners.delete(fn)
 }
 
 /** A bandeja de rolagens da mesa escuta por aqui. */
@@ -111,6 +127,22 @@ export function useTableRolls(universe: Universe, prefs: Prefs, update: (change:
           }
           if (outcome.combat && !outcome.combat.hurts && outcome.verdict) void t.sendCheck({ id: r.id, verdict: outcome.verdict, tone: outcome.tone }).catch(() => undefined)
           for (const l of listeners) l({ groupId, outcome, who: r.who, logged })
+        },
+        // Um jogador criou o próprio personagem pelo convite: vira ficha de jogador do grupo (e ficha no Mundo).
+        // O Codex vai de novo para os celulares, e o dele já abre na ficha nova.
+        sheet: (incoming) => {
+          if (seen.has(incoming.id)) return
+          // A conta é feita dentro da gravação, com o universo de agora: um pedido repetido não duplica.
+          let made: string | null = null
+          latest.current.update((v) => {
+            const got = acceptSheet(v, groupId, incoming)
+            if (!got) return v
+            made = got.sheetId
+            return got.universe
+          })
+          if (!made) return
+          seen.add(incoming.id)
+          for (const l of sheetListeners) l({ groupId, sheetId: made, name: incoming.name.trim(), player: incoming.player.trim() })
         },
         // "Terminei" pelo celular: passa a vez (na pipoca, para quem o jogador escolheu).
         turn: (v) => {
