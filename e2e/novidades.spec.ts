@@ -30,6 +30,16 @@ test('wiki do mundo: só até uma cena, sem spoiler', async ({ page }) => {
   expect(html).toContain('<h2>Simão Bacamarte</h2>')
   expect(html).not.toContain('<h2>Porfírio</h2>')
   expect(html).not.toContain('Machado deixa no ar')
+
+  // A mesma wiki em texto (.md), com o mesmo recorte.
+  await page.getByRole('combobox', { name: 'Formato' }).selectOption('md')
+  const textDownload = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Baixar a wiki (.md)' }).click()
+  const textFile = await textDownload
+  expect(textFile.suggestedFilename()).toMatch(/wiki\.md$/)
+  const md = await readFile((await textFile.path())!, 'utf8')
+  expect(md).toContain('### Simão Bacamarte')
+  expect(md).not.toContain('### Porfírio')
 })
 
 test('aparência: cor rosa, fonte de máquina e modo máquina de escrever', async ({ page }) => {

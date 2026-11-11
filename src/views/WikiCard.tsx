@@ -5,11 +5,27 @@ import { manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { imageDataUrl } from '../images/resolve'
 
+const FORMATS = { html: '.html', md: '.md', json: '.json' } as const
+
 /** Wiki do mundo: um arquivo HTML para jogadores ou leitores, sem segredos (e, se quiser, sem spoiler). */
 export function WikiCard() {
   const { universe } = useWorkspace()
   const scenes = manuscriptOrder(universe)
   const [upTo, setUpTo] = useState<string>('tudo')
+  const [format, setFormat] = useState<'html' | 'md' | 'json'>('html')
+
+  const download = async () => {
+    const name = `${universe.name} wiki`
+    if (format === 'html') {
+      const { html } = await build()
+      return downloadText(fileNameFor(name, 'html'), html, 'text/html')
+    }
+    const { buildWiki, wikiMarkdown } = await import('../export/wiki')
+    // Texto e dados vão sem imagens: ficam leves e abrem em qualquer lugar.
+    const { data } = buildWiki(universe, { upTo: upTo === 'tudo' ? null : Number(upTo) })
+    if (format === 'md') downloadText(fileNameFor(name, 'md'), wikiMarkdown(data))
+    else downloadText(fileNameFor(name, 'json'), JSON.stringify(data, null, 2), 'application/json')
+  }
 
   const build = async () => {
     const { buildWiki } = await import('../export/wiki')
@@ -43,15 +59,17 @@ export function WikiCard() {
           ))}
         </select>
       </label>
+      <label className="field">
+        <span className="field-label">Formato</span>
+        <select className="input" value={format} onChange={(e) => setFormat(e.target.value as typeof format)}>
+          <option value="html">Site (.html): com capa, retratos e mapas</option>
+          <option value="md">Texto (.md): para ler, editar ou levar ao Obsidian</option>
+          <option value="json">Dados (.json): para outros programas</option>
+        </select>
+      </label>
       <div className="button-stack">
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() =>
-            void build().then(({ html }) => downloadText(fileNameFor(`${universe.name} wiki`, 'html'), html, 'text/html'))
-          }
-        >
-          <Download size={16} /> Baixar a wiki (.html)
+        <button type="button" className="btn btn-primary" onClick={() => void download()}>
+          <Download size={16} /> Baixar a wiki ({FORMATS[format]})
         </button>
         <button
           type="button"

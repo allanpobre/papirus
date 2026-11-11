@@ -65,3 +65,22 @@ describe('wiki navegável', () => {
     expect(buildWiki(u, { upTo: null }).html).not.toContain('id="mapas"')
   })
 })
+
+describe('wiki em texto e em dados', () => {
+  it('Markdown e JSON levam o mesmo recorte, sem segredos', async () => {
+    const { wikiMarkdown } = await import('./wiki')
+    const { data } = buildWiki(ostriaUniverse(), { upTo: null })
+    const md = wikiMarkdown(data)
+    expect(md).toMatch(/^# /)
+    expect(md).toContain('### Kael')
+    expect(md).toContain('**Citado em:**')
+    expect(md).not.toContain('### Vaelor')
+    expect(md).not.toContain('mandou incendiar')
+    expect(data.formato).toBe('papirus-wiki')
+    expect(data.fichas.find((f) => f.nome === 'Kael')?.citadoEm).toContain('Mira')
+    expect(JSON.stringify(data)).not.toContain('mandou incendiar')
+    const early = buildWiki(ostriaUniverse(), { upTo: 0 }).data
+    expect(early.fichas.length).toBeLessThan(data.fichas.length)
+    expect(wikiMarkdown(early)).not.toContain('### Cassian')
+  })
+})

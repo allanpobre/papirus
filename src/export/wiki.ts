@@ -32,7 +32,33 @@ interface WikiEntry {
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const anchor = (id: string) => `f-${id.slice(0, 12)}`
 
-export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { html: string; entries: number } {
+/** A wiki em dados: o mesmo conteúdo do site, para JSON ou texto (sem imagens). */
+export interface WikiData {
+  formato: 'papirus-wiki'
+  versao: 1
+  mundo: { nome: string; descricao: string }
+  recorte: string
+  fichas: {
+    id: string
+    tipo: string
+    nome: string
+    apelidos: string[]
+    resumo: string
+    descricao: string
+    campos: { nome: string; valor: string }[]
+    ficaEm: string | null
+    contem: string[]
+    ligacoes: string[]
+    fatos: string[]
+    linhaDoTempo: string[]
+    citadoEm: string[]
+    mapas: string[]
+  }[]
+  linhaDoTempo: { quando: string; titulo: string; descricao: string }[]
+  mapas: { nome: string; marcadores: { nome: string; x: number; y: number }[] }[]
+}
+
+export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { html: string; entries: number; data: WikiData } {
   const safe = readerCopy(universe, false)
   const scenes = manuscriptOrder(safe)
   let entries: WikiEntry[]
@@ -264,5 +290,63 @@ btn.addEventListener('click',function(){var o=nav.classList.toggle('aberto');btn
 window.addEventListener('hashchange',route);route()})();
 </script>
 </body></html>`
-  return { html, entries: entries.length }
+  const data: WikiData = {
+    formato: 'papirus-wiki',
+    versao: 1,
+    mundo: { nome: universe.name, descricao: universe.description },
+    recorte: until,
+    fichas: entries.map(({ entity: e, summary, description, fields }) => ({
+      id: e.id,
+      tipo: kindLabel(e.kind),
+      nome: e.name,
+      apelidos: e.aliases,
+      resumo: summary.trim(),
+      descricao: description.trim(),
+      campos: fields.map((f) => ({ nome: f.key, valor: f.value })),
+      ficaEm: e.parentId && visible.has(e.parentId) ? nameOf(e.parentId) : null,
+      contem: entries.filter((x) => x.entity.parentId === e.id).map((x) => x.entity.name),
+      ligacoes: [...new Set(relations.filter((r) => r.ids.includes(e.id)).map((r) => r.text))],
+      fatos: [...new Set(facts.filter((f) => f.ids.includes(e.id)).map((f) => f.text))],
+      linhaDoTempo: eventsOf(e.id).map((ev) => `${ev.when}: ${ev.title}`),
+      citadoEm: [...(citedBy.get(e.id) ?? [])].map(nameOf).sort((a, b) => a.localeCompare(b, 'pt-BR')),
+      mapas: mapsOf(e.id).map((m) => m.name || 'Mapa'),
+    })),
+    linhaDoTempo: sortedEvents.map((ev) => ({ quando: ev.when, titulo: ev.title, descricao: ev.description })),
+    mapas: maps.map((m) => ({ nome: m.name || 'Mapa', marcadores: m.pins.map((p) => ({ nome: p.label || nameOf(p.entityId), x: p.x, y: p.y })) })),
+  }
+  return { html, entries: entries.length, data }
 }
+
+/** A wiki em Markdown: um arquivo de texto que abre em qualquer editor (e no Obsidian). */
+export function wikiMarkdown(data: WikiData): string {
+  const out: string[] = [`# ${data.mundo.nome}`, '']
+  if (data.mundo.descricao) out.push(data.mundo.descricao, '')
+  out.push(`_Wiki do mundo · ${data.recorte} · ${data.fichas.length} fichas_`, '')
+  const kinds = [...new Set(data.fichas.map((f) => f.tipo))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  const list = (title: string, items: string[]) => (items.length ? [`**${title}**`, '', ...items.map((t) => `- ${t}`), ''] : [])
+  for (const k of kinds) {
+    out.push(`## ${k}`, '')
+    for (const f of data.fichas.filter((x) => x.tipo === k)) {
+      out.push(`### ${f.nome}`, '')
+      if (f.apelidos.length) out.push(`_Também: ${f.apelidos.join(', ')}_`, '')
+      if (f.resumo) out.push(`> ${f.resumo.replace(/\n+/g, ' ')}`, '')
+      if (f.descricao) out.push(f.descricao, '')
+      const info = [
+        ...f.campos.map((c) => `- **${c.nome}:** ${c.valor}`),
+        ...(f.ficaEm ? [`- **Fica em:** ${f.ficaEm}`] : []),
+        ...(f.contem.length ? [`- **Contém:** ${f.contem.join(', ')}`] : []),
+        ...(f.mapas.length ? [`- **No mapa:** ${f.mapas.join(', ')}`] : []),
+      ]
+      if (info.length) out.push(...info, '')
+      out.push(...list('Ligações', f.ligacoes), ...list('O que se sabe', f.fatos), ...list('Na linha do tempo', f.linhaDoTempo))
+      if (f.citadoEm.length) out.push(`**Citado em:** ${f.citadoEm.join(' · ')}`, '')
+    }
+  }
+  if (data.linhaDoTempo.length) {
+    out.push('## Linha do tempo', '')
+    for (const ev of data.linhaDoTempo) out.push(`- **${ev.quando}** · ${ev.titulo}${ev.descricao ? ` — ${ev.descricao.replace(/\n+/g, ' ')}` : ''}`)
+    out.push('')
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n'
+}
+
