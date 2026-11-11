@@ -1,8 +1,9 @@
 import { Megaphone, Moon, Radio, Sun } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { alive, PRESENCE_EVERY, useNow, withPresence, type Present } from '../share/presence'
-import { fetchCodex, joinTable, type ServerConfig, type TableNotice, type TablePresence, type TableRoll } from '../share/server'
+import { fetchCodex, joinTable, type ServerConfig, type TableNotice, type TablePresence, type TableRoll, type TableSheet } from '../share/server'
 import { revealedSince, sameReveals, type CodexSnapshot } from '../share/snapshot'
+import { fold } from '../logic/text'
 import { recall, remember } from '../state/prefs'
 import { PlayerTable, type FeedRoll } from './PlayerTable'
 import { CodexDoc } from '../views/rpg/CodexDoc'
@@ -15,6 +16,8 @@ import '@fontsource/cinzel/600.css'
 import '../styles/mesa.css'
 
 const POLL_MS = 20_000
+/** De quanto em quanto tempo o celular manda de novo a ficha que ainda não chegou ao mestre. */
+const RESEND_SHEET_MS = 6000
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
 /** Um momento na tela inteira do celular: a sessão começou ou terminou, um aviso, uma revelação. */
@@ -47,6 +50,23 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
   const [me, setMe] = useState<string | null>(() => recall(`codex-eu:${id}`))
   const [feed, setFeed] = useState<FeedRoll[]>([])
   const table = useRef<ReturnType<typeof joinTable> | null>(null)
+  // O personagem que este jogador criou e ainda não chegou ao Papirus do mestre (guardado: sobrevive a recarregar).
+  const [pendingSheet, setPendingSheet] = useState<TableSheet | null>(() => {
+    try {
+      return JSON.parse(recall(`codex-ficha:${id}`) ?? 'null') as TableSheet | null
+    } catch {
+      return null
+    }
+  })
+  const waiting = useRef(pendingSheet)
+  const setWaiting = useCallback(
+    (s: TableSheet | null) => {
+      waiting.current = s
+      setPendingSheet(s)
+      remember(`codex-ficha:${id}`, s ? JSON.stringify(s) : null)
+    },
+    [id],
+  )
   // Quem está na mesa: este celular avisa (com o personagem escolhido) e ouve os outros.
   const [presenceId] = useState(() => crypto.randomUUID())
   const [people, setPeople] = useState<Present[]>([])
@@ -110,6 +130,13 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
           title: learned[0],
           sub: learned.length > 1 ? `e mais ${learned.length - 1} ${learned.length > 2 ? 'novidades' : 'novidade'} no Codex` : 'Está no Codex.',
         })
+      // O personagem que este jogador criou chegou: o Codex já o tem, e o celular passa a ser ele.
+      const arrived = waiting.current && r.data.party.find((p) => fold(p.name) === fold(waiting.current!.name))
+      if (arrived) {
+        setWaiting(null)
+        setMe(arrived.name)
+        remember(`codex-eu:${id}`, arrived.name)
+      }
       current.current = r.data
       setCodex(r.data)
       setUpdatedAt(r.updatedAt)
@@ -118,7 +145,15 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
       setError(err instanceof Error ? err.message : String(err))
       setState((s) => (s === 'ok' ? 'ok' : 'erro'))
     }
-  }, [server, id, push, showNotice])
+  }, [server, id, push, showNotice, setWaiting])
+
+  // Enquanto a ficha não chega, o celular manda de novo de tempos em tempos (o canal não guarda nada:
+  // só entrega se o Papirus do mestre estiver aberto naquela hora).
+  useEffect(() => {
+    if (!pendingSheet) return
+    const again = setInterval(() => document.visibilityState === 'visible' && void table.current?.sendSheet(pendingSheet).catch(() => undefined), RESEND_SHEET_MS)
+    return () => clearInterval(again)
+  }, [pendingSheet])
 
   useEffect(() => {
     if (!server) return
@@ -180,6 +215,10 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
     setFeed((f) => [{ ...r, mine: true }, ...f].slice(0, 12))
     void table.current?.sendRoll(r).catch(() => undefined)
   }
+  const createSheet = (s: TableSheet) => {
+    setWaiting(s)
+    void table.current?.sendSheet(s).catch(() => undefined)
+  }
   const chooseMe = (name: string | null) => {
     setMe(name)
     remember(`codex-eu:${id}`, name)
@@ -237,6 +276,10 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
               feed={feed}
               onRoll={roll}
               onTurn={(to) => me && void table.current?.sendTurn({ id: crypto.randomUUID(), who: me, ...(to ? { to } : {}) }).catch(() => undefined)}
+              pendingSheet={pendingSheet}
+              onCreate={createSheet}
+              onCancelCreate={() => setWaiting(null)}
+              gmHere={alive(people, now).some((p) => p.role === 'mestre')}
               live={
                 <>
                   <AtTable people={alive(people, now)} session={codex.session ?? null} me={me && codex.party.some((p) => p.name === me) ? me : null} />

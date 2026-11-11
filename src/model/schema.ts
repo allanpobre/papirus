@@ -698,8 +698,14 @@ export const universeSchema = z.object({
   /** A estante: os livros deste universo. */
   books: z.array(bookRecordSchema).default([]),
   history: z.array(historyEntrySchema).default([]),
-  /** Cópia guardada da versão da nuvem de outro universo (quando os dois lados mudaram): o id do original. */
+  /**
+   * Versão guardada de outro universo (o id dele): fica só neste aparelho, dentro do universo, e
+   * nunca sobe para a nuvem. Nasce de um conflito entre aparelhos, de um backup importado ou de
+   * uma troca ("Ficar com esta versão").
+   */
   cloudCopyOf: z.string().nullable().default(null),
+  /** De onde veio a versão guardada: da nuvem (conflito), de um backup, ou era o universo antes de uma troca. */
+  versionKind: z.enum(['nuvem', 'backup', 'anterior']).nullable().default(null),
   settings: universeSettingsSchema,
   /** Total de palavras no início de cada dia (AAAA-MM-DD), para metas diárias. */
   dailyStart: z.record(z.string(), z.number()),

@@ -3,12 +3,17 @@ import { universeKind, type UniverseKind } from '../model/kind'
 import { isLocalOnly } from '../model/sample'
 import { migrate } from '../model/migrations'
 import { CURRENT_SCHEMA_VERSION, type SavedFile, type Universe } from '../model/schema'
+import { cleanName, hasOldCopyName, originalOf } from './cloudCopy'
 import type { KeyValueStore } from './storage'
 
 const keys = (universeId: string) => ({
   current: `universe:${universeId}:current`,
   previous: `universe:${universeId}:previous`,
   snapshots: `universe:${universeId}:snapshots`,
+  /** O universo como estava na última vez em que este aparelho e a nuvem ficaram iguais. */
+  base: `universe:${universeId}:base`,
+  /** A data dessa base (para saber se existe sem ler o universo inteiro). */
+  baseAt: `universe:${universeId}:base-at`,
   emergency: `papirus:emergency:${universeId}`,
 })
 const snapshotKey = (snapshotId: string) => `snapshot:${snapshotId}`
@@ -103,6 +108,35 @@ export class UniverseRepository {
   }
 
   // -------------------------------------------------------------------------
+  // A base: o ponto em comum com a nuvem
+
+  /**
+   * Guarda o universo como o ponto em comum entre este aparelho e a nuvem (os dois estão iguais
+   * agora). Se depois os dois lados mudarem, é a partir daqui que se sabe quem mexeu em quê, para
+   * juntar as mudanças em vez de escolher um lado.
+   */
+  async saveBase(universe: Universe): Promise<void> {
+    await this.store.set(this.k.base, this.toFile(universe, 0))
+    await this.store.set(this.k.baseAt, universe.updatedAt)
+  }
+
+  /** A data da base guardada, ou `null` se não há. */
+  async baseAt(): Promise<string | null> {
+    return ((await this.store.get(this.k.baseAt)) as string | undefined) ?? null
+  }
+
+  async loadBase(): Promise<Universe | null> {
+    const raw = await this.store.get(this.k.base)
+    if (raw === undefined) return null
+    try {
+      return migrate(raw).universe
+    } catch {
+      // Base ilegível: como se não houvesse (o conflito vira uma pergunta, em vez de juntar).
+      return null
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Snapshots
 
   async listSnapshots(): Promise<SnapshotInfo[]> {
@@ -146,6 +180,8 @@ export class UniverseRepository {
     await this.store.delete(this.k.snapshots)
     await this.store.delete(this.k.current)
     await this.store.delete(this.k.previous)
+    await this.store.delete(this.k.base)
+    await this.store.delete(this.k.baseAt)
     this.clearEmergency()
   }
 
@@ -191,8 +227,10 @@ export interface LibraryEntry {
   sheets?: number
   /** Tema da mesa (o do primeiro grupo), para o cartão no setor RPG. "nenhum" = cores do app. */
   theme?: string
-  /** É a versão da nuvem de outro universo, guardada ao lado (o id do original). */
+  /** É uma versão guardada de outro universo (o id dele): fica dentro dele na lista e não sobe para a nuvem. */
   cloudCopyOf?: string
+  /** De onde veio a versão guardada. */
+  versionKind?: 'nuvem' | 'backup' | 'anterior'
 }
 
 /** Índice dos universos guardados neste navegador. */
@@ -230,7 +268,36 @@ export class Library {
       }
       await this.store.set(LIBRARY_KEY, list)
     }
+    await this.adoptOldCopies(list)
     return [...list].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  }
+
+  /**
+   * Cópias de antes da marca ("Nome (versão da nuvem)", um universo a mais a cada conflito): cada uma
+   * vira versão guardada do universo dela, com o nome limpo. Marcada, ela não sobe mais para a nuvem
+   * e aparece dentro do universo, não solta na lista. Sem original aqui, fica como está.
+   */
+  private async adoptOldCopies(list: LibraryEntry[]): Promise<void> {
+    const loose = list.filter((e) => !e.cloudCopyOf && !e.sample && hasOldCopyName(e.name))
+    if (!loose.length) return
+    let changed = false
+    for (const copy of loose) {
+      try {
+        const original = await originalOf(this, copy, list)
+        if (!original) continue
+        const repo = this.repository(copy.id)
+        const u = await repo.load()
+        if (!u) continue
+        await repo.save({ ...u, name: cleanName(u.name), cloudCopyOf: original.id, versionKind: 'nuvem' })
+        copy.name = cleanName(copy.name)
+        copy.cloudCopyOf = original.id
+        copy.versionKind = 'nuvem'
+        changed = true
+      } catch {
+        // Não deu para ler ou gravar: fica como está e tenta de novo na próxima.
+      }
+    }
+    if (changed) await this.store.set(LIBRARY_KEY, list)
   }
 
   /** Registra ou atualiza o universo no índice. */
@@ -245,7 +312,7 @@ export class Library {
       ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
       kind: universeKind(universe),
       ...(universe.groups.length ? tableInfo(universe) : {}),
-      ...(universe.cloudCopyOf ? { cloudCopyOf: universe.cloudCopyOf } : {}),
+      ...(universe.cloudCopyOf ? { cloudCopyOf: universe.cloudCopyOf, versionKind: universe.versionKind ?? 'nuvem' } : {}),
     }
     const i = list.findIndex((e) => e.id === universe.id)
     if (i >= 0) list[i] = entry

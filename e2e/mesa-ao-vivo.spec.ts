@@ -683,3 +683,46 @@ test('escudo e cartão: roteiro e cena, relógio, pipoca pelo celular e por lado
     expect(await audit(page)).toEqual([])
   }
 })
+
+test('o jogador cria o próprio personagem pelo convite: vira ficha do grupo e do Mundo, e o celular já é ele', async ({ page, context, baseURL }) => {
+  test.setTimeout(90_000)
+  await fakeCodex(context)
+  await fakeRealtime(context, SERVER)
+  await ostria(page, baseURL!)
+  await page.locator('.mesa-presence').getByRole('button', { name: 'Convidar jogadores' }).click()
+  const convite = page.getByRole('dialog', { name: 'Convidar jogadores' })
+  await convite.getByRole('button', { name: 'Criar o link do grupo' }).click()
+  const link = await convite.getByRole('textbox', { name: 'Link para os jogadores' }).inputValue()
+  await page.keyboard.press('Escape')
+
+  // No celular, a jogadora não está na lista: cria a dela.
+  const ana = await context.newPage()
+  await ana.setViewportSize({ width: 390, height: 800 })
+  await ana.goto(link)
+  const who = ana.getByRole('region', { name: 'Qual é o seu personagem?' })
+  await who.getByRole('button', { name: 'Criar o meu personagem' }).click()
+  const form = ana.getByRole('dialog', { name: 'Criar o meu personagem' })
+  // Nome que já está na mesa: avisa e não deixa enviar.
+  await form.getByRole('textbox', { name: 'Nome do personagem' }).fill('taren')
+  await expect(form.getByRole('alert')).toContainText('Já há um personagem com esse nome')
+  await expect(form.getByRole('button', { name: 'Enviar ao mestre' })).toBeDisabled()
+  await form.getByRole('textbox', { name: 'Nome do personagem' }).fill('Kaya')
+  await form.getByRole('textbox', { name: 'Seu nome' }).fill('Ana')
+  await form.getByRole('spinbutton', { name: 'Destreza' }).fill('16')
+  await form.getByRole('button', { name: 'Enviar ao mestre' }).click()
+
+  // O mestre fica sabendo, com o atalho para a ficha.
+  const toast = page.locator('.toast').filter({ hasText: 'Ana criou Kaya pelo convite.' })
+  await expect(toast).toBeVisible({ timeout: 15_000 })
+  await toast.getByRole('button', { name: 'Abrir' }).click()
+  await expect(page.getByRole('tab', { name: 'Grupo', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('region', { name: 'Personagens da mesa' }).locator('[aria-current="true"]')).toContainText('Kaya')
+
+  // No celular, a ficha chega pelo Codex e ele já é a Kaya.
+  await expect(ana.getByRole('button', { name: 'Rolar como Kaya' })).toBeVisible({ timeout: 30_000 })
+  await expect(ana.getByRole('status').filter({ hasText: 'foi para o mestre' })).toHaveCount(0)
+
+  // Um personagem só: a Kaya também está no Mundo.
+  await nav(page, /^Mundo/).click()
+  await expect(page.locator('.entity-row-name', { hasText: /^Kaya$/ })).toBeVisible()
+})

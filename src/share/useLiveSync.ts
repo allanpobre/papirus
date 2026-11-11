@@ -2,7 +2,7 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
 import { authClient, useAccount } from '../account/auth'
 import { isLocalOnly } from '../model/sample'
-import { cloudStamp, download, setSynced, syncedMap, upload, uploadIfUnchanged } from '../account/cloud'
+import { cloudStamp, download, setPending, setSynced, syncedMap, upload, uploadIfUnchanged } from '../account/cloud'
 import { reportCloud } from '../account/useCloud'
 import type { Universe } from '../model/schema'
 import { newId } from '../model/universe'
@@ -49,6 +49,8 @@ const message = (err: unknown) => (err instanceof Error ? err.message : String(e
 /** O servidor devolve as datas em outro formato ("+00:00" no lugar de "Z"): compara o instante. */
 const sameTime = (a: string | null | undefined, b: string | null | undefined) => Boolean(a && b && Date.parse(a) === Date.parse(b))
 const POLL_MS = { proprio: 20_000, editar: 6_000, ver: 12_000, link: 15_000 }
+/** De quanto em quanto tempo o ponto em comum com a nuvem é gravado no aparelho, com o universo aberto. */
+const BASE_EVERY_MS = 3 * 60_000
 
 /**
  * Mantém o universo aberto igual ao do servidor, nos dois sentidos, registro por registro:
@@ -77,8 +79,8 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
   const userEmail = account.user?.email ?? ''
   const server = source.kind === 'link' ? source.server : account.server
   const ownerId = source.kind === 'proprio' ? userId : source.kind === 'link' ? null : source.ownerId
-  // O exemplo fica só neste aparelho: não vai para a conta.
-  const active = source.kind === 'link' || Boolean(userId && server && !(source.kind === 'proprio' && isLocalOnly(universe)))
+  // O exemplo fica só neste aparelho: não vai para a conta. Uma versão guardada também não: na nuvem, cada universo tem um registro só.
+  const active = source.kind === 'link' || Boolean(userId && server && !(source.kind === 'proprio' && (isLocalOnly(universe) || universe.cloudCopyOf)))
   const started = useRef(false)
 
   const run = useRef<() => Promise<void>>(async () => {})
@@ -91,6 +93,7 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
     let busy = false
     let again = false
     const universeId = latest.current.id
+    let baseSavedAt = 0
     const who = shortName(userEmail) || 'alguém'
     // Só na primeira vez: depois, a base é o que já foi trocado com o servidor.
     if (!started.current) {
@@ -217,6 +220,14 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
         if (isOwner) setSynced(owner, universeId, mine.updatedAt)
         base.current = mine
         stamp.current = mine.updatedAt
+        if (isOwner) {
+          // Os dois lados iguais agora: não há mais escolha pendente, e o ponto em comum fica guardado (de tempos em tempos; ao fechar, de novo).
+          setPending(owner, universeId, null)
+          if (Date.now() - baseSavedAt > BASE_EVERY_MS) {
+            baseSavedAt = Date.now()
+            void lib.repository(universeId).saveBase(mine).catch(() => undefined)
+          }
+        }
         if (share.current === undefined) share.current = await getShare(sb, owner, universeId).catch(() => null)
         if (share.current) await refreshReaderCopy(sb, share.current, mine).catch(() => undefined)
         ping()
@@ -261,6 +272,16 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
     }
     void (async () => {
       if (initialSource.kind === 'proprio' && ownerId) share.current = await getShare(await client(), ownerId, universeId).catch(() => null)
+      // Mudou aqui com o universo fechado e sem conexão: com o ponto em comum guardado, o que tiver
+      // mudado na nuvem é juntado (em vez de virar uma versão ao lado).
+      if (initialSource.kind === 'proprio' && userId && !base.current) {
+        const last = syncedMap(userId)[universeId]
+        const stored = last ? await lib.repository(universeId).loadBase().catch(() => null) : null
+        if (stored && !base.current && !stopped) {
+          base.current = stored
+          stamp.current = last
+        }
+      }
       await tick()
       if (!stopped) loop()
     })()
@@ -277,6 +298,8 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
       offShare()
       stopped = true
       clearTimeout(timer)
+      // Ao fechar: o último estado igual ao da nuvem fica como ponto em comum.
+      if (initialSource.kind === 'proprio' && userId && base.current && sameTime(base.current.updatedAt, stamp.current)) void lib.repository(universeId).saveBase(base.current).catch(() => undefined)
       const ch = channel.current
       channel.current = null
       if (ch) void client().then((sb) => sb.removeChannel(ch))

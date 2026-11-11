@@ -109,6 +109,350 @@
   border-bottom: 0;
 }
 
+/* A dupla (neste aparelho + na nuvem) e as versões guardadas, embaixo do nome do universo. */
+.library-item {
+  flex-wrap: wrap;
+}
+
+.library-extra {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  /* Alinhado ao nome: depois da capa. */
+  margin: -0.45rem 0 0.85rem calc(1.1rem + 52px + 0.85rem);
+  min-width: 0;
+}
+
+.library-pair {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  align-self: flex-start;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+
+.pair-side {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.22rem 0.6rem;
+  min-width: 0;
+}
+
+.pair-side + .pair-side {
+  border-left: 1px solid var(--line);
+}
+
+.pair-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.pair-value {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.pair-side.is-ok .pair-value {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.pair-side.is-warn {
+  background: var(--ochre-soft);
+}
+
+.pair-side.is-warn .pair-value {
+  color: var(--ochre);
+  font-weight: 600;
+}
+
+/* Os dois lados mudaram no mesmo lugar: as duas versões lado a lado e a escolha. */
+.pair-conflict {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--ochre-line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ochre-soft) 55%, var(--surface));
+  font-size: 0.86rem;
+  max-width: 40rem;
+}
+
+.pair-conflict-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pair-conflict-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.pair-conflict-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.pair-conflict-why,
+.pair-conflict > .tiny {
+  margin: 0;
+}
+
+.pair-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.library-versions {
+  font-size: 0.84rem;
+  color: var(--ink-2);
+}
+
+.library-versions > summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 0.1rem 0;
+  font-weight: 600;
+}
+
+.library-versions > summary .muted {
+  font-weight: 400;
+}
+
+.library-versions > p {
+  margin: 0.3rem 0 0.4rem;
+  max-width: 60ch;
+}
+
+.library-version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.library-version {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.4rem;
+  padding: 0.25rem 0.3rem 0.25rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.library-version-what {
+  flex: 1 1 12rem;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.library-version-what svg {
+  flex: none;
+  color: var(--sky, var(--accent));
+}
+
+/* Há livros repetidos para arrumar, e o recado do que acabou de ser feito com uma versão. */
+.tidy-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--ochre-line);
+  border-radius: var(--radius-l);
+  background: var(--ochre-soft);
+  color: var(--ink);
+}
+
+.tidy-card > svg {
+  flex: none;
+  color: var(--ochre);
+}
+
+.tidy-card > p {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.tidy-card > .btn {
+  flex: none;
+}
+
+.library-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.55rem 0.6rem 0.55rem 1rem;
+  border-radius: var(--radius);
+  background: var(--accent-faint);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  font-size: 0.9rem;
+}
+
+.library-notice > span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Janela "Arrumar repetidos": um cartão por livro, uma linha por versão. */
+.tidy-lede {
+  margin: 0 0 1rem;
+  max-width: 62ch;
+}
+
+.tidy-done {
+  margin: 0.5rem 0;
+  font-family: var(--font-text);
+  font-size: 1.05rem;
+}
+
+.tidy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.tidy-group + .tidy-group {
+  margin-top: 0.9rem;
+}
+
+.tidy-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+}
+
+.tidy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tidy-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.05rem 0.7rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  cursor: pointer;
+}
+
+.tidy-row.is-main {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+}
+
+.tidy-row > input {
+  grid-row: span 2;
+  accent-color: var(--accent);
+}
+
+.tidy-row-what {
+  font-variant-numeric: tabular-nums;
+}
+
+.tidy-warn {
+  margin: 0;
+  color: var(--ochre);
+}
+
+.tidy-actions,
+.import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.import-compare {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.8rem 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.import-compare > div {
+  display: flex;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.import-compare dt {
+  flex: 0 0 5.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.import-compare dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.import-actions + p {
+  margin: 0.8rem 0 0;
+}
+
+@media (max-width: 560px) {
+  .tidy-card {
+    flex-wrap: wrap;
+  }
+
+  .library-extra {
+    margin-left: 1.1rem;
+  }
+
+  .library-pair,
+  .pair-conflict-sides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pair-side + .pair-side {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
 .library-open {
   flex: 1;
   min-width: 0;
@@ -1799,14 +2143,6 @@ body:has(.rail-phone) .toasts {
   box-shadow: var(--shadow-1);
 }
 
-.hub-continue-blank {
-  display: grid;
-  place-items: center;
-  background: linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--ink)));
-  color: var(--accent-ink);
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-}
 
 .hub-continue-text {
   flex: 1;
@@ -2100,7 +2436,7 @@ body:has(.rail-phone) .toasts {
     var(--bg);
 }
 
-.hub-escrita .hub-continue-blank {
+.hub-escrita .hub-continue-cover.gen-cover {
   animation: hub-book 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
   transform-origin: left center;
 }
@@ -2269,21 +2605,7 @@ body:has(.rail-phone) .live-return {
   color: var(--sky, var(--accent));
 }
 
-/* Lista de universos: a inicial no lugar da capa, o selo do exemplo e o ··· de cada um. */
-.library-initial {
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  background: var(--accent-faint);
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
+/* Lista de universos: o selo do exemplo e o ··· de cada um. */
 .library-name .sample-chip {
   margin-left: 0.5rem;
   vertical-align: 0.2em;
@@ -2299,11 +2621,6 @@ body:has(.rail-phone) .live-return {
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-.library-item.is-sample .library-initial {
-  background: var(--ochre-soft);
-  color: var(--ochre);
 }
 
 .library-item > .more-menu {

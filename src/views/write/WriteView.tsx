@@ -542,6 +542,8 @@ export default function WriteView() {
             className={`page page-${prefs.editorWidth} font-${prefs.editorFont}${prefs.typewriter ? ' typewriter' : ''}${prefs.focusParagraph ? ' focus-paragraph' : ''}${drafting ? ' is-drafting' : ''}`}
             style={{ ['--editor-size' as string]: `${prefs.editorSize}px` }}
             onInput={resume ? () => setResume(false) : undefined}
+            // Tocou no texto para escrever: o cartão sai da frente (o botão "Continuar" dele não conta).
+            onFocusCapture={resume ? (e) => (e.target as Element).closest?.('.ProseMirror') && setResume(false) : undefined}
           >
             {/* No celular a barra não tem lugar: a posição fica em cima do título. */}
             {phone && !focus && (
@@ -753,7 +755,10 @@ export default function WriteView() {
         )}
 
         <footer className="write-foot">
-          <span>{words.toLocaleString('pt-BR')} palavras na cena</span>
+          {/* No celular, o rodapé cabe numa linha: o complemento de cada rótulo fica só para o leitor de tela. */}
+          <span>
+            {words.toLocaleString('pt-BR')} palavras<span className="foot-long"> na cena</span>
+          </span>
           <span className="write-goal">
             Hoje: {today.toLocaleString('pt-BR')}
             {goal > 0 && (
@@ -771,14 +776,16 @@ export default function WriteView() {
           {!ws.readOnly && candidates > 0 && (
             <button type="button" className="link-btn write-waiting write-names" onClick={() => setDialog({ kind: 'review' })}>
               <span className="write-waiting-dot" aria-hidden="true" />
-              {candidates === 1 ? '1 nome novo' : `${candidates} nomes novos`}
+              {candidates === 1 ? '1 nome' : `${candidates} nomes`}
+              <span className="foot-long">{candidates === 1 ? ' novo' : ' novos'}</span>
             </button>
           )}
           {sceneQuestions.filter(isOpen).length > 0 &&
             (drafting ? (
               <button type="button" className="link-btn write-waiting" onClick={() => setMode('revisao')}>
                 <span className="write-waiting-dot" aria-hidden="true" />
-                {sceneQuestions.filter(isOpen).length === 1 ? '1 pergunta esperando a revisão' : `${sceneQuestions.filter(isOpen).length} perguntas esperando a revisão`}
+                {sceneQuestions.filter(isOpen).length === 1 ? '1 pergunta' : `${sceneQuestions.filter(isOpen).length} perguntas`}
+                <span className="foot-long"> esperando a revisão</span>
               </button>
             ) : (
               !marginVisible &&

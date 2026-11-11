@@ -92,6 +92,8 @@
 
 .view.split {
   display: grid;
+  /* A tela tem a altura toda; sem isto, as linhas esticam e abre um vazio entre o topo e a lista curta. */
+  align-content: start;
 }
 
 .split-list {
@@ -479,14 +481,30 @@
   stroke-width: 3.5;
 }
 
-.node-label {
-  font-size: 15px;
-  font-weight: 600;
+/* O rosto da bolinha: a inicial da ficha na cor do tipo, ou o retrato dela. */
+.node-face {
+  pointer-events: none;
+}
+
+.node-initial {
+  font-family: var(--font-display);
   text-anchor: middle;
+  fill: color-mix(in srgb, var(--k, var(--kind-outro)) 78%, var(--ink));
+}
+
+.node.selected .node-initial {
+  fill: var(--paper);
+}
+
+/* O desenho tem a medida da tela (1 unidade = 1 pixel): o nome tem este tamanho no celular e no monitor. */
+.node-label {
+  font-size: 13px;
+  font-weight: 600;
   fill: var(--ink);
   paint-order: stroke;
   stroke: var(--paper);
   stroke-width: 4px;
+  stroke-linejoin: round;
   font-family: var(--font-ui);
 }
 
@@ -3384,6 +3402,85 @@ code {
   margin: 0;
 }
 
+/* O jogador cria o próprio personagem pelo convite. */
+.player-create-btn {
+  align-self: flex-start;
+}
+
+.player-pending {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.8rem;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+}
+
+.player-pending > span {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.player-create {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.player-create .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.player-create-warn {
+  margin: -0.4rem 0 0;
+  color: var(--danger);
+}
+
+.player-create-attrs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.4rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.player-create-attrs legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+}
+
+.player-create-attrs label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.player-create-attrs .input {
+  width: 100%;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-create > .btn {
+  align-self: flex-start;
+}
+
+.player-create > p {
+  margin: 0;
+}
+
 .player-dock {
   position: fixed;
   z-index: 6;
@@ -3622,11 +3719,29 @@ code {
   gap: 1rem;
 }
 
-/* Em telas largas, as páginas com largura máxima ficam no meio: o que sobra se divide dos dois lados. */
+/*
+ * Em telas largas, cada tela tem uma de três larguras:
+ * - página (Início, Publicar, Ideias, Perguntar ao mundo, Ajustes): uma coluna de leitura, no meio;
+ * - parte de uma área (Linha do tempo, fichas e regras da Mesa): o topo da área fica onde está e o
+ *   conteúdo para numa largura de leitura, encostado nele;
+ * - bancada (Estrutura, Ligações, Mapas, a sessão, a tabela de fichas): a tela toda.
+ */
 .view.home,
-.view.book-view {
+.view.book-view,
+.view.inbox-view,
+.view.archivist-view,
+.view.settings-view {
   width: 100%;
+  max-width: 1080px;
   margin-inline: auto;
+}
+
+.view.timeline-view > :not(.view-top) {
+  max-width: 1100px;
+}
+
+.rpg-view .split-detail {
+  max-width: 940px;
 }
 
 /* No alto, o dia: o universo, as palavras de hoje, a semana e os atalhos, numa faixa fina. */
@@ -3663,14 +3778,17 @@ code {
   box-shadow: 0 4px 12px -6px rgb(0 0 0 / 0.4);
 }
 
-.home-thumb.is-letter {
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
-  color: var(--accent);
+/* Capa gerada (universo sem imagem): cor e desenho tirados do nome, com a inicial por cima. */
+.gen-cover {
+  display: block;
+  overflow: hidden;
+}
+
+.gen-cover-letter {
   font-family: var(--font-display);
-  font-size: 1.7rem;
-  box-shadow: none;
+  font-size: 30px;
+  fill: #fff;
+  fill-opacity: 0.96;
 }
 
 .home-id-text {
@@ -4111,9 +4229,13 @@ code {
   .home-quick {
     justify-content: flex-start;
   }
+  /* Uma linha só: os botões com nome à esquerda, a ajuda e o ⋯ no fim. */
   .home-quick {
     flex-wrap: wrap;
-    margin: 0 0 -0.3rem -0.45rem;
+    margin: 0 -0.4rem -0.3rem -0.45rem;
+  }
+  .home-quick > .page-help {
+    margin-left: auto;
   }
   /* Celular: o próximo passo, o que pede um olhar, o mundo, o treino e o ritmo, nesta ordem. */
   .home-layout {
@@ -4154,9 +4276,6 @@ code {
     width: 44px;
     height: 44px;
     border-radius: 10px;
-  }
-  .home-thumb.is-letter {
-    font-size: 1.4rem;
   }
   .home-desc {
     display: none;
@@ -4425,7 +4544,8 @@ code {
   }
 
   /* As fichas surgem de leve, uma após a outra. */
-  .node > circle:not(.node-ring) {
+  .node > circle:not(.node-ring),
+  .node > .node-face {
     transform-box: fill-box;
     transform-origin: center;
     animation: node-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
@@ -4739,7 +4859,7 @@ code {
 .book-view {
   display: grid;
   gap: 1.4rem;
-  max-width: 980px;
+  align-content: start;
 }
 
 .book-hero {
@@ -5310,6 +5430,12 @@ button.arc-dot {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+/* "Caminho de" não quebra em duas linhas ao lado da lista. */
+.atlas-route-pick > span {
+  flex: none;
+  white-space: nowrap;
 }
 
 .atlas-route-list {
@@ -7562,6 +7688,13 @@ button.fight-line {
   .graph-view .graph-wrap,
   .graph-view .graph {
     min-height: min(62dvh, 520px);
+  }
+
+  /* Os botões de zoom deitam embaixo: o desenho fica com a largura toda. */
+  .graph-view .graph-zoom {
+    flex-direction: row;
+    right: 8px;
+    bottom: 8px;
   }
 }
 

@@ -92,7 +92,7 @@ interface Table {
 const tables = new Map<string, Table>()
 /** Canais saindo: um canal novo no mesmo tópico espera o antigo sair de vez (o cliente devolveria o velho). */
 const leaving = new Map<string, Promise<unknown>>()
-const TABLE_EVENTS = ['atualizado', 'rolagem', 'conferida', 'presenca', 'saiu', 'quem', 'aviso', 'vez'] as const
+const TABLE_EVENTS = ['atualizado', 'rolagem', 'conferida', 'presenca', 'saiu', 'quem', 'aviso', 'vez', 'ficha'] as const
 
 function openTable(cfg: ServerConfig, id: string): Table {
   const key = `${cfg.url}|${cfg.anonKey}|${id}`
@@ -283,6 +283,46 @@ export function readNotice(p: unknown): TableNotice | null {
   return { id, at, text: body, tone: r.tone === 'perigo' || r.tone === 'misterio' ? r.tone : 'aviso' }
 }
 
+/** O personagem que um jogador criou pelo convite: o mestre recebe e vira ficha de jogador no grupo. */
+export interface TableSheet {
+  id: string
+  /** O nome do personagem. */
+  name: string
+  /** Quem joga. */
+  player: string
+  /** Os campos do sistema que o jogador preencheu ("Classe", "Raça"…). */
+  fields: [string, string][]
+  /** Os atributos, pelo id do sistema. */
+  attrs: [string, number][]
+}
+
+/** Confere a ficha que chegou pelo canal: vem de qualquer um com o link, então só passa o que tem a forma certa. */
+export function readTableSheet(p: unknown): TableSheet | null {
+  if (!p || typeof p !== 'object') return null
+  const r = p as Record<string, unknown>
+  const id = text(r.id, 64)
+  const name = text(r.name, 60)
+  if (!id || !name) return null
+  const pairs = (v: unknown, max: number): unknown[][] | null => (Array.isArray(v) && v.length <= max && v.every((x) => Array.isArray(x) && x.length === 2) ? (v as unknown[][]) : null)
+  const fields = pairs(r.fields ?? [], 16)
+  const attrs = pairs(r.attrs ?? [], 24)
+  if (!fields || !attrs) return null
+  const cleanFields: [string, string][] = []
+  for (const [k, v] of fields) {
+    const key = text(k, 40)
+    if (!key || typeof v !== 'string' || v.length > 120) return null
+    if (v.trim()) cleanFields.push([key, v.trim()])
+  }
+  const cleanAttrs: [string, number][] = []
+  for (const [k, v] of attrs) {
+    const key = text(k, 64)
+    const n = int(v)
+    if (!key || n === undefined) return null
+    cleanAttrs.push([key, n])
+  }
+  return { id, name, player: text(r.player, 60) ?? '', fields: cleanFields, attrs: cleanAttrs }
+}
+
 /** Entra no canal da mesa. Devolve como enviar e como sair. */
 export function joinTable(
   cfg: ServerConfig,
@@ -302,6 +342,8 @@ export function joinTable(
     notice?: (n: TableNotice) => void
     /** Um jogador terminou a vez pelo celular. */
     turn?: (t: TableTurn) => void
+    /** Um jogador criou o próprio personagem pelo convite. */
+    sheet?: (s: TableSheet) => void
   } = {},
 ) {
   const t = openTable(cfg, id)
@@ -320,6 +362,10 @@ export function joinTable(
     else if (event === 'vez') {
       const v = readTableTurn(payload)
       if (v) on.turn?.(v)
+    }
+    else if (event === 'ficha') {
+      const f = readTableSheet(payload)
+      if (f) on.sheet?.(f)
     }
     else if (event === 'atualizado') on.update?.()
     else if (event === 'rolagem') {
@@ -345,6 +391,7 @@ export function joinTable(
     ask: () => sendOn(t, 'quem', {}),
     sendNotice: (n: TableNotice) => sendOn(t, 'aviso', n),
     sendTurn: (v: TableTurn) => sendOn(t, 'vez', v),
+    sendSheet: (s: TableSheet) => sendOn(t, 'ficha', s),
     leave: () => {
       if (left) return
       left = true

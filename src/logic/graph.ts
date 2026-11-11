@@ -18,7 +18,7 @@ export interface Point {
 export function forceLayout(
   nodes: GraphNode[],
   edges: GraphEdge[],
-  { width = 1000, height = 700, iterations = 300 } = {},
+  { width = 1000, height = 700, iterations = 300, margin = 60, stretch = 1 } = {},
 ): Map<string, Point> {
   const n = nodes.length
   const pos = new Map<string, Point>()
@@ -94,21 +94,134 @@ export function forceLayout(
     temperature *= 0.985
   }
 
-  // Ajusta para caber na área com margem.
+  // Ajusta para caber na área com margem. Com `stretch` acima de 1, o lado que sobra pode esticar
+  // até esse tanto a mais que o outro: o desenho ocupa uma tela larga (ou alta) em vez de virar uma bola no meio.
   const xs = [...pos.values()].map((p) => p.x)
   const ys = [...pos.values()].map((p) => p.y)
   const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]
-  const margin = 60
   const sx = (width - 2 * margin) / Math.max(maxX - minX, 1)
   const sy = (height - 2 * margin) / Math.max(maxY - minY, 1)
   const s = Math.min(sx, sy, 1.5)
-  const ox = (width - (maxX - minX) * s) / 2
-  const oy = (height - (maxY - minY) * s) / 2
+  const fx = Math.min(sx, s * stretch)
+  const fy = Math.min(sy, s * stretch)
+  const ox = (width - (maxX - minX) * fx) / 2
+  const oy = (height - (maxY - minY) * fy) / 2
   for (const p of pos.values()) {
-    p.x = ox + (p.x - minX) * s
-    p.y = oy + (p.y - minY) * s
+    p.x = ox + (p.x - minX) * fx
+    p.y = oy + (p.y - minY) * fy
   }
   return pos
+}
+
+export interface LabelNode {
+  id: string
+  /** Largura e altura do nome, na mesma unidade das posições. */
+  width: number
+  height: number
+  /** Raio da bolinha. */
+  r: number
+}
+
+export interface LabelSpot {
+  /** Deslocamento a partir do centro da bolinha até a âncora do texto (a linha de base). */
+  dx: number
+  dy: number
+  anchor: 'middle' | 'start' | 'end'
+}
+
+interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+const overlap = (a: Box, b: Box) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y))
+
+/** O segmento de `a` a `b` passa pela caixa? (Liang–Barsky.) */
+function crosses(a: Point, b: Point, box: Box): boolean {
+  let t0 = 0
+  let t1 = 1
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  for (const [p, q] of [
+    [-dx, a.x - box.x],
+    [dx, box.x + box.w - a.x],
+    [-dy, a.y - box.y],
+    [dy, box.y + box.h - a.y],
+  ]) {
+    if (p === 0) {
+      if (q < 0) return false
+      continue
+    }
+    const t = q / p
+    if (p < 0) {
+      if (t > t1) return false
+      if (t > t0) t0 = t
+    } else {
+      if (t < t0) return false
+      if (t < t1) t1 = t
+    }
+  }
+  return t0 <= t1
+}
+
+/**
+ * Onde escrever o nome de cada bolinha para que os nomes não fiquem uns sobre os outros, sobre
+ * outra bolinha, cortados na borda nem riscados por uma linha: embaixo (o lugar de sempre), em cima,
+ * à direita ou à esquerda. Na ordem recebida: quem vem primeiro escolhe primeiro. Sem lugar livre,
+ * fica onde atrapalha menos.
+ */
+export function placeLabels(
+  nodes: LabelNode[],
+  pos: Map<string, Point>,
+  { width = Infinity, height = Infinity, gap = 4, pad = 0, edges = [] as GraphEdge[] } = {},
+): Map<string, LabelSpot> {
+  const out = new Map<string, LabelSpot>()
+  const circles: { id: string; box: Box }[] = []
+  for (const n of nodes) {
+    const p = pos.get(n.id)
+    if (p) circles.push({ id: n.id, box: { x: p.x - n.r, y: p.y - n.r, w: 2 * n.r, h: 2 * n.r } })
+  }
+  const placed: Box[] = []
+  for (const n of nodes) {
+    const p = pos.get(n.id)
+    if (!p) continue
+    const { width: w, height: h, r } = n
+    // A linha de base fica a ~80% da altura da caixa do texto.
+    const base = h * 0.8
+    const options: { box: Box; spot: LabelSpot }[] = [
+      { box: { x: p.x - w / 2, y: p.y + r + gap, w, h }, spot: { dx: 0, dy: r + gap + base, anchor: 'middle' } },
+      { box: { x: p.x - w / 2, y: p.y - r - gap - h, w, h }, spot: { dx: 0, dy: -r - gap - h + base, anchor: 'middle' } },
+      { box: { x: p.x + r + gap + 1, y: p.y - h / 2, w, h }, spot: { dx: r + gap + 1, dy: -h / 2 + base, anchor: 'start' } },
+      { box: { x: p.x - r - gap - 1 - w, y: p.y - h / 2, w, h }, spot: { dx: -r - gap - 1, dy: -h / 2 + base, anchor: 'end' } },
+    ]
+    let best = options[0]
+    let bestCost = Infinity
+    for (const o of options) {
+      let cost = 0
+      for (const b of placed) cost += overlap(o.box, b)
+      for (const c of circles) if (c.id !== n.id) cost += overlap(o.box, c.box)
+      // Fora da área também custa: o nome cortado na borda não se lê.
+      const out =
+        Math.max(0, pad - o.box.x) + Math.max(0, o.box.x + o.box.w - (width - pad)) + Math.max(0, pad - o.box.y) + Math.max(0, o.box.y + o.box.h - (height - pad))
+      cost += out * h * 2
+      // Uma linha passando por cima do nome atrapalha menos que outro nome, mas atrapalha.
+      for (const e of edges) {
+        const a = pos.get(e.from)
+        const b = pos.get(e.to)
+        if (a && b && crosses(a, b, o.box)) cost += h * 4
+      }
+      if (cost < bestCost) {
+        best = o
+        bestCost = cost
+        if (cost === 0) break
+      }
+    }
+    placed.push(best.box)
+    out.set(n.id, best.spot)
+  }
+  return out
 }
 
 /** Vizinhança de um nó até a profundidade indicada. */

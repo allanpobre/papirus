@@ -1,9 +1,9 @@
 import { Dices, Swords } from 'lucide-react'
+import { openSheetInMesa } from './rpg/openInMesa'
 import type { ReactNode } from 'react'
 import type { Entity, Sheet } from '../model/schema'
 import { byId } from '../model/universe'
 import { sheetsOf } from '../rpg/oneCharacter'
-import { remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 
 /**
@@ -33,9 +33,7 @@ function GameSheet({ sheet: s }: { sheet: Sheet }) {
   const skills = (system?.skills ?? []).filter((k) => (s.skills[k.id] ?? 0) > 0)
   const open = () => {
     // Abre a Mesa no Grupo, com esta ficha aberta.
-    if (s.groupId) remember(`rpg-grupo:${universe.id}`, s.groupId)
-    remember('rpg-aba', 'personagens')
-    remember('rpg-ficha', s.id)
+    openSheetInMesa(universe.id, s.groupId, s.id)
     go('rpg')
   }
   return (
