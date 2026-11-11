@@ -34,3 +34,34 @@ describe('wiki com retratos', () => {
     expect(buildWiki(u, { upTo: null }).html).not.toContain('class="portrait"')
   })
 })
+
+describe('wiki navegável', () => {
+  it('abre numa capa com cartões, cada ficha com "Citado em" e vizinhas', () => {
+    const { html } = buildWiki(ostriaUniverse(), { upTo: null })
+    expect(html).toContain('<section class="page" id="inicio">')
+    expect(html).toMatch(/<a class="card" href="#f-[^"]+">/)
+    expect(html).toContain('<h3>Citado em</h3>')
+    expect(html).toContain('class="pager"')
+    expect(html).toContain('id="menu"')
+  })
+
+  it('leva os mapas com marcadores só de fichas que podem ser vistas', () => {
+    const ref = `img:${'d'.repeat(32)}`
+    let [u, mira] = insert(createUniverse('W'), 'entities', draftEntity('personagem', 'Mira'))
+    ;[u] = insert(u, 'entities', { ...draftEntity('personagem', 'Oculto'), canon: 'secreto' })
+    const oculto = u.entities.find((e) => e.name === 'Oculto')!
+    const now = new Date().toISOString()
+    const pins = [
+      { id: 'p1', entityId: mira.id, x: 0.25, y: 0.5, label: 'Mira' },
+      { id: 'p2', entityId: oculto.id, x: 0.7, y: 0.2, label: 'Oculto' },
+    ]
+    u = { ...u, maps: [{ id: 'm1', name: 'Costa', image: ref, width: 10, height: 10, pins, createdAt: now, updatedAt: now }] }
+    const { html } = buildWiki(u, { upTo: null, images: new Map([[ref, 'data:image/webp;base64,BBBB']]) })
+    expect(html).toContain('id="mapas"')
+    expect(html).toContain('left:25.00%;top:50.00%')
+    expect(html).not.toContain('Oculto')
+    expect(html).toContain('No mapa: <a href="#mapas">Costa</a>')
+    // Sem a imagem pronta, o mapa fica de fora.
+    expect(buildWiki(u, { upTo: null }).html).not.toContain('id="mapas"')
+  })
+})

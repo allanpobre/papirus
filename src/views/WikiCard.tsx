@@ -13,12 +13,13 @@ export function WikiCard() {
 
   const build = async () => {
     const { buildWiki } = await import('../export/wiki')
-    // Os retratos vão dentro do arquivo (a wiki abre sem internet e sem conta).
+    // A capa, os retratos e os mapas vão dentro do arquivo (a wiki abre sem internet e sem conta).
     const images = new Map<string, string>()
-    for (const e of universe.entities) {
-      if (!e.image || images.has(e.image)) continue
-      const data = await imageDataUrl(e.image).catch(() => null)
-      if (data) images.set(e.image, data)
+    const refs = [universe.settings.cover, ...universe.entities.map((e) => e.image), ...universe.maps.map((m) => m.image)]
+    for (const ref of refs) {
+      if (!ref || images.has(ref)) continue
+      const data = await imageDataUrl(ref).catch(() => null)
+      if (data) images.set(ref, data)
     }
     return buildWiki(universe, { upTo: upTo === 'tudo' ? null : Number(upTo), images })
   }
@@ -29,7 +30,7 @@ export function WikiCard() {
         <Globe size={16} aria-hidden="true" /> Wiki do mundo
       </h2>
       <p className="small">
-        Um site de uma página só, com as fichas ligadas entre si, busca e linha do tempo. Abre em qualquer navegador, até no celular: mande para os jogadores ou ponha no ar. Segredos e as Ideias nunca vão.
+        Um site num arquivo só: abre na capa do mundo, cada ficha na sua página, com busca, linha do tempo, mapas e “Citado em”. Abre em qualquer navegador, até no celular: mande para os jogadores ou ponha no ar. Segredos e as Ideias nunca vão.
       </p>
       <label className="field">
         <span className="field-label">O que entra</span>
