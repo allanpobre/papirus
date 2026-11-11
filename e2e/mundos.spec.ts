@@ -92,3 +92,14 @@ test('mundo: trazer notas do Obsidian', async ({ page }) => {
   await dialog.getByRole('button', { name: 'Trazer 2 fichas' }).click()
   await expect(page.getByRole('button', { name: /2 personagens/ })).toBeVisible()
 })
+
+test('mundo: a quatro mãos, o convite para construir junto', async ({ page }) => {
+  await page.goto('/app/')
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mundos' }).click()
+  await page.getByRole('textbox', { name: 'Nome do mundo' }).fill('Juntos')
+  await page.getByRole('button', { name: 'Criar mundo' }).click()
+  const card = page.getByRole('region', { name: 'A quatro mãos' })
+  await expect(card).toContainText('Convide alguém para construir este mundo com você')
+  await card.getByRole('button', { name: 'Convidar para construir junto' }).click()
+  await expect(page.getByRole('dialog')).toContainText('quem pode editar')
+})

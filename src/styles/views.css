@@ -9487,3 +9487,30 @@ h3.cork-act {
 .foreign-found p {
   margin: 0 0 0.6rem;
 }
+
+/* ---------------------------------------------------------------- A quatro mãos */
+
+.together-here {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.world-together h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.world-together-list {
+  margin: 0 0 0.6rem;
+  padding-left: 1.1rem;
+}
+
+.world-together p {
+  margin: 0 0 0.6rem;
+}

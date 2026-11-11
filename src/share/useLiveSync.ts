@@ -31,6 +31,8 @@ export interface Presence {
   key: string
   who: string
   sceneId: string | null
+  /** Ficha aberta (num mundo a quatro mãos: "Ana está em Kael"). */
+  entityId?: string | null
 }
 
 interface Options {
@@ -40,6 +42,8 @@ interface Options {
   source: LiveSource
   /** Cena aberta no editor (para o aviso "Fulano está editando esta cena"). */
   sceneId: string | null
+  /** Ficha aberta no Mundo (para mostrar quem está em qual ficha). */
+  entityId?: string | null
   /** Troca o universo aberto pelo que chegou de fora, sem passar pelo "só leitura". */
   applyRemote: (u: Universe, changedScenes: string[]) => void
   notify: (message: string, tone?: 'info' | 'erro') => void
@@ -57,17 +61,19 @@ const BASE_EVERY_MS = 3 * 60_000
  * o que chega de outra pessoa (ou aparelho) é juntado com o que se escreve aqui.
  * Também mostra quem mais está com o universo aberto.
  */
-export function useLiveSync({ lib, universe, status, source, sceneId, applyRemote, notify }: Options): Presence[] {
+export function useLiveSync({ lib, universe, status, source, sceneId, entityId = null, applyRemote, notify }: Options): Presence[] {
   const account = useAccount()
   const [others, setOthers] = useState<Presence[]>([])
   const latest = useRef(universe)
   const cb = useRef({ applyRemote, notify })
   const scene = useRef(sceneId)
+  const entity = useRef(entityId)
   const othersRef = useRef(others)
   useEffect(() => {
     latest.current = universe
     cb.current = { applyRemote, notify }
     scene.current = sceneId
+    entity.current = entityId
     othersRef.current = others
   })
 
@@ -251,15 +257,15 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
       const ch = sb.channel(`papirus-u-${universeId}`, { config: { presence: { key: presenceKey } } })
       ch.on('broadcast', { event: 'mudou' }, () => void tick())
         .on('presence', { event: 'sync' }, () => {
-          const state = ch.presenceState<{ who: string; sceneId: string | null }>()
+          const state = ch.presenceState<{ who: string; sceneId: string | null; entityId?: string | null }>()
           setOthers(
             Object.entries(state)
               .filter(([k]) => k !== presenceKey)
-              .map(([k, metas]) => ({ key: k, who: metas[0]?.who ?? 'alguém', sceneId: metas[0]?.sceneId ?? null })),
+              .map(([k, metas]) => ({ key: k, who: metas[0]?.who ?? 'alguém', sceneId: metas[0]?.sceneId ?? null, entityId: metas[0]?.entityId ?? null })),
           )
         })
         .subscribe((s) => {
-          if (s === 'SUBSCRIBED' && !isReadOnly(initialSource)) void ch.track({ who, sceneId: scene.current })
+          if (s === 'SUBSCRIBED' && !isReadOnly(initialSource)) void ch.track({ who, sceneId: scene.current, entityId: entity.current })
         })
       channel.current = ch
     })
@@ -317,8 +323,8 @@ export function useLiveSync({ lib, universe, status, source, sceneId, applyRemot
   useEffect(() => {
     if (!active || isReadOnly(initialSource)) return
     const ch = channel.current
-    if (ch) void ch.track({ who: shortName(userEmail) || 'alguém', sceneId }).catch(() => undefined)
-  }, [active, initialSource, sceneId, userEmail])
+    if (ch) void ch.track({ who: shortName(userEmail) || 'alguém', sceneId, entityId }).catch(() => undefined)
+  }, [active, initialSource, sceneId, entityId, userEmail])
 
   return others
 }

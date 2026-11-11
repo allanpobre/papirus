@@ -1,4 +1,4 @@
-import { ArrowRight, Earth, Globe, Import, Inbox, Layers, MapIcon, Network, ScrollText, Sprout } from 'lucide-react'
+import { ArrowRight, Earth, Globe, Import, Inbox, Layers, MapIcon, Network, ScrollText, Sprout, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
 import { kindCounts, worldGaps } from '../logic/worldGaps'
@@ -20,7 +20,7 @@ const GROWN = 50
  * No lugar da meta de palavras de quem escreve, o que ainda não está no mundo.
  */
 export function WorldHome() {
-  const { universe, go, update, hiddenViews, readOnly } = useWorkspace()
+  const { universe, go, update, hiddenViews, readOnly, others, openShare, source } = useWorkspace()
   const level = worldLevel(universe)
   const full = level === 'completo'
   const gaps = useMemo(() => worldGaps(universe, { full }).slice(0, 4), [universe, full])
@@ -119,6 +119,45 @@ export function WorldHome() {
           </button>
         </section>
       )}
+
+      <section className="world-card world-together" aria-labelledby="junto-titulo">
+        <h2 id="junto-titulo">
+          <Users size={16} aria-hidden="true" /> A quatro mãos
+        </h2>
+        {others.length > 0 ? (
+          <ul className="world-together-list">
+            {others.map((o) => {
+              const where = o.entityId ? universe.entities.find((e) => e.id === o.entityId) : undefined
+              return (
+                <li key={o.key}>
+                  <strong>{o.who}</strong>{' '}
+                  {where ? (
+                    <>
+                      está em{' '}
+                      <button type="button" className="link-btn" onClick={() => go('fichas', where.id)}>
+                        {where.name || 'Sem nome'}
+                      </button>
+                    </>
+                  ) : (
+                    'está no mundo agora'
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        ) : (
+          <p className="muted small">
+            {source.kind === 'proprio'
+              ? 'Convide alguém para construir este mundo com você: cada um mexe nas fichas que quiser, e tudo se junta em segundos. Aqui aparece quem está em qual ficha.'
+              : 'Ninguém mais está aqui agora.'}
+          </p>
+        )}
+        {source.kind === 'proprio' && !readOnly && (
+          <button type="button" className="btn btn-sm" onClick={openShare}>
+            <Users size={15} aria-hidden="true" /> Convidar para construir junto
+          </button>
+        )}
+      </section>
 
       <nav className="world-actions" aria-label="Atalhos do mundo">
         {!readOnly && (
