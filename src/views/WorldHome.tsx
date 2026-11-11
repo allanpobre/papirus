@@ -1,4 +1,4 @@
-import { ArrowRight, Earth, Globe, Inbox, Layers, MapIcon, Network, ScrollText, Sprout } from 'lucide-react'
+import { ArrowRight, Earth, Globe, Import, Inbox, Layers, MapIcon, Network, ScrollText, Sprout } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
 import { kindCounts, worldGaps } from '../logic/worldGaps'
@@ -9,6 +9,8 @@ import { useWorkspace } from '../state/workspace'
 import { GeneratedCover } from '../ui/GeneratedCover'
 import { PageHelp } from '../ui/PageTour'
 import { SeedDialog } from './SeedDialog'
+import { ForeignImport } from './ForeignImport'
+import { Modal } from '../ui/Modal'
 
 /** A partir de quantas fichas o Simples sugere o Completo. */
 const GROWN = 50
@@ -27,11 +29,17 @@ export function WorldHome() {
   const inbox = universe.inbox.filter((i) => i.status === 'aberto').length
   const shown = (v: Parameters<typeof go>[0]) => !hiddenViews.includes(v)
   const [seeding, setSeeding] = useState(false)
+  const [importing, setImporting] = useState(false)
   const grown = !full && !readOnly && (universe.entities.length >= GROWN || universe.groups.length > 0)
 
   return (
     <div className="view home world-home">
       {seeding && <SeedDialog onClose={() => setSeeding(false)} />}
+      {importing && (
+        <Modal title="Trazer de outro app" onClose={() => setImporting(false)} size="sm">
+          <ForeignImport onDone={() => setImporting(false)} />
+        </Modal>
+      )}
       <header className="home-today">
         <div className="home-id">
           {cover ? <Picture value={cover} className="home-thumb" /> : <GeneratedCover name={universe.name} className="home-thumb" />}
@@ -70,6 +78,11 @@ export function WorldHome() {
             <button type="button" className="btn" onClick={() => go('fichas')}>
               <Earth size={16} aria-hidden="true" /> Abrir o Mundo
             </button>
+            {!readOnly && (
+              <button type="button" className="btn btn-ghost" onClick={() => setImporting(true)}>
+                <Import size={16} aria-hidden="true" /> Trazer de outro app
+              </button>
+            )}
           </div>
         </section>
       ) : (
