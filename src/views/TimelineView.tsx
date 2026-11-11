@@ -11,6 +11,7 @@ import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityMultiPicker, EntityPicker } from '../ui/EntityPicker'
 import { Modal } from '../ui/Modal'
 import { AreaHead } from './AreaModes'
+import { TimeMachine } from './TimeMachine'
 
 export default function TimelineView() {
   const { universe, update, nav, go, undoable } = useWorkspace()
@@ -120,6 +121,8 @@ export default function TimelineView() {
           <input type="checkbox" checked={showScenes} onChange={(e) => setShowScenes(e.target.checked)} /> Mostrar cenas e sessões
         </label>
       </div>
+
+      <TimeMachine />
 
       {eras.length > 0 && (
         <div className="era-strip" aria-label="Eras" style={{ height: 30 * eras.length + 28 }}>

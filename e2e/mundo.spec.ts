@@ -131,3 +131,18 @@ test('a wiki do mundo está à mão no alto do Mundo', async ({ page }) => {
   await wiki.getByRole('button', { name: /Baixar a wiki/ }).click()
   expect((await download).suggestedFilename()).toMatch(/wiki.*\.html$/)
 })
+
+test('máquina do tempo: o mundo num ano, e o mapa acompanha', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await openPart(page, 'Linha do tempo')
+  const machine = page.getByRole('region', { name: 'Máquina do tempo' })
+  await machine.getByRole('spinbutton', { name: 'Ir para o ano' }).fill('350')
+  await expect(machine.getByRole('heading', { name: 'Quem mandava' })).toBeVisible()
+  await expect(machine.getByRole('listitem').filter({ hasText: /Cassian\s+governa\s+Ostria/ })).toBeVisible()
+  // Ilsa morreu em 341: em 350 já não existia.
+  await expect(machine.getByText(/Já não existiam: .*Ilsa/)).toBeVisible()
+  await openPart(page, 'Mapas')
+  await expect(page.getByRole('status').filter({ hasText: /No ano 350/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Ver todos os tempos' }).click()
+  await expect(page.getByText(/No ano 350/)).toHaveCount(0)
+})

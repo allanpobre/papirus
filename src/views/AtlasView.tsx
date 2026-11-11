@@ -12,6 +12,10 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
+import { chosenYear, timeKey } from './TimeMachine'
+import { existsIn } from '../logic/timeMachine'
+import { formatYear } from '../model/labels'
+import { remember } from '../state/prefs'
 
 /** Um pergaminho em branco, para posicionar lugares sem ter um mapa desenhado. */
 function blankParchment(): { data: string; width: number; height: number } {
@@ -137,7 +141,14 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   }
 
   const kinds = [...new Set(map.pins.map((p) => byId(universe, 'entities', p.entityId)?.kind).filter(Boolean) as string[])]
-  const visible = map.pins.filter((p) => !hiddenKinds.has(byId(universe, 'entities', p.entityId)?.kind ?? ''))
+  // Máquina do tempo: com um ano escolhido (na Linha do tempo), o que ainda não existia (ou já acabou) some do mapa.
+  const [year, setYear] = useState(() => chosenYear(universe.id))
+  const exists = (id: string) => {
+    const e = byId(universe, 'entities', id)
+    return year === null || !e || existsIn(e, year)
+  }
+  const visible = map.pins.filter((p) => !hiddenKinds.has(byId(universe, 'entities', p.entityId)?.kind ?? '') && exists(p.entityId))
+  const outOfTime = year === null ? 0 : map.pins.filter((p) => !exists(p.entityId)).length
   // Caminho de um personagem pelas cenas.
   const [traveler, setTraveler] = useState('')
   const travelers = useMemo(
@@ -174,6 +185,22 @@ function MapCanvas({ map }: { map: AtlasMap }) {
                 {kindPlural(k)}
               </button>
             ))}
+          </span>
+        )}
+        {year !== null && (
+          <span className="atlas-year small" role="status">
+            No ano {formatYear(year, universe.settings.calendarSuffix)}
+            {outOfTime > 0 && ` · ${outOfTime} ${outOfTime === 1 ? 'marcador apagado' : 'marcadores apagados'}`}
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
+                setYear(null)
+                remember(timeKey(universe.id), null)
+              }}
+            >
+              Ver todos os tempos
+            </button>
           </span>
         )}
         {travelers.length > 0 && (
