@@ -23,6 +23,7 @@ import { setOutsideSession } from '../rpg/sessionFocus'
 import { sendToRoteiro } from '../rpg/sessionLife'
 import { sceneFromTreino } from '../treino/sceneFromTreino'
 import { onIncomingSheet, useTableRolls } from '../share/useTableRolls'
+import { openSheetInMesa } from '../views/rpg/openInMesa'
 import { isLocalOnly, isSample } from '../model/sample'
 import { wordsToday } from '../logic/stats'
 import { recordToday } from '../social/dailyWords'
@@ -253,6 +254,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   // Rolagens feitas pelos jogadores no Codex chegam aqui, vão para o registro e para a bandeja da mesa.
   useTableRolls(universe, prefs, tracked, !readOnly)
   // Um jogador criou o próprio personagem pelo convite: o mestre fica sabendo, com um atalho para a ficha.
+  const universeId = universe.id
   useEffect(
     () =>
       onIncomingSheet((s) =>
@@ -260,15 +262,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           action: {
             label: 'Abrir',
             run: () => {
-              remember('rpg-grupo', s.groupId)
-              remember('rpg-aba', 'personagens')
-              remember('rpg-ficha', s.sheetId)
+              openSheetInMesa(universeId, s.groupId, s.sheetId)
               go('rpg')
             },
           },
         }),
       ),
-    [toast, go],
+    [toast, go, universeId],
   )
   // Um personagem só: uma vez por universo, os personagens de jogador de antes ganham a ficha no Mundo.
   const playersLinked = universe.settings.playersLinked

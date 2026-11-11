@@ -8,6 +8,7 @@ import { draftGroup, insert, newId, patch } from '../../model/universe'
 import { applyDamage, lifeBefore, lifeOf, restoreLife, type LifeBefore } from '../../rpg/combat'
 import { critDamage, damageAfter, describeOutcome, landed, type RollOutcome } from '../../rpg/rolls'
 import { onIncomingRoll } from '../../share/useTableRolls'
+import { MESA_REOPEN } from './openInMesa'
 import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
 import { RollingDie } from '../../ui/RollingDie'
@@ -99,7 +100,18 @@ interface TrayRoll {
   before?: LifeBefore
 }
 
+/** A Mesa recomeça (no grupo, aba e ficha guardados) quando um atalho pede, mesmo já aberta. */
 export default function RpgView() {
+  const [round, setRound] = useState(0)
+  useEffect(() => {
+    const again = () => setRound((n) => n + 1)
+    addEventListener(MESA_REOPEN, again)
+    return () => removeEventListener(MESA_REOPEN, again)
+  }, [])
+  return <MesaView key={round} />
+}
+
+function MesaView() {
   const { universe, update, nav, prefs, readOnly } = useWorkspace()
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const dark = prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark)

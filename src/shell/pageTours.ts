@@ -699,7 +699,7 @@ export const PAGE_TOURS = {
       { target: '.player-live', title: 'Ao vivo', body: 'O Codex se atualiza sozinho quando o mestre revela algo. “Novidades do mestre” aparece quando chega coisa nova.' },
       { target: '.player-session', title: 'Sessão ao vivo', body: 'Aparece quando o mestre começa a sessão. O celular vibra no começo e avisa quando ela termina.', optional: true },
       { target: '.player-tabs', title: 'Eu, Palco e Codex', body: 'Eu: a sua ficha para jogar. Palco: a cena, o combate e as rolagens de todos. Codex: o que o grupo já sabe.', optional: true },
-      { target: '.player-who', title: 'Quem é você?', body: 'Escolha o seu personagem para rolar pela ficha dele. Fica lembrado neste aparelho.', optional: true },
+      { target: '.player-who', title: 'Quem é você?', body: 'Escolha o seu personagem para rolar pela ficha dele. Fica lembrado neste aparelho. Se ele não está na lista, “Criar o meu personagem” manda a sua ficha para o mestre.', optional: true },
       { target: '.me-card', title: 'A sua ficha', body: 'A vida, a defesa, os ataques e os testes a um toque. A ficha completa fica embaixo, recolhida.', optional: true },
       { target: '.player-people', title: 'Conectados agora', body: 'O mestre e os outros jogadores que estão com o Codex aberto, pelo personagem.', optional: true },
       { target: '.stage-card', title: 'A cena', body: 'O que está acontecendo, com o clima que o mestre escreveu. Os relógios mostram o que está para acontecer.', optional: true },

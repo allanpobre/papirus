@@ -113,7 +113,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
       <section className="gm-card" data-tour="gm-grupo">
         <h2 className="section-title">Grupo ({party.length})</h2>
         {party.length === 0 ? (
-          <p className="muted small">Nenhum personagem de jogador ainda. Crie um para cada jogador, com o nome de quem joga.</p>
+          <p className="muted small">Nenhum personagem de jogador ainda. Crie um para cada jogador, ou deixe cada um criar o seu pelo convite.</p>
         ) : (
           <ul className="party">
             {party.map((p) => {

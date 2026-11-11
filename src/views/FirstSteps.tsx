@@ -32,7 +32,7 @@ export function FirstSteps({ onScene }: { onScene: () => void }) {
           {
             id: 'grupo',
             label: 'Crie o personagem de cada jogador',
-            hint: 'Em Mesa › Grupo, com o nome de quem joga.',
+            hint: 'Em Mesa › Grupo, ou cada jogador cria o seu pelo convite.',
             done: universe.sheets.some((s) => s.role === 'pj'),
             go: () => openMesa('personagens'),
           },

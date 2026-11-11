@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { alive, PRESENCE_EVERY, useNow, withPresence, type Present } from '../share/presence'
 import { fetchCodex, joinTable, type ServerConfig, type TableNotice, type TablePresence, type TableRoll, type TableSheet } from '../share/server'
 import { revealedSince, sameReveals, type CodexSnapshot } from '../share/snapshot'
+import { fold } from '../logic/text'
 import { recall, remember } from '../state/prefs'
 import { PlayerTable, type FeedRoll } from './PlayerTable'
 import { CodexDoc } from '../views/rpg/CodexDoc'
@@ -15,6 +16,8 @@ import '@fontsource/cinzel/600.css'
 import '../styles/mesa.css'
 
 const POLL_MS = 20_000
+/** De quanto em quanto tempo o celular manda de novo a ficha que ainda não chegou ao mestre. */
+const RESEND_SHEET_MS = 6000
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
 /** Um momento na tela inteira do celular: a sessão começou ou terminou, um aviso, uma revelação. */
