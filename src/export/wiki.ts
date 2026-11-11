@@ -41,6 +41,8 @@ export interface WikiData {
   fichas: {
     id: string
     tipo: string
+    /** O tipo no plural, para agrupar ("Personagens"). */
+    grupo: string
     nome: string
     apelidos: string[]
     resumo: string
@@ -64,7 +66,7 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   let entries: WikiEntry[]
   let facts: { text: string; ids: string[] }[]
   let relations: { text: string; ids: string[] }[]
-  let events: { when: string; year: number; title: string; description: string }[]
+  let events: { when: string; year: number; title: string; description: string; ids: string[] }[]
   if (upTo === null) {
     entries = safe.entities.map((e) => ({
       entity: e,
@@ -83,13 +85,14 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
       when: ev.endYear !== null ? `${formatYear(ev.year, suffix)} – ${formatYear(ev.endYear, suffix)}` : formatYear(ev.year, suffix),
       title: ev.title,
       description: unmarkReveals(ev.description),
+      ids: [...ev.entityIds, ev.placeId].filter((x): x is string => Boolean(x)),
     }))
   } else {
     const book = readerBook(safe)
     entries = readerEntities(book, upTo)
     facts = book.facts.filter((f) => f.at <= upTo).map((f) => ({ text: f.text, ids: f.entityIds }))
     relations = book.relations.filter((r) => r.at <= upTo).map((r) => ({ text: r.text, ids: r.entityIds }))
-    events = book.events.filter((e) => e.at <= upTo)
+    events = book.events.filter((e) => e.at <= upTo).map((e) => ({ ...e, ids: e.entityIds }))
   }
   entries.sort((a, b) => a.entity.name.localeCompare(b.entity.name, 'pt-BR'))
   const visible = new Set(entries.map((e) => e.entity.id))
@@ -129,7 +132,8 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
     }
   }
   const sortedEvents = [...events].sort((a, b) => a.year - b.year)
-  const eventsOf = (id: string) => sortedEvents.filter((ev) => matcher.find(`${ev.title}\n${ev.description}`).some((m) => m.entityId === id))
+  // Ligado ao evento ou citado no texto dele.
+  const eventsOf = (id: string) => sortedEvents.filter((ev) => ev.ids.includes(id) || matcher.find(`${ev.title}\n${ev.description}`).some((m) => m.entityId === id))
   const maps = safe.maps
     .filter((m) => img(m.image))
     .map((m) => ({ ...m, pins: m.pins.filter((p) => visible.has(p.entityId)) }))
@@ -284,7 +288,7 @@ var norm=function(s){return s.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').
 q.addEventListener('input',function(){var t=norm(q.value.trim());if(!t){route();return}list.innerHTML='';var n=0;
 d.querySelectorAll('.entry').forEach(function(el){if(norm(el.dataset.search+' '+el.textContent).indexOf(t)<0)return;n++;
 var h=el.querySelector('h2'),k=el.querySelector('.kind'),s=el.querySelector('.summary'),li=d.createElement('li'),a=d.createElement('a');a.className='card';a.href='#'+el.id;
-var b=d.createElement('strong');b.textContent=h?h.textContent:'';a.appendChild(b);var m=d.createElement('small');m.textContent=[k&&k.textContent,s&&s.textContent].filter(Boolean).join(' · ');a.appendChild(m);li.appendChild(a);list.appendChild(li)});
+var b=d.createElement('strong');b.textContent=h?h.textContent:'';a.appendChild(b);var m=d.createElement('small');m.textContent=[k&&k.textContent,s&&s.textContent].filter(Boolean).join(' · ');a.appendChild(m);a.addEventListener('click',function(){if(location.hash==='#'+el.id)route()});li.appendChild(a);list.appendChild(li)});
 if(!n){var e=d.createElement('li');e.className='empty';e.textContent='Nada com “'+q.value.trim()+'”.';list.appendChild(e)}show('resultados')});
 btn.addEventListener('click',function(){var o=nav.classList.toggle('aberto');btn.setAttribute('aria-expanded',String(o))});
 window.addEventListener('hashchange',route);route()})();
@@ -298,6 +302,7 @@ window.addEventListener('hashchange',route);route()})();
     fichas: entries.map(({ entity: e, summary, description, fields }) => ({
       id: e.id,
       tipo: kindLabel(e.kind),
+      grupo: kindPlural(e.kind),
       nome: e.name,
       apelidos: e.aliases,
       resumo: summary.trim(),
@@ -322,11 +327,11 @@ export function wikiMarkdown(data: WikiData): string {
   const out: string[] = [`# ${data.mundo.nome}`, '']
   if (data.mundo.descricao) out.push(data.mundo.descricao, '')
   out.push(`_Wiki do mundo · ${data.recorte} · ${data.fichas.length} fichas_`, '')
-  const kinds = [...new Set(data.fichas.map((f) => f.tipo))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  const kinds = [...new Set(data.fichas.map((f) => f.grupo))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
   const list = (title: string, items: string[]) => (items.length ? [`**${title}**`, '', ...items.map((t) => `- ${t}`), ''] : [])
   for (const k of kinds) {
     out.push(`## ${k}`, '')
-    for (const f of data.fichas.filter((x) => x.tipo === k)) {
+    for (const f of data.fichas.filter((x) => x.grupo === k)) {
       out.push(`### ${f.nome}`, '')
       if (f.apelidos.length) out.push(`_Também: ${f.apelidos.join(', ')}_`, '')
       if (f.resumo) out.push(`> ${f.resumo.replace(/\n+/g, ' ')}`, '')

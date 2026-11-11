@@ -84,3 +84,14 @@ describe('wiki em texto e em dados', () => {
     expect(wikiMarkdown(early)).not.toContain('### Cassian')
   })
 })
+
+describe('frases das ligações', () => {
+  it('põe "é" antes de um papel, e não antes de um verbo', async () => {
+    const { relationVerb } = await import('../logic/relations')
+    expect(relationVerb('irmão de')).toBe('é irmão de')
+    expect(relationVerb('Aliado de')).toBe('é Aliado de')
+    expect(relationVerb('governa')).toBe('governa')
+    expect(relationVerb('desconfia de')).toBe('desconfia de')
+    expect(buildWiki(ostriaUniverse(), { upTo: null }).html).toContain('Kael é irmão de')
+  })
+})

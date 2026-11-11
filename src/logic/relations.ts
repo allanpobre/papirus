@@ -6,9 +6,26 @@ import { byId, entityName } from '../model/universe'
 export const VIA_ROLES = ['a mando de', 'com ajuda de', 'por meio de', 'em nome de', 'junto com', 'contra a vontade de', 'por causa de']
 
 /** "Luan envenenou João, a mando de José." */
+/** Primeiras palavras que pedem "é" na frase: "Kael é irmão de Mira" (e não "Kael irmão de Mira"). */
+const ROLE_WORDS = new Set(
+  ('pai mãe filho filha irmão irmã meio-irmão meia-irmã primo prima tio tia avô avó neto neta sobrinho sobrinha cunhado cunhada ' +
+    'marido esposa esposo noivo noiva casado casada amante amigo amiga aliado aliada rival inimigo inimiga membro líder chefe ' +
+    'dono dona mestre mestra aprendiz aluno aluna discípulo discípula servo serva vassalo vassala herdeiro herdeira rei rainha ' +
+    'príncipe princesa protetor protetora guardião guardiã seguidor seguidora devoto devota sacerdote sacerdotisa fundador ' +
+    'fundadora criador criadora autor autora padrinho madrinha afilhado afilhada parente vizinho vizinha sócio sócia ' +
+    'capitão general soldado parte capital súdito súdita refém escravo escrava prisioneiro prisioneira agente espião espiã').split(' '),
+)
+
+/** O tipo da ligação pronto para a frase: com "é" na frente quando é um papel ("irmão de", "aliado de"). */
+export function relationVerb(type: string): string {
+  const t = type.trim()
+  const first = t.split(/\s+/)[0]?.toLocaleLowerCase('pt-BR') ?? ''
+  return ROLE_WORDS.has(first) ? `é ${t}` : t
+}
+
 export function relationSentence(universe: Universe, r: Relation): string {
   const via = r.via.map((v) => `${v.role || 'com'} ${entityName(universe, v.entityId)}`)
-  return `${entityName(universe, r.fromId)} ${r.type} ${entityName(universe, r.toId)}${listPart(universe, r)}${via.length ? `, ${via.join(', ')}` : ''}`
+  return `${entityName(universe, r.fromId)} ${relationVerb(r.type)} ${entityName(universe, r.toId)}${listPart(universe, r)}${via.length ? `, ${via.join(', ')}` : ''}`
 }
 
 /** Numa ligação de lista, de que lista e com que papel: " (Membros, líder)". Vazio nas outras. */
