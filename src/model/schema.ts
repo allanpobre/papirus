@@ -524,6 +524,21 @@ export const atlasMapSchema = z.object({
   pins: z.array(
     z.object({ id, entityId: id, x: z.number(), y: z.number(), label: z.string() }),
   ),
+  /**
+   * Mapa político: regiões pintadas (fronteiras), cada uma de uma ficha (reino, facção, lugar).
+   * Pontos de 0 a 1, como os marcadores. Com anos, a região só vale nesse período (Máquina do tempo).
+   */
+  regions: z
+    .array(
+      z.object({
+        id,
+        entityId: id,
+        points: z.array(z.tuple([z.number(), z.number()])),
+        fromYear: z.number().nullable().default(null),
+        toYear: z.number().nullable().default(null),
+      }),
+    )
+    .optional(),
   ...timestamps,
 })
 

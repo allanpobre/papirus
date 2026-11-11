@@ -9,6 +9,7 @@ import type { Entity, Universe, WikiSettings } from '../model/schema'
 import { manuscriptOrder } from '../model/universe'
 import { readerCopy } from '../share/readerCopy'
 import { coverLook } from '../ui/coverLook'
+import { centroid } from '../logic/regions'
 
 /**
  * Wiki do mundo: um arquivo HTML só, para mandar a jogadores ou leitores.
@@ -149,8 +150,8 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   const eventsOf = (id: string) => sortedEvents.filter((ev) => ev.ids.includes(id) || matcher.find(`${ev.title}\n${ev.description}`).some((m) => m.entityId === id))
   const maps = (show.maps ? safe.maps : [])
     .filter((m) => img(m.image))
-    .map((m) => ({ ...m, pins: m.pins.filter((p) => visible.has(p.entityId)) }))
-  const mapsOf = (id: string) => maps.filter((m) => m.pins.some((p) => p.entityId === id))
+    .map((m) => ({ ...m, pins: m.pins.filter((p) => visible.has(p.entityId)), regions: (m.regions ?? []).filter((r) => visible.has(r.entityId)) }))
+  const mapsOf = (id: string) => maps.filter((m) => m.pins.some((p) => p.entityId === id) || m.regions.some((r) => r.entityId === id))
   const nameOf = (id: string) => entries.find((x) => x.entity.id === id)?.entity.name ?? ''
   const link = (id: string, name = nameOf(id)) => `<a href="#${anchor(id)}">${esc(name)}</a>`
 
@@ -199,7 +200,18 @@ ${cites.length ? `<h3>Citado em</h3><p class="cites">${cites.map((id) => link(id
     ? `<section class="entry page" id="mapas" data-search="mapas"><header><h2>${maps.length === 1 ? 'Mapa' : 'Mapas'}</h2></header>${maps
         .map(
           (m) =>
-            `<figure class="map"><div class="map-box"><img src="${img(m.image)}" alt="${esc(m.name || 'Mapa')}"/>${m.pins
+            `<figure class="map"><div class="map-box"><img src="${img(m.image)}" alt="${esc(m.name || 'Mapa')}"/>${
+              m.regions.length
+                ? `<svg class="regions" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${m.regions
+                    .map((r) => `<polygon points="${r.points.map(([x, y]) => `${(x * 1000).toFixed(1)},${(y * 1000).toFixed(1)}`).join(' ')}" style="--r:${coverLook(nameOf(r.entityId)).tone}"/>`)
+                    .join('')}</svg>${m.regions
+                    .map((r) => {
+                      const [cx, cy] = centroid(r.points)
+                      return `<a class="region" href="#${anchor(r.entityId)}" style="left:${(cx * 100).toFixed(2)}%;top:${(cy * 100).toFixed(2)}%">${esc(nameOf(r.entityId))}</a>`
+                    })
+                    .join('')}`
+                : ''
+            }${m.pins
               .map((p) => `<a class="pin" href="#${anchor(p.entityId)}" style="left:${(p.x * 100).toFixed(2)}%;top:${(p.y * 100).toFixed(2)}%"><span>${esc(p.label || nameOf(p.entityId))}</span></a>`)
               .join('')}</div>${m.name ? `<figcaption>${esc(m.name)}</figcaption>` : ''}</figure>`,
         )
@@ -264,7 +276,7 @@ ul{margin:0;padding-left:1.2rem}.cites{margin:0}.when{color:var(--muted);font-si
 .card:hover{border-color:var(--accent)}.card strong{display:block;color:var(--accent)}.card small{display:block;color:var(--muted);font-size:13px;line-height:1.4;margin-top:2px}
 .thumb{flex:none;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--tone) center/cover;color:#fff;font:600 18px var(--font)}.thumb.img{color:transparent}
 .results{list-style:none;padding:0;margin:0;display:grid;gap:8px}.results .card{width:100%}.empty{color:var(--muted)}
-.map{margin:16px 0 0}.map-box{position:relative}.map-box>img{display:block;width:100%;height:auto;border-radius:10px}
+.map{margin:16px 0 0}.regions{position:absolute;inset:0;width:100%;height:100%}.regions polygon{fill:color-mix(in srgb,var(--r) 30%,transparent);stroke:var(--r);stroke-width:2;vector-effect:non-scaling-stroke}.region{position:absolute;transform:translate(-50%,-50%);padding:1px 8px;border-radius:999px;background:rgb(0 0 0/.55);color:#fff;font:600 11px system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;white-space:nowrap}.map-box{position:relative}.map-box>img{display:block;width:100%;height:auto;border-radius:10px}
 .pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;text-decoration:none}
 .pin::after{content:'';width:12px;height:12px;border-radius:50%;background:var(--tone);border:2px solid #fff;box-shadow:0 1px 3px rgb(0 0 0/.5)}
 .pin span{padding:1px 6px;border-radius:6px;background:rgb(0 0 0/.65);color:#fff;font:12px system-ui,sans-serif;white-space:nowrap;margin-bottom:2px}

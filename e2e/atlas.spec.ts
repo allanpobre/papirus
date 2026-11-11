@@ -31,3 +31,26 @@ test.describe('no celular', () => {
     await expect.poll(style).toBe(before)
   })
 })
+
+test('mapa político: pintar a região de Ostria, ver o nome e apagar', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await openPart(page, 'Mapas')
+  await page.getByRole('button', { name: 'Pintar região' }).click()
+  const paint = page.getByRole('group', { name: 'Pintar região' })
+  await paint.getByRole('combobox', { name: 'De quem é esta região?' }).fill('Reino de Ost')
+  await page.getByRole('option', { name: /Reino de Ostria/ }).first().click()
+  const map = page.locator('.atlas-image')
+  const box = (await map.boundingBox())!
+  for (const [x, y] of [
+    [0.2, 0.2],
+    [0.6, 0.2],
+    [0.4, 0.6],
+  ])
+    await map.click({ position: { x: box.width * x, y: box.height * y } })
+  await paint.getByRole('button', { name: 'Concluir' }).click()
+  const label = page.locator('.atlas-region-label', { hasText: 'Reino de Ostria' })
+  await expect(label).toBeVisible()
+  await label.click()
+  await page.getByRole('button', { name: 'Apagar região' }).click()
+  await expect(label).toHaveCount(0)
+})

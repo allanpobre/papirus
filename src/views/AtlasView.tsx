@@ -1,4 +1,6 @@
-import { ImagePlus, MapPin, Minus, Plus, Trash2, X } from 'lucide-react'
+import { Check, Hexagon, ImagePlus, MapPin, Minus, Plus, Trash2, X } from 'lucide-react'
+import { centroid, regionIn, type Region } from '../logic/regions'
+import { coverLook } from '../ui/coverLook'
 import { tabListKeys } from '../ui/keys'
 import { useMemo, useRef, useState } from 'react'
 import { rangeText, routeOn } from '../logic/route'
@@ -6,7 +8,7 @@ import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
 import { byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
-import { Empty } from '../ui/bits'
+import { Empty, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
@@ -126,6 +128,10 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   const dragging = useRef<{ id: string; x: number; y: number; moved: boolean; before: AtlasMap['pins'] } | null>(null)
   // Mover pelo toque: escolhe "Mover" no cartão e toca no lugar novo.
   const [moving, setMoving] = useState<string | null>(null)
+  // Mapa político: escolher de quem é a região e tocar os cantos no mapa.
+  const [painting, setPainting] = useState<{ entityId: string | null; points: [number, number][] } | null>(null)
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
+  const setRegions = (regions: Region[]) => update((u) => patch(u, 'maps', map.id, { regions }))
 
   const setPins = (pins: AtlasMap['pins']) => update((u) => patch(u, 'maps', map.id, { pins }))
   // Depois de mover, dá para voltar: o aviso traz "Desfazer".
@@ -149,6 +155,15 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   }
   const visible = map.pins.filter((p) => !hiddenKinds.has(byId(universe, 'entities', p.entityId)?.kind ?? '') && exists(p.entityId))
   const outOfTime = year === null ? 0 : map.pins.filter((p) => !exists(p.entityId)).length
+  const regions = (map.regions ?? []).filter((r) => regionIn(universe, r, year))
+  const toneOf = (id: string) => coverLook(entityName(universe, id) || id).tone
+  const region = selectedRegion ? (map.regions ?? []).find((r) => r.id === selectedRegion) : undefined
+  const finishRegion = () => {
+    if (!painting?.entityId || painting.points.length < 3) return
+    setRegions([...(map.regions ?? []), { id: newId(), entityId: painting.entityId, points: painting.points, fromYear: null, toYear: null }])
+    setPainting(null)
+    toast('Região pintada. Toque no nome dela para ajustar os anos ou apagar.')
+  }
   // Caminho de um personagem pelas cenas.
   const [traveler, setTraveler] = useState('')
   const travelers = useMemo(
@@ -168,6 +183,18 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         <input id="map-name" className="input input-sm" value={map.name} onChange={(e) => update((u) => patch(u, 'maps', map.id, { name: e.target.value }))} />
         <button type="button" className={`btn btn-sm ${placing !== null ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={placing !== null} onClick={() => { setPlacing(placing === null ? '' : null); setPending(null) }}>
           <MapPin size={15} /> {placing !== null ? 'Clique no mapa…' : 'Marcar lugar'}
+        </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${painting ? 'btn-primary' : 'btn-ghost'}`}
+          aria-pressed={painting !== null}
+          onClick={() => {
+            setPainting(painting ? null : { entityId: null, points: [] })
+            setPlacing(null)
+            setPending(null)
+          }}
+        >
+          <Hexagon size={15} /> {painting ? 'Pintando região…' : 'Pintar região'}
         </button>
         <span className="atlas-zoom">
           <button type="button" className="btn-icon btn-sm" aria-label="Afastar" onClick={() => setZoom((z) => Math.max(0.5, z / 1.25))}>
@@ -235,13 +262,65 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           ))}
         </ol>
       )}
+      {painting && (
+        <div className="atlas-paint" role="group" aria-label="Pintar região">
+          {!painting.entityId ? (
+            <EntityPicker label="De quem é esta região?" kinds={['reino', 'faccao', 'lugar', 'cultura']} value={null} onChange={(id) => id && setPainting({ entityId: id, points: [] })} />
+          ) : (
+            <>
+              <span className="small">
+                <strong>{entityName(universe, painting.entityId)}</strong>: toque os cantos da região no mapa ({painting.points.length} {painting.points.length === 1 ? 'ponto' : 'pontos'}).
+              </span>
+              <button type="button" className="btn btn-sm btn-primary" disabled={painting.points.length < 3} onClick={finishRegion}>
+                <Check size={15} /> Concluir
+              </button>
+              {painting.points.length > 0 && (
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => setPainting({ ...painting, points: painting.points.slice(0, -1) })}>
+                  Desfazer ponto
+                </button>
+              )}
+            </>
+          )}
+          <button type="button" className="btn btn-sm btn-ghost" onClick={() => setPainting(null)}>
+            Cancelar
+          </button>
+        </div>
+      )}
+      {region && (
+        <div className="atlas-paint" role="group" aria-label={`Região de ${entityName(universe, region.entityId)}`}>
+          <strong className="small">{entityName(universe, region.entityId) || 'Região'}</strong>
+          <YearInput label="De (ano)" value={region.fromYear} onChange={(n) => setRegions((map.regions ?? []).map((r) => (r.id === region.id ? { ...r, fromYear: n } : r)))} />
+          <YearInput label="Até (ano)" value={region.toYear} onChange={(n) => setRegions((map.regions ?? []).map((r) => (r.id === region.id ? { ...r, toYear: n } : r)))} />
+          <button type="button" className="btn btn-sm btn-ghost" onClick={() => go('fichas', region.entityId)}>
+            Abrir ficha
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-ghost"
+            onClick={() => {
+              setRegions((map.regions ?? []).filter((r) => r.id !== region.id))
+              setSelectedRegion(null)
+            }}
+          >
+            <Trash2 size={15} /> Apagar região
+          </button>
+        </div>
+      )}
       <div className="atlas-scroll">
         <div
           ref={imgRef}
-          className={`atlas-image${placing !== null || moving ? ' placing' : ''}`}
+          className={`atlas-image${placing !== null || moving || painting?.entityId ? ' placing' : ''}${painting?.entityId ? ' painting' : ''}`}
           style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: mapSrc ? `url("${mapSrc}")` : undefined }}
           onClick={(e) => {
+            // Pintando uma região, todo toque vira um canto (mesmo em cima de um marcador).
+            if (painting) {
+              if (!painting.entityId) return
+              const c = coords(e)
+              setPainting({ ...painting, points: [...painting.points, [c.x, c.y]] })
+              return
+            }
             if ((e.target as Element).closest('.pin')) return
+            if ((e.target as Element).closest('.atlas-region-label')) return
             if (moving) {
               const before = map.pins
               const c = coords(e)
@@ -265,6 +344,30 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           }}
           onPointerUp={finishDrag}
         >
+          {(regions.length > 0 || (painting && painting.points.length > 0)) && (
+            <svg className="atlas-regions" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+              {regions.map((r) => (
+                <polygon
+                  key={r.id}
+                  points={r.points.map(([x, y]) => `${x * 1000},${y * 1000}`).join(' ')}
+                  style={{ '--region': toneOf(r.entityId) } as React.CSSProperties}
+                  className={r.id === selectedRegion ? 'selected' : undefined}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+              {painting && painting.points.length > 0 && (
+                <polyline className="atlas-region-draft" points={painting.points.map(([x, y]) => `${x * 1000},${y * 1000}`).join(' ')} vectorEffect="non-scaling-stroke" />
+              )}
+            </svg>
+          )}
+          {regions.map((r) => {
+            const [cx, cy] = centroid(r.points)
+            return (
+              <button key={`l${r.id}`} type="button" className="atlas-region-label" style={{ left: `${cx * 100}%`, top: `${cy * 100}%` }} onClick={() => setSelectedRegion(r.id === selectedRegion ? null : r.id)}>
+                {entityName(universe, r.entityId) || 'Região'}
+              </button>
+            )
+          })}
           {route.length > 1 && (
             <svg className="atlas-route" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
               <polyline points={route.map((r) => `${r.x * 1000},${r.y * 1000}`).join(' ')} vectorEffect="non-scaling-stroke" />

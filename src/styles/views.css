@@ -9421,3 +9421,65 @@ h3.cork-act {
 .sp-traits p {
   margin: 0.2rem 0;
 }
+
+/* ---------------------------------------------------------------- Mapa político (regiões) */
+
+.atlas-regions {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.atlas-regions polygon {
+  fill: color-mix(in srgb, var(--region) 32%, transparent);
+  stroke: var(--region);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.atlas-regions polygon.selected {
+  fill: color-mix(in srgb, var(--region) 48%, transparent);
+  stroke-dasharray: none;
+  stroke-width: 3;
+}
+
+.atlas-region-draft {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.atlas-region-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0.1rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  font: 600 0.75rem/1.4 system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.atlas-paint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.atlas-image.painting .pin,
+.atlas-image.painting .atlas-region-label {
+  pointer-events: none;
+}

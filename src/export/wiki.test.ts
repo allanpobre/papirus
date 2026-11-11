@@ -130,3 +130,17 @@ describe('lendas e documentos', () => {
     expect(html).toContain('Lendas e documentos')
   })
 })
+
+describe('mapa político na wiki', () => {
+  it('pinta as regiões de fichas visíveis, com o nome por cima', () => {
+    const ref = `img:${'e'.repeat(32)}`
+    let [u, reino] = insert(createUniverse('W'), 'entities', draftEntity('reino', 'Valmar'))
+    const now = new Date().toISOString()
+    const region = { id: 'r1', entityId: reino.id, points: [[0.1, 0.1], [0.5, 0.1], [0.3, 0.5]] as [number, number][], fromYear: null, toYear: null }
+    u = { ...u, maps: [{ id: 'm1', name: 'Costa', image: ref, width: 10, height: 10, pins: [], regions: [region], createdAt: now, updatedAt: now }] }
+    const { html } = buildWiki(u, { upTo: null, images: new Map([[ref, 'data:image/webp;base64,CCCC']]) })
+    expect(html).toContain('<svg class="regions"')
+    expect(html).toMatch(/<a class="region" href="#f-[^"]+"[^>]*>Valmar<\/a>/)
+    expect(html).toContain('No mapa: <a href="#mapas">Costa</a>')
+  })
+})
