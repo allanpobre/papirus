@@ -9351,3 +9351,36 @@ h3.cork-act {
   padding-left: 1rem;
   font-style: italic;
 }
+
+/* ---------------------------------------------------------------- Efeito dominó */
+
+.domino {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.domino p {
+  margin: 0;
+}
+
+.domino-group h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.domino-group ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.domino-heirs {
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
