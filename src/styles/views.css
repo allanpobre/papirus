@@ -8764,7 +8764,7 @@ h3.cork-act {
   /* No celular, com partes, a barra de baixo já diz a área: uma linha só, com as partes, a busca e o (?). */
   .view-top.has-parts {
     flex-wrap: nowrap;
-    gap: 0.4rem;
+    gap: 0.3rem;
   }
 
   .view-top.has-parts .view-top-title {
@@ -8796,8 +8796,29 @@ h3.cork-act {
   }
 
   .view-top .view-top-parts button {
-    padding-inline: 0.45rem;
+    padding-inline: 0.32rem;
   }
+
+  /* Nome curto no celular ("Tempo"), para as quatro partes do Mundo caberem com a busca, o (?) e a wiki. */
+  .view-top .view-top-parts .part-long {
+    display: none;
+  }
+
+  .view-top .view-top-parts .part-short {
+    display: inline;
+  }
+
+  .view-top.has-parts .view-top-end > .btn-icon,
+  .view-top.has-parts .view-top-end > .btn {
+    width: 28px;
+    min-width: 28px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+}
+
+.view-top-parts .part-short {
+  display: none;
 }
 
 /* ---------------------------------------------------------------- A aba Jogo da ficha */
@@ -8984,6 +9005,16 @@ h3.cork-act {
 .share-ways p {
   margin: 0;
 }
+
+/* No celular, a wiki do Mundo fica só com o ícone: as partes precisam do espaço. */
+@media (max-width: 760px) {
+  .area-wiki-label {
+    display: none;
+  }
+
+  .area-wiki.btn {
+    padding-inline: 0.4rem;
+  }
 
 /* ---------------------------------------------------------------- Wiki: Personalizar */
 
