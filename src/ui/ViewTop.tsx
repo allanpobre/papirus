@@ -9,6 +9,8 @@ import { PageHelp } from './PageTour'
 export interface TopPart {
   id: string
   label: string
+  /** Nome curto para o celular, quando o inteiro não cabe na faixa ("Tempo"). */
+  short?: string
   icon?: LucideIcon
   current: boolean
   onPick: () => void
@@ -59,19 +61,29 @@ export function ViewTop({
         parts &&
         (tabs ? (
           <div className="writing-modes view-top-parts" role="tablist" aria-label={partsLabel} onKeyDown={tabListKeys} data-tour="partes">
-            {parts.map(({ id, label, icon: Icon, current, onPick }) => (
-              <button key={id} type="button" role="tab" aria-selected={current} tabIndex={current ? 0 : -1} onClick={onPick}>
+            {parts.map(({ id, label, short, icon: Icon, current, onPick }) => (
+              <button key={id} type="button" aria-label={short ? label : undefined} role="tab" aria-selected={current} tabIndex={current ? 0 : -1} onClick={onPick}>
                 {Icon && <Icon size={15} aria-hidden="true" />}
-                <span>{label}</span>
+                <span className={short ? 'part-long' : undefined}>{label}</span>
+                {short && (
+                  <span className="part-short" aria-hidden="true">
+                    {short}
+                  </span>
+                )}
               </button>
             ))}
           </div>
         ) : (
           <nav className="writing-modes view-top-parts" aria-label={partsLabel} data-tour="partes">
-            {parts.map(({ id, label, icon: Icon, current, onPick }) => (
-              <button key={id} type="button" aria-current={current ? 'page' : undefined} onClick={() => !current && onPick()}>
+            {parts.map(({ id, label, short, icon: Icon, current, onPick }) => (
+              <button key={id} type="button" aria-label={short ? label : undefined} aria-current={current ? 'page' : undefined} onClick={() => !current && onPick()}>
                 {Icon && <Icon size={15} aria-hidden="true" />}
-                <span>{label}</span>
+                <span className={short ? 'part-long' : undefined}>{label}</span>
+                {short && (
+                  <span className="part-short" aria-hidden="true">
+                    {short}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
