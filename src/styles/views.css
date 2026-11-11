@@ -9110,3 +9110,135 @@ h3.cork-act {
   opacity: 0;
   cursor: pointer;
 }
+
+/* ---------------------------------------------------------------- Mundo (worldbuilding): Início e Wiki */
+
+.world-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+
+.world-kind {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  min-height: 36px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.world-kind:hover {
+  border-color: var(--accent);
+}
+
+.world-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  margin-top: 1rem;
+}
+
+.world-card h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.6rem;
+}
+
+.world-empty p {
+  margin: 0 0 0.75rem;
+}
+
+.world-gaps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.world-gap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.world-gap:hover {
+  border-color: var(--accent);
+}
+
+.world-gap small {
+  display: block;
+  margin-top: 0.1rem;
+}
+
+.world-gap > svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.world-grow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.world-grow p {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.world-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.entity-show-all {
+  justify-self: start;
+  margin: 0.25rem 0;
+}
+
+.wiki-view-body {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.wiki-view-preview {
+  width: 100%;
+  height: calc(100vh - 160px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: #fff;
+}
+
+/* No celular, a prévia fica no "Ver antes" (abre a wiki inteira). */
+@media (max-width: 900px) {
+  .wiki-view-body {
+    grid-template-columns: 1fr;
+  }
+
+  .wiki-view-preview {
+    display: none;
+  }
+}

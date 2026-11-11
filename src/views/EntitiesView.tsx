@@ -24,6 +24,7 @@ import {
 } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
+import { worldLevel } from '../model/kind'
 import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
@@ -485,6 +486,9 @@ function ModeSwitch({ mode, game = false, onChange }: { mode: FichaMode; game?: 
 
 function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: React.ReactNode }) {
   const { universe, update, go, goBack, peek, undoable, toast, readOnly } = useWorkspace()
+  // Num mundo Simples, a ficha mostra o essencial; "Mostrar tudo" abre o resto só nesta ficha.
+  const [showAll, setShowAll] = useState(false)
+  const simple = worldLevel(universe) === 'simples' && !showAll
   // Ao renomear a ficha, o nome antigo continua no texto: o Papirus oferece trocar (mostrando cada trecho antes).
   const nameAtFocus = useRef<string | null>(null)
   const offerRename = () => {
@@ -584,10 +588,14 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               )}
             </Field>
             <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
-            <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
-              {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
-            </Field>
-            <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
+            {!simple && (
+              <>
+                <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
+                  {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
+                </Field>
+                <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
+              </>
+            )}
             <label className="toggle entity-wiki-toggle">
               <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
               <span className="toggle-track" aria-hidden="true" />
@@ -638,7 +646,12 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             </button>
           </Fold>
 
-          <ListsSection entity={e} />
+          {!simple && <ListsSection entity={e} />}
+          {worldLevel(universe) === 'simples' && (
+            <button type="button" className="btn btn-ghost btn-sm entity-show-all" aria-pressed={showAll} onClick={() => setShowAll((v) => !v)}>
+              {showAll ? 'Mostrar só o essencial' : 'Mostrar tudo nesta ficha'}
+            </button>
+          )}
 
           <Fold id="ficha-mais-detalhes" title="Mais detalhes" defaultOpen={false}>
             <div className="form-grid">

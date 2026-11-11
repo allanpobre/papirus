@@ -167,6 +167,21 @@ export const PAGE_TOURS = {
       { title: 'Tudo vem das cenas', body: 'Estado, história, ponto de vista e elenco são os Detalhes da cena, no Escrever. Mudou lá, muda aqui.' },
     ],
   },
+  'inicio-mundo': {
+    title: 'Início do mundo',
+    steps: [
+      { target: '.world-kinds', title: 'O mundo em números', body: 'Quantas fichas de cada tipo. Toque para abrir o Mundo.', optional: true },
+      { target: '.world-card', title: 'O que falta', body: 'Fichas sem resumo, soltas, lugares fora do mapa… Toque para ir direto à primeira.' },
+      { target: '.world-actions', title: 'Atalhos', body: 'Ligações, Mapas e a Wiki, a um toque.' },
+    ],
+  },
+  wiki: {
+    title: 'Wiki',
+    steps: [
+      { target: '.wiki-view .settings-card', title: 'Como a wiki sai', body: 'O que entra (tudo menos segredos, ou só até uma cena), o formato (site, texto ou dados) e Personalizar: título, tipos, seções, cor e letra.' },
+      { target: '.wiki-view-preview', title: 'Prévia', body: 'A wiki como os leitores vão ver, atualizada a cada mudança. O arquivo baixado leva também os retratos e os mapas.', optional: true },
+    ],
+  },
   livro: {
     title: 'Publicar',
     steps: [
@@ -583,7 +598,7 @@ export const PAGE_TOURS = {
   'hub-escrita': {
     title: 'Escrita',
     steps: [
-      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita (livros e mundos), Mesa (campanhas) e Oficina (aprender). Cada um com a sua cara.' },
+      { target: '.hub-tabs', title: 'Quatro setores', body: 'Escrita (livros), Mundos (só worldbuilding), Mesa (campanhas) e Oficina (aprender). Cada um com a sua cara.' },
       { target: '.hub-continue', title: 'Continuar', body: 'O universo em que você mexeu por último, a um toque.', optional: true },
       { target: '.treino-card', title: 'Treino de hoje', body: 'A proposta do dia num sprint com tempo e mínimo de palavras ou caracteres. Seus treinos ficam guardados, e há um placar entre amigos.' },
       {
@@ -597,6 +612,14 @@ export const PAGE_TOURS = {
       { target: '.library-alt', title: 'Instalar e importar', body: 'Instale o Papirus como app, traga um backup (.json) ou abra uma pasta do computador.', optional: true },
       { target: '.hub-social', title: 'Com os amigos', body: 'Novidades, amigos, desafios e o seu perfil. Precisa de uma conta, que é opcional.', optional: true },
       { target: '[data-tour="conta"]', title: 'Conta', body: 'Sem conta, tudo fica neste navegador. Com conta, os universos aparecem em todos os seus aparelhos.', optional: true },
+    ],
+  },
+  'hub-mundo': {
+    title: 'Mundos',
+    steps: [
+      { target: '.hub-continue', title: 'Continuar', body: 'O mundo em que você mexeu por último, a um toque.', optional: true },
+      { target: '.library-list[aria-label="Mundos"]', title: 'Seus mundos', body: 'Universos só de worldbuilding: fichas, ligações, linha do tempo, mapas e a wiki. Para escrever ou jogar num deles, ligue Escrever ou a Mesa nos Ajustes do mundo.', optional: true },
+      { target: '.start-card, .library-new', title: 'Novo mundo', body: 'Dê um nome e escolha Simples (o essencial) ou Completo (tudo). Dá para trocar depois, sem perder nada.' },
     ],
   },
   'hub-rpg': {

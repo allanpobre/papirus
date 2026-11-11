@@ -23,6 +23,7 @@ export type View =
   | 'rpg'
   | 'inbox'
   | 'config'
+  | 'wiki'
 
 export interface Nav {
   view: View

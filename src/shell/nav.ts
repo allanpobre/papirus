@@ -4,6 +4,7 @@ import {
   Dices,
   Earth,
   Feather,
+  Globe,
   GraduationCap,
   House,
   Inbox,
@@ -52,6 +53,8 @@ export const NAV: { group: string; items: NavItem[] }[] = [
       { view: 'conhecimento', label: 'Quem sabe o quê', icon: Lightbulb, inside: 'tramas', words: 'conhecimento segredos fatos' },
     ],
   },
+  // A wiki como área própria só num mundo (nos outros tipos ela sai do Mundo e de Publicar).
+  { group: '', items: [{ view: 'wiki', label: 'Wiki', icon: Globe, words: 'wiki site exportar baixar publicar enciclopédia' }] },
   { group: '', items: [{ view: 'rpg', label: 'Mesa', icon: Dices, words: 'rpg mesa de rpg campanha sessões dados codex grupo jogadores' }] },
 ]
 
