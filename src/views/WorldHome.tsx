@@ -1,9 +1,10 @@
-import { ArrowRight, Earth, Globe, Inbox, Layers, MapIcon, Network, Sprout } from 'lucide-react'
+import { ArrowRight, Earth, Globe, Inbox, Layers, MapIcon, Network, ScrollText, Sprout } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
 import { kindCounts, worldGaps } from '../logic/worldGaps'
 import { worldLevel } from '../model/kind'
 import { kindPlural } from '../model/labels'
+import { draftEntity, insert } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { GeneratedCover } from '../ui/GeneratedCover'
 import { PageHelp } from '../ui/PageTour'
@@ -107,6 +108,24 @@ export function WorldHome() {
       )}
 
       <nav className="world-actions" aria-label="Atalhos do mundo">
+        {!readOnly && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              // Uma lenda, carta, decreto ou canção: um texto de dentro do mundo, ligado às fichas que cita.
+              let id = ''
+              update((u) => {
+                const [next, e] = insert(u, 'entities', draftEntity('documento', 'Nova lenda'))
+                id = e.id
+                return next
+              })
+              go('fichas', id)
+            }}
+          >
+            <ScrollText size={16} aria-hidden="true" /> Escrever uma lenda
+          </button>
+        )}
         <button type="button" className="btn" onClick={() => go('relacoes')}>
           <Network size={16} aria-hidden="true" /> Ligações
         </button>

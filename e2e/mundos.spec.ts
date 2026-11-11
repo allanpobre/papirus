@@ -64,3 +64,15 @@ test('mundo: a semente planta as primeiras fichas, ligadas', async ({ page }) =>
   await expect(page.locator('.entity-row', { hasText: 'A Névoa' })).toBeVisible()
   await expect(page.locator('.entity-row', { hasText: 'Império de ' }).first()).toBeVisible()
 })
+
+test('mundo: escrever uma lenda pelo Início', async ({ page }) => {
+  await page.goto('/app/')
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mundos' }).click()
+  await page.getByRole('textbox', { name: 'Nome do mundo' }).fill('Mar Alto')
+  await page.getByRole('button', { name: 'Criar mundo' }).click()
+  await page.getByRole('button', { name: 'Plantar a semente' }).click()
+  await page.getByRole('dialog', { name: 'Semente do mundo' }).getByRole('button', { name: 'Plantar a semente' }).click()
+  await page.getByRole('button', { name: 'Escrever uma lenda' }).click()
+  await expect(page.getByRole('heading', { name: 'Nova lenda' })).toBeVisible()
+  await expect(page.locator('.entity-row', { hasText: 'Nova lenda' })).toContainText('Lenda ou documento')
+})

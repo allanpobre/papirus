@@ -73,6 +73,11 @@ const KIND_QUESTIONS: Record<string, KindQuestion[]> = {
     { key: 'Na história', ask: 'Onde isso aparece na história?', example: 'Na decisão final da Mira' },
     { key: 'Quem entende', ask: 'Quem entende isso de verdade?', example: 'Só o velho do farol' },
   ],
+  documento: [
+    { key: 'Forma', ask: 'Que tipo de texto é?', example: 'Uma lenda que as avós contam' },
+    { key: 'Quem escreveu', ask: 'Quem escreveu ou conta?', example: 'Os pescadores do porto' },
+    { key: 'Quanto é verdade', ask: 'Quanto disso aconteceu de verdade?', example: 'Metade: o dragão existiu, a vitória não' },
+  ],
 }
 
 const ANY_KIND: KindQuestion[] = [

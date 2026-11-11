@@ -9344,3 +9344,10 @@ h3.cork-act {
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 12%, var(--surface));
 }
+
+/* Lendas e documentos: o texto lido como um documento do mundo. */
+.reader-doc {
+  border-left: 3px solid var(--kind-documento);
+  padding-left: 1rem;
+  font-style: italic;
+}

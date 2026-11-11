@@ -11,6 +11,7 @@ export const KIND_LABEL: Record<string, string> = {
   especie: 'Espécie',
   reino: 'Reino ou plano',
   conceito: 'Conceito',
+  documento: 'Lenda ou documento',
 }
 
 export const KIND_PLURAL: Record<string, string> = {
@@ -24,6 +25,7 @@ export const KIND_PLURAL: Record<string, string> = {
   especie: 'Espécies',
   reino: 'Reinos e planos',
   conceito: 'Conceitos',
+  documento: 'Lendas e documentos',
 }
 
 export const kindLabel = (kind: string) => KIND_LABEL[kind] ?? kind

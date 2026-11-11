@@ -102,6 +102,8 @@ export const ENTITY_KINDS = [
   'especie',
   'reino',
   'conceito',
+  /** Lendas e documentos: textos de dentro do mundo (lenda, carta, decreto, canção, profecia). */
+  'documento',
 ] as const
 
 /** Que tipo de valor um campo guarda: texto livre, número, ano do calendário ou outra ficha. */

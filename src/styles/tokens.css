@@ -146,6 +146,7 @@
   --kind-artefato: #8a6a2f;
   --kind-especie: #5a7d2c;
   --kind-conceito: var(--muted);
+  --kind-documento: #8b5e3c;
   --kind-outro: var(--ink-2);
 }
 
