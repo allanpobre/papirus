@@ -10,6 +10,10 @@ const keys = (universeId: string) => ({
   current: `universe:${universeId}:current`,
   previous: `universe:${universeId}:previous`,
   snapshots: `universe:${universeId}:snapshots`,
+  /** O universo como estava na última vez em que este aparelho e a nuvem ficaram iguais. */
+  base: `universe:${universeId}:base`,
+  /** A data dessa base (para saber se existe sem ler o universo inteiro). */
+  baseAt: `universe:${universeId}:base-at`,
   emergency: `papirus:emergency:${universeId}`,
 })
 const snapshotKey = (snapshotId: string) => `snapshot:${snapshotId}`
@@ -104,6 +108,35 @@ export class UniverseRepository {
   }
 
   // -------------------------------------------------------------------------
+  // A base: o ponto em comum com a nuvem
+
+  /**
+   * Guarda o universo como o ponto em comum entre este aparelho e a nuvem (os dois estão iguais
+   * agora). Se depois os dois lados mudarem, é a partir daqui que se sabe quem mexeu em quê, para
+   * juntar as mudanças em vez de escolher um lado.
+   */
+  async saveBase(universe: Universe): Promise<void> {
+    await this.store.set(this.k.base, this.toFile(universe, 0))
+    await this.store.set(this.k.baseAt, universe.updatedAt)
+  }
+
+  /** A data da base guardada, ou `null` se não há. */
+  async baseAt(): Promise<string | null> {
+    return ((await this.store.get(this.k.baseAt)) as string | undefined) ?? null
+  }
+
+  async loadBase(): Promise<Universe | null> {
+    const raw = await this.store.get(this.k.base)
+    if (raw === undefined) return null
+    try {
+      return migrate(raw).universe
+    } catch {
+      // Base ilegível: como se não houvesse (o conflito vira uma pergunta, em vez de juntar).
+      return null
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Snapshots
 
   async listSnapshots(): Promise<SnapshotInfo[]> {
@@ -147,6 +180,8 @@ export class UniverseRepository {
     await this.store.delete(this.k.snapshots)
     await this.store.delete(this.k.current)
     await this.store.delete(this.k.previous)
+    await this.store.delete(this.k.base)
+    await this.store.delete(this.k.baseAt)
     this.clearEmergency()
   }
 

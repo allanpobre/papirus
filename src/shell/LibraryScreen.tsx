@@ -43,7 +43,7 @@ import {
 import { AccountButton, AccountDialog } from '../account/AccountDialog'
 import { cleanName, families } from '../persistence/cloudCopy'
 import { authClient, useAccount } from '../account/auth'
-import { removeFromCloud, syncedMap } from '../account/cloud'
+import { pendingConflicts, removeFromCloud, resolveConflict, syncedMap, type Diff } from '../account/cloud'
 import { syncLibrary, useCloudStatus } from '../account/useCloud'
 import { addVersion, baseName, keepVersion, repeatHints, replaceWith, trimVersions, versionLabel } from '../persistence/versions'
 import { recall, remember } from '../state/prefs'
@@ -120,6 +120,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const account = useAccount()
   const cloud = useCloudStatus()
   const synced = account.user ? syncedMap(account.user.id) : {}
+  // Universos cujos dois lados mudaram no mesmo lugar: esperam a escolha da pessoa.
+  const pending = account.user ? pendingConflicts(account.user.id) : {}
   const first = entries.length === 0
 
   // Com conta: o que outras pessoas compartilharam comigo, e quais dos meus estão compartilhados.
@@ -255,6 +257,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   // O que há para arrumar: versões guardadas que ainda estão na nuvem, ou universos de mesmo nome.
   const repeats = repeatHints(entries, (id) => Boolean(synced[id]), different)
   const [notice, setNotice] = useState<string | null>(null)
+  // O universo cuja escolha (juntar, ficar com um lado) está sendo aplicada.
+  const [resolving, setResolving] = useState<string | null>(null)
 
   const chosen = UNIVERSE_TEMPLATES.find((t) => t.id === template) ?? UNIVERSE_TEMPLATES[0]
   const [creating, setCreating] = useState(false)
@@ -518,6 +522,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
   /** O lado da nuvem da dupla: igual ao deste aparelho, a caminho, ou parado. */
   const cloudSide = (e: LibraryEntry): { state: 'ok' | 'busy' | 'warn'; text: string } => {
+    if (pending[e.id]) return { state: 'warn', text: 'diferente' }
     const last = synced[e.id]
     if (last && Date.parse(last) === Date.parse(e.updatedAt)) return { state: 'ok', text: 'igual' }
     if (cloud.state === 'sincronizando') return { state: 'busy', text: 'enviando…' }
@@ -525,8 +530,38 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     return { state: 'busy', text: 'falta enviar' }
   }
 
+  /** "3 cenas e 1 ficha mudaram". */
+  const diffText = (d: Diff, verb: [string, string]) => {
+    const parts = [d.scenes && `${d.scenes} ${d.scenes === 1 ? 'cena' : 'cenas'}`, d.entities && `${d.entities} ${d.entities === 1 ? 'ficha' : 'fichas'}`].filter(Boolean)
+    if (!parts.length) return 'cenas e fichas iguais'
+    return `${parts.join(' e ')} ${d.scenes + d.entities === 1 ? verb[0] : verb[1]}`
+  }
+  /** A escolha da pessoa para um universo com os dois lados diferentes. */
+  const resolve = async (e: LibraryEntry, how: 'juntar' | 'aqui' | 'nuvem') => {
+    if (!account.user || !account.server) return
+    setResolving(e.id)
+    setError(null)
+    const name = cleanName(e.name) || 'Sem nome'
+    try {
+      const copies = await resolveConflict(await authClient(account.server), account.user.id, library, e.id, how)
+      setNotice(
+        how === 'juntar'
+          ? `Juntei as duas versões de “${name}”.${copies.length ? ` Onde o mesmo item mudou dos dois lados (${copies.length === 1 ? `“${copies[0]}”` : `${copies.length} itens`}), o da nuvem entrou ao lado, com “(versão de outro aparelho)” no nome.` : ''}`
+          : how === 'aqui'
+            ? `“${name}” ficou com a versão deste aparelho. A da nuvem está guardada como versão.`
+            : `“${name}” ficou com a versão da nuvem. A deste aparelho está guardada como versão.`,
+      )
+    } catch (err) {
+      setError(`Não deu para resolver “${name}”: ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setResolving(null)
+      afterVersions()
+    }
+  }
+
   const universeItem = (e: LibraryEntry, view?: View) => {
     const versions = versionsOf.get(e.id) ?? []
+    const conflict = account.user && !view ? pending[e.id] : undefined
     return (
     <li key={e.id} className={`library-item${themeStyle(e) ? ' is-themed' : ''}${e.sample ? ' is-sample' : ''}`} style={themeStyle(e)}>
       <button type="button" className="library-open" onClick={() => onOpen(e.id, view)}>
@@ -640,7 +675,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           {/* A dupla: o deste aparelho e o da nuvem são o mesmo universo. */}
           {account.user && (
             <div className="library-pair" role="group" aria-label={`Onde está ${cleanName(e.name) || 'este universo'}`}>
-              <span className="pair-side">
+              <span className={`pair-side${conflict ? ' is-warn' : ''}`}>
                 <span className="pair-label">Neste aparelho</span>
                 <span className="pair-value">{when(e)}</span>
               </span>
@@ -648,6 +683,51 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                 <span className="pair-label">Na nuvem</span>
                 <span className="pair-value">{cloudSide(e).text}</span>
               </span>
+            </div>
+          )}
+          {/* Os dois lados mudaram no mesmo lugar: a pergunta aparece aqui, dentro da dupla. */}
+          {conflict && (
+            <div className="pair-conflict" role="group" aria-label={`Duas versões de ${cleanName(e.name) || 'Sem nome'}`}>
+              <p className="pair-conflict-title">Este universo mudou aqui e em outro aparelho</p>
+              <div className="pair-conflict-sides">
+                <div className="pair-conflict-side">
+                  <span className="pair-label">Neste aparelho</span>
+                  <strong>{when(e)}</strong>
+                  <span>{e.words.toLocaleString('pt-BR')} palavras</span>
+                  {conflict.here && <span className="muted">{diffText(conflict.here, ['mudou', 'mudaram'])}</span>}
+                </div>
+                <div className="pair-conflict-side">
+                  <span className="pair-label">Na nuvem</span>
+                  <strong>
+                    <time dateTime={conflict.cloudAt} title={dateFmt.format(new Date(conflict.cloudAt))}>
+                      {relativeDate(conflict.cloudAt)}
+                    </time>
+                  </strong>
+                  <span>{conflict.cloudWords.toLocaleString('pt-BR')} palavras</span>
+                  {conflict.cloud && <span className="muted">{diffText(conflict.cloud, ['mudou', 'mudaram'])}</span>}
+                </div>
+              </div>
+              <p className="small pair-conflict-why">
+                {conflict.overlap.length > 0
+                  ? `Mudou dos dois lados: ${conflict.overlap.slice(0, 3).map((x) => (/^(o|a|os|as) /.test(x) ? x : `“${x}”`)).join(', ')}${conflict.overlap.length > 3 ? ` e mais ${conflict.overlap.length - 3}` : ''}.`
+                  : `Entre as duas: ${diffText(conflict.between, ['diferente', 'diferentes'])}.`}
+              </p>
+              <div className="pair-conflict-actions">
+                {conflict.canMerge && (
+                  <button type="button" className="btn btn-sm btn-primary" disabled={resolving !== null} onClick={() => void resolve(e, 'juntar')}>
+                    Juntar as duas
+                  </button>
+                )}
+                <button type="button" className="btn btn-sm" disabled={resolving !== null} onClick={() => void resolve(e, 'aqui')}>
+                  Ficar com a deste aparelho
+                </button>
+                <button type="button" className="btn btn-sm" disabled={resolving !== null} onClick={() => void resolve(e, 'nuvem')}>
+                  Ficar com a da nuvem
+                </button>
+              </div>
+              <p className="tiny muted">
+                A que não ficar vira versão guardada. {conflict.canMerge && 'Juntando, onde o mesmo item mudou dos dois lados, fica o deste aparelho e o da nuvem entra ao lado.'}
+              </p>
             </div>
           )}
           {versions.length > 0 && (
@@ -860,7 +940,11 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         {account.user && (
           <p className="library-cloud small" role="status">
             <Cloud size={14} aria-hidden="true" />{' '}
-            {cloud.state === 'sincronizando' ? 'Sincronizando com a sua conta…' : cloud.state === 'erro' ? `Não sincronizou: ${cloud.error}` : `Na sua conta (${account.user.email}).`}
+            {cloud.state === 'sincronizando'
+              ? 'Sincronizando com a sua conta…'
+              : cloud.state === 'erro'
+                ? `Não sincronizou: ${cloud.error}`
+                : `Na sua conta (${account.user.email}).${cloud.report?.merged ? ` Juntei o que mudou aqui e em outro aparelho em ${cloud.report.merged === 1 ? '1 universo' : `${cloud.report.merged} universos`}.` : ''}`}
           </p>
         )}
       </section>
@@ -868,8 +952,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {/* Na primeira vez, criar vem primeiro; depois, o mais recente com "Continuar" e a lista (o exemplo no fim, com selo). */}
       {writing[0] && continueCard(writing[0], 'Continuar escrevendo')}
       {writing.length === 0 && form}
-      {/* Com um universo só, o cartão de cima basta; a lista aparece se há mais, o exemplo, ou versões guardadas para mostrar. */}
-      {(writing.length > 1 || (writing.length > 0 && (sampleEntry || versionsOf.get(writing[0].id)?.length))) && (
+      {/* Com um universo só, o cartão de cima basta; a lista aparece se há mais, o exemplo, versões guardadas ou uma escolha à espera. */}
+      {(writing.length > 1 || (writing.length > 0 && (sampleEntry || versionsOf.get(writing[0].id)?.length || pending[writing[0].id]))) && (
         <section aria-labelledby="universos-titulo">
           <h2 id="universos-titulo" className="hub-h">
             Todos os universos
@@ -909,7 +993,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       </section>
       {tidyCard}
       {campaigns[0] && continueCard(campaigns[0], 'Continuar a campanha')}
-      {(campaigns.length > 1 || (campaigns.length > 0 && versionsOf.get(campaigns[0].id)?.length)) && (
+      {(campaigns.length > 1 || (campaigns.length > 0 && (versionsOf.get(campaigns[0].id)?.length || pending[campaigns[0].id]))) && (
         <section aria-labelledby="campanhas-titulo">
           <h2 id="campanhas-titulo" className="hub-h">
             Todas as campanhas

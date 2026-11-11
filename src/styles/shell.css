@@ -175,6 +175,54 @@
   font-weight: 600;
 }
 
+/* Os dois lados mudaram no mesmo lugar: as duas versões lado a lado e a escolha. */
+.pair-conflict {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--ochre-line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ochre-soft) 55%, var(--surface));
+  font-size: 0.86rem;
+  max-width: 40rem;
+}
+
+.pair-conflict-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pair-conflict-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.pair-conflict-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.pair-conflict-why,
+.pair-conflict > .tiny {
+  margin: 0;
+}
+
+.pair-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 .library-versions {
   font-size: 0.84rem;
   color: var(--ink-2);
@@ -394,7 +442,8 @@
     margin-left: 1.1rem;
   }
 
-  .library-pair {
+  .library-pair,
+  .pair-conflict-sides {
     grid-template-columns: minmax(0, 1fr);
   }
 
