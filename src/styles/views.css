@@ -8984,3 +8984,14 @@ h3.cork-act {
 .share-ways p {
   margin: 0;
 }
+
+/* No celular, a wiki do Mundo fica só com o ícone: as partes precisam do espaço. */
+@media (max-width: 760px) {
+  .area-wiki-label {
+    display: none;
+  }
+
+  .area-wiki.btn {
+    padding-inline: 0.4rem;
+  }
+}

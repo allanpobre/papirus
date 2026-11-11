@@ -119,3 +119,13 @@ test.describe('no celular', () => {
     await expect(page.locator('[data-tour="partes"]')).toBeVisible()
   })
 })
+
+test('a wiki do mundo está à mão no alto do Mundo', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await openPart(page, 'Ligações')
+  await page.getByRole('button', { name: 'Wiki', exact: true }).click()
+  const wiki = page.getByRole('dialog', { name: 'Wiki do mundo' })
+  const download = page.waitForEvent('download')
+  await wiki.getByRole('button', { name: /Baixar a wiki/ }).click()
+  expect((await download).suggestedFilename()).toMatch(/wiki.*\.html$/)
+})

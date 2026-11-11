@@ -1,5 +1,7 @@
-import { BookMarked, CalendarRange, Lightbulb, MapIcon, Network, Sprout, type LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { BookMarked, CalendarRange, Globe, Lightbulb, MapIcon, Network, Sprout, type LucideIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { Modal } from '../ui/Modal'
+import { WikiCard } from './WikiCard'
 import { useWorkspace, type View } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
 import type { PageTourId } from '../shell/pageTours'
@@ -35,7 +37,21 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
   const { go, hiddenViews } = useWorkspace()
   const area = areaOf(current)
   const parts = PARTS[area].filter(([v]) => v === current || !hiddenViews.includes(v))
+  // A wiki do mundo (antes só em Ajustes): à mão em todas as partes do Mundo.
+  const [wiki, setWiki] = useState(false)
+  const wikiButton =
+    area === 'mundo' ? (
+      <button type="button" className="btn btn-ghost btn-sm area-wiki" aria-label="Wiki" title="Baixar ou abrir a wiki do mundo" onClick={() => setWiki(true)}>
+        <Globe size={15} aria-hidden="true" /> <span className="area-wiki-label">Wiki</span>
+      </button>
+    ) : null
   return (
+    <>
+    {wiki && (
+      <Modal title="Wiki do mundo" onClose={() => setWiki(false)} size="sm">
+        <WikiCard />
+      </Modal>
+    )}
     <ViewTop
       className="area-head"
       area={area === 'mundo' ? 'Mundo' : 'Trama'}
@@ -43,7 +59,15 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
       parts={parts.map(([v, label, Icon]) => ({ id: v, label, icon: Icon, current: v === current, onPick: () => go(v) }))}
       partsLabel={area === 'mundo' ? 'Partes do mundo' : 'Partes da trama'}
       tour={tour}
-      actions={actions}
+      actions={
+        wikiButton || actions ? (
+          <>
+            {wikiButton}
+            {actions}
+          </>
+        ) : undefined
+      }
     />
+    </>
   )
 }
