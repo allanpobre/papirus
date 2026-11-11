@@ -8,7 +8,9 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Mundo').click()
   const parts = page.getByRole('navigation', { name: 'Partes do mundo' })
-  await expect(parts.getByRole('button')).toHaveText(['Fichas', 'Ligações', 'Linha do tempo', 'Mapas'])
+  // Pelo nome que o leitor de tela lê (no celular, "Linha do tempo" aparece como "Tempo").
+  await expect(parts.getByRole('button')).toHaveCount(4)
+  for (const [i, name] of ['Fichas', 'Ligações', 'Linha do tempo', 'Mapas'].entries()) await expect(parts.getByRole('button').nth(i)).toHaveAccessibleName(name)
   await expect(parts.getByRole('button', { name: 'Fichas' })).toHaveAttribute('aria-current', 'page')
 
   // Sem ficha aberta: o mundo em resumo, com o que está só nas notas.

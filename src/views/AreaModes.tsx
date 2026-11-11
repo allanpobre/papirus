@@ -56,7 +56,7 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
       className="area-head"
       area={area === 'mundo' ? 'Mundo' : 'Trama'}
       heading={partLabel(current)}
-      parts={parts.map(([v, label, Icon]) => ({ id: v, label, icon: Icon, current: v === current, onPick: () => go(v) }))}
+      parts={parts.map(([v, label, Icon]) => ({ id: v, label, short: v === 'timeline' ? 'Tempo' : undefined, icon: Icon, current: v === current, onPick: () => go(v) }))}
       partsLabel={area === 'mundo' ? 'Partes do mundo' : 'Partes da trama'}
       tour={tour}
       actions={
