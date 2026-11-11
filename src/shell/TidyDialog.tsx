@@ -45,7 +45,15 @@ export function TidyDialog({ library, candidates, inCloud, leaveCloud, onDiffere
   useEffect(() => {
     let off = false
     void confirmRepeats(library, candidates)
-      .then((g) => !off && setGroups(g))
+      .then((g) => {
+        if (off) return
+        setGroups(g)
+        // Nome igual com histórias diferentes: não é repetido; o aviso não volta por eles.
+        for (const c of candidates) {
+          const mains = c.filter((e) => !e.cloudCopyOf)
+          if (mains.length > 1 && !g.some((x) => x.entries.some((e) => mains.some((m) => m.id === e.id)))) onDifferent(mains.map((e) => e.id))
+        }
+      })
       .catch((err) => !off && setError(err instanceof Error ? err.message : String(err)))
     return () => {
       off = true
