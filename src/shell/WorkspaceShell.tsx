@@ -52,6 +52,7 @@ import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
+import { syncWorldBonuses } from '../rpg/worldBonuses'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, WORLD_SHORTCUTS, type UniverseKind } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -271,6 +272,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       ),
     [toast, go, universeId],
   )
+  // Bônus do mundo na ficha de jogo (espécie, cultura): sempre em dia com as fichas e ligações.
+  useEffect(() => {
+    if (readOnly || universe.sheets.length === 0) return
+    if (syncWorldBonuses(universe) !== universe) tracked((u) => syncWorldBonuses(u))
+  }, [universe, readOnly, tracked])
   // Um personagem só: uma vez por universo, os personagens de jogador de antes ganham a ficha no Mundo.
   const playersLinked = universe.settings.playersLinked
   const hasSheets = universe.sheets.length > 0

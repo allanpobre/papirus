@@ -9384,3 +9384,40 @@ h3.cork-act {
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
 }
+
+/* ---------------------------------------------------------------- No jogo (espécie) e bônus na ficha de jogo */
+
+.game-mods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.game-mod {
+  display: grid;
+  gap: 0.15rem;
+  width: 4.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.game-mod .input {
+  text-align: center;
+}
+
+.sp-attr-bonus,
+.attr-bonus {
+  font-size: 0.72rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.sheet-bonus-toggle {
+  margin-bottom: 0.5rem;
+}
+
+.sp-traits p {
+  margin: 0.2rem 0;
+}

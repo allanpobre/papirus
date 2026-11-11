@@ -5,7 +5,8 @@ import type { GameSystem, Sheet } from '../../model/schema'
 import { byId, insert, patch, removeSheet } from '../../model/universe'
 import { modifier } from '../../rpg/rolls'
 import { linkToWorld } from '../../rpg/oneCharacter'
-import { adjustResource, attributeOf, draftSheet, isPool } from '../../rpg/sheets'
+import { adjustResource, attributeOf, baseAttributeOf, draftSheet, isPool } from '../../rpg/sheets'
+import { bonusOf } from '../../rpg/worldBonuses'
 import { recall, remember } from '../../state/prefs'
 import { Picture } from '../../images/Picture'
 import { SheetPlay } from './SheetPlay'
@@ -235,15 +236,30 @@ function SheetEditor({ sheet: s, onBack }: { sheet: Sheet; onBack: () => void })
             <>
               {system.attributes.length > 0 && (
                 <Fold id="jogo-atributos" title="Atributos">
+                  {(s.bonuses ?? []).length > 0 && (
+                    <label className="toggle sheet-bonus-toggle">
+                      <input type="checkbox" role="switch" checked={!s.bonusesOff} onChange={(ev) => set({ bonusesOff: ev.target.checked ? undefined : true })} />
+                      <span className="toggle-track" aria-hidden="true" />
+                      <span>Bônus de {(s.bonuses ?? []).map((b) => b.name).join(' e ')}</span>
+                    </label>
+                  )}
                   <div className="attr-grid">
                     {system.attributes.map((a) => {
+                      // Edita-se o valor da ficha; o bônus do mundo aparece ao lado, somado no total.
+                      const base = baseAttributeOf(system, s, a.id)
+                      const extra = bonusOf(s, a.id)
                       const v = attributeOf(system, s, a.id)
                       return (
                         <div key={a.id} className="attr-card">
                           <span className="attr-abbr" title={a.name}>
                             {a.abbr}
                           </span>
-                          <YearInput label={a.name} value={v} onChange={(n) => n !== null && set({ attributes: { ...s.attributes, [a.id]: Math.max(a.min, Math.min(a.max, n)) } })} />
+                          <YearInput label={a.name} value={base} onChange={(n) => n !== null && set({ attributes: { ...s.attributes, [a.id]: Math.max(a.min, Math.min(a.max, n)) } })} />
+                          {extra !== 0 && (
+                            <span className="attr-bonus tabular" title={`Bônus do mundo: total ${v}`}>
+                              {signed(extra)} = {v}
+                            </span>
+                          )}
                           {system.modifierRule === 'd20' && <span className="attr-mod">{signed(modifier(system, v))}</span>}
                         </div>
                       )

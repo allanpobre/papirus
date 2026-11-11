@@ -25,6 +25,7 @@ import {
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { worldLevel } from '../model/kind'
+import { GameRules } from './GameRules'
 import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
@@ -647,6 +648,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           </Fold>
 
           {!simple && <ListsSection entity={e} />}
+          {!simple && <GameRules key={e.id} entity={e} />}
           {worldLevel(universe) === 'simples' && (
             <button type="button" className="btn btn-ghost btn-sm entity-show-all" aria-pressed={showAll} onClick={() => setShowAll((v) => !v)}>
               {showAll ? 'Mostrar só o essencial' : 'Mostrar tudo nesta ficha'}
