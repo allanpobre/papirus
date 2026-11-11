@@ -9242,3 +9242,26 @@ h3.cork-act {
     display: none;
   }
 }
+
+.world-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.seed-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.seed-q {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.seed-q > legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}

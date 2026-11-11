@@ -1,5 +1,5 @@
-import { ArrowRight, Earth, Globe, Inbox, Layers, MapIcon, Network } from 'lucide-react'
-import { useMemo } from 'react'
+import { ArrowRight, Earth, Globe, Inbox, Layers, MapIcon, Network, Sprout } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
 import { kindCounts, worldGaps } from '../logic/worldGaps'
 import { worldLevel } from '../model/kind'
@@ -7,6 +7,7 @@ import { kindPlural } from '../model/labels'
 import { useWorkspace } from '../state/workspace'
 import { GeneratedCover } from '../ui/GeneratedCover'
 import { PageHelp } from '../ui/PageTour'
+import { SeedDialog } from './SeedDialog'
 
 /** A partir de quantas fichas o Simples sugere o Completo. */
 const GROWN = 50
@@ -24,10 +25,12 @@ export function WorldHome() {
   const cover = universe.settings.cover ?? null
   const inbox = universe.inbox.filter((i) => i.status === 'aberto').length
   const shown = (v: Parameters<typeof go>[0]) => !hiddenViews.includes(v)
+  const [seeding, setSeeding] = useState(false)
   const grown = !full && !readOnly && (universe.entities.length >= GROWN || universe.groups.length > 0)
 
   return (
     <div className="view home world-home">
+      {seeding && <SeedDialog onClose={() => setSeeding(false)} />}
       <header className="home-today">
         <div className="home-id">
           {cover ? <Picture value={cover} className="home-thumb" /> : <GeneratedCover name={universe.name} className="home-thumb" />}
@@ -56,10 +59,17 @@ export function WorldHome() {
       {universe.entities.length === 0 ? (
         <section className="world-card world-empty">
           <h2>Comece pela primeira ficha</h2>
-          <p className="muted">Um lugar, um povo, uma pessoa. Cada ficha faz as perguntas certas para o tipo dela, e as ligações aparecem conforme você escreve.</p>
-          <button type="button" className="btn btn-primary" onClick={() => go('fichas')}>
-            <Earth size={16} aria-hidden="true" /> Abrir o Mundo
-          </button>
+          <p className="muted">Um lugar, um povo, uma pessoa. Cada ficha faz as perguntas certas para o tipo dela. Ou plante a semente: cinco perguntas, e o mundo ganha as primeiras fichas já ligadas.</p>
+          <div className="world-empty-actions">
+            {!readOnly && (
+              <button type="button" className="btn btn-primary" onClick={() => setSeeding(true)}>
+                <Sprout size={16} aria-hidden="true" /> Plantar a semente
+              </button>
+            )}
+            <button type="button" className="btn" onClick={() => go('fichas')}>
+              <Earth size={16} aria-hidden="true" /> Abrir o Mundo
+            </button>
+          </div>
         </section>
       ) : (
         <section className="world-card" aria-labelledby="falta-titulo">
