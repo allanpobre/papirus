@@ -191,3 +191,14 @@ test('importar pelo Livro: o texto vira uma história nova', async ({ page }) =>
   await expect(page.getByText('“O Sal” importado em 1 cena.')).toBeVisible()
   await expect(page.getByRole('region', { name: 'Importar um texto' })).toHaveCount(0)
 })
+
+test('a wiki do mundo também sai do Baixar, em Publicar', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
+  await page.locator('[data-tour="livro-acoes"]').getByRole('button', { name: /Baixar/ }).click()
+  await page.getByRole('menuitem', { name: /Wiki do mundo/ }).or(page.getByRole('button', { name: /Wiki do mundo/ })).first().click()
+  const wiki = page.getByRole('dialog', { name: 'Wiki do mundo' })
+  const download = page.waitForEvent('download')
+  await wiki.getByRole('button', { name: /Baixar a wiki/ }).click()
+  expect((await download).suggestedFilename()).toMatch(/wiki.*\.html$/)
+})
