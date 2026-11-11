@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenText, Check, Copy, FileDown, FileText, FileType, Palette, Plus, Printer, Ruler, Trash2, Upload } from 'lucide-react'
+import { BookOpen, BookOpenText, Check, Copy, FileDown, FileText, FileType, Globe, Palette, Plus, Printer, Ruler, Trash2, Upload } from 'lucide-react'
 import { ReviewDialog } from '../book/ReviewDialog'
 import { useMemo, useState } from 'react'
 import { BOOK_FONTS } from '../export/bookFonts'
@@ -20,6 +20,8 @@ import { BookImport } from './BookImport'
 import { BookReadersDialog } from './BookReaders'
 import { readersSummary, useBookReaders } from './readersData'
 import { ViewTop } from '../ui/ViewTop'
+import { Modal } from '../ui/Modal'
+import { WikiCard } from './WikiCard'
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
 
@@ -238,6 +240,8 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
   const text = textStep(universe, book, issues)
   const review = reviewStep(issues)
   const readers = useBookReaders(book)
+  // A wiki do mundo também sai daqui: quem procura "extrair" olha em Publicar.
+  const [wiki, setWiki] = useState(false)
   const said = readersSummary(readers)
   const chapters = text.chapters > 0
   const download = async (format: 'epub' | 'docx' | 'md') => {
@@ -332,6 +336,19 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
               </span>
             </button>
           )}
+          <button
+            type="button"
+            className="more-menu-item"
+            onClick={() => {
+              close()
+              setWiki(true)
+            }}
+          >
+            <Globe size={16} />{' '}
+            <span>
+              Wiki do mundo<small className="more-menu-hint">as fichas num site, texto ou dados</small>
+            </span>
+          </button>
         </>
       )}
     </MoreMenu>
@@ -390,6 +407,11 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
   ]
   return (
     <section className="book-hero" aria-label={`Livro ${title}`}>
+      {wiki && (
+        <Modal title="Wiki do mundo" onClose={() => setWiki(false)} size="sm">
+          <WikiCard />
+        </Modal>
+      )}
       <button type="button" className="book-hero-cover" onClick={() => openBookDesigner(book.id)} disabled={readOnly || !hasText} aria-label={`Diagramar ${title}`}>
         <Cover book={book} title={title} />
       </button>
