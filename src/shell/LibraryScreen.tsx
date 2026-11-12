@@ -13,6 +13,7 @@ import {
   Cloud,
   Coffee,
   Dices,
+  Earth,
   ArrowRight,
   Bell,
   Crown,
@@ -103,6 +104,7 @@ const dateFmt = new Intl.DateTimeFormat('pt-BR', {
 export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onChanged, onOpenShared }: Props) {
   const [name, setName] = useState('')
   const [template, setTemplate] = useState<UniverseTemplate['id']>('branco')
+  const [level, setLevel] = useState<'simples' | 'completo'>('simples')
   const [rpgSystem, setRpgSystem] = useState('t20')
   const [error, setError] = useState<string | null>(null)
   const [accountOpen, setAccountOpen] = useState(false)
@@ -277,12 +279,13 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const mains = useMemo(() => fams.map((f) => f.main), [fams])
   const sampleEntry = mains.find((e) => e.sample)
   const own = mains.filter((e) => e !== sampleEntry)
-  const writing = own.filter((e) => e.kind !== 'campanha')
+  const writing = own.filter((e) => e.kind !== 'campanha' && e.kind !== 'mundo')
   const campaigns = own.filter((e) => e.kind === 'campanha')
+  const worlds = own.filter((e) => e.kind === 'mundo')
   // Universos de escrita que também têm uma mesa (o exemplo, por exemplo).
   const tablesInBooks = mains.filter((e) => e.kind !== 'campanha' && e.sessions !== undefined)
   // Livros sem Mesa: dá para começar uma Mesa no mesmo mundo.
-  const booksToPlay = writing.filter((e) => e.sessions === undefined)
+  const booksToPlay = [...writing, ...worlds].filter((e) => e.sessions === undefined)
   const openSample = () => (sampleEntry ? onOpen(sampleEntry.id) : void sampleUniverse().then(onCreated))
   const sector = p.sector
   const setSector = (s: typeof sector) => {
@@ -291,10 +294,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     scrollTo({ top: 0 })
   }
 
-  const create = (kind: 'escrita' | 'campanha') => {
+  const create = (kind: 'escrita' | 'campanha' | 'mundo') => {
     if (!p.onboarded) setPref('onboarded', true)
-    const fallback = kind === 'campanha' ? 'Nova campanha' : 'Novo universo'
-    onCreated(applyTemplate(createUniverse(name.trim() || fallback), kind === 'campanha' ? 'rpg' : template, { system: rpgSystem }))
+    const fallback = kind === 'campanha' ? 'Nova campanha' : kind === 'mundo' ? 'Novo mundo' : 'Novo universo'
+    const u = applyTemplate(createUniverse(name.trim() || fallback), kind === 'campanha' ? 'rpg' : template, { system: rpgSystem })
+    // Um mundo: só worldbuilding, no nível escolhido (Simples ou Completo; troca-se depois em Ajustes).
+    onCreated(kind === 'mundo' ? { ...u, settings: { ...u.settings, kind: 'mundo', worldLevel: level } } : u)
     setName('')
   }
 
@@ -591,7 +596,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             ? 'Só neste aparelho · mexa à vontade'
             : e.kind === 'campanha' || view === 'rpg'
               ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'} · ${e.sheets ?? 0} ${e.sheets === 1 ? 'personagem' : 'personagens'}`
-              : `${e.words.toLocaleString('pt-BR')} palavras`}
+              : e.kind === 'mundo'
+                ? `${e.entities ?? 0} ${e.entities === 1 ? 'ficha' : 'fichas'}`
+                : `${e.words.toLocaleString('pt-BR')} palavras`}
           {!e.sample && (
             <>
               {' · '}
@@ -906,7 +913,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <span className="hub-kicker">{label}</span>
         <strong className="hub-continue-name">{cleanName(e.name) || 'Sem nome'}</strong>
         <span className="muted small">
-          {e.kind === 'campanha' ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'}` : `${e.words.toLocaleString('pt-BR')} palavras`} · {when(e)}
+          {e.kind === 'campanha' ? `${e.sessions ?? 0} ${e.sessions === 1 ? 'sessão' : 'sessões'}` : e.kind === 'mundo' ? `${e.entities ?? 0} ${e.entities === 1 ? 'ficha' : 'fichas'}` : `${e.words.toLocaleString('pt-BR')} palavras`} · {when(e)}
           {account.user && ` · na nuvem: ${cloudSide(e).text}`}
         </span>
       </span>
@@ -1070,8 +1077,96 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     </>
   )
 
+  const worldForm = (
+    <form
+      className="start-card"
+      aria-label="Novo mundo"
+      onSubmit={(e) => {
+        e.preventDefault()
+        create('mundo')
+      }}
+    >
+      {worlds.length > 0 && <h2 className="start-card-title">Novo mundo</h2>}
+      <label htmlFor="novo-mundo" className={worlds.length === 0 ? 'start-label' : 'sr-only'}>
+        Nome do mundo
+      </label>
+      <div className="start-row">
+        <input id="novo-mundo" className="input input-lg" placeholder={worlds.length === 0 ? 'Ex.: Terras de Ostria' : 'Nome'} autoFocus={worlds.length > 0} value={name} onChange={(e) => setName(e.target.value)} />
+        <button type="submit" className="btn btn-primary btn-lg start-submit">
+          <Plus size={18} /> Criar mundo
+        </button>
+      </div>
+      <p className="start-label" id="nivel-mundo">
+        Do seu jeito
+      </p>
+      <div className="start-chips" role="radiogroup" aria-labelledby="nivel-mundo">
+        {(
+          [
+            ['simples', 'Simples', Feather],
+            ['completo', 'Completo', Layers],
+          ] as const
+        ).map(([id, label, Icon]) => (
+          <button key={id} type="button" role="radio" aria-checked={level === id} className="start-chip" onClick={() => setLevel(id)}>
+            <Icon size={15} aria-hidden="true" /> {label}
+          </button>
+        ))}
+      </div>
+      <p className="tiny muted start-hint">
+        {level === 'simples'
+          ? 'O essencial: fichas, ligações, linha do tempo, mapas e a wiki. O resto aparece quando você precisar.'
+          : 'Tudo: campos com tipo, listas, segredos, o que é verdade, pistas e quem sabe o quê.'}{' '}
+        Dá para trocar depois, sem perder nada.
+      </p>
+      <p className="start-label" id="genero-mundo">
+        Gênero
+      </p>
+      <div className="start-chips" role="radiogroup" aria-labelledby="genero-mundo">
+        {UNIVERSE_TEMPLATES.filter((t) => t.id !== 'rpg').map((t) => {
+          const Icon = TEMPLATE_ICON[t.id]
+          return (
+            <button key={t.id} type="button" role="radio" aria-checked={template === t.id} aria-label={t.label} className="start-chip" onClick={() => setTemplate(t.id)}>
+              <Icon size={15} aria-hidden="true" /> {t.label}
+            </button>
+          )
+        })}
+      </div>
+    </form>
+  )
+
+  const mundo = (
+    <>
+      <section className="hub-hero hub-hero-mundo">
+        <p className="hub-kicker">
+          <Earth size={14} aria-hidden="true" /> Mundos
+        </p>
+        <h1>{worlds.length ? 'Seus mundos' : 'Construa um mundo'}</h1>
+        <p className="lede">Só worldbuilding: fichas ligadas entre si, linha do tempo, mapas e uma wiki para mostrar. Sem livro e sem mesa, a não ser que você queira.</p>
+      </section>
+      {tidyCard}
+      {worlds[0] && continueCard(worlds[0], 'Continuar o mundo')}
+      {(worlds.length > 1 || (worlds.length > 0 && (versionsOf.get(worlds[0].id)?.length || pending[worlds[0].id]))) && (
+        <section aria-labelledby="mundos-titulo">
+          <h2 id="mundos-titulo" className="hub-h">
+            Todos os mundos
+          </h2>
+          <ul className="library-list" aria-label="Mundos">
+            {worlds.map((e) => universeItem(e))}
+          </ul>
+        </section>
+      )}
+      {creating || worlds.length === 0 ? (
+        worldForm
+      ) : (
+        <button type="button" className="btn library-new" onClick={() => setCreating(true)}>
+          <Plus size={18} /> Novo mundo
+        </button>
+      )}
+    </>
+  )
+
   const SECTORS = [
     ['escrita', 'Escrita', Feather],
+    ['mundo', 'Mundos', Earth],
     ['rpg', 'Mesa', Dices],
     ['oficina', 'Oficina', GraduationCap],
   ] as const
@@ -1106,7 +1201,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       <main className={`library-main${sector === 'oficina' ? ' hub-main-wide' : ''}`}>
         {/* Cada setor entra com a sua animação ao ser escolhido. */}
         <div key={sector} className="hub-sector">
-          {sector === 'rpg' ? rpg : sector === 'oficina' ? oficina : escrita}
+          {sector === 'rpg' ? rpg : sector === 'oficina' ? oficina : sector === 'mundo' ? mundo : escrita}
         </div>
         {first && sector === 'escrita' && (
           <p className="landing-note small">
