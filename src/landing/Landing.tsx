@@ -5,6 +5,11 @@ import {
   Check,
   Feather,
   Flame,
+  FolderInput,
+  Globe,
+  History,
+  Layers,
+  Sprout,
   GraduationCap,
   Headphones,
   ImageIcon,
@@ -36,6 +41,7 @@ import {
 import { useEffect, useState } from 'react'
 import { BrandMark } from '../shell/Brand'
 import { FriendsPhone, MesaDemo, ScreensShowcase, StepScreen } from './Demos'
+import { BookDemo, WikiDemo } from './WorldDemos'
 import { rollIdea, type IdeaMode } from '../oficina/ideas'
 import { MESA_THEMES } from '../rpg/themes'
 
@@ -103,6 +109,8 @@ export function Landing() {
         </a>
         <nav className="lp-links" aria-label="Seções">
           <a href="#escrever">Escrita</a>
+          <a href="#mundo">Mundo</a>
+          <a href="#livro">Livro</a>
           <a href="#mestrar">Mesa de RPG</a>
           <a href="#oficina">Oficina</a>
           <a href="#juntos">Amigos</a>
@@ -210,6 +218,52 @@ export function Landing() {
               <StepScreen n={3} />
             </li>
           </ol>
+        </section>
+        </div>
+
+        <div className="lp-zone lp-zone-mundo">
+        <section className="lp-section lp-world" id="mundo" aria-labelledby="mundo-titulo">
+          <div className="lp-world-copy">
+            <p className="lp-eyebrow">
+              <Globe size={14} aria-hidden="true" /> Mundo · para quem constrói
+            </p>
+            <h2 id="mundo-titulo">O mundo cresce junto com a história.</h2>
+            <p className="lp-lede">Cada universo tem o seu mundo: fichas, ligações, linha do tempo e mapas. Comece no Simples e abra o Completo quando quiser; nada se perde.</p>
+            <ul className="lp-checks">
+              {WORLD.map(({ icon: Icon, title, text }) => (
+                <li key={title}>
+                  <Icon size={18} aria-hidden="true" />
+                  <span>
+                    <strong>{title}:</strong> {text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <WikiDemo />
+        </section>
+        </div>
+
+        <div className="lp-zone lp-zone-livro">
+        <section className="lp-section lp-world lp-world-livro" id="livro" aria-labelledby="livro-titulo">
+          <BookDemo />
+          <div className="lp-world-copy">
+            <p className="lp-eyebrow">
+              <Printer size={14} aria-hidden="true" /> Livro · para quem publica
+            </p>
+            <h2 id="livro-titulo">Do manuscrito ao livro na mão.</h2>
+            <p className="lp-lede">O livro aparece em 3D, com a sua capa e a lombada do tamanho certo. Folheie as páginas como vão sair, duas lado a lado, antes de baixar.</p>
+            <ul className="lp-checks">
+              {BOOK.map(({ icon: Icon, title, text }) => (
+                <li key={title}>
+                  <Icon size={18} aria-hidden="true" />
+                  <span>
+                    <strong>{title}:</strong> {text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
         </div>
 
@@ -399,7 +453,7 @@ const SECTORS = [
     icon: Feather,
     name: 'Escrita',
     title: 'Escreva e veja o mundo crescer',
-    items: ['Editor que reconhece os nomes', 'Fichas, ligações, linha do tempo e mapas', 'Modo leitor, áudio, Word, EPUB e PDF', 'Amigos, estante e desafios'],
+    items: ['Editor que reconhece os nomes', 'Mundo: fichas, mapas, linha do tempo e wiki', 'Livro em 3D: folhear, PDF, EPUB e Word', 'Amigos, estante e desafios'],
     href: '#escrever',
   },
   {
@@ -418,6 +472,24 @@ const SECTORS = [
     items: ['Trilhas: ler um minuto, escrever dez', 'Imitação de Machado de Assis', 'Caderno com tudo o que você treinou', 'Gerador de ideias e de ganchos'],
     href: '#oficina',
   },
+] as const
+
+const WORLD = [
+  { icon: Sprout, title: 'Semente do mundo', text: 'cinco perguntas viram as primeiras fichas.' },
+  { icon: History, title: 'Máquina do tempo', text: 'escolha um ano e veja quem mandava, quem vivia e o mapa daquela época.' },
+  { icon: MapIcon, title: 'Mapa político', text: 'as regiões pintadas por quem manda nelas.' },
+  { icon: ScrollText, title: 'Lendas e documentos', text: 'cartas, profecias e crônicas, ligadas às fichas e às datas.' },
+  { icon: Layers, title: 'Efeito dominó', text: '“E se sumir?” mostra o que cai junto quando uma ficha some do mundo.' },
+  { icon: Dices, title: 'No jogo', text: 'espécie e cultura dão os bônus na ficha de jogo da mesa.' },
+  { icon: FolderInput, title: 'Trazer de outros apps', text: 'notas do Obsidian, Kanka e World Anvil.' },
+  { icon: Globe, title: 'Wiki do mundo', text: 'um site para leitores ou jogadores, em quatro estilos, sem segredos e, se quiser, sem spoiler.' },
+] as const
+
+const BOOK = [
+  { icon: BookOpenCheck, title: 'Revisar por onde começar', text: 'o Papirus arruma travessões, aspas e espaços; o resto vem cena a cena.' },
+  { icon: MessageSquareText, title: 'O que os leitores disseram', text: 'comentários e reações, capítulo a capítulo.' },
+  { icon: Palette, title: 'Diagramar', text: 'letra, tamanho da página e capa, vendo as páginas de verdade.' },
+  { icon: Printer, title: 'Baixar', text: 'PDF para imprimir, EPUB, Word, texto e a capa com lombada para a gráfica.' },
 ] as const
 
 const SHELF = ['Fundamentos', 'Fantasia', 'Ficção científica', 'Mistério', 'Romance', 'Terror', 'Drama e realismo', 'Personagem', 'Estrutura', 'Diálogo', 'Ritmo e tensão', 'Revisão', 'Mestrar', 'Aventuras e vilões']
