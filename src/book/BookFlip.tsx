@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { buildBook, defaultDesign, fontsOf } from '../export/bookDesign'
 import { fontFaces } from '../export/bookFonts'
@@ -37,8 +37,11 @@ export default function BookFlip({ bookId, onClose }: { bookId: string; onClose:
     [book, design],
   )
 
+  // Só ouve a página do próprio livro (outra janela não fecha o Folhear nem muda a contagem).
+  const frame = useRef<HTMLIFrameElement>(null)
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
+      if (e.source !== frame.current?.contentWindow) return
       if (typeof e.data?.papirusPaged === 'number') setPages(e.data.papirusPaged)
       if (e.data?.papirusFlipClose) onClose()
     }
@@ -57,7 +60,7 @@ export default function BookFlip({ bookId, onClose }: { bookId: string; onClose:
           <X size={16} aria-hidden="true" /> Fechar
         </button>
       </header>
-      {doc && <iframe className="book-flip-frame" title="Folhear o livro" srcDoc={doc} />}
+      {doc && <iframe ref={frame} className="book-flip-frame" title="Folhear o livro" srcDoc={doc} />}
     </div>,
     document.body,
   )
