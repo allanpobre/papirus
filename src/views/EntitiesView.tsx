@@ -1,4 +1,6 @@
 import { OriginChip } from './AUBanner'
+import { PassesEditor, WhoIsEditor } from './WhoIs'
+import { whoIsKeys } from '../logic/definers'
 import { NameIdeas } from './NameIdeas'
 import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
@@ -526,6 +528,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id))
 
   const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
+  const whoKeys = useMemo(() => whoIsKeys(universe, e), [universe, e])
 
   return (
     <article className="entity">
@@ -610,6 +613,9 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             </label>
           </div>
 
+          <WhoIsEditor entity={e} />
+          <PassesEditor entity={e} />
+
           <Field label="Descrição" wide>
             {(id) => <SecretTextarea id={id} value={e.description} placeholder="Escreva livremente." onChange={(v) => set({ description: v })} />}
           </Field>
@@ -617,8 +623,8 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           <Fold id="ficha-campos" title="Campos">
             <InheritedRows entity={e} />
             {e.fields.map((f, i) =>
-              // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela.
-              asking && askedKey(e.kind, f.key) ? null : (
+              // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela; as exceções, no "Quem é".
+              (asking && askedKey(e.kind, f.key)) || (f.exception && whoKeys.has(fold(f.key.trim()))) ? null : (
                 <div key={i} className="kv-row kv-typed">
                   <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
                   <TypedValue

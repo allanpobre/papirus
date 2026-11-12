@@ -116,6 +116,8 @@ export const entityFieldSchema = z.object({
   type: z.enum(FIELD_TYPES).optional(),
   /** Campo do tipo ficha: para qual ficha ele aponta ("Mãe: Ilsa"). */
   ref: z.string().nullable().optional(),
+  /** Exceção à regra: muda (ou tira, se vazio) o que a ficha herdaria ("este ciborgue sente frio"). */
+  exception: z.boolean().optional(),
 })
 
 /** Uma lista de uma ficha ("Raças", "Membros"): quem entra vira uma ligação com o id dela. */
@@ -126,6 +128,8 @@ export const entityListSchema = z.object({
   accepts: z.array(z.string()).default([]),
   /** O que todos da lista têm: passa para a ficha de cada um. */
   shared: z.array(z.object({ key: z.string(), value: z.string() })).default([]),
+  /** Lista de uma opção do "Quem é" (o id do item que ela define): quem está nela é assim. */
+  definer: z.string().optional(),
 })
 
 export const entitySchema = z.object({
@@ -625,6 +629,14 @@ export const universeSettingsSchema = z.object({
    * resumo (SHA-256) de cada e-mail, para a lista não mostrar os endereços a quem lê a cópia.
    */
   au: z.object({ allowed: z.array(z.string()).default([]) }).optional().catch(undefined),
+  /**
+   * O que define alguém neste mundo ("Espécie", "Corpo", "Lua de nascimento"): cada item tem as
+   * opções (fichas de um tipo) e os tipos de ficha que ele define (personagem, facção, reino…).
+   */
+  definers: z
+    .array(z.object({ id: z.string(), name: z.string(), kind: z.string(), appliesTo: z.array(z.string()).default([]) }))
+    .optional()
+    .catch(undefined),
 })
 
 /**

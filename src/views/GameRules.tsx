@@ -1,3 +1,4 @@
+import { optionKinds } from '../logic/definers'
 import { Dices } from 'lucide-react'
 import { useState } from 'react'
 import type { Entity } from '../model/schema'
@@ -20,7 +21,7 @@ function abbrs(systems: { attributes: { abbr: string }[] }[]): string[] {
 export function GameRules({ entity: e }: { entity: Entity }) {
   const { universe, update } = useWorkspace()
   const [traitsText, setTraitsText] = useState((e.game?.traits ?? []).join('\n'))
-  if (!GAME_KINDS.includes(e.kind) || (universe.groups.length === 0 && universe.settings.kind !== 'campanha')) return null
+  if (![...GAME_KINDS, ...optionKinds(universe)].includes(e.kind) || (universe.groups.length === 0 && universe.settings.kind !== 'campanha')) return null
   const game = e.game ?? { traits: [], mods: {} }
   const set = (next: typeof game) => update((u) => patch(u, 'entities', e.id, { game: next }))
   const keys = abbrs(universe.systems)

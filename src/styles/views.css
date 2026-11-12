@@ -9866,3 +9866,116 @@ h3.cork-act {
   color: var(--muted);
   font-size: 0.78rem;
 }
+
+/* ---------------------------------------------------------------- Quem é (o que define alguém) */
+
+.whois {
+  display: grid;
+  gap: 0.6rem;
+  margin-block: 0.75rem 1rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--area-fichas) 30%, var(--line));
+  border-radius: var(--radius-l);
+  background: color-mix(in srgb, var(--area-fichas) 4%, var(--paper));
+}
+
+.whois > .section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.whois-item {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.whois-pick {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto auto;
+  grid-template-areas: 'label pick open remove';
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.whois-label {
+  grid-area: label;
+}
+
+.whois-pick > select,
+.whois-pick > form {
+  grid-area: pick;
+}
+
+.whois-open {
+  grid-area: open;
+}
+
+.whois-remove {
+  grid-area: remove;
+}
+
+.whois-pick .field-label {
+  margin: 0;
+}
+
+
+.whois-traits {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0 0 0 0.75rem;
+  border-left: 2px solid color-mix(in srgb, var(--area-fichas) 35%, var(--line));
+  list-style: none;
+  font-size: 0.92rem;
+}
+
+.whois-traits li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.whois-key {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.whois-rule {
+  color: var(--muted);
+}
+
+.whois-traits .is-exception .input {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.whois-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.whois-read {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.whois-read p {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .whois-pick {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'label remove' 'pick pick' 'open open';
+  }
+
+  .whois-open {
+    justify-self: start;
+  }
+}
