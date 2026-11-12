@@ -128,12 +128,12 @@ export function Landing() {
       <main id="conteudo">
         <section className="lp-hero">
           <div className="lp-hero-copy">
-            <p className="lp-eyebrow">Escrita, mesa de RPG e oficina, num app só</p>
+            <p className="lp-eyebrow">Escrita, mundo, livro, mesa de RPG e oficina, num app só</p>
             <h1>
               Seu mundo, escrito e jogado <em>no mesmo caderno.</em>
             </h1>
             <p className="lp-lede">
-              Escreva como sempre. O Papirus percebe os nomes, guarda fichas, datas, segredos e mentiras. Na mesa, organiza as fichas e mostra aos jogadores só o que você revelar. E na Oficina, ensina um pouco por dia. Nada é obrigatório.
+              Escreva como sempre. O Papirus percebe os nomes e monta o mundo com você: fichas, mapas, linha do tempo, segredos e uma wiki para os leitores. Quando a história fica pronta, ela vira livro, em 3D, para folhear antes de baixar. Na mesa, os jogadores veem só o que você revelar. Nada é obrigatório.
             </p>
             <div className="lp-ctas">
               <a className="btn btn-primary btn-lg" href={APP}>
