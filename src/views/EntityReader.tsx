@@ -1,5 +1,7 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Lock } from 'lucide-react'
-import { Fragment, useMemo } from 'react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Lock, Shuffle } from 'lucide-react'
+import { Fragment, useMemo, useState } from 'react'
+import { worldLevel } from '../model/kind'
+import { DominoDialog } from './DominoDialog'
 import { factSentence } from '../logic/codex'
 import { appearancesOf } from '../logic/appearances'
 import { sessionsOf } from '../rpg/oneCharacter'
@@ -25,6 +27,9 @@ import { MapGlimpse } from './MapGlimpse'
 export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
   const { universe, go, goBack } = useWorkspace()
   const suffix = universe.settings.calendarSuffix
+  // Efeito dominó (no Completo): "e se esta ficha sumir?".
+  const [dominoOpen, setDominoOpen] = useState(false)
+  const canDomino = worldLevel(universe) === 'completo' && universe.relations.some((r) => r.fromId === e.id || r.toId === e.id)
   const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== e.id)), [universe.entities, e.id])
   const link = (id: string, label?: string) => (
     <button type="button" className="reader-link" onClick={() => go('fichas', id)}>
@@ -132,8 +137,14 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           <ArrowLeft size={18} />
         </button>
         <span className="reader-head-space" />
+        {canDomino && (
+          <button type="button" className="btn btn-ghost btn-sm" title="Efeito dominó: o que acontece se esta ficha sumir" onClick={() => setDominoOpen(true)}>
+            <Shuffle size={15} aria-hidden="true" /> E se sumir?
+          </button>
+        )}
         {modeSwitch}
       </header>
+      {dominoOpen && <DominoDialog entity={e} onClose={() => setDominoOpen(false)} />}
 
       <div className="reader-title">
         <p className="eyebrow">
