@@ -84,6 +84,8 @@ export default function TimelineView() {
   const editingEvent = editing ? byId(universe, 'events', editing) : undefined
   // No celular os filtros ficam atrás de um botão (com quantos estão ligados).
   const [filtersOpen, setFiltersOpen] = useState(false)
+  // Sem nenhum evento nem cena com data, não há o que filtrar.
+  const nothingYet = universe.events.length === 0 && !universe.scenes.some((s) => s.date)
   const activeFilters = (filterIds.length ? 1 : 0) + (minImportance > 1 ? 1 : 0) + (showScenes ? 0 : 1)
 
   return (
@@ -100,12 +102,12 @@ export default function TimelineView() {
             <Plus size={16} /> <span className="btn-text-wide">Evento</span>
           </button>
         </form>
-        <button type="button" className="btn btn-sm filters-toggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((v) => !v)}>
+        {!nothingYet && <button type="button" className="btn btn-sm filters-toggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((v) => !v)}>
           <SlidersHorizontal size={14} aria-hidden="true" /> Filtros{activeFilters > 0 && <span className="chip-count"> {activeFilters}</span>}
-        </button>
+        </button>}
       </header>
 
-      <div className={`timeline-filters tool-filters${filtersOpen ? ' is-open' : ''}`}>
+      {!nothingYet && <div className={`timeline-filters tool-filters${filtersOpen ? ' is-open' : ''}`}>
         <div className="timeline-filter-entities">
           <EntityMultiPicker label="Mostrar só o que envolve" value={filterIds} onChange={setFilterIds} placeholder="Filtrar por ficha…" />
         </div>
@@ -126,7 +128,7 @@ export default function TimelineView() {
         <label className="check">
           <input type="checkbox" checked={showScenes} onChange={(e) => setShowScenes(e.target.checked)} /> Mostrar cenas e sessões
         </label>
-      </div>
+      </div>}
 
       <TimeMachine />
 

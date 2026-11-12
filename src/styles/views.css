@@ -10057,8 +10057,45 @@ h3.cork-act {
     flex-wrap: nowrap;
   }
 
-  .timeline-view .quick-create .input:first-of-type {
+  .timeline-view .quick-create input.input:first-of-type {
     flex: 1 1 auto;
     min-width: 0;
+  }
+}
+
+/* Fichas no PC: busca, tipo e ordem numa linha (as escolhas encolhem para caber na coluna). */
+@media (min-width: 761px) {
+  .split-list .list-tools > .select {
+    flex: 0 1 auto;
+    min-width: 4.5rem;
+    max-width: 9rem;
+  }
+}
+
+/* No celular, criar fica numa linha só em qualquer tela (o campo encolhe, o "+" não cai). */
+@media (max-width: 760px) {
+  .view-head .quick-create {
+    flex-wrap: nowrap;
+  }
+
+  .view-head .quick-create input.input:first-of-type {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .view-head .quick-create .select {
+    flex: none;
+    max-width: 8rem;
+  }
+
+  /* Fichas: a busca fica com o espaço; tipo e ordem só com o necessário. */
+  .split-list .list-tools > .input {
+    flex: 1 1 6rem;
+  }
+
+  .split-list .list-tools > .select {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 7.5rem;
   }
 }

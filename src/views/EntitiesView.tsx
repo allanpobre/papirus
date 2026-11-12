@@ -214,24 +214,25 @@ export default function EntitiesView() {
             </form>
           </>
         )}
+        {/* Sem nenhuma ficha, não há o que procurar nem selecionar. */}
+        {universe.entities.length > 0 && (
+          <>
         <div className="list-tools">
           <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Procurar…" title="Procura no nome, nos campos e na descrição" value={query} onChange={(e) => setQuery(e.target.value)} />
-          {phone && (
-            <Select
-              label="Tipo"
-              value={kind}
-              onChange={setKind}
-              options={[{ value: 'todos', label: `Todas (${universe.entities.length})` }, ...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
-            />
-          )}
+          <Select
+            label="Filtrar por tipo"
+            value={kind}
+            onChange={setKind}
+            options={[{ value: 'todos', label: `Todas (${universe.entities.length})` }, ...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
+          />
           <Select<Order>
             label="Ordem da lista"
             value={order}
             onChange={changeOrder}
             options={[
-              { value: 'nome', label: phone ? 'A–Z' : 'Nome (A–Z)' },
+              { value: 'nome', label: 'A–Z' },
               { value: 'cenas', label: phone ? 'Cenas' : 'Mais nas cenas' },
-              { value: 'recentes', label: phone ? 'Recentes' : 'Mexidas por último' },
+              { value: 'recentes', label: 'Recentes' },
             ]}
           />
         </div>
@@ -252,16 +253,8 @@ export default function EntitiesView() {
             </button>
           )}
         </div>
-        {!phone && <div className="filter-chips" role="radiogroup" aria-label="Tipo">
-          <button type="button" role="radio" aria-checked={kind === 'todos'} className="chip" onClick={() => setKind('todos')}>
-            Todas <span className="chip-count">{universe.entities.length}</span>
-          </button>
-          {kinds.map((k) => (
-            <button key={k} type="button" role="radio" aria-checked={kind === k} className="chip" onClick={() => setKind(k)}>
-              {kindPlural(k)}
-            </button>
-          ))}
-        </div>}
+          </>
+        )}
         {hasScenes && universe.entities.length > 0 && !phone && (
           <div className="filter-chips where-chips" role="group" aria-label="Onde aparece">
             <button type="button" className="chip" aria-pressed={where === 'cenas'} onClick={() => setWhere(where === 'cenas' ? 'tudo' : 'cenas')}>
