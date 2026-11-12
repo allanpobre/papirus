@@ -24,6 +24,7 @@ export type View =
   | 'inbox'
   | 'config'
   | 'wiki'
+  | 'guia'
 
 export interface Nav {
   view: View

@@ -33,7 +33,7 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
   - `worldGaps.ts` (o que falta no mundo), `worldSeed.ts` (Semente do mundo), `timeMachine.ts` (o mundo num ano), `domino.ts` (e se a ficha sumir), `regions.ts` (mapa político).
 - `views/` — telas. Áreas: Início, Escrever, Publicar, Mundo (Fichas, Ligações, Linha do tempo, Mapas), Trama, Mesa (RPG), Ajustes. `AreaModes.tsx` = topo do Mundo/Trama (com o botão Wiki).
   - Mundo: `WorldCard.tsx` (cartão no Início), `SeedDialog.tsx`, `TimeMachine.tsx` (na Linha do tempo), `DominoDialog.tsx` (na leitura da ficha), `GameRules.tsx` ("No jogo" de espécie/cultura), `ForeignImport.tsx`, `TogetherHere.tsx`, `WikiCard.tsx` (baixar; nas janelas, só o atalho) + `WikiView.tsx` (página Wiki: prévia ao vivo e Personalizar; o botão Wiki do Mundo leva para lá).
-- `shell/` — moldura do app, lista de universos e setores (Escrita, Mesa, Oficina), navegação (`nav.ts`), tours (`pageTours.ts`).
+- `shell/` — moldura do app, lista de universos e setores (Escrita, Mesa, Oficina), navegação (`nav.ts`; o "Mais" do celular em grupos em `MORE_GROUPS`), tours (`pageTours.ts`). O **Guia** (`views/GuideView.tsx`) lista todas as áreas e partes e mostra o texto dos passeios de cada tela: tela nova ganha passeio e entra no Guia.
 - `state/` — `useWorkspace()` (`universe`, `update`, `go`, `others`…) e preferências (`prefs.ts`).
 - `persistence/` + `account/cloud.ts` — salvar local, versões e nuvem (duplas local/nuvem, conflitos).
 - `export/` — livro, wiki do mundo (`wiki.ts`: site, .md e .json; personalizável em `settings.wiki`, com 4 estilos em `wikiLook`), downloads.

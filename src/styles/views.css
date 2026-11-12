@@ -10099,3 +10099,154 @@ h3.cork-act {
     max-width: 7.5rem;
   }
 }
+
+/* ---------------------------------------------------------------- Guia (todas as ferramentas) */
+
+.guide-view {
+  max-width: 880px;
+}
+
+.guide-lede {
+  margin: 0 0 0.75rem;
+}
+
+.guide-search {
+  position: relative;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.guide-search svg {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.guide-search .input {
+  width: 100%;
+  padding-left: 2.1rem;
+}
+
+.guide-area {
+  margin-bottom: 1.25rem;
+}
+
+.guide-area-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.2rem;
+  font-size: 1.15rem;
+}
+
+.guide-parts {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-part {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.guide-part.is-open {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+
+.guide-part-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem 0.35rem 0;
+}
+
+.guide-part-toggle {
+  display: grid;
+  flex: 1;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.guide-steps {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.25rem 0.9rem 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.guide-steps > div {
+  padding-top: 0.5rem;
+}
+
+.guide-steps dt {
+  font-weight: 600;
+}
+
+.guide-steps dd {
+  margin: 0.1rem 0 0;
+  color: var(--ink-2, var(--ink));
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.guide-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* O "Mais" do celular em grupos. */
+.rail-more-group-label {
+  margin: 0.4rem 0 0.2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Simples ou Completo: dois cartões que dizem o que muda. */
+.level-choice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.level-option {
+  display: grid;
+  gap: 0.25rem;
+  align-content: start;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.level-option[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+@media (max-width: 520px) {
+  .level-choice {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
