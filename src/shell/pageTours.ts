@@ -625,6 +625,15 @@ export const PAGE_TOURS = {
       { target: '.hub-player', title: 'É jogador?', body: 'Peça ao mestre o link do Codex. Ele abre no navegador, sem conta, com a sua ficha, o mapa e o que o grupo já descobriu, e dá para rolar por ele.', optional: true },
     ],
   },
+  'hub-comunidade': {
+    title: 'Comunidade',
+    steps: [
+      { target: '.social-tabs', title: 'A Comunidade', body: 'Novidades (pedidos, comentários, capítulos novos de quem você segue e de amigos), Lendo (onde você parou em cada livro), Pessoas (amigos, quem você segue, seguidores e bloqueados), Seus livros (até onde leram), Desafios e o seu Perfil.' },
+      { title: 'Seguir e ser amigo', body: 'Amizade é dos dois lados e abre os livros “Amigos”. Seguir é de um lado só: traz os capítulos novos dos livros públicos de quem você segue, sem pedir nada.' },
+      { title: 'Você no controle', body: 'No perfil de alguém dá para bloquear; nos comentários, denunciar (vai para quem cuida do servidor) e, nos seus livros, apagar. Quem foi bloqueado não comenta, não reage, não segue e não pede amizade nem AU.' },
+      { title: 'Pedidos de AU', body: 'No Compartilhar de um universo, ligue “Aceitar pedidos de AU pelo meu perfil”: o mundo aparece no seu perfil, as pessoas pedem e você aceita ou não.' },
+    ],
+  },
   'hub-oficina': {
     title: 'Oficina',
     steps: [

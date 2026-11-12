@@ -2676,3 +2676,33 @@ body:has(.rail-phone) .live-return {
 .rail-more-item svg {
   color: var(--area, currentColor);
 }
+
+/* Comunidade no início do app: o número de novidades na aba. */
+.hub-tab {
+  position: relative;
+}
+
+.hub-badge {
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+  font-size: 0.7rem;
+  line-height: 1.2rem;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .hub-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 1.6rem);
+  }
+}
+
+.hub-to-community {
+  justify-self: start;
+  margin-bottom: 0.5rem;
+}

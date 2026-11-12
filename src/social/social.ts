@@ -362,7 +362,7 @@ export async function deleteComment(sb: SupabaseClient, id: string) {
 
 // ─── Avisos: o que aconteceu desde a última vez ───────────────────────
 
-export type NoticeKind = 'pedido' | 'comentario' | 'quero-ler' | 'livro-amigo' | 'capitulo-novo' | 'capitulos' | 'meta' | 'sequencia' | 'reacao'
+export type NoticeKind = 'pedido' | 'comentario' | 'quero-ler' | 'livro-amigo' | 'capitulo-novo' | 'capitulos' | 'meta' | 'sequencia' | 'reacao' | 'pedido-au' | 'au-resposta'
 
 export interface Notice {
   kind: NoticeKind
@@ -419,13 +419,31 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
   const since = new Date(Date.now() - 30 * 86400_000).toISOString()
   const friends = await myFriends(sb, myId)
   const friendIds = friends.filter((f) => f.status === 'aceita').map((f) => f.other.user_id)
+  // Comunidade (supabase/comunidade.sql): quem eu sigo, quem bloqueei e os pedidos de AU. Sem o script, nada disso.
+  const soft = async <T,>(q: PromiseLike<{ data: unknown; error: unknown }>): Promise<T[]> => {
+    const r = await q
+    return r.error ? [] : ((r.data ?? []) as T[])
+  }
+  const [followRows, blockRows, auRows] = await Promise.all([
+    soft<{ followee: string }>(sb.from('papirus_follows').select('followee').eq('follower', myId)),
+    soft<{ blocked: string }>(sb.from('papirus_blocks').select('blocked').eq('blocker', myId)),
+    soft<{ owner: string; universe_id: string; requester: string; status: string; created_at: string }>(
+      sb.from('papirus_au_requests').select('owner,universe_id,requester,status,created_at').or(`owner.eq.${myId},requester.eq.${myId}`),
+    ),
+  ])
+  const blockedSet = new Set(blockRows.map((r) => r.blocked))
+  const followIds = followRows.map((r) => r.followee).filter((id) => !friendIds.includes(id))
+  const worldOwners = [...new Set(auRows.map((r) => r.owner))]
+  const worldNames = new Map(
+    (worldOwners.length ? await soft<{ owner: string; universe_id: string; name: string }>(sb.from('papirus_open_worlds').select('owner,universe_id,name').in('owner', worldOwners)) : []).map((w) => [`${w.owner}/${w.universe_id}`, w.name]),
+  )
   const [mine, comments, reactions, friendBooks, following, activity, chapterRs] = await Promise.all([
     sb.from('papirus_shelf').select('id,title').eq('owner', myId),
     sb.from('papirus_shelf_comments').select('id,owner,book_id,author,body,created_at').eq('owner', myId).gte('created_at', since),
     sb.from('papirus_shelf_reactions').select('owner,book_id,user_id,created_at').eq('owner', myId).gte('created_at', since),
     friendIds.length ? sb.from('papirus_shelf').select('owner,id,title,created_at').in('owner', friendIds).gte('created_at', since) : Promise.resolve({ data: [], error: null }),
     sb.from('papirus_shelf_reactions').select('owner,book_id').eq('user_id', myId).neq('owner', myId),
-    friendsActivity(sb, friendIds, since),
+    friendsActivity(sb, [...friendIds, ...followIds], since),
     sb.from('papirus_chapter_reactions').select('book_id,user_id,emoji,created_at').eq('owner', myId).neq('user_id', myId).gte('created_at', since),
   ])
   const crs = ((chapterRs.error ? [] : chapterRs.data) ?? []) as { book_id: string; user_id: string; emoji: string; created_at: string }[]
@@ -445,7 +463,7 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
   const fb = ((friendBooks.error ? [] : friendBooks.data) ?? []) as { owner: string; id: string; title: string; created_at: string }[]
   const people = await profilesByIds(
     sb,
-    [...new Set([...cs.map((c) => c.author), ...rs.map((r) => r.user_id), ...fb.map((b) => b.owner), ...followed.map((b) => b.owner), ...activity.map((a) => a.actor), ...crs.map((r) => r.user_id)])].filter(
+    [...new Set([...cs.map((c) => c.author), ...rs.map((r) => r.user_id), ...fb.map((b) => b.owner), ...followed.map((b) => b.owner), ...activity.map((a) => a.actor), ...crs.map((r) => r.user_id), ...auRows.map((r) => (r.owner === myId ? r.requester : r.owner))])].filter(
       (id) => id !== myId,
     ),
   )
@@ -474,6 +492,17 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
     const who = people.get(r.user_id)
     if (who) out.push({ kind: 'reacao', at: r.created_at, who, book: { owner: myId, id: r.book_id, title: titles.get(r.book_id) ?? 'seu livro' }, text: r.emoji })
   }
+  // Pedidos de AU: os que chegaram (pendentes) e as respostas aos meus.
+  for (const r of auRows) {
+    const title = worldNames.get(`${r.owner}/${r.universe_id}`) ?? 'seu mundo'
+    if (r.owner === myId && r.status === 'pendente') {
+      const who = people.get(r.requester)
+      if (who) out.push({ kind: 'pedido-au', at: r.created_at, who, book: { owner: myId, id: r.universe_id, title } })
+    } else if (r.requester === myId && r.status !== 'pendente') {
+      const who = people.get(r.owner)
+      if (who) out.push({ kind: 'au-resposta', at: r.created_at, who, book: { owner: r.owner, id: r.universe_id, title }, text: r.status })
+    }
+  }
   const friendSet = new Set(friendIds)
   const seen = chaptersSeen(myId)
   const next: Record<string, ChapterSeen> = {}
@@ -490,11 +519,12 @@ export async function loadNotices(sb: SupabaseClient, myId: string): Promise<Not
       out.push({ kind: 'capitulo-novo', at: news.at, who, book: { owner: b.owner, id: b.id, title: b.title }, text: news.added === 1 ? '1 capítulo novo' : `${news.added} capítulos novos` })
   }
   saveChaptersSeen(myId, next)
-  return out.sort((a, b) => b.at.localeCompare(a.at))
+  // Quem eu bloqueei some das Novidades.
+  return out.filter((n) => !blockedSet.has(n.who.user_id)).sort((a, b) => b.at.localeCompare(a.at))
 }
 
 /** Quantos avisos novos (pedidos pendentes sempre contam). */
-export const unseenCount = (notices: Notice[], seenAt: string) => notices.filter((n) => n.kind === 'pedido' || n.at > seenAt).length
+export const unseenCount = (notices: Notice[], seenAt: string) => notices.filter((n) => n.kind === 'pedido' || n.kind === 'pedido-au' || n.at > seenAt).length
 
 let noticeCount = 0
 const noticeListeners = new Set<() => void>()

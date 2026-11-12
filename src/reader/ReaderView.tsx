@@ -93,6 +93,8 @@ export function ReaderView({
   onClose,
   closeLabel = 'Fechar o modo leitor',
   footer,
+  startAt,
+  onProgress,
   onComment,
   commenterName,
   reactions,
@@ -102,6 +104,10 @@ export function ReaderView({
   onClose?: () => void
   closeLabel?: string
   footer?: ReactNode
+  /** Onde começar quando este aparelho ainda não leu (o "continuar lendo" de outro aparelho). */
+  startAt?: number
+  /** Avisa onde a pessoa está (para "continuar lendo" e "quem leu até onde"). */
+  onProgress?: (current: number, furthest: number, total: number) => void
   /** Leitor beta: mandar comentários para quem escreveu. */
   onComment?: SendComment
   /** Nome de quem está com conta (sem perguntar). */
@@ -122,9 +128,16 @@ export function ReaderView({
     } catch {
       // Progresso ilegível: começa do início.
     }
-    return { current: 0, furthest: 0 }
+    const start = Math.min(Math.max(0, startAt ?? 0), Math.max(0, total - 1))
+    return { current: start, furthest: start }
   })
   const { current, furthest } = progress
+  // Só quando muda de cena (não a cada rolagem).
+  const onProgressRef = useRef(onProgress)
+  onProgressRef.current = onProgress
+  useEffect(() => {
+    onProgressRef.current?.(current, furthest, total)
+  }, [current, furthest, total])
   const [tab, setTab] = useState<Tab>('quem')
   const [selected, setSelected] = useState<string | null>(null)
   const [aids, setAidsState] = useState<Aids>(loadAids)

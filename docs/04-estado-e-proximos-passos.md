@@ -15,6 +15,7 @@ Retrato do Papirus na versão 1.6.0 (12 de novembro de 2026). Serve para retomar
 | **Mesa** | Escudo do mestre, combate com fila, cartão do jogador, Codex ao vivo, bestiário e diário. |
 | **Oficina** | Trilhas, biblioteca, gerador de ideias e caderno. |
 | **Conta e nuvem** | Opcional (Supabase). Cópias no aparelho e na nuvem, conflitos, amigos, estante e placar. |
+| **Comunidade** | Setor no início do app: Novidades, Lendo (continuar de qualquer aparelho, capítulos novos), Pessoas (seguir, bloquear), Seus livros (até onde leram, só números), denunciar comentário e pedir AU pelo perfil. Precisa de `supabase/comunidade.sql`. Testado só com o servidor de mentira. |
 
 Os testes automáticos cobrem tudo isso: cerca de 390 testes de unidade (`npm run check`) e 170 no navegador (`e2e/`).
 

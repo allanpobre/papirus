@@ -22,16 +22,19 @@ export const PEOPLE = {
 export const PASSWORD = 'segredo123'
 
 export function createFakeSupabase() {
-  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [], papirus_feedback: [], papirus_shelf_text: [], papirus_chapter_reactions: [], papirus_activity: [], papirus_treinos: [] }
+  const tables: Record<string, Row[]> = { papirus_universes: [], papirus_shares: [], papirus_members: [], papirus_profiles: [], papirus_friendships: [], papirus_shelf: [], papirus_shelf_reactions: [], papirus_shelf_comments: [], papirus_challenges: [], papirus_challenge_members: [], papirus_challenge_days: [], papirus_feedback: [], papirus_shelf_text: [], papirus_chapter_reactions: [], papirus_activity: [], papirus_treinos: [], papirus_follows: [], papirus_blocks: [], papirus_reading: [], papirus_reports: [], papirus_open_worlds: [], papirus_au_requests: [] }
   const images = new Map<string, { owner: string; body: Buffer; type: string; at: string }>()
   const QUOTA = 100 * 1024 * 1024
   const usage = (owner: string) => [...images.values()].filter((v) => v.owner === owner).reduce((n, v) => n + v.body.length, 0)
   const friends = (a: unknown, b: unknown) =>
     tables.papirus_friendships.some((f) => f.status === 'aceita' && ((f.requester === a && f.addressee === b) || (f.requester === b && f.addressee === a)))
+  // Comunidade (supabase/comunidade.sql): bloqueio nos dois sentidos e quem segue quem.
+  const blocked = (a: unknown, b: unknown) => tables.papirus_blocks.some((x) => (x.blocker === a && x.blocked === b) || (x.blocker === b && x.blocked === a))
+  const follows = (a: unknown, b: unknown) => tables.papirus_follows.some((x) => x.follower === a && x.followee === b)
   /** Tabelas que quem não tem conta também lê (o que é público). */
   const PUBLIC_READ = new Set(['papirus_profiles', 'papirus_shelf', 'papirus_shelf_reactions', 'papirus_shelf_comments', 'papirus_shelf_text', 'papirus_chapter_reactions'])
   /** Coluna do dono de cada linha (quem pode escrever). */
-  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author', papirus_challenges: 'owner', papirus_challenge_members: 'user_id', papirus_challenge_days: 'user_id', papirus_shelf_text: 'owner', papirus_chapter_reactions: 'user_id', papirus_activity: 'actor', papirus_treinos: 'user_id' }
+  const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author', papirus_challenges: 'owner', papirus_challenge_members: 'user_id', papirus_challenge_days: 'user_id', papirus_shelf_text: 'owner', papirus_chapter_reactions: 'user_id', papirus_activity: 'actor', papirus_treinos: 'user_id', papirus_follows: 'follower', papirus_blocks: 'blocker', papirus_reading: 'user_id', papirus_reports: 'reporter', papirus_open_worlds: 'owner', papirus_au_requests: 'requester' }
   // Contas: as de sempre e as criadas no teste (com o que foi preenchido ao criar).
   const accounts: { id: string; email: string; password: string; meta: Record<string, unknown> }[] = Object.values(PEOPLE).map((p) => ({ ...p, password: PASSWORD, meta: {} }))
   const session = (a: (typeof accounts)[number]) => {
@@ -67,7 +70,19 @@ export function createFakeSupabase() {
     if (table === 'papirus_challenge_days') return write ? r.user_id === me?.id : !!me && inChallenge(r.challenge_id, me.id)
     if (table === 'papirus_shelf_text') return write ? r.owner === me?.id : bookVisible(me, r.owner, r.book_id)
     if (table === 'papirus_chapter_reactions') return write ? r.user_id === me?.id : bookVisible(me, r.owner, r.book_id)
-    if (table === 'papirus_activity') return !!me && (r.actor === me.id || (!write && friends(r.actor, me.id)))
+    if (table === 'papirus_activity')
+      return (
+        !!me &&
+        (r.actor === me.id ||
+          (!write && friends(r.actor, me.id)) ||
+          (!write && r.kind === 'capitulos' && follows(me.id, r.actor) && tables.papirus_shelf.some((b) => b.owner === r.actor && b.id === r.book_id && b.visibility === 'publico')))
+      )
+    if (table === 'papirus_follows') return !!me && (r.follower === me.id || r.followee === me.id)
+    if (table === 'papirus_blocks') return !!me && r.blocker === me.id
+    if (table === 'papirus_reading') return !!me && r.user_id === me.id
+    if (table === 'papirus_reports') return !!me && r.reporter === me.id
+    if (table === 'papirus_open_worlds') return !!me && (write ? r.owner === me.id : !blocked(r.owner, me.id))
+    if (table === 'papirus_au_requests') return !!me && (r.owner === me.id || r.requester === me.id)
     if (table === 'papirus_shelf_reactions' || table === 'papirus_shelf_comments') {
       if (write) return table === 'papirus_shelf_reactions' ? r.user_id === me?.id : r.author === me?.id || r.owner === me?.id
       return bookVisible(me, r.owner, r.book_id)
@@ -213,6 +228,27 @@ export function createFakeSupabase() {
         const out = rows.map((r) => ({ posicao: 1 + rows.filter((x) => x.pontos > r.pontos || (x.pontos === r.pontos && x.dias > r.dias)).length, user_id: r.user_id, handle: r.handle, name: r.name, pontos: r.pontos, dias: r.dias, treinos: r.treinos, palavras: r.palavras }))
         return route.fulfill({ headers: cors, json: out })
       }
+      if (path === 'rpc/papirus_follow_counts') {
+        const { u } = req.postDataJSON() as { u: string }
+        return route.fulfill({ headers: cors, json: [{ followers: tables.papirus_follows.filter((f) => f.followee === u).length, following: tables.papirus_follows.filter((f) => f.follower === u).length }] })
+      }
+      if (path === 'rpc/papirus_block') {
+        const { u } = req.postDataJSON() as { u: string }
+        if (!me || u === me.id) return route.fulfill({ status: 400, headers: cors, json: { message: 'não dá para bloquear' } })
+        if (!tables.papirus_blocks.some((x) => x.blocker === me.id && x.blocked === u)) tables.papirus_blocks.push({ blocker: me.id, blocked: u, created_at: new Date().toISOString() })
+        const pair = (a: unknown, b: unknown) => (a === me.id && b === u) || (a === u && b === me.id)
+        tables.papirus_friendships = tables.papirus_friendships.filter((f) => !pair(f.requester, f.addressee))
+        tables.papirus_follows = tables.papirus_follows.filter((f) => !pair(f.follower, f.followee))
+        tables.papirus_au_requests = tables.papirus_au_requests.filter((x) => !pair(x.owner, x.requester))
+        return route.fulfill({ status: 204, headers: cors, body: '' })
+      }
+      if (path === 'rpc/papirus_reading_stats') {
+        const { b } = req.postDataJSON() as { b: string }
+        if (!me) return route.fulfill({ status: 401, headers: cors, json: { message: 'permission denied' } })
+        const by = new Map<number, number>()
+        for (const r of tables.papirus_reading) if (r.owner === me.id && r.book_id === b && r.user_id !== me.id) by.set(Number(r.furthest), (by.get(Number(r.furthest)) ?? 0) + 1)
+        return route.fulfill({ headers: cors, json: [...by.entries()].sort((x, y) => x[0] - y[0]).map(([furthest, readers]) => ({ furthest, readers })) })
+      }
       if (path === 'rpc/papirus_link_get') {
         const { token } = req.postDataJSON() as { token: string }
         const s = tables.papirus_shares.find((x) => x.link_token && x.link_token === token)
@@ -276,6 +312,12 @@ export function createFakeSupabase() {
           papirus_chapter_reactions: ['owner', 'book_id', 'scene_id', 'user_id'],
           papirus_activity: ['id'],
           papirus_treinos: ['user_id', 'id'],
+          papirus_follows: ['follower', 'followee'],
+          papirus_blocks: ['blocker', 'blocked'],
+          papirus_reading: ['user_id', 'owner', 'book_id'],
+          papirus_reports: ['id'],
+          papirus_open_worlds: ['owner', 'universe_id'],
+          papirus_au_requests: ['owner', 'universe_id', 'requester'],
         }
         const written: Row[] = []
         for (const raw of Array.isArray(body) ? body : [body]) {
@@ -287,6 +329,24 @@ export function createFakeSupabase() {
             if (table.some((x) => x.handle === r.handle && x.user_id !== r.user_id))
               return route.fulfill({ status: 409, headers: cors, json: { code: '23505', message: 'duplicate key value violates unique constraint "papirus_profiles_handle_key"' } })
             Object.assign(r, { name: r.name ?? '', bio: r.bio ?? '', avatar: r.avatar ?? null, placar: r.placar ?? 'amigos' })
+          }
+          const deny = () => route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
+          // Quem foi bloqueado não comenta, não reage, não pede amizade, não segue e não pede AU.
+          if (['papirus_shelf_reactions', 'papirus_shelf_comments', 'papirus_chapter_reactions'].includes(path) && blocked(r.owner, me.id)) return deny()
+          if (path === 'papirus_friendships' && blocked(r.addressee, me.id)) return deny()
+          if (path === 'papirus_follows' && (blocked(r.followee, me.id) || r.followee === me.id)) return deny()
+          if (path === 'papirus_follows') r.created_at ??= new Date().toISOString()
+          if (path === 'papirus_reading') {
+            if (!bookVisible(me, r.owner, r.book_id)) return deny()
+            r.updated_at ??= new Date().toISOString()
+          }
+          if (path === 'papirus_reports') {
+            if (r.target === me.id) return deny()
+            Object.assign(r, { id: crypto.randomUUID(), created_at: new Date().toISOString() })
+          }
+          if (path === 'papirus_au_requests') {
+            if (r.owner === me.id || blocked(r.owner, me.id) || !tables.papirus_open_worlds.some((w) => w.owner === r.owner && w.universe_id === r.universe_id)) return deny()
+            Object.assign(r, { requester_email: me.email, status: 'pendente', message: r.message ?? '', created_at: new Date().toISOString() })
           }
           if (path === 'papirus_shelf_reactions' || path === 'papirus_shelf_comments') {
             if (!bookVisible(me, r.owner, r.book_id)) return route.fulfill({ status: 403, headers: cors, json: { message: 'new row violates row-level security policy' } })
@@ -338,6 +398,9 @@ export function createFakeSupabase() {
         if (path === 'papirus_members') {
           // Só o dono muda papéis.
           for (const r of hit) if (r.owner_id === me.id) Object.assign(r, changes)
+        } else if (path === 'papirus_au_requests') {
+          // Só o dono do mundo responde.
+          for (const r of hit) if (r.owner === me.id) r.status = changes.status
         } else if (path === 'papirus_friendships') {
           // Só quem recebeu aceita, e só o status muda.
           for (const r of hit) if (r.addressee === me.id) r.status = changes.status
