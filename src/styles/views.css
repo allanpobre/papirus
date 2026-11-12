@@ -9541,7 +9541,9 @@ h3.cork-act {
   transform: rotateY(-90deg);
   display: grid;
   place-items: center;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--tone) 70%, #000), var(--tone) 45%, color-mix(in srgb, var(--tone) 70%, #000));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, #000), color-mix(in srgb, var(--accent) 85%, #000) 45%, color-mix(in srgb, var(--accent) 60%, #000));
+  background-size: cover;
+  background-position: left center;
   color: #fff;
 }
 
@@ -9567,8 +9569,25 @@ h3.cork-act {
 .book3d-back {
   inset: 0;
   transform: rotateY(180deg) translateZ(calc(var(--t) / 2));
+  overflow: hidden;
   border-radius: 6px 2px 2px 6px;
-  background: linear-gradient(200deg, var(--tone), color-mix(in srgb, var(--tone) 60%, #000));
+  background: linear-gradient(200deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, #000) 100%);
+}
+
+.book3d-back > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.book3d-back-blur {
+  position: absolute;
+  inset: -12%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px) brightness(0.7);
+  transform: scaleX(-1);
 }
 
 @media (prefers-reduced-motion: reduce) {
