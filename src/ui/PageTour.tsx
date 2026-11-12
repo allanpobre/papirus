@@ -112,7 +112,9 @@ export function PageTour({ title, steps: all, onClose }: { title: string; steps:
 /** O botão (?) de uma tela: abre o tour só dela. */
 export function PageHelp({ tour, className = '' }: { tour: PageTourId; className?: string }) {
   const [open, setOpen] = useState(false)
-  const t = PAGE_TOURS[tour]
+  const t = PAGE_TOURS[tour] as (typeof PAGE_TOURS)[PageTourId] | undefined
+  // Um passeio que não existe (um nome antigo guardado) não derruba a tela: o (?) só não aparece.
+  if (!t) return null
   return (
     <>
       <button type="button" className={`btn-icon page-help ${className}`.trim()} aria-label={`Como usar: ${t.title}`} title="Como usar esta tela" data-tour="ajuda" onClick={() => setOpen(true)}>
