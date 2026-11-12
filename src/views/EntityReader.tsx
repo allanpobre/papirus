@@ -1,4 +1,6 @@
 import { OriginChip } from './AUBanner'
+import { WhoIsReader } from './WhoIs'
+import { definerListIds, whoIsKeys } from '../logic/definers'
 import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Lock, Shuffle } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { worldLevel } from '../model/kind'
@@ -80,7 +82,10 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
   const relations = universe.relations.filter((r) => (r.fromId === e.id || r.toId === e.id) && !r.listId)
   // Campo próprio vazio não esconde o que vem da lista.
   const ownKeys = new Set(e.fields.filter((f) => f.value.trim() || f.ref).map((f) => fold(f.key.trim())))
-  const inherited = inheritedFields(universe, e.id).filter((i) => !ownKeys.has(fold(i.key.trim())))
+  // O que vem do "Quem é" (e as exceções) aparece no bloco dele, não aqui.
+  const fromWho = definerListIds(universe)
+  const whoKeys = whoIsKeys(universe, e)
+  const inherited = inheritedFields(universe, e.id).filter((i) => !ownKeys.has(fold(i.key.trim())) && !fromWho.has(i.listId))
   const lists = listsOf(e)
   const facts = universe.facts.filter((f) => f.subjectId === e.id || f.objectId === e.id)
   const knows = universe.knowledge.filter((k) => k.holderId === e.id)
@@ -113,6 +118,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
     e.aliases.length > 0 && ['Também conhecido como', e.aliases.join(', ')],
     // Campo vazio não aparece, a não ser que as ligações respondam ("Líder" ← "Malkai líder de…").
     ...e.fields.flatMap((f): [string, React.ReactNode][] => {
+      if (f.exception && whoKeys.has(fold(f.key.trim()))) return []
       // Campo que aponta para uma ficha vira link; ano vem com o rótulo do calendário.
       if (f.type === 'ficha' && f.ref) return [[f.key || 'Campo', link(f.ref)]]
       if (f.value.trim()) return [[f.key || 'Campo', f.type === 'ano' && Number.isFinite(Number(f.value)) ? formatYear(Number(f.value), suffix) : rich(f.value)]]
@@ -170,6 +176,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           </p>
         )}
         <MembershipChips entity={e} />
+        <WhoIsReader entity={e} link={link} />
       </div>
 
       <div className="reader-body">

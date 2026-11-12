@@ -14,6 +14,8 @@ export interface EntityList {
   accepts: string[]
   /** O que todos da lista têm: passa para a ficha de cada um. */
   shared: { key: string; value: string }[]
+  /** Lista de uma opção do "Quem é" (o id do item que ela define). */
+  definer?: string
 }
 
 export const MEMBER_TYPE = 'faz parte de'

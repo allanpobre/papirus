@@ -1,3 +1,4 @@
+import { definerListIds } from '../logic/definers'
 import { Check, ListPlus, MoreHorizontal, Pencil, Plus, Trash2, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { fold } from '../logic/text'
@@ -15,7 +16,9 @@ import { MoreMenu } from '../ui/MoreMenu'
 /** "Faz parte de": as listas em que a ficha está (o clã, a espécie, os habitantes do reino). */
 export function MembershipChips({ entity: e, editable = false }: { entity: Entity; editable?: boolean }) {
   const { universe, update, peek } = useWorkspace()
-  const ms = membershipsOf(universe, e.id)
+  // As do "Quem é" (Corpo: Meio-ciborgue) aparecem lá.
+  const fromWho = definerListIds(universe)
+  const ms = membershipsOf(universe, e.id).filter((m) => !fromWho.has(m.list.id))
   if (!ms.length) return null
   return (
     <div className="memberships" aria-label="Faz parte de">
@@ -334,7 +337,9 @@ export function InheritedRows({ entity: e }: { entity: Entity }) {
   const { universe, update } = useWorkspace()
   // Campo próprio vazio (o do modelo do tipo) não muda o que vem da lista.
   const own = new Set(e.fields.filter((f) => f.value.trim() || f.ref).map((f) => fold(f.key.trim())))
-  const rows = inheritedFields(universe, e.id)
+  // O que vem do "Quem é" aparece lá, com as exceções.
+  const fromWho = definerListIds(universe)
+  const rows = inheritedFields(universe, e.id).filter((r) => !fromWho.has(r.listId))
   const conflicts = inheritedConflicts(universe, e.id)
   if (!rows.length) return null
   return (
