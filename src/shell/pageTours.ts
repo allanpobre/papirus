@@ -171,8 +171,9 @@ export const PAGE_TOURS = {
   wiki: {
     title: 'Wiki',
     steps: [
-      { target: '.wiki-view .settings-card', title: 'Como a wiki sai', body: 'O que entra (tudo menos segredos, ou só até uma cena), o formato (site, texto ou dados) e Personalizar: título, tipos, seções, cor e letra.' },
-      { target: '.wiki-view-preview', title: 'Prévia', body: 'A wiki como os leitores vão ver, atualizada a cada mudança. O arquivo baixado leva também os retratos e os mapas.', optional: true },
+      { target: '.wiki-view-preview', title: 'Prévia', body: 'A wiki como os leitores vão ver, atualizada a cada mudança. Dá para clicar e navegar nela. O arquivo baixado leva também os retratos e os mapas.', optional: true },
+      { target: '.wiki-styles', title: 'Estilo', body: 'Clássico, Moderno, Pergaminho ou Noturno. Embaixo: título, texto de boas-vindas, o que entra, seções, cor e letra.', optional: true },
+      { target: '.wiki-view .settings-card', title: 'Baixar', body: 'O que entra (tudo menos segredos, ou só até uma cena) e o formato: site, texto ou dados.' },
     ],
   },
   livro: {

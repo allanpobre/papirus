@@ -46,7 +46,10 @@ test('wiki do mundo: personalizar título e o que entra', async ({ page }) => {
   await page.goto('/app/?exemplo')
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Importar e wiki' }).click()
-  await page.getByText('Personalizar', { exact: true }).click()
+  // O atalho leva à página Wiki, com o Personalizar aberto e a prévia ao lado.
+  await page.getByRole('button', { name: 'Personalizar e ver como fica' }).click()
+  await expect(page.frameLocator('iframe[title="Prévia da wiki"]').getByRole('heading', { level: 1 })).toBeVisible()
+  await page.getByRole('radio', { name: 'Pergaminho' }).click()
   await page.getByRole('textbox', { name: 'Título' }).fill('Itaguaí para leitores')
   await page.getByRole('textbox', { name: 'Autor' }).fill('Ana')
   const kinds = page.getByRole('group', { name: 'Tipos de ficha' })
@@ -61,6 +64,7 @@ test('wiki do mundo: personalizar título e o que entra', async ({ page }) => {
   expect(html).toContain('por Ana')
   expect(html).not.toContain('<h2>Simão Bacamarte</h2>')
   expect(html).toContain('--tone:#6a4ea3')
+  expect(html).toContain('class="estilo-pergaminho"')
   // Voltar ao padrão desfaz tudo.
   await page.getByRole('button', { name: 'Voltar ao padrão' }).click()
   await expect(page.getByText('do seu jeito')).toBeHidden()

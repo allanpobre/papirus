@@ -9021,17 +9021,8 @@ h3.cork-act {
 .wiki-custom {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 0.25rem 0.75rem;
+  padding: 0.75rem;
   margin-block: 0.75rem;
-}
-
-.wiki-custom > summary {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 40px;
-  cursor: pointer;
-  font-weight: 600;
 }
 
 .wiki-custom-mark {
@@ -9039,10 +9030,6 @@ h3.cork-act {
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--accent);
-}
-
-.wiki-custom[open] > summary {
-  margin-bottom: 0.5rem;
 }
 
 .wiki-custom-group {
@@ -9194,31 +9181,6 @@ h3.cork-act {
   margin: 0.25rem 0;
 }
 
-.wiki-view-body {
-  display: grid;
-  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: start;
-}
-
-.wiki-view-preview {
-  width: 100%;
-  height: calc(100vh - 160px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: #fff;
-}
-
-/* Na tela estreita, a prévia vai para baixo do cartão. */
-@media (max-width: 900px) {
-  .wiki-view-body {
-    grid-template-columns: 1fr;
-  }
-
-  .wiki-view-preview {
-    height: 75vh;
-  }
-}
 
 .seed-form {
   display: grid;
@@ -9721,10 +9683,121 @@ h3.cork-act {
   .atlas-toolbar:not(.show-extra) .atlas-extra {
     display: none;
   }
+}
 
-  /* A Wiki no celular também mostra a prévia, embaixo. */
+/* ---------------------------------------------------------------- Wiki: a página com prévia */
+
+.wiki-view-body {
+  display: grid;
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+  grid-template-areas: 'options preview';
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.wiki-view-options {
+  grid-area: options;
+  min-width: 0;
+}
+
+.wiki-view-preview-wrap {
+  grid-area: preview;
+  position: sticky;
+  top: 0.75rem;
+  min-width: 0;
+}
+
+.wiki-view-preview {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 140px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--paper);
+}
+
+.wiki-view-loading {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.wiki-customize-link {
+  justify-self: start;
+}
+
+.wiki-custom-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.wiki-styles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+/* Cada estilo: uma amostra pequena (papel, faixa na cor e "Aa") e o nome ao lado. */
+.wiki-style {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wiki-style[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  font-weight: 600;
+}
+
+.wiki-style-swatch {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 34px;
+  padding-top: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  font: 400 0.95rem var(--font-display);
+  overflow: hidden;
+}
+
+.wiki-style-swatch > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 7px;
+}
+
+/* Na tela estreita (celular), a prévia vem primeiro e as opções embaixo. */
+@media (max-width: 900px) {
+  .wiki-view-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'preview' 'options';
+  }
+
+  .wiki-view-preview-wrap {
+    position: static;
+  }
+
   .wiki-view-preview {
-    display: block;
-    height: 70vh;
+    height: 62vh;
   }
 }
