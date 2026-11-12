@@ -279,9 +279,9 @@ export default function GraphView() {
       <AreaHead current="relacoes" tour="relacoes" />
       <header className="view-head view-head-wide area-tools">
         {/* No celular, o grafo vem primeiro: os filtros ficam atrás deste botão. */}
-        <button type="button" className="btn btn-sm graph-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+        {universe.relations.length > 0 && <button type="button" className="btn btn-sm graph-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
           <SlidersHorizontal size={14} aria-hidden="true" /> Filtros{filterCount > 0 && <span className="chip-count"> {filterCount}</span>}
-        </button>
+        </button>}
         <div className="graph-controls">
           <EntityPicker
             label="Centrar em"
@@ -650,9 +650,11 @@ export default function GraphView() {
           )}
         </div>
       )}
+{nodes.length > 0 && (
       <p className="muted small graph-hint">
         Arraste para mover, role para aproximar, passe o mouse ou clique numa ficha para destacar, duplo clique para abrir. Linhas tracejadas: quem está por trás de uma ligação.
       </p>
+      )}
         </>
       )}
     </div>

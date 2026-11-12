@@ -143,7 +143,7 @@ test('selecionar várias no Mundo e pôr uma etiqueta em todas; a tabela compara
   await page.getByRole('textbox', { name: 'Filtrar fichas' }).fill('')
 
   // Tabela: os personagens lado a lado; a célula edita ali mesmo.
-  await page.getByRole('radiogroup', { name: 'Tipo' }).getByRole('radio', { name: 'Personagens' }).click()
+  await page.getByRole('combobox', { name: 'Filtrar por tipo' }).selectOption('personagem')
   await page.getByRole('radiogroup', { name: 'Vista do Mundo' }).getByRole('radio', { name: 'Tabela' }).click()
   const table = page.getByRole('region', { name: 'Tabela de fichas' })
   await expect(table.getByRole('columnheader', { name: /Cenas/ })).toBeVisible()

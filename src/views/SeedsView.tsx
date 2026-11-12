@@ -58,7 +58,7 @@ export default function SeedsView() {
           Sementes ligam uma preparação a um pagamento futuro. Mistérios reúnem pistas. Nenhum precisa ser resolvido.
         </p>
       )}
-      <div className="filter-chips" role="radiogroup" aria-label="Mostrar">
+      {universe.seeds.length > 0 && <div className="filter-chips" role="radiogroup" aria-label="Mostrar">
         {(
           [
             ['todas', 'Todas'],
@@ -70,7 +70,7 @@ export default function SeedsView() {
             {label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {universe.seeds.length === 0 ? (
         <Empty icon={<Sprout size={32} />} title="Nenhuma trama ainda.">
