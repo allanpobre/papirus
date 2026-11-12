@@ -15,7 +15,7 @@ import { PageHelp } from '../ui/PageTour'
 import { GeneratedCover } from '../ui/GeneratedCover'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { FirstSteps } from './FirstSteps'
-import { WorldHome } from './WorldHome'
+import { WorldCard } from './WorldCard'
 import { NextNote } from './NextNote'
 import { ProgressSection } from './PlayCards'
 import { startSprint } from './write/sprintClock'
@@ -31,13 +31,7 @@ const untilFmt = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long
  * pequeno e só quando importa: até três coisas "para quando der", o treino, o mundo numa linha
  * e o ritmo dobrado.
  */
-/** O Início: o de um mundo (worldbuilding) ou o de quem escreve (e mestra). */
 export default function HomeView() {
-  const { universe } = useWorkspace()
-  return universeKind(universe) === 'mundo' ? <WorldHome /> : <WritingHome />
-}
-
-function WritingHome() {
   const { universe, prefs, go, update, openCapture, openSearch, closeUniverse, source, openShare, openReader, readOnly, toast, hiddenViews } = useWorkspace()
   const cover = universe.settings.cover ?? null
   const setCover = (ref: string | null) => update((u) => ({ ...u, settings: { ...u.settings, cover: ref } }))
@@ -337,6 +331,8 @@ function WritingHome() {
             </ul>
           </nav>
         )}
+
+        {shown('fichas') && <WorldCard />}
 
         {showRhythm && (
           <details

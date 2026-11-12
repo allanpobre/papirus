@@ -48,6 +48,7 @@ export const PAGE_TOURS = {
       { target: '.home-later', title: 'Para quando der', body: 'Até três coisas que pedem um olhar: perguntas da Revisão, ideias esperando e a próxima sessão. Nada aqui é urgente.', optional: true },
       { target: '.home-first', title: 'Primeiros passos', body: 'Num universo novo, três passos que levam ao lugar certo e ficam riscados quando estão feitos. Dá para esconder; o treino de escrita fica na Oficina.', optional: true },
       { target: '.home-world', title: 'O seu mundo', body: 'Quanto já tem em cada parte do universo, numa linha. Toque num número para ir até lá.', optional: true },
+      { target: '.world-card', title: 'O que falta no mundo', body: 'Fichas sem resumo, soltas, lugares fora do mapa: toque para ir à primeira. Daqui também saem a semente (com o mundo vazio), uma lenda nova, trazer de outro app e a wiki.', optional: true },
       { target: '.home-day', title: 'Seu ritmo', body: 'Dobrado para não pesar: o prazo, o calendário de escrita, o nível e as medalhas. Abra quando quiser.', optional: true },
     ],
   },
@@ -165,14 +166,6 @@ export const PAGE_TOURS = {
       { target: '.organize-view .table-wrap', title: 'Presença', body: 'Cada linha é uma cena e cada coluna um personagem: ponto de vista, presente ou só mencionado. Bom para ver quem sumiu da história.', optional: true },
       { target: '.rhythm', title: 'Ritmo', body: 'O tamanho de cada cena, quantas cenas cada ponto de vista tem e as tramas ainda abertas.', optional: true },
       { title: 'Tudo vem das cenas', body: 'Estado, história, ponto de vista e elenco são os Detalhes da cena, no Escrever. Mudou lá, muda aqui.' },
-    ],
-  },
-  'inicio-mundo': {
-    title: 'Início do mundo',
-    steps: [
-      { target: '.world-kinds', title: 'O mundo em números', body: 'Quantas fichas de cada tipo. Toque para abrir o Mundo.', optional: true },
-      { target: '.world-card', title: 'O que falta', body: 'Fichas sem resumo, soltas, lugares fora do mapa… Toque para ir direto à primeira.' },
-      { target: '.world-actions', title: 'Atalhos', body: 'Ligações, Mapas e a Wiki, a um toque.' },
     ],
   },
   wiki: {
@@ -598,7 +591,7 @@ export const PAGE_TOURS = {
   'hub-escrita': {
     title: 'Escrita',
     steps: [
-      { target: '.hub-tabs', title: 'Quatro setores', body: 'Escrita (livros), Mundos (só worldbuilding), Mesa (campanhas) e Oficina (aprender). Cada um com a sua cara.' },
+      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita (livros e mundos), Mesa (campanhas) e Oficina (aprender). Cada um com a sua cara.' },
       { target: '.hub-continue', title: 'Continuar', body: 'O universo em que você mexeu por último, a um toque.', optional: true },
       { target: '.treino-card', title: 'Treino de hoje', body: 'A proposta do dia num sprint com tempo e mínimo de palavras ou caracteres. Seus treinos ficam guardados, e há um placar entre amigos.' },
       {
@@ -612,14 +605,6 @@ export const PAGE_TOURS = {
       { target: '.library-alt', title: 'Instalar e importar', body: 'Instale o Papirus como app, traga um backup (.json) ou abra uma pasta do computador.', optional: true },
       { target: '.hub-social', title: 'Com os amigos', body: 'Novidades, amigos, desafios e o seu perfil. Precisa de uma conta, que é opcional.', optional: true },
       { target: '[data-tour="conta"]', title: 'Conta', body: 'Sem conta, tudo fica neste navegador. Com conta, os universos aparecem em todos os seus aparelhos.', optional: true },
-    ],
-  },
-  'hub-mundo': {
-    title: 'Mundos',
-    steps: [
-      { target: '.hub-continue', title: 'Continuar', body: 'O mundo em que você mexeu por último, a um toque.', optional: true },
-      { target: '.library-list[aria-label="Mundos"]', title: 'Seus mundos', body: 'Universos só de worldbuilding: fichas, ligações, linha do tempo, mapas e a wiki. Para escrever ou jogar num deles, ligue Escrever ou a Mesa nos Ajustes do mundo.', optional: true },
-      { target: '.start-card, .library-new', title: 'Novo mundo', body: 'Dê um nome e escolha Simples (o essencial) ou Completo (tudo). Dá para trocar depois, sem perder nada.' },
     ],
   },
   'hub-rpg': {

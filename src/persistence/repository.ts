@@ -221,8 +221,6 @@ export interface LibraryEntry {
   cover?: string
   /** Setor: escrita ou campanha (entradas antigas, sem isto, são de escrita até a próxima gravação). */
   kind?: UniverseKind
-  /** Num mundo (worldbuilding): quantas fichas, para o cartão do setor Mundos. */
-  entities?: number
   /** Tem uma mesa de RPG (campanha, ou universo de escrita com mesa). */
   sessions?: number
   /** Personagens de jogadores (fichas de jogo). */
@@ -313,7 +311,6 @@ export class Library {
       ...(isLocalOnly(universe) ? { sample: true } : {}),
       ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
       kind: universeKind(universe),
-      ...(universeKind(universe) === 'mundo' ? { entities: universe.entities.length } : {}),
       ...(universe.groups.length ? tableInfo(universe) : {}),
       ...(universe.cloudCopyOf ? { cloudCopyOf: universe.cloudCopyOf, versionKind: universe.versionKind ?? 'nuvem' } : {}),
     }

@@ -1,4 +1,4 @@
-import { CAMPAIGN_HIDDEN, WORLD_HIDDEN, worldLevel } from '../model/kind'
+import { CAMPAIGN_HIDDEN, worldLevel } from '../model/kind'
 import { todayKey } from '../logic/stats'
 import { InstallButton } from '../ui/InstallButton'
 import { HistoryCard, TrashCard } from './HistoryCards'
@@ -175,7 +175,6 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             {(
               [
                 ['escrita', 'Escrita'],
-                ['mundo', 'Mundo'],
                 ['campanha', 'Campanha de RPG'],
               ] as const
             ).map(([k, label]) => (
@@ -187,34 +186,28 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <p className="muted small">
             {ws.kind === 'campanha'
               ? 'Fica na aba Mesa de Seus universos e abre na Mesa. O menu mostra o que serve para o mestre.'
-              : ws.kind === 'mundo'
-                ? 'Só worldbuilding: fica no setor Mundos e o menu traz o Mundo e a Wiki. Para escrever ou jogar nele, ligue Escrever ou a Mesa em Menu e ajuda.'
-                : 'Fica no setor Escrita do início e abre no Início do universo.'}
+              : 'Fica no setor Escrita do início e abre no Início do universo.'}
           </p>
-          {ws.kind === 'mundo' && (
-            <>
-              <p className="field-label" id="nivel-mundo">
-                Nível
-              </p>
-              <div className="segmented" role="radiogroup" aria-labelledby="nivel-mundo">
-                {(
-                  [
-                    ['simples', 'Simples'],
-                    ['completo', 'Completo'],
-                  ] as const
-                ).map(([k, label]) => (
-                  <button key={k} type="button" role="radio" aria-checked={worldLevel(universe) === k} onClick={() => setSetting('worldLevel', k)}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <p className="muted small">
-                {worldLevel(universe) === 'simples'
-                  ? 'O essencial nas fichas e no menu. Nada some: o que você já tinha continua guardado e volta no Completo.'
-                  : 'Tudo à mostra: campos com tipo, listas, segredos, o que é verdade, pistas e quem sabe o quê.'}
-              </p>
-            </>
-          )}
+          <p className="field-label" id="nivel-mundo">
+            O Mundo deste universo
+          </p>
+          <div className="segmented" role="radiogroup" aria-labelledby="nivel-mundo">
+            {(
+              [
+                ['simples', 'Simples'],
+                ['completo', 'Completo'],
+              ] as const
+            ).map(([k, label]) => (
+              <button key={k} type="button" role="radio" aria-checked={worldLevel(universe) === k} onClick={() => setSetting('worldLevel', k)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="muted small">
+            {worldLevel(universe) === 'simples'
+              ? 'O essencial nas fichas e no menu. Nada some: o que você já tinha continua guardado e volta no Completo.'
+              : 'Tudo à mostra: campos com tipo, listas, segredos, o que é verdade, pistas e quem sabe o quê.'}
+          </p>
           <div className="form-grid">
             <Field label="Nome" wide>
               {(id) => <input id={id} className="input" value={universe.name} onChange={(e) => update((u) => ({ ...u, name: e.target.value }))} />}
@@ -279,7 +272,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <h2 className="section-title">Menu</h2>
           <p className="muted small">Esconda o que você não usa (vale para todos os universos deste tipo). Tudo continua acessível pela busca, e nada é apagado.</p>
           <div className="area-toggles">
-            {[...NAV.flatMap((g) => g.items.filter((item) => !item.inside && (item.view !== 'wiki' || ws.kind === 'mundo'))), ...TOOLS].map((item) => (
+            {[...NAV.flatMap((g) => g.items.filter((item) => !item.inside)), ...TOOLS].map((item) => (
               <Toggle
                 key={item.view}
                 label={item.label}
@@ -289,7 +282,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
             ))}
           </div>
           <div className="inline-fields">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => ws.setHiddenViews(ws.kind === 'campanha' ? CAMPAIGN_HIDDEN : ws.kind === 'mundo' ? WORLD_HIDDEN : ['rpg'])}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => ws.setHiddenViews(ws.kind === 'campanha' ? CAMPAIGN_HIDDEN : ['rpg'])}>
               Voltar ao padrão
             </button>
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => ws.setHiddenViews([])}>
