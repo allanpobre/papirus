@@ -168,6 +168,13 @@ export const PAGE_TOURS = {
       { title: 'Tudo vem das cenas', body: 'Estado, história, ponto de vista e elenco são os Detalhes da cena, no Escrever. Mudou lá, muda aqui.' },
     ],
   },
+  guia: {
+    title: 'Guia',
+    steps: [
+      { target: '.guide-search', title: 'Procurar', body: 'Escreva o que quer fazer (mapa, segredo, dados, capa): o Guia mostra as partes que tratam disso, já abertas.' },
+      { target: '.guide-area', title: 'Área por área', body: 'Cada área do Papirus com as suas partes. Toque numa parte para ver tudo o que ela faz; “Abrir” leva até ela.' },
+    ],
+  },
   wiki: {
     title: 'Wiki',
     steps: [

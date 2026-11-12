@@ -5,6 +5,7 @@ import {
   Earth,
   Feather,
   Globe,
+  Compass,
   GraduationCap,
   House,
   Inbox,
@@ -62,6 +63,7 @@ export const TOOLS: NavItem[] = [
   { view: 'inbox', label: 'Ideias', icon: Inbox, words: 'inbox caixa de entrada anotações captura' },
   { view: 'archivist', label: 'Perguntar ao mundo', icon: MessageCircleQuestion, words: 'archivist ia inteligência artificial pergunta' },
   { view: 'oficina', label: 'Oficina', icon: GraduationCap, words: 'dicas escrita gêneros exercícios curiosidades aprender' },
+  { view: 'guia', label: 'Guia', icon: Compass, words: 'ajuda manual como usar todas as ferramentas tutorial' },
 ]
 
 export const CONFIG_ITEM: NavItem = { view: 'config', label: 'Ajustes e dados', icon: Settings, words: 'configurações preferências backup' }

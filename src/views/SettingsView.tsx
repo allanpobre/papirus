@@ -191,23 +191,22 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
           <p className="field-label" id="nivel-mundo">
             O Mundo deste universo
           </p>
-          <div className="segmented" role="radiogroup" aria-labelledby="nivel-mundo">
+          <div className="level-choice" role="radiogroup" aria-labelledby="nivel-mundo">
             {(
               [
-                ['simples', 'Simples'],
-                ['completo', 'Completo'],
+                ['simples', 'Simples', 'Para começar ou para mundos leves. A ficha mostra o essencial: resumo, Quem é, descrição, campos e ligações. A Trama sai do menu.'],
+                ['completo', 'Completo', 'Tudo à mostra: o que é verdade, boato ou segredo, quão pronta está cada ficha, listas, “No jogo” e a Trama (pistas e quem sabe o quê).'],
               ] as const
-            ).map(([k, label]) => (
-              <button key={k} type="button" role="radio" aria-checked={worldLevel(universe) === k} onClick={() => setSetting('worldLevel', k)}>
-                {label}
+            ).map(([k, label, desc]) => (
+              <button key={k} type="button" role="radio" aria-label={label} aria-describedby={`nivel-${k}`} aria-checked={worldLevel(universe) === k} className="level-option" onClick={() => setSetting('worldLevel', k)}>
+                <strong>{label}</strong>
+                <span id={`nivel-${k}`} className="small muted">
+                  {desc}
+                </span>
               </button>
             ))}
           </div>
-          <p className="muted small">
-            {worldLevel(universe) === 'simples'
-              ? 'O essencial nas fichas e no menu. Nada some: o que você já tinha continua guardado e volta no Completo.'
-              : 'Tudo à mostra: campos com tipo, listas, segredos, o que é verdade, pistas e quem sabe o quê.'}
-          </p>
+          <p className="muted small">Trocar não apaga nada: o que fica escondido no Simples continua guardado e volta quando você escolhe Completo. Numa ficha, “Mostrar tudo nesta ficha” abre o resto só nela.</p>
           <div className="form-grid">
             <Field label="Nome" wide>
               {(id) => <input id={id} className="input" value={universe.name} onChange={(e) => update((u) => ({ ...u, name: e.target.value }))} />}

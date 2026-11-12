@@ -160,8 +160,20 @@ function fromJsonObject(o: Json, path: string): { entity: ForeignEntity | null; 
 /** Abre um .zip em arquivos de texto (Markdown e JSON). */
 export function unzipText(name: string, bytes: Uint8Array): ForeignFile[] {
   const out: ForeignFile[] = []
-  for (const [path, data] of Object.entries(unzipSync(bytes))) {
-    if (!/\.(md|markdown|txt|json)$/i.test(path) || path.split('/').some((p) => p.startsWith('.') || p === '__MACOSX')) continue
+  let files = 0
+  let total = 0
+  const wanted = (path: string) => /\.(md|markdown|txt|json)$/i.test(path) && !path.split('/').some((p) => p.startsWith('.') || p === '__MACOSX')
+  const unzipped = unzipSync(bytes, {
+    // Só abre os textos, cada um até 10 MB, até 5.000 arquivos e 200 MB no total.
+    filter: (f) => {
+      if (!wanted(f.name) || f.originalSize > 10_000_000 || files >= 5000 || total + f.originalSize > 200_000_000) return false
+      files++
+      total += f.originalSize
+      return true
+    },
+  })
+  for (const [path, data] of Object.entries(unzipped)) {
+    if (!wanted(path)) continue
     out.push({ path: `${name.replace(/\.zip$/i, '')}/${path}`, text: strFromU8(data) })
   }
   return out

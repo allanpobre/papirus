@@ -79,6 +79,7 @@ const ArchivistView = lazy(() => import('../views/ArchivistView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
 const BookView = lazy(() => import('../views/BookView'))
 const WikiView = lazy(() => import('../views/WikiView'))
+const GuideView = lazy(() => import('../views/GuideView'))
 const BookDesigner = lazy(() => import('../book/BookDesigner'))
 
 const STATUS_LABEL: Record<SaveStatus, string> = {
@@ -905,12 +906,31 @@ function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | 
       return <InboxView />
     case 'wiki':
       return <WikiView />
+    case 'guia':
+      return <GuideView />
     case 'archivist':
       return <ArchivistView />
     case 'config':
       // A categoria pedida (ex.: "conta") abre os Ajustes já nela.
       return <SettingsView key={navId ?? ''} onOpenOther={onOpenOther} />
   }
+}
+
+/** O "Mais" do celular em grupos, para achar cada área pelo que ela é. */
+const MORE_GROUPS: [string, View[]][] = [
+  ['Escrita', ['inicio', 'escrever', 'livro']],
+  ['Mundo', ['fichas', 'tramas']],
+  ['Mesa', ['rpg']],
+  ['Ferramentas', ['inbox', 'archivist', 'guia', 'config']],
+]
+
+function groupsOf(items: NavItem[]): [string, NavItem[]][] {
+  const known = new Set(MORE_GROUPS.flatMap(([, v]) => v))
+  const groups = MORE_GROUPS.map(([label, views]): [string, NavItem[]] => [label, views.flatMap((v) => items.filter((i) => i.view === v))])
+  // O que não está em nenhum grupo (uma área nova) vai para Ferramentas.
+  const rest = items.filter((i) => !known.has(i.view))
+  if (rest.length) groups[groups.length - 1][1].push(...rest)
+  return groups.filter(([, list]) => list.length > 0)
 }
 
 /**
@@ -1032,25 +1052,30 @@ function PhoneNav({
             </button>
             {oficina && !editing && <OficinaCard onClick={() => choose('oficina')} />}
             {editing && <p className="small rail-more-hint">Toque para pôr ou tirar da barra de baixo (até 4; o novo entra no lugar do último).</p>}
-            <div className="rail-more-grid">
-              {grid.map((item) => {
-                const Icon = item.icon
-                const pinned = picked.includes(item.view)
-                return editing ? (
-                  <button key={item.view} type="button" className={`rail-more-item${pinned ? ' is-pinned' : ''}`} aria-pressed={pinned} onClick={() => toggleShortcut(item.view)}>
-                    <Icon size={20} aria-hidden="true" />
-                    <span>{item.label}</span>
-                    {pinned && <Pin size={12} className="rail-more-pin" aria-label="na barra" />}
-                  </button>
-                ) : (
-                  <button key={item.view} type="button" className="rail-more-item" style={{ '--area': `var(--area-${item.view}, currentColor)` } as React.CSSProperties} aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
-                    <Icon size={20} aria-hidden="true" />
-                    <span>{item.label}</span>
-                    {item.view === 'inbox' && inboxCount > 0 && <span className="rail-badge">{inboxCount}</span>}
-                  </button>
-                )
-              })}
-            </div>
+            {groupsOf(grid).map(([label, list]) => (
+              <div key={label} className="rail-more-group" role="group" aria-label={label}>
+                <p className="rail-more-group-label">{label}</p>
+                <div className="rail-more-grid">
+                  {list.map((item) => {
+                    const Icon = item.icon
+                    const pinned = picked.includes(item.view)
+                    return editing ? (
+                      <button key={item.view} type="button" className={`rail-more-item${pinned ? ' is-pinned' : ''}`} aria-pressed={pinned} onClick={() => toggleShortcut(item.view)}>
+                        <Icon size={20} aria-hidden="true" />
+                        <span>{item.label}</span>
+                        {pinned && <Pin size={12} className="rail-more-pin" aria-label="na barra" />}
+                      </button>
+                    ) : (
+                      <button key={item.view} type="button" className="rail-more-item" style={{ '--area': `var(--area-${item.view}, currentColor)` } as React.CSSProperties} aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
+                        <Icon size={20} aria-hidden="true" />
+                        <span>{item.label}</span>
+                        {item.view === 'inbox' && inboxCount > 0 && <span className="rail-badge">{inboxCount}</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
             {onPlay && !editing && (
               <button
                 type="button"
