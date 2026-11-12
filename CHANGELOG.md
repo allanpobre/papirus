@@ -16,6 +16,11 @@
 - **No jogo:** traços e bônus de espécie e de cultura chegam à ficha de jogo da Mesa.
 - **Trazer de outros apps:** notas do Obsidian ou Markdown, Kanka, World Anvil e arquivos .zip.
 - **Mundo a quatro mãos:** quem está em qual ficha, ao vivo, e o convite à vista.
+- **Universos alternativos (AU):**
+  - em Compartilhar, o autor marca quem “Pode ver e criar um AU”;
+  - essa pessoa abre o universo e toca em “Criar um AU”: ganha um universo dela com o mundo e as histórias do original como lore (dá para ler, não para mudar). Os segredos nunca vão.
+  - no AU, cada ficha mostra se é “Original” ou “Mudou no AU”. “Novidades do original” traz o que o autor mudou, sem desfazer o que o AU mudou.
+  - “Mostrar ao autor” manda o AU de volta. Em Compartilhar › AUs do seu mundo, o autor vê o que nasceu lá e escolhe o que vira canon. Se uma ligação usa uma ficha do AU, a ficha vai junto.
 
 **A Wiki do mundo**
 - Um site num arquivo só:

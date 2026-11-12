@@ -1,3 +1,4 @@
+import { OriginChip } from './AUBanner'
 import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Lock, Shuffle } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { worldLevel } from '../model/kind'
@@ -151,6 +152,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
       <div className="reader-title">
         <p className="eyebrow">
           <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" /> {kindLabel(e.kind)}
+          <OriginChip item={e} full />
         </p>
         <h1>{e.name || 'Sem nome'}</h1>
         {/* Só o que foge do comum: verdade e pronta não precisam de selo. */}

@@ -8,6 +8,7 @@ Retrato do Papirus na versão 1.6.0 (12 de novembro de 2026). Serve para retomar
 | --- | --- |
 | **Escrever** (Mapa, Página, Revisão) | Completo. Procurar e trocar, metas, treino e leitores beta. |
 | **Mundo** (Fichas, Ligações, Linha do tempo, Mapas) | Completo. Simples/Completo, Semente, Máquina do tempo, mapa político, lendas, efeito dominó, “No jogo”, trazer de outros apps. |
+| **Universos alternativos (AU)** | Novo. Criar a partir de um mundo autorizado, lore só leitura, novidades do original e canonizar. |
 | **Wiki do mundo** | Completa. Site num arquivo, .md e .json, quatro estilos, página com prévia. |
 | **Trama** | Pistas e mistérios, e quem sabe o quê. |
 | **Publicar** | Livro em cinco passos, diagramação com Paged.js, livro 3D, Folhear, PDF, EPUB, Word e capa para gráfica. |
@@ -37,6 +38,7 @@ Vieram do quiz de opinião e das conversas, mais ou menos em ordem de valor:
 ## O que ainda não foi testado de verdade
 
 - Duas pessoas ao vivo, ao mesmo tempo: na Mesa, no Mundo a quatro mãos e com conflitos na nuvem.
+- O AU com contas de verdade, no servidor de verdade (o teste usa um servidor de mentira). Também falta canonizar histórias inteiras do AU: hoje vão fichas, ligações, datas e fatos.
 - Os arquivos abertos em outros programas:
   - EPUB num leitor de e-book;
   - Word no Word;

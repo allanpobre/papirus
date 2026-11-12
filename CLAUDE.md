@@ -50,6 +50,7 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - **O worldbuilding mora dentro de cada universo** (escrita ou campanha). Não existe universo nem setor "só de mundo" (existiu do #91 ao #100 e foi desfeito).
 - **Simples ou Completo** (`settings.worldLevel`) vale para qualquer universo, em Ajustes › Universo; o padrão é Completo. Simples só esconde (ficha e Trama), nunca apaga; "Mostrar tudo nesta ficha" abre o resto.
 - **Lendas e documentos** são um tipo de ficha (`documento`), não uma estrutura nova: assim herdam ligações, wiki, Codex e datas.
+- **Universo alternativo (AU)** é outro universo, com `derivedFrom` (de quem, qual universo e um resumo de cada coisa que veio do original). Mudou o resumo, "Mudou no AU". Histórias e cenas do original são lore: só leitura. Quem pode criar fica em `settings.au.allowed` (SHA-256 do e-mail; no servidor é "ver"). Lógica em `logic/au.ts`; telas em `views/AUBanner.tsx` e `share/AUsOfMyWorld.tsx`. Sem script novo no servidor.
 - **O livro não se personaliza no 3D nem no Folhear:** é sempre igual à diagramação.
 - **Wiki:** o Personalizar mora na página Wiki; Ajustes e Publicar têm só o atalho “Personalizar e ver como fica”.
 - **Bônus de espécie** ficam na ficha de jogo como `bonuses` (sincronizados com o Mundo) e são somados onde o atributo é lido (`attributeOf`, rolagens, Codex). Editar mexe no valor base.

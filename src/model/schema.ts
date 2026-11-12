@@ -620,6 +620,11 @@ export const universeSettingsSchema = z.object({
    * (Hemingway parava sabendo o que vinha a seguir). Aparece no Início e no fim da cena.
    */
   nextNote: z.object({ text: z.string(), sceneId: z.string().nullable(), at: z.string() }).nullable().default(null),
+  /**
+   * Universos alternativos (AU): quem o autor autorizou a criar um AU deste mundo. Guarda só um
+   * resumo (SHA-256) de cada e-mail, para a lista não mostrar os endereços a quem lê a cópia.
+   */
+  au: z.object({ allowed: z.array(z.string()).default([]) }).optional().catch(undefined),
 })
 
 /**
@@ -763,6 +768,23 @@ export const universeSchema = z.object({
   cloudCopyOf: z.string().nullable().default(null),
   /** De onde veio a versão guardada: da nuvem (conflito), de um backup, ou era o universo antes de uma troca. */
   versionKind: z.enum(['nuvem', 'backup', 'anterior']).nullable().default(null),
+  /**
+   * Universo alternativo (AU): nasceu do mundo de outra pessoa. `items` guarda, para cada coisa que
+   * veio do original (fichas, ligações, datas, mapas e as histórias, que viram lore), um resumo do
+   * jeito que ela chegou: se mudar aqui, o resumo não bate e ela aparece como "Mudou no AU".
+   */
+  derivedFrom: z
+    .object({
+      ownerId: z.string(),
+      ownerEmail: z.string(),
+      universeId: z.string(),
+      name: z.string(),
+      at: z.string(),
+      items: z.record(z.string(), z.string()),
+    })
+    .nullable()
+    .optional()
+    .catch(undefined),
   settings: universeSettingsSchema,
   /** Total de palavras no início de cada dia (AAAA-MM-DD), para metas diárias. */
   dailyStart: z.record(z.string(), z.number()),

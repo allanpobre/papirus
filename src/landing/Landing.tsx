@@ -482,6 +482,7 @@ const WORLD = [
   { icon: Layers, title: 'Efeito dominó', text: '“E se sumir?” mostra o que cai junto quando uma ficha some do mundo.' },
   { icon: Dices, title: 'No jogo', text: 'espécie e cultura dão os bônus na ficha de jogo da mesa.' },
   { icon: FolderInput, title: 'Trazer de outros apps', text: 'notas do Obsidian, Kanka e World Anvil.' },
+  { icon: Sparkles, title: 'Universos alternativos', text: 'quem você autorizar cria um AU do seu mundo, sem os segredos; você escolhe o que dele vira canon.' },
   { icon: Globe, title: 'Wiki do mundo', text: 'um site para leitores ou jogadores, em quatro estilos, sem segredos e, se quiser, sem spoiler.' },
 ] as const
 

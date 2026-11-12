@@ -9801,3 +9801,68 @@ h3.cork-act {
     height: 62vh;
   }
 }
+
+/* ---------------------------------------------------------------- Universo alternativo (AU) */
+
+.au-chip {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font: 500 0.68rem/1.5 var(--font-ui, system-ui, sans-serif);
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.au-chip-mudou {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  color: var(--accent);
+}
+
+.au-chip-novo {
+  border-color: color-mix(in srgb, var(--area-fichas) 45%, var(--line));
+  color: var(--area-fichas);
+}
+
+.au-banner {
+  border-color: color-mix(in srgb, var(--area-tramas) 35%, var(--line));
+  background: color-mix(in srgb, var(--area-tramas) 7%, var(--paper));
+}
+
+.au-lore {
+  margin-bottom: 0.75rem;
+}
+
+.au-list,
+.au-news {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.au-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.au-canon {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.au-kind {
+  color: var(--muted);
+  font-size: 0.78rem;
+}

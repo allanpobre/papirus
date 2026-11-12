@@ -74,6 +74,7 @@ import { NextNote } from '../NextNote'
 import { nextNoteOf, todayTarget } from '../../logic/homeToday'
 import { TextMenu } from './TextMenu'
 import { FindBar } from './FindBar'
+import { isLore } from '../../logic/au'
 import { SceneFrame, saveMode, savedMode, WritingModes, type WritingMode } from './WritingModes'
 
 type Dialog =
@@ -151,6 +152,8 @@ export default function WriteView() {
 
   // Se a cena aberta não existe (apagada, desfeita, outro universo), cai para a primeira.
   const scene = (sceneId ? byId(universe, 'scenes', sceneId) : undefined) ?? order[0]
+  // Num AU, as cenas do original são lore: dá para ler, não para mudar.
+  const lore = isLore(universe, scene?.id)
 
   // Conta para quem mais está no universo qual cena está aberta aqui.
   const { setEditingScene } = ws
@@ -561,6 +564,7 @@ export default function WriteView() {
               rows={1}
               value={scene.title === DEFAULT_SCENE_TITLE ? '' : scene.title}
               placeholder="Título (opcional)"
+              readOnly={ws.readOnly || lore}
               // O título quebra a linha em vez de ser cortado; Enter não cria parágrafo.
               ref={growTitle}
               onKeyDown={(e) => {
@@ -683,15 +687,20 @@ export default function WriteView() {
                 </span>
               </p>
             )}
+            {lore && (
+              <p className="notice small au-lore" role="status">
+                Esta cena é do original, de {ws.universe.derivedFrom ? ws.universe.derivedFrom.ownerEmail.split('@')[0] : 'outra pessoa'}: é lore, dá para ler, não para mudar. Escreva as suas numa história nova.
+              </p>
+            )}
             <SceneEditor
               key={`${scene.id}:${editorNonce}:${ws.remoteRev[scene.id] ?? 0}`}
-              editable={!ws.readOnly}
+              editable={!ws.readOnly && !lore}
               doc={scene.doc}
               onChange={onChange}
               onCursorParagraph={setParagraph}
               matcher={matcher}
               actions={actions}
-              showToolbar={prefs.toolbar && !focus && !ws.readOnly}
+              showToolbar={prefs.toolbar && !focus && !ws.readOnly && !lore}
               onReady={(ed) => {
                 editorRef.current = ed
                 setEditor(ed)
