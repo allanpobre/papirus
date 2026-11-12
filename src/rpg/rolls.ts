@@ -1,6 +1,7 @@
 import { physicalRandom, roll, type DiceRoll } from '../logic/dice'
 import { fold } from '../logic/text'
 import type { GameSystem, Sheet } from '../model/schema'
+import { bonusOf } from './worldBonuses'
 
 /** Modificador de um atributo conforme a regra do sistema. */
 export function modifier(system: GameSystem, value: number): number {
@@ -26,7 +27,7 @@ export interface FormulaContext {
 const attrValue = (ctx: FormulaContext, id: string | null | undefined) => {
   if (!id) return 0
   const a = ctx.system.attributes.find((x) => x.id === id)
-  return ctx.sheet?.attributes[id] ?? a?.default ?? 0
+  return (ctx.sheet?.attributes[id] ?? a?.default ?? 0) + bonusOf(ctx.sheet, id)
 }
 
 /**

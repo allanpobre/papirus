@@ -12,7 +12,7 @@ import { openRequests, requestTargets } from '../rpg/requests'
 import { fightPhase, sideTurn, turnQueue } from '../rpg/fight'
 import { currentBeat, sharedClocks } from '../rpg/stage'
 import { attributeExpression, bonusLabel, damageExpression, expandFormula, skillExpression, type RollRules } from '../rpg/rolls'
-import { costResource, critFrom, critMult, isPool } from '../rpg/sheets'
+import { attributeOf, costResource, critFrom, critMult, isPool } from '../rpg/sheets'
 import { playerSheetsFull } from '../rpg/joinSheets'
 
 /**
@@ -125,7 +125,7 @@ function rollsOf(system: GameSystem, s: Sheet): CodexRoll[] {
       kind: 'atributo',
       name: a.name,
       expression: attributeExpression(system, s, a.id),
-      ...(below ? { target: s.attributes[a.id] ?? a.default } : {}),
+      ...(below ? { target: attributeOf(system, s, a.id) } : {}),
     })),
     ...system.skills.map((k): CodexRoll => ({
       kind: 'pericia',
@@ -222,7 +222,7 @@ export function codexSnapshot(universe: Universe, groupId: string, untilSession?
         player: s.player,
         ...(away !== 'joga' ? { away } : {}),
         fields: Object.entries(s.fields).filter(([, v]) => v.trim()),
-        attrs: (system?.attributes ?? []).map((a) => [a.abbr, s.attributes[a.id] ?? a.default] as [string, number]),
+        attrs: (system?.attributes ?? []).map((a) => [a.abbr, system ? attributeOf(system, s, a.id) : (s.attributes[a.id] ?? a.default)] as [string, number]),
         ...(portrait ? { image: portrait } : {}),
         pools: (system?.resources ?? []).filter(isPool).map((r) => [r.abbr, res(r.id, r.default).current, res(r.id, r.default).max] as [string, number, number]),
         values: (system?.resources ?? []).filter((r) => !isPool(r)).map((r) => [r.abbr, res(r.id, r.default).current] as [string, number]),

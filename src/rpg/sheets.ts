@@ -1,3 +1,4 @@
+import { bonusOf } from './worldBonuses'
 import type { GameSystem, Sheet } from '../model/schema'
 
 export type SheetDraft = Omit<Sheet, 'id' | 'createdAt' | 'updatedAt'>
@@ -38,6 +39,11 @@ export function adjustResource(sheet: Sheet, resourceId: string, delta: number):
 
 /** Valor de um atributo na ficha, ou o padrão do sistema. */
 export function attributeOf(system: GameSystem, sheet: Sheet, attributeId: string): number {
+  return baseAttributeOf(system, sheet, attributeId) + bonusOf(sheet, attributeId)
+}
+
+/** O valor escrito na ficha, sem os bônus do mundo (é o que se edita). */
+export function baseAttributeOf(system: GameSystem, sheet: Sheet, attributeId: string): number {
   return sheet.attributes[attributeId] ?? system.attributes.find((a) => a.id === attributeId)?.default ?? 0
 }
 

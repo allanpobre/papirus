@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import type { Entity, Sheet } from '../model/schema'
 import { byId } from '../model/universe'
 import { sheetsOf } from '../rpg/oneCharacter'
+import { attributeOf } from '../rpg/sheets'
 import { useWorkspace } from '../state/workspace'
 
 /**
@@ -69,7 +70,7 @@ function GameSheet({ sheet: s }: { sheet: Sheet }) {
           {system.attributes.map((a) => (
             <div key={a.id}>
               <dt title={a.name}>{a.abbr || a.name}</dt>
-              <dd className="tabular">{s.attributes[a.id] ?? a.default}</dd>
+              <dd className="tabular">{attributeOf(system, s, a.id)}</dd>
             </div>
           ))}
         </dl>

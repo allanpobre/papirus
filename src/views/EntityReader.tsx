@@ -159,6 +159,12 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           </div>
         )}
         {e.summary && <p className="reader-lede">{rich(e.summary)}</p>}
+        {e.game && (e.game.traits.length > 0 || Object.keys(e.game.mods).length > 0) && (
+          <p className="reader-game small">
+            <Dices size={14} aria-hidden="true" /> No jogo:{' '}
+            {[...Object.entries(e.game.mods).map(([k, n]) => `${n > 0 ? '+' : ''}${n} ${k}`), ...e.game.traits].join(' · ')}
+          </p>
+        )}
         <MembershipChips entity={e} />
       </div>
 

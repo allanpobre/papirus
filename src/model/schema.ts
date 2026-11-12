@@ -151,6 +151,11 @@ export const entitySchema = z.object({
   lists: z.array(entityListSchema).optional(),
   /** Fica fora da wiki do mundo, sem ser segredo (o nome pode aparecer no texto de outras fichas). */
   wikiHidden: z.boolean().optional(),
+  /**
+   * "No jogo" (espécies, culturas e origens): traços e modificadores para a Mesa, separados da história.
+   * Os modificadores são pela sigla do atributo ("FOR": 2), para valer em qualquer sistema com a mesma sigla.
+   */
+  game: z.object({ traits: z.array(z.string()).default([]), mods: z.record(z.string(), z.number()).default({}) }).optional(),
   ...timestamps,
 })
 
@@ -334,6 +339,12 @@ export const sheetSchema = z.object({
   notes: z.string(),
   /** Retrato do personagem ("img:…"). Sem retrato próprio, vale o da ficha do mundo ligada. */
   image: z.string().nullable().optional(),
+  /**
+   * Bônus que vêm do mundo (a espécie, a cultura…): somados ao atributo e mostrados à vista.
+   * O Papirus mantém isto em dia a partir das fichas ligadas; `bonusesOff` desliga nesta ficha.
+   */
+  bonuses: z.array(z.object({ sourceId: z.string(), name: z.string(), attrs: z.record(z.string(), z.number()), traits: z.array(z.string()) })).optional(),
+  bonusesOff: z.boolean().optional(),
   /** Ataques: bônus do teste, dano (dados, pode usar {FOR}…) e margem de crítico ("19/x2"). */
   attacks: z.array(attackSchema).default([]),
   /** Poderes, magias e habilidades, com custo no recurso de mana/esforço. */

@@ -5,6 +5,7 @@ import type { GameSystem, Sheet } from '../../model/schema'
 import { byId, newId, patch } from '../../model/universe'
 import { attributeExpression, bonusLabel, damageExpression, expandFormula, modifier, rollAttribute, rollInitiative, rollSkill } from '../../rpg/rolls'
 import { adjustResource, attributeOf, costResource, isPool } from '../../rpg/sheets'
+import { bonusOf } from '../../rpg/worldBonuses'
 import { Picture } from '../../images/Picture'
 import { useImagePicker } from '../../images/useImagePicker'
 import { useWorkspace } from '../../state/workspace'
@@ -100,15 +101,33 @@ export function SheetPlay({ sheet: s, system }: { sheet: Sheet; system: GameSyst
             {system.attributes.map((a) => {
               const v = attributeOf(system, s, a.id)
               const expr = attributeExpression(system, s, a.id)
+              const extra = bonusOf(s, a.id)
               return (
                 <button key={a.id} type="button" className="sp-attr" aria-label={`Rolar ${a.name}: ${bonusLabel(expr)}`} onClick={() => report(rollAttribute(system, s, a.id), s.name)}>
                   <span className="sp-attr-abbr">{a.abbr}</span>
                   <span className="sp-attr-value tabular">{system.modifierRule === 'd20' ? v : signed(v)}</span>
                   {system.modifierRule === 'd20' && <span className="sp-attr-mod tabular">{signed(modifier(system, v))}</span>}
+                  {extra !== 0 && (
+                    <span className="sp-attr-bonus tabular" title={(s.bonuses ?? []).filter((b) => b.attrs[a.id]).map((b) => `${signed(b.attrs[a.id])} ${b.name}`).join(', ')}>
+                      {signed(extra)} {(s.bonuses ?? []).find((b) => b.attrs[a.id])?.name}
+                    </span>
+                  )}
                 </button>
               )
             })}
           </div>
+        </section>
+      )}
+
+      {!s.bonusesOff && (s.bonuses ?? []).some((b) => b.traits.length) && (
+        <section className="sp-block sp-traits" aria-label="Traços do mundo">
+          {(s.bonuses ?? [])
+            .filter((b) => b.traits.length)
+            .map((b) => (
+              <p key={b.sourceId} className="small">
+                <strong>{b.name}:</strong> {b.traits.join(' · ')}
+              </p>
+            ))}
         </section>
       )}
 
