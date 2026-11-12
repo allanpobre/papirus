@@ -306,6 +306,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     status,
     source,
     sceneId: editingScene,
+    entityId: nav.view === 'fichas' ? (nav.id ?? null) : null,
     applyRemote,
     notify: (message, tone) => toast(message, { tone }),
   })

@@ -2,6 +2,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Lock, Shuffle } from 'luci
 import { Fragment, useMemo, useState } from 'react'
 import { worldLevel } from '../model/kind'
 import { DominoDialog } from './DominoDialog'
+import { TogetherHere } from './TogetherHere'
 import { factSentence } from '../logic/codex'
 import { appearancesOf } from '../logic/appearances'
 import { sessionsOf } from '../rpg/oneCharacter'
@@ -145,6 +146,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
         {modeSwitch}
       </header>
       {dominoOpen && <DominoDialog entity={e} onClose={() => setDominoOpen(false)} />}
+      <TogetherHere entityId={e.id} />
 
       <div className="reader-title">
         <p className="eyebrow">

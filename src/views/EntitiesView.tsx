@@ -26,6 +26,7 @@ import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { worldLevel } from '../model/kind'
 import { GameRules } from './GameRules'
+import { TogetherHere } from './TogetherHere'
 import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
@@ -524,6 +525,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
   return (
     <article className="entity">
+      <TogetherHere entityId={e.id} />
       <header className="entity-head">
         <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => goBack('fichas', null)}>
           <ArrowLeft size={18} />
