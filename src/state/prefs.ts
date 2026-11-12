@@ -98,6 +98,7 @@ export const DEFAULT_PREFS: Prefs = {
 }
 
 const KEY = 'papirus:prefs'
+const SECTORS: Prefs['sector'][] = ['escrita', 'rpg', 'oficina']
 const OLD_PHONE_SHORTCUTS = 'inicio,escrever,livro,fichas'
 
 function read(): Prefs {
@@ -108,6 +109,10 @@ function read(): Prefs {
     // A barra padrão antiga (Início, Escrever, Livro, Mundo) foi gravada com as outras preferências
     // por quem nunca escolheu atalhos: essa pessoa ganha a barra padrão nova.
     if (saved.phoneShortcuts?.join() === OLD_PHONE_SHORTCUTS) delete saved.phoneShortcuts
+    // Um setor que não existe mais (o "Mundos", que durou pouco) volta para a Escrita.
+    if (saved.sector && !SECTORS.includes(saved.sector)) delete saved.sector
+    // A Wiki deixou de ser área do menu: se ficou guardada como escondida, deixa de estar.
+    if (saved.menus) saved.menus = Object.fromEntries(Object.entries(saved.menus).map(([k, v]) => [k, (v ?? []).filter((x) => (x as string) !== 'wiki')]))
     return { ...DEFAULT_PREFS, ...saved, continuity: { ...DEFAULT_PREFS.continuity, ...saved.continuity } }
   } catch {
     return DEFAULT_PREFS

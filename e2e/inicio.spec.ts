@@ -105,3 +105,15 @@ test.describe('no celular', () => {
     await expect(page.getByRole('button', { name: 'Seus universos' })).toBeVisible()
   })
 })
+
+test('um setor guardado que não existe mais (o "Mundos") não derruba o app', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem('semeado')) {
+      localStorage.setItem('papirus:prefs', JSON.stringify({ sector: 'mundo', onboarded: true, menus: { escrita: ['rpg', 'wiki'] } }))
+      sessionStorage.setItem('semeado', '1')
+    }
+  })
+  await page.goto('/app/')
+  await expect(page.getByText('O Papirus encontrou um erro.')).toHaveCount(0)
+  await expect(page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Escrita' })).toHaveAttribute('aria-current', 'page')
+})

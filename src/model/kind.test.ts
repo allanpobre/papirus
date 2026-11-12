@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createUniverse } from './universe'
+import { universeSchema } from './schema'
 import { applyTemplate } from './templates'
 import { CAMPAIGN_HIDDEN, firstView, hiddenViewsFor, universeKind, worldLevel } from './kind'
 
@@ -32,5 +33,13 @@ describe('setores: escrita ou campanha', () => {
     const simple = { ...u, settings: { ...u.settings, worldLevel: 'simples' as const } }
     expect(hiddenViewsFor(simple, {})).toEqual(expect.arrayContaining(['tramas', 'conhecimento']))
     expect(hiddenViewsFor(u, {})).not.toContain('tramas')
+  })
+
+  it('um universo criado como "mundo" (tipo que durou pouco) abre como escrita', () => {
+    const u = createUniverse('Terras')
+    const parsed = universeSchema.parse({ ...u, settings: { ...u.settings, kind: 'mundo', worldLevel: 'simples' } })
+    expect(parsed.settings.kind).toBeUndefined()
+    expect(universeKind(parsed)).toBe('escrita')
+    expect(worldLevel(parsed)).toBe('simples')
   })
 })
