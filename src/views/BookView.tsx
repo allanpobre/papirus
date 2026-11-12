@@ -22,7 +22,6 @@ import { readersSummary, useBookReaders } from './readersData'
 import { ViewTop } from '../ui/ViewTop'
 import { Modal } from '../ui/Modal'
 import { WikiCard } from './WikiCard'
-import { coverLook } from '../ui/coverLook'
 
 const BookFlip = lazy(() => import('../book/BookFlip'))
 
@@ -499,7 +498,6 @@ function Book3D({ book, title, disabled, onOpen }: { book: BookRecord; title: st
   const [ry, setRy] = useState(-24)
   const [dragging, setDragging] = useState(false)
   const drag = useRef<{ x: number; ry: number; moved: boolean } | null>(null)
-  const tone = coverLook(title).tone
   return (
     <button
       type="button"
@@ -534,15 +532,19 @@ function Book3D({ book, title, disabled, onOpen }: { book: BookRecord; title: st
         onOpen()
       }}
     >
-      <span className={`book3d${dragging ? ' dragging' : ''}`} style={{ '--ry': `${ry}deg`, '--tone': tone } as React.CSSProperties}>
+      <span className={`book3d${dragging ? ' dragging' : ''}`} style={{ '--ry': `${ry}deg` } as React.CSSProperties}>
         <span className="book3d-front">
           <Cover book={book} title={title} />
         </span>
-        <span className="book3d-spine" aria-hidden="true">
+        {/* Lombada e verso seguem a capa: a imagem dela (escurecida) ou a cor da capa sem imagem. */}
+        <span className="book3d-spine" aria-hidden="true" style={book.cover ? { backgroundImage: `linear-gradient(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.4)), url("${book.cover}")` } : undefined}>
           <span>{title}</span>
         </span>
         <span className="book3d-pages" aria-hidden="true" />
-        <span className="book3d-back" aria-hidden="true" />
+        {/* O verso é a contracapa escolhida na diagramação; sem ela, a capa desfocada (ou a cor dela). */}
+        <span className="book3d-back" aria-hidden="true">
+          {book.backCover ? <img src={book.backCover} alt="" /> : book.cover ? <span className="book3d-back-blur" style={{ backgroundImage: `url("${book.cover}")` }} /> : null}
+        </span>
       </span>
     </button>
   )
