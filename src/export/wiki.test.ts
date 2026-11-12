@@ -121,3 +121,12 @@ describe('wiki personalizada', () => {
     expect(data.mundo).toMatchObject({ nome: 'Ostria para jogadores', autor: 'Ana' })
   })
 })
+
+describe('lendas e documentos', () => {
+  it('saem como documento na wiki, no grupo próprio', () => {
+    const [u] = insert(createUniverse('W'), 'entities', { ...draftEntity('documento', 'A Canção do Farol'), description: 'Quando a névoa sobe, o farol canta.' })
+    const { html } = buildWiki(u, { upTo: null })
+    expect(html).toContain('<div class="doc-text"><p>Quando a névoa sobe, o farol canta.</p></div>')
+    expect(html).toContain('Lendas e documentos')
+  })
+})

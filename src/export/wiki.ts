@@ -180,7 +180,7 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
 <header><p class="kind">${esc(kindLabel(e.kind))}</p><h2>${esc(e.name)}</h2>${e.aliases.length ? `<p class="aliases">Também: ${e.aliases.map(esc).join(', ')}</p>` : ''}</header>
 ${summary.trim() ? `<p class="summary">${linked(summary, e.id)}</p>` : ''}
 ${box ? `<aside class="infobox">${box}</aside>` : ''}
-${description.trim() ? paras(description, e.id) : ''}
+${description.trim() ? (e.kind === 'documento' ? `<div class="doc-text">${paras(description, e.id)}</div>` : paras(description, e.id)) : ''}
 ${rels.length ? `<h3>Ligações</h3><ul>${[...new Set(rels.map((r) => r.text))].map((t) => `<li>${linked(t, e.id)}</li>`).join('')}</ul>` : ''}
 ${fs.length ? `<h3>O que se sabe</h3><ul>${[...new Set(fs.map((f) => f.text))].map((t) => `<li>${linked(t, e.id)}</li>`).join('')}</ul>` : ''}
 ${evs.length ? `<h3>Na linha do tempo</h3><ul>${evs.map((ev) => `<li><span class="when">${esc(ev.when)}</span> ${linked(ev.title, e.id)}</li>`).join('')}</ul>` : ''}
@@ -252,7 +252,7 @@ main{min-width:0}.entry{background:var(--paper);border:1px solid var(--line);bor
 h3{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 6px}
 dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:0;font-size:15px}dt{color:var(--muted);font-size:13px;line-height:1.75}dd{margin:0}
 ul{margin:0;padding-left:1.2rem}.cites{margin:0}.when{color:var(--muted);font-size:13px;margin-right:6px}
-.timeline{list-style:none;padding:0;margin:12px 0 0;border-left:2px solid var(--line)}.timeline li{position:relative;padding:0 0 14px 18px;display:grid}
+.doc-text{margin:12px 0;padding:4px 0 4px 18px;border-left:3px solid var(--accent);font-style:italic;font-size:1.05rem}.timeline{list-style:none;padding:0;margin:12px 0 0;border-left:2px solid var(--line)}.timeline li{position:relative;padding:0 0 14px 18px;display:grid}
 .timeline li::before{content:'';position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
 .pager{display:flex;justify-content:space-between;gap:12px;margin-top:24px;padding-top:12px;border-top:1px solid var(--line);font-size:14px}.pager a{text-decoration:none;padding:6px 0}
 .hero{border-radius:16px;padding:40px 28px 24px;margin-bottom:16px;color:#fff;background:linear-gradient(135deg,var(--tone),color-mix(in srgb,var(--tone) 55%,#000));background-size:cover;background-position:center;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end}

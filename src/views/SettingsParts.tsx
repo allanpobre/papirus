@@ -77,6 +77,7 @@ const FIELD_EXAMPLES: Record<string, string> = {
   especie: 'Ex.: Aparência, Habitat, Quanto vive',
   reino: 'Ex.: Governo, Capital, Moeda',
   conceito: 'Ex.: O que é, Quem sabe, Um exemplo',
+  documento: 'Ex.: Forma, Quem escreveu, Quando',
 }
 
 /** Campos sugeridos por tipo de ficha: toda ficha nova do tipo já nasce com eles. */

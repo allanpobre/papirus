@@ -648,6 +648,7 @@ button.chip:hover {
 .kind-artefato { --k: var(--kind-artefato); }
 .kind-especie { --k: var(--kind-especie); }
 .kind-conceito { --k: var(--kind-conceito); }
+.kind-documento { --k: var(--kind-documento); }
 
 .kind-dot[class*='kind-'] {
   background: var(--k, var(--kind-outro));

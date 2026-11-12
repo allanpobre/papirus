@@ -184,7 +184,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           </aside>
         )}
 
-        <div className="reader-text">
+        <div className={`reader-text${e.kind === 'documento' ? ' reader-doc' : ''}`}>
           {paragraphs.length ? (
             paragraphs.map((p, i) => (
               <p key={i}>{rich(p)}</p>
