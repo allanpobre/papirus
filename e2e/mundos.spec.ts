@@ -76,3 +76,19 @@ test('mundo: escrever uma lenda pelo Início', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Nova lenda' })).toBeVisible()
   await expect(page.locator('.entity-row', { hasText: 'Nova lenda' })).toContainText('Lenda ou documento')
 })
+
+test('mundo: trazer notas do Obsidian', async ({ page }) => {
+  await page.goto('/app/')
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mundos' }).click()
+  await page.getByRole('textbox', { name: 'Nome do mundo' }).fill('Cofre')
+  await page.getByRole('button', { name: 'Criar mundo' }).click()
+  await page.getByRole('button', { name: 'Trazer de outro app' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Trazer de outro app' })
+  await dialog.locator('input[type=file]').setInputFiles([
+    { name: 'Kael.md', mimeType: 'text/markdown', buffer: Buffer.from('---\ntype: personagem\n---\nContrabandista do porto, irmão de [[Mira]].') },
+    { name: 'Mira.md', mimeType: 'text/markdown', buffer: Buffer.from('---\ntype: character\n---\nA herdeira que não sabe quem é.') },
+  ])
+  await expect(dialog.getByText(/Achei 2 fichas/)).toBeVisible()
+  await dialog.getByRole('button', { name: 'Trazer 2 fichas' }).click()
+  await expect(page.getByRole('button', { name: /2 personagens/ })).toBeVisible()
+})

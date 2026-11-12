@@ -9483,3 +9483,7 @@ h3.cork-act {
 .atlas-image.painting .atlas-region-label {
   pointer-events: none;
 }
+
+.foreign-found p {
+  margin: 0 0 0.6rem;
+}
