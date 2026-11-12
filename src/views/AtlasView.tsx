@@ -14,10 +14,9 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
-import { chosenYear, timeKey } from './TimeMachine'
+import { chosenYear, rememberYear } from './TimeMachine'
 import { existsIn } from '../logic/timeMachine'
 import { formatYear } from '../model/labels'
-import { remember } from '../state/prefs'
 
 /** Um pergaminho em branco, para posicionar lugares sem ter um mapa desenhado. */
 function blankParchment(): { data: string; width: number; height: number } {
@@ -129,6 +128,8 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   // Mover pelo toque: escolhe "Mover" no cartão e toca no lugar novo.
   const [moving, setMoving] = useState<string | null>(null)
   // Mapa político: escolher de quem é a região e tocar os cantos no mapa.
+  // No celular, as ferramentas menos usadas ficam atrás de "Mais" (a barra não ocupa três linhas).
+  const [extra, setExtra] = useState(false)
   const [painting, setPainting] = useState<{ entityId: string | null; points: [number, number][] } | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
   const setRegions = (regions: Region[]) => update((u) => patch(u, 'maps', map.id, { regions }))
@@ -176,7 +177,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
 
   return (
     <div className="atlas">
-      <div className="atlas-toolbar">
+      <div className={`atlas-toolbar${extra ? ' show-extra' : ''}`}>
         <label htmlFor="map-name" className="sr-only">
           Nome do mapa
         </label>
@@ -186,7 +187,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         </button>
         <button
           type="button"
-          className={`btn btn-sm ${painting ? 'btn-primary' : 'btn-ghost'}`}
+          className={`btn btn-sm atlas-extra ${painting ? 'btn-primary' : 'btn-ghost'}`}
           aria-pressed={painting !== null}
           onClick={() => {
             setPainting(painting ? null : { entityId: null, points: [] })
@@ -196,7 +197,10 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         >
           <Hexagon size={15} /> {painting ? 'Pintando região…' : 'Pintar região'}
         </button>
-        <span className="atlas-zoom">
+        <button type="button" className="btn btn-ghost btn-sm atlas-more" aria-expanded={extra} onClick={() => setExtra((v) => !v)}>
+          {extra ? 'Menos' : 'Mais'}
+        </button>
+        <span className="atlas-zoom atlas-extra">
           <button type="button" className="btn-icon btn-sm" aria-label="Afastar" onClick={() => setZoom((z) => Math.max(0.5, z / 1.25))}>
             <Minus size={15} />
           </button>
@@ -206,7 +210,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </button>
         </span>
         {kinds.length > 1 && (
-          <span className="filter-chips">
+          <span className="filter-chips atlas-extra">
             {kinds.map((k) => (
               <button key={k} type="button" className="chip" aria-pressed={!hiddenKinds.has(k)} onClick={() => setHiddenKinds((h) => { const n = new Set(h); if (n.has(k)) n.delete(k); else n.add(k); return n })}>
                 {kindPlural(k)}
@@ -223,7 +227,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
               className="link-btn"
               onClick={() => {
                 setYear(null)
-                remember(timeKey(universe.id), null)
+                rememberYear(universe.id, null)
               }}
             >
               Ver todos os tempos
@@ -231,7 +235,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </span>
         )}
         {travelers.length > 0 && (
-          <label className="atlas-route-pick">
+          <label className="atlas-route-pick atlas-extra">
             <span className="small">Caminho de</span>
             <select className="input input-sm" value={traveler} onChange={(e) => setTraveler(e.target.value)}>
               <option value="">ninguém</option>
@@ -244,7 +248,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </label>
         )}
         <ConfirmButton
-          className="btn btn-ghost btn-sm"
+          className="btn btn-ghost btn-sm atlas-extra"
           question="Apagar este mapa e seus marcadores?"
           confirmLabel="Apagar mapa"
           onConfirm={() => undoable('Mapa apagado', (u) => remove(u, 'maps', map.id))}

@@ -134,20 +134,81 @@
   --shadow-page: 0 1px 0 rgb(0 0 0 / 20%), 0 16px 40px -20px rgb(0 0 0 / 60%);
 }
 
-/* Cores por tipo de ficha (grafo, atlas, listas). */
+/*
+ * Cores por tipo de ficha (grafo, atlas, listas) e por área do menu.
+ * Matizes bem separados (verde, azul, petróleo, magenta, laranja, violeta, lilás, ouro, lima,
+ * cinza-azulado, marrom), para cada tipo se reconhecer de relance; no escuro, versões mais claras.
+ */
 :root {
-  --kind-personagem: var(--accent);
-  --kind-lugar: var(--sky);
-  --kind-reino: #3f7f8f;
-  --kind-faccao: var(--wine);
-  --kind-cultura: var(--ochre);
-  --kind-religiao: var(--violet);
-  --kind-magia: #b0458f;
-  --kind-artefato: #8a6a2f;
-  --kind-especie: #5a7d2c;
-  --kind-conceito: var(--muted);
-  --kind-documento: #8b5e3c;
+  --kind-personagem: #17865a;
+  --kind-lugar: #1f68c9;
+  --kind-reino: #00838f;
+  --kind-faccao: #c2185b;
+  --kind-cultura: #d9620f;
+  --kind-religiao: #6a3fc7;
+  --kind-magia: #b23ab2;
+  --kind-artefato: #a17400;
+  --kind-especie: #5f8a00;
+  --kind-conceito: #5f7a88;
+  --kind-documento: #8d4f2b;
   --kind-outro: var(--ink-2);
+
+  --area-inicio: var(--accent);
+  --area-escrever: #1f68c9;
+  --area-livro: #d9620f;
+  --area-fichas: #17865a;
+  --area-tramas: #6a3fc7;
+  --area-rpg: #c62828;
+  --area-inbox: #a17400;
+  --area-archivist: #00838f;
+  --area-oficina: #b23ab2;
+  --area-config: var(--muted);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --kind-personagem: #5fd39a;
+    --kind-lugar: #7db3f5;
+    --kind-reino: #4fd1dc;
+    --kind-faccao: #f48fb1;
+    --kind-cultura: #ffa25e;
+    --kind-religiao: #b39dfa;
+    --kind-magia: #ec8cec;
+    --kind-artefato: #e6c04f;
+    --kind-especie: #b5d84a;
+    --kind-conceito: #a6b8c2;
+    --kind-documento: #d9a47c;
+    --area-escrever: #7db3f5;
+    --area-livro: #ffa25e;
+    --area-fichas: #5fd39a;
+    --area-tramas: #b39dfa;
+    --area-rpg: #f28b82;
+    --area-inbox: #e6c04f;
+    --area-archivist: #4fd1dc;
+    --area-oficina: #ec8cec;
+  }
+}
+
+:root[data-theme='dark'] {
+  --kind-personagem: #5fd39a;
+  --kind-lugar: #7db3f5;
+  --kind-reino: #4fd1dc;
+  --kind-faccao: #f48fb1;
+  --kind-cultura: #ffa25e;
+  --kind-religiao: #b39dfa;
+  --kind-magia: #ec8cec;
+  --kind-artefato: #e6c04f;
+  --kind-especie: #b5d84a;
+  --kind-conceito: #a6b8c2;
+  --kind-documento: #d9a47c;
+  --area-escrever: #7db3f5;
+  --area-livro: #ffa25e;
+  --area-fichas: #5fd39a;
+  --area-tramas: #b39dfa;
+  --area-rpg: #f28b82;
+  --area-inbox: #e6c04f;
+  --area-archivist: #4fd1dc;
+  --area-oficina: #ec8cec;
 }
 
 /* Cor de destaque escolhida em Ajustes → Aparência. Sem escolha, fica a viridiana. */
