@@ -607,8 +607,8 @@ export const universeSettingsSchema = z.object({
   /** Como a wiki do mundo sai (Mundo › Wiki › Personalizar). */
   wiki: wikiSettingsSchema.optional(),
   /** Escrita ou campanha de RPG: o setor em que o universo fica. Sem valor, o Papirus deduz. */
-  kind: z.enum(['escrita', 'campanha', 'mundo']).optional().catch(undefined),
-  /** Num mundo (worldbuilding): Simples mostra o essencial; Completo, tudo. Só esconde, nunca apaga. */
+  kind: z.enum(['escrita', 'campanha']).optional().catch(undefined),
+  /** O jeito do Mundo: Simples mostra o essencial nas fichas e no menu; Completo, tudo. Só esconde, nunca apaga. */
   worldLevel: z.enum(['simples', 'completo']).optional().catch(undefined),
   /** Os personagens de jogador de antes já ganharam a ficha no Mundo (uma vez por universo). */
   playersLinked: z.boolean().optional(),

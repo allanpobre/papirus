@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { QuestionType } from '../logic/continuity'
 import type { View } from './workspace'
-import { CAMPAIGN_SHORTCUTS, WORLD_SHORTCUTS, type UniverseKind } from '../model/kind'
+import { CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 
 /** Preferências deste navegador (não fazem parte do universo). */
 export interface Prefs {
@@ -24,7 +24,7 @@ export interface Prefs {
   /** Áreas escondidas do menu, por tipo de universo (continuam acessíveis pela busca e por links). */
   menus: Partial<Record<UniverseKind, View[]>>
   /** O setor aberto no início do app. */
-  sector: 'escrita' | 'mundo' | 'rpg' | 'oficina'
+  sector: 'escrita' | 'rpg' | 'oficina'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
   /** Último backup baixado e "lembrar depois", por universo (ISO). */
@@ -53,8 +53,6 @@ export interface Prefs {
   phoneShortcuts: View[]
   /** Os atalhos da barra de baixo numa campanha. */
   campaignShortcuts: View[]
-  /** Os atalhos da barra de baixo num mundo (worldbuilding). */
-  worldShortcuts: View[]
 }
 
 export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite' | 'rosa' | 'turquesa' | 'terracota'
@@ -97,7 +95,6 @@ export const DEFAULT_PREFS: Prefs = {
   autoBackup: false,
   phoneShortcuts: ['inicio', 'escrever', 'fichas', 'tramas'],
   campaignShortcuts: CAMPAIGN_SHORTCUTS,
-  worldShortcuts: WORLD_SHORTCUTS,
 }
 
 const KEY = 'papirus:prefs'

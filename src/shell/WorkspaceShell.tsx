@@ -53,7 +53,7 @@ import { useMesaSector } from '../rpg/useMesaSector'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
 import { syncWorldBonuses } from '../rpg/worldBonuses'
-import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, WORLD_SHORTCUTS, type UniverseKind } from '../model/kind'
+import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
@@ -493,9 +493,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
-            shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : kind === 'mundo' ? prefs.worldShortcuts : prefs.phoneShortcuts}
-            defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : kind === 'mundo' ? WORLD_SHORTCUTS : DEFAULT_SHORTCUTS}
-            onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : kind === 'mundo' ? 'worldShortcuts' : 'phoneShortcuts', v)}
+            shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
+            defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
+            onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
             onPlay={canPlayHere ? () => go('rpg') : undefined}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
@@ -592,7 +592,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
         <main id="conteudo" className="stage" tabIndex={-1}>
           {/* A capa do livro ao abrir um livro (não ao abrir direto na Mesa). A Mesa não tem porta: a abertura é a da sessão. */}
-          {kind === 'escrita' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
+          {kind !== 'campanha' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
           {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
           {/* Uma versão guardada aberta: fica claro que não é o universo, e dá para ficar com ela daqui. */}
           {universe.cloudCopyOf && source.kind === 'proprio' && (
@@ -1072,11 +1072,6 @@ function PhoneNav({
 
 /** A ordem do menu, fixa para cada tipo de universo: numa campanha, a Mesa vem logo depois do Início. */
 function navFor(kind: UniverseKind) {
-  if (kind === 'mundo') {
-    // Num mundo, o Mundo vem logo depois do Início, e a Wiki em seguida (o "livro" de quem só constrói mundo).
-    const world = NAV.filter((g) => g.items.some((i) => i.view === 'fichas' || i.view === 'wiki'))
-    return [NAV[0], ...world, ...NAV.slice(1).filter((g) => !world.includes(g))]
-  }
   if (kind !== 'campanha') return NAV
   const mesa = NAV.filter((g) => g.items.some((i) => i.view === 'rpg'))
   return [NAV[0], ...mesa, ...NAV.slice(1).filter((g) => !mesa.includes(g))]

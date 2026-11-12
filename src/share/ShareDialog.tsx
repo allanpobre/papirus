@@ -35,8 +35,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
   const [share, setShare] = useState<Share | null | undefined>(undefined)
   const [members, setMembers] = useState<Member[]>([])
   const [email, setEmail] = useState('')
-  // Num mundo, o convite mais comum é para construir junto: começa em "Pode editar".
-  const [role, setRoleChoice] = useState<Role>(() => (universe.settings.kind === 'mundo' ? 'editar' : 'ver'))
+  const [role, setRoleChoice] = useState<Role>('ver')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)

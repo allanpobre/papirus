@@ -2,10 +2,11 @@ import type { Universe } from './schema'
 import type { View } from '../state/workspace'
 
 /**
- * Os setores do Papirus: um universo é de escrita (livro, contos), uma campanha de RPG ou um
- * mundo (só worldbuilding). O tipo decide em que setor ele aparece, em que tela abre e o que o menu mostra.
+ * Os setores do Papirus: um universo é de escrita (livro, contos) ou uma campanha de RPG.
+ * O tipo decide em que setor ele aparece, em que tela abre e o que o menu mostra.
  */
-export type UniverseKind = 'escrita' | 'campanha' | 'mundo'
+export type UniverseKind = 'escrita' | 'campanha'
+/** O jeito do Mundo neste universo: Simples mostra o essencial; Completo, tudo. Só esconde, nunca apaga. */
 export type WorldLevel = 'simples' | 'completo'
 
 export function universeKind(u: Universe): UniverseKind {
@@ -17,16 +18,11 @@ export function universeKind(u: Universe): UniverseKind {
 /** O que uma campanha esconde do menu: a parte de escrever o livro. (A Oficina fica: tem guias para mestres.) */
 export const CAMPAIGN_HIDDEN: View[] = ['escrever', 'organizar', 'livro', 'conhecimento']
 
-/** O que um mundo esconde do menu: escrever e publicar o livro e a Mesa (ligam-se quando quiser). */
-export const WORLD_HIDDEN: View[] = ['escrever', 'organizar', 'livro', 'rpg']
-/** O que o nível Simples esconde a mais: a Trama (pistas e quem sabe o quê). */
+/** O que o nível Simples esconde a mais do menu: a Trama (pistas e quem sabe o quê). */
 export const SIMPLE_HIDDEN: View[] = ['tramas', 'conhecimento']
 
-/** Simples ou Completo (só vale num mundo; os outros tipos são sempre completos). */
-export const worldLevel = (u: Universe): WorldLevel => (universeKind(u) === 'mundo' && u.settings.worldLevel === 'simples' ? 'simples' : 'completo')
-
-/** Atalhos da barra de baixo no celular, num mundo. */
-export const WORLD_SHORTCUTS: View[] = ['inicio', 'fichas', 'wiki', 'inbox']
+/** Simples ou Completo (o padrão é Completo: quem já usa não vê nada mudar). */
+export const worldLevel = (u: Universe): WorldLevel => (u.settings.worldLevel === 'simples' ? 'simples' : 'completo')
 
 /** Atalhos da barra de baixo no celular, numa campanha. */
 export const CAMPAIGN_SHORTCUTS: View[] = ['rpg', 'fichas', 'tramas', 'inbox']
@@ -36,17 +32,13 @@ export const CAMPAIGN_SHORTCUTS: View[] = ['rpg', 'fichas', 'tramas', 'inbox']
  * padrão dele. Num universo de escrita, a mesa só aparece se já tiver uma.
  */
 export function hiddenViewsFor(u: Universe, menus: Partial<Record<UniverseKind, View[]>>, legacy: View[] = []): View[] {
-  const kind = universeKind(u)
-  // A área Wiki é só dos mundos.
-  return kind === 'mundo' ? hiddenFor(u, kind, menus, legacy) : [...hiddenFor(u, kind, menus, legacy), 'wiki']
+  const base = menuHidden(u, menus, legacy)
+  return worldLevel(u) === 'simples' ? [...new Set([...base, ...SIMPLE_HIDDEN])] : base
 }
 
-function hiddenFor(u: Universe, kind: UniverseKind, menus: Partial<Record<UniverseKind, View[]>>, legacy: View[]): View[] {
+function menuHidden(u: Universe, menus: Partial<Record<UniverseKind, View[]>>, legacy: View[]): View[] {
+  const kind = universeKind(u)
   const saved = menus[kind]
-  if (kind === 'mundo') {
-    const base = saved ?? WORLD_HIDDEN
-    return worldLevel(u) === 'simples' ? [...new Set([...base, ...SIMPLE_HIDDEN])] : base
-  }
   if (saved) return saved
   if (kind === 'campanha') return CAMPAIGN_HIDDEN
   // O "Só RPG" de antes (que tirava o Livro) não vale para quem escreve.

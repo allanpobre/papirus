@@ -49,12 +49,11 @@ export const NAV: { group: string; items: NavItem[] }[] = [
       { view: 'relacoes', label: 'Ligações', icon: Network, inside: 'fichas', words: 'relações grafo árvore da família parentes' },
       { view: 'timeline', label: 'Linha do tempo', icon: CalendarRange, inside: 'fichas', words: 'timeline eventos calendário eras idades' },
       { view: 'atlas', label: 'Mapas', icon: MapIcon, inside: 'fichas', words: 'atlas lugares marcadores caminho' },
+      { view: 'wiki', label: 'Wiki', icon: Globe, inside: 'fichas', words: 'wiki site exportar baixar enciclopédia' },
       { view: 'tramas', label: 'Trama', icon: Sprout, words: 'pistas e mistérios tramas sementes setup payoff' },
       { view: 'conhecimento', label: 'Quem sabe o quê', icon: Lightbulb, inside: 'tramas', words: 'conhecimento segredos fatos' },
     ],
   },
-  // A wiki como área própria só num mundo (nos outros tipos ela sai do Mundo e de Publicar).
-  { group: '', items: [{ view: 'wiki', label: 'Wiki', icon: Globe, words: 'wiki site exportar baixar publicar enciclopédia' }] },
   { group: '', items: [{ view: 'rpg', label: 'Mesa', icon: Dices, words: 'rpg mesa de rpg campanha sessões dados codex grupo jogadores' }] },
 ]
 
