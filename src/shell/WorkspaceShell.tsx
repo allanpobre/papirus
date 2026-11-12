@@ -1,6 +1,8 @@
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { relativeDate } from '../logic/relativeDate'
+import { canCreateAU, createAU } from '../logic/au'
+import { AUBanner } from '../views/AUBanner'
 import { keepVersion, versionLabel } from '../persistence/versions'
 import { createPortal } from 'react-dom'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -107,6 +109,8 @@ interface ToastItem extends ToastOptions {
 export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose, onOpenOther, source = OWN }: Props) {
   const { universe, status, update: write, flush, repo } = useUniverse(library, initial, recovered)
   const readOnly = isReadOnly(source)
+  // Quem só vê pode criar um AU se o autor autorizou (Compartilhar › "Pode ver e criar um AU").
+  const [auAllowed, setAuAllowed] = useState(false)
   // "Fica dentro de" agora é só de lugar: quem não é lugar passa para uma lista da ficha (uma vez, ao abrir).
   useEffect(() => {
     if (!readOnly) write((u) => migrateParents(u))
@@ -213,6 +217,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const lastBlocked = useRef(0)
   // Cada mudança feita aqui passa pela lixeira e pelo histórico, com o nome de quem fez.
   const account = useAccount()
+  const myEmail = account.user?.email
+  const auKey = (universe.settings.au?.allowed ?? []).join(',')
+  useEffect(() => {
+    if (source.kind !== 'ver') return
+    let off = false
+    void canCreateAU(universe, myEmail).then((ok) => !off && setAuAllowed(ok))
+    return () => {
+      off = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só a lista de autorizados importa
+  }, [source.kind, auKey, myEmail])
   // Desafio do dia, meta e medalhas: comemora o que for novo.
   usePlay(universe, library, readOnly, prefs.celebrate, toast)
   // Meta do dia batida: os amigos ficam sabendo (uma vez por dia; dá para desligar no perfil).
@@ -593,7 +608,15 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         <main id="conteudo" className="stage" tabIndex={-1}>
           {/* A capa do livro ao abrir um livro (não ao abrir direto na Mesa). A Mesa não tem porta: a abertura é a da sessão. */}
           {kind !== 'campanha' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
-          {source.kind !== 'proprio' && <SharedBanner source={source} onLeave={() => void ws.closeUniverse()} onRead={() => setReaderOpen(true)} />}
+          {source.kind !== 'proprio' && (
+            <SharedBanner
+              source={source}
+              onLeave={() => void ws.closeUniverse()}
+              onRead={() => setReaderOpen(true)}
+              onCreateAU={auAllowed && source.kind === 'ver' ? () => onOpenOther(createAU(universe, { id: source.ownerId, email: source.ownerEmail })) : undefined}
+            />
+          )}
+          {source.kind === 'proprio' && universe.derivedFrom && <AUBanner />}
           {/* Uma versão guardada aberta: fica claro que não é o universo, e dá para ficar com ela daqui. */}
           {universe.cloudCopyOf && source.kind === 'proprio' && (
             <div className="sample-banner version-banner" role="status">
@@ -1078,7 +1101,7 @@ function navFor(kind: UniverseKind) {
 }
 
 /** Faixa no topo de um universo de outra pessoa: de quem é e o que dá para fazer. */
-function SharedBanner({ source, onLeave, onRead }: { source: LiveSource; onLeave: () => void; onRead: () => void }) {
+function SharedBanner({ source, onLeave, onRead, onCreateAU }: { source: LiveSource; onLeave: () => void; onRead: () => void; onCreateAU?: () => void }) {
   if (source.kind === 'proprio') return null
   const owner = shortName(source.ownerEmail) || 'outra pessoa'
   return (
@@ -1099,6 +1122,11 @@ function SharedBanner({ source, onLeave, onRead }: { source: LiveSource; onLeave
           </>
         )}
       </span>
+      {onCreateAU && (
+        <button type="button" className="btn btn-sm btn-primary" onClick={onCreateAU} title="Um universo seu, a partir deste mundo, sem os segredos">
+          <Sparkles size={14} /> Criar um AU
+        </button>
+      )}
       <button type="button" className="btn btn-sm" onClick={onRead}>
         <BookOpen size={14} /> Ler como livro
       </button>

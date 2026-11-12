@@ -1,3 +1,4 @@
+import { OriginChip } from './AUBanner'
 import { NameIdeas } from './NameIdeas'
 import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
 import { Picture } from '../images/Picture'
@@ -286,7 +287,10 @@ export default function EntitiesView() {
                 ) : (
                 <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
                   {e.image ? <Picture value={e.image} className="entity-row-pic" /> : <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />}
-                  <span className="entity-row-name">{e.name || 'Sem nome'}</span>
+                  <span className="entity-row-name">
+                    {e.name || 'Sem nome'}
+                    <OriginChip item={e} />
+                  </span>
                   {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{kindLabel(e.kind)}</span>}
                   <span className="entity-row-summary">
                     {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}</span>}

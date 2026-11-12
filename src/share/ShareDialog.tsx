@@ -1,10 +1,12 @@
 import { isLocalOnly } from '../model/sample'
-import { BookOpen, Copy, Download, Eye, Link2, LogIn, Pencil, Trash2, Users } from 'lucide-react'
+import { BookOpen, Copy, Download, Eye, Link2, LogIn, Pencil, Sparkles, Trash2, Users } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { authClient, useAccount } from '../account/auth'
 import { upload } from '../account/cloud'
 import { useWorkspace } from '../state/workspace'
 import { Modal } from '../ui/Modal'
+import { emailHash, withAU } from '../logic/au'
+import { AUsOfMyWorld } from './AUsOfMyWorld'
 import { DEFAULT_PUBLIC_URL } from './server'
 import {
   invite,
@@ -28,14 +30,36 @@ import {
   type Share,
 } from './sharing'
 
-/** Compartilhar o universo aberto: convites por e-mail (ver ou editar) e o link de leitura. */
+/** O que cada pessoa pode fazer. "Criar um AU" é "ver" no servidor, mais a permissão guardada no universo. */
+type Choice = Role | 'au'
+const CHOICE_LABEL: Record<Choice, string> = { ...ROLE_LABEL, au: 'Pode ver e criar um AU' }
+const CHOICES: Choice[] = ['ver', 'au', 'editar']
+
+/** Compartilhar o universo aberto: convites por e-mail (ver, criar um AU ou editar) e o link de leitura. */
 export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAccount: () => void }) {
-  const { universe, flush, prefs } = useWorkspace()
+  const { universe, flush, prefs, update } = useWorkspace()
   const { user, server } = useAccount()
   const [share, setShare] = useState<Share | null | undefined>(undefined)
   const [members, setMembers] = useState<Member[]>([])
   const [email, setEmail] = useState('')
-  const [role, setRoleChoice] = useState<Role>('ver')
+  const [role, setRoleChoice] = useState<Choice>('ver')
+  // Quem pode criar um AU: o universo guarda só o resumo de cada e-mail.
+  const [auEmails, setAuEmails] = useState<Set<string>>(new Set())
+  const allowedKey = (universe.settings.au?.allowed ?? []).join(',')
+  useEffect(() => {
+    let off = false
+    const allowed = new Set(allowedKey ? allowedKey.split(',') : [])
+    void Promise.all(members.map(async (m) => [m.email, allowed.has(await emailHash(m.email))] as const)).then((pairs) => {
+      if (!off) setAuEmails(new Set(pairs.filter(([, on]) => on).map(([e]) => e)))
+    })
+    return () => {
+      off = true
+    }
+  }, [members, allowedKey])
+  const allowAU = async (who: string, on: boolean) => {
+    const h = await emailHash(who)
+    update((u) => withAU(u, h, on))
+  }
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -138,7 +162,8 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
     }
     void act(async () => {
       const client = await sb()
-      await invite(client, share, who, role)
+      await invite(client, share, who, role === 'au' ? 'ver' : role)
+      if (role === 'au') await allowAU(who, true)
       setMembers(await listMembers(client, user.id, universe.id))
       setEmail('')
       setNotice(`Pronto. Avise ${who}: é só entrar no Papirus com esse e-mail, e “${universe.name}” aparece em “Compartilhados com você”.`)
@@ -171,6 +196,9 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                 <Eye size={14} aria-hidden="true" /> <strong>Pode ver</strong>: lê tudo, não muda nada.
               </li>
               <li>
+                <Sparkles size={14} aria-hidden="true" /> <strong>Pode ver e criar um AU</strong>: faz um universo alternativo a partir do seu mundo, sem os segredos. Você escolhe o que dele vira canon.
+              </li>
+              <li>
                 <Pencil size={14} aria-hidden="true" /> <strong>Pode editar</strong>: escreve junto com você; as mudanças se juntam em segundos.
               </li>
               <li>
@@ -198,9 +226,12 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                <select className="input" aria-label="O que pode fazer" value={role} onChange={(e) => setRoleChoice(e.target.value as Role)}>
-                  <option value="ver">{ROLE_LABEL.ver}</option>
-                  <option value="editar">{ROLE_LABEL.editar}</option>
+                <select className="input" aria-label="O que pode fazer" value={role} onChange={(e) => setRoleChoice(e.target.value as Choice)}>
+                  {CHOICES.map((c) => (
+                    <option key={c} value={c}>
+                      {CHOICE_LABEL[c]}
+                    </option>
+                  ))}
                 </select>
                 <button type="submit" className="btn btn-primary" disabled={busy || !email.trim()}>
                   Convidar
@@ -225,18 +256,23 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                       <select
                         className="input input-sm"
                         aria-label={`O que ${m.email} pode fazer`}
-                        value={m.role}
+                        value={m.role === 'ver' && auEmails.has(m.email) ? 'au' : m.role}
                         disabled={busy}
                         onChange={(e) =>
                           void act(async () => {
-                            const next = e.target.value as Role
-                            await setRole(await sb(), share, m.email, next)
-                            setMembers((all) => all.map((x) => (x.email === m.email ? { ...x, role: next } : x)))
+                            const next = e.target.value as Choice
+                            const serverRole: Role = next === 'au' ? 'ver' : next
+                            await setRole(await sb(), share, m.email, serverRole)
+                            await allowAU(m.email, next === 'au')
+                            setMembers((all) => all.map((x) => (x.email === m.email ? { ...x, role: serverRole } : x)))
                           })
                         }
                       >
-                        <option value="ver">{ROLE_LABEL.ver}</option>
-                        <option value="editar">{ROLE_LABEL.editar}</option>
+                        {CHOICES.map((c) => (
+                          <option key={c} value={c}>
+                            {CHOICE_LABEL[c]}
+                          </option>
+                        ))}
                       </select>
                       <button
                         type="button"
@@ -247,6 +283,7 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                         onClick={() =>
                           void act(async () => {
                             await removeMember(await sb(), user.id, universe.id, m.email)
+                            if (auEmails.has(m.email)) await allowAU(m.email, false)
                             setMembers((all) => all.filter((x) => x.email !== m.email))
                           })
                         }
@@ -260,6 +297,8 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                 <p className="muted small">Ninguém convidado ainda.</p>
               )}
             </section>
+
+            <AUsOfMyWorld />
 
             <section className="share-section" aria-labelledby="share-link">
               <h3 id="share-link" className="share-title">

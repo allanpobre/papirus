@@ -26,6 +26,7 @@ O app abre num início com três setores. Cada um tem a sua cara (cores, letras 
   - **Simples ou Completo**, em qualquer universo: o Simples só esconde, nunca apaga.
   - **Semente do mundo** (cinco perguntas viram as primeiras fichas), **Máquina do tempo** (o mundo num ano, e o mapa acompanha), **lendas e documentos**, **efeito dominó** (“E se sumir?”) e **No jogo** (bônus de espécie e cultura na ficha de jogo).
   - **Trazer de outros apps:** Obsidian ou Markdown, Kanka, World Anvil e .zip.
+  - **Universos alternativos (AU):** quem o autor autorizar cria um AU a partir do mundo, com as histórias como lore (só leitura) e sem os segredos. O autor vê o que nasceu no AU e escolhe o que vira canon.
   - **Wiki do mundo:** um site num arquivo, sem segredos (e, se quiser, sem spoiler), em quatro estilos (Clássico, Moderno, Pergaminho e Noturno). A página Wiki mostra a prévia ao vivo e o Personalizar. Também em .md e .json.
 - **Trama:** pistas e mistérios, e quem sabe o quê (cada fato numa frase: se é verdade, quem sabe e se o leitor já viu). Segredos e trechos que o leitor só vê a partir de certa cena.
 - **Livro:** do manuscrito ao livro em cinco passos, cada um com o que achou: o texto, revisar, o que os leitores disseram, diagramar e baixar.
