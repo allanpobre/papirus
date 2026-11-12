@@ -1,6 +1,6 @@
 # Papirus
 
-**Versão 1.5.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
+**Versão 1.6.0** · [Abrir o Papirus](https://allanpobre.github.io/papirus/) · [Novidades](CHANGELOG.md)
 
 Escrita, mesa de RPG e oficina num app só. Para quem escreve histórias, mestra campanhas e constrói mundos.
 
@@ -22,9 +22,14 @@ O app abre num início com três setores. Cada um tem a sua cara (cores, letras 
   - A ficha vazia traz perguntas do tipo dela para começar, e o formulário fala em palavras simples (“É verdade no mundo?”, “Quão pronta”).
   - Ligações em grafo, que mudam cena a cena, e a árvore da família.
   - Linha do tempo com calendário próprio e a idade de cada um em cada evento.
-  - Atlas sobre a imagem do seu mapa.
+  - Atlas sobre a imagem do seu mapa, com o **mapa político** (regiões pintadas por quem manda, com fronteiras no tempo).
+  - **Simples ou Completo**, em qualquer universo: o Simples só esconde, nunca apaga.
+  - **Semente do mundo** (cinco perguntas viram as primeiras fichas), **Máquina do tempo** (o mundo num ano, e o mapa acompanha), **lendas e documentos**, **efeito dominó** (“E se sumir?”) e **No jogo** (bônus de espécie e cultura na ficha de jogo).
+  - **Trazer de outros apps:** Obsidian ou Markdown, Kanka, World Anvil e .zip.
+  - **Wiki do mundo:** um site num arquivo, sem segredos (e, se quiser, sem spoiler), em quatro estilos (Clássico, Moderno, Pergaminho e Noturno). A página Wiki mostra a prévia ao vivo e o Personalizar. Também em .md e .json.
 - **Trama:** pistas e mistérios, e quem sabe o quê (cada fato numa frase: se é verdade, quem sabe e se o leitor já viu). Segredos e trechos que o leitor só vê a partir de certa cena.
 - **Livro:** do manuscrito ao livro em cinco passos, cada um com o que achou: o texto, revisar, o que os leitores disseram, diagramar e baixar.
+  - O livro aparece em 3D, com a capa, a lombada e a contracapa da diagramação. **Folhear** mostra as páginas do PDF num livro aberto, duas lado a lado, com zoom.
   - Um “Baixar” só, sempre do livro: PDF diagramado para imprimir, EPUB, Word e texto.
   - Revisar em duas partes: a tipografia que o Papirus arruma sozinho e o que vale olhar, cena a cena.
   - Diagramação em começo, miolo e fim, com a página “Também de” e a capa para gráfica (lombada, capa inteira e molde).
@@ -117,7 +122,7 @@ A versão fica no `package.json` e aparece em Ajustes → Menu e ajuda e no roda
 - `src/oficina` — trilhas, exercícios, contas do texto, guias, gerador de ideias e progresso.
 - `src/treino` — treinos de escrita, histórico, nuvem e placar.
 - `src/social`, `src/account`, `src/share` — conta, amigos, estante, compartilhamento e Codex.
-- `src/reader`, `src/book`, `src/export` — modo leitor, diagramação e importação/exportação.
+- `src/reader`, `src/book`, `src/export`, `src/import` — modo leitor, diagramação, livro 3D e Folhear, wiki, exportações e trazer de outros apps.
 - `src/images` — imagens: encolher, guardar e sincronizar.
 - `src/model`, `src/logic`, `src/persistence` — formato dos dados e migrações, regras sem interface, armazenamento.
 - `src/styles` — tokens de design e estilos.
@@ -130,3 +135,4 @@ A versão fica no `package.json` e aparece em Ajustes → Menu e ajuda e no roda
 - [Princípios](docs/01-principios.md) — liberdade do autor acima de tudo
 - [Roadmap](docs/02-roadmap.md)
 - [Fase 1 — Escrita](docs/03-fase-1-escrita.md)
+- [Estado e próximos passos](docs/04-estado-e-proximos-passos.md) — onde o app está e por onde continuar

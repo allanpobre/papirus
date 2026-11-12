@@ -32,15 +32,17 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - `logic/` — regras sem tela: menções, segredos, leitor sem spoiler (`reader.ts`), frases de ligação (`relations.ts`, com o "é" de papéis), campos derivados e o worldbuilding:
   - `worldGaps.ts` (o que falta no mundo), `worldSeed.ts` (Semente do mundo), `timeMachine.ts` (o mundo num ano), `domino.ts` (e se a ficha sumir), `regions.ts` (mapa político).
 - `views/` — telas. Áreas: Início, Escrever, Publicar, Mundo (Fichas, Ligações, Linha do tempo, Mapas), Trama, Mesa (RPG), Ajustes. `AreaModes.tsx` = topo do Mundo/Trama (com o botão Wiki).
-  - Mundo: `WorldCard.tsx` (cartão no Início), `SeedDialog.tsx`, `TimeMachine.tsx` (na Linha do tempo), `DominoDialog.tsx` (na leitura da ficha), `GameRules.tsx` ("No jogo" de espécie/cultura), `ForeignImport.tsx`, `TogetherHere.tsx`, `WikiCard.tsx` + `WikiView.tsx` (página com prévia).
+  - Mundo: `WorldCard.tsx` (cartão no Início), `SeedDialog.tsx`, `TimeMachine.tsx` (na Linha do tempo), `DominoDialog.tsx` (na leitura da ficha), `GameRules.tsx` ("No jogo" de espécie/cultura), `ForeignImport.tsx`, `TogetherHere.tsx`, `WikiCard.tsx` (baixar; nas janelas, só o atalho) + `WikiView.tsx` (página Wiki: prévia ao vivo e Personalizar; o botão Wiki do Mundo leva para lá).
 - `shell/` — moldura do app, lista de universos e setores (Escrita, Mesa, Oficina), navegação (`nav.ts`), tours (`pageTours.ts`).
 - `state/` — `useWorkspace()` (`universe`, `update`, `go`, `others`…) e preferências (`prefs.ts`).
 - `persistence/` + `account/cloud.ts` — salvar local, versões e nuvem (duplas local/nuvem, conflitos).
-- `export/` — livro, wiki do mundo (`wiki.ts`: site, .md e .json; personalizável em `settings.wiki`), downloads.
+- `export/` — livro, wiki do mundo (`wiki.ts`: site, .md e .json; personalizável em `settings.wiki`, com 4 estilos em `wikiLook`), downloads.
+- `book/` — diagramação com Paged.js (`pagedDocument.ts`) e Folhear (`flip.ts` + `BookFlip.tsx`). O livro 3D fica em `views/BookView.tsx`.
 - `import/` — trazer de outros apps (`foreignWorld.ts`: Obsidian/Markdown, Kanka, World Anvil, .zip via `fflate`).
 - `rpg/` — sistemas, fichas de jogo, rolagens, combate; `worldBonuses.ts` leva os bônus da espécie/cultura para a ficha de jogo.
 - `player/`, `share/` — celular do jogador, canal da mesa, compartilhar e presença ao vivo (`useLiveSync.ts`, com a ficha aberta).
-- `ui/` — peças comuns (`ViewTop`, `Modal`, capa gerada…). `styles/` — CSS por área (`views.css` é o maior; blocos novos vão no fim).
+- `landing/` — a apresentação (`/`): `Landing.tsx`, telinhas em `Demos.tsx`, Mundo e Livro em `WorldDemos.tsx`.
+- `ui/` — peças comuns (`ViewTop`, `Modal`, capa gerada…). `styles/` — CSS por área (`views.css` é o maior; blocos novos vão no fim). Cores de cada área e tipo de ficha em `tokens.css` (`--area-*`, `--kind-*`, com versão escura).
 - `e2e/` — Playwright; `areas.ts` tem `openPart(page, 'Ligações')`; `mundos.spec.ts` cobre o cartão do mundo.
 
 ## Decisões de produto
@@ -48,6 +50,8 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - **O worldbuilding mora dentro de cada universo** (escrita ou campanha). Não existe universo nem setor "só de mundo" (existiu do #91 ao #100 e foi desfeito).
 - **Simples ou Completo** (`settings.worldLevel`) vale para qualquer universo, em Ajustes › Universo; o padrão é Completo. Simples só esconde (ficha e Trama), nunca apaga; "Mostrar tudo nesta ficha" abre o resto.
 - **Lendas e documentos** são um tipo de ficha (`documento`), não uma estrutura nova: assim herdam ligações, wiki, Codex e datas.
+- **O livro não se personaliza no 3D nem no Folhear:** é sempre igual à diagramação.
+- **Wiki:** o Personalizar mora na página Wiki; Ajustes e Publicar têm só o atalho “Personalizar e ver como fica”.
 - **Bônus de espécie** ficam na ficha de jogo como `bonuses` (sincronizados com o Mundo) e são somados onde o atributo é lido (`attributeOf`, rolagens, Codex). Editar mexe no valor base.
 
 ## Cuidados
@@ -58,3 +62,8 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - `<input type="file">`: copiar `Array.from(files)` antes de limpar `value` (limpar esvazia a lista).
 - Celular é prioridade: conferir em 360–390 px de largura. A faixa de partes do Mundo é apertada (no celular "Linha do tempo" vira "Tempo").
 - No e2e, a ficha pode abrir em "Editar": clicar em "Ler" antes de procurar botões da leitura.
+- Link `#x` dentro de iframe com `srcdoc` vai para o endereço do app: tratar o clique no próprio documento (como na wiki).
+
+## Estado e fila
+
+`docs/04-estado-e-proximos-passos.md`: o que está pronto, o que não foi testado de verdade e as ideias que ficaram na fila.

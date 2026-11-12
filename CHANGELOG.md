@@ -1,5 +1,90 @@
 # Novidades
 
+## 1.6.0 — 12 de novembro de 2026
+
+**O Mundo, e o app inteiro mais simples.** O worldbuilding ganhou ferramentas próprias, dentro de cada universo, e uma wiki para mostrar o mundo. O livro aparece em 3D e dá para folhear. E o app todo foi arrumado: um nome para cada coisa, o mesmo topo em toda tela, menos caixas e cores que diferenciam.
+
+**O Mundo**
+- **Dentro de cada universo**, seja de escrita ou de campanha. Não existe universo “só de mundo”.
+- **Simples ou Completo** (Ajustes → Universo): o Simples esconde partes da ficha e a Trama, sem apagar nada. “Mostrar tudo nesta ficha” abre o resto.
+- **O mundo no Início:** um cartão com o que falta no mundo e o próximo passo.
+- **Semente do mundo:** cinco perguntas viram as primeiras fichas, como rascunho.
+- **Máquina do tempo** (na Linha do tempo): escolha um ano e veja quem mandava, quem vivia e o que acontecia. O mapa acompanha.
+- **Mapa político:** pinte regiões no mapa, com fronteiras que mudam no tempo.
+- **Lendas e documentos:** cartas, profecias e crônicas de dentro do mundo, como um tipo de ficha. Herdam ligações, datas, wiki e Codex.
+- **Efeito dominó:** na ficha, “E se sumir?” mostra o que cai junto.
+- **No jogo:** traços e bônus de espécie e de cultura chegam à ficha de jogo da Mesa.
+- **Trazer de outros apps:** notas do Obsidian ou Markdown, Kanka, World Anvil e arquivos .zip.
+- **Mundo a quatro mãos:** quem está em qual ficha, ao vivo, e o convite à vista.
+
+**A Wiki do mundo**
+- Um site num arquivo só:
+  - abre na capa do mundo e mostra uma ficha por vez;
+  - tem busca, linha do tempo, mapas e “Citado em”;
+  - funciona sem internet, até no celular.
+- Segredos e Ideias nunca entram. Dá para gerar a wiki só até uma cena, para não dar spoiler.
+- Também em texto (.md, bom para o Obsidian) e em dados (.json).
+- **Quatro estilos:** Clássico, Moderno, Pergaminho e Noturno, mais a cor e a letra.
+- **Personalizar:**
+  - título, texto de boas-vindas e autor;
+  - os tipos de ficha e os campos que entram;
+  - as seções (linha do tempo, mapas, “Citado em”, retratos).
+- **A página Wiki** (botão “Wiki” no alto do Mundo): a prévia ao vivo ao lado, com as imagens, e o Personalizar aberto. Em Ajustes e no Baixar de Publicar, o atalho “Personalizar e ver como fica”.
+
+**O livro em 3D**
+- Em Publicar, o livro aparece em 3D. A capa, a lombada e a contracapa vêm da diagramação.
+- **Folhear:** as páginas da diagramação (as mesmas do PDF) num livro aberto, duas lado a lado, virando como papel.
+  - Para aproximar: dois dedos, toque duplo, roda do mouse ou os botões.
+  - Com zoom, dá para arrastar.
+
+**Fichas**
+- Criar várias de uma vez e tipos próprios já na criação. No celular, a lista vem primeiro.
+- A busca acha também o que está escrito nos campos.
+- **Ficha mais curta:** ligações numa linha, os outros nomes no alto e campos com tipo (número, ano ou outra ficha).
+- **Em Ler:**
+  - campo vazio some;
+  - o que as ligações dizem preenche o campo (o líder, por exemplo);
+  - “em branco” aparece só quando está mesmo.
+- Listas com o nome que você quiser, selecionar várias, tabela e modelos de ficha.
+- Cada tipo de ficha com a sua cor, nas bolinhas e nos ícones.
+
+**Escrever**
+- **Página:**
+  - o rodapé fica sempre à vista;
+  - mostra onde você está e qual é a próxima cena;
+  - o “Aa” cuida da letra.
+- **Procurar e trocar:** na cena (Ctrl+F) e no livro todo.
+- **Revisão e Mapa no celular:** a margem vira uma gaveta, a barra não aperta e os atos ficam lado a lado.
+
+**O app inteiro**
+- **Um nome para cada coisa**, com um menu que não muda de lugar e ícones com nome.
+- **O mesmo topo em toda tela:** a área, as partes, a busca, o (?) e o botão principal. A Mesa ficou em quatro partes.
+- **O Início é uma porta:** o próximo passo e o bilhete para amanhã.
+- **Seus universos:**
+  - criar vem primeiro e o exemplo fica no fim, com selo;
+  - as datas aparecem como “ontem”;
+  - as opções de cada universo ficam no menu “···”.
+- **Ajustes em três grupos:** este universo, este aparelho e sua conta.
+- **Visual mais calmo:** menos caixas e cores que diferenciam as áreas do menu e os tipos de ficha.
+- **Um personagem só** para a história e para a mesa, com “Aparece em” mostrando as cenas e as sessões.
+- **O jogador cria o próprio personagem** pelo link do convite.
+
+**Nuvem: um universo, duas cópias (no aparelho e na nuvem)**
+- Cada universo aparece uma vez, com os dois lados. As cópias antigas param de subir.
+- Universos repetidos podem ser arrumados com “Ficar com esta versão”. Importar pergunta antes.
+- Se os dois lados mudaram em lugares diferentes, o Papirus junta sozinho. Se mudaram no mesmo lugar, ele pergunta.
+
+**Apresentação:** seções novas do Mundo (com a wiki em miniatura, que troca de estilo) e do Livro (em 3D, com as páginas virando).
+
+**Consertos**
+- O app não abria para quem tinha o setor “Mundos” guardado.
+- Clicar numa ficha na prévia da wiki deixava a tela em branco.
+- O Folhear mostrava uma página bege ao lado da capa e o texto cinza.
+
+**Também**
+- Universos antigos abrem sem mudança: os campos novos são opcionais.
+- Não precisa rodar nenhum script novo no servidor.
+
 ## 1.5.0 — 7 de novembro de 2026
 
 **O Livro: do manuscrito ao livro na mão.** A parte de fazer o livro já era forte; o que atrapalhava era o caminho. Agora a página do Livro é um caminho em cinco passos, com um “Baixar” só.
