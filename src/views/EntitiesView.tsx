@@ -54,7 +54,7 @@ import { SelectionBar } from './EntitySelection'
 import { EntityTable } from './EntityTable'
 import { createFromTemplate, saveAsTemplate, templatesOf } from '../model/entityTemplates'
 import { MoreMenu } from '../ui/MoreMenu'
-import { PLACE_KINDS } from '../model/lists'
+import { listsOf, listTemplatesFor, PLACE_KINDS } from '../model/lists'
 import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
@@ -529,6 +529,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
   const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
   const whoKeys = useMemo(() => whoIsKeys(universe, e), [universe, e])
+  const groupsOthers = listsOf(e).length > 0 || listTemplatesFor(universe, e.kind).length > 0
 
   return (
     <article className="entity">
@@ -570,13 +571,6 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
       <div className="entity-body">
         <div className="entity-main">
-          {/* O que se usa sempre fica à vista: os outros nomes e as etiquetas. */}
-          <div className="entity-names">
-            <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
-            <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
-          </div>
-          <MembershipChips entity={e} editable />
-
           {asking && (
             <KindQuestions
               entity={e}
@@ -588,7 +582,8 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             />
           )}
 
-          <div className="form-grid">
+          {/* 1. Básico: o que se usa sempre. */}
+          <div className="form-grid entity-basics">
             <Field label="Resumo" wide>
               {(id) => (
                 <div className="with-reveal">
@@ -598,29 +593,36 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               )}
             </Field>
             <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
-            {!simple && (
-              <>
-                <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
-                  {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
-                </Field>
-                <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
-              </>
+            {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
+            {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
+              <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />
             )}
-            <label className="toggle entity-wiki-toggle">
-              <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
-              <span className="toggle-track" aria-hidden="true" />
-              <span>Entra na wiki</span>
-            </label>
+          </div>
+          <div className="entity-names">
+            <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
+            <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
           </div>
 
+          {/* 2. Quem é: o que define a ficha neste mundo (e, numa opção, o que ela passa). */}
           <WhoIsEditor entity={e} />
           <PassesEditor entity={e} />
+          {!simple && <GameRules key={e.id} entity={e} />}
 
+          {/* 3. Descrição. */}
           <Field label="Descrição" wide>
             {(id) => <SecretTextarea id={id} value={e.description} placeholder="Escreva livremente." onChange={(v) => set({ description: v })} />}
           </Field>
 
+          {/* 4. Campos (com as datas). */}
           <Fold id="ficha-campos" title="Campos">
+            <div className="field">
+              <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
+              <div className="inline-fields">
+                <YearInput label="Ano de início" value={e.startYear} onChange={(v) => set({ startYear: v })} placeholder="Início" />
+                <span className="muted">—</span>
+                <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
+              </div>
+            </div>
             <InheritedRows entity={e} />
             {e.fields.map((f, i) =>
               // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela; as exceções, no "Quem é".
@@ -659,31 +661,11 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
             </button>
           </Fold>
 
-          {!simple && <ListsSection entity={e} />}
-          {!simple && <GameRules key={e.id} entity={e} />}
-          {worldLevel(universe) === 'simples' && (
-            <button type="button" className="btn btn-ghost btn-sm entity-show-all" aria-pressed={showAll} onClick={() => setShowAll((v) => !v)}>
-              {showAll ? 'Mostrar só o essencial' : 'Mostrar tudo nesta ficha'}
-            </button>
-          )}
+          {/* Uma ficha que junta outras (facção, reino, lugar) mostra as listas; nas outras, ficam em "Mais opções". */}
+          {!simple && groupsOthers && <ListsSection entity={e} />}
 
-          <Fold id="ficha-mais-detalhes" title="Mais detalhes" defaultOpen={false}>
-            <div className="form-grid">
-              {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
-              {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
-                <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />
-              )}
-              <div className="field">
-                <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
-                <div className="inline-fields">
-                  <YearInput label="Ano de início" value={e.startYear} onChange={(v) => set({ startYear: v })} placeholder="Início" />
-                  <span className="muted">—</span>
-                  <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
-                </div>
-              </div>
-            </div>
-          </Fold>
-
+          {/* 5. Ligações. */}
+          <MembershipChips entity={e} editable />
           <RelationsSection entity={e} outgoing={outgoing} incoming={incoming} />
 
           {universe.scenes.length > 0 && <ArcCard entity={e} />}
@@ -711,6 +693,31 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           </section>
 
           <KnowledgeSection entity={e} entries={knows} />
+
+          {/* O resto, fechado: muda pouco e não precisa estar sempre à vista. */}
+          <Fold id="ficha-mais-opcoes" title="Mais opções" defaultOpen={false}>
+            <div className="form-grid">
+              {!simple && (
+                <>
+                  <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
+                    {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
+                  </Field>
+                  <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
+                </>
+              )}
+              <label className="toggle entity-wiki-toggle">
+                <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
+                <span className="toggle-track" aria-hidden="true" />
+                <span>Entra na wiki</span>
+              </label>
+            </div>
+            {!simple && !groupsOthers && <ListsSection entity={e} />}
+          </Fold>
+          {worldLevel(universe) === 'simples' && (
+            <button type="button" className="btn btn-ghost btn-sm entity-show-all" aria-pressed={showAll} onClick={() => setShowAll((v) => !v)}>
+              {showAll ? 'Mostrar só o essencial' : 'Mostrar tudo nesta ficha'}
+            </button>
+          )}
         </div>
 
         <aside className="entity-side">

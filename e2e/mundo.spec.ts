@@ -50,6 +50,7 @@ test('ficha nova abre em Editar com perguntas do tipo dela, em palavras simples'
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Sal Negro')
   await expect(page.getByRole('combobox', { name: 'Tipo', exact: true })).toHaveValue('magia')
   await expect(page.getByRole('combobox', { name: 'Tipo', exact: true }).locator('option:checked')).toHaveText('Sistema de magia')
+  await page.getByText('Mais opções', { exact: true }).click()
   await expect(page.getByRole('combobox', { name: 'É verdade no mundo?' }).locator('option:checked')).toHaveText('Verdade')
   await expect(page.getByRole('combobox', { name: 'Quão pronta' }).locator('option:checked')).toHaveText('Rascunho')
 

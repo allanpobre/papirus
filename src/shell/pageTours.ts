@@ -222,7 +222,7 @@ export const PAGE_TOURS = {
       {
         target: '.mode-switch',
         title: 'Ler, editar e jogar',
-        body: 'A ficha abre para ler, como uma página de enciclopédia: ligações, o que ela sabe, o mapa, as pistas, as cenas e as sessões em que aparece. Editar abre o formulário; o que é pouco usado fica em “Mais detalhes”. Num personagem de jogo, a aba Jogo mostra a ficha da Mesa.',
+        body: 'A ficha abre para ler, como uma página de enciclopédia: ligações, o que ela sabe, o mapa, as pistas, as cenas e as sessões em que aparece. Editar abre o formulário em partes: o básico, o “Quem é” (o que define a ficha neste mundo), a descrição, os campos e as ligações; o que é pouco usado fica em “Mais opções”. Num personagem de jogo, a aba Jogo mostra a ficha da Mesa.',
         optional: true,
       },
       { target: '.kind-questions', title: 'Para começar', body: 'Numa ficha vazia, três ou quatro perguntas do tipo dela. Uma linha basta, e as respostas viram campos. Dá para pular.', optional: true },
