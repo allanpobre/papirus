@@ -31,6 +31,7 @@ test('o mundo no Início: o que falta, e Simples ou Completo em qualquer univers
   await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
   await expect(page.getByText('É verdade no mundo?')).toHaveCount(0)
   await page.getByRole('button', { name: 'Mostrar tudo nesta ficha' }).click()
+  await page.getByText('Mais opções', { exact: true }).click()
   await expect(page.getByText('É verdade no mundo?')).toBeVisible()
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('radio', { name: 'Completo' }).click()
