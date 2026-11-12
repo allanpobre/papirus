@@ -638,9 +638,17 @@
   box-shadow: var(--shadow-1);
 }
 
-.rail-item[aria-current='page'] svg {
-  color: var(--accent);
-}
+/* Cada área com a sua cor de ícone (sempre, não só aberta): o menu se lê de relance. */
+.rail-item[data-tour='nav-inicio'] svg { color: var(--area-inicio); }
+.rail-item[data-tour='nav-escrever'] svg { color: var(--area-escrever); }
+.rail-item[data-tour='nav-livro'] svg { color: var(--area-livro); }
+.rail-item[data-tour='nav-fichas'] svg { color: var(--area-fichas); }
+.rail-item[data-tour='nav-tramas'] svg { color: var(--area-tramas); }
+.rail-item[data-tour='nav-rpg'] svg { color: var(--area-rpg); }
+.rail-item[data-tour='nav-inbox'] svg { color: var(--area-inbox); }
+.rail-item[data-tour='nav-archivist'] svg { color: var(--area-archivist); }
+.rail-item[data-tour='nav-oficina'] svg { color: var(--area-oficina); }
+.rail-item[data-tour='nav-config'] svg { color: var(--area-config); }
 
 .rail-badge {
   margin-left: auto;
@@ -2662,4 +2670,9 @@ body:has(.rail-phone) .live-return {
 
 .library-name .sample-chip {
   flex: none;
+}
+
+/* No "Mais" do celular, os ícones também com a cor de cada área. */
+.rail-more-item svg {
+  color: var(--area, currentColor);
 }

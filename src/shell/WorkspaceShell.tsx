@@ -1020,7 +1020,7 @@ function PhoneNav({
                     {pinned && <Pin size={12} className="rail-more-pin" aria-label="na barra" />}
                   </button>
                 ) : (
-                  <button key={item.view} type="button" className="rail-more-item" aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
+                  <button key={item.view} type="button" className="rail-more-item" style={{ '--area': `var(--area-${item.view}, currentColor)` } as React.CSSProperties} aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
                     <Icon size={20} aria-hidden="true" />
                     <span>{item.label}</span>
                     {item.view === 'inbox' && inboxCount > 0 && <span className="rail-badge">{inboxCount}</span>}

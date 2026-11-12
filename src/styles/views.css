@@ -9209,14 +9209,14 @@ h3.cork-act {
   background: #fff;
 }
 
-/* No celular, a prévia fica no "Ver antes" (abre a wiki inteira). */
+/* Na tela estreita, a prévia vai para baixo do cartão. */
 @media (max-width: 900px) {
   .wiki-view-body {
     grid-template-columns: 1fr;
   }
 
   .wiki-view-preview {
-    display: none;
+    height: 75vh;
   }
 }
 
@@ -9641,4 +9641,90 @@ h3.cork-act {
   width: 100%;
   border: 0;
   background: #1a1e1c;
+}
+
+/* ---------------------------------------------------------------- Celular: menos caixas
+ * No celular, caixa dentro de caixa aperta o conteúdo e deixa a tela com cara de cheia.
+ * Os blocos ocupam a largura e se separam por uma linha fina; em caixa fica só o que é um
+ * objeto à parte (o bilhete, os botões, a capa).
+ */
+@media (max-width: 760px) {
+  .home-today,
+  .home-card,
+  .world-card,
+  .home-world,
+  .split-detail > article.entity,
+  .book-hero {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .home-card,
+  .world-card,
+  .home-world {
+    border-top: 1px solid var(--line);
+    padding-top: 1.1rem;
+    margin-top: 0.4rem;
+  }
+
+  .reader-infobox {
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  .world-gap {
+    border: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Os passos de Publicar viram uma lista com linhas, não cinco caixas. */
+  .book-step {
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Menos rótulos em CAIXA ALTA gritando. */
+  .eyebrow,
+  .reader-infobox h3 {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.85rem;
+  }
+
+  /* Topo da ficha: o "E se sumir?" só com o ícone, para os botões caberem. */
+  .reader-head .btn-ghost.btn-sm {
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+/* Mapas: o botão "Mais" das ferramentas só existe no celular. */
+.atlas-more {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .atlas-more {
+    display: inline-flex;
+  }
+
+  .atlas-toolbar:not(.show-extra) .atlas-extra {
+    display: none;
+  }
+
+  /* A Wiki no celular também mostra a prévia, embaixo. */
+  .wiki-view-preview {
+    display: block;
+    height: 70vh;
+  }
 }
