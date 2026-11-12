@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useBackLayer } from '../ui/useBackLayer'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Universe } from '../model/schema'
 import type { ReactionsApi } from '../reader/ChapterReactions'
@@ -8,9 +8,10 @@ import { ReaderView } from '../reader/ReaderView'
 import { chapterReactions, reactToChapter, tally, type ChapterReaction } from './chapterReactions'
 import { loadShelfText } from './shelfText'
 import { sendFeedback } from '../share/feedback'
-import { MessageCircle, Send, Trash2 } from 'lucide-react'
+import { Flag, MessageCircle, Send, Trash2 } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { addComment, deleteComment, profilesByIds, type Profile, type ShelfComment, type ShelfRow } from './social'
+import { blockedIds, readingOf, report, REPORT_REASONS, saveReading } from './community'
 
 /** Ler um livro da estante ali mesmo: o modo leitor por cima, com reações por capítulo. */
 export function ShelfReader({
@@ -30,14 +31,21 @@ export function ShelfReader({
   const [universe, setUniverse] = useState<Universe | null>(null)
   const [list, setList] = useState<ChapterReaction[]>([])
   const [error, setError] = useState<string | null>(null)
+  // Onde parou (em qualquer aparelho): o leitor começa ali se este aparelho ainda não leu.
+  const [startAt, setStartAt] = useState(0)
 
   useEffect(() => {
     let off = false
     void (async () => {
       try {
         const sb = await client()
-        const [u, r] = await Promise.all([loadShelfText(sb, book.owner, book.id), chapterReactions(sb, book.owner, book.id)])
+        const [u, r, saved] = await Promise.all([
+          loadShelfText(sb, book.owner, book.id),
+          chapterReactions(sb, book.owner, book.id),
+          me && me !== book.owner ? readingOf(sb, me, book.owner, book.id) : Promise.resolve(null),
+        ])
         if (off) return
+        if (saved) setStartAt(saved.chapter_index)
         setUniverse(u)
         setList(r)
       } catch (err) {
@@ -47,7 +55,7 @@ export function ShelfReader({
     return () => {
       off = true
     }
-  }, [client, book.owner, book.id])
+  }, [client, book.owner, book.id, me])
 
   const api = useMemo<ReactionsApi>(() => {
     const counts = tally(list)
@@ -70,12 +78,29 @@ export function ShelfReader({
     }
   }, [list, me, book.owner, book.id, client, onAccount])
 
+  // Guarda onde a pessoa está (para "Continuar lendo" e para o autor ver até onde leram). Sem o script, só não guarda.
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const onProgress = (current: number) => {
+    if (!me || me === book.owner) return
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      void client()
+        .then((sb) => saveReading(sb, me, book.owner, book.id, current, book.chapters))
+        .catch(() => undefined)
+    }, 1200)
+  }
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+  }, [])
+
   return createPortal(
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label={`Lendo ${book.title}`}>
       {universe ? (
         <ReaderView
           universe={universe}
           storageKey={`leitor:estante:${book.owner}:${book.id}`}
+          startAt={startAt}
+          onProgress={onProgress}
           onClose={onClose}
           closeLabel="Voltar à estante"
           reactions={api}
@@ -124,6 +149,9 @@ function BookComments({ book, me, client, onAccount }: { book: ShelfRow; me: str
   const [people, setPeople] = useState<Map<string, Profile>>(new Map())
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
+  const [reporting, setReporting] = useState<string | null>(null)
+  const [reason, setReason] = useState<string>(REPORT_REASONS[0])
+  const [reported, setReported] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [nonce, setNonce] = useState(0)
 
@@ -133,14 +161,15 @@ function BookComments({ book, me, client, onAccount }: { book: ShelfRow; me: str
       const sb = await client()
       const { data, error: e } = await sb.from('papirus_shelf_comments').select('id,owner,book_id,author,body,created_at').eq('owner', book.owner).eq('book_id', book.id).order('created_at', { ascending: true })
       if (off || e) return
-      const rows = (data ?? []) as ShelfComment[]
+      const hidden = me ? await blockedIds(sb, me) : new Set<string>()
+      const rows = ((data ?? []) as ShelfComment[]).filter((c) => !hidden.has(c.author))
       setList(rows)
       setPeople(await profilesByIds(sb, [...new Set(rows.map((c) => c.author))]))
     })().catch(() => undefined)
     return () => {
       off = true
     }
-  }, [client, book.owner, book.id, nonce])
+  }, [client, book.owner, book.id, nonce, me])
 
   const act = async (fn: (sb: SupabaseClient) => Promise<void>) => {
     setBusy(true)
@@ -176,8 +205,35 @@ function BookComments({ book, me, client, onAccount }: { book: ShelfRow; me: str
                         <Trash2 size={13} aria-label="Apagar comentário" />
                       </ConfirmButton>
                     )}
+                    {me && c.author !== me && (
+                      <button type="button" className="btn-icon btn-xs" title="Denunciar comentário" aria-label="Denunciar comentário" onClick={() => setReporting(reporting === c.id ? null : c.id)}>
+                        <Flag size={13} />
+                      </button>
+                    )}
                   </span>
                   <p className="small">{c.body}</p>
+                  {reporting === c.id && (
+                    <form
+                      className="report-form"
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        void act(async (sb) => {
+                          await report(sb, { target: c.author, reason, body: c.body, commentId: c.id, bookOwner: book.owner, bookId: book.id })
+                          setReporting(null)
+                          setReported(true)
+                        })
+                      }}
+                    >
+                      <select className="input input-sm" aria-label="Motivo da denúncia" value={reason} onChange={(e) => setReason(e.target.value)}>
+                        {REPORT_REASONS.map((r) => (
+                          <option key={r}>{r}</option>
+                        ))}
+                      </select>
+                      <button type="submit" className="btn btn-sm" disabled={busy}>
+                        Denunciar
+                      </button>
+                    </form>
+                  )}
                 </li>
               )
             })}
@@ -215,6 +271,11 @@ function BookComments({ book, me, client, onAccount }: { book: ShelfRow; me: str
                 Entrar para comentar
               </button>
             )
+          )}
+          {reported && (
+            <p className="notice small" role="status">
+              Denúncia enviada. Quem cuida do servidor vê e decide. Para não ver mais essa pessoa, bloqueie no perfil dela.
+            </p>
           )}
           {error && (
             <p className="notice notice-error small" role="alert">

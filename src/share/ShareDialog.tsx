@@ -7,6 +7,8 @@ import { useWorkspace } from '../state/workspace'
 import { Modal } from '../ui/Modal'
 import { emailHash, withAU } from '../logic/au'
 import { AUsOfMyWorld } from './AUsOfMyWorld'
+import { AURequests } from './AURequests'
+import { answerAU } from '../social/community'
 import { DEFAULT_PUBLIC_URL } from './server'
 import {
   invite,
@@ -299,6 +301,22 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
             </section>
 
             <AUsOfMyWorld />
+
+            <AURequests
+              busy={busy}
+              onAccept={(r) =>
+                void act(async () => {
+                  const client = await sb()
+                  const already = members.some((m) => m.email === normalizeEmail(r.requester_email))
+                  if (!already) await invite(client, share, r.requester_email, 'ver')
+                  await allowAU(r.requester_email, true)
+                  await answerAU(client, r, 'aceito')
+                  setMembers(await listMembers(client, user.id, universe.id))
+                  setNotice(`Pronto: ${r.requester_email} pode ver “${universe.name}” e criar um AU. Ela recebe o aviso nas Novidades.`)
+                })
+              }
+              onDecline={(r) => void act(async () => answerAU(await sb(), r, 'recusado'))}
+            />
 
             <section className="share-section" aria-labelledby="share-link">
               <h3 id="share-link" className="share-title">

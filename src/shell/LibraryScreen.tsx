@@ -3,7 +3,7 @@ import { OficinaCover } from '../oficina/OficinaHome'
 import { OficinaPage } from '../oficina/OficinaPage'
 import type { GuideId } from '../oficina/guides'
 import { SocialDialog, type SocialTab } from '../social/SocialDialog'
-import { getNoticeCount } from '../social/social'
+import { getNoticeCount, subscribeNoticeCount } from '../social/social'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { useOficinaSector } from '../oficina/useOficinaSector'
 import {
@@ -49,7 +49,7 @@ import { addVersion, baseName, keepVersion, repeatHints, replaceWith, trimVersio
 import { recall, remember } from '../state/prefs'
 import { Modal } from '../ui/Modal'
 import { TidyDialog } from './TidyDialog'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { leaveShared, mySharedIds, sharedWithMe, shortName, stopSharing, type SharedWithMe } from '../share/sharing'
 import { migrate } from '../model/migrations'
 import { restoreEmbeddedImages } from '../images/backup'
@@ -285,6 +285,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const booksToPlay = writing.filter((e) => e.sessions === undefined)
   const openSample = () => (sampleEntry ? onOpen(sampleEntry.id) : void sampleUniverse().then(onCreated))
   const sector = p.sector
+  const news = useSyncExternalStore(subscribeNoticeCount, getNoticeCount)
   const setSector = (s: typeof sector) => {
     setCreating(false)
     setPref('sector', s)
@@ -914,7 +915,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     </button>
   )
 
-  const notices = getNoticeCount()
+  const notices = news
   const socialCard = (
     <section className="hub-social" aria-labelledby="amigos-titulo">
       <h2 id="amigos-titulo" className="hub-h">
@@ -923,6 +924,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {account.user ? (
         <>
           <p className="small muted">O que seus amigos andam escrevendo, a estante deles e os desafios.</p>
+          <button type="button" className="btn btn-sm btn-primary hub-to-community" onClick={() => setSector('comunidade')}>
+            <Users size={15} aria-hidden="true" /> Abrir a Comunidade
+          </button>
           <div className="hub-social-grid">
             <button type="button" className="hub-social-btn" onClick={() => setSocialTab('avisos')}>
               <Bell size={18} aria-hidden="true" /> Novidades
@@ -1074,7 +1078,13 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     ['escrita', 'Escrita', Feather],
     ['rpg', 'Mesa', Dices],
     ['oficina', 'Oficina', GraduationCap],
+    ['comunidade', 'Comunidade', Users],
   ] as const
+
+  // A Comunidade: novidades, o que está lendo, pessoas, seus livros e desafios (o mesmo da janela "Sua conta").
+  const comunidade = (
+    <SocialDialog inline publicUrl={p.publicUrl} library={library} onSynced={onChanged} onClose={() => setPref('sector', 'escrita')} onAccount={() => setAccountOpen(true)} onOpenUniverse={(id) => onOpen(id)} />
+  )
 
   return (
     <div className={`library hub hub-${sector}${first ? ' library-first' : ''}`}>
@@ -1099,6 +1109,11 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             <button key={id} type="button" className="hub-tab" aria-current={sector === id ? 'page' : undefined} onClick={() => setSector(id)}>
               <Icon size={18} aria-hidden="true" />
               <span>{label}</span>
+              {id === 'comunidade' && news > 0 && (
+                <span className="hub-badge" aria-label={`${news} novidades`}>
+                  {news}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -1106,7 +1121,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       <main className={`library-main${sector === 'oficina' ? ' hub-main-wide' : ''}`}>
         {/* Cada setor entra com a sua animação ao ser escolhido. */}
         <div key={sector} className="hub-sector">
-          {sector === 'rpg' ? rpg : sector === 'oficina' ? oficina : escrita}
+          {sector === 'rpg' ? rpg : sector === 'oficina' ? oficina : sector === 'comunidade' ? comunidade : escrita}
         </div>
         {first && sector === 'escrita' && (
           <p className="landing-note small">

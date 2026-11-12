@@ -9,6 +9,8 @@ import { anonClient } from '../share/server'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { Modal } from '../ui/Modal'
 import { ChallengesTab } from './ChallengesTab'
+import { MyBooksTab, PeopleLists, PersonExtras, ReadingTab } from './CommunityParts'
+import type { PageTourId } from '../shell/pageTours'
 import { OwnerShelf } from './ShelfBook'
 import {
   acceptFriend,
@@ -36,10 +38,14 @@ import {
   type ProfileDraft,
 } from './social'
 
-export type SocialTab = 'avisos' | 'perfil' | 'amigos' | 'desafios' | 'conta'
+export type SocialTab = 'avisos' | 'perfil' | 'amigos' | 'desafios' | 'conta' | 'lendo' | 'livros'
 
 interface Props {
   onClose: () => void
+  /** Na página da Comunidade (início do app), sem janela por cima. */
+  inline?: boolean
+  /** Abrir um universo deste aparelho (para responder a um pedido de AU no Compartilhar dele). */
+  onOpenUniverse?: (universeId: string) => void
   /** Abre a janela de entrar (quando não há conta). */
   onAccount?: () => void
   /** Abre direto o perfil de alguém (link `?perfil=`). */
@@ -58,10 +64,10 @@ interface Props {
  * A conta num lugar só: perfil, amigos (e a estante de cada um) e a sincronização.
  * Tudo opcional: cada livro só vai para a estante se o autor escolher.
  */
-export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab, library = null, onSynced, shareProgress }: Props) {
+export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = '', initialTab, library = null, onSynced, shareProgress, inline = false, onOpenUniverse }: Props) {
   const { user, server } = useAccount()
   // Com avisos novos, abre neles.
-  const [tab, setTabState] = useState<SocialTab>(() => initialTab ?? (getNoticeCount() > 0 ? 'avisos' : 'perfil'))
+  const [tab, setTabState] = useState<SocialTab>(() => initialTab ?? (inline || getNoticeCount() > 0 ? 'avisos' : 'perfil'))
   const [notices, setNotices] = useState<Notice[] | null>(null)
   const [seenAt] = useState(() => (user ? noticesSeenAt(user.id) : ''))
   const [focusBook, setFocusBook] = useState<string | undefined>()
@@ -76,7 +82,8 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
   }, [])
   const [me, setMe] = useState<Profile | null>(null)
   const [draft, setDraft] = useState<ProfileDraft | null>(null)
-  const [loaded, setLoaded] = useState(false)
+  // De quem já carregou: a conta pode chegar depois da primeira volta (sem isso, pisca o "Sem perfil ainda").
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
   const [friends, setFriends] = useState<FriendEntry[]>([])
   const [viewing, setViewing] = useState<Profile | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -123,7 +130,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
       } catch (err) {
         if (!off) setError(err instanceof Error ? err.message : String(err))
       } finally {
-        if (!off) setLoaded(true)
+        if (!off) setLoadedFor(userId ?? '')
       }
     })()
     return () => {
@@ -148,15 +155,15 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
 
   if (!server) {
     return (
-      <Modal title="Perfil e amigos" size="sm" onClose={onClose}>
+      <Frame inline={inline} title="Perfil e amigos" size="sm" onClose={onClose}>
         <p className="small">Perfis e amigos precisam de um servidor. Configure em Ajustes → Servidor.</p>
-      </Modal>
+      </Frame>
     )
   }
 
   if (viewing) {
     return (
-      <Modal title={viewing.name || `@${viewing.handle}`} size="lg" onClose={onClose} help="perfil">
+      <Frame inline={inline} title={viewing.name || `@${viewing.handle}`} size="lg" onClose={onClose} help="perfil">
         <div className="social">
           {(user || !initialHandle) && (
             <button
@@ -184,15 +191,16 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             onAccount={onAccount}
             myId={userId ?? null}
             focusBook={focusBook}
+            onChanged={() => setNonce((n) => n + 1)}
           />
         </div>
-      </Modal>
+      </Frame>
     )
   }
 
   if (!user) {
     return (
-      <Modal title="Perfil e amigos" size="sm" onClose={onClose}>
+      <Frame inline={inline} title="Perfil e amigos" size="sm" onClose={onClose}>
         <div className="social">
           {error && <p className="notice notice-error small" role="alert">{error}</p>}
           <p className="small">Com uma conta, você tem um perfil com @, adiciona amigos e vê a estante deles. Os seus livros só aparecem lá se você escolher, um por um.</p>
@@ -209,27 +217,36 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             </button>
           )}
         </div>
-      </Modal>
+      </Frame>
     )
   }
 
   const incoming = friends.filter((f) => f.status === 'pendente' && !f.outgoing)
   const newNotices = notices ? unseenCount(notices, seenAt) : 0
-  const tabs: [SocialTab, string][] = [
-    ['avisos', 'Novidades'],
-    ['perfil', 'Perfil'],
-    ['amigos', 'Amigos'],
-    ['desafios', 'Desafios'],
-    ['conta', 'Conta'],
-  ]
+  const tabs: [SocialTab, string][] = inline
+    ? [
+        ['avisos', 'Novidades'],
+        ['lendo', 'Lendo'],
+        ['amigos', 'Pessoas'],
+        ['livros', 'Seus livros'],
+        ['desafios', 'Desafios'],
+        ['perfil', 'Perfil'],
+      ]
+    : [
+        ['avisos', 'Novidades'],
+        ['perfil', 'Perfil'],
+        ['amigos', 'Amigos'],
+        ['desafios', 'Desafios'],
+        ['conta', 'Conta'],
+      ]
 
   return (
-    <Modal title="Sua conta" size="lg" onClose={onClose} help="conta">
+    <Frame inline={inline} title={inline ? 'Comunidade' : 'Sua conta'} size="lg" onClose={onClose} help="conta">
       <div className="social">
         <header className="social-me">
           <Avatar p={me ?? { avatar: null, name: draft?.name ?? '', handle: user.email ?? '?' }} size={48} />
           <div className="social-me-text">
-            <strong>{me ? me.name || `@${me.handle}` : 'Sem perfil ainda'}</strong>
+            <strong>{me ? me.name || `@${me.handle}` : loadedFor === (userId ?? '') ? 'Sem perfil ainda' : 'Carregando…'}</strong>
             <span className="muted tiny">
               {me?.name && `@${me.handle} · `}
               {user.email}
@@ -259,17 +276,32 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
           <AccountPanel library={library} onSynced={onSynced} onClose={onClose} />
         ) : tab === 'desafios' && me ? (
           <ChallengesTab myId={user.id} client={client} />
+        ) : tab === 'lendo' && me ? (
+          <ReadingTab
+            myId={user.id}
+            client={client}
+            onRead={(owner, bookId) => {
+              if (!owner) return
+              setFocusBook(bookId)
+              setViewing(owner)
+            }}
+          />
+        ) : tab === 'livros' && me ? (
+          <MyBooksTab myId={user.id} client={client} />
         ) : tab === 'avisos' && me ? (
           <NoticeList
             notices={notices}
             seenAt={seenAt}
             onOpen={(n) => {
               if (n.kind === 'pedido') return setTab('amigos')
+              // Pedido de AU: responde-se no Compartilhar do universo (abre o universo, se ele está neste aparelho).
+              if (n.kind === 'pedido-au') return n.book && onOpenUniverse?.(n.book.id)
+              if (n.kind === 'au-resposta') return
               setFocusBook(n.book?.id)
               setViewing(n.kind === 'comentario' || n.kind === 'quero-ler' || n.kind === 'reacao' ? me : n.who)
             }}
           />
-        ) : !loaded ? (
+        ) : loadedFor !== (userId ?? '') ? (
           <p className="muted small">Carregando…</p>
         ) : !me ? (
           <>
@@ -322,8 +354,9 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
             onRemove={(f) => void act((sb) => removeFriend(sb, user.id, f.other.user_id))}
           />
         )}
+        {tab === 'amigos' && me && <PeopleLists key={nonce} myId={user.id} client={client} onOpen={setViewing} />}
       </div>
-    </Modal>
+    </Frame>
   )
 }
 
@@ -337,6 +370,9 @@ const NOTICE_TEXT: Record<Notice['kind'], (n: Notice) => string> = {
   meta: (n) => `bateu a meta do dia: ${(n.n ?? 0).toLocaleString('pt-BR')} palavras.`,
   sequencia: (n) => `está há ${n.n} dias seguidos batendo a meta.`,
   reacao: (n) => `reagiu ${n.text} a um capítulo de “${n.book?.title}”.`,
+  'pedido-au': (n) => `pediu para criar um AU de “${n.book?.title}”. Responda no Compartilhar do universo.`,
+  'au-resposta': (n) =>
+    n.text === 'aceito' ? `aceitou seu pedido de AU de “${n.book?.title}”: ele está em “Compartilhados com você”, com “Criar um AU”.` : `não aceitou seu pedido de AU de “${n.book?.title}”.`,
 }
 const ago = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
 const when = (iso: string) => {
@@ -354,7 +390,7 @@ function NoticeList({ notices, seenAt, onOpen }: { notices: Notice[] | null; see
   return (
     <ul className="social-list social-notices" aria-label="Novidades">
       {notices.map((n, i) => {
-        const fresh = n.kind === 'pedido' || n.at > seenAt
+        const fresh = n.kind === 'pedido' || n.kind === 'pedido-au' || n.at > seenAt
         return (
           <li key={i}>
             <button type="button" className={`social-notice${fresh ? ' is-new' : ''}`} onClick={() => onOpen(n)}>
@@ -376,6 +412,21 @@ function NoticeList({ notices, seenAt, onOpen }: { notices: Notice[] | null; see
 }
 
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+/** Janela por cima (Sua conta) ou a página da Comunidade, com o mesmo conteúdo. */
+function Frame({ inline, title, size, help, onClose, children }: { inline: boolean; title: string; size: 'sm' | 'md' | 'lg'; help?: PageTourId; onClose: () => void; children: React.ReactNode }) {
+  if (inline)
+    return (
+      <section className="community-page" aria-label="Comunidade">
+        {children}
+      </section>
+    )
+  return (
+    <Modal title={title} size={size} onClose={onClose} help={help}>
+      {children}
+    </Modal>
+  )
+}
 
 /** Nuvem e sair. */
 function AccountPanel({ library, onSynced, onClose }: { library: Library | null; onSynced?: () => void; onClose: () => void }) {
@@ -663,6 +714,7 @@ function PersonView({
   onAccount,
   myId,
   focusBook,
+  onChanged,
 }: {
   person: Profile
   myId: string | null
@@ -676,6 +728,7 @@ function PersonView({
   onAccept: () => void
   onRemove: () => void
   onAccount?: () => void
+  onChanged?: () => void
 }) {
   // A estante muda de acordo com a amizade (aceitar abre os livros "amigos").
   const status = relation?.status
@@ -722,6 +775,7 @@ function PersonView({
           )}
         </div>
       </header>
+      <PersonExtras person={person} myId={myId} client={client} onChanged={() => onChanged?.()} />
 
       <h3 className="social-h">Estante</h3>
       <OwnerShelf

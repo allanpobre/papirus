@@ -16,7 +16,8 @@ interface Part {
   /** Uma frase: para que serve. */
   what: string
   tour: PageTourId
-  view: View
+  /** Sem tela no universo (fica no início do app): não tem "Abrir". */
+  view?: View
   /** Na Mesa: a aba que abre. */
   rpgTab?: string
 }
@@ -96,6 +97,7 @@ const AREAS: Area[] = [
       { title: 'Ideias', what: 'Anote de qualquer lugar e decida depois: vira cena, ficha ou fica guardada.', tour: 'inbox', view: 'inbox' },
       { title: 'Perguntar ao mundo', what: 'Pergunte à sua lore com IA, usando a sua chave. Ela só lê o que você manda.', tour: 'archivist', view: 'archivist' },
       { title: 'Oficina', what: 'Aprender escrevendo: trilhas curtas, exercícios, imitação e o caderno.', tour: 'oficina', view: 'oficina' },
+      { title: 'Comunidade', what: 'No início do app (Trocar de universo): novidades, continuar lendo, seguir, quem leu seus livros, bloquear e pedir AU.', tour: 'hub-comunidade' },
       { title: 'Ajustes e dados', what: 'Este universo (Simples ou Completo, calendário), este aparelho (aparência, backup) e a sua conta.', tour: 'config', view: 'config' },
     ],
   },
@@ -130,7 +132,7 @@ export default function GuideView() {
 
   const openPart = (p: Part) => {
     if (p.rpgTab) remember('rpg-aba', p.rpgTab)
-    go(p.view)
+    if (p.view) go(p.view)
   }
 
   return (
@@ -162,9 +164,11 @@ export default function GuideView() {
                         <strong>{p.title}</strong>
                         <span className="small muted">{p.what}</span>
                       </button>
-                      <button type="button" className="btn btn-sm" onClick={() => openPart(p)} aria-label={`Abrir ${p.title}`}>
-                        Abrir <ArrowRight size={14} aria-hidden="true" />
-                      </button>
+                      {p.view && (
+                        <button type="button" className="btn btn-sm" onClick={() => openPart(p)} aria-label={`Abrir ${p.title}`}>
+                          Abrir <ArrowRight size={14} aria-hidden="true" />
+                        </button>
+                      )}
                     </div>
                     {expanded && steps.length > 0 && (
                       <dl className="guide-steps">

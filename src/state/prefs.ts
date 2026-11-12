@@ -24,7 +24,7 @@ export interface Prefs {
   /** Áreas escondidas do menu, por tipo de universo (continuam acessíveis pela busca e por links). */
   menus: Partial<Record<UniverseKind, View[]>>
   /** O setor aberto no início do app. */
-  sector: 'escrita' | 'rpg' | 'oficina'
+  sector: 'escrita' | 'rpg' | 'oficina' | 'comunidade'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
   /** Último backup baixado e "lembrar depois", por universo (ISO). */
@@ -98,7 +98,7 @@ export const DEFAULT_PREFS: Prefs = {
 }
 
 const KEY = 'papirus:prefs'
-const SECTORS: Prefs['sector'][] = ['escrita', 'rpg', 'oficina']
+const SECTORS: Prefs['sector'][] = ['escrita', 'rpg', 'oficina', 'comunidade']
 const OLD_PHONE_SHORTCUTS = 'inicio,escrever,livro,fichas'
 
 function read(): Prefs {

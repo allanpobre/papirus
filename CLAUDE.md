@@ -55,6 +55,7 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - **O livro não se personaliza no 3D nem no Folhear:** é sempre igual à diagramação.
 - **Wiki:** o Personalizar mora na página Wiki; Ajustes e Publicar têm só o atalho “Personalizar e ver como fica”.
 - **Bônus de espécie** ficam na ficha de jogo como `bonuses` (sincronizados com o Mundo) e são somados onde o atributo é lido (`attributeOf`, rolagens, Codex). Editar mexe no valor base.
+- **Comunidade** é um setor do início do app (`SocialDialog` com `inline`; o "Sua conta" continua janela). Seguir (sem ser amigo), Continuar lendo (lugar no servidor), "Seus livros" (só números, nunca quem), bloquear, denunciar e pedir AU pelo perfil. Servidor em `supabase/comunidade.sql` (depois de contas, compartilhar e social); sem o script, as partes novas só não aparecem. Lógica em `social/community.ts`, telas em `social/CommunityParts.tsx` e `share/AURequests.tsx`.
 
 ## Cuidados
 

@@ -10250,3 +10250,196 @@ h3.cork-act {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------------------------------------------------------------- Comunidade (página no início do app) */
+
+.community-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.community-page .social {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.community-page .social-me {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.community-page .social-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  width: auto;
+}
+
+@media (max-width: 760px) {
+  .community-page .social-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .community-page .social-tabs > button {
+    flex: none;
+  }
+}
+
+.person-extras {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.person-counts strong {
+  color: var(--ink);
+}
+
+.person-worlds {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--area-tramas) 30%, var(--line));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--area-tramas) 5%, var(--paper));
+}
+
+.person-worlds .section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.person-world-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person-world-list li {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: start;
+}
+
+.person-ask {
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.au-req-aceito {
+  border-color: color-mix(in srgb, var(--area-fichas) 45%, var(--line));
+  color: var(--area-fichas);
+}
+
+.reading-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reading-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.reading-cover {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 62px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.reading-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reading-text {
+  display: grid;
+  flex: 1;
+  gap: 0.15rem;
+  min-width: 0;
+  justify-items: start;
+}
+
+.mybooks {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mybook {
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.mybook h4 {
+  margin: 0;
+}
+
+.reach-bars {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reach-bars li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.reach-bar {
+  height: 8px;
+  min-width: 2px;
+  border-radius: 4px;
+  background: var(--area-livro);
+}
+
+.reach-label,
+.reach-n {
+  color: var(--muted);
+  text-align: right;
+}
+
+.reach-n {
+  text-align: left;
+}
+
+.people-lists {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.report-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
