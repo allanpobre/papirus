@@ -125,10 +125,12 @@ test.describe('no celular', () => {
 test('a wiki do mundo está à mão no alto do Mundo', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await openPart(page, 'Ligações')
+  // O botão leva à página Wiki: prévia ao lado, Personalizar aberto e o Baixar.
   await page.getByRole('button', { name: 'Wiki', exact: true }).click()
-  const wiki = page.getByRole('dialog', { name: 'Wiki do mundo' })
+  await expect(page.frameLocator('iframe[title="Prévia da wiki"]').getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('radiogroup', { name: 'Estilo da wiki' })).toBeVisible()
   const download = page.waitForEvent('download')
-  await wiki.getByRole('button', { name: /Baixar a wiki/ }).click()
+  await page.getByRole('button', { name: /Baixar a wiki/ }).click()
   expect((await download).suggestedFilename()).toMatch(/wiki.*\.html$/)
 })
 

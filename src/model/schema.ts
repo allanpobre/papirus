@@ -554,6 +554,8 @@ export const continuityAnswerSchema = z.object({
 
 /** Como a wiki do mundo sai: abertura, o que entra, seções e aparência. Tudo opcional. */
 export const WIKI_FONTS = ['serifada', 'sem-serifa', 'livro'] as const
+/** O jeito da wiki: cores, ornamentos e cabeçalho. */
+export const WIKI_STYLES = ['classico', 'moderno', 'pergaminho', 'noturno'] as const
 export const wikiSettingsSchema = z.object({
   title: z.string().optional(),
   intro: z.string().optional(),
@@ -569,6 +571,7 @@ export const wikiSettingsSchema = z.object({
   /** Cor da wiki (#rrggbb); sem valor, a cor da capa do universo. */
   color: z.string().nullable().optional(),
   font: z.enum(WIKI_FONTS).optional(),
+  style: z.enum(WIKI_STYLES).optional().catch(undefined),
 })
 export type WikiSettings = z.infer<typeof wikiSettingsSchema>
 

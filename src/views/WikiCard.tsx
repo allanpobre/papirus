@@ -1,4 +1,5 @@
 import { Download, ExternalLink, Globe, SlidersHorizontal } from 'lucide-react'
+import type { Universe } from '../model/schema'
 import { useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
 import { kindPlural } from '../model/labels'
@@ -10,9 +11,24 @@ import { imageDataUrl } from '../images/resolve'
 
 const FORMATS = { html: '.html', md: '.md', json: '.json' } as const
 
-/** Wiki do mundo: um arquivo HTML para jogadores ou leitores, sem segredos (e, se quiser, sem spoiler). */
-export function WikiCard() {
-  const { universe } = useWorkspace()
+/** A capa, os retratos e os mapas prontos para irem dentro do arquivo (a wiki abre sem internet). */
+export async function wikiImages(universe: Universe): Promise<Map<string, string>> {
+  const images = new Map<string, string>()
+  const refs = [universe.settings.cover, ...universe.entities.map((e) => e.image), ...universe.maps.map((m) => m.image)]
+  for (const ref of refs) {
+    if (!ref || images.has(ref)) continue
+    const data = await imageDataUrl(ref).catch(() => null)
+    if (data) images.set(ref, data)
+  }
+  return images
+}
+
+/**
+ * Wiki do mundo: um arquivo HTML para jogadores ou leitores, sem segredos (e, se quiser, sem spoiler).
+ * Na página Wiki (`editor`) vem com o Personalizar aberto; nas janelas, com o atalho para lá.
+ */
+export function WikiCard({ editor = false }: { editor?: boolean }) {
+  const { universe, go } = useWorkspace()
   const scenes = manuscriptOrder(universe)
   const [upTo, setUpTo] = useState<string>('tudo')
   const [format, setFormat] = useState<'html' | 'md' | 'json'>('html')
@@ -32,15 +48,7 @@ export function WikiCard() {
 
   const build = async () => {
     const { buildWiki } = await import('../export/wiki')
-    // A capa, os retratos e os mapas vão dentro do arquivo (a wiki abre sem internet e sem conta).
-    const images = new Map<string, string>()
-    const refs = [universe.settings.cover, ...universe.entities.map((e) => e.image), ...universe.maps.map((m) => m.image)]
-    for (const ref of refs) {
-      if (!ref || images.has(ref)) continue
-      const data = await imageDataUrl(ref).catch(() => null)
-      if (data) images.set(ref, data)
-    }
-    return buildWiki(universe, { upTo: upTo === 'tudo' ? null : Number(upTo), images })
+    return buildWiki(universe, { upTo: upTo === 'tudo' ? null : Number(upTo), images: await wikiImages(universe) })
   }
 
   return (
@@ -49,8 +57,13 @@ export function WikiCard() {
         <Globe size={16} aria-hidden="true" /> Wiki do mundo
       </h2>
       <p className="small">
-        Um site num arquivo só: abre na capa do mundo, cada ficha na sua página, com busca, linha do tempo, mapas e “Citado em”. Abre em qualquer navegador, até no celular: mande para os jogadores ou ponha no ar. Segredos e as Ideias nunca vão.
+        Um site num arquivo só: abre na capa do mundo, cada ficha na sua página, com busca, linha do tempo, mapas e “Citado em”. Abre em qualquer navegador, até no celular. Segredos e as Ideias nunca vão.
       </p>
+      {!editor && (
+        <button type="button" className="btn wiki-customize-link" onClick={() => go('wiki')}>
+          <SlidersHorizontal size={16} aria-hidden="true" /> Personalizar e ver como fica
+        </button>
+      )}
       <label className="field">
         <span className="field-label">O que entra</span>
         <select className="input" value={upTo} onChange={(e) => setUpTo(e.target.value)}>
@@ -70,7 +83,7 @@ export function WikiCard() {
           <option value="json">Dados (.json): para outros programas</option>
         </select>
       </label>
-      <WikiCustomize />
+      {editor && <WikiCustomize />}
       <div className="button-stack">
         <button type="button" className="btn btn-primary" onClick={() => void download()}>
           <Download size={16} /> Baixar a wiki ({FORMATS[format]})
@@ -94,6 +107,12 @@ export function WikiCard() {
 }
 
 const FONT_LABELS: Record<NonNullable<WikiSettings['font']>, string> = { serifada: 'Com serifa', 'sem-serifa': 'Sem serifa', livro: 'De livro (justificado)' }
+const STYLE_OPTIONS: [NonNullable<WikiSettings['style']>, string, string, string][] = [
+  ['classico', 'Clássico', '#fffdf8', '#2a2520'],
+  ['moderno', 'Moderno', '#f3f5f7', '#1b1f24'],
+  ['pergaminho', 'Pergaminho', '#f3e7c9', '#3a2817'],
+  ['noturno', 'Noturno', '#151a1f', '#e4e7ea'],
+]
 const SECTIONS: [keyof Pick<WikiSettings, 'timeline' | 'maps' | 'cites' | 'portraits'>, string][] = [
   ['timeline', 'Linha do tempo'],
   ['maps', 'Mapas'],
@@ -115,11 +134,33 @@ function WikiCustomize() {
   const changed = Object.values(ws).some((v) => v !== undefined)
 
   return (
-    <details className="wiki-custom">
-      <summary>
+    <div className="wiki-custom" role="group" aria-label="Personalizar">
+      <h3 className="wiki-custom-title">
         <SlidersHorizontal size={15} aria-hidden="true" /> Personalizar
         {changed && <span className="wiki-custom-mark">do seu jeito</span>}
-      </summary>
+      </h3>
+
+      <fieldset className="wiki-custom-group">
+        <legend>Estilo</legend>
+        <div className="wiki-styles" role="radiogroup" aria-label="Estilo da wiki">
+          {STYLE_OPTIONS.map(([id, label, paper, ink]) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={(ws.style ?? 'classico') === id}
+              className="wiki-style"
+              onClick={() => set({ style: id === 'classico' ? undefined : id })}
+            >
+              <span className="wiki-style-swatch" style={{ background: paper, color: ink }} aria-hidden="true">
+                <span style={{ background: ws.color ?? cover }} />
+                Aa
+              </span>
+              {label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset className="wiki-custom-group">
         <legend>Abertura</legend>
@@ -228,6 +269,6 @@ function WikiCustomize() {
           Voltar ao padrão
         </button>
       )}
-    </details>
+    </div>
   )
 }

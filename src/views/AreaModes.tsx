@@ -1,7 +1,5 @@
 import { BookMarked, CalendarRange, Globe, Lightbulb, MapIcon, Network, Sprout, type LucideIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
-import { Modal } from '../ui/Modal'
-import { WikiCard } from './WikiCard'
+import type { ReactNode } from 'react'
 import { useWorkspace, type View } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
 import type { PageTourId } from '../shell/pageTours'
@@ -37,21 +35,14 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
   const { go, hiddenViews } = useWorkspace()
   const area = areaOf(current)
   const parts = PARTS[area].filter(([v]) => v === current || !hiddenViews.includes(v))
-  // A wiki do mundo (antes só em Ajustes): à mão em todas as partes do Mundo.
-  const [wiki, setWiki] = useState(false)
+  // A wiki do mundo: à mão em todas as partes do Mundo, direto na página com a prévia.
   const wikiButton =
     area === 'mundo' ? (
-      <button type="button" className="btn btn-ghost btn-sm area-wiki" aria-label="Wiki" title="Baixar ou abrir a wiki do mundo" onClick={() => setWiki(true)}>
+      <button type="button" className="btn btn-ghost btn-sm area-wiki" aria-label="Wiki" title="Ver, personalizar e baixar a wiki do mundo" onClick={() => go('wiki')}>
         <Globe size={15} aria-hidden="true" /> <span className="area-wiki-label">Wiki</span>
       </button>
     ) : null
   return (
-    <>
-    {wiki && (
-      <Modal title="Wiki do mundo" onClose={() => setWiki(false)} size="sm">
-        <WikiCard />
-      </Modal>
-    )}
     <ViewTop
       className="area-head"
       area={area === 'mundo' ? 'Mundo' : 'Trama'}
@@ -68,6 +59,5 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
         ) : undefined
       }
     />
-    </>
   )
 }
