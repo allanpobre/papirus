@@ -9265,3 +9265,82 @@ h3.cork-act {
   margin-bottom: 0.4rem;
   font-weight: 600;
 }
+
+/* ---------------------------------------------------------------- Máquina do tempo */
+
+.time-machine {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  padding: 0.9rem 1rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.time-machine-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.time-machine-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.time-machine-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.time-machine-ctrl input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.time-machine-year {
+  width: 6.5rem;
+  flex: none;
+}
+
+.time-machine-out {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem 1.25rem;
+}
+
+.time-machine-out h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.time-machine-out ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.time-machine-year-label {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.atlas-year {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
