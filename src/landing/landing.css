@@ -4739,3 +4739,470 @@ body,
     transition: none;
   }
 }
+
+/* ---------------------------------------------------------------- Mundo e Livro (1.6) */
+
+.lp-zone-mundo {
+  --z: var(--area-fichas);
+}
+
+.lp-zone-livro {
+  --z: var(--area-livro);
+}
+
+.lp-world {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+
+.lp-world-livro {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.lp-world-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.lp-world .lp-checks svg {
+  color: var(--z);
+}
+
+/* A wiki em miniatura: as mesmas variáveis dos quatro estilos do arquivo de verdade. */
+.lp-wiki-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.lp-wiki-styles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.lp-wiki-styles button {
+  min-height: 36px;
+  padding: 0 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.lp-wiki-styles button[aria-checked='true'] {
+  border-color: var(--z);
+  background: color-mix(in srgb, var(--z) 14%, var(--paper));
+  font-weight: 600;
+}
+
+.lp-wiki {
+  --w-tone: #4d7a2a;
+  --w-bg: #f6f1e7;
+  --w-card: #fffdf8;
+  --w-ink: #2a2520;
+  --w-soft: #6b6157;
+  --w-line: #e3dacb;
+  --w-bar: #fffdf8;
+  --w-bar-ink: #2a2520;
+  --w-hero: transparent;
+  --w-hero-ink: #2a2520;
+  --w-font: 'Literata Variable', Georgia, serif;
+  overflow: hidden;
+  border: 1px solid var(--w-line);
+  border-radius: 14px;
+  background: var(--w-bg);
+  color: var(--w-ink);
+  font-family: var(--w-font);
+  box-shadow: var(--shadow-2);
+  transition: background 0.3s, color 0.3s;
+}
+
+.lp-wiki-moderno {
+  --w-bg: #f3f5f7;
+  --w-card: #fff;
+  --w-ink: #1b1f24;
+  --w-soft: #5d6670;
+  --w-line: #dfe4e9;
+  --w-bar: var(--w-tone);
+  --w-bar-ink: #fff;
+  --w-hero: linear-gradient(135deg, var(--w-tone), #2d4a18);
+  --w-hero-ink: #fff;
+  --w-font: 'Instrument Sans Variable', system-ui, sans-serif;
+}
+
+.lp-wiki-pergaminho {
+  --w-bg: linear-gradient(180deg, #f1e4c4, #e8d6ad);
+  --w-card: #f3e7c9;
+  --w-ink: #3a2817;
+  --w-soft: #6e5638;
+  --w-line: #cdb68a;
+  --w-bar: #3a2817;
+  --w-bar-ink: #f3e7c9;
+}
+
+.lp-wiki-noturno {
+  --w-bg: #0f1317;
+  --w-card: #171c22;
+  --w-ink: #e4e7ea;
+  --w-soft: #9aa3ab;
+  --w-line: #262d35;
+  --w-bar: #0b0e11;
+  --w-bar-ink: #e4e7ea;
+  --w-hero: linear-gradient(180deg, #1d2a17, transparent);
+  --w-hero-ink: #e4e7ea;
+}
+
+.lp-wiki-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  background: var(--w-bar);
+  color: var(--w-bar-ink);
+  border-bottom: 1px solid var(--w-line);
+  font-size: 0.8rem;
+}
+
+.lp-wiki-bar strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lp-wiki-search {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-family: system-ui, sans-serif;
+  opacity: 0.8;
+}
+
+.lp-wiki-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.7rem;
+  padding: 1rem 0.8rem;
+  border-radius: 10px;
+  background: var(--w-hero);
+  color: var(--w-hero-ink);
+  text-align: center;
+}
+
+.lp-wiki-hero small {
+  font: 600 0.62rem system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.lp-wiki-hero b {
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.lp-wiki-pergaminho .lp-wiki-hero b {
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.lp-wiki-orn {
+  min-height: 1em;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.lp-wiki-hero p {
+  margin: 0;
+  max-width: 32ch;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.lp-wiki-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0 0.7rem 0.8rem;
+  list-style: none;
+}
+
+.lp-wiki-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--w-line);
+  border-radius: 9px;
+  background: var(--w-card);
+}
+
+.lp-wiki-pergaminho .lp-wiki-list li {
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 3px var(--w-card), inset 0 0 0 4px var(--w-line);
+}
+
+.lp-wiki-list li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lp-wiki-list b {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lp-wiki-list small {
+  overflow: hidden;
+  color: var(--w-soft);
+  font: 0.72rem system-ui, sans-serif;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lp-wiki-thumb {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--w-tone);
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.lp-wiki-demo figcaption {
+  color: var(--ink-2);
+}
+
+/* O livro em 3D e, ao lado, duas páginas abertas. */
+.lp-book-demo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin: 0;
+  min-width: 0;
+  perspective: 1400px;
+}
+
+.lp-book3d {
+  --bw: 150px;
+  --bh: 225px;
+  --bd: 34px;
+  position: relative;
+  flex: none;
+  width: var(--bw);
+  height: var(--bh);
+  transform-style: preserve-3d;
+  transform: rotateY(-32deg) rotateX(6deg);
+  animation: lp-book-sway 7s ease-in-out infinite alternate;
+}
+
+@keyframes lp-book-sway {
+  to {
+    transform: rotateY(-18deg) rotateX(3deg);
+  }
+}
+
+.lp-book3d > div {
+  position: absolute;
+  backface-visibility: hidden;
+}
+
+.lp-book3d-front {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 0.8rem;
+  border-radius: 2px 5px 5px 2px;
+  background:
+    radial-gradient(120px 90px at 70% 30%, rgba(255, 255, 255, 0.18), transparent 70%),
+    linear-gradient(160deg, #b8541a, #6d2a0c);
+  color: #fbeee2;
+  text-align: center;
+  transform: translateZ(calc(var(--bd) / 2));
+  box-shadow: inset 4px 0 6px -3px rgba(0, 0, 0, 0.45);
+}
+
+.lp-book3d-front b {
+  font: 500 1.25rem/1.15 'Literata Variable', Georgia, serif;
+}
+
+.lp-book3d-front small {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.lp-book3d-orn {
+  opacity: 0.7;
+}
+
+.lp-book3d-spine {
+  top: 0;
+  left: calc(var(--bd) / -2);
+  width: var(--bd);
+  height: var(--bh);
+  display: grid;
+  place-items: center;
+  background: linear-gradient(90deg, #4f1e08, #8a3a12 55%, #5d2309);
+  color: #fbeee2;
+  font: 500 0.66rem 'Literata Variable', Georgia, serif;
+  writing-mode: vertical-rl;
+  transform: translateX(calc(var(--bd) / 2)) rotateY(-90deg);
+  transform-origin: left center;
+  left: 0;
+  margin-left: calc(var(--bd) / -2);
+}
+
+.lp-book3d-pages {
+  top: 3px;
+  right: 0;
+  width: calc(var(--bd) - 4px);
+  height: calc(var(--bh) - 6px);
+  background: repeating-linear-gradient(90deg, #f6f0e2 0 2px, #e3dac6 2px 3px);
+  transform: translateX(calc(var(--bd) / 2 - 2px)) rotateY(90deg);
+  transform-origin: right center;
+  right: calc(var(--bd) / 2);
+}
+
+.lp-book3d-back {
+  inset: 0;
+  border-radius: 5px 2px 2px 5px;
+  background: #5d2309;
+  transform: rotateY(180deg) translateZ(calc(var(--bd) / 2));
+}
+
+.lp-book-spread {
+  display: flex;
+  flex: none;
+  padding: 6px;
+  border-radius: 6px;
+  background: #3b2a20;
+  box-shadow: var(--shadow-2);
+  transform: rotate(2deg);
+}
+
+.lp-book-page {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 112px;
+  height: 160px;
+  padding: 16px 12px;
+  background: #fbf8f1;
+  color: #2a2520;
+  box-shadow: inset -10px 0 14px -10px rgba(0, 0, 0, 0.35);
+}
+
+.lp-book-page + .lp-book-page {
+  box-shadow: inset 10px 0 14px -10px rgba(0, 0, 0, 0.35);
+}
+
+.lp-book-page small {
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.lp-book-page b {
+  margin-bottom: 4px;
+  font: 500 0.78rem 'Literata Variable', Georgia, serif;
+  text-align: center;
+}
+
+.lp-book-page i {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: #d9d1c2;
+}
+
+.lp-book-page i.short {
+  width: 60%;
+}
+
+.lp-book-page-turn {
+  transform-origin: left center;
+  animation: lp-page-turn 5s ease-in-out infinite;
+}
+
+@keyframes lp-page-turn {
+  0%,
+  60% {
+    transform: perspective(600px) rotateY(0);
+  }
+  80% {
+    transform: perspective(600px) rotateY(-28deg);
+  }
+  100% {
+    transform: perspective(600px) rotateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-book3d,
+  .lp-book-page-turn {
+    animation: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .lp-world,
+  .lp-world-livro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lp-world-livro .lp-book-demo {
+    order: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .lp-book3d {
+    --bw: 112px;
+    --bh: 168px;
+    --bd: 26px;
+  }
+
+  .lp-book-page {
+    width: 86px;
+    height: 124px;
+    padding: 12px 9px;
+  }
+
+  .lp-book3d-front {
+    padding: 0.8rem 0.5rem;
+  }
+
+  .lp-book3d-front b {
+    font-size: 0.92rem;
+  }
+
+  .lp-book3d-front small {
+    font-size: 0.55rem;
+  }
+}
