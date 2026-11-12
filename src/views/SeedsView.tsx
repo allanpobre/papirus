@@ -53,9 +53,11 @@ export default function SeedsView() {
           </button>
         </form>
       </header>
-      <p className="muted small view-lede">
-        Sementes ligam uma preparação a um pagamento futuro. Mistérios reúnem pistas. Nenhum precisa ser resolvido.
-      </p>
+      {universe.seeds.length === 0 && (
+        <p className="muted small view-lede">
+          Sementes ligam uma preparação a um pagamento futuro. Mistérios reúnem pistas. Nenhum precisa ser resolvido.
+        </p>
+      )}
       <div className="filter-chips" role="radiogroup" aria-label="Mostrar">
         {(
           [

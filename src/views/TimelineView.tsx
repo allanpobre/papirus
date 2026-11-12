@@ -1,4 +1,4 @@
-import { CalendarRange, Dices, Feather, Plus, Trash2 } from 'lucide-react'
+import { CalendarRange, Dices, Feather, Plus, Trash2, SlidersHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
@@ -82,6 +82,9 @@ export default function TimelineView() {
   }
 
   const editingEvent = editing ? byId(universe, 'events', editing) : undefined
+  // No celular os filtros ficam atrás de um botão (com quantos estão ligados).
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const activeFilters = (filterIds.length ? 1 : 0) + (minImportance > 1 ? 1 : 0) + (showScenes ? 0 : 1)
 
   return (
     <div className="view timeline-view">
@@ -93,13 +96,16 @@ export default function TimelineView() {
           </label>
           <input id="novo-evento" className="input" placeholder="Novo evento…" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
           <YearInput label="Ano do novo evento" value={newYear} onChange={setNewYear} />
-          <button type="submit" className="btn btn-primary" disabled={!newTitle.trim() || newYear === null}>
-            <Plus size={16} /> Evento
+          <button type="submit" className="btn btn-primary" aria-label="Criar evento" title="Criar evento" disabled={!newTitle.trim() || newYear === null}>
+            <Plus size={16} /> <span className="btn-text-wide">Evento</span>
           </button>
         </form>
+        <button type="button" className="btn btn-sm filters-toggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((v) => !v)}>
+          <SlidersHorizontal size={14} aria-hidden="true" /> Filtros{activeFilters > 0 && <span className="chip-count"> {activeFilters}</span>}
+        </button>
       </header>
 
-      <div className="timeline-filters">
+      <div className={`timeline-filters tool-filters${filtersOpen ? ' is-open' : ''}`}>
         <div className="timeline-filter-entities">
           <EntityMultiPicker label="Mostrar só o que envolve" value={filterIds} onChange={setFilterIds} placeholder="Filtrar por ficha…" />
         </div>

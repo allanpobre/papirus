@@ -13,7 +13,7 @@ function styleFor(kind: string, genre: string): NameStyle {
 }
 
 /** "Sugerir nomes": nomes novos no estilo dos que já existem neste universo (do mesmo tipo). */
-export function NameIdeas({ kind, onPick }: { kind: string; onPick: (name: string) => void }) {
+export function NameIdeas({ kind, onPick, compact = false }: { kind: string; onPick: (name: string) => void; compact?: boolean }) {
   const { universe } = useWorkspace()
   const [names, setNames] = useState<string[] | null>(null)
   const roll = () => {
@@ -22,11 +22,17 @@ export function NameIdeas({ kind, onPick }: { kind: string; onPick: (name: strin
     setNames(generateNames(samples, styleFor(kind, guessGuide(universe.settings.fieldTemplates)), 6))
   }
   return (
-    <div className="name-ideas">
+    <div className={`name-ideas${compact ? ' is-compact' : ''}${names ? ' has-names' : ''}`}>
       {names === null ? (
-        <button type="button" className="btn btn-ghost btn-sm" onClick={roll}>
-          <Dices size={15} /> Sugerir nomes
-        </button>
+        compact ? (
+          <button type="button" className="btn btn-ghost" aria-label="Sugerir nomes" title="Sugerir nomes" onClick={roll}>
+            <Dices size={16} />
+          </button>
+        ) : (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={roll}>
+            <Dices size={15} /> Sugerir nomes
+          </button>
+        )
       ) : (
         <>
           <div className="chips" role="group" aria-label="Nomes sugeridos">

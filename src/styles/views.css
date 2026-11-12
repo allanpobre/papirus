@@ -9979,3 +9979,86 @@ h3.cork-act {
     justify-self: start;
   }
 }
+
+/* ---------------------------------------------------------------- Acabamento: barras de ferramentas */
+
+/* "Sugerir nomes" vira um ícone na linha de criar; os nomes sugeridos descem para a linha de baixo. */
+.quick-create .name-ideas.is-compact {
+  display: contents;
+}
+
+.quick-create .name-ideas.has-names {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Filtros numa linha só, com os rótulos pequenos; no celular, atrás do botão "Filtros". */
+.tool-filters {
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.tool-filters .field {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.tool-filters .field-label {
+  margin: 0;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.tool-filters .check {
+  font-size: 0.88rem;
+}
+
+.filters-toggle {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .filters-toggle {
+    display: inline-flex;
+    align-self: flex-start;
+  }
+
+  .tool-filters:not(.is-open) {
+    display: none;
+  }
+
+  .tool-filters .field {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Na coluna estreita das Fichas, o tipo encolhe para os botões caberem na mesma linha. */
+.split-list .quick-create .select {
+  flex: 1 1 0;
+  min-width: 7rem;
+}
+
+/* Texto de botão que some no celular (o ícone fica, e o nome continua para leitores de tela). */
+@media (max-width: 760px) {
+  .btn-text-wide {
+    display: none;
+  }
+
+  .timeline-view .quick-create {
+    flex-wrap: nowrap;
+  }
+
+  .timeline-view .quick-create .input:first-of-type {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}

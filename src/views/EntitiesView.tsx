@@ -210,12 +210,12 @@ export default function EntitiesView() {
                   )}
                 </MoreMenu>
               )}
+              <NameIdeas kind={newKind} onPick={setNewName} compact />
             </form>
-            <NameIdeas kind={newKind} onPick={setNewName} />
           </>
         )}
         <div className="list-tools">
-          <input className="input" data-livre aria-label="Filtrar fichas" placeholder={phone ? 'Procurar…' : 'Procurar (nome, campos, descrição…)'} value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Procurar…" title="Procura no nome, nos campos e na descrição" value={query} onChange={(e) => setQuery(e.target.value)} />
           {phone && (
             <Select
               label="Tipo"
