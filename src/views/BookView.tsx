@@ -1,6 +1,6 @@
 import { BookOpen, BookOpenText, Check, Copy, FileDown, FileText, FileType, Globe, Palette, Plus, Printer, Ruler, Trash2, Upload } from 'lucide-react'
 import { ReviewDialog } from '../book/ReviewDialog'
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { BOOK_FONTS } from '../export/bookFonts'
 import { BODY_FONT_KEY, PAGE_SIZES, bookTitle } from '../export/bookDesign'
 import { reviewStep, textStep, type StepState } from '../export/bookPath'
@@ -22,6 +22,9 @@ import { readersSummary, useBookReaders } from './readersData'
 import { ViewTop } from '../ui/ViewTop'
 import { Modal } from '../ui/Modal'
 import { WikiCard } from './WikiCard'
+import { coverLook } from '../ui/coverLook'
+
+const BookFlip = lazy(() => import('../book/BookFlip'))
 
 const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'minimalista', ornamentado: 'ornamentado', manuscrito: 'manuscrito' } as const
 
@@ -242,6 +245,8 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
   const readers = useBookReaders(book)
   // A wiki do mundo também sai daqui: quem procura "extrair" olha em Publicar.
   const [wiki, setWiki] = useState(false)
+  // Folhear: o livro diagramado, com as páginas virando.
+  const [flipping, setFlipping] = useState(false)
   const said = readersSummary(readers)
   const chapters = text.chapters > 0
   const download = async (format: 'epub' | 'docx' | 'md') => {
@@ -412,9 +417,12 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
           <WikiCard />
         </Modal>
       )}
-      <button type="button" className="book-hero-cover" onClick={() => openBookDesigner(book.id)} disabled={readOnly || !hasText} aria-label={`Diagramar ${title}`}>
-        <Cover book={book} title={title} />
-      </button>
+      {flipping && (
+        <Suspense fallback={null}>
+          <BookFlip bookId={book.id} onClose={() => setFlipping(false)} />
+        </Suspense>
+      )}
+      <Book3D book={book} title={title} disabled={readOnly || !hasText} onOpen={() => openBookDesigner(book.id)} />
       <div className="book-hero-info">
         <p className="eyebrow">{books.length > 1 ? `Livro ${books.indexOf(book) + 1} de ${books.length}` : 'Seu livro'}</p>
         <h2>{title}</h2>
@@ -427,6 +435,9 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
           )}
           <button type="button" className="btn" disabled={!chapters} onClick={openReader}>
             <BookOpen size={16} /> Ler
+          </button>
+          <button type="button" className="btn" disabled={!chapters} onClick={() => setFlipping(true)}>
+            <BookOpenText size={16} /> Folhear
           </button>
           {baixar(false)}
           {!readOnly && (
@@ -477,6 +488,63 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
         </ol>
       </div>
     </section>
+  )
+}
+
+/**
+ * A capa como um livro de verdade, em 3D: lombada com o título e as páginas na borda.
+ * Arraste para girar; um toque (sem arrastar) abre a diagramação, como antes.
+ */
+function Book3D({ book, title, disabled, onOpen }: { book: BookRecord; title: string; disabled: boolean; onOpen: () => void }) {
+  const [ry, setRy] = useState(-24)
+  const [dragging, setDragging] = useState(false)
+  const drag = useRef<{ x: number; ry: number; moved: boolean } | null>(null)
+  const tone = coverLook(title).tone
+  return (
+    <button
+      type="button"
+      className="book-hero-cover book3d-stage"
+      disabled={disabled}
+      aria-label={`Diagramar ${title}`}
+      onPointerDown={(e) => {
+        drag.current = { x: e.clientX, ry, moved: false }
+        e.currentTarget.setPointerCapture?.(e.pointerId)
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current
+        if (!d) return
+        const dx = e.clientX - d.x
+        if (Math.abs(dx) > 5) d.moved = true
+        if (d.moved) {
+          setDragging(true)
+          setRy(Math.max(-200, Math.min(40, d.ry + dx * 0.7)))
+        }
+      }}
+      onPointerUp={() => {
+        setDragging(false)
+        if (drag.current?.moved) setTimeout(() => (drag.current = null), 0)
+        else drag.current = null
+      }}
+      onClick={(e) => {
+        // Girar não abre a diagramação: só o toque.
+        if (drag.current?.moved) {
+          e.preventDefault()
+          return
+        }
+        onOpen()
+      }}
+    >
+      <span className={`book3d${dragging ? ' dragging' : ''}`} style={{ '--ry': `${ry}deg`, '--tone': tone } as React.CSSProperties}>
+        <span className="book3d-front">
+          <Cover book={book} title={title} />
+        </span>
+        <span className="book3d-spine" aria-hidden="true">
+          <span>{title}</span>
+        </span>
+        <span className="book3d-pages" aria-hidden="true" />
+        <span className="book3d-back" aria-hidden="true" />
+      </span>
+    </button>
   )
 }
 

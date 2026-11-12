@@ -1,6 +1,6 @@
 import { BookOpen, Columns2, Download, FileText, ImagePlus, Minus, Plus, Printer, Ruler, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import polyfill from '../../node_modules/pagedjs/dist/paged.polyfill.min.js?raw'
+import { pagedDocument } from './pagedDocument'
 import { downloadText, fileNameFor } from '../export/download'
 import { BOOK_PRESETS, PAGE_SIZES, alsoByTitles, bookTitle, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
 import { PAPERS, charsPerLine, cm, coverTemplateSvg, lineComfort, mm, spineMm, wrapSize, type Paper } from '../export/printCover'
@@ -80,16 +80,7 @@ async function readCover(file: File): Promise<string> {
 }
 
 /** O documento que o Paged.js pagina: na prévia e no arquivo para imprimir. */
-function bookDocument(title: string, html: string, css: string, fonts: string, preview: string, spreads: boolean): string {
-  const script = polyfill.replace(/<\/script/gi, '<\\/script')
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${title.replace(/</g, '&lt;')}</title>
-<style data-pagedjs-ignore>${fonts}</style>
-<style>${css}</style>
-<style data-pagedjs-ignore>${preview}</style>
-<script>window.PagedConfig={auto:true,after:function(flow){try{parent.postMessage({papirusPaged:flow.total},'*')}catch(e){}}}</script>
-<script>${script}</script>
-</head><body class="${spreads ? 'spreads' : ''}">${html}</body></html>`
-}
+const bookDocument = (title: string, html: string, css: string, fonts: string, preview: string, spreads: boolean) => pagedDocument(title, html, css, fonts, preview, spreads)
 
 /**
  * Diagramar o livro: o autor escolhe a capa, o Papirus monta o miolo. Prévia página

@@ -202,3 +202,17 @@ test('a wiki do mundo também sai do Baixar, em Publicar', async ({ page }) => {
   await wiki.getByRole('button', { name: /Baixar a wiki/ }).click()
   expect((await download).suggestedFilename()).toMatch(/wiki.*\.html$/)
 })
+
+test('folhear: o livro diagramado, com duas páginas e páginas que viram', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
+  await expect(page.locator('.book3d')).toBeVisible()
+  await page.getByRole('button', { name: 'Folhear' }).click()
+  const flip = page.frameLocator('.book-flip-frame')
+  await expect(flip.locator('#flip-count')).toHaveText(/^1 de \d+$/, { timeout: 30000 })
+  await flip.getByRole('button', { name: 'Virar a página' }).click()
+  await expect(flip.locator('#flip-count')).toHaveText(/^2–3 de \d+$/)
+  await expect(page.locator('.book-flip-status')).toContainText('como na diagramação')
+  await page.getByRole('button', { name: 'Fechar' }).click()
+  await expect(page.locator('.book-flip')).toHaveCount(0)
+})
