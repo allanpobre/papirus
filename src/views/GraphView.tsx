@@ -6,6 +6,7 @@ import { useImageSrc } from '../images/resolve'
 import { forceLayout, neighborhood, placeLabels, separate, type GraphEdge, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
 import { appearances } from '../logic/reader'
+import { sceneCounts } from '../logic/appearances'
 import { formatDate } from '../logic/calendar'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { Relation } from '../model/schema'
@@ -244,8 +245,10 @@ export default function GraphView() {
   // Em que cena cada ficha aparece pela primeira vez (no texto, no elenco, como POV ou lugar). Com um livro
   // escolhido, só entra no mapa quem aparece nele; num ponto da história, quem já apareceu até a cena.
   const firstSeen = useMemo(() => appearances(scenes, universe.entities).first, [scenes, universe.entities])
+  const seenAnywhere = useMemo(() => (bookId ? new Set(sceneCounts(universe).keys()) : null), [universe, bookId])
   const { nodes, visibleEdges } = useMemo(() => {
-    let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind) && (!book || firstSeen.has(e.id))).map((e) => e.id))
+    // Com um livro: quem aparece nele e quem ainda não aparece em livro nenhum (fichas novas).
+    let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind) && (!book || firstSeen.has(e.id) || !seenAnywhere?.has(e.id))).map((e) => e.id))
     let es = edges.filter((e) => ids.has(e.from) && ids.has(e.to) && (e.kind !== 'por-tras' || ids.has(e.relation!.toId)))
     if (focusId && ids.has(focusId)) {
       const near = neighborhood(focusId, es, depth)
@@ -256,7 +259,7 @@ export default function GraphView() {
       ids = new Set([...ids].filter((id) => connected.has(id)))
     }
     return { nodes: universe.entities.filter((e) => ids.has(e.id)), visibleEdges: es }
-  }, [universe.entities, edges, hiddenKinds, focusId, depth, onlyConnected, book, firstSeen])
+  }, [universe.entities, edges, hiddenKinds, focusId, depth, onlyConnected, book, firstSeen, seenAnywhere])
 
   // O layout usa todas as ligações visíveis (não só as do momento), para que as fichas não pulem com o tempo.
   const layoutKey = nodes.map((n) => n.id).join(',') + '|' + visibleEdges.map((e) => e.from + e.to).join(',') + `|${W}x${H}`

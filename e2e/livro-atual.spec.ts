@@ -41,7 +41,7 @@ test.describe('o livro escolhido no alto', () => {
     // Fichas: só quem aparece no livro, com um jeito de ver todas.
     await openPart(page, 'Fichas')
     const list = page.getByRole('region', { name: 'Lista de fichas' }).locator('li')
-    await expect(page.getByText(/^Só quem aparece em “Ozma de Oz/)).toBeVisible()
+    await expect(page.getByText(/^Quem aparece em “Ozma de Oz/)).toBeVisible()
     const inBook = await list.count()
     // Várias fichas de uma vez com o livro escolhido: elas ficam na lista (ainda não aparecem no texto).
     // No celular: o + abre "Nova ficha", e dali "Criar várias de uma vez".
@@ -50,6 +50,11 @@ test.describe('o livro escolhido no alto', () => {
     const bulk = page.getByRole('dialog', { name: 'Criar várias fichas' })
     await bulk.locator('textarea').fill('Zorba Um\nZorba Dois')
     await bulk.locator('.btn-primary').click()
+    await expect(list.filter({ hasText: 'Zorba Um' })).toHaveCount(1)
+    await expect(list.filter({ hasText: 'Zorba Dois' })).toHaveCount(1)
+    // Saindo e voltando, continuam (ainda não estão em livro nenhum, então valem para qualquer livro).
+    await nav(page, 'Início').click()
+    await openPart(page, 'Fichas')
     await expect(list.filter({ hasText: 'Zorba Um' })).toHaveCount(1)
     await expect(list.filter({ hasText: 'Zorba Dois' })).toHaveCount(1)
     await page.getByRole('button', { name: 'Ver todas as fichas' }).click()
