@@ -18,7 +18,8 @@ import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
 import { useUniverse, type SaveStatus } from '../persistence/useUniverse'
 import { recall, remember, type usePrefs } from '../state/prefs'
-import { useWorkspace, WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
+import { BookPicker } from '../ui/BookPicker'
+import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
 import { setOutsideSession } from '../rpg/sessionFocus'
@@ -729,7 +730,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             </div>
           )}
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
-            {BOOK_VIEWS.includes(nav.view) && <BookBar />}
+            {/* No celular, o Escrever não tem lugar para a faixa: o livro se escolhe no topo da lista de cenas. */}
+            {BOOK_VIEWS.includes(nav.view) && !(phone && nav.view === 'escrever') && <BookPicker />}
             <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
           </Suspense>
         </main>
@@ -892,31 +894,8 @@ function RailButton({ item, active, onClick, badge }: { item: NavItem; active: b
   )
 }
 
-/** As áreas que mostram só o livro escolhido: Escrever, Publicar, Mundo (menos Mapas) e Trama. */
-const BOOK_VIEWS: View[] = ['escrever', 'organizar', 'livro', 'fichas', 'relacoes', 'timeline', 'tramas', 'conhecimento']
-
-/**
- * A faixa "Livro" no alto das áreas que seguem o livro escolhido. Só aparece num universo com mais de
- * um livro; "Todos os livros" mostra tudo junto, como num universo de um livro só.
- */
-function BookBar() {
-  const { universe, bookId, setBookId } = useWorkspace()
-  if (universe.stories.length < 2) return null
-  return (
-    <div className="book-bar" data-tour="livro-atual">
-      <BookOpen size={15} aria-hidden="true" />
-      <label htmlFor="livro-atual">Livro</label>
-      <select id="livro-atual" value={bookId ?? ''} onChange={(e) => setBookId(e.target.value || null)}>
-        <option value="">Todos os livros</option>
-        {universe.stories.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.title || 'Sem título'}
-          </option>
-        ))}
-      </select>
-    </div>
-  )
-}
+/** As áreas que mostram só o livro escolhido: Início, Escrever, Publicar, Mundo e Trama. */
+const BOOK_VIEWS: View[] = ['inicio', 'escrever', 'organizar', 'livro', 'fichas', 'relacoes', 'timeline', 'atlas', 'tramas', 'conhecimento']
 
 function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | null; onOpenOther: (u: Universe) => void }) {
   switch (view) {

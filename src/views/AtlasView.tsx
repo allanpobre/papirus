@@ -6,7 +6,8 @@ import { useMemo, useRef, useState } from 'react'
 import { rangeText, routeOn } from '../logic/route'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
-import { byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
+import { bookOnly, byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
+import { sceneCounts } from '../logic/appearances'
 import { useWorkspace } from '../state/workspace'
 import { Empty, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -115,8 +116,11 @@ export default function AtlasView() {
 }
 
 function MapCanvas({ map }: { map: AtlasMap }) {
-  const { universe, update, peek, go, undoable, toast } = useWorkspace()
+  const { universe, update, peek, go, undoable, toast, bookId } = useWorkspace()
   const mapSrc = useImageSrc(map.image)
+  // Com um livro escolhido no alto, os lugares dele ficam em destaque e os outros, apagados.
+  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const inBook = useMemo(() => (bookId ? new Set(sceneCounts(bookOnly(universe, bookId)).keys()) : null), [universe, bookId])
   const [zoom, setZoom] = useState(1)
   const [placing, setPlacing] = useState<string | null>(null)
   const [pending, setPending] = useState<{ x: number; y: number } | null>(null)
@@ -216,6 +220,11 @@ function MapCanvas({ map }: { map: AtlasMap }) {
                 {kindPlural(k)}
               </button>
             ))}
+          </span>
+        )}
+        {book && inBook && (
+          <span className="atlas-year small">
+            Em destaque: os lugares de “{book.title || 'Sem título'}” ({visible.filter((p) => inBook.has(p.entityId)).length})
           </span>
         )}
         {year !== null && (
@@ -388,7 +397,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
               <button
                 key={p.id}
                 type="button"
-                className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}`}
+                className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}${inBook && !inBook.has(p.entityId) ? ' off-book' : ''}`}
                 style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
                 aria-label={`${p.label || e?.name || 'Marcador'}${e ? `, ${kindLabel(e.kind)}` : ''}`}
                 onPointerDown={(ev) => {

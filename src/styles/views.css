@@ -10495,3 +10495,45 @@ h3.cork-act {
   margin: 0 0 0.5rem;
   color: var(--muted);
 }
+
+/* O livro no topo da lista de cenas (celular) e na página em branco de um livro vazio. */
+.tree-book {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+.tree-book label {
+  font-weight: 600;
+}
+.tree-book select {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+}
+.write-welcome .tree-book {
+  align-self: stretch;
+  text-align: left;
+}
+.page-pos svg {
+  vertical-align: -2px;
+  margin-left: 0.15rem;
+}
+
+/* Mapas com um livro escolhido: o que não aparece nele fica apagado. */
+.pin.off-book {
+  opacity: 0.32;
+  filter: grayscale(0.8);
+}
+.pin.off-book .pin-label {
+  display: none;
+}
