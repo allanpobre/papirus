@@ -36,12 +36,17 @@ export const SAMPLE_DESCRIPTION =
 
 /** O exemplo principal: a Terra de Oz (também serve para reconhecê-lo). */
 export const OZ_DESCRIPTION =
+  'Universo de exemplo: O Mágico de Oz, de L. Frank Baum (1900, domínio público), traduzido para o Papirus. O livro inteiro e trechos de mais três, os quatro países no mapa, povos, segredos, linha do tempo e uma Mesa.'
+
+/** A Terra de Oz de antes (sem os outros livros, ou com o conto que não era do mesmo mundo): ao abrir, vira a atual. */
+const OLD_OZ_DESCRIPTION =
   'Universo de exemplo: O Mágico de Oz, de L. Frank Baum (1900, domínio público), traduzido para o Papirus. O livro inteiro, os quatro países no mapa, povos, segredos, linha do tempo e uma Mesa.'
 
 /** Exemplos de versões antigas do Papirus: ao abrir, são trocados pelo atual. */
 const OLD_SAMPLE_DESCRIPTIONS = [
   'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.',
   'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido, um regente com medo e uma herdeira que não sabe quem é.',
+  OLD_OZ_DESCRIPTION,
 ]
 
 /** Exemplo de fantasia que os testes usam (`?exemplo=ostria`): é exemplo, mas não é trocado. */

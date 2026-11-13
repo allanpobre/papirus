@@ -43,6 +43,13 @@ describe('MentionMatcher', () => {
     expect(matcher.find('Ostrianos e Vaelorinos')).toEqual([])
   })
 
+  it('prefere o nome mais longo mesmo quando um apelido começa antes ("o Lenhador" + "Lata")', () => {
+    const oz = new MentionMatcher([entity('l', 'Lenhador de Lata', ['o Lenhador']), entity('m', 'Lata')])
+    expect(oz.find('Então o Lenhador de Lata chorou.')).toEqual([{ entityId: 'l', from: 8, to: 24, name: 'Lenhador de Lata' }])
+    // Sozinhos, o apelido e o material continuam valendo.
+    expect(oz.find('o Lenhador era feito de lata').map((m) => m.entityId)).toEqual(['l', 'm'])
+  })
+
   it('não quebra com texto acentuado antes do nome', () => {
     const text = 'Lá, à noite, Ostria dormia.'
     const [m] = matcher.find(text)
