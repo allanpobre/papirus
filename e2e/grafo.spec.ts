@@ -12,7 +12,7 @@ test('mover o mapa funciona mesmo quando o navegador dá largura 0 ao SVG (Safar
     }),
   )
   await page.goto('/app/')
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
   await openPart(page, 'Ligações')
   await page.locator('.node').first().waitFor()
   const box = (await page.locator('.graph').boundingBox())!
@@ -30,7 +30,7 @@ test.describe('no celular', () => {
 
   test('um dedo move, dois dedos dão zoom, e a página não rola', async ({ page }) => {
     await page.goto('/app/')
-    await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+    await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
     await openPart(page, 'Ligações')
     await page.locator('.node').first().waitFor()
     const box = (await page.locator('.graph').boundingBox())!

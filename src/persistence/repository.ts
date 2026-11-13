@@ -1,6 +1,6 @@
 import { mesaTheme, NO_THEME } from '../rpg/themes'
 import { universeKind, type UniverseKind } from '../model/kind'
-import { isLocalOnly } from '../model/sample'
+import { isLocalOnly, sampleKindOf, type SampleKind } from '../model/sample'
 import { migrate } from '../model/migrations'
 import { CURRENT_SCHEMA_VERSION, type SavedFile, type Universe } from '../model/schema'
 import { cleanName, hasOldCopyName, originalOf } from './cloudCopy'
@@ -217,6 +217,8 @@ export interface LibraryEntry {
   words: number
   /** Universo de exemplo: fica só neste aparelho. */
   sample?: boolean
+  /** Qual exemplo (Oz ou O Alienista), para "Recomeçar" abrir o mesmo. */
+  sampleKind?: SampleKind
   /** Capa do universo ("img:…"), para a lista de universos. */
   cover?: string
   /** Setor: escrita ou campanha (entradas antigas, sem isto, são de escrita até a próxima gravação). */
@@ -308,7 +310,7 @@ export class Library {
       name: universe.name,
       updatedAt: universe.updatedAt,
       words: countWords(universe),
-      ...(isLocalOnly(universe) ? { sample: true } : {}),
+      ...(isLocalOnly(universe) ? { sample: true, ...(sampleKindOf(universe) ? { sampleKind: sampleKindOf(universe)! } : {}) } : {}),
       ...(universe.settings.cover ? { cover: universe.settings.cover } : {}),
       kind: universeKind(universe),
       ...(universe.groups.length ? tableInfo(universe) : {}),

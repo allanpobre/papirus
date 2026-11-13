@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sampleUniverse } from '../model/sample'
+import { alienistaUniverse as sampleUniverse } from '../model/sample'
 import { characterArc } from './arc'
 
 describe('arco do personagem', () => {

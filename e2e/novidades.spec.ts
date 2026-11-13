@@ -6,7 +6,7 @@ import { expect, test, type Page } from './fixtures.ts'
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) }).first()
 
 test('arco na história: onde o boticário aparece e quando muda de lado', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=alienista')
   await nav(page, 'Mundo').click()
   await page.locator('.entity-row-name', { hasText: /^Crispim Soares$/ }).click()
   const strip = page.getByRole('list', { name: 'Onde Crispim Soares aparece, cena a cena' })
@@ -18,7 +18,7 @@ test('arco na história: onde o boticário aparece e quando muda de lado', async
 })
 
 test('wiki do mundo: só até uma cena, sem spoiler', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=alienista')
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Importar e wiki' }).click()
   await page.getByRole('combobox', { name: 'O que entra' }).selectOption({ label: 'Só o que o leitor sabe até “De como Itaguaí ganhou uma casa de orates” (1)' })
@@ -43,7 +43,7 @@ test('wiki do mundo: só até uma cena, sem spoiler', async ({ page }) => {
 })
 
 test('wiki do mundo: personalizar título e o que entra', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=alienista')
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Importar e wiki' }).click()
   // O atalho leva à página Wiki, com o Personalizar aberto e a prévia ao lado.

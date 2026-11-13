@@ -132,7 +132,7 @@ test('revisar antes de publicar: aponta e corrige a tipografia com desfazer', as
 })
 
 test('o caminho do livro: passos, um Baixar só, leitores, capa para gráfica e "Também de"', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=alienista')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
 
   // Cinco passos, cada um com o que achou.
@@ -193,7 +193,7 @@ test('importar pelo Livro: o texto vira uma história nova', async ({ page }) =>
 })
 
 test('a wiki do mundo também sai do Baixar, em Publicar', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=alienista')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await page.locator('[data-tour="livro-acoes"]').getByRole('button', { name: /Baixar/ }).click()
   await page.getByRole('menuitem', { name: /Wiki do mundo/ }).or(page.getByRole('button', { name: /Wiki do mundo/ })).first().click()
@@ -204,7 +204,7 @@ test('a wiki do mundo também sai do Baixar, em Publicar', async ({ page }) => {
 })
 
 test('folhear: o livro diagramado, com duas páginas e páginas que viram', async ({ page }) => {
-  await page.goto('/app/?exemplo')
+  await page.goto('/app/?exemplo=alienista')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
   await expect(page.locator('.book3d')).toBeVisible()
   await page.getByRole('button', { name: 'Folhear' }).click()

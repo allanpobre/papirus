@@ -209,7 +209,7 @@ test('a página em branco do Escrever também explica', async ({ page }) => {
 
 test('Atlas com mapa e o Mapa da história em cada aba: o (?) explica o que está na tela', async ({ page }) => {
   await page.goto('/app/')
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
   await openPart(page, 'Mapas')

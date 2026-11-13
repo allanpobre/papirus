@@ -2706,3 +2706,10 @@ body:has(.rail-phone) .live-return {
   justify-self: start;
   margin-bottom: 0.5rem;
 }
+
+/* O segundo exemplo (O Alienista), embaixo do cartão do exemplo. */
+.sample-second {
+  display: inline-block;
+  margin-top: 0.4rem;
+  text-align: left;
+}

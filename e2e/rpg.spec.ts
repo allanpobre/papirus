@@ -98,7 +98,7 @@ test('recursos: dano e cura respeitam o máximo', async ({ page }) => {
 
 test('iniciativa: cada um rola, "Definir turnos" fecha a ordem, e vez e rodada continuam após recarregar', async ({ page }) => {
   await page.goto('/app/')
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
   await nav(page, 'Mesa').click()
   await page.getByRole('tab', { name: 'Preparar' }).click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
@@ -160,7 +160,7 @@ test('sistema próprio: criar do zero, adicionar atributo e testar a fórmula', 
 
 test('tabela aleatória sorteia uma das opções', async ({ page }) => {
   await page.goto('/app/')
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
   await nav(page, 'Mesa').click()
   await page.getByRole('tab', { name: 'Regras' }).click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()

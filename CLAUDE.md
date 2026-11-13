@@ -24,11 +24,11 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - `npm run check` — tipos, oxlint, vitest e build. Os ~15 avisos `only-export-components` são normais; procurar erros.
 - `npx vitest run <arquivo>` — testes de unidade de um arquivo.
 - e2e só dos arquivos ligados: `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npx playwright test e2e/<arquivo>.spec.ts --trace off --reporter=line` (servidor em `localhost:5179`; reaproveita um que já esteja de pé: `npx vite --port 5179 --strictPort`).
-- Universos de exemplo: `/app/?exemplo` (O Alienista) e `/app/?exemplo=ostria` (fantasia, com segredos, mapa, datas e ligações de período — bom para testar o Mundo).
+- Universos de exemplo: `/app/?exemplo` (Terra de Oz, o principal: "O Mágico de Oz" inteiro, traduzido), `/app/?exemplo=alienista` (O Alienista, o segundo) e `/app/?exemplo=ostria` (fantasia dos testes, com segredos, mapa, datas e ligações de período — bom para testar o Mundo).
 
 ## Mapa do código (`src/`)
 
-- `model/` — esquema (zod, `schema.ts`), rótulos (`labels.ts`), tipo do universo e nível do Mundo (`kind.ts`), operações do universo (`universe.ts`), exemplos (`sample*.ts`).
+- `model/` — esquema (zod, `schema.ts`), rótulos (`labels.ts`), tipo do universo e nível do Mundo (`kind.ts`), operações do universo (`universe.ts`), exemplos (`sample*.ts`: `sampleOz.ts` + `ozTexto.ts` + `sampleOzMap.ts` é o principal; `sample.ts` tem O Alienista e escolhe qual abrir).
 - `logic/` — regras sem tela: menções, segredos, leitor sem spoiler (`reader.ts`), frases de ligação (`relations.ts`, com o "é" de papéis), campos derivados e o worldbuilding:
   - `worldGaps.ts` (o que falta no mundo), `worldSeed.ts` (Semente do mundo), `timeMachine.ts` (o mundo num ano), `domino.ts` (e se a ficha sumir), `regions.ts` (mapa político).
 - `views/` — telas. Áreas: Início, Escrever, Publicar, Mundo (Fichas, Ligações, Linha do tempo, Mapas), Trama, Mesa (RPG), Ajustes. `AreaModes.tsx` = topo do Mundo/Trama (com o botão Wiki).
