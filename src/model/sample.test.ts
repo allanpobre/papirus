@@ -102,6 +102,10 @@ describe('exemplo principal: a Terra de Oz', () => {
     // Os outros livros: a série continua (livros 2 e 3, em trechos) e um livro do mesmo mundo que não se liga às outras histórias.
     expect(u.stories.map((s) => s.title)).toEqual(['O Mágico de Oz', 'A Maravilhosa Terra de Oz', 'Ozma de Oz', 'A Rainha Zixi de Ix'])
     expect(shelf(u).map((b) => b.storyIds.length)).toEqual([1, 1, 1, 1])
+    // O papel na história: Dorothy é a protagonista; um papel desconhecido (de outra versão) vira vazio.
+    expect(byName('Dorothy').role).toBe('protagonista')
+    const odd = universeSchema.parse({ ...u, entities: [{ ...byName('Dorothy'), role: 'heroina-tragica' }] })
+    expect(odd.entities[0].role).toBeUndefined()
     // O volume da estante tem o mesmo nome da história (o "trechos" fica no resumo).
     expect(shelf(u).map((b) => b.title)).toEqual(u.stories.map((s) => s.title))
     expect(u.stories.slice(1).every((s) => s.synopsis.startsWith('Trechos'))).toBe(true)

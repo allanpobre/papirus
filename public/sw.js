@@ -28,6 +28,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url)
   // Só o próprio site; servidor (Supabase) e outros ficam de fora.
   if (url.origin !== self.location.origin) return
+  // A conferência de versão nova vai sempre à rede e não entra no cache.
+  if (url.searchParams.has('checar-versao')) return
 
   if (req.mode === 'navigate') {
     event.respondWith(

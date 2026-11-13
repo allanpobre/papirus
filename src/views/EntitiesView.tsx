@@ -10,8 +10,8 @@ import { factSentence } from '../logic/codex'
 import { fold, snippet } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
 import { RelationDetails } from './RelationDetails'
-import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, SEED_STATUS_LABEL } from '../model/labels'
-import { ENTITY_KINDS, FIELD_TYPES, KNOWLEDGE_STATES, type Entity, type KnowledgeState } from '../model/schema'
+import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
+import { ENTITY_KINDS, FIELD_TYPES, KNOWLEDGE_STATES, STORY_ROLES, type Entity, type KnowledgeState, type StoryRole } from '../model/schema'
 import {
   bookOnly,
   byId,
@@ -314,9 +314,9 @@ export default function EntitiesView() {
                     {e.name || 'Sem nome'}
                     <OriginChip item={e} />
                   </span>
-                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{kindLabel(e.kind)}</span>}
+                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{e.role ? ROLE_LABEL[e.role] : kindLabel(e.kind)}</span>}
                   <span className="entity-row-summary">
-                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}</span>}
+                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}{e.role ? ` · ${ROLE_LABEL[e.role]}` : ''}</span>}
                     {hasScenes && e.summary && ' · '}
                     {e.summary}
                   </span>
@@ -615,6 +615,18 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               )}
             </Field>
             <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
+            {(e.kind === 'personagem' || e.role) && (
+              <Field label="Papel na história">
+                {(id) => (
+                  <Select<StoryRole | ''>
+                    id={id}
+                    value={e.role ?? ''}
+                    onChange={(v) => set({ role: v || undefined })}
+                    options={[{ value: '', label: 'Sem papel marcado' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
+                  />
+                )}
+              </Field>
+            )}
             {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
             {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
               <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />

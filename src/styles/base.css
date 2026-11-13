@@ -1345,3 +1345,35 @@ input[type='radio'] {
     animation: none;
   }
 }
+
+/* Aviso de versão nova: embaixo, acima da barra do celular, sem cobrir o texto. */
+.update-notice {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  width: fit-content;
+  margin: 0 auto;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: calc(100vw - 24px);
+  padding: 0.45rem 0.5rem 0.45rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l, 14px);
+  background: var(--surface);
+  box-shadow: var(--shadow-2, 0 6px 24px rgb(0 0 0 / 0.18));
+  font-size: 0.9rem;
+}
+.update-notice > svg {
+  flex: none;
+}
+.update-notice-text {
+  white-space: nowrap;
+}
+@media (min-width: 761px) {
+  .update-notice {
+    bottom: 1.25rem;
+  }
+}

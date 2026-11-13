@@ -132,6 +132,10 @@ export const entityListSchema = z.object({
   definer: z.string().optional(),
 })
 
+/** O papel de um personagem na história (opcional). */
+export const STORY_ROLES = ['protagonista', 'antagonista', 'secundario', 'figurante'] as const
+export type StoryRole = (typeof STORY_ROLES)[number]
+
 export const entitySchema = z.object({
   id,
   kind: z.string().min(1),
@@ -160,6 +164,8 @@ export const entitySchema = z.object({
    * Os modificadores são pela sigla do atributo ("FOR": 2), para valer em qualquer sistema com a mesma sigla.
    */
   game: z.object({ traits: z.array(z.string()).default([]), mods: z.record(z.string(), z.number()).default({}) }).optional(),
+  /** Personagem: protagonista, antagonista, secundário ou figurante. Um valor desconhecido (de outra versão) vira vazio. */
+  role: z.enum(STORY_ROLES).optional().catch(undefined),
   ...timestamps,
 })
 

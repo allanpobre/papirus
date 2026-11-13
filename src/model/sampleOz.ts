@@ -243,6 +243,9 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
     description: 'Tem medo do escuro e mais ainda de água. [a partir de "À procura da Bruxa Má"]Um balde de água a derrete como açúcar mascavo.[/a partir]',
     endYear: 1900,
   })
+  // O papel de cada um na história (aparece na ficha e na lista).
+  for (const [who, role] of [[dorothy, 'protagonista'], [bruxaOeste, 'antagonista'], [espantalho, 'secundario'], [lenhador, 'secundario'], [leao, 'secundario'], [magico, 'secundario'], [toto, 'secundario']] as const)
+    u = patch(u, 'entities', who.id, { role })
   const glinda = ent('personagem', 'Glinda', {
     aliases: ['Bruxa do Sul', 'Glinda, a Boa', 'Bruxa Boa do Sul'],
     summary: 'A mais poderosa das Bruxas. Governa os Quadlings e sabe se manter jovem.',

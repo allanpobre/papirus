@@ -19,7 +19,7 @@ import { splitSecrets } from '../logic/secrets'
 import { fold, snippet } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
 import { MembershipChips } from './EntityLists'
-import { formatYear, KNOWLEDGE_LABEL, kindLabel, SEED_STATUS_LABEL } from '../model/labels'
+import { formatYear, KNOWLEDGE_LABEL, kindLabel, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
 import { byId, entityName, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
@@ -158,6 +158,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
       <div className="reader-title">
         <p className="eyebrow">
           <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" /> {kindLabel(e.kind)}
+          {e.role && <span className="entity-role"> · {ROLE_LABEL[e.role]}</span>}
           <OriginChip item={e} full />
         </p>
         <h1>{e.name || 'Sem nome'}</h1>
