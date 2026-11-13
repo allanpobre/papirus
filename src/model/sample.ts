@@ -34,6 +34,10 @@ const plain = (paragraphs: string[]) =>
 export const SAMPLE_DESCRIPTION =
   'Universo de exemplo: O Alienista, de Machado de Assis (1882, domínio público), com a grafia de hoje. Fichas, ligações, linha do tempo e uma Mesa montadas a partir do livro.'
 
+/** O exemplo principal: a Terra de Oz (também serve para reconhecê-lo). */
+export const OZ_DESCRIPTION =
+  'Universo de exemplo: O Mágico de Oz, de L. Frank Baum (1900, domínio público), traduzido para o Papirus. O livro inteiro, os quatro países no mapa, povos, segredos, linha do tempo e uma Mesa.'
+
 /** Exemplos de versões antigas do Papirus: ao abrir, são trocados pelo atual. */
 const OLD_SAMPLE_DESCRIPTIONS = [
   'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.',
@@ -43,24 +47,37 @@ const OLD_SAMPLE_DESCRIPTIONS = [
 /** Exemplo de fantasia que os testes usam (`?exemplo=ostria`): é exemplo, mas não é trocado. */
 const TEST_SAMPLE_DESCRIPTION = 'Exemplo de fantasia (base dos testes). Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.'
 
-export const isSample = (u: Universe) => [SAMPLE_DESCRIPTION, TEST_SAMPLE_DESCRIPTION, ...OLD_SAMPLE_DESCRIPTIONS].includes(u.description)
+export const isSample = (u: Universe) => [OZ_DESCRIPTION, SAMPLE_DESCRIPTION, TEST_SAMPLE_DESCRIPTION, ...OLD_SAMPLE_DESCRIPTIONS].includes(u.description)
+/** Qual exemplo é (para "Recomeçar" abrir o mesmo). */
+export type SampleKind = 'oz' | 'alienista'
+export const sampleKindOf = (u: Pick<Universe, 'description'>): SampleKind | null =>
+  u.description === OZ_DESCRIPTION ? 'oz' : u.description === SAMPLE_DESCRIPTION ? 'alienista' : null
 /** O exemplo fica só neste aparelho: sem conta, estante, compartilhar ou metas. O de testes não (é a base dos testes disso). */
 export const isLocalOnly = (u: Universe) => isSample(u) && u.description !== TEST_SAMPLE_DESCRIPTION
 export const isOutdatedSample = (u: Universe) => OLD_SAMPLE_DESCRIPTIONS.includes(u.description)
 
 /**
- * Universo de exemplo, para conhecer o Papirus sem começar do zero: O Alienista inteiro,
- * com tudo o que o Papirus faz montado a partir dele. Pode ser apagado a qualquer momento.
- * O texto (cerca de 100 KB) só é baixado quando alguém abre o exemplo.
+ * O exemplo principal, para conhecer o Papirus sem começar do zero: a Terra de Oz, com
+ * "O Mágico de Oz" inteiro. O texto (cerca de 220 KB) só é baixado quando alguém abre o exemplo.
  */
 export async function sampleUniverse(): Promise<Universe> {
+  const [{ MAGICO_DE_OZ }, { buildOz }] = await Promise.all([import('./ozTexto'), import('./sampleOz')])
+  return buildOz(MAGICO_DE_OZ)
+}
+
+/** O segundo exemplo: O Alienista inteiro, com tudo o que o Papirus faz montado a partir dele. */
+export async function alienistaUniverse(): Promise<Universe> {
   const { ALIENISTA } = await import('./alienistaTexto')
   return buildSample(ALIENISTA)
 }
 
-/** Abre o exemplo pedido no endereço (`?exemplo`; `?exemplo=ostria` abre o antigo, usado nos testes). */
+/** Abre um exemplo pelo tipo ("Recomeçar" e o segundo exemplo no início). */
+export const sampleOf = (kind: SampleKind): Promise<Universe> => (kind === 'alienista' ? alienistaUniverse() : sampleUniverse())
+
+/** Abre o exemplo pedido no endereço (`?exemplo` é Oz; `?exemplo=alienista`; `?exemplo=ostria`, o dos testes). */
 export async function sampleFor(which: string | null): Promise<Universe> {
   if (which === 'ostria') return (await import('./sampleOstria')).ostriaUniverse()
+  if (which === 'alienista') return alienistaUniverse()
   return sampleUniverse()
 }
 

@@ -56,7 +56,7 @@ import { restoreEmbeddedImages } from '../images/backup'
 import { setImageServer } from '../images/resolve'
 import { Picture } from '../images/Picture'
 import { GeneratedCover } from '../ui/GeneratedCover'
-import { sampleUniverse } from '../model/sample'
+import { sampleOf, sampleUniverse, type SampleKind } from '../model/sample'
 import type { Universe } from '../model/schema'
 import { createUniverse, newId } from '../model/universe'
 import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../model/templates'
@@ -275,8 +275,13 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const fams = useMemo(() => families(entries), [entries])
   const versionsOf = useMemo(() => new Map(fams.map((f) => [f.main.id, f.versions])), [fams])
   const mains = useMemo(() => fams.map((f) => f.main), [fams])
-  const sampleEntry = mains.find((e) => e.sample)
-  const own = mains.filter((e) => e !== sampleEntry)
+  // O exemplo principal (Oz) fica no cartão; o segundo (O Alienista), se aberto, entra na lista com o selo.
+  const sampleKind = (e: LibraryEntry): SampleKind => e.sampleKind ?? (/Alienista/.test(e.name) ? 'alienista' : 'oz')
+  const sampleEntry = mains.find((e) => e.sample && sampleKind(e) === 'oz')
+  const alienistaEntry = mains.find((e) => e.sample && sampleKind(e) === 'alienista')
+  // Os exemplos ficam fora do "Continuar" e entram no fim da lista, com o selo.
+  const samples = mains.filter((e) => e.sample)
+  const own = mains.filter((e) => !e.sample)
   const writing = own.filter((e) => e.kind !== 'campanha')
   const campaigns = own.filter((e) => e.kind === 'campanha')
   // Universos de escrita que também têm uma mesa (o exemplo, por exemplo).
@@ -284,6 +289,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   // Livros sem Mesa: dá para começar uma Mesa no mesmo mundo.
   const booksToPlay = writing.filter((e) => e.sessions === undefined)
   const openSample = () => (sampleEntry ? onOpen(sampleEntry.id) : void sampleUniverse().then(onCreated))
+  const openAlienista = () => (alienistaEntry ? onOpen(alienistaEntry.id) : void sampleOf('alienista').then(onCreated))
   const sector = p.sector
   const news = useSyncExternalStore(subscribeNoticeCount, getNoticeCount)
   const setSector = (s: typeof sector) => {
@@ -380,7 +386,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         <p className="small muted">
           {sampleEntry
             ? `${sampleEntry.words.toLocaleString('pt-BR')} palavras. Fica só neste aparelho e não conta nas suas metas.`
-            : 'O Alienista, de Machado de Assis, já montado: fichas, ligações, mapas e linha do tempo. Fica só neste aparelho; mexa à vontade.'}
+            : 'O Mágico de Oz, de L. Frank Baum, já montado: o livro inteiro, os quatro países no mapa, povos, segredos e uma mesa de RPG. Fica só neste aparelho; mexa à vontade.'}
         </p>
         <div className="sample-actions">
           <button type="button" className={`btn btn-sm${first ? ' btn-primary' : ''}`} onClick={openSample}>
@@ -403,7 +409,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                 confirmLabel="Recomeçar"
                 onConfirm={async () => {
                   await library.remove(sampleEntry.id)
-                  onCreated(await sampleUniverse())
+                  onCreated(await sampleOf(sampleKind(sampleEntry)))
                 }}
               >
                 <RotateCcw size={15} /> Recomeçar
@@ -423,6 +429,11 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             </>
           )}
         </div>
+        {(!alienistaEntry || writing.length === 0) && (
+          <button type="button" className="link-btn tiny sample-second" onClick={openAlienista}>
+            {alienistaEntry ? 'Continuar o segundo exemplo: O Alienista, de Machado de Assis' : 'Ou um romance: O Alienista, de Machado de Assis'}
+          </button>
+        )}
       </div>
     </section>
   )
@@ -631,7 +642,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                     onConfirm={async () => {
                       close()
                       await library.remove(e.id)
-                      onCreated(await sampleUniverse())
+                      onCreated(await sampleOf(sampleKind(e)))
                     }}
                   >
                     <RotateCcw size={16} /> Recomeçar o exemplo
@@ -979,14 +990,14 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {writing[0] && continueCard(writing[0], 'Continuar escrevendo')}
       {writing.length === 0 && form}
       {/* Com um universo só, o cartão de cima basta; a lista aparece se há mais, o exemplo, versões guardadas ou uma escolha à espera. */}
-      {(writing.length > 1 || (writing.length > 0 && (sampleEntry || versionsOf.get(writing[0].id)?.length || pending[writing[0].id]))) && (
+      {(writing.length > 1 || (writing.length > 0 && (samples.length || versionsOf.get(writing[0].id)?.length || pending[writing[0].id]))) && (
         <section aria-labelledby="universos-titulo">
           <h2 id="universos-titulo" className="hub-h">
             Todos os universos
           </h2>
           <ul className="library-list" aria-label="Universos">
             {writing.map((e) => universeItem(e))}
-            {sampleEntry && universeItem(sampleEntry)}
+            {samples.map((e) => universeItem(e))}
           </ul>
         </section>
       )}

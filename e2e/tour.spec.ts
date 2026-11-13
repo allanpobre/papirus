@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test'
 test('o tour não abre sozinho; pelos Ajustes, destaca as partes, pode ser pulado e refeito', async ({ page }) => {
   await page.goto('/app/')
   await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
-  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Exemplo — Terra de Oz' })).toBeVisible()
 
   // Não começa sozinho: a primeira vez é dos Primeiros passos, no Início.
   await page.waitForTimeout(1200)
@@ -38,9 +38,9 @@ test('o tour não abre sozinho; pelos Ajustes, destaca as partes, pode ser pulad
   // Pular (Esc) fecha e não volta sozinho.
   await page.keyboard.press('Escape')
   await expect(page.locator('.tour')).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Exemplo — Terra de Oz' })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Exemplo — Terra de Oz' })).toBeVisible()
   await page.waitForTimeout(1200)
   await expect(page.locator('.tour')).toHaveCount(0)
 
@@ -93,6 +93,6 @@ test('aviso do exemplo é discreto, dá para esconder, e exemplo antigo vira o a
   await expect(page.getByRole('region', { name: 'Exemplo velho' })).toBeVisible()
   await page.getByRole('button', { name: 'Continuar o exemplo' }).click()
   // Trocado pelo exemplo atual, e o aviso continua escondido.
-  await expect(page.getByRole('button', { name: 'Exemplo — O Alienista: trocar de universo' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Exemplo — Terra de Oz: trocar de universo' })).toBeVisible()
   await expect(page.getByText('Mundo de exemplo', { exact: true })).toHaveCount(0)
 })

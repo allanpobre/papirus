@@ -14,7 +14,7 @@ test('Seus universos: criar primeiro, o exemplo no fim com selo e o menu ··· 
   await page.getByRole('button', { name: 'Criar universo' }).click()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
   await page.getByTitle('Trocar de universo').first().click()
-  await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+  await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
   await page.getByRole('button', { name: 'Sair do exemplo' }).click()
 
   // Os seus primeiro; o exemplo no fim, com selo, e não no "Continuar".
@@ -23,7 +23,7 @@ test('Seus universos: criar primeiro, o exemplo no fim com selo e o menu ··· 
   await expect(list.locator('.library-name')).toHaveText(['Maré Baixa', /O AlienistaExemplo/])
   await expect(list.getByRole('listitem').last()).toContainText('Só neste aparelho')
   await expect(list.getByRole('listitem').first()).toContainText(/hoje, \d\d:\d\d/)
-  await expect(page.getByRole('button', { name: 'Abrir um universo de exemplo' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /O Alienista, de Machado de Assis/ })).toHaveCount(0)
 
   // O ···: baixar o backup sem abrir, e apagar com confirmação.
   await list.getByRole('button', { name: 'Mais ações de Maré Baixa' }).click()

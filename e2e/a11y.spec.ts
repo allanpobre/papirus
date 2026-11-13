@@ -21,7 +21,7 @@ for (const scheme of ['light', 'dark'] as const) {
     found.push(...(await audit(page, 'apresentação')))
     await page.goto('/app/')
     found.push(...(await audit(page, 'biblioteca')))
-    await page.getByRole('button', { name: 'Abrir um universo de exemplo' }).click()
+    await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
     await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
 
     for (const area of ['Início', 'Escrever', 'Mundo', 'Trama', 'RPG', 'Ideias', 'Perguntar ao mundo', 'Ajustes e dados']) {

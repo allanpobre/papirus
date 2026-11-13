@@ -9,10 +9,10 @@ test('a apresentação leva ao app e ao exemplo', async ({ page }) => {
   await page.getByRole('link', { name: 'Ver um mundo de exemplo' }).click()
   await expect(page).toHaveURL(/\/app\/$/)
   // O exemplo abre direto, no Início do universo.
-  await expect(page.getByRole('heading', { name: 'Exemplo — O Alienista' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Exemplo — Terra de Oz' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await page.getByRole('button', { name: 'Continuar escrevendo' }).click()
-  await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toContainText('Itaguaí')
+  await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toContainText('Dorothy')
 
   // Voltando à apresentação, quem já usa vê "Continuar".
   await page.goto('/')
@@ -22,8 +22,10 @@ test('a apresentação leva ao app e ao exemplo', async ({ page }) => {
 test('links antigos de jogadores e retornos de login vão para o app', async ({ page }) => {
   await page.goto('/?mesa=6f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f')
   await expect(page).toHaveURL(/\/app\/\?mesa=6f1c2d3e/)
+  // O retorno de login vai para o app, que explica o erro e limpa o endereço.
   await page.goto('/#error_description=teste&error=x')
-  await expect(page).toHaveURL(/\/app\/#error_description=teste/)
+  await expect(page.getByRole('dialog', { name: 'O link não funcionou' })).toContainText('teste')
+  await expect(page).toHaveURL(/\/app\/$/)
 })
 
 test('a apresentação mostra os três setores, a mesa nova e o gerador da Oficina', async ({ page }) => {
