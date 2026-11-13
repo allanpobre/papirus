@@ -43,6 +43,10 @@ export function ServerFields({ prefs, setPref }: { prefs: Prefs; setPref: <K ext
         repositório e cole aqui o endereço e a chave pública (em Project Settings → API Keys: a "publishable", que começa com sb_publishable_, ou a antiga "anon public", que começa com eyJ).
         {BUILD_SERVER && ' Esta publicação já vem com um servidor; preencha só se quiser usar outro.'}
       </p>
+      <p className="muted small">
+        Para os links do e-mail (confirmar conta, entrar sem senha, esqueci a senha) voltarem para o app: em Authentication → URL Configuration, ponha em Site URL{' '}
+        <code>{location.origin + location.pathname}</code> e em Redirect URLs <code>{location.origin + location.pathname.replace(/app\/?$/, '')}**</code>.
+      </p>
       <div className="form-grid">
         <Field label="Endereço do projeto" hint="https://xxxx.supabase.co">
           {(id) => (
