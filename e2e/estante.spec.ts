@@ -47,10 +47,23 @@ test('estante: ler ali mesmo, reagir a um capítulo, e capítulo novo chega aos 
   await page.getByRole('button', { name: 'Novo livro' }).click()
   await page.getByRole('textbox', { name: 'Título' }).fill('A Maré')
   await page.getByRole('button', { name: 'Criar livro' }).click()
+  // Com capa: ela sobe para a pasta de imagens e o texto da estante leva só a referência.
+  await page.locator('[data-tour="livro-acoes"]').getByRole('button', { name: 'Diagramar', exact: true }).click()
+  const designer = page.getByRole('dialog', { name: 'Diagramar o livro' })
+  await designer.getByLabel('Imagem da capa').setInputFiles({
+    name: 'capa.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAADCAIAAAA2iEnWAAAAEklEQVR4nGNgYGD4z8DAwMAAAA8AAf8k0R0AAAAASUVORK5CYII=', 'base64'),
+  })
+  await expect(designer.getByRole('img', { name: 'Capa escolhida' })).toBeVisible()
+  await designer.getByRole('button', { name: 'Fechar' }).click()
   await page.getByRole('radiogroup', { name: 'Quem vê “A Maré” no seu perfil' }).getByRole('radio', { name: 'Amigos' }).click()
   await page.getByText(/Deixar ler o livro ali mesmo/).click()
   await expect(page.getByRole('switch', { name: /Deixar ler o livro ali mesmo/ })).toBeChecked()
   await expect.poll(() => fake.tables.papirus_shelf_text.length, { timeout: 15_000 }).toBe(1)
+  const coverOf = () => String((fake.tables.papirus_shelf_text[0].data as { universe: { books: { cover: string | null }[] } }).universe.books[0].cover)
+  await expect.poll(coverOf, { timeout: 15_000 }).toMatch(/^img:[0-9a-f]{32}$/)
+  expect(fake.images.has(coverOf().slice(4))).toBe(true)
   // O texto vai sem segredos e sem a mesa de RPG.
   const sent = JSON.stringify(fake.tables.papirus_shelf_text[0].data)
   expect(sent).not.toContain('"sessions":[{')
@@ -92,6 +105,8 @@ test('estante: ler ali mesmo, reagir a um capítulo, e capítulo novo chega aos 
   await reading.getByRole('button', { name: 'Folhear' }).click()
   const flip = bia.getByRole('dialog', { name: 'Folhear A Maré' })
   await expect(flip.locator('.book-flip-status')).toContainText('como na diagramação', { timeout: 30_000 })
+  // A capa da Ana, baixada na hora.
+  await expect(bia.frameLocator('.book-flip-frame').locator('.cover img').first()).toHaveAttribute('src', /^data:image\//)
   await flip.getByRole('button', { name: 'Fechar' }).click()
   await expect(flip).toHaveCount(0)
   await reading.getByRole('button', { name: 'Páginas' }).click()
