@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { readerBook, readerEntities } from '../logic/reader'
 import { revealIndex, splitReveals } from '../logic/reveals'
-import { scenesOf } from './universe'
+import { manuscriptOrder, scenesOf } from './universe'
+import { shelf } from '../export/shelf'
 import { universeSchema } from './schema'
 import { alienistaUniverse, isOutdatedSample, isSample, sampleFor, sampleKindOf, sampleUniverse } from './sample'
 import { whoIs } from '../logic/definers'
@@ -76,7 +77,7 @@ describe('exemplo principal: a Terra de Oz', () => {
 
   it('revelações e ligações por cena apontam para capítulos que existem', async () => {
     const u = await sampleUniverse()
-    const order = scenesOf(u, u.stories[0].id)
+    const order = manuscriptOrder(u)
     const parts = u.entities.flatMap((e) => [e.description, ...e.fields.map((f) => f.value)]).flatMap(splitReveals).filter((p) => p.sceneTitle !== null)
     expect(parts.length).toBeGreaterThan(10)
     for (const p of parts) expect(revealIndex(p, order), p.sceneTitle ?? '').not.toBeNull()
@@ -94,12 +95,19 @@ describe('exemplo principal: a Terra de Oz', () => {
     const lenhador = whoIs(u, byName('Lenhador de Lata')).find((w) => w.definer.name === 'Feito de')!
     expect(lenhador.traits.find((t) => t.key === 'Coração')?.exception).toContain('seda')
     expect(u.maps[0].regions).toHaveLength(4)
+    // Os outros livros: a série continua (livros 2 e 3, em trechos) e um conto solto; um livro por história na estante.
+    expect(u.stories.map((s) => s.title)).toEqual(['O Mágico de Oz', 'A Maravilhosa Terra de Oz (trechos)', 'Ozma de Oz (trechos)', 'A captura do Pai Tempo (conto solto)'])
+    expect(shelf(u).map((b) => b.storyIds.length)).toEqual([1, 1, 1, 1])
+    // O segredo do livro 2 liga ao livro 1: quem escondeu Ozma foi o Mágico.
+    expect(u.relations.some((r) => r.type === 'é na verdade' && byName('Tip').id === r.fromId && byName('Ozma').id === r.toId)).toBe(true)
     expect(u.facts.some((f) => f.canon === 'secreto')).toBe(true)
     const book = readerBook(u)
     const names = (i: number) => readerEntities(book, i).map((e) => e.entity.name)
     expect(names(0)).toContain('Dorothy')
     expect(names(0)).not.toContain('Leão Covarde')
     expect(names(10)).toContain('Leão Covarde')
+    // Ozma só aparece no livro 2: no capítulo 11 do livro 1, ainda não.
+    expect(names(10)).not.toContain('Ozma')
     expect(isSample(u)).toBe(true)
     expect(isOutdatedSample(u)).toBe(false)
   })
