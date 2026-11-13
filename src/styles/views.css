@@ -10568,3 +10568,38 @@ h3.cork-act {
   margin: 2rem auto;
   color: var(--muted);
 }
+
+/* O livro no Início (seletor pequeno) e o selo nas outras áreas (só com um livro escolhido). */
+.home-book,
+.book-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.home-book {
+  margin: 0 0 0.6rem;
+}
+.home-book label {
+  font-weight: 600;
+}
+.book-chip {
+  margin: 0 0 0.5rem;
+  padding: 0.1rem 0.25rem 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.home-book select,
+.book-chip select {
+  min-width: 0;
+  max-width: 16rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}

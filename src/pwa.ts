@@ -55,3 +55,54 @@ export async function install(): Promise<boolean> {
   await d.prompt()
   return (await d.userChoice).outcome === 'accepted'
 }
+
+// ─── Versão nova ──────────────────────────────────────────────────────
+// Quem deixa o app aberto (no celular, por dias) não recarrega a página e não pega a versão nova.
+// De tempos em tempos (e ao voltar para o app), lê a página do servidor e compara o script principal.
+
+/** O script principal citado numa página (`/assets/app-XXXX.js`), ou null. */
+export function mainScriptOf(html: string, base: string): string | null {
+  const m = html.match(/<script[^>]*type="module"[^>]*src="([^"]+)"/) ?? html.match(/<script[^>]*src="([^"]+)"[^>]*type="module"/)
+  return m ? new URL(m[1], base).pathname : null
+}
+
+let updateReady = false
+const updateListeners = new Set<() => void>()
+
+async function checkForUpdate() {
+  if (updateReady || !navigator.onLine) return
+  const here = document.querySelector<HTMLScriptElement>('script[type="module"][src]')
+  if (!here) return
+  const mine = new URL(here.src, location.href).pathname
+  try {
+    // O parâmetro faz o service worker deixar passar direto para a rede (sem cache).
+    const dir = location.pathname.replace(/[^/]*$/, '')
+    const res = await fetch(`${dir}?checar-versao=${Date.now()}`, { cache: 'no-store' })
+    if (!res.ok) return
+    const theirs = mainScriptOf(await res.text(), location.href)
+    if (theirs && theirs !== mine) {
+      updateReady = true
+      updateListeners.forEach((l) => l())
+    }
+  } catch {
+    // Sem conexão: tenta de novo mais tarde.
+  }
+}
+
+/** Começa a olhar se há versão nova (só no app publicado). */
+export function watchForUpdates() {
+  if (!import.meta.env.PROD) return
+  setTimeout(() => void checkForUpdate(), 60_000)
+  setInterval(() => void checkForUpdate(), 30 * 60_000)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void checkForUpdate()
+  })
+}
+
+export const hasUpdate = () => updateReady
+export const subscribeUpdate = (cb: () => void) => {
+  updateListeners.add(cb)
+  return () => {
+    updateListeners.delete(cb)
+  }
+}

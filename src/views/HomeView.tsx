@@ -9,6 +9,7 @@ import { universeKind } from '../model/kind'
 import { SESSION_STATUS_LABEL } from '../model/labels'
 import { addScene, bookScenes, byId, sceneTitle } from '../model/universe'
 import { recall, remember } from '../state/prefs'
+import { BookPicker } from '../ui/BookPicker'
 import { useWorkspace, type View } from '../state/workspace'
 import { MoreMenu } from '../ui/MoreMenu'
 import { PageHelp } from '../ui/PageTour'
@@ -229,6 +230,7 @@ export default function HomeView() {
         </div>
       </header>
 
+      <BookPicker className="home-book" />
       <div className="home-layout">
         <section className="home-card home-next" aria-label="O próximo passo" data-tour="continuar">
           {mesaFirst ? (

@@ -95,3 +95,11 @@ export function formatYear(year: number | null | undefined, suffix = ''): string
   if (year === null || year === undefined) return ''
   return suffix ? `${year} ${suffix}` : String(year)
 }
+
+/** O papel do personagem na história, como aparece na ficha e na lista. */
+export const ROLE_LABEL: Record<import('./schema').StoryRole, string> = {
+  protagonista: 'Protagonista',
+  antagonista: 'Antagonista',
+  secundario: 'Secundário',
+  figurante: 'Figurante',
+}

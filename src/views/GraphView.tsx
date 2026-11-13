@@ -139,17 +139,44 @@ export default function GraphView() {
   const [inTime, setInTime] = useState(false)
   const [sceneIndex, setSceneIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
-  const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null)
+  // `moved`: o dedo já andou o bastante para ser arrasto (e não toque). Até lá, nada se mexe.
+  const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null)
+  // Durante o gesto, o desenho se move direto (sem redesenhar a tela toda); ao soltar, a posição é guardada.
+  const gRef = useRef<SVGGElement>(null)
+  const live = useRef<{ x: number; y: number; k: number } | null>(null)
+  const frame = useRef(0)
+  // Um arrasto que começou numa bolinha não pode virar "toque" nela ao soltar.
+  const suppressClick = useRef(false)
   const svgRef = useRef<SVGSVGElement>(null)
   const [wrapRef, measured] = useBoxSize()
   const { w: W, h: H } = measured ?? FALLBACK
   const narrow = W < 560
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<{ d: number; k: number } | null>(null)
+  const transformOf = (v: { x: number; y: number; k: number }) => `translate(${v.x} ${v.y}) translate(${W / 2} ${H / 2}) scale(${v.k}) translate(${-W / 2} ${-H / 2})`
+  /** Move o desenho já, sem passar pelo React; uma vez por quadro. */
+  const moveLive = (next: { x: number; y: number; k: number }) => {
+    live.current = next
+    if (frame.current) return
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0
+      if (live.current) gRef.current?.setAttribute('transform', transformOf(live.current))
+    })
+  }
+  /** Fim do gesto: guarda onde o desenho parou. */
+  const commitLive = () => {
+    if (frame.current) cancelAnimationFrame(frame.current)
+    frame.current = 0
+    if (live.current) setView(live.current)
+    live.current = null
+  }
   const endPointer = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId)
     if (pointers.current.size < 2) pinch.current = null
-    if (pointers.current.size === 0) drag.current = null
+    if (pointers.current.size === 0) {
+      drag.current = null
+      commitLive()
+    }
   }
 
   // Esc fecha o cartão da ficha.
@@ -520,26 +547,35 @@ export default function GraphView() {
               e.preventDefault()
               getSelection()?.removeAllRanges()
               pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+              const now = live.current ?? view
               if (pointers.current.size === 2) {
                 // Dois dedos: pinça para zoom.
                 const [a, b] = [...pointers.current.values()]
-                pinch.current = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, k: view.k }
+                pinch.current = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, k: now.k }
                 drag.current = null
+                suppressClick.current = true
                 return
               }
-              if ((e.target as Element).closest('.node')) return
-              ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
-              drag.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }
+              // Vale começar o arrasto em cima de uma bolinha: só vira arrasto se o dedo andar.
+              suppressClick.current = false
+              drag.current = { x: e.clientX, y: e.clientY, vx: now.x, vy: now.y, moved: false }
             }}
             onPointerMove={(e) => {
               if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
               if (pinch.current && pointers.current.size === 2) {
                 const [a, b] = [...pointers.current.values()]
                 const k = pinch.current.k * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.current.d)
-                if (Number.isFinite(k)) setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, k)) }))
+                if (Number.isFinite(k)) moveLive({ ...(live.current ?? view), k: Math.min(4, Math.max(0.3, k)) })
                 return
               }
               if (!drag.current) return
+              if (!drag.current.moved) {
+                if (Math.hypot(e.clientX - drag.current.x, e.clientY - drag.current.y) < 8) return
+                drag.current.moved = true
+                suppressClick.current = true
+                setHovered(null)
+                ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
+              }
               // Converte pixels da tela para unidades do desenho. A largura vem do retângulo na tela:
               // alguns navegadores dão 0 para clientWidth de um SVG, o que levava a posição ao infinito.
               const width = (e.currentTarget as SVGSVGElement).getBoundingClientRect().width
@@ -550,16 +586,15 @@ export default function GraphView() {
               const y = d.vy + (e.clientY - d.y) * scale
               if (!Number.isFinite(x) || !Number.isFinite(y)) return
               // Não deixa o desenho sair inteiro da tela (mas deixa chegar à borda de um desenho grande).
-              setView((v) => {
-                const lx = Math.max(W, (bw * v.k) / 2)
-                const ly = Math.max(H, (bh * v.k) / 2)
-                return { ...v, x: Math.max(-lx, Math.min(lx, x)), y: Math.max(-ly, Math.min(ly, y)) }
-              })
+              const v = live.current ?? view
+              const lx = Math.max(W, (bw * v.k) / 2)
+              const ly = Math.max(H, (bh * v.k) / 2)
+              moveLive({ ...v, x: Math.max(-lx, Math.min(lx, x)), y: Math.max(-ly, Math.min(ly, y)) })
             }}
             onPointerUp={(e) => {
               // Toque no fundo (sem arrastar) fecha o cartão da ficha.
               const d = drag.current
-              if (d && pointers.current.size === 1 && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) setSelected(null)
+              if (d && !d.moved && pointers.current.size === 1 && !(e.target as Element).closest('.node')) setSelected(null)
               endPointer(e)
             }}
             onPointerCancel={endPointer}
@@ -570,7 +605,7 @@ export default function GraphView() {
                 <path d="M0,0 L10,5 L0,10 z" fill="var(--line-strong)" />
               </marker>
             </defs>
-            <g transform={`translate(${view.x} ${view.y}) translate(${W / 2} ${H / 2}) scale(${view.k}) translate(${-W / 2} ${-H / 2})`}>
+            <g ref={gRef} transform={transformOf(view)}>
               {visibleEdges.map((e) => {
                 const a = pos.get(e.from)
                 const b = pos.get(e.to)
@@ -633,9 +668,13 @@ export default function GraphView() {
                     tabIndex={0}
                     role="button"
                     aria-label={`${n.name}, ${kindLabel(n.kind)}`}
-                    onClick={() => setSelected(n.id === selected ? null : n.id)}
-                    onPointerEnter={() => setHovered(n.id)}
-                    onPointerLeave={() => setHovered((h) => (h === n.id ? null : h))}
+                    onClick={() => {
+                      if (suppressClick.current) return
+                      setSelected(n.id === selected ? null : n.id)
+                    }}
+                    // Destacar ao passar por cima é só do mouse: no dedo, cada toque redesenharia tudo.
+                    onPointerEnter={(e) => e.pointerType === 'mouse' && !drag.current?.moved && setHovered(n.id)}
+                    onPointerLeave={(e) => e.pointerType === 'mouse' && setHovered((h) => (h === n.id ? null : h))}
                     onFocus={() => setHovered(n.id)}
                     onBlur={() => setHovered((h) => (h === n.id ? null : h))}
                     onMouseDown={(e) => e.detail > 1 && e.preventDefault()}

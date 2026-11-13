@@ -23,7 +23,7 @@ const NOMES_NOVOS =
 const LIVRO_ATUAL = {
   target: '[data-tour="livro-atual"]',
   title: 'Qual livro',
-  body: 'Num universo com vários livros, escolha aqui em qual você está. Escrever, Trama, Mundo e Publicar passam a mostrar só esse livro: as cenas dele, quem aparece nele, as tramas que passam por ele. “Todos os livros” mostra tudo junto.',
+  body: 'Num universo com vários livros, escolha em qual você está (no Início ou no alto da lista de cenas). Escrever, Trama, Mundo e Publicar passam a mostrar só esse livro: as cenas dele, quem aparece nele, as tramas que passam por ele. Nas outras telas, um selo pequeno lembra o livro escolhido; “Todos os livros” mostra tudo junto.',
   optional: true,
 } as const
 
@@ -36,6 +36,7 @@ export const PAGE_TOURS = {
   inicio: {
     title: 'Início',
     steps: [
+      LIVRO_ATUAL,
       {
         target: '.home-stats',
         title: 'O seu dia',

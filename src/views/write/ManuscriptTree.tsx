@@ -64,7 +64,7 @@ export function ManuscriptTree({ selectedId, onSelect, bookPicker = false }: { s
 
   return (
     <div className="tree">
-      {/* No celular, o livro se escolhe aqui (a faixa do alto não cabe no Escrever). */}
+      {/* O livro se escolhe aqui, no alto da lista de cenas. */}
       {bookPicker && <BookPicker className="tree-book" />}
       {stories.map((story) => {
         const scenes = scenesOf(universe, story.id)

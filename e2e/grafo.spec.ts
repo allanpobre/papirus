@@ -50,6 +50,43 @@ test.describe('no celular', () => {
     expect(await transform(page)).toMatch(/scale\(2\.\d+\)/)
     expect(await page.evaluate(() => [scrollX, scrollY, document.querySelector('.stage')!.scrollTop])).toEqual([0, 0, 0])
   })
+
+  test('arrastar começando numa bolinha move o mapa e não seleciona a bolinha; tocar seleciona', async ({ page }) => {
+    await page.goto('/app/')
+    await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
+    await openPart(page, 'Ligações')
+    const node = page.locator('.node').first()
+    await node.waitFor()
+    await page.waitForTimeout(1200)
+    const nb = (await node.locator('circle').last().boundingBox())!
+    const cdp = await page.context().newCDPSession(page)
+    const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', pts: [number, number][]) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], id) => ({ x, y, id })) })
+    const [x, y] = [nb.x + nb.width / 2, nb.y + nb.height / 2]
+    const before = await transform(page)
+    await touch('touchStart', [[x, y]])
+    for (let i = 1; i <= 6; i++) await touch('touchMove', [[x + i * 12, y + i * 8]])
+    await touch('touchEnd', [])
+    await expect.poll(() => transform(page)).not.toBe(before)
+    await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toHaveCount(0)
+    // Um toque de verdade (sem andar) numa bolinha à vista seleciona.
+    await page.waitForTimeout(300)
+    const g = (await page.locator('.graph').boundingBox())!
+    const spot = await page.locator('.node > circle:last-of-type').evaluateAll(
+      (cs, gb) => {
+        for (const c of cs) {
+          const r = c.getBoundingClientRect()
+          const [cx, cy] = [r.x + r.width / 2, r.y + r.height / 2]
+          if (cx > gb.x + 40 && cx < gb.x + gb.width - 40 && cy > gb.y + 40 && cy < gb.y + gb.height - 90) return [cx, cy]
+        }
+        return null
+      },
+      g,
+    )
+    expect(spot).not.toBeNull()
+    await touch('touchStart', [spot as [number, number]])
+    await touch('touchEnd', [])
+    await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toBeVisible()
+  })
 })
 
 test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page }) => {
@@ -95,9 +132,11 @@ test('no celular, os nomes não se sobrepõem e dá para escolher um livro só',
   expect(await overlaps()).toBe(0)
   const all = await page.locator('.graph .node').count()
 
-  // O livro 3 (com ou sem "(trechos)" no nome, conforme a versão do exemplo).
-  const livro = page.getByLabel('Livro')
+  // O livro 3 (com ou sem "(trechos)" no nome), escolhido no Início; as Ligações seguem.
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).first().click()
+  const livro = page.getByLabel('Livro', { exact: true })
   await livro.selectOption((await livro.locator('option', { hasText: /^Ozma de Oz/ }).first().getAttribute('value'))!)
+  await openPart(page, 'Ligações')
   await expect.poll(() => page.locator('.graph .node').count()).toBeLessThan(all)
   await expect(page.locator('.graph .node', { hasText: 'Ozma' }).first()).toBeVisible()
   await page.waitForTimeout(1500)

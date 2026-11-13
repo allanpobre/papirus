@@ -43,6 +43,15 @@ test.describe('o livro escolhido no alto', () => {
     const list = page.getByRole('region', { name: 'Lista de fichas' }).locator('li')
     await expect(page.getByText(/^Só quem aparece em “Ozma de Oz/)).toBeVisible()
     const inBook = await list.count()
+    // Várias fichas de uma vez com o livro escolhido: elas ficam na lista (ainda não aparecem no texto).
+    // No celular: o + abre "Nova ficha", e dali "Criar várias de uma vez".
+    await page.getByRole('button', { name: 'Nova ficha' }).click()
+    await page.getByRole('button', { name: /Criar várias de uma vez/ }).click()
+    const bulk = page.getByRole('dialog', { name: 'Criar várias fichas' })
+    await bulk.locator('textarea').fill('Zorba Um\nZorba Dois')
+    await bulk.locator('.btn-primary').click()
+    await expect(list.filter({ hasText: 'Zorba Um' })).toHaveCount(1)
+    await expect(list.filter({ hasText: 'Zorba Dois' })).toHaveCount(1)
     await page.getByRole('button', { name: 'Ver todas as fichas' }).click()
     await expect.poll(() => list.count()).toBeGreaterThan(inBook)
 
@@ -73,7 +82,13 @@ test.describe('o livro escolhido no alto', () => {
     const scenes = page.locator('.tl-scene:not(.tl-session)')
     await expect(scenes.first()).toBeVisible()
     const allScenes = await scenes.count()
+    // Sem livro escolhido, as outras áreas não mostram nada sobre livro (sem faixa no alto).
+    await expect(page.locator('[data-tour="livro-atual"]')).toHaveCount(0)
+    // O livro se escolhe no Início; aqui aparece só um selo com ele.
+    await nav(page, 'Início').click()
     await pick(book(page), OZMA)
+    await openPart(page, 'Linha do tempo')
+    await expect(page.locator('.book-chip')).toBeVisible()
     await expect.poll(() => scenes.count()).toBeLessThan(Math.max(1, allScenes))
 
     // Quem sabe o quê: o fim é o fim deste livro.

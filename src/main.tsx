@@ -18,7 +18,8 @@ import './styles/treino.css'
 import App from './App.tsx'
 import PlayerApp from './player/PlayerApp.tsx'
 import { readPlayerLink } from './share/server'
-import { startPwa } from './pwa'
+import { startPwa, watchForUpdates } from './pwa'
+import { UpdateNotice } from './ui/UpdateNotice'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { GlobalErrors } from './ui/GlobalErrors'
 import { Confetti } from './ui/Confetti'
@@ -27,7 +28,11 @@ import { AuthLinkNotice } from './account/AuthLinkNotice'
 
 // Link de jogador (?mesa=…): só o Codex, sem biblioteca nem dados deste navegador.
 const player = readPlayerLink(location.search)
-if (!player) startPwa()
+if (!player) {
+  startPwa()
+  // Versão nova publicada enquanto o app está aberto: avisa com "Atualizar".
+  watchForUpdates()
+}
 // Volta de um link do e-mail (entrar, confirmar a conta, trocar a senha): guarda e limpa o endereço.
 if (!player) captureAuthLink()
 
@@ -39,6 +44,7 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary label="O Papirus encontrou um erro.">{player ? <PlayerApp id={player.id} server={player.server} /> : <App />}</ErrorBoundary>
     <GlobalErrors />
     {!player && <AuthLinkNotice />}
+    {!player && <UpdateNotice />}
     <Confetti />
   </StrictMode>,
 )

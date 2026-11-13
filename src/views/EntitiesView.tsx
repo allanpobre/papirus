@@ -10,8 +10,8 @@ import { factSentence } from '../logic/codex'
 import { fold, snippet } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
 import { RelationDetails } from './RelationDetails'
-import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, SEED_STATUS_LABEL } from '../model/labels'
-import { ENTITY_KINDS, FIELD_TYPES, KNOWLEDGE_STATES, type Entity, type KnowledgeState } from '../model/schema'
+import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
+import { ENTITY_KINDS, FIELD_TYPES, KNOWLEDGE_STATES, STORY_ROLES, type Entity, type KnowledgeState, type StoryRole } from '../model/schema'
 import {
   bookOnly,
   byId,
@@ -60,7 +60,9 @@ import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
 export default function EntitiesView() {
-  const { universe, update, nav, go, readOnly, peek, bookId } = useWorkspace()
+  const { universe, update, nav, go, readOnly, peek, bookId, toast } = useWorkspace()
+  // O que foi criado nesta visita fica na lista mesmo com um livro escolhido (ainda não aparece no texto dele).
+  const [since] = useState(() => new Date().toISOString())
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<FichaMode>(() => {
     const saved = recall('ficha-modo')
@@ -141,7 +143,7 @@ export default function EntitiesView() {
       .filter((e) => kind === 'todos' || e.kind === kind)
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
       // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
-      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || e.id === fresh)
+      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || e.id === fresh || e.createdAt >= since)
       .filter(
         (e) =>
           !q ||
@@ -159,7 +161,7 @@ export default function EntitiesView() {
             ? b.updatedAt.localeCompare(a.updatedAt)
             : a.name.localeCompare(b.name, 'pt'),
       )
-  }, [universe.entities, kind, query, where, counts, order, onlyBook, fresh])
+  }, [universe.entities, kind, query, where, counts, order, onlyBook, fresh, since])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -312,9 +314,9 @@ export default function EntitiesView() {
                     {e.name || 'Sem nome'}
                     <OriginChip item={e} />
                   </span>
-                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{kindLabel(e.kind)}</span>}
+                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{e.role ? ROLE_LABEL[e.role] : kindLabel(e.kind)}</span>}
                   <span className="entity-row-summary">
-                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}</span>}
+                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}{e.role ? ` · ${ROLE_LABEL[e.role]}` : ''}</span>}
                     {hasScenes && e.summary && ' · '}
                     {e.summary}
                   </span>
@@ -357,6 +359,7 @@ export default function EntitiesView() {
               setCreating(null)
               setKind(k)
               setQuery('')
+              if (onlyBook && book) toast(`Fichas criadas no mundo. Elas entram em “${book.title || 'Sem título'}” quando o texto citar o nome; até lá, ficam aqui na lista.`)
             }}
           />
         )}
@@ -612,6 +615,18 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               )}
             </Field>
             <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
+            {(e.kind === 'personagem' || e.role) && (
+              <Field label="Papel na história">
+                {(id) => (
+                  <Select<StoryRole | ''>
+                    id={id}
+                    value={e.role ?? ''}
+                    onChange={(v) => set({ role: v || undefined })}
+                    options={[{ value: '', label: 'Sem papel marcado' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
+                  />
+                )}
+              </Field>
+            )}
             {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
             {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
               <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />

@@ -373,7 +373,7 @@ export default function WriteView() {
       <div className="view write-empty">
         <div className="write-welcome">
           <PageHelp tour="escrever-vazio" className="write-welcome-help" />
-          {phone && <BookPicker className="tree-book" />}
+          <BookPicker className="tree-book" />
           <Feather size={36} aria-hidden="true" />
           <h1>Uma página em branco.</h1>
           <p>Comece por uma cena. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>
@@ -402,7 +402,7 @@ export default function WriteView() {
     >
       {treeOpen && !focus && (
         <aside className={`write-tree${treeOverlay ? ' write-overlay write-overlay-left' : ''}`} aria-label="Manuscrito">
-          <ManuscriptTree selectedId={scene.id} onSelect={select} bookPicker={phone} />
+          <ManuscriptTree selectedId={scene.id} onSelect={select} bookPicker />
         </aside>
       )}
       {treeOpen && !focus && treeOverlay && !phone && (
