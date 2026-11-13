@@ -54,6 +54,7 @@ import {
 import { wordCount } from '../../persistence/repository'
 import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
+import { BookPicker } from '../../ui/BookPicker'
 import { Field, Select, YearInput } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { useSettled } from '../../ui/useSettled'
@@ -372,6 +373,7 @@ export default function WriteView() {
       <div className="view write-empty">
         <div className="write-welcome">
           <PageHelp tour="escrever-vazio" className="write-welcome-help" />
+          {phone && <BookPicker className="tree-book" />}
           <Feather size={36} aria-hidden="true" />
           <h1>Uma página em branco.</h1>
           <p>Comece por uma cena. Histórias, capítulos e fichas podem vir depois — ou nunca.</p>
@@ -400,7 +402,7 @@ export default function WriteView() {
     >
       {treeOpen && !focus && (
         <aside className={`write-tree${treeOverlay ? ' write-overlay write-overlay-left' : ''}`} aria-label="Manuscrito">
-          <ManuscriptTree selectedId={scene.id} onSelect={select} />
+          <ManuscriptTree selectedId={scene.id} onSelect={select} bookPicker={phone} />
         </aside>
       )}
       {treeOpen && !focus && treeOverlay && !phone && (
@@ -577,6 +579,7 @@ export default function WriteView() {
             {phone && !focus && (
               <button type="button" className="page-pos" onClick={() => setTreeOpen(true)}>
                 {storyName} · cena {at + 1} de {siblings.length}
+                {universe.stories.length > 1 && <ChevronDown size={14} aria-hidden="true" />}
               </button>
             )}
             <label htmlFor="scene-title" className="sr-only">

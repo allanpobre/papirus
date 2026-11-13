@@ -7,7 +7,7 @@ import { streakLine, todayTarget, weekDots, worldCounts } from '../logic/homeTod
 import { wordsToday } from '../logic/stats'
 import { universeKind } from '../model/kind'
 import { SESSION_STATUS_LABEL } from '../model/labels'
-import { addScene, byId, manuscriptOrder, sceneTitle } from '../model/universe'
+import { addScene, bookScenes, byId, sceneTitle } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
 import { MoreMenu } from '../ui/MoreMenu'
@@ -32,7 +32,7 @@ const untilFmt = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long
  * e o ritmo dobrado.
  */
 export default function HomeView() {
-  const { universe, prefs, go, update, openCapture, openSearch, closeUniverse, source, openShare, openReader, readOnly, toast, hiddenViews } = useWorkspace()
+  const { universe, prefs, go, update, openCapture, openSearch, closeUniverse, source, openShare, openReader, readOnly, toast, hiddenViews, bookId } = useWorkspace()
   const cover = universe.settings.cover ?? null
   const setCover = (ref: string | null) => update((u) => ({ ...u, settings: { ...u.settings, cover: ref } }))
   const coverPicker = useImagePicker(
@@ -40,19 +40,20 @@ export default function HomeView() {
     (ref) => setCover(ref),
     (m) => toast(m, { tone: 'erro' }),
   )
-  const scenes = useMemo(() => manuscriptOrder(universe), [universe])
+  // Com um livro escolhido no alto, "onde parou" e as cenas recentes são as dele.
+  const scenes = useMemo(() => bookScenes(universe, bookId), [universe, bookId])
   const [todayLabel] = useState(() => capitalize(longDate.format(new Date())))
   const shown = (v: View) => !hiddenViews.includes(v)
   // No celular, só o fim do trecho (a última frase é o que importa para continuar).
   const phone = useMediaQuery('(max-width: 520px)')
 
   // Onde parou: a cena lembrada; senão, a última editada de verdade (depois de criada); senão, a primeira.
-  const lastId = recall(`cena:${universe.id}`)
+  const lastId = recall(bookId ? `cena:${universe.id}:${bookId}` : `cena:${universe.id}`)
   const edited = scenes.filter((x) => Date.parse(x.updatedAt) - Date.parse(x.createdAt) > 5000).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-  const last = (lastId && byId(universe, 'scenes', lastId)) || edited[0] || scenes[0]
+  const last = scenes.find((x) => x.id === lastId) || edited[0] || scenes[0]
   const story = last?.storyId ? byId(universe, 'stories', last.storyId) : undefined
   const others = edited.filter((s) => s.id !== last?.id && s.text.trim()).slice(0, 2)
-  const hasText = scenes.some((s) => s.text.trim())
+  const hasText = universe.scenes.some((s) => s.text.trim())
 
   const showRpg = shown('rpg') && universe.groups.length > 0
   // Numa campanha (ou num universo com mesa e nada escrito), o próximo passo é a mesa.
@@ -73,7 +74,7 @@ export default function HomeView() {
   const newScene = () => {
     let id = ''
     update((u) => {
-      const [next, s] = addScene(u, last?.storyId ?? null)
+      const [next, s] = addScene(u, last?.storyId ?? bookId)
       id = s.id
       return next
     })
