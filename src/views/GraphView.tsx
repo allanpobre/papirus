@@ -219,16 +219,32 @@ export default function GraphView() {
 
   // O layout usa todas as ligações visíveis (não só as do momento), para que as fichas não pulem com o tempo.
   const layoutKey = nodes.map((n) => n.id).join(',') + '|' + visibleEdges.map((e) => e.from + e.to).join(',') + `|${W}x${H}`
-  const target = useMemo(
+  // No celular, a faixa de baixo fica para os botões de zoom.
+  const baseH = narrow ? H - CONTROLS : H
+  // Com muitas fichas, o desenho fica maior que a tela (cada uma com lugar para a bolinha e o nome):
+  // abre no tamanho de ler, e a pessoa arrasta para andar pelas ligações. "Enquadrar" mostra tudo.
+  const grow = Math.max(1, Math.sqrt((nodes.length * (narrow ? 11000 : 13000)) / (W * baseH)))
+  const LW = Math.round(W * grow)
+  const LH = Math.round(baseH * grow)
+  const raw = useMemo(
     () => {
       const springs = [...visibleEdges, ...visibleEdges.filter((e) => e.kind === 'por-tras').map((e) => ({ from: e.from, to: e.relation!.toId }))]
       // A margem deixa lugar para os nomes em volta das bolinhas da borda.
-      // No celular, a faixa de baixo fica para os botões de zoom.
-      return forceLayout(nodes.map((n) => ({ id: n.id })), springs, { width: W, height: narrow ? H - CONTROLS : H, margin: narrow ? 56 : 80, stretch: narrow ? 1.7 : 2.2 })
+      return forceLayout(nodes.map((n) => ({ id: n.id })), springs, { width: LW, height: LH, margin: narrow ? 56 : 80, stretch: narrow ? 1.7 : 2.2 })
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [layoutKey],
   )
+  // O centro do desenho fica no centro da tela.
+  const target = useMemo(() => {
+    if (LW === W && LH === baseH) return raw
+    const dx = (W - LW) / 2
+    const dy = (baseH - LH) / 2
+    return new Map([...raw].map(([id, p]) => [id, { x: p.x + dx, y: p.y + dy }]))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [raw])
+  /** O zoom que mostra o desenho inteiro. */
+  const fitK = 1 / grow
   const pos = useAnimatedPositions(target, { x: W / 2, y: H / 2 })
 
   // Num ponto da história, só entra no mapa quem já apareceu até a cena (no texto, no elenco, como POV ou lugar).
@@ -254,11 +270,11 @@ export default function GraphView() {
         [...nodes]
           .sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0))
           .map((n) => ({ id: n.id, width: (n.name || 'Sem nome').length * LABEL_SIZE * 0.6 + 8, height: LABEL_SIZE * 1.3, r: radius(n.id) })),
-        target,
-        { width: W, height: narrow ? H - CONTROLS : H, pad: 8, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
+        raw,
+        { width: LW, height: LH, pad: 8, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [target, nodes],
+    [raw, nodes],
   )
   const kinds = [...new Set(universe.entities.map((e) => e.kind))]
   const sel = selected ? byId(universe, 'entities', selected) : undefined
@@ -272,7 +288,7 @@ export default function GraphView() {
   const filterCount = [focusId, hiddenKinds.size > 0, inTime, !showDerived, !onlyConnected].filter(Boolean).length
   const hasFamily = useMemo(() => familyLinks(universe).length > 0, [universe])
   const [mode, setMode] = useState<'ligacoes' | 'familia'>('ligacoes')
-  const zoom = (f: number) => setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, v.k * f)) }))
+  const zoom = (f: number) => setView((v) => ({ ...v, k: Math.min(4, Math.max(Math.min(0.3, fitK), v.k * f)) }))
 
   return (
     <div className={`view graph-view${filtersOpen ? ' filters-open' : ''}`}>
@@ -591,7 +607,7 @@ export default function GraphView() {
             <button type="button" className="btn-icon" aria-label="Afastar" onClick={() => zoom(1 / 1.2)}>
               <Minus size={16} />
             </button>
-            <button type="button" className="btn-icon" aria-label="Enquadrar" onClick={() => setView({ x: 0, y: 0, k: 1 })}>
+            <button type="button" className="btn-icon" aria-label="Enquadrar" onClick={() => setView({ x: 0, y: 0, k: fitK })}>
               <Maximize size={16} />
             </button>
           </div>
