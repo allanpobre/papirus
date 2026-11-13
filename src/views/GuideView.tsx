@@ -61,7 +61,7 @@ const AREAS: Area[] = [
       { title: 'Ligações', what: 'Quem é o quê de quem, num mapa que você navega cena a cena, e a árvore da família.', tour: 'relacoes', view: 'relacoes' },
       { title: 'Linha do tempo', what: 'Eras, eventos e cenas datadas, com a Máquina do tempo para ver o mundo num ano.', tour: 'timeline', view: 'timeline' },
       { title: 'Mapas', what: 'A imagem do seu mapa com os lugares marcados, o caminho de cada personagem e as regiões de quem manda.', tour: 'atlas', view: 'atlas' },
-      { title: 'Wiki', what: 'O mundo como um site para leitores ou jogadores, sem segredos, em quatro estilos.', tour: 'wiki', view: 'wiki' },
+      { title: 'Wiki', what: 'O mundo como um site para leitores ou jogadores, sem segredos, em quatro estilos. Baixe o arquivo ou mande um link que abre em qualquer celular.', tour: 'wiki', view: 'wiki' },
     ],
   },
   {

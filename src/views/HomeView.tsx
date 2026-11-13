@@ -167,7 +167,7 @@ export default function HomeView() {
           )}
           {/* No celular, os botões cabem numa linha: Compartilhar vai para o ⋯ (e está no "Mais" da barra de baixo). */}
           {source.kind === 'proprio' && !phone && (
-            <button type="button" className="home-quick-btn has-label" aria-label="Compartilhar" title="Compartilhar" onClick={openShare}>
+            <button type="button" className="home-quick-btn has-label" aria-label="Compartilhar" title="Compartilhar" onClick={() => openShare()}>
               <Users size={16} aria-hidden="true" /> <span>Compartilhar</span>
             </button>
           )}

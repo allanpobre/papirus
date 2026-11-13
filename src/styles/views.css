@@ -10537,3 +10537,34 @@ h3.cork-act {
 .pin.off-book .pin-label {
   display: none;
 }
+
+/* A wiki aberta pelo link (sem conta): uma faixa fina no alto e a wiki ocupando o resto. */
+.wiki-link-page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--paper);
+}
+.wiki-link-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.wiki-link-made {
+  margin: 0;
+  min-width: 0;
+}
+.wiki-link-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #fff;
+}
+.wiki-link-loading {
+  margin: 2rem auto;
+  color: var(--muted);
+}

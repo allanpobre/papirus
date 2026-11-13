@@ -119,6 +119,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const [shareOpen, setShareOpen] = useState(false)
+  const [shareLink, setShareLink] = useState<'wiki' | undefined>(undefined)
   const [readerOpen, setReaderOpen] = useState(false)
   // A Oficina é uma página à parte, por cima da área de trabalho.
   const [oficinaOpen, setOficinaOpen] = useState(false)
@@ -438,7 +439,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       others,
       remoteRev,
       setEditingScene,
-      openShare: () => setShareOpen(true),
+      openShare: (link?: 'wiki') => {
+        setShareLink(link)
+        setShareOpen(true)
+      },
       openReader: () => setReaderOpen(true),
       openBookDesigner: (bookId?: string, focus?: 'grafica') => {
         setBookFocus(focus)
@@ -765,7 +769,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
         {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}
-        {shareOpen && <ShareDialog onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
+        {shareOpen && <ShareDialog linkFocus={shareLink} onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
 
         <div className="toasts" aria-live="polite">
           {toasts.map((t) => (

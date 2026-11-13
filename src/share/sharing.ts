@@ -212,15 +212,15 @@ export async function fetchByLink(server: ServerConfig, token: string): Promise<
 const toB64Url = (s: string) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 const fromB64Url = (s: string) => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))))
 
-/** Como o link abre: o livro com o caderno sem spoiler, ou o universo inteiro (só leitura). */
-export type LinkMode = 'livro' | 'universo'
+/** Como o link abre: o livro com o caderno sem spoiler, a wiki do mundo, ou o universo inteiro (só leitura). */
+export type LinkMode = 'livro' | 'universo' | 'wiki'
 
 /** Link de leitura. Só leva o servidor quando ele não é o da publicação. */
 export function readLink(publicUrl: string, cfg: ServerConfig, token: string, mode: LinkMode = 'livro'): string {
   const base = new URL(publicUrl || DEFAULT_PUBLIC_URL)
   const url = new URL(base.pathname.replace(/\/app\/?$/, '/').replace(/\/?$/, '/') + 'app/', base)
   url.searchParams.set('ler', token)
-  if (mode === 'livro') url.searchParams.set('modo', 'livro')
+  if (mode !== 'universo') url.searchParams.set('modo', mode)
   const same = BUILD_SERVER && BUILD_SERVER.url === cfg.url && BUILD_SERVER.anonKey === cfg.anonKey
   if (!same) url.searchParams.set('srv', toB64Url(JSON.stringify([cfg.url.trim(), cfg.anonKey.trim()])))
   return url.toString()
@@ -230,7 +230,8 @@ export function parseReadLink(search: string): { token: string; server: ServerCo
   const params = new URLSearchParams(search)
   const token = params.get('ler')
   if (!token || !/^[0-9a-f]{32,}$/i.test(token)) return null
-  const mode: LinkMode = params.get('modo') === 'livro' ? 'livro' : 'universo'
+  const modo = params.get('modo')
+  const mode: LinkMode = modo === 'livro' || modo === 'wiki' ? modo : 'universo'
   const srv = params.get('srv')
   if (srv) {
     try {
