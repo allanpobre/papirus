@@ -6,6 +6,8 @@ import { Library, type LibraryEntry } from './persistence/repository'
 import { memoryStore, openBestStore, requestPersistentStorage } from './persistence/storage'
 import { fetchByLink, openShared, parseReadLink, shortName, type SharedWithMe } from './share/sharing'
 import { ReaderView } from './reader/ReaderView'
+import { WikiLinkPage } from './share/WikiLinkPage'
+import type { ServerConfig } from './share/server'
 import { commentSender } from './share/feedback'
 import type { LiveSource } from './share/useLiveSync'
 import { authClient } from './account/auth'
@@ -27,6 +29,8 @@ interface Opened {
   memory?: Library
   /** Link "como livro": só o modo leitor, sem a área de trabalho. */
   book?: { key: string; ownerEmail: string }
+  /** Link de leitura no modo wiki: só a wiki do mundo, sem a área de trabalho. */
+  wiki?: { ownerEmail: string; server: ServerConfig }
 }
 
 /** Guarda um universo de fora numa biblioteca só de memória. */
@@ -128,6 +132,7 @@ export default function App() {
             memory,
             source: { kind: 'link', token: link.token, stamp: got.stamp, server: link.server, ownerEmail: got.ownerEmail },
             book: link.mode === 'livro' ? { key: `leitor:link:${link.token.slice(0, 16)}`, ownerEmail: got.ownerEmail } : undefined,
+            wiki: link.mode === 'wiki' ? { ownerEmail: got.ownerEmail, server: link.server } : undefined,
           })
         } catch (err) {
           if (!cancelled) setError(err instanceof Error ? err.message : String(err))
@@ -231,6 +236,8 @@ export default function App() {
       />
     )
   }
+
+  if (opened.wiki) return <WikiLinkPage universe={opened.universe} ownerEmail={opened.wiki.ownerEmail} server={opened.wiki.server} />
 
   if (opened.book) {
     return (

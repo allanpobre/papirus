@@ -65,7 +65,7 @@ export function BookReadersDialog({ readers, title, onClose }: { readers: BookRe
           </ol>
         )}
         {readers.available && (
-          <button type="button" className="btn btn-sm" onClick={openShare}>
+          <button type="button" className="btn btn-sm" onClick={() => openShare()}>
             Mandar o link de leitura
           </button>
         )}

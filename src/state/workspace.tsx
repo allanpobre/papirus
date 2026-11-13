@@ -80,7 +80,8 @@ export interface Workspace {
   remoteRev: Record<string, number>
   setEditingScene: (sceneId: string | null) => void
   /** Abre a janela de compartilhar este universo. */
-  openShare: () => void
+  /** Abre a janela de compartilhar; `link` já escolhe o jeito do link (da página Wiki, a wiki). */
+  openShare: (link?: 'wiki') => void
   /** Abre o modo leitor (o livro com o caderno sem spoiler). */
   openReader: () => void
   /** Abre a diagramação do livro (PDF para imprimir); `focus` abre direto numa parte. */

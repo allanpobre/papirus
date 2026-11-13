@@ -38,7 +38,7 @@ const CHOICE_LABEL: Record<Choice, string> = { ...ROLE_LABEL, au: 'Pode ver e cr
 const CHOICES: Choice[] = ['ver', 'au', 'editar']
 
 /** Compartilhar o universo aberto: convites por e-mail (ver, criar um AU ou editar) e o link de leitura. */
-export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAccount: () => void }) {
+export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => void; onAccount: () => void; linkFocus?: LinkMode }) {
   const { universe, flush, prefs, update } = useWorkspace()
   const { user, server } = useAccount()
   const [share, setShare] = useState<Share | null | undefined>(undefined)
@@ -67,7 +67,8 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
   const [notice, setNotice] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [confirmStop, setConfirmStop] = useState(false)
-  const [linkMode, setLinkMode] = useState<LinkMode>('livro')
+  // Vindo da página Wiki, o link já abre no jeito "Wiki do mundo".
+  const [linkMode, setLinkMode] = useState<LinkMode>(linkFocus ?? 'livro')
 
   const act = useCallback(async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -329,6 +330,9 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                     <button type="button" role="radio" aria-checked={linkMode === 'livro'} onClick={() => setLinkMode('livro')}>
                       Livro, sem spoiler
                     </button>
+                    <button type="button" role="radio" aria-checked={linkMode === 'wiki'} onClick={() => setLinkMode('wiki')}>
+                      Wiki do mundo
+                    </button>
                     <button type="button" role="radio" aria-checked={linkMode === 'universo'} onClick={() => setLinkMode('universo')}>
                       Universo inteiro
                     </button>
@@ -336,7 +340,9 @@ export function ShareDialog({ onClose, onAccount }: { onClose: () => void; onAcc
                   <p className="muted tiny">
                     {linkMode === 'livro'
                       ? 'Abre o modo leitor: cena por cena, com um caderno que só mostra o que já foi lido.'
-                      : 'Abre todas as fichas, ligações e a linha do tempo de uma vez (cuidado com spoilers).'}
+                      : linkMode === 'wiki'
+                        ? 'Abre a wiki do mundo, com o visual da página Wiki: fichas, ligações, linha do tempo e mapas, sem nada secreto. Bom para mandar aos jogadores.'
+                        : 'Abre todas as fichas, ligações e a linha do tempo de uma vez (cuidado com spoilers).'}
                   </p>
                   <div className="share-link-row">
                     <input className="input input-sm" readOnly aria-label="Link de leitura" value={link} onFocus={(e) => e.target.select()} />
