@@ -200,8 +200,15 @@ export function placeLabels(
     let bestCost = Infinity
     for (const o of options) {
       let cost = 0
-      for (const b of placed) cost += overlap(o.box, b)
-      for (const c of circles) if (c.id !== n.id) cost += overlap(o.box, c.box)
+      // Encostar em outro nome ou em outra bolinha é o pior: custa mais que qualquer linha por baixo.
+      for (const b of placed) {
+        const a = overlap(o.box, b)
+        if (a > 0) cost += 10000 + a
+      }
+      for (const c of circles) {
+        const a = c.id !== n.id ? overlap(o.box, c.box) : 0
+        if (a > 0) cost += 5000 + a
+      }
       // Fora da área também custa: o nome cortado na borda não se lê.
       const out =
         Math.max(0, pad - o.box.x) + Math.max(0, o.box.x + o.box.w - (width - pad)) + Math.max(0, pad - o.box.y) + Math.max(0, o.box.y + o.box.h - (height - pad))
