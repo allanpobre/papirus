@@ -72,3 +72,36 @@ test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page 
   await page.mouse.click(box.x + 8, box.y + 8)
   await expect(card).toHaveCount(0)
 })
+
+test('no celular, os nomes não se sobrepõem e dá para escolher um livro só', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/app/?exemplo')
+  await openPart(page, 'Ligações')
+  const overlaps = () =>
+    page.evaluate(() => {
+      const rs = [...document.querySelectorAll('.graph .node text')].map((t) => t.getBoundingClientRect()).filter((r) => r.width > 0)
+      let n = 0
+      for (let i = 0; i < rs.length; i++)
+        for (let j = i + 1; j < rs.length; j++) {
+          const a = rs[i]
+          const b = rs[j]
+          if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) n++
+        }
+      return n
+    })
+  await expect(page.locator('.graph .node').first()).toBeVisible()
+  // Espera a animação das bolinhas assentar.
+  await page.waitForTimeout(1500)
+  expect(await overlaps()).toBe(0)
+  const all = await page.locator('.graph .node').count()
+
+  await page.getByLabel('Livro').selectOption({ label: 'Ozma de Oz (trechos)' })
+  await expect.poll(() => page.locator('.graph .node').count()).toBeLessThan(all)
+  await expect(page.locator('.graph .node', { hasText: 'Ozma' }).first()).toBeVisible()
+  await page.waitForTimeout(1500)
+  expect(await overlaps()).toBe(0)
+
+  // O "cena a cena" anda só pelas cenas deste livro.
+  await page.getByRole('button', { name: /Ver cena a cena/ }).click()
+  await expect(page.locator('.graph-time-label')).toContainText('Ozma de Oz')
+})

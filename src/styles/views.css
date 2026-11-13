@@ -10460,3 +10460,17 @@ h3.cork-act {
 .book-flip.is-pages .book-flip-frame {
   background: #d9ddd6;
 }
+
+/* Ligações: escolher o livro (só quem aparece nele entra no mapa). */
+.graph-book {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.graph-book select {
+  flex: 1;
+  min-width: 0;
+  max-width: 22rem;
+}
