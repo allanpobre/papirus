@@ -18,7 +18,7 @@ import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
 import { useUniverse, type SaveStatus } from '../persistence/useUniverse'
 import { recall, remember, type usePrefs } from '../state/prefs'
-import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
+import { useWorkspace, WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
 import { setOutsideSession } from '../rpg/sessionFocus'
@@ -125,6 +125,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [bookFocus, setBookFocus] = useState<'grafica' | undefined>()
   const closeBook = useCallback(() => setBookOpen(null), [])
   const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
+  // O livro escolhido no alto. Um livro que não existe mais (apagado, ou de outra versão) vale como "todos".
+  const [bookPick, setBookPick] = useState<string | null>(() => recall(`livro:${initial.id}`))
+  const bookId = bookPick && universe.stories.length > 1 && universe.stories.some((s) => s.id === bookPick) ? bookPick : null
+  const setBookId = useCallback(
+    (id: string | null) => {
+      setBookPick(id)
+      remember(`livro:${universe.id}`, id)
+    },
+    [universe.id],
+  )
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [remoteRev, setRemoteRev] = useState<Record<string, number>>({})
   const { prefs, setPref } = prefsApi
@@ -444,8 +454,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       kind,
       hiddenViews: hidden,
       setHiddenViews: (views: View[]) => setPref('menus', { ...prefs.menus, [kind]: views }),
+      bookId,
+      setBookId,
     }),
-    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev, kind, hidden],
+    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev, kind, hidden, bookId, setBookId],
   )
 
   // Arrastar texto selecionado sem querer inicia o "arrastar e soltar" do navegador, e alguns
@@ -717,6 +729,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             </div>
           )}
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
+            {BOOK_VIEWS.includes(nav.view) && <BookBar />}
             <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
           </Suspense>
         </main>
@@ -875,6 +888,32 @@ function RailButton({ item, active, onClick, badge }: { item: NavItem; active: b
         </span>
       )}
     </button>
+  )
+}
+
+/** As áreas que mostram só o livro escolhido: Escrever, Publicar, Mundo (menos Mapas) e Trama. */
+const BOOK_VIEWS: View[] = ['escrever', 'organizar', 'livro', 'fichas', 'relacoes', 'timeline', 'tramas', 'conhecimento']
+
+/**
+ * A faixa "Livro" no alto das áreas que seguem o livro escolhido. Só aparece num universo com mais de
+ * um livro; "Todos os livros" mostra tudo junto, como num universo de um livro só.
+ */
+function BookBar() {
+  const { universe, bookId, setBookId } = useWorkspace()
+  if (universe.stories.length < 2) return null
+  return (
+    <div className="book-bar" data-tour="livro-atual">
+      <BookOpen size={15} aria-hidden="true" />
+      <label htmlFor="livro-atual">Livro</label>
+      <select id="livro-atual" value={bookId ?? ''} onChange={(e) => setBookId(e.target.value || null)}>
+        <option value="">Todos os livros</option>
+        {universe.stories.map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.title || 'Sem título'}
+          </option>
+        ))}
+      </select>
+    </div>
   )
 }
 

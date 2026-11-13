@@ -1,4 +1,5 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useMemo } from 'react'
+import { bookOnly } from '../model/universe'
 import type { Universe } from '../model/schema'
 import type { Library, UniverseRepository } from '../persistence/repository'
 import type { FolderSync } from '../persistence/useFolderSync'
@@ -90,6 +91,12 @@ export interface Workspace {
   hiddenViews: View[]
   /** Muda as áreas escondidas (vale para todos os universos deste tipo). */
   setHiddenViews: (views: View[]) => void
+  /**
+   * O livro escolhido no alto (uma história do universo), ou null para todos. Escrever, Trama, Mundo
+   * e Publicar mostram só o que é dele. Fica guardado neste aparelho, por universo.
+   */
+  bookId: string | null
+  setBookId: (id: string | null) => void
 }
 
 export const WorkspaceContext = createContext<Workspace | null>(null)
@@ -98,4 +105,10 @@ export function useWorkspace(): Workspace {
   const ws = useContext(WorkspaceContext)
   if (!ws) throw new Error('useWorkspace fora do WorkspaceContext')
   return ws
+}
+
+/** O universo como as telas do manuscrito o mostram: só o livro escolhido no alto (ou tudo). */
+export function useBookUniverse(): Universe {
+  const { universe, bookId } = useWorkspace()
+  return useMemo(() => bookOnly(universe, bookId), [universe, bookId])
 }

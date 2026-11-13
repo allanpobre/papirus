@@ -41,7 +41,7 @@ import {
   draftEntity,
   draftInbox,
   insert,
-  manuscriptOrder,
+  bookScenes,
   moveSceneTo,
   newId,
   namesOf,
@@ -89,12 +89,20 @@ type Dialog =
 
 export default function WriteView() {
   const ws = useWorkspace()
-  const { universe, update, prefs, setPref, nav, go, peek, toast, undoable } = ws
-  const order = manuscriptOrder(universe)
+  const { universe, update, prefs, setPref, nav, go, peek, toast, undoable, bookId, setBookId } = ws
+  // Com um livro escolhido no alto, o manuscrito é só o dele.
+  const order = bookScenes(universe, bookId)
+  /** A última cena aberta neste livro (ou a primeira dele). */
+  const lastInBook = (id: string | null) => {
+    const saved = recall(`cena:${universe.id}:${id ?? ''}`)
+    return order.find((s) => s.id === saved)?.id ?? order[0]?.id ?? null
+  }
 
   const [sceneId, setSceneId] = useState<string | null>(() => {
-    const wanted = nav.view === 'escrever' && nav.id ? nav.id : recall(`cena:${universe.id}`)
-    return wanted && universe.scenes.some((s) => s.id === wanted) ? wanted : (order[0]?.id ?? null)
+    // Um link (busca, ficha) abre a cena pedida, e o livro vai junto; senão, a última cena do livro escolhido.
+    if (nav.view === 'escrever' && nav.id && universe.scenes.some((s) => s.id === nav.id)) return nav.id
+    const wanted = recall(`cena:${universe.id}`)
+    return wanted && order.some((s) => s.id === wanted) ? wanted : lastInBook(bookId)
   })
   const [paragraph, setParagraph] = useState('')
   const [dialog, setDialog] = useState<Dialog>(null)
@@ -183,8 +191,24 @@ export default function WriteView() {
   }, [scene?.id, sceneDoc, rev])
 
   useEffect(() => {
-    if (scene) remember(`cena:${universe.id}`, scene.id)
+    if (!scene) return
+    remember(`cena:${universe.id}`, scene.id)
+    remember(`cena:${universe.id}:${scene.storyId ?? ''}`, scene.id)
   }, [scene, universe.id])
+
+  // Trocou o livro no alto: abre a última cena dele (ou a primeira).
+  const lastBook = useRef(bookId)
+  useEffect(() => {
+    if (lastBook.current === bookId) return
+    lastBook.current = bookId
+    if (bookId && scene?.storyId !== bookId) setSceneId(lastInBook(bookId))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookId])
+  // A cena aberta é de outro livro (veio de um link, ou mudou de livro): o livro do alto vai junto.
+  useEffect(() => {
+    if (scene && bookId && scene.storyId !== bookId) setBookId(scene.storyId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scene?.id, scene?.storyId])
 
   // O matcher só muda quando nomes de fichas mudam, não a cada tecla.
   const namesKey = universe.entities.map((e) => `${e.id}:${namesOf(e).join('|')}`).join(';')
@@ -262,7 +286,8 @@ export default function WriteView() {
   const newLooseScene = () => {
     let created: Scene | undefined
     update((u) => {
-      const [next, s] = addScene(u, null)
+      // Num livro escolhido (ainda vazio), a cena nasce nele.
+      const [next, s] = addScene(u, bookId)
       created = s
       return next
     })

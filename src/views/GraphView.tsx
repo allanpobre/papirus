@@ -9,7 +9,7 @@ import { appearances } from '../logic/reader'
 import { formatDate } from '../logic/calendar'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { Relation } from '../model/schema'
-import { byId, entityName, manuscriptOrder } from '../model/universe'
+import { bookScenes, byId, entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
@@ -127,7 +127,7 @@ function NodeFace({ id, name, image, r }: { id: string; name: string; image: str
 }
 
 export default function GraphView() {
-  const { universe, nav, go, peek } = useWorkspace()
+  const { universe, nav, go, peek, bookId } = useWorkspace()
   const [focusId, setFocusId] = useState<string | null>(nav.view === 'relacoes' ? (nav.id ?? null) : null)
   const [depth, setDepth] = useState(2)
   const [showDerived, setShowDerived] = useState(true)
@@ -138,8 +138,6 @@ export default function GraphView() {
   const [view, setView] = useState({ x: 0, y: 0, k: 1 })
   const [inTime, setInTime] = useState(false)
   const [sceneIndex, setSceneIndex] = useState(0)
-  // Um livro só (null = todos): o mapa mostra quem aparece nele, e o "cena a cena" anda só por ele.
-  const [bookId, setBookId] = useState<string | null>(null)
   const [playing, setPlaying] = useState(false)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -176,8 +174,18 @@ export default function GraphView() {
     return () => el.removeEventListener('wheel', onWheel)
   })
 
+  // O livro escolhido no alto: o mapa mostra quem aparece nele, e o "cena a cena" anda só por ele.
   const book = bookId ? universe.stories.find((s) => s.id === bookId) : undefined
-  const scenes = useMemo(() => manuscriptOrder(universe).filter((s) => !book || s.storyId === book.id), [universe, book])
+  const scenes = useMemo(() => bookScenes(universe, bookId), [universe, bookId])
+  // Trocou o livro: o "cena a cena" volta ao começo e o desenho, ao centro.
+  const lastBook = useRef(bookId)
+  useEffect(() => {
+    if (lastBook.current === bookId) return
+    lastBook.current = bookId
+    setSceneIndex(0)
+    setPlaying(false)
+    setView({ x: 0, y: 0, k: 1 })
+  }, [bookId])
   const scene = inTime ? (scenes[Math.min(sceneIndex, scenes.length - 1)] ?? null) : null
 
   // Tocar a história: avança uma cena por vez.
@@ -372,27 +380,6 @@ export default function GraphView() {
         <FamilyTree />
       ) : (
         <>
-      {universe.stories.length > 1 && (
-        <label className="graph-book">
-          <span>Livro</span>
-          <select
-            value={book?.id ?? ''}
-            onChange={(e) => {
-              setBookId(e.target.value || null)
-              setSceneIndex(0)
-              setPlaying(false)
-              setView({ x: 0, y: 0, k: 1 })
-            }}
-          >
-            <option value="">Todos os livros</option>
-            {universe.stories.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.title || 'Sem título'}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
       <div className="graph-bar">
         <div className="filter-chips" aria-label="Tipos visíveis">
           {kinds.map((k) => (

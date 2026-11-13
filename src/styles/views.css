@@ -10461,16 +10461,32 @@ h3.cork-act {
   background: #d9ddd6;
 }
 
-/* Ligações: escolher o livro (só quem aparece nele entra no mapa). */
-.graph-book {
+/* O livro escolhido no alto (Escrever, Publicar, Mundo e Trama seguem ele). */
+.book-bar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  max-width: var(--stage-max, none);
+  margin: 0 0 0.75rem;
+  padding: 0.3rem 0.4rem 0.3rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
   font-size: 0.9rem;
   color: var(--muted);
 }
-.graph-book select {
+.book-bar label {
+  font-weight: 600;
+  color: var(--ink);
+}
+.book-bar select {
   flex: 1;
   min-width: 0;
-  max-width: 22rem;
+  max-width: 26rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.25rem 0.2rem;
 }
