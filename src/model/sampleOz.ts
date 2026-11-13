@@ -17,7 +17,7 @@ const plain = (paragraphs: string[]) => paragraphs.join('\n\n')
  */
 type Chapter = { titulo: string; paragrafos: string[] }
 
-export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: Chapter[]; conto: Chapter[] }): Universe {
+export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: Chapter[]; zixi: Chapter[] }): Universe {
   let u = createUniverse('Exemplo — Terra de Oz')
   u = {
     ...u,
@@ -571,7 +571,7 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
     })
   }
 
-  // ─── Os outros livros: a série continua, e um conto solto ─────────────
+  // ─── Os outros livros: a série continua, e um livro do mesmo mundo que não se liga às outras histórias ─
   const stories: { id: string; title: string; author: string; year: string; blurb: string }[] = [
     {
       id: story.id,
@@ -622,8 +622,21 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
     const tiktok = ent('personagem', 'Tiktok', { summary: 'Homem-máquina de cobre, de corda. Pensa com miolos de aço; não está vivo.' })
     const langwidere = ent('personagem', 'Langwidere', { aliases: ['Princesa Langwidere'], summary: 'Princesa de Ev que coleciona cabeças e troca de cabeça como quem troca de chapéu.' })
     const ev = ent('reino', 'Terra de Ev', { summary: 'Reino do outro lado do deserto, fora de Oz, perto do mar.' })
-    const jim = ent('personagem', 'Jim', { summary: 'Filho de vaqueiro do Arizona, ótimo no laço.', tags: ['conto solto'] })
-    const paiTempo = ent('personagem', 'Pai Tempo', { aliases: ['o Tempo'], summary: 'Velho de barba branca, foice e ampulheta. Invisível a mais de um metro.', tags: ['conto solto'] })
+    // Ix e Nolândia: o mesmo mundo, do outro lado do deserto, sem ninguém das outras histórias.
+    const ix = ent('reino', 'Ix', { summary: 'Reino de torres de mármore, do outro lado do deserto, governado há séculos pela mesma rainha.' })
+    const nolandia = ent('reino', 'Nolândia', { aliases: ['Noland'], summary: 'Reino vizinho de Ix, além de uma cordilheira, de um rio e de uma floresta escura. A capital é Nole.' })
+    const burzee = ent('lugar', 'Floresta de Burzee', { summary: 'Floresta antiga onde as fadas dançam na lua cheia.' })
+    const zixi = ent('personagem', 'Zixi', {
+      aliases: ['Rainha Zixi', 'a Rainha-Bruxa'],
+      summary: 'Rainha de Ix: parece ter dezesseis anos, mas tem seiscentos e oitenta e três. Bruxa, mas não má.',
+      description: 'Governa com sabedoria e é mais temida que amada. O espelho é a única coisa que a magia dela não engana: nele, ela se vê velha.',
+      fields: [{ key: 'O que quer', value: 'a capa mágica, para ver no espelho o rosto que os outros veem' }],
+    })
+    const lulea = ent('personagem', 'Lulea', { aliases: ['Rainha Lulea'], summary: 'Rainha das fadas da Floresta de Burzee.' })
+    const capa = ent('artefato', 'Capa Mágica', {
+      aliases: ['a capa mágica', 'capa mágica'],
+      summary: 'Tecida pelas fadas numa noite de lua: realiza um desejo de cada dono, menos de quem a roubar.',
+    })
     // A Terra dos Gillikins é a Terra do Norte (o livro 2 dá o nome).
     u = patch(u, 'entities', norte.id, { aliases: ['Terra dos Gillikins', 'Gillikins'], summary: 'O país do Norte, dos Gillikins. A cor é o roxo.' })
     for (const [who, option] of [
@@ -641,11 +654,10 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
       { place: ev.id, year: 1907, day: 120, present: [dorothy.id, henry.id, em.id], synopsis: 'A caminho da Austrália, uma tempestade leva Dorothy num galinheiro para o mar.' },
       { place: ev.id, year: 1907, day: 122, present: [dorothy.id, ozma.id, espantalho.id, lenhador.id, leao.id, cavalete.id, tiktok.id, langwidere.id, sapatos.id], synopsis: 'Ozma atravessa o deserto num tapete mágico e tira Dorothy da torre de Langwidere.' },
     ])
-    const conto = addTale('A captura do Pai Tempo (conto solto)', 'Um conto de Baum sem nada de Oz: um menino laça o Tempo e o mundo inteiro para.', outros.conto, [
-      { place: kansas.id, year: 1901, day: 200, present: [jim.id, paiTempo.id], synopsis: 'Jim laça o Pai Tempo e passeia por uma cidade parada.' },
+    const zixiBook = addTale('A Rainha Zixi de Ix (trechos)', 'Do outro lado do deserto, as fadas tecem uma capa que realiza um desejo, e a rainha-bruxa de Ix quer a capa para si. Nenhum personagem dos outros livros: só o mesmo mundo.', outros.zixi, [
+      { place: burzee.id, year: 1903, day: 100, present: [lulea.id, capa.id, nolandia.id], synopsis: 'As fadas de Burzee tecem a capa mágica e a mandam para o primeiro infeliz de Nolândia.' },
+      { place: ix.id, year: 1904, day: 60, present: [zixi.id, capa.id, nolandia.id], synopsis: 'Um menestrel canta a capa no banquete de Zixi, e a rainha jura que vai tê-la.' },
     ])
-    // O conto não acontece no Kansas: fica sem lugar (só o mundo de fora).
-    u = updateScene(u, conto.scenes[0], { placeId: null })
 
     // O que liga os livros (e o que muda de um para o outro).
     rel(mombi.id, tip.id, 'criou')
@@ -657,7 +669,12 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
     rel(dorothy.id, ozma.id, 'amiga de', { scope: ev2(ozmaBook.scenes[1]) })
     rel(langwidere.id, dorothy.id, 'prende na torre', { scope: ev2(ozmaBook.scenes[1]) })
     rel(tiktok.id, dorothy.id, 'acompanha', { scope: ev2(ozmaBook.scenes[1]) })
-    rel(jim.id, paiTempo.id, 'laçou')
+    rel(lulea.id, capa.id, 'teceu')
+    rel(zixi.id, ix.id, 'governa')
+    rel(zixi.id, capa.id, 'quer', { scope: ev2(zixiBook.scenes[1]) })
+    rel(ix.id, nolandia.id, 'vizinho de')
+    // A única ponte com Oz é o mapa: o mesmo mundo, além do deserto.
+    rel(ix.id, deserto.id, 'fica do outro lado do')
     fact({ subjectId: magico.id, predicate: 'deu a Mombi', value: 'a bebê Ozma, para esconder', speakerId: mombi.id, sourceSceneId: terra.scenes[1], quote: 'O Mágico me trouxe a menina Ozma, que naquele tempo não passava de um bebê' })
     fact({ subjectId: tip.id, predicate: 'é', objectId: ozma.id, value: '', speakerId: mombi.id, sourceSceneId: terra.scenes[1], quote: 'aquela é a Princesa Ozma' })
     ;[u] = insert(u, 'events', { ...draftEvent('Tip volta a ser a Princesa Ozma', 1902), importance: 3, entityIds: [tip.id, ozma.id, glinda.id, mombi.id], placeId: cidade.id })
@@ -674,7 +691,7 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
     stories.push(
       { id: terra.story.id, title: 'A Maravilhosa Terra de Oz', author: 'L. Frank Baum', year: '1904', blurb: 'O segundo livro de Oz: um menino, uma cabeça de abóbora e o segredo que o Mágico guardou.' },
       { id: ozmaBook.story.id, title: 'Ozma de Oz', author: 'L. Frank Baum', year: '1907', blurb: 'O terceiro livro de Oz: Dorothy volta, agora pelo mar, e conhece a nova governante.' },
-      { id: conto.story.id, title: 'A captura do Pai Tempo', author: 'L. Frank Baum', year: '1901', blurb: 'Um conto solto do mesmo autor: um menino laça o Tempo.' },
+      { id: zixiBook.story.id, title: 'A Rainha Zixi de Ix', author: 'L. Frank Baum', year: '1905', blurb: 'No mesmo mundo, do outro lado do deserto: uma capa mágica, um rei menino e uma rainha-bruxa que não suporta o espelho.' },
     )
   }
 

@@ -95,8 +95,8 @@ describe('exemplo principal: a Terra de Oz', () => {
     const lenhador = whoIs(u, byName('Lenhador de Lata')).find((w) => w.definer.name === 'Feito de')!
     expect(lenhador.traits.find((t) => t.key === 'Coração')?.exception).toContain('seda')
     expect(u.maps[0].regions).toHaveLength(4)
-    // Os outros livros: a série continua (livros 2 e 3, em trechos) e um conto solto; um livro por história na estante.
-    expect(u.stories.map((s) => s.title)).toEqual(['O Mágico de Oz', 'A Maravilhosa Terra de Oz (trechos)', 'Ozma de Oz (trechos)', 'A captura do Pai Tempo (conto solto)'])
+    // Os outros livros: a série continua (livros 2 e 3, em trechos) e um livro do mesmo mundo que não se liga às outras histórias.
+    expect(u.stories.map((s) => s.title)).toEqual(['O Mágico de Oz', 'A Maravilhosa Terra de Oz (trechos)', 'Ozma de Oz (trechos)', 'A Rainha Zixi de Ix (trechos)'])
     expect(shelf(u).map((b) => b.storyIds.length)).toEqual([1, 1, 1, 1])
     // O segredo do livro 2 liga ao livro 1: quem escondeu Ozma foi o Mágico.
     expect(u.relations.some((r) => r.type === 'é na verdade' && byName('Tip').id === r.fromId && byName('Ozma').id === r.toId)).toBe(true)
@@ -108,6 +108,11 @@ describe('exemplo principal: a Terra de Oz', () => {
     expect(names(10)).toContain('Leão Covarde')
     // Ozma só aparece no livro 2: no capítulo 11 do livro 1, ainda não.
     expect(names(10)).not.toContain('Ozma')
+    // Zixi é do mesmo mundo, mas não divide personagem com os livros de Oz.
+    const zixiStory = u.stories.find((s) => s.title.startsWith('A Rainha Zixi'))!
+    const ozCast = new Set(u.scenes.filter((s) => s.storyId !== zixiStory.id).flatMap((s) => s.presentIds))
+    const zixiCast = u.scenes.filter((s) => s.storyId === zixiStory.id).flatMap((s) => s.presentIds)
+    expect(zixiCast.filter((id) => ozCast.has(id) && u.entities.find((e) => e.id === id)?.kind === 'personagem')).toEqual([])
     expect(isSample(u)).toBe(true)
     expect(isOutdatedSample(u)).toBe(false)
   })
