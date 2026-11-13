@@ -16,7 +16,7 @@ Retrato do Papirus na versão 1.6.0 (12 de novembro de 2026). Serve para retomar
 | **Oficina** | Trilhas, biblioteca, gerador de ideias e caderno. |
 | **Conta e nuvem** | Opcional (Supabase). Cópias no aparelho e na nuvem, conflitos, amigos, estante e placar. |
 | **Comunidade** | Setor no início do app: Novidades, Lendo (continuar de qualquer aparelho, capítulos novos), Pessoas (seguir, bloquear), Seus livros (até onde leram, só números), denunciar comentário e pedir AU pelo perfil. Precisa de `supabase/comunidade.sql`. Testado só com o servidor de mentira. |
-| **Exemplos** | O principal é a Terra de Oz: "O Mágico de Oz" (Baum, 1900) inteiro, traduzido para o Papirus, com os quatro países no mapa político, "Quem é" (Povo e Feito de, com exceção), segredos, linha do tempo e uma Mesa d20. O Alienista virou o segundo exemplo. Fila: livros 2 e 3 de Oz (trechos) e um conto solto de Baum. A tradução não teve revisão humana. |
+| **Exemplos** | O principal é a Terra de Oz: "O Mágico de Oz" (Baum, 1900) inteiro, traduzido para o Papirus, com os quatro países no mapa político, "Quem é" (Povo e Feito de, com exceção), segredos, linha do tempo e uma Mesa d20. Também traz trechos dos livros 2 (“A Maravilhosa Terra de Oz”: Tip é Ozma, e quem a escondeu foi o Mágico) e 3 (“Ozma de Oz”), e um conto solto de Baum (“A captura do Pai Tempo”), cada um com o seu livro na estante. O Alienista virou o segundo exemplo. A tradução não teve revisão humana. |
 
 Os testes automáticos cobrem tudo isso: cerca de 390 testes de unidade (`npm run check`) e 170 no navegador (`e2e/`).
 
