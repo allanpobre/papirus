@@ -28,7 +28,7 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 
 ## Mapa do código (`src/`)
 
-- `model/` — esquema (zod, `schema.ts`), rótulos (`labels.ts`), tipo do universo e nível do Mundo (`kind.ts`), operações do universo (`universe.ts`), exemplos (`sample*.ts`: `sampleOz.ts` + `ozTexto.ts` + `sampleOzMap.ts` é o principal; `sample.ts` tem O Alienista e escolhe qual abrir).
+- `model/` — esquema (zod, `schema.ts`), rótulos (`labels.ts`), tipo do universo e nível do Mundo (`kind.ts`), operações do universo (`universe.ts`), exemplos (`sample*.ts`: `sampleOz.ts` + `ozTexto.ts` (livro 1) + `ozOutros.ts` (trechos dos livros 2 e 3 e um conto solto) + `sampleOzMap.ts` é o principal; `sample.ts` tem O Alienista e escolhe qual abrir).
 - `logic/` — regras sem tela: menções, segredos, leitor sem spoiler (`reader.ts`), frases de ligação (`relations.ts`, com o "é" de papéis), campos derivados e o worldbuilding:
   - `worldGaps.ts` (o que falta no mundo), `worldSeed.ts` (Semente do mundo), `timeMachine.ts` (o mundo num ano), `domino.ts` (e se a ficha sumir), `regions.ts` (mapa político).
 - `views/` — telas. Áreas: Início, Escrever, Publicar, Mundo (Fichas, Ligações, Linha do tempo, Mapas), Trama, Mesa (RPG), Ajustes. `AreaModes.tsx` = topo do Mundo/Trama (com o botão Wiki).

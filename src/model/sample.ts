@@ -61,8 +61,8 @@ export const isOutdatedSample = (u: Universe) => OLD_SAMPLE_DESCRIPTIONS.include
  * "O Mágico de Oz" inteiro. O texto (cerca de 220 KB) só é baixado quando alguém abre o exemplo.
  */
 export async function sampleUniverse(): Promise<Universe> {
-  const [{ MAGICO_DE_OZ }, { buildOz }] = await Promise.all([import('./ozTexto'), import('./sampleOz')])
-  return buildOz(MAGICO_DE_OZ)
+  const [{ MAGICO_DE_OZ }, { OUTROS_LIVROS }, { buildOz }] = await Promise.all([import('./ozTexto'), import('./ozOutros'), import('./sampleOz')])
+  return buildOz(MAGICO_DE_OZ, OUTROS_LIVROS)
 }
 
 /** O segundo exemplo: O Alienista inteiro, com tudo o que o Papirus faz montado a partir dele. */
