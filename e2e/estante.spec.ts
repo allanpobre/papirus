@@ -88,6 +88,18 @@ test('estante: ler ali mesmo, reagir a um capítulo, e capítulo novo chega aos 
   await reading.getByRole('textbox', { name: 'Comentário sobre o livro' }).fill('Estou amando!')
   await reading.getByRole('button', { name: 'Enviar', exact: true }).click()
   await expect(reading.getByRole('region', { name: 'Comentários sobre A Maré' })).toContainText('Estou amando!')
+  // O livro como a Ana diagramou: folhear e ver as páginas, por cima da leitura.
+  await reading.getByRole('button', { name: 'Folhear' }).click()
+  const flip = bia.getByRole('dialog', { name: 'Folhear A Maré' })
+  await expect(flip.locator('.book-flip-status')).toContainText('como na diagramação', { timeout: 30_000 })
+  await flip.getByRole('button', { name: 'Fechar' }).click()
+  await expect(flip).toHaveCount(0)
+  await reading.getByRole('button', { name: 'Páginas' }).click()
+  const pages = bia.getByRole('dialog', { name: 'Páginas de A Maré' })
+  await expect(pages.locator('.book-flip-status')).toContainText('como na diagramação', { timeout: 30_000 })
+  await expect(bia.frameLocator('.book-flip-frame').locator('.pagedjs_page').first()).toBeVisible()
+  await pages.getByRole('button', { name: 'Fechar' }).click()
+  await expect(reading).toBeVisible()
   await reading.getByRole('button', { name: 'Voltar à estante' }).click()
 
   // Ana vê a reação nas novidades e no resumo do livro.

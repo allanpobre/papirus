@@ -98,6 +98,7 @@ export function ReaderView({
   onComment,
   commenterName,
   reactions,
+  actions,
 }: {
   universe: Universe
   storageKey: string
@@ -114,6 +115,8 @@ export function ReaderView({
   commenterName?: string
   /** Lendo pela estante: reações no fim de cada capítulo. */
   reactions?: ReactionsApi
+  /** Botões a mais no alto (na estante: folhear e ver as páginas do livro diagramado). */
+  actions?: ReactNode
 }) {
   const book = useMemo(() => readerBook(universe), [universe])
   const total = book.scenes.length
@@ -276,6 +279,7 @@ export function ReaderView({
         <div className="leitor-progress" role="progressbar" aria-label="Quanto já leu" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
           <span style={{ width: `${pct}%` }} />
         </div>
+        {actions}
         <ReadAloudButton onStart={voice.start} />
         <div className="leitor-aids-wrap">
           <button type="button" className="btn btn-sm btn-ghost" aria-expanded={aidsOpen} aria-controls="leitor-ajudas" onClick={() => setAidsOpen(!aidsOpen)}>

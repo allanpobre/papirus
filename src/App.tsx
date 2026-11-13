@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isOutdatedSample, sampleFor, sampleUniverse } from './model/sample'
+import { BookLooks } from './book/BookLooks'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
 import { memoryStore, openBestStore, requestPersistentStorage } from './persistence/storage'
@@ -238,6 +239,7 @@ export default function App() {
           universe={opened.universe}
           storageKey={opened.book.key}
           onComment={commentSender(opened.source ?? { kind: 'proprio' }, opened.universe.id, null)}
+          actions={<BookLooks universe={opened.universe} />}
           footer={
             <p className="leitor-made muted tiny">
               Compartilhado {opened.book.ownerEmail ? `por ${shortName(opened.book.ownerEmail)} ` : ''}com o <a href="../">Papirus</a>. O caderno guarda só o que você já leu.
