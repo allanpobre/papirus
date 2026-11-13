@@ -104,4 +104,8 @@ test('no celular, os nomes não se sobrepõem e dá para escolher um livro só',
   // O "cena a cena" anda só pelas cenas deste livro.
   await page.getByRole('button', { name: /Ver cena a cena/ }).click()
   await expect(page.locator('.graph-time-label')).toContainText('Ozma de Oz')
+  // E dá para sair dele sem abrir os Filtros.
+  await page.getByRole('button', { name: 'Sair do cena a cena' }).click()
+  await expect(page.locator('.graph-time')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Ver cena a cena/ })).toBeVisible()
 })

@@ -455,6 +455,18 @@ export default function GraphView() {
               setSceneIndex(Number(e.target.value))
             }}
           />
+          <button
+            type="button"
+            className="btn-icon"
+            aria-label="Sair do cena a cena"
+            title="Sair do cena a cena (ver todas as ligações)"
+            onClick={() => {
+              setInTime(false)
+              setPlaying(false)
+            }}
+          >
+            <X size={16} />
+          </button>
           <p className="graph-time-label" aria-live="polite">
             <span className="tabular muted">
               {Math.min(sceneIndex, scenes.length - 1) + 1}/{scenes.length}
