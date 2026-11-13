@@ -7,7 +7,7 @@ import { SCENE_STATUS_LABEL, SEED_STATUS_LABEL } from '../model/labels'
 import { SCENE_STATUSES, STORY_STRUCTURES, type SceneStatus } from '../model/schema'
 import { byId, entityName, manuscriptOrder, moveScene, patch, placeScene, sceneTitle, scenesOf, updateScene } from '../model/universe'
 import { countWords } from '../persistence/repository'
-import { useWorkspace } from '../state/workspace'
+import { useBookUniverse, useWorkspace } from '../state/workspace'
 import { Empty, Select } from '../ui/bits'
 import { PageHelp } from '../ui/PageTour'
 import { saveMode, SceneFrame, SHIFT_LABEL, ShiftPicker, WritingModes } from './write/WritingModes'
@@ -20,7 +20,9 @@ type Tab = 'mapa' | 'presenca' | 'ritmo'
  */
 export default function OrganizeView() {
   const [tab, setTab] = useState<Tab>('mapa')
-  const { universe, go } = useWorkspace()
+  const { go } = useWorkspace()
+  // Só o livro escolhido no alto (ou todos).
+  const universe = useBookUniverse()
   return (
     <div className="view organize-view">
       <header className="view-head view-head-wide map-view-head">
@@ -64,7 +66,8 @@ export default function OrganizeView() {
 }
 
 function Corkboard() {
-  const { universe, update, go } = useWorkspace()
+  const { update, go } = useWorkspace()
+  const universe = useBookUniverse()
   const groups = [...universe.stories.map((s) => ({ id: s.id, title: s.title || 'Sem título' })), { id: null as string | null, title: 'Sem capítulo' }]
   // Arrastar pela alça (mouse ou dedo): mostra onde a cena vai cair e solta lá.
   const [drag, setDrag] = useState<{ id: string; story: string | null; before: string | null } | null>(null)
@@ -375,7 +378,8 @@ function Notices({ notices, hint, onOpen }: { notices: MapNotice[]; hint: boolea
 }
 
 function PresenceTab() {
-  const { universe, go, peek } = useWorkspace()
+  const { go, peek } = useWorkspace()
+  const universe = useBookUniverse()
   const { rows, columns } = useMemo(() => presenceMatrix(universe), [universe])
   if (!columns.length) return <p className="empty-inline">Nenhum personagem aparece nas cenas ainda.</p>
   return (
@@ -437,7 +441,8 @@ function PresenceTab() {
 }
 
 function RhythmTab() {
-  const { universe, go } = useWorkspace()
+  const { go } = useWorkspace()
+  const universe = useBookUniverse()
   const { rows } = useMemo(() => presenceMatrix(universe), [universe])
   const max = Math.max(1, ...rows.map((r) => r.words))
   const total = countWords(universe)

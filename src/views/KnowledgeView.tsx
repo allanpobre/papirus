@@ -6,7 +6,7 @@ import { holdersOf, knowledgeAt, readerKnowsAt } from '../logic/knowledge'
 import { fold } from '../logic/text'
 import { CANON_LABEL, CANON_ORDER, KNOWLEDGE_LABEL } from '../model/labels'
 import type { Canon, KnowledgeState } from '../model/schema'
-import { byId, entityName, manuscriptOrder, removeFact } from '../model/universe'
+import { bookScenes, byId, entityName, manuscriptOrder, removeFact } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty, Field, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -144,18 +144,20 @@ function FactsTab() {
 }
 
 function PovTab() {
-  const { universe } = useWorkspace()
-  const [holder, setHolder] = useState<string | null>(universe.scenes.find((s) => s.povId)?.povId ?? null)
-  const [sceneId, setSceneId] = useState('')
-  const order = manuscriptOrder(universe)
-  const known = holder ? knowledgeAt(universe, holder, sceneId || null) : []
+  const { universe, bookId } = useWorkspace()
+  // Os pontos da história são as cenas do livro escolhido no alto ("ao final" = fim desse livro).
+  const order = bookScenes(universe, bookId)
+  const [holder, setHolder] = useState<string | null>((order.find((s) => s.povId) ?? universe.scenes.find((s) => s.povId))?.povId ?? null)
+  const [picked, setSceneId] = useState('')
+  const sceneId = order.some((s) => s.id === picked) ? picked : ''
+  const known = holder ? knowledgeAt(universe, holder, sceneId || (bookId ? (order.at(-1)?.id ?? null) : null)) : []
 
   return (
     <>
       <div className="filters-row">
         <EntityPicker label="Personagem ou grupo" value={holder} onChange={setHolder} allowCreate={false} />
         <Field label="No ponto da história">
-          {(id) => <Select id={id} value={sceneId} onChange={setSceneId} options={[{ value: '', label: 'Ao final de tudo' }, ...order.map((s) => ({ value: s.id, label: `Em “${s.title || 'Sem título'}”` }))]} />}
+          {(id) => <Select id={id} value={sceneId} onChange={setSceneId} options={[{ value: '', label: bookId ? 'Ao final deste livro' : 'Ao final de tudo' }, ...order.map((s) => ({ value: s.id, label: `Em “${s.title || 'Sem título'}”` }))]} />}
         </Field>
       </div>
       {!holder ? (
@@ -179,9 +181,11 @@ function PovTab() {
 }
 
 function ReaderTab() {
-  const { universe } = useWorkspace()
-  const order = manuscriptOrder(universe)
-  const [sceneId, setSceneId] = useState(order[0]?.id ?? '')
+  const { universe, bookId } = useWorkspace()
+  // As cenas do livro escolhido no alto; o leitor também já viu os livros de antes dele.
+  const order = bookScenes(universe, bookId)
+  const [picked, setSceneId] = useState(order[0]?.id ?? '')
+  const sceneId = order.some((s) => s.id === picked) ? picked : (order[0]?.id ?? '')
   const knows = sceneId ? readerKnowsAt(universe, sceneId) : []
   const knownIds = new Set(knows.map((f) => f.id))
   const hidden = universe.facts.filter((f) => !knownIds.has(f.id) && (f.canon === 'secreto' || f.canon === 'estabelecido'))

@@ -269,6 +269,21 @@ export function manuscriptOrder(universe: Universe): Scene[] {
   return [...universe.stories.flatMap((s) => scenesOf(universe, s.id)), ...scenesOf(universe, null)]
 }
 
+/** As cenas do livro escolhido no alto, na ordem de leitura; sem livro (null), todas. */
+export function bookScenes(universe: Universe, bookId: string | null): Scene[] {
+  const order = manuscriptOrder(universe)
+  return bookId ? order.filter((s) => s.storyId === bookId) : order
+}
+
+/**
+ * O universo só com o livro escolhido (a história e as cenas dele), para as telas que mostram o
+ * manuscrito. Sem livro (null), o universo inteiro. Mudanças continuam sendo feitas no universo todo.
+ */
+export function bookOnly(universe: Universe, bookId: string | null): Universe {
+  if (!bookId) return universe
+  return { ...universe, stories: universe.stories.filter((s) => s.id === bookId), scenes: universe.scenes.filter((s) => s.storyId === bookId) }
+}
+
 export function addStory(universe: Universe, title = 'Nova história'): [Universe, Story] {
   return insert(universe, 'stories', { title, synopsis: '', structure: 'livre' })
 }

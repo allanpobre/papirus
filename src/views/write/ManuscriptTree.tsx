@@ -8,7 +8,9 @@ import { ConfirmButton } from '../../ui/ConfirmButton'
 
 /** Árvore do manuscrito: histórias com suas cenas, e as cenas soltas. */
 export function ManuscriptTree({ selectedId, onSelect }: { selectedId: string | null; onSelect: (id: string) => void }) {
-  const { universe, update, undoable } = useWorkspace()
+  const { universe, update, undoable, bookId, setBookId } = useWorkspace()
+  // Com um livro escolhido no alto, só ele aparece (as cenas soltas não são de livro nenhum).
+  const stories = bookId ? universe.stories.filter((s) => s.id === bookId) : universe.stories
 
   const newScene = (storyId: string | null) => {
     let created: Scene | undefined
@@ -61,7 +63,7 @@ export function ManuscriptTree({ selectedId, onSelect }: { selectedId: string | 
 
   return (
     <div className="tree">
-      {universe.stories.map((story) => {
+      {stories.map((story) => {
         const scenes = scenesOf(universe, story.id)
         return (
           <section key={story.id} className="tree-story" aria-label={story.title || 'Sem título'}>
@@ -91,17 +93,32 @@ export function ManuscriptTree({ selectedId, onSelect }: { selectedId: string | 
         )
       })}
 
-      <section className="tree-story" aria-label="Sem capítulo">
-        <div className="tree-story-head">
-          <h3 className="tree-loose">Sem capítulo</h3>
-        </div>
-        {list(scenesOf(universe, null))}
-        <button type="button" className="tree-add" onClick={() => newScene(null)}>
-          <FilePlus2 size={14} /> Nova cena sem capítulo
-        </button>
-      </section>
+      {!bookId && (
+        <section className="tree-story" aria-label="Sem capítulo">
+          <div className="tree-story-head">
+            <h3 className="tree-loose">Sem capítulo</h3>
+          </div>
+          {list(scenesOf(universe, null))}
+          <button type="button" className="tree-add" onClick={() => newScene(null)}>
+            <FilePlus2 size={14} /> Nova cena sem capítulo
+          </button>
+        </section>
+      )}
 
-      <button type="button" className="btn btn-ghost btn-sm tree-new-story" onClick={() => update((u) => addStory(u)[0])}>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm tree-new-story"
+        onClick={() => {
+          let created: string | undefined
+          update((u) => {
+            const [next, st] = addStory(u)
+            created = st.id
+            return next
+          })
+          // Com um livro escolhido, a história nova vira o livro do alto (senão ela nem apareceria).
+          if (bookId && created) setBookId(created)
+        }}
+      >
         <FolderPlus size={15} /> Nova história
       </button>
     </div>

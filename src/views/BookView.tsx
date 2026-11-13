@@ -34,12 +34,15 @@ const STYLE_LABEL = { classico: 'clássico', moderno: 'moderno', minimalista: 'm
  * diagramar e baixar, cada passo com o que achou e um atalho para resolver.
  */
 export default function BookView() {
-  const { universe, update, openBookDesigner, readOnly, toast, source, prefs } = useWorkspace()
+  const { universe, update, openBookDesigner, readOnly, toast, source, prefs, bookId } = useWorkspace()
   const shelfStatus = useShelfStatus()
   const [socialOpen, setSocialOpen] = useState(false)
   const books = useMemo(() => shelf(universe), [universe])
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const selected = books.find((b) => b.id === selectedId) ?? books[0] ?? null
+  const [picked, setSelectedId] = useState<{ id: string; forBook: string | null } | null>(null)
+  // O livro escolhido no alto abre o volume da estante que tem essa história (ou o que tem todas).
+  const forBook = bookId ? (books.find((b) => b.storyIds.includes(bookId)) ?? books.find((b) => !b.storyIds.length)) : undefined
+  const selectedId = picked && picked.forBook === bookId ? picked.id : null
+  const selected = books.find((b) => b.id === selectedId) ?? forBook ?? books[0] ?? null
   const [adding, setAdding] = useState(false)
   const [importing, setImporting] = useState(false)
   const [reviewing, setReviewing] = useState<string | null>(null)
@@ -57,7 +60,7 @@ export default function BookView() {
       id = b.id
       return next
     })
-    setSelectedId(id)
+    setSelectedId({ id, forBook: bookId })
     setAdding(false)
     setNewTitle('')
     toast('Livro novo na estante. Escolha as histórias e a capa na diagramação.')
@@ -143,7 +146,7 @@ export default function BookView() {
       {books.length > 1 && (
         <div className="shelf" role="listbox" aria-label="Estante">
           {books.map((b) => (
-            <button key={b.id} type="button" role="option" aria-selected={b.id === selected?.id} className="shelf-book" onClick={() => setSelectedId(b.id)}>
+            <button key={b.id} type="button" role="option" aria-selected={b.id === selected?.id} className="shelf-book" onClick={() => setSelectedId({ id: b.id, forBook: bookId })}>
               <Cover book={b} title={bookTitle(universe, b)} small />
               <span className="shelf-title">{bookTitle(universe, b)}</span>
             </button>

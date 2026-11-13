@@ -11,13 +11,20 @@ import { Modal } from '../ui/Modal'
 import { AreaHead } from './AreaModes'
 
 export default function SeedsView() {
-  const { universe, update, nav } = useWorkspace()
+  const { universe, update, nav, bookId } = useWorkspace()
   const [kind, setKind] = useState<'todas' | Seed['kind']>('todas')
   const [title, setTitle] = useState('')
   const [newKind, setNewKind] = useState<Seed['kind']>('semente')
   const [open, setOpen] = useState<string | null>(nav.view === 'tramas' ? (nav.id ?? null) : null)
 
-  const seeds = universe.seeds.filter((s) => kind === 'todas' || s.kind === kind)
+  // Com um livro escolhido no alto: as tramas que passam por ele (plantadas, com pista ou pagas nele)
+  // e as que ainda não estão em cena nenhuma (senão uma trama nova sumiria ao ser criada).
+  const inBook = new Set(bookId ? universe.scenes.filter((x) => x.storyId === bookId).map((x) => x.id) : [])
+  const touches = (s: Seed) => {
+    const ids = [s.setupSceneId, s.payoffSceneId, ...s.clues.map((c) => c.sceneId)].filter(Boolean) as string[]
+    return !ids.length || ids.some((id) => inBook.has(id))
+  }
+  const seeds = universe.seeds.filter((s) => (kind === 'todas' || s.kind === kind) && (!bookId || touches(s)))
   const opened = open ? byId(universe, 'seeds', open) : undefined
 
   const move = (id: string, status: SeedStatus) => update((u) => patch(u, 'seeds', id, { status }))
