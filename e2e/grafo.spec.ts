@@ -95,7 +95,9 @@ test('no celular, os nomes não se sobrepõem e dá para escolher um livro só',
   expect(await overlaps()).toBe(0)
   const all = await page.locator('.graph .node').count()
 
-  await page.getByLabel('Livro').selectOption({ label: 'Ozma de Oz (trechos)' })
+  // O livro 3 (com ou sem "(trechos)" no nome, conforme a versão do exemplo).
+  const livro = page.getByLabel('Livro')
+  await livro.selectOption((await livro.locator('option', { hasText: /^Ozma de Oz/ }).first().getAttribute('value'))!)
   await expect.poll(() => page.locator('.graph .node').count()).toBeLessThan(all)
   await expect(page.locator('.graph .node', { hasText: 'Ozma' }).first()).toBeVisible()
   await page.waitForTimeout(1500)
