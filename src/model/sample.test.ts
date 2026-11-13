@@ -54,6 +54,10 @@ describe('exemplo: O Alienista (o segundo)', () => {
     expect(isOutdatedSample(ostriaUniverse())).toBe(false)
     expect(isSample(await alienistaUniverse())).toBe(true)
     expect(isOutdatedSample(await alienistaUniverse())).toBe(false)
+    // A Terra de Oz de antes (sem os outros livros) também vira a atual; a atual não.
+    const oldOz = { ...ostriaUniverse(), description: 'Universo de exemplo: O Mágico de Oz, de L. Frank Baum (1900, domínio público), traduzido para o Papirus. O livro inteiro, os quatro países no mapa, povos, segredos, linha do tempo e uma Mesa.' }
+    expect(isOutdatedSample(oldOz)).toBe(true)
+    expect(isOutdatedSample(await sampleUniverse())).toBe(false)
   })
 })
 
@@ -96,8 +100,11 @@ describe('exemplo principal: a Terra de Oz', () => {
     expect(lenhador.traits.find((t) => t.key === 'Coração')?.exception).toContain('seda')
     expect(u.maps[0].regions).toHaveLength(4)
     // Os outros livros: a série continua (livros 2 e 3, em trechos) e um livro do mesmo mundo que não se liga às outras histórias.
-    expect(u.stories.map((s) => s.title)).toEqual(['O Mágico de Oz', 'A Maravilhosa Terra de Oz (trechos)', 'Ozma de Oz (trechos)', 'A Rainha Zixi de Ix (trechos)'])
+    expect(u.stories.map((s) => s.title)).toEqual(['O Mágico de Oz', 'A Maravilhosa Terra de Oz', 'Ozma de Oz', 'A Rainha Zixi de Ix'])
     expect(shelf(u).map((b) => b.storyIds.length)).toEqual([1, 1, 1, 1])
+    // O volume da estante tem o mesmo nome da história (o "trechos" fica no resumo).
+    expect(shelf(u).map((b) => b.title)).toEqual(u.stories.map((s) => s.title))
+    expect(u.stories.slice(1).every((s) => s.synopsis.startsWith('Trechos'))).toBe(true)
     // O segredo do livro 2 liga ao livro 1: quem escondeu Ozma foi o Mágico.
     expect(u.relations.some((r) => r.type === 'é na verdade' && byName('Tip').id === r.fromId && byName('Ozma').id === r.toId)).toBe(true)
     expect(u.facts.some((f) => f.canon === 'secreto')).toBe(true)

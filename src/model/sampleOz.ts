@@ -646,15 +646,15 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
     ] as const)
       u = choose(u, who, feito, option)
 
-    const terra = addTale('A Maravilhosa Terra de Oz (trechos)', 'Tip foge da velha Mombi com Jack Cabeça-de-Abóbora, o Espantalho perde o trono para a revolta de Jinjur, e Glinda descobre o que o Mágico escondeu.', outros.terra, [
+    const terra = addTale('A Maravilhosa Terra de Oz', 'Trechos do segundo livro (1904). Tip foge da velha Mombi com Jack Cabeça-de-Abóbora, o Espantalho perde o trono para a revolta de Jinjur, e Glinda descobre o que o Mágico escondeu.', outros.terra, [
       { place: norte.id, year: 1901, day: 280, present: [tip.id, mombi.id, jack.id], synopsis: 'Para assustar Mombi, Tip faz um homem de galhos com cabeça de abóbora.' },
       { place: cidade.id, year: 1902, day: 40, present: [glinda.id, mombi.id, tip.id, ozma.id, jack.id, espantalho.id, lenhador.id, cavalete.id, magico.id], synopsis: 'A pérola de Glinda arranca a verdade de Mombi: Tip é Ozma.' },
     ])
-    const ozmaBook = addTale('Ozma de Oz (trechos)', 'Anos depois, uma tempestade joga Dorothy no mar. Do outro lado do deserto, ela reencontra os amigos, agora com Ozma no trono.', outros.ozma, [
+    const ozmaBook = addTale('Ozma de Oz', 'Trechos do terceiro livro (1907). Anos depois, uma tempestade joga Dorothy no mar. Do outro lado do deserto, ela reencontra os amigos, agora com Ozma no trono.', outros.ozma, [
       { place: ev.id, year: 1907, day: 120, present: [dorothy.id, henry.id, em.id], synopsis: 'A caminho da Austrália, uma tempestade leva Dorothy num galinheiro para o mar.' },
       { place: ev.id, year: 1907, day: 122, present: [dorothy.id, ozma.id, espantalho.id, lenhador.id, leao.id, cavalete.id, tiktok.id, langwidere.id, sapatos.id], synopsis: 'Ozma atravessa o deserto num tapete mágico e tira Dorothy da torre de Langwidere.' },
     ])
-    const zixiBook = addTale('A Rainha Zixi de Ix (trechos)', 'Do outro lado do deserto, as fadas tecem uma capa que realiza um desejo, e a rainha-bruxa de Ix quer a capa para si. Nenhum personagem dos outros livros: só o mesmo mundo.', outros.zixi, [
+    const zixiBook = addTale('A Rainha Zixi de Ix', 'Trechos de um livro solto (1905). Do outro lado do deserto, as fadas tecem uma capa que realiza um desejo, e a rainha-bruxa de Ix quer a capa para si. Nenhum personagem dos outros livros: só o mesmo mundo.', outros.zixi, [
       { place: burzee.id, year: 1903, day: 100, present: [lulea.id, capa.id, nolandia.id], synopsis: 'As fadas de Burzee tecem a capa mágica e a mandam para o primeiro infeliz de Nolândia.' },
       { place: ix.id, year: 1904, day: 60, present: [zixi.id, capa.id, nolandia.id], synopsis: 'Um menestrel canta a capa no banquete de Zixi, e a rainha jura que vai tê-la.' },
     ])
