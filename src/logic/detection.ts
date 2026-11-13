@@ -14,7 +14,9 @@ const WORD = '[\\p{L}\\p{N}]'
 /**
  * Procura, num texto, os nomes e apelidos das fichas conhecidas. Ignora acentos e
  * maiúsculas, respeita limites de palavra e prefere o nome mais longo
- * ("Casa de Vaelor" antes de "Vaelor"). Nunca cria fatos: só aponta onde estão.
+ * ("Casa de Vaelor" antes de "Vaelor"), mesmo quando ele começa uma palavra depois:
+ * em "o Lenhador de Lata", vale "Lenhador de Lata", e não o apelido "o Lenhador" mais
+ * uma ficha "Lata". Nunca cria fatos: só aponta onde estão.
  */
 export class MentionMatcher {
   private readonly regex: RegExp | null
@@ -29,8 +31,10 @@ export class MentionMatcher {
       }
     }
     const keys = [...this.owner.keys()].sort((a, b) => b.length - a.length)
+    // Um olhar adiante em cada posição: acha o nome mais longo que começa ali, sem consumir o
+    // texto, para que nomes que se cruzam possam ser comparados.
     this.regex = keys.length
-      ? new RegExp(`(?<!${WORD})(?:${keys.map(escapeRegExp).join('|')})(?!${WORD})`, 'gu')
+      ? new RegExp(`(?<!${WORD})(?=(${keys.map(escapeRegExp).join('|')})(?!${WORD}))`, 'gu')
       : null
   }
 
@@ -41,12 +45,17 @@ export class MentionMatcher {
   find(text: string): Mention[] {
     if (!this.regex) return []
     const folded = fold(text)
-    const out: Mention[] = []
+    const found: Mention[] = []
     for (const m of folded.matchAll(this.regex)) {
-      const owner = this.owner.get(m[0])
-      if (owner) out.push({ entityId: owner.entityId, from: m.index, to: m.index + m[0].length, name: owner.name })
+      const owner = this.owner.get(m[1])
+      if (owner) found.push({ entityId: owner.entityId, from: m.index, to: m.index + m[1].length, name: owner.name })
     }
-    return out
+    // Os mais longos primeiro; um nome que cruza outro já escolhido fica de fora.
+    const out: Mention[] = []
+    for (const c of [...found].sort((a, b) => b.to - b.from - (a.to - a.from) || a.from - b.from)) {
+      if (!out.some((o) => c.from < o.to && o.from < c.to)) out.push(c)
+    }
+    return out.sort((a, b) => a.from - b.from)
   }
 }
 
