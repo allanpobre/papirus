@@ -10443,3 +10443,12 @@ h3.cork-act {
   gap: 0.4rem;
   margin-top: 0.3rem;
 }
+
+/* Aviso de "você entrou" / "senha nova salva" depois de um link do e-mail. */
+.global-error.auth-welcome {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.auth-welcome svg {
+  vertical-align: -2px;
+  color: var(--accent);
+}

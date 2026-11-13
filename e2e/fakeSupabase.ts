@@ -37,6 +37,13 @@ export function createFakeSupabase() {
   const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author', papirus_challenges: 'owner', papirus_challenge_members: 'user_id', papirus_challenge_days: 'user_id', papirus_shelf_text: 'owner', papirus_chapter_reactions: 'user_id', papirus_activity: 'actor', papirus_treinos: 'user_id', papirus_follows: 'follower', papirus_blocks: 'blocker', papirus_reading: 'user_id', papirus_reports: 'reporter', papirus_open_worlds: 'owner', papirus_au_requests: 'requester' }
   // Contas: as de sempre e as criadas no teste (com o que foi preenchido ao criar).
   const accounts: { id: string; email: string; password: string; meta: Record<string, unknown> }[] = Object.values(PEOPLE).map((p) => ({ ...p, password: PASSWORD, meta: {} }))
+  const mail: { kind: 'magiclink' | 'recovery'; email: string; redirectTo: string }[] = []
+  /** O link que chegaria no e-mail (como o Supabase devolve: as chaves no #). */
+  const linkFor = (m: (typeof mail)[number]) => {
+    const a = accounts.find((x) => x.email === m.email)!
+    const s = session(a)
+    return `${m.redirectTo}#access_token=${s.access_token}&expires_at=${s.expires_at}&expires_in=3600&refresh_token=r&token_type=bearer&type=${m.kind}`
+  }
   const session = (a: (typeof accounts)[number]) => {
     const user = { id: a.id, email: a.email, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: a.meta, created_at: new Date().toISOString() }
     return { access_token: jwt(a.id), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'r', user }
@@ -182,6 +189,23 @@ export function createFakeSupabase() {
         return route.fulfill({ headers: cors, json: session(person) })
       }
       if (url.includes('/logout')) return route.fulfill({ status: 204, headers: cors, body: '' })
+      // Os e-mails que o servidor "manda" (entrar sem senha e trocar a senha) ficam em `mail`.
+      if (url.includes('/otp') || url.includes('/recover')) {
+        const body = route.request().postDataJSON() as { email: string; create_user?: boolean }
+        const kind = url.includes('/otp') ? 'magiclink' : 'recovery'
+        if (kind === 'magiclink' && body.create_user === false && !accounts.some((a) => a.email === body.email))
+          return route.fulfill({ status: 422, headers: cors, json: { code: 422, error_code: 'otp_disabled', msg: 'Signups not allowed for otp' } })
+        mail.push({ kind, email: body.email, redirectTo: new URL(url).searchParams.get('redirect_to') ?? '' })
+        return route.fulfill({ headers: cors, json: {} })
+      }
+      if (url.includes('/user') && route.request().method() === 'PUT') {
+        const me = userOf(route)
+        const a = me && accounts.find((x) => x.id === me.id)
+        if (!a) return route.fulfill({ status: 401, headers: cors, json: {} })
+        const body = route.request().postDataJSON() as { password?: string }
+        if (body.password) a.password = body.password
+        return route.fulfill({ headers: cors, json: session(a).user })
+      }
       if (url.includes('/user')) {
         const me = userOf(route)
         return me ? route.fulfill({ headers: cors, json: session(accounts.find((a) => a.id === me.id)!).user }) : route.fulfill({ status: 401, headers: cors, json: {} })
@@ -426,5 +450,5 @@ export function createFakeSupabase() {
     })
   }
 
-  return { tables, images, attach }
+  return { tables, images, attach, mail, linkFor }
 }

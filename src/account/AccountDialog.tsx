@@ -86,7 +86,7 @@ export function AccountDialog({
         await signIn(server, email.trim(), password)
       } else if (mode === 'link') {
         await sendMagicLink(server, email.trim())
-        setNotice(`Enviamos um link para ${email.trim()}. Abra-o neste aparelho para entrar.`)
+        setNotice(`Enviamos um link para ${email.trim()}. Abra-o no aparelho em que quer entrar; ele vale uma vez só e por pouco tempo. Não chegou? Olhe o spam.`)
       } else if (step === 1) {
         if (password.length < 6) throw new Error('A senha precisa ter pelo menos 6 caracteres.')
         if (password !== confirm) throw new Error('As duas senhas não são iguais.')
@@ -191,7 +191,7 @@ export function AccountDialog({
             >
               {mode === 'link' && (
                 <p className="small">
-                  <strong>Entrar sem senha.</strong> Mandamos um link para o seu e-mail; é só abrir neste aparelho.
+                  <strong>Entrar sem senha.</strong> Mandamos um link para o seu e-mail; ao abrir, você entra no aparelho onde abriu.
                 </p>
               )}
 
@@ -279,7 +279,7 @@ export function AccountDialog({
                   onClick={() =>
                     void act(async () => {
                       await sendPasswordReset(server, email.trim())
-                      setNotice(`Se existir uma conta com ${email.trim()}, chegou um e-mail para trocar a senha.`)
+                      setNotice(`Se existir uma conta com ${email.trim()}, chegou um e-mail. Abra o link e o Papirus pede a senha nova. Não chegou? Olhe o spam.`)
                     })
                   }
                 >

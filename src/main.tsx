@@ -22,10 +22,14 @@ import { startPwa } from './pwa'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { GlobalErrors } from './ui/GlobalErrors'
 import { Confetti } from './ui/Confetti'
+import { captureAuthLink } from './account/auth'
+import { AuthLinkNotice } from './account/AuthLinkNotice'
 
 // Link de jogador (?mesa=…): só o Codex, sem biblioteca nem dados deste navegador.
 const player = readPlayerLink(location.search)
 if (!player) startPwa()
+// Volta de um link do e-mail (entrar, confirmar a conta, trocar a senha): guarda e limpa o endereço.
+if (!player) captureAuthLink()
 
 // As barras do celular na cor da tela, e não no verde fixo.
 followThemeColor()
@@ -34,6 +38,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary label="O Papirus encontrou um erro.">{player ? <PlayerApp id={player.id} server={player.server} /> : <App />}</ErrorBoundary>
     <GlobalErrors />
+    {!player && <AuthLinkNotice />}
     <Confetti />
   </StrictMode>,
 )
