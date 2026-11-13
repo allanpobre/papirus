@@ -1,9 +1,15 @@
-import { expect, test, type Page } from './fixtures.ts'
+import { expect, test, type Locator, type Page } from './fixtures.ts'
 import { openPart } from './areas.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) }).first()
 const book = (page: Page) => page.getByLabel('Livro', { exact: true })
-const OZMA = 'Ozma de Oz (trechos)'
+/** O livro 3 do exemplo (com ou sem "(trechos)" no nome, conforme a versão do exemplo). */
+const OZMA = /^Ozma de Oz/
+
+/** Escolhe um livro pelo começo do nome. */
+async function pick(select: Locator, name: RegExp) {
+  await select.selectOption((await select.locator('option', { hasText: name }).first().getAttribute('value'))!)
+}
 
 /** Abre uma área pelo "Mais" do celular. */
 async function viaMore(page: Page, area: string) {
@@ -18,13 +24,13 @@ test.describe('o livro escolhido no alto', () => {
     await page.goto('/app/?exemplo')
     // No Início, a faixa está no alto; o "onde você parou" passa a ser do livro.
     await expect(book(page)).toHaveValue('')
-    await book(page).selectOption({ label: OZMA })
-    await expect(page.getByText(`${OZMA} · onde você parou`)).toBeVisible()
+    await pick(book(page), OZMA)
+    await expect(page.getByText(/^Ozma de Oz.* · onde você parou$/)).toBeVisible()
 
     // Escrever: no celular a faixa não cabe; o livro fica no topo da lista de cenas.
     await nav(page, 'Escrever').click()
     await expect(page.locator('.book-bar')).toHaveCount(0)
-    await expect(page.getByText(/Ozma de Oz \(trechos\) · cena 1 de/).filter({ visible: true }).first()).toBeVisible()
+    await expect(page.getByText(/^Ozma de Oz.* · cena 1 de/).filter({ visible: true }).first()).toBeVisible()
     await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
     const tree = page.getByRole('complementary', { name: 'Manuscrito' })
     await expect(tree.getByLabel('Livro', { exact: true })).toHaveValue(/.+/)
@@ -35,7 +41,7 @@ test.describe('o livro escolhido no alto', () => {
     // Fichas: só quem aparece no livro, com um jeito de ver todas.
     await openPart(page, 'Fichas')
     const list = page.getByRole('region', { name: 'Lista de fichas' }).locator('li')
-    await expect(page.getByText(`Só quem aparece em “${OZMA}”.`)).toBeVisible()
+    await expect(page.getByText(/^Só quem aparece em “Ozma de Oz/)).toBeVisible()
     const inBook = await list.count()
     await page.getByRole('button', { name: 'Ver todas as fichas' }).click()
     await expect.poll(() => list.count()).toBeGreaterThan(inBook)
@@ -53,7 +59,7 @@ test.describe('o livro escolhido no alto', () => {
 
   test('Publicar abre o volume do livro escolhido', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await book(page).selectOption({ label: OZMA })
+    await pick(book(page), OZMA)
     await viaMore(page, 'Publicar')
     // O volume da estante que tem essa história (o título do volume é o do livro).
     await expect(page.locator('.book-hero-info h2')).toHaveText('Ozma de Oz')
@@ -67,7 +73,7 @@ test.describe('o livro escolhido no alto', () => {
     const scenes = page.locator('.tl-scene:not(.tl-session)')
     await expect(scenes.first()).toBeVisible()
     const allScenes = await scenes.count()
-    await book(page).selectOption({ label: OZMA })
+    await pick(book(page), OZMA)
     await expect.poll(() => scenes.count()).toBeLessThan(Math.max(1, allScenes))
 
     // Quem sabe o quê: o fim é o fim deste livro.
@@ -81,7 +87,7 @@ test.describe('o livro escolhido no alto', () => {
 
     // Mapas: os lugares do livro em destaque, os outros apagados.
     await openPart(page, 'Mapas')
-    await expect(page.getByText(`Em destaque: os lugares de “${OZMA}”`)).toBeVisible()
+    await expect(page.getByText(/^Em destaque: os lugares de “Ozma de Oz/)).toBeVisible()
     await expect(page.locator('.pin.off-book').first()).toBeAttached()
 
     // Estrutura: só o mapa deste livro.
@@ -92,7 +98,7 @@ test.describe('o livro escolhido no alto', () => {
 
   test('Ler como livro começa no livro escolhido', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await book(page).selectOption({ label: OZMA })
+    await pick(book(page), OZMA)
     await page.getByRole('button', { name: 'Ler como livro' }).first().click()
     const reader = page.getByRole('dialog', { name: 'Modo leitor' })
     await expect(reader.locator('.leitor-title')).toHaveText('A menina no galinheiro')
