@@ -2,7 +2,7 @@
 // Páginas: rede primeiro (pega versão nova), cache se estiver offline.
 // Arquivos (js, css, fontes, ícones): cache primeiro; os nomes mudam a cada versão.
 // v2: marca e ícones novos (os nomes dos ícones não mudam, então o cache antigo sai).
-const CACHE = 'papirus-v2'
+const CACHE = 'papirus-v3'
 
 self.addEventListener('install', () => self.skipWaiting())
 
@@ -35,7 +35,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       (async () => {
         try {
-          const res = await fetch(req)
+          // Sempre confere com o servidor (o GitHub Pages deixa guardar a página por 10 minutos):
+          // assim, abrir o app depois de uma publicação já traz a versão nova.
+          const res = await fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
           const c = await caches.open(CACHE)
           c.put(url.pathname, res.clone())
           return res
