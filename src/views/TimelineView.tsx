@@ -4,7 +4,8 @@ import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
 import { formatYear } from '../model/labels'
 import type { Session, TimelineEvent, Universe } from '../model/schema'
-import { byId, draftEvent, entityName, insert, manuscriptOrder, patch, remove, sceneTitle } from '../model/universe'
+import { sceneCounts } from '../logic/appearances'
+import { bookOnly, bookScenes, byId, draftEvent, entityName, insert, patch, remove, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, CanonSelect, Empty, Field, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -14,7 +15,7 @@ import { AreaHead } from './AreaModes'
 import { TimeMachine } from './TimeMachine'
 
 export default function TimelineView() {
-  const { universe, update, nav, go, undoable } = useWorkspace()
+  const { universe, update, nav, go, undoable, bookId } = useWorkspace()
   const suffix = universe.settings.calendarSuffix
   // Quem participa, com a idade naquele ano (como no Aeon Timeline): "Kael (23 anos)".
   const withAge = (id: string, year: number) => {
@@ -30,15 +31,19 @@ export default function TimelineView() {
   const [newYear, setNewYear] = useState<number | null>(null)
 
   const eras = universe.events.filter((e) => e.kind === 'era').sort((a, b) => a.year - b.year)
+  // Com um livro escolhido no alto: as cenas dele e os eventos de quem aparece nele (os eventos sem
+  // ninguém, como uma guerra antiga, continuam: são o pano de fundo do mundo).
+  const inBook = useMemo(() => (bookId ? new Set(sceneCounts(bookOnly(universe, bookId)).keys()) : null), [universe, bookId])
   const events = useMemo(
     () =>
       universe.events
         .filter((e) => e.kind === 'evento' && e.importance >= minImportance)
+        .filter((e) => !inBook || (!e.entityIds.length && !e.placeId) || e.entityIds.some((id) => inBook.has(id)) || (e.placeId !== null && inBook.has(e.placeId)))
         .filter((e) => filterIds.length === 0 || filterIds.some((id) => e.entityIds.includes(id) || e.placeId === id)),
-    [universe.events, minImportance, filterIds],
+    [universe.events, minImportance, filterIds, inBook],
   )
   const scenes = showScenes
-    ? manuscriptOrder(universe).filter((s) => s.date && (filterIds.length === 0 || filterIds.some((id) => s.presentIds.includes(id) || s.povId === id || s.placeId === id)))
+    ? bookScenes(universe, bookId).filter((s) => s.date && (filterIds.length === 0 || filterIds.some((id) => s.presentIds.includes(id) || s.povId === id || s.placeId === id)))
     : []
 
   // As sessões de jogo com ano no mundo entram junto das cenas (vale o mesmo "Mostrar cenas e sessões").

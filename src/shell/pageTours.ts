@@ -19,6 +19,14 @@ export interface PageTourDef {
 const NOMES_NOVOS =
   'O Papirus não marca nomes novos no texto: ele conta. Quando aparece uma palavra com maiúscula, no meio da frase, que ainda não tem ficha, o rodapé da Página mostra “1 nome novo” (no celular, a barra acima do teclado também). Na Revisão, o botão Revisar mostra “1 nome novo” na margem. Um toque abre a lista e, para cada nome, dá para criar a ficha, juntar como apelido de outra ficha ou ignorar.'
 
+/** A faixa "Livro" no alto, num universo com mais de um livro (o passo some quando ela não existe). */
+const LIVRO_ATUAL = {
+  target: '[data-tour="livro-atual"]',
+  title: 'Qual livro',
+  body: 'Num universo com vários livros, escolha aqui em qual você está. Escrever, Trama, Mundo e Publicar passam a mostrar só esse livro: as cenas dele, quem aparece nele, as tramas que passam por ele. “Todos os livros” mostra tudo junto.',
+  optional: true,
+} as const
+
 /**
  * Os tours de cada tela, abertos pelo botão (?) dela. Só explicam o que está na tela;
  * não trocam de tela nem mexem em nada.
@@ -55,6 +63,7 @@ export const PAGE_TOURS = {
   escrever: {
     title: 'Escrever',
     steps: [
+      LIVRO_ATUAL,
       {
         target: '[data-tour="modos"]',
         title: 'Estrutura, Página e Revisão',
@@ -131,6 +140,7 @@ export const PAGE_TOURS = {
   organizar: {
     title: 'Estrutura',
     steps: [
+      LIVRO_ATUAL,
       { target: '[data-tour="modos"]', title: 'Estrutura, Página e Revisão', body: 'A Estrutura é o primeiro dos três momentos da escrita: planejar e olhar a história de cima. Página e Revisão voltam para o texto.' },
       {
         target: '.story-map-structure',
@@ -186,6 +196,7 @@ export const PAGE_TOURS = {
   livro: {
     title: 'Publicar',
     steps: [
+      LIVRO_ATUAL,
       { target: '.book-head-actions', title: 'Novo livro ou importar', body: 'Junte histórias num livro à parte, com a sua capa (uma série pode ter um por volume, no mesmo estilo). “Importar” traz um texto de .docx, .md ou .txt como história nova.', optional: true },
       { target: '.shelf', title: 'Estante', body: 'Com mais de um livro, escolha aqui qual ver.', optional: true },
       { target: '.book-hero', title: 'Seu livro', body: 'A capa e o título. Toque na capa para diagramar. Ainda sem livro? “Criar o livro” junta as histórias com uma capa.' },
@@ -208,6 +219,7 @@ export const PAGE_TOURS = {
   fichas: {
     title: 'Fichas',
     steps: [
+      LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       {
         target: '.split-list .quick-create, .fichas-view .fab',
@@ -246,6 +258,7 @@ export const PAGE_TOURS = {
   relacoes: {
     title: 'Ligações',
     steps: [
+      LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.graph-filters-btn', title: 'Filtros', body: 'No celular, o grafo vem primeiro. Os filtros (centrar numa ficha, tipos, um ponto da história) ficam aqui.', optional: true },
       {
@@ -263,6 +276,7 @@ export const PAGE_TOURS = {
   timeline: {
     title: 'Linha do tempo',
     steps: [
+      LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.timeline-view .quick-create', title: 'Novo evento', body: 'O nome e o ano, no calendário do seu mundo. Toque num evento para mudar o tipo (uma Era é uma faixa de tempo), a importância, quem participa e onde.' },
       { target: '.timeline-filters', title: 'Filtrar', body: 'Mostre só o que envolve certas fichas, só os eventos mais importantes, e escolha se as cenas com data e as sessões de jogo aparecem.' },
@@ -285,6 +299,7 @@ export const PAGE_TOURS = {
   tramas: {
     title: 'Pistas e mistérios',
     steps: [
+      LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'A trama em duas partes', body: 'Pistas e mistérios, e Quem sabe o quê: as promessas ao leitor e o que cada um sabe. Toque para trocar de parte.', optional: true },
       { target: '.seeds-view .quick-create', title: 'Plantar', body: 'Uma promessa ao leitor ou uma pergunta. Semente liga uma preparação a um pagamento futuro; Mistério junta pistas.' },
       { target: '.seeds-view .filter-chips', title: 'Mostrar', body: 'Todas, só as sementes ou só os mistérios.' },
@@ -295,6 +310,7 @@ export const PAGE_TOURS = {
   conhecimento: {
     title: 'Quem sabe o quê',
     steps: [
+      LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'A trama em duas partes', body: 'Pistas e mistérios, e Quem sabe o quê: as promessas ao leitor e o que cada um sabe. Toque para trocar de parte.', optional: true },
       {
         target: '.knowledge-view .tabs',

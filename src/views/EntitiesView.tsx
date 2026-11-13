@@ -13,6 +13,7 @@ import { RelationDetails } from './RelationDetails'
 import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, SEED_STATUS_LABEL } from '../model/labels'
 import { ENTITY_KINDS, FIELD_TYPES, KNOWLEDGE_STATES, type Entity, type KnowledgeState } from '../model/schema'
 import {
+  bookOnly,
   byId,
   draftEntity,
   draftKnowledge,
@@ -59,7 +60,7 @@ import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
 export default function EntitiesView() {
-  const { universe, update, nav, go, readOnly, peek } = useWorkspace()
+  const { universe, update, nav, go, readOnly, peek, bookId } = useWorkspace()
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<FichaMode>(() => {
     const saved = recall('ficha-modo')
@@ -125,7 +126,11 @@ export default function EntitiesView() {
   }, [universe.entities])
 
   // Em quantas cenas cada ficha aparece: o que a história usa e o que está só nas notas (sem cobrança).
-  const counts = useMemo(() => sceneCounts(universe), [universe])
+  // Com um livro escolhido no alto, conta só as cenas dele, e a lista mostra só quem aparece nele.
+  const counts = useMemo(() => sceneCounts(bookOnly(universe, bookId)), [universe, bookId])
+  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const [everyone, setEveryone] = useState(false)
+  const onlyBook = Boolean(book) && !everyone
   const hasScenes = universe.scenes.some((sc) => sc.text.trim())
   const [where, setWhere] = useState<'tudo' | 'cenas' | 'notas'>('tudo')
   const inScenes = universe.entities.filter((e) => counts.get(e.id)).length
@@ -135,6 +140,8 @@ export default function EntitiesView() {
     return universe.entities
       .filter((e) => kind === 'todos' || e.kind === kind)
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
+      // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
+      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || e.id === fresh)
       .filter(
         (e) =>
           !q ||
@@ -152,7 +159,7 @@ export default function EntitiesView() {
             ? b.updatedAt.localeCompare(a.updatedAt)
             : a.name.localeCompare(b.name, 'pt'),
       )
-  }, [universe.entities, kind, query, where, counts, order])
+  }, [universe.entities, kind, query, where, counts, order, onlyBook, fresh])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,7 +230,7 @@ export default function EntitiesView() {
             label="Filtrar por tipo"
             value={kind}
             onChange={setKind}
-            options={[{ value: 'todos', label: `Todas (${universe.entities.length})` }, ...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
+            options={[{ value: 'todos', label: `Todas (${onlyBook ? inScenes : universe.entities.length})` },...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
           />
           <Select<Order>
             label="Ordem da lista"
@@ -255,7 +262,26 @@ export default function EntitiesView() {
         </div>
           </>
         )}
-        {hasScenes && universe.entities.length > 0 && !phone && (
+        {book && (
+          <p className="book-filter-note small">
+            {onlyBook ? (
+              <>
+                Só quem aparece em “{book.title || 'Sem título'}”.{' '}
+                <button type="button" className="link-btn" onClick={() => setEveryone(true)}>
+                  Ver todas as fichas
+                </button>
+              </>
+            ) : (
+              <>
+                Todas as fichas do mundo.{' '}
+                <button type="button" className="link-btn" onClick={() => setEveryone(false)}>
+                  Só as deste livro
+                </button>
+              </>
+            )}
+          </p>
+        )}
+        {hasScenes && universe.entities.length > 0 && !phone && !onlyBook && (
           <div className="filter-chips where-chips" role="group" aria-label="Onde aparece">
             <button type="button" className="chip" aria-pressed={where === 'cenas'} onClick={() => setWhere(where === 'cenas' ? 'tudo' : 'cenas')}>
               Nas cenas <span className="chip-count">{inScenes}</span>

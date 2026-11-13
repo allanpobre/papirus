@@ -12,7 +12,7 @@ import { addBook, shelf } from '../export/shelf'
 import { authClient, useAccount } from '../account/auth'
 import { syncedMap } from '../account/cloud'
 import type { Scene, Universe } from '../model/schema'
-import { addScene, draftInbox, insert, updateScene } from '../model/universe'
+import { addScene, draftInbox, insert, manuscriptOrder, updateScene } from '../model/universe'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
@@ -839,6 +839,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         createPortal(
           <ReaderOverlay
             universe={universe}
+            bookId={bookId}
             preview={source.kind === 'proprio' || source.kind === 'editar'}
             onComment={commentSender(source, universe.id, account.server)}
             commenterName={account.user?.email ? shortName(account.user.email) : undefined}
@@ -1204,24 +1205,30 @@ function SharedBanner({ source, onLeave, onRead, onCreateAU }: { source: LiveSou
 /** O modo leitor por cima da área de trabalho. Para o autor, é a prévia do que o leitor vê. */
 function ReaderOverlay({
   universe,
+  bookId,
   preview,
   onClose,
   onComment,
   commenterName,
 }: {
   universe: Universe
+  /** O livro escolhido no alto: a leitura abre nele (e guarda onde parou, livro a livro). */
+  bookId: string | null
   preview: boolean
   onClose: () => void
   onComment?: SendComment
   commenterName?: string
 }) {
   const [copy] = useState(() => readerCopy(universe, false))
+  // Os livros de antes continuam no caderno do leitor: quem lê o terceiro já leu os dois primeiros.
+  const start = bookId ? manuscriptOrder(copy).findIndex((s) => s.storyId === bookId) : -1
   useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
       <ReaderView
         universe={copy}
-        storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}`}
+        storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}${start >= 0 ? `:${bookId}` : ''}`}
+        startAt={start >= 0 ? start : undefined}
         onClose={onClose}
         onComment={onComment}
         commenterName={commenterName}

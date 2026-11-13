@@ -10490,3 +10490,8 @@ h3.cork-act {
   font-weight: 600;
   padding: 0.25rem 0.2rem;
 }
+
+.book-filter-note {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+}
