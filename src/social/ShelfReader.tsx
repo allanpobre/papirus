@@ -9,6 +9,7 @@ import { chapterReactions, reactToChapter, tally, type ChapterReaction } from '.
 import { loadShelfText } from './shelfText'
 import { sendFeedback } from '../share/feedback'
 import { Flag, MessageCircle, Send, Trash2 } from 'lucide-react'
+import { BookLooks } from '../book/BookLooks'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { addComment, deleteComment, profilesByIds, type Profile, type ShelfComment, type ShelfRow } from './social'
 import { blockedIds, readingOf, report, REPORT_REASONS, saveReading } from './community'
@@ -107,6 +108,8 @@ export function ShelfReader({
           // Comentário só para quem escreveu (trecho selecionado ou o capítulo): vai para a margem do autor.
           onComment={me && me !== book.owner ? async (f) => sendFeedback(await client(), { shelf: { ownerId: book.owner, bookId: book.id } }, f) : undefined}
           commenterName={me ? 'conta' : undefined}
+          // O livro como quem escreveu diagramou: folhear ou ver as páginas (as mesmas do PDF).
+          actions={<BookLooks universe={universe} />}
           footer={
             <>
               <BookComments book={book} me={me} client={client} onAccount={onAccount} />

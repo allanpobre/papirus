@@ -1,10 +1,11 @@
 import { X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { buildBook, defaultDesign, fontsOf } from '../export/bookDesign'
+import { buildBook, defaultDesign, fontsOf, PAGE_SIZES, previewCss } from '../export/bookDesign'
 import { fontFaces } from '../export/bookFonts'
 import { shelf } from '../export/shelf'
 import { prepareBookImages } from '../images/bookImages'
+import type { Universe } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { useBackLayer } from '../ui/useBackLayer'
 import { FLIP_CSS, FLIP_JS } from './flip'
@@ -16,10 +17,21 @@ import { pagedDocument } from './pagedDocument'
  */
 export default function BookFlip({ bookId, onClose }: { bookId: string; onClose: () => void }) {
   const { universe } = useWorkspace()
+  return <BookFlipView universe={universe} bookId={bookId} onClose={onClose} />
+}
+
+/** Como ver o livro pronto: folheando, ou as páginas da diagramação uma embaixo da outra. */
+export type BookLook = 'folhear' | 'paginas'
+
+/**
+ * O livro pronto, de qualquer universo (o próprio ou a cópia de leitura de um amigo na estante).
+ * Só mostra: quem escreveu decide tudo em Diagramar.
+ */
+export function BookFlipView({ universe, bookId, onClose, look = 'folhear' }: { universe: Universe; bookId: string; onClose: () => void; look?: BookLook }) {
   useBackLayer(onClose)
   // O livro como estava ao abrir (paginar de novo a cada mudança no universo seria pesado).
   const [snapshot] = useState(universe)
-  const design = useMemo(() => shelf(snapshot).find((b) => b.id === bookId) ?? defaultDesign(), [snapshot, bookId])
+  const design = useMemo(() => shelf(snapshot).find((b) => b.id === bookId) ?? shelf(snapshot)[0] ?? defaultDesign(), [snapshot, bookId])
   const [imagesReady, setImagesReady] = useState(false)
   const [pages, setPages] = useState<number | null>(null)
 
@@ -33,8 +45,13 @@ export default function BookFlip({ bookId, onClose }: { bookId: string; onClose:
 
   const book = useMemo(() => (imagesReady ? buildBook(snapshot, design) : null), [snapshot, design, imagesReady])
   const doc = useMemo(
-    () => (book ? pagedDocument(book.title, book.html, book.css, fontFaces(fontsOf(design)), FLIP_CSS, false, { headJs: FLIP_JS, afterJs: 'papirusFlip()' }) : ''),
-    [book, design],
+    () =>
+      !book
+        ? ''
+        : look === 'paginas'
+          ? pagedDocument(book.title, book.html, book.css, fontFaces(fontsOf(design)), previewCss(design), false)
+          : pagedDocument(book.title, book.html, book.css, fontFaces(fontsOf(design)), FLIP_CSS, false, { headJs: FLIP_JS, afterJs: 'papirusFlip()' }),
+    [book, design, look],
   )
 
   // Só ouve a página do próprio livro (outra janela não fecha o Folhear nem muda a contagem).
@@ -49,8 +66,16 @@ export default function BookFlip({ bookId, onClose }: { bookId: string; onClose:
     return () => removeEventListener('message', onMessage)
   }, [onClose])
 
+  // As páginas cabem na largura da tela (no celular, uma página inteira por vez).
+  useEffect(() => {
+    if (look !== 'paginas' || pages === null || !frame.current) return
+    const pageWidthPx = PAGE_SIZES[design.pageSize].w * 3.7795
+    const zoom = Math.max(0.3, Math.min(1.2, +((frame.current.clientWidth - 32) / pageWidthPx).toFixed(2)))
+    frame.current.contentDocument?.body?.style.setProperty('zoom', String(zoom))
+  }, [look, pages, design.pageSize])
+
   return createPortal(
-    <div className="book-flip" role="dialog" aria-modal="true" aria-label={`Folhear ${book?.title ?? 'o livro'}`}>
+    <div className={`book-flip${look === 'paginas' ? ' is-pages' : ''}`} role="dialog" aria-modal="true" aria-label={`${look === 'paginas' ? 'Páginas de' : 'Folhear'} ${book?.title ?? 'o livro'}`}>
       <header className="book-flip-top">
         <strong className="book-flip-title">{book?.title ?? 'Livro'}</strong>
         <span className="book-flip-status small" role="status">
@@ -60,7 +85,7 @@ export default function BookFlip({ bookId, onClose }: { bookId: string; onClose:
           <X size={16} aria-hidden="true" /> Fechar
         </button>
       </header>
-      {doc && <iframe ref={frame} className="book-flip-frame" title="Folhear o livro" srcDoc={doc} />}
+      {doc && <iframe ref={frame} className="book-flip-frame" title={look === 'paginas' ? 'As páginas do livro' : 'Folhear o livro'} srcDoc={doc} />}
     </div>,
     document.body,
   )

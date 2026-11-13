@@ -10452,3 +10452,11 @@ h3.cork-act {
   vertical-align: -2px;
   color: var(--accent);
 }
+
+/* Folhear ou ver as páginas por cima do leitor da estante. */
+.leitor-overlay ~ .book-flip {
+  z-index: 65;
+}
+.book-flip.is-pages .book-flip-frame {
+  background: #d9ddd6;
+}
