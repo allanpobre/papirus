@@ -224,6 +224,59 @@ export function placeLabels(
   return out
 }
 
+export interface SeparateBox {
+  /** Largura e altura do espaço da ficha (bolinha e nome). */
+  w: number
+  h: number
+  /** Do centro da bolinha até o alto da caixa (negativo: a caixa começa acima do centro). */
+  top: number
+}
+
+/**
+ * Afasta as fichas até nenhuma caixa (bolinha com o nome embaixo) encostar em outra. Cada par que
+ * se sobrepõe é empurrado na direção de um centro para o outro, metade para cada um, e repete até
+ * ninguém mais se tocar. Determinístico, como o layout: o mesmo desenho sai sempre igual.
+ */
+export function separate(pos: Map<string, Point>, boxes: Map<string, SeparateBox>, { gap = 6, iterations = 400 } = {}): Map<string, Point> {
+  const out = new Map([...pos].map(([id, p]) => [id, { x: p.x, y: p.y }]))
+  const items = [...out].filter(([id]) => boxes.has(id)).map(([id, p]) => ({ p, b: boxes.get(id)! }))
+  for (let it = 0; it < iterations; it++) {
+    let moved = false
+    for (let i = 0; i < items.length; i++) {
+      const a = items[i]
+      for (let j = i + 1; j < items.length; j++) {
+        const b = items[j]
+        const ay = a.p.y + a.b.top + a.b.h / 2
+        const by = b.p.y + b.b.top + b.b.h / 2
+        const ox = (a.b.w + b.b.w) / 2 + gap - Math.abs(a.p.x - b.p.x)
+        if (ox <= 0) continue
+        const oy = (a.b.h + b.b.h) / 2 + gap - Math.abs(ay - by)
+        if (oy <= 0) continue
+        moved = true
+        // Empurra na direção de um centro para o outro (assim o desenho cresce por igual, sem virar
+        // uma coluna), só o bastante para as caixas deixarem de se tocar; metade para cada um.
+        let dx = b.p.x - a.p.x
+        let dy = by - ay
+        if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) {
+          // No mesmo lugar: um ângulo que depende só da posição na lista.
+          dx = Math.cos(j * 2.39996)
+          dy = Math.sin(j * 2.39996)
+        }
+        const len = Math.hypot(dx, dy)
+        const ux = dx / len
+        const uy = dy / len
+        const t = Math.min(Math.abs(ux) > 1e-6 ? ox / Math.abs(ux) : Infinity, Math.abs(uy) > 1e-6 ? oy / Math.abs(uy) : Infinity) + 0.5
+        a.p.x -= (ux * t) / 2
+        a.p.y -= (uy * t) / 2
+        b.p.x += (ux * t) / 2
+        b.p.y += (uy * t) / 2
+      }
+    }
+    if (!moved) break
+  }
+  return out
+}
+
 /** Vizinhança de um nó até a profundidade indicada. */
 export function neighborhood(start: string, edges: GraphEdge[], depth: number): Set<string> {
   const seen = new Set([start])

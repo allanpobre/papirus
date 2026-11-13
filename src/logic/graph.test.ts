@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { forceLayout, placeLabels, type Point } from './graph'
+import { forceLayout, placeLabels, separate, type Point, type SeparateBox } from './graph'
 
 const box = (pos: Map<string, Point>) => {
   const xs = [...pos.values()].map((p) => p.x)
@@ -80,5 +80,39 @@ describe('lugar dos nomes', () => {
   it('na borda de baixo, o nome não sai da área', () => {
     const spot = placeLabels([node('a')], new Map([['a', { x: 100, y: 190 }]]), { width: 300, height: 200 }).get('a')!
     expect(spot.dy).toBeLessThan(0)
+  })
+})
+
+describe('afastar as fichas', () => {
+  const box: SeparateBox = { w: 90, h: 40, top: -12 }
+  const touching = (pos: Map<string, Point>, gap: number) => {
+    const list = [...pos.values()]
+    for (let i = 0; i < list.length; i++)
+      for (let j = i + 1; j < list.length; j++)
+        if (Math.abs(list[i].x - list[j].x) < box.w + gap - 0.01 && Math.abs(list[i].y - list[j].y) < box.h + gap - 0.01) return true
+    return false
+  }
+
+  it('depois de afastar, nenhuma caixa encosta em outra, mesmo com tudo amontoado', () => {
+    const pos = new Map<string, Point>()
+    for (let i = 0; i < 60; i++) pos.set(`n${i}`, { x: 200 + (i % 7) * 9, y: 200 + Math.floor(i / 7) * 5 })
+    // Duas no mesmo lugar exato também se separam.
+    pos.set('igual', { x: 200, y: 200 })
+    const boxes = new Map([...pos.keys()].map((id) => [id, box]))
+    expect(touching(pos, 6)).toBe(true)
+    const out = separate(pos, boxes, { gap: 6 })
+    expect(touching(out, 6)).toBe(false)
+    // Determinístico: sai sempre igual.
+    expect([...separate(pos, boxes, { gap: 6 })]).toEqual([...out])
+  })
+
+  it('quem já está longe não se mexe', () => {
+    const pos = new Map<string, Point>([
+      ['a', { x: 0, y: 0 }],
+      ['b', { x: 500, y: 0 }],
+    ])
+    const out = separate(pos, new Map([['a', box], ['b', box]]))
+    expect(out.get('a')).toEqual({ x: 0, y: 0 })
+    expect(out.get('b')).toEqual({ x: 500, y: 0 })
   })
 })

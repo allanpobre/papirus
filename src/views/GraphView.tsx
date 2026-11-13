@@ -3,7 +3,7 @@ import { familyLinks } from '../logic/family'
 import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useImageSrc } from '../images/resolve'
-import { forceLayout, neighborhood, placeLabels, type GraphEdge, type Point } from '../logic/graph'
+import { forceLayout, neighborhood, placeLabels, separate, type GraphEdge, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
 import { appearances } from '../logic/reader'
 import { formatDate } from '../logic/calendar'
@@ -138,6 +138,8 @@ export default function GraphView() {
   const [view, setView] = useState({ x: 0, y: 0, k: 1 })
   const [inTime, setInTime] = useState(false)
   const [sceneIndex, setSceneIndex] = useState(0)
+  // Um livro só (null = todos): o mapa mostra quem aparece nele, e o "cena a cena" anda só por ele.
+  const [bookId, setBookId] = useState<string | null>(null)
   const [playing, setPlaying] = useState(false)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -174,7 +176,8 @@ export default function GraphView() {
     return () => el.removeEventListener('wheel', onWheel)
   })
 
-  const scenes = useMemo(() => manuscriptOrder(universe), [universe])
+  const book = bookId ? universe.stories.find((s) => s.id === bookId) : undefined
+  const scenes = useMemo(() => manuscriptOrder(universe).filter((s) => !book || s.storyId === book.id), [universe, book])
   const scene = inTime ? (scenes[Math.min(sceneIndex, scenes.length - 1)] ?? null) : null
 
   // Tocar a história: avança uma cena por vez.
@@ -203,8 +206,11 @@ export default function GraphView() {
     return list
   }, [universe.relations, universe.entities, showDerived])
 
+  // Em que cena cada ficha aparece pela primeira vez (no texto, no elenco, como POV ou lugar). Com um livro
+  // escolhido, só entra no mapa quem aparece nele; num ponto da história, quem já apareceu até a cena.
+  const firstSeen = useMemo(() => appearances(scenes, universe.entities).first, [scenes, universe.entities])
   const { nodes, visibleEdges } = useMemo(() => {
-    let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind)).map((e) => e.id))
+    let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind) && (!book || firstSeen.has(e.id))).map((e) => e.id))
     let es = edges.filter((e) => ids.has(e.from) && ids.has(e.to) && (e.kind !== 'por-tras' || ids.has(e.relation!.toId)))
     if (focusId && ids.has(focusId)) {
       const near = neighborhood(focusId, es, depth)
@@ -215,31 +221,17 @@ export default function GraphView() {
       ids = new Set([...ids].filter((id) => connected.has(id)))
     }
     return { nodes: universe.entities.filter((e) => ids.has(e.id)), visibleEdges: es }
-  }, [universe.entities, edges, hiddenKinds, focusId, depth, onlyConnected])
+  }, [universe.entities, edges, hiddenKinds, focusId, depth, onlyConnected, book, firstSeen])
 
   // O layout usa todas as ligações visíveis (não só as do momento), para que as fichas não pulem com o tempo.
   const layoutKey = nodes.map((n) => n.id).join(',') + '|' + visibleEdges.map((e) => e.from + e.to).join(',') + `|${W}x${H}`
-  const target = useMemo(
-    () => {
-      const springs = [...visibleEdges, ...visibleEdges.filter((e) => e.kind === 'por-tras').map((e) => ({ from: e.from, to: e.relation!.toId }))]
-      // A margem deixa lugar para os nomes em volta das bolinhas da borda.
-      // No celular, a faixa de baixo fica para os botões de zoom.
-      return forceLayout(nodes.map((n) => ({ id: n.id })), springs, { width: W, height: narrow ? H - CONTROLS : H, margin: narrow ? 56 : 80, stretch: narrow ? 1.7 : 2.2 })
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [layoutKey],
-  )
-  const pos = useAnimatedPositions(target, { x: W / 2, y: H / 2 })
-
-  // Num ponto da história, só entra no mapa quem já apareceu até a cena (no texto, no elenco, como POV ou lugar).
-  const firstSeen = useMemo(() => appearances(scenes, universe.entities).first, [scenes, universe.entities])
-  const sceneAt = Math.min(sceneIndex, scenes.length - 1)
-  const appeared = (id: string) => !inTime || (firstSeen.get(id) ?? Infinity) <= sceneAt
-  const shownNodes = nodes.filter((n) => appeared(n.id))
-  const notYet = inTime ? nodes.length - shownNodes.length : 0
-  const active = (e: Edge) => !e.relation || activeAt(e.relation, scene)
-  const liveIds = new Set(visibleEdges.filter(active).flatMap((e) => [e.from, e.to]))
-
+  // No celular, a faixa de baixo fica para os botões de zoom.
+  const baseH = narrow ? H - CONTROLS : H
+  // Com muitas fichas, o desenho fica maior que a tela (cada uma com lugar para a bolinha e o nome):
+  // abre no tamanho de ler, e a pessoa arrasta para andar pelas ligações. "Enquadrar" mostra tudo.
+  const grow = Math.max(1, Math.sqrt((nodes.length * (narrow ? 11000 : 13000)) / (W * baseH)))
+  const LW = Math.round(W * grow)
+  const LH = Math.round(baseH * grow)
   const degree = new Map<string, number>()
   for (const e of visibleEdges) {
     if (e.kind === 'por-tras') continue
@@ -247,18 +239,71 @@ export default function GraphView() {
     degree.set(e.to, (degree.get(e.to) ?? 0) + 1)
   }
   const radius = (id: string) => (narrow ? 11 + Math.min(7, (degree.get(id) ?? 0) * 1.1) : 14 + Math.min(10, (degree.get(id) ?? 0) * 1.5))
+  const labelWidth = (name: string) => (name || 'Sem nome').length * LABEL_SIZE * 0.6 + 8
+  const sizeKey = nodes.map((n) => n.name).join('|')
+  const raw = useMemo(
+    () => {
+      const springs = [...visibleEdges, ...visibleEdges.filter((e) => e.kind === 'por-tras').map((e) => ({ from: e.from, to: e.relation!.toId }))]
+      // A margem deixa lugar para os nomes em volta das bolinhas da borda.
+      return forceLayout(nodes.map((n) => ({ id: n.id })), springs, { width: LW, height: LH, margin: narrow ? 56 : 80, stretch: narrow ? 1.7 : 2.2 })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [layoutKey],
+  )
+  // Depois das forças, uma passada que afasta as fichas até nenhuma bolinha ou nome encostar em outro;
+  // o desenho é então centrado na tela. `local` é o mesmo desenho a partir de (0, 0), do tamanho bw × bh.
+  const { target, local, bw, bh } = useMemo(() => {
+    const boxes = new Map(
+      nodes.map((n) => {
+        const r = radius(n.id)
+        return [n.id, { w: Math.max(2 * r, labelWidth(n.name)), h: 2 * r + 4 + LABEL_SIZE * 1.3, top: -r }]
+      }),
+    )
+    const sep = separate(raw, boxes, { gap: narrow ? 8 : 12 })
+    if (!sep.size) return { target: sep, local: sep, bw: W, bh: baseH }
+    let x0 = Infinity
+    let y0 = Infinity
+    let x1 = -Infinity
+    let y1 = -Infinity
+    for (const [id, p] of sep) {
+      const b = boxes.get(id)!
+      x0 = Math.min(x0, p.x - b.w / 2)
+      x1 = Math.max(x1, p.x + b.w / 2)
+      y0 = Math.min(y0, p.y + b.top)
+      y1 = Math.max(y1, p.y + b.top + b.h)
+    }
+    const M = 16
+    const local = new Map([...sep].map(([id, p]) => [id, { x: p.x - x0 + M, y: p.y - y0 + M }]))
+    const bw = x1 - x0 + 2 * M
+    const bh = y1 - y0 + 2 * M
+    const dx = (W - bw) / 2
+    const dy = (baseH - bh) / 2
+    return { target: new Map([...local].map(([id, p]) => [id, { x: p.x + dx, y: p.y + dy }])), local, bw, bh }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [raw, sizeKey])
+  /** O zoom que mostra o desenho inteiro. */
+  const fitK = Math.min(1, W / bw, baseH / bh)
+  const pos = useAnimatedPositions(target, { x: W / 2, y: H / 2 })
+
+  const sceneAt = Math.min(sceneIndex, scenes.length - 1)
+  const appeared = (id: string) => !inTime || (firstSeen.get(id) ?? Infinity) <= sceneAt
+  const shownNodes = nodes.filter((n) => appeared(n.id))
+  const notYet = inTime ? nodes.length - shownNodes.length : 0
+  const active = (e: Edge) => !e.relation || activeAt(e.relation, scene)
+  const liveIds = new Set(visibleEdges.filter(active).flatMap((e) => [e.from, e.to]))
+
   // Os nomes desviam uns dos outros e das bolinhas; quem tem mais ligações escolhe o lugar primeiro.
   const labels = useMemo(
     () =>
       placeLabels(
         [...nodes]
           .sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0))
-          .map((n) => ({ id: n.id, width: (n.name || 'Sem nome').length * LABEL_SIZE * 0.6 + 8, height: LABEL_SIZE * 1.3, r: radius(n.id) })),
-        target,
-        { width: W, height: narrow ? H - CONTROLS : H, pad: 8, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
+          .map((n) => ({ id: n.id, width: labelWidth(n.name), height: LABEL_SIZE * 1.3, r: radius(n.id) })),
+        local,
+        { width: bw, height: bh, pad: 4, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [target, nodes],
+    [local, nodes],
   )
   const kinds = [...new Set(universe.entities.map((e) => e.kind))]
   const sel = selected ? byId(universe, 'entities', selected) : undefined
@@ -272,7 +317,7 @@ export default function GraphView() {
   const filterCount = [focusId, hiddenKinds.size > 0, inTime, !showDerived, !onlyConnected].filter(Boolean).length
   const hasFamily = useMemo(() => familyLinks(universe).length > 0, [universe])
   const [mode, setMode] = useState<'ligacoes' | 'familia'>('ligacoes')
-  const zoom = (f: number) => setView((v) => ({ ...v, k: Math.min(4, Math.max(0.3, v.k * f)) }))
+  const zoom = (f: number) => setView((v) => ({ ...v, k: Math.min(4, Math.max(Math.min(0.3, fitK), v.k * f)) }))
 
   return (
     <div className={`view graph-view${filtersOpen ? ' filters-open' : ''}`}>
@@ -327,6 +372,27 @@ export default function GraphView() {
         <FamilyTree />
       ) : (
         <>
+      {universe.stories.length > 1 && (
+        <label className="graph-book">
+          <span>Livro</span>
+          <select
+            value={book?.id ?? ''}
+            onChange={(e) => {
+              setBookId(e.target.value || null)
+              setSceneIndex(0)
+              setPlaying(false)
+              setView({ x: 0, y: 0, k: 1 })
+            }}
+          >
+            <option value="">Todos os livros</option>
+            {universe.stories.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title || 'Sem título'}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <div className="graph-bar">
         <div className="filter-chips" aria-label="Tipos visíveis">
           {kinds.map((k) => (
@@ -389,6 +455,18 @@ export default function GraphView() {
               setSceneIndex(Number(e.target.value))
             }}
           />
+          <button
+            type="button"
+            className="btn-icon"
+            aria-label="Sair do cena a cena"
+            title="Sair do cena a cena (ver todas as ligações)"
+            onClick={() => {
+              setInTime(false)
+              setPlaying(false)
+            }}
+          >
+            <X size={16} />
+          </button>
           <p className="graph-time-label" aria-live="polite">
             <span className="tabular muted">
               {Math.min(sceneIndex, scenes.length - 1) + 1}/{scenes.length}
@@ -433,9 +511,15 @@ export default function GraphView() {
       )}
 
       {nodes.length === 0 ? (
-        <Empty icon={<Network size={32} />} title="Nenhuma ligação para mostrar.">
-          <p>Adicione ligações nas fichas (“irmão de”, “serve a”…). Elas aparecem aqui como um mapa.</p>
-        </Empty>
+        book ? (
+          <Empty icon={<Network size={32} />} title="Ninguém aparece neste livro ainda.">
+            <p>Quando o texto de “{book.title || 'Sem título'}” citar uma ficha (ou ela estiver no elenco de uma cena), ela entra aqui.</p>
+          </Empty>
+        ) : (
+          <Empty icon={<Network size={32} />} title="Nenhuma ligação para mostrar.">
+            <p>Adicione ligações nas fichas (“irmão de”, “serve a”…). Elas aparecem aqui como um mapa.</p>
+          </Empty>
+        )
       ) : (
         <div className="graph-wrap" ref={wrapRef}>
           <svg
@@ -478,8 +562,12 @@ export default function GraphView() {
               const x = d.vx + (e.clientX - d.x) * scale
               const y = d.vy + (e.clientY - d.y) * scale
               if (!Number.isFinite(x) || !Number.isFinite(y)) return
-              // Não deixa o desenho sair inteiro da tela.
-              setView((v) => ({ ...v, x: Math.max(-W, Math.min(W, x)), y: Math.max(-H, Math.min(H, y)) }))
+              // Não deixa o desenho sair inteiro da tela (mas deixa chegar à borda de um desenho grande).
+              setView((v) => {
+                const lx = Math.max(W, (bw * v.k) / 2)
+                const ly = Math.max(H, (bh * v.k) / 2)
+                return { ...v, x: Math.max(-lx, Math.min(lx, x)), y: Math.max(-ly, Math.min(ly, y)) }
+              })
             }}
             onPointerUp={(e) => {
               // Toque no fundo (sem arrastar) fecha o cartão da ficha.
@@ -591,7 +679,7 @@ export default function GraphView() {
             <button type="button" className="btn-icon" aria-label="Afastar" onClick={() => zoom(1 / 1.2)}>
               <Minus size={16} />
             </button>
-            <button type="button" className="btn-icon" aria-label="Enquadrar" onClick={() => setView({ x: 0, y: 0, k: 1 })}>
+            <button type="button" className="btn-icon" aria-label="Enquadrar" onClick={() => setView({ x: 0, y: 0, k: fitK })}>
               <Maximize size={16} />
             </button>
           </div>

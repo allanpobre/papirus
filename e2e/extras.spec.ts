@@ -460,9 +460,8 @@ test('o Início tem saudação, o dia e o mundo numa linha que leva a cada parte
 })
 
 test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', async ({ page }) => {
-  // O Alienista: fichas com texto longo, relações e marcas de spoiler.
-  await page.goto('/')
-  await page.getByRole('link', { name: 'Ver um mundo de exemplo' }).click()
+  // O Alienista (o segundo exemplo): fichas com texto longo, relações e marcas de spoiler.
+  await page.goto('/app/?exemplo=alienista')
   await page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /\d+ fichas$/ }).click()
   await page.locator('.entity-row-name', { hasText: /^D\. Evarista$/ }).click()
   await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
