@@ -734,8 +734,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             </div>
           )}
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
-            {/* No celular, o Escrever não tem lugar para a faixa: o livro se escolhe no topo da lista de cenas. */}
-            {BOOK_VIEWS.includes(nav.view) && !(phone && nav.view === 'escrever') && <BookPicker />}
+            {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
+            {BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
             <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
           </Suspense>
         </main>
@@ -898,8 +898,8 @@ function RailButton({ item, active, onClick, badge }: { item: NavItem; active: b
   )
 }
 
-/** As áreas que mostram só o livro escolhido: Início, Escrever, Publicar, Mundo e Trama. */
-const BOOK_VIEWS: View[] = ['inicio', 'escrever', 'organizar', 'livro', 'fichas', 'relacoes', 'timeline', 'atlas', 'tramas', 'conhecimento']
+/** As áreas que seguem o livro escolhido e mostram o selo dele (o Início e o Escrever têm o seletor próprio). */
+const BOOK_VIEWS: View[] = ['organizar', 'livro', 'fichas', 'relacoes', 'timeline', 'atlas', 'tramas', 'conhecimento']
 
 function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | null; onOpenOther: (u: Universe) => void }) {
   switch (view) {

@@ -42,7 +42,7 @@ const AREAS: Area[] = [
     id: 'escrita',
     title: 'Escrever e publicar',
     icon: Feather,
-    intro: 'Escrever em três momentos (Estrutura, Página e Revisão) e, no fim, fazer o livro. Com vários livros no universo, a faixa “Livro” no alto escolhe em qual você está: Escrever, Trama, Mundo e Publicar mostram só ele.',
+    intro: 'Escrever em três momentos (Estrutura, Página e Revisão) e, no fim, fazer o livro. Com vários livros no universo, escolha em qual você está no Início ou no alto da lista de cenas: Escrever, Trama, Mundo e Publicar mostram só ele.',
     parts: [
       { title: 'Estrutura', what: 'A história vista de cima: o modelo (três atos, Save the Cat…), as cenas na cor de como terminam e as promessas.', tour: 'organizar', view: 'organizar' },
       { title: 'Página e Revisão', what: 'A Página é só o texto, com a porta fechada. A Revisão traz a margem: quem aparece, o que a cena planta e as perguntas.', tour: 'escrever', view: 'escrever' },

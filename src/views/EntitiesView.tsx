@@ -60,7 +60,9 @@ import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
 
 export default function EntitiesView() {
-  const { universe, update, nav, go, readOnly, peek, bookId } = useWorkspace()
+  const { universe, update, nav, go, readOnly, peek, bookId, toast } = useWorkspace()
+  // O que foi criado nesta visita fica na lista mesmo com um livro escolhido (ainda não aparece no texto dele).
+  const [since] = useState(() => new Date().toISOString())
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<FichaMode>(() => {
     const saved = recall('ficha-modo')
@@ -141,7 +143,7 @@ export default function EntitiesView() {
       .filter((e) => kind === 'todos' || e.kind === kind)
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
       // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
-      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || e.id === fresh)
+      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || e.id === fresh || e.createdAt >= since)
       .filter(
         (e) =>
           !q ||
@@ -159,7 +161,7 @@ export default function EntitiesView() {
             ? b.updatedAt.localeCompare(a.updatedAt)
             : a.name.localeCompare(b.name, 'pt'),
       )
-  }, [universe.entities, kind, query, where, counts, order, onlyBook, fresh])
+  }, [universe.entities, kind, query, where, counts, order, onlyBook, fresh, since])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -357,6 +359,7 @@ export default function EntitiesView() {
               setCreating(null)
               setKind(k)
               setQuery('')
+              if (onlyBook && book) toast(`Fichas criadas no mundo. Elas entram em “${book.title || 'Sem título'}” quando o texto citar o nome; até lá, ficam aqui na lista.`)
             }}
           />
         )}
