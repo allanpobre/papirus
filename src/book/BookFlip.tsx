@@ -5,6 +5,8 @@ import { buildBook, defaultDesign, fontsOf, PAGE_SIZES, previewCss } from '../ex
 import { fontFaces } from '../export/bookFonts'
 import { shelf } from '../export/shelf'
 import { prepareBookImages } from '../images/bookImages'
+import { isImageRef } from '../images/ref'
+import { imageDataUrl } from '../images/resolve'
 import type { Universe } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { useBackLayer } from '../ui/useBackLayer'
@@ -34,16 +36,21 @@ export function BookFlipView({ universe, bookId, onClose, look = 'folhear' }: { 
   const design = useMemo(() => shelf(snapshot).find((b) => b.id === bookId) ?? shelf(snapshot)[0] ?? defaultDesign(), [snapshot, bookId])
   const [imagesReady, setImagesReady] = useState(false)
   const [pages, setPages] = useState<number | null>(null)
+  // Capa de um livro de outra pessoa: vem como referência e é baixada agora, na hora de mostrar.
+  const [covers, setCovers] = useState<{ cover: string | null; backCover: string | null }>({ cover: null, backCover: null })
 
   useEffect(() => {
     let off = false
-    void prepareBookImages(snapshot).finally(() => !off && setImagesReady(true))
+    const fetchCover = (v: string | null) => (isImageRef(v) ? imageDataUrl(v).catch(() => null) : Promise.resolve(v))
+    void Promise.all([prepareBookImages(snapshot), fetchCover(design.cover), fetchCover(design.backCover)])
+      .then(([, cover, backCover]) => !off && setCovers({ cover, backCover }))
+      .finally(() => !off && setImagesReady(true))
     return () => {
       off = true
     }
-  }, [snapshot])
+  }, [snapshot, design])
 
-  const book = useMemo(() => (imagesReady ? buildBook(snapshot, design) : null), [snapshot, design, imagesReady])
+  const book = useMemo(() => (imagesReady ? buildBook(snapshot, { ...design, ...covers }) : null), [snapshot, design, covers, imagesReady])
   const doc = useMemo(
     () =>
       !book

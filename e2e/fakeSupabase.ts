@@ -155,8 +155,22 @@ export function createFakeSupabase() {
         const id = up[1]
         if (!/^[0-9a-f]{32}$/.test(id) || usage(me.id) >= QUOTA) return route.fulfill({ status: 400, headers: cors, json: { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' } })
         if (images.has(id)) return route.fulfill({ status: 400, headers: cors, json: { statusCode: '409', error: 'Duplicate', message: 'The resource already exists' } })
-        const body = req.postDataBuffer() ?? Buffer.alloc(0)
-        images.set(id, { owner: me.id, body, type: req.headers()['content-type'] ?? 'image/webp', at: new Date().toISOString() })
+        let body = req.postDataBuffer() ?? Buffer.alloc(0)
+        let type = req.headers()['content-type'] ?? 'image/webp'
+        // Envio de Blob vem como formulário (multipart), como no Supabase de verdade: fica só o arquivo.
+        const boundary = /multipart\/form-data;\s*boundary=(.+)$/.exec(type)?.[1]
+        if (boundary) {
+          const file = body
+            .toString('latin1')
+            .split(`--${boundary}`)
+            .find((part) => /filename=/.test(part))
+          const head = file ? file.indexOf('\r\n\r\n') : -1
+          if (file && head >= 0) {
+            type = /Content-Type:\s*([^\r\n]+)/i.exec(file.slice(0, head))?.[1] ?? 'image/webp'
+            body = Buffer.from(file.slice(head + 4).replace(/\r\n$/, ''), 'latin1')
+          }
+        }
+        images.set(id, { owner: me.id, body, type, at: new Date().toISOString() })
         return route.fulfill({ headers: cors, json: { Key: `papirus-imagens/${id}`, Id: id } })
       }
       if (path === 'object/list/papirus-imagens' && req.method() === 'POST') {
