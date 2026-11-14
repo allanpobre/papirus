@@ -5365,6 +5365,39 @@ button.arc-dot {
 .family {
   display: block;
   max-width: none;
+  /* O dedo move o desenho (não rola a página); o nome não é selecionado ao arrastar. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.family:active {
+  cursor: grabbing;
+}
+
+/* A área da árvore: do tamanho do desenho aberto, com os botões de zoom no canto. */
+.family-stage {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.family-zoom {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+}
+
+.family-hint {
+  margin: 0.5rem 0 0;
 }
 
 .family path,
@@ -7689,13 +7722,30 @@ button.fight-line {
 }
 
 /* Ligações: no computador, os filtros ficam à vista; no celular, atrás do botão "Filtros". */
-.graph-filters-btn {
+.graph-filters-btn,
+.graph-find-btn,
+.graph-find {
   display: none;
 }
 
 @media (max-width: 760px) {
-  .graph-filters-btn {
+  .graph-filters-btn,
+  .graph-find-btn {
     display: inline-flex;
+  }
+
+  /* A lupa: a busca de uma ficha fica à vista, sem abrir os filtros. */
+  .graph-find {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .graph-find .picker {
+    flex: 1;
+    width: auto;
+    min-width: 0;
   }
 
   .graph-view:not(.filters-open) .graph-controls,
@@ -10867,4 +10917,28 @@ h3.cork-act {
   flex-wrap: wrap;
   gap: 0.4rem;
   justify-content: center;
+}
+
+/* A ficha que a busca acabou de achar: o anel pulsa um instante (parado, para quem pediu menos movimento). */
+.node.found .node-ring {
+  opacity: 1;
+  stroke-width: 3;
+  animation: node-found 0.9s ease-out 2;
+}
+
+@keyframes node-found {
+  from {
+    stroke-width: 9;
+    opacity: 0.2;
+  }
+  to {
+    stroke-width: 3;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node.found .node-ring {
+    animation: none;
+  }
 }
