@@ -8,6 +8,26 @@ let deferred: InstallPrompt | null = null
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach((l) => l())
 
+/** Endereços completos de `precache.json` (arquivos relativos à raiz do site). */
+export function precacheUrls(files: unknown, root: string): string[] {
+  if (!Array.isArray(files)) return []
+  return files.filter((f): f is string => typeof f === 'string' && /^[\w./-]+$/.test(f) && !f.includes('..')).map((f) => `${root}${f}`)
+}
+
+/** Depois que o app abriu, baixa em segundo plano todas as telas e fontes: assim abrir sem internet funciona em qualquer tela. */
+async function precacheEverything(reg: ServiceWorkerRegistration, root: string) {
+  const conn = (navigator as { connection?: { saveData?: boolean } }).connection
+  if (conn?.saveData || !navigator.onLine) return
+  try {
+    const res = await fetch(`${root}precache.json`, { cache: 'no-cache' })
+    if (!res.ok) return
+    const urls = precacheUrls(((await res.json()) as { files?: unknown }).files, root)
+    if (urls.length) (reg.active ?? (await navigator.serviceWorker.ready).active)?.postMessage({ cache: urls, prune: true })
+  } catch {
+    // Sem conexão agora: na próxima abertura tenta de novo.
+  }
+}
+
 export function startPwa() {
   addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
@@ -35,6 +55,8 @@ export function startPwa() {
       const send = () => (reg.active ?? sw).postMessage({ cache: [location.pathname, ...urls] })
       if (reg.active) send()
       else sw.addEventListener('statechange', () => sw.state === 'activated' && send())
+      // Com o app já na tela, baixa o resto (telas que ainda não foram abertas) sem atrapalhar o começo.
+      setTimeout(() => void precacheEverything(reg, root), 4000)
     })
     .catch(() => undefined)
 }
