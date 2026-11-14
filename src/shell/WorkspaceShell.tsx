@@ -201,15 +201,27 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     return () => clearTimeout(t)
   }, [status, write])
 
+  // O mais novo do universo e do livro escolhido, para o `go` saber sem mudar a cada letra digitada.
+  const latest = useRef({ universe, bookId })
+  useEffect(() => {
+    latest.current = { universe, bookId }
+  })
   const go = useCallback(
     (view: View, id: string | null = null, options: { replace?: boolean } = {}) => {
       if (view === 'oficina') return setOficinaOpen(true)
+      // Ir a uma cena de outro livro (o bilhete, a busca, "onde parei"): o livro escolhido passa a ser o dela
+      // (ou "todos", se a cena é solta), para a cena aparecer na lista e o resto da tela seguir com ela.
+      if (view === 'escrever' && id) {
+        const { universe: u, bookId: chosen } = latest.current
+        const scene = chosen ? u.scenes.find((s) => s.id === id) : undefined
+        if (scene && scene.storyId !== chosen) setBookId(scene.storyId)
+      }
       navigateTo({ u: initial.id, view, id }, options.replace)
       navRef.current = { view, id }
       setNav({ view, id })
       remember(`vista:${initial.id}`, view)
     },
-    [initial.id],
+    [initial.id, setBookId],
   )
   // O tour passeia pelas telas sem encher o "voltar" de passos.
   const tourGo = useCallback((view: View) => go(view, null, { replace: true }), [go])

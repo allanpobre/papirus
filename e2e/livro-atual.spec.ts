@@ -215,3 +215,54 @@ test.describe('procurar e trocar com um livro escolhido', () => {
     await expect(page.getByRole('radiogroup', { name: 'Onde procurar' })).toHaveCount(0)
   })
 })
+
+test.describe('bilhete e sprint com um livro escolhido', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('o bilhete de uma cena de outro livro leva a essa cena e o livro escolhido passa a ser o dela', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    // No livro 3: um bilhete na cena em que se parou.
+    await pick(book(page), OZMA)
+    const proximo = page.getByRole('region', { name: 'O próximo passo' })
+    await proximo.getByRole('button', { name: 'Deixar um bilhete para amanhã' }).click()
+    await proximo.getByRole('textbox', { name: 'Bilhete para amanhã' }).fill('Ozma descobre quem a escondeu.')
+    await page.keyboard.press('Enter')
+    await expect(proximo.getByRole('note', { name: 'Bilhete para amanhã' })).toContainText('Ozma descobre quem a escondeu.')
+
+    // Trocando para o livro 1, o bilhete continua à vista, com o nome da cena dele; um toque leva até ela.
+    await pick(book(page), /^O Mágico de Oz/)
+    const bilhete = page.getByRole('note', { name: 'Bilhete para amanhã' })
+    await expect(bilhete).toContainText('Ozma descobre quem a escondeu.')
+    await bilhete.getByRole('button', { name: /^\(em “/ }).click()
+    // Chegou na cena certa (do livro 3) e o livro escolhido virou o dela.
+    await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
+    const lista = page.getByRole('complementary', { name: 'Manuscrito' })
+    await expect(lista.getByLabel('Livro', { exact: true }).locator('option:checked')).toHaveText(OZMA)
+    await expect(page.getByRole('note', { name: 'Bilhete para amanhã' })).toContainText('Ozma descobre quem a escondeu.')
+  })
+
+  test('o sprint conta só as palavras do livro em que começou, mesmo que se escreva em outro', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    await pick(book(page), OZMA)
+    await page.getByRole('button', { name: '15 minutos' }).click()
+    const editor = page.getByRole('textbox', { name: 'Texto da cena' })
+    await editor.click()
+    await page.keyboard.press('Control+End')
+    await page.keyboard.type(' um dois três quatro cinco.')
+    const relogio = page.getByRole('timer')
+    await expect(relogio).toContainText('+5', { timeout: 10_000 })
+
+    // Troca para o livro 1 pela lista de cenas e escreve lá: o sprint continua contando o livro 3.
+    await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
+    const lista = page.getByRole('complementary', { name: 'Manuscrito' })
+    await pick(lista.getByLabel('Livro', { exact: true }), /^O Mágico de Oz/)
+    await lista.locator('.tree-scene, [data-scene], li button').filter({ hasText: /./ }).first().click()
+    await page.keyboard.press('Escape')
+    await editor.click()
+    await page.keyboard.press('Control+End')
+    await page.keyboard.type(' seis sete oito nove dez onze doze.')
+    await page.waitForTimeout(1800)
+    await expect(relogio).toContainText('+5')
+    await expect(relogio).not.toContainText('+12')
+  })
+})

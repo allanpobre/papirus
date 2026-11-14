@@ -85,7 +85,7 @@ export default function HomeView() {
     go('escrever', id)
   }
   const sprint = () => {
-    startSprint(universe, 15)
+    startSprint(universe, 15, bookId)
     toast('Sprint de 15 minutos: o relógio fica no rodapé da cena.')
     go('escrever', last?.id ?? null)
   }
