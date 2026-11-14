@@ -1,4 +1,5 @@
 import { bookScope } from '../logic/bookScope'
+import { isLead, nodeRadius } from '../logic/roles'
 import { FamilyTree } from './FamilyTree'
 import { familyLinks } from '../logic/family'
 import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
@@ -285,7 +286,10 @@ export default function GraphView() {
     degree.set(e.from, (degree.get(e.from) ?? 0) + 1)
     degree.set(e.to, (degree.get(e.to) ?? 0) + 1)
   }
-  const radius = (id: string) => (narrow ? 11 + Math.min(7, (degree.get(id) ?? 0) * 1.1) : 14 + Math.min(10, (degree.get(id) ?? 0) * 1.5))
+  // O protagonista ganha uma bolinha um pouco maior (o desenho e os nomes se afastam contando com ela).
+  const leads = new Set(universe.entities.filter((e) => isLead(e.role)).map((e) => e.id))
+  const leadKey = [...leads].join('|')
+  const radius = (id: string) => nodeRadius(degree.get(id) ?? 0, narrow, leads.has(id))
   const labelWidth = (name: string) => (name || 'Sem nome').length * LABEL_SIZE * 0.6 + 8
   const sizeKey = nodes.map((n) => n.name).join('|')
   const raw = useMemo(
@@ -327,7 +331,7 @@ export default function GraphView() {
     const dy = (baseH - bh) / 2
     return { target: new Map([...local].map(([id, p]) => [id, { x: p.x + dx, y: p.y + dy }])), local, bw, bh }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [raw, sizeKey])
+  }, [raw, sizeKey, leadKey])
   /** O zoom que mostra o desenho inteiro. */
   const fitK = Math.min(1, W / bw, baseH / bh)
   const pos = useAnimatedPositions(target, { x: W / 2, y: H / 2 })
@@ -350,7 +354,7 @@ export default function GraphView() {
         { width: bw, height: bh, pad: 4, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [local, nodes],
+    [local, nodes, leadKey],
   )
   const kinds = [...new Set(universe.entities.map((e) => e.kind))]
   const sel = selected ? byId(universe, 'entities', selected) : undefined

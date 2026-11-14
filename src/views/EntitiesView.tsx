@@ -1,4 +1,5 @@
 import { bookScope } from '../logic/bookScope'
+import { compareByRole } from '../logic/roles'
 import { OriginChip } from './AUBanner'
 import { PassesEditor, WhoIsEditor } from './WhoIs'
 import { whoIsKeys } from '../logic/definers'
@@ -105,11 +106,13 @@ export default function EntitiesView() {
     go('fichas', id)
   }
   const togglePick = (id: string) => setPicked((p) => (p ? (p.has(id) ? new Set([...p].filter((x) => x !== id)) : new Set([...p, id])) : p))
-  type Order = 'nome' | 'cenas' | 'recentes'
+  type Order = 'nome' | 'cenas' | 'recentes' | 'papel'
   const [order, setOrder] = useState<Order>(() => {
     const o = recall('fichas-ordem')
-    return o === 'cenas' || o === 'recentes' ? o : 'nome'
+    return o === 'cenas' || o === 'recentes' || o === 'papel' ? o : 'nome'
   })
+  // Filtro por papel na história ('' = todos; 'sem' = quem não tem papel).
+  const [roleFilter, setRoleFilter] = useState<string>('')
   const changeOrder = (o: Order) => {
     setOrder(o)
     remember('fichas-ordem', o)
@@ -143,6 +146,7 @@ export default function EntitiesView() {
     const q = fold(query.trim())
     return universe.entities
       .filter((e) => kind === 'todos' || e.kind === kind)
+      .filter((e) => !roleFilter || (roleFilter === 'sem' ? !e.role : e.role === roleFilter))
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
       // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
       // Com um livro escolhido, somem só as fichas que aparecem apenas em outros livros.
@@ -158,14 +162,16 @@ export default function EntitiesView() {
           fold(e.description).includes(q),
       )
       .sort((a, b) =>
-        order === 'cenas'
+        order === 'papel'
+          ? compareByRole(a, b)
+          : order === 'cenas'
           ? (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) || a.name.localeCompare(b.name, 'pt')
           : order === 'recentes'
             ? b.updatedAt.localeCompare(a.updatedAt)
             : a.name.localeCompare(b.name, 'pt'),
       )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [universe.entities, kind, query, where, counts, scope, order, onlyBook, fresh])
+  }, [universe.entities, kind, roleFilter, query, where, counts, scope, order, onlyBook, fresh])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -238,6 +244,18 @@ export default function EntitiesView() {
             onChange={setKind}
             options={[{ value: 'todos', label: `Todas (${onlyBook ? inScenes : universe.entities.length})` },...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
           />
+          {universe.entities.some((e) => e.role) && (
+            <Select
+              label="Filtrar por papel"
+              value={roleFilter}
+              onChange={setRoleFilter}
+              options={[
+                { value: '', label: 'Todos os papéis' },
+                ...STORY_ROLES.filter((r) => universe.entities.some((e) => e.role === r)).map((r) => ({ value: r as string, label: `${ROLE_LABEL[r]} (${universe.entities.filter((e) => e.role === r).length})` })),
+                { value: 'sem', label: 'Sem papel' },
+              ]}
+            />
+          )}
           <Select<Order>
             label="Ordem da lista"
             value={order}
@@ -246,6 +264,7 @@ export default function EntitiesView() {
               { value: 'nome', label: 'A–Z' },
               { value: 'cenas', label: phone ? 'Cenas' : 'Mais nas cenas' },
               { value: 'recentes', label: 'Recentes' },
+              { value: 'papel', label: phone ? 'Papel' : 'Protagonistas primeiro' },
             ]}
           />
         </div>
