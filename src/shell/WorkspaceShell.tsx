@@ -32,22 +32,19 @@ import { wordsToday } from '../logic/stats'
 import { recordToday } from '../social/dailyWords'
 import { progressToShare, shareProgress } from '../social/activity'
 import { ShelfSync } from '../social/useShelfSync'
-import { AccountButton, AccountDialog } from '../account/AccountDialog'
+import { AccountButton } from '../account/AccountButton'
 import { Tour } from './Tour'
 import { usePlay } from './usePlay'
 import { backState, backTo, navigateTo, onBackNavigate } from './backStack'
 import { useBackLayer } from '../ui/useBackLayer'
 import { useImageSync } from '../images/useImageSync'
 import { embeddedImages } from '../images/backup'
-import { onSceneImageError } from '../editor/image'
-import { OficinaPage } from '../oficina/OficinaPage'
+import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
-import { ShareDialog } from '../share/ShareDialog'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
 import { readerCopy } from '../share/readerCopy'
-import { ReaderView } from '../reader/ReaderView'
 import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
@@ -61,10 +58,14 @@ import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } f
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
 import { SearchPalette } from './SearchPalette'
-import { ReplaceHost } from '../views/write/ReplaceDialog'
+import { ReplaceHost } from '../views/write/ReplaceHost'
 import { migrateParents } from '../model/lists'
 import { modKey } from '../ui/keys'
 
+const OficinaPage = lazy(() => import('../oficina/OficinaPage').then((m) => ({ default: m.OficinaPage })))
+const ShareDialog = lazy(() => import('../share/ShareDialog').then((m) => ({ default: m.ShareDialog })))
+const AccountDialog = lazy(() => import('../account/AccountDialog').then((m) => ({ default: m.AccountDialog })))
+const ReaderView = lazy(() => import('../reader/ReaderView').then((m) => ({ default: m.ReaderView })))
 const HomeView = lazy(() => import('../views/HomeView'))
 const WriteView = lazy(() => import('../views/write/WriteView'))
 const EntitiesView = lazy(() => import('../views/EntitiesView'))
@@ -767,9 +768,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             }}
           />
         )}
-        {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
+        <Suspense fallback={null}>
+          {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
+          {shareOpen && <ShareDialog linkFocus={shareLink} onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
+        </Suspense>
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}
-        {shareOpen && <ShareDialog linkFocus={shareLink} onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
 
         <div className="toasts" aria-live="polite">
           {toasts.map((t) => (
@@ -799,6 +802,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           document.body,
         )}
       {oficinaOpen && (
+        <Suspense fallback={null}>
         <OficinaPage
           genre={kind === 'campanha' ? 'mestrar' : guessGuide(universe.settings.fieldTemplates)}
           onClose={() => setOficinaOpen(false)}
@@ -839,6 +843,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
                 }
           }
         />
+        </Suspense>
       )}
       {!readOnly && <ReplaceHost />}
       {readerOpen &&
@@ -1208,6 +1213,7 @@ function ReaderOverlay({
   useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
+      <Suspense fallback={null}>
       <ReaderView
         universe={copy}
         storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}${start >= 0 ? `:${bookId}` : ''}`}
@@ -1224,6 +1230,7 @@ function ReaderOverlay({
           ) : undefined
         }
       />
+      </Suspense>
     </div>
   )
 }

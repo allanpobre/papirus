@@ -23,7 +23,7 @@ import {
   type OpenWorld,
 } from './community'
 import { shelfOf, type Profile, type ShelfRow } from './social'
-import { Avatar } from './SocialDialog'
+import { Avatar } from './Avatar'
 
 type Client = () => Promise<SupabaseClient>
 

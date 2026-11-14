@@ -1,27 +1,12 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { findInBook, replaceInBook, type FindOptions, type Hit } from '../../editor/replace'
 import { byId } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { Modal } from '../../ui/Modal'
-import { onBookReplace, type ReplaceRequest } from './replaceEvents'
+import type { ReplaceRequest } from './replaceEvents'
 
 /** Quantos achados aparecem na lista (a troca vale para todos os marcados, mesmo os que não aparecem). */
 const SHOWN = 400
-
-/** Fica na área de trabalho e abre a janela quando alguém pede (barra da cena, Ctrl+K, ficha renomeada). */
-export function ReplaceHost() {
-  const [request, setRequest] = useState<ReplaceRequest | null>(null)
-  const [nonce, setNonce] = useState(0)
-  useEffect(
-    () =>
-      onBookReplace((r) => {
-        setRequest(r)
-        setNonce((n) => n + 1)
-      }),
-    [],
-  )
-  return request ? <ReplaceDialog key={nonce} initial={request} onClose={() => setRequest(null)} /> : null
-}
 
 /**
  * Procurar e trocar no livro todo: títulos e textos das cenas. Antes de trocar, a lista mostra cada
