@@ -263,6 +263,7 @@ export const PAGE_TOURS = {
       LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.graph-filters-btn', title: 'Filtros', body: 'No celular, o grafo vem primeiro. Os filtros (centrar numa ficha, tipos, um ponto da história) ficam aqui.', optional: true },
+      { target: '.graph-find-btn', title: 'Achar uma ficha', body: 'A lupa leva o desenho até a ficha que você escolher e a deixa em destaque, com as ligações dela. Se ela não estiver no mapa agora, aparece só ela e quem se liga a ela.', optional: true },
       {
         target: '.graph-controls',
         optional: true,

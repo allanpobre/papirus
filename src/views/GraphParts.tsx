@@ -57,6 +57,8 @@ export interface NodeShapeProps {
   isNew: boolean
   /** Está no grupo em destaque (a ficha sob o mouse e quem se liga a ela). */
   hl: boolean
+  /** Acabou de ser achada pela busca: o anel pulsa um instante. */
+  found: boolean
   labelDx: number
   labelDy: number
   labelAnchor: 'middle' | 'start' | 'end'
@@ -67,7 +69,7 @@ export const NodeShape = memo(function NodeShape(p: NodeShapeProps) {
   const { id, actions } = p
   return (
     <g
-      className={`node kind-${p.kind}${p.selected ? ' selected' : ''}${p.dim ? ' dim' : ''}${p.isNew ? ' is-new' : ''}${p.hl ? ' hl' : ''}`}
+      className={`node kind-${p.kind}${p.selected ? ' selected' : ''}${p.dim ? ' dim' : ''}${p.isNew ? ' is-new' : ''}${p.hl ? ' hl' : ''}${p.found ? ' found' : ''}`}
       style={{ ['--i' as string]: p.index }}
       transform={`translate(${p.x} ${p.y})`}
       tabIndex={0}
@@ -89,7 +91,7 @@ export const NodeShape = memo(function NodeShape(p: NodeShapeProps) {
         if (e.key === 'Enter') actions.pick(id)
       }}
     >
-      {p.selected && <circle r={p.r + 7} className="node-ring" />}
+      {(p.selected || p.found) && <circle r={p.r + 7} className="node-ring" />}
       <circle r={p.r} />
       <NodeFace id={id} name={p.name} image={p.image} r={p.r} />
       <text x={p.labelDx} y={p.labelDy} textAnchor={p.labelAnchor} className="node-label">

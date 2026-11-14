@@ -179,3 +179,141 @@ test('passar o mouse numa ficha destaca o grupo dela sem mexer no resto do desen
   await expect(page.locator('.graph.has-focus')).toHaveCount(0)
   await expect.poll(() => opacity('.graph .node > circle:not(.node-ring)')).toBe('1')
 })
+
+test('no celular, quase nenhuma linha passa por cima de um nome (Terra de Oz)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/app/?exemplo')
+  await openPart(page, 'Ligações')
+  await expect(page.locator('.graph .node').first()).toBeVisible()
+  // Espera as bolinhas assentarem.
+  await page.waitForTimeout(1800)
+  const crossed = await page.evaluate(() => {
+    // O segmento passa pela caixa? (Liang–Barsky, como em src/logic/graph.ts.)
+    const hit = (a: { x: number; y: number }, b: { x: number; y: number }, box: { x: number; y: number; w: number; h: number }) => {
+      let t0 = 0
+      let t1 = 1
+      const dx = b.x - a.x
+      const dy = b.y - a.y
+      for (const [p, q] of [[-dx, a.x - box.x], [dx, box.x + box.w - a.x], [-dy, a.y - box.y], [dy, box.y + box.h - a.y]]) {
+        if (p === 0) {
+          if (q < 0) return false
+          continue
+        }
+        const t = q / p
+        if (p < 0) {
+          if (t > t1) return false
+          if (t > t0) t0 = t
+        } else {
+          if (t < t0) return false
+          if (t < t1) t1 = t
+        }
+      }
+      return t0 <= t1
+    }
+    const lines = [...document.querySelectorAll<SVGPathElement>('.graph .edge:not(.off):not(.edge-via) path')].map((p) => {
+      const m = p.getAttribute('d')!.match(/M([-\d.]+),([-\d.]+) L([-\d.]+),([-\d.]+)/)!
+      const c = p.getScreenCTM()!
+      const pt = (x: number, y: number) => ({ x: c.a * x + c.c * y + c.e, y: c.b * x + c.d * y + c.f })
+      return [pt(+m[1], +m[2]), pt(+m[3], +m[4])] as const
+    })
+    const names = [...document.querySelectorAll('.graph .node-label')].map((t) => {
+      const r = t.getBoundingClientRect()
+      return { name: t.textContent, box: { x: r.x + 1, y: r.y + 1, w: r.width - 2, h: r.height - 2 } }
+    })
+    return { total: names.length, crossed: names.filter((l) => lines.some(([a, b]) => hit(a, b, l.box))).map((l) => l.name) }
+  })
+  expect(crossed.total).toBeGreaterThan(50)
+  // Antes eram 22 nomes riscados por linhas; sobra, no máximo, um ou outro de quem tem muitas ligações.
+  expect(crossed.crossed.length, `riscados: ${crossed.crossed.join(', ')}`).toBeLessThanOrEqual(3)
+})
+
+test.describe('achar uma ficha pela lupa, no celular', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test('a lupa fica à vista, leva o desenho até a ficha escolhida e a deixa em destaque', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    await openPart(page, 'Ligações')
+    await expect(page.locator('.graph .node').first()).toBeVisible()
+    await page.waitForTimeout(1500)
+    // A lupa está na tela, sem abrir os filtros.
+    const lupa = page.getByRole('button', { name: 'Achar ficha' })
+    await expect(lupa).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Filtros/ })).toBeVisible()
+
+    // Uma ficha fora da tela (o desenho é maior que o celular): a mais longe do meio.
+    const far = await page.evaluate(() => {
+      const g = document.querySelector('.graph')!.getBoundingClientRect()
+      const cx = g.x + g.width / 2
+      const cy = g.y + g.height / 2
+      let best: { name: string; d: number; out: boolean } | null = null
+      for (const n of document.querySelectorAll('.graph .node')) {
+        const r = n.querySelector('circle')!.getBoundingClientRect()
+        const x = r.x + r.width / 2
+        const y = r.y + r.height / 2
+        const d = Math.hypot(x - cx, y - cy)
+        const out = x < g.x || x > g.right || y < g.y || y > g.bottom
+        if (out && (!best || d > best.d)) best = { name: n.getAttribute('aria-label')!.split(',')[0], d, out }
+      }
+      return best
+    })
+    expect(far, 'esperava alguma ficha fora da tela no exemplo de Oz').not.toBeNull()
+
+    await lupa.click()
+    const campo = page.getByRole('combobox', { name: 'Achar uma ficha' })
+    await expect(campo).toBeFocused()
+    await campo.fill(far!.name)
+    await page.getByRole('option', { name: new RegExp(`^${far!.name}`) }).first().click()
+
+    // A busca fecha, o cartão da ficha abre e a ficha pulsa.
+    await expect(page.locator('#graph-find')).toHaveCount(0)
+    await expect(page.getByRole('complementary', { name: 'Ficha selecionada' }).getByRole('heading', { name: far!.name })).toBeVisible()
+    await expect(page.locator('.graph .node.found')).toHaveCount(1)
+    await expect(page.locator('.graph.has-focus')).toHaveCount(1)
+    // O desenho foi até ela: agora está dentro da tela, na parte de cima (o cartão abre embaixo).
+    await page.waitForTimeout(900)
+    const where = await page.evaluate((name) => {
+      const g = document.querySelector('.graph')!.getBoundingClientRect()
+      const node = [...document.querySelectorAll('.graph .node')].find((n) => n.getAttribute('aria-label')?.startsWith(`${name},`))!
+      const r = node.querySelector('circle')!.getBoundingClientRect()
+      return { dx: r.x + r.width / 2 - (g.x + g.width / 2), dy: (r.y + r.height / 2 - g.y) / g.height }
+    }, far!.name)
+    expect(Math.abs(where.dx)).toBeLessThan(40)
+    expect(where.dy).toBeGreaterThan(0.1)
+    expect(where.dy).toBeLessThan(0.45)
+    // O pulso acaba sozinho.
+    await expect(page.locator('.graph .node.found')).toHaveCount(0, { timeout: 5000 })
+  })
+
+  test('uma ficha que não está no mapa agora (tipo escondido) também é achada: o tipo volta e aparece ela e quem se liga a ela', async ({ page }) => {
+    await page.goto('/app/?exemplo=ostria')
+    await openPart(page, 'Ligações')
+    await expect(page.locator('.graph .node').first()).toBeVisible()
+    // Esconde os personagens pelos filtros.
+    await page.getByRole('button', { name: /^Filtros/ }).click()
+    await page.locator('.filter-chips').getByRole('button', { name: /Personagens/ }).click()
+    await page.getByRole('button', { name: /^Filtros/ }).click()
+    await expect(page.locator('.graph .node.kind-personagem')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Achar ficha' }).click()
+    await page.getByRole('combobox', { name: 'Achar uma ficha' }).fill('Cassian')
+    await page.getByRole('option', { name: /^Cassian/ }).first().click()
+    await expect(page.getByRole('complementary', { name: 'Ficha selecionada' }).getByRole('heading', { name: 'Cassian' })).toBeVisible()
+    // O tipo voltou, e a ficha está no mapa, em destaque.
+    await expect(page.locator('.graph .node.kind-personagem[aria-label^="Cassian,"]')).toHaveCount(1)
+    await expect(page.locator('.graph .node.kind-personagem.selected')).toHaveCount(1)
+  })
+
+  test('Esc fecha a busca e o botão some no computador', async ({ page }) => {
+    await page.goto('/app/?exemplo=ostria')
+    await openPart(page, 'Ligações')
+    await page.getByRole('button', { name: 'Achar ficha' }).click()
+    await expect(page.locator('#graph-find')).toBeVisible()
+    // O primeiro Esc fecha a lista de fichas; o segundo, a busca.
+    await page.keyboard.press('Escape')
+    await expect(page.locator('#graph-find')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('#graph-find')).toHaveCount(0)
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await expect(page.getByRole('button', { name: 'Achar ficha' })).toBeHidden()
+  })
+})
