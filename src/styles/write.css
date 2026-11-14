@@ -2348,3 +2348,12 @@ body.escrevendo-no-celular .shared-banner {
 .write:not(.tree-closed) .write-pos {
   display: none;
 }
+
+
+/* Celular, Página, teclado aberto: a linha dos modos some e o texto ganha uns dois linhas. A barra acima do teclado
+   fica; fechando o teclado (botão "Fechar o teclado"), a linha volta. */
+@media (max-width: 760px) {
+  .view.write.is-typing .write-bar {
+    display: none;
+  }
+}
