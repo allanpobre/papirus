@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { docFromParagraphs } from '../model/sample'
 import { addScene, addStory, createUniverse, removeScene, updateScene } from '../model/universe'
-import { nextNoteOf, setNextNote, streakLine, todayTarget, weekDots, worldCounts } from './homeToday'
+import { bookGoal, nextNoteOf, setNextNote, streakLine, todayTarget, weekDots, worldCounts } from './homeToday'
 import { todayKey } from './stats'
 
 const now = new Date('2026-11-07T15:00:00')
@@ -64,5 +64,42 @@ describe('o Início', () => {
     const withMap = { ...u, maps: [...u.maps, { ...structuredClone(u.maps[0] ?? {}), id: 'm1' } as (typeof u.maps)[number]] }
     expect(worldCounts(withMap).map((w) => w.view)).toEqual(['atlas', 'livro'])
     expect(worldCounts(withMap, ['atlas']).map((w) => w.view)).toEqual(['livro'])
+  })
+})
+
+describe('palavras e meta do livro escolhido', () => {
+  /** Dois livros: 120 palavras no primeiro e 30 no segundo. */
+  function twoBooks() {
+    let u = createUniverse('Série')
+    let a, b, s1, s2
+    ;[u, a] = addStory(u, 'Livro um')
+    ;[u, b] = addStory(u, 'Livro dois')
+    ;[u, s1] = addScene(u, a.id, 'Cena 1')
+    ;[u, s2] = addScene(u, b.id, 'Cena 2')
+    const text = (n: number) => Array.from({ length: n }, () => 'mar').join(' ')
+    u = updateScene(u, s1.id, { doc: docFromParagraphs([text(120)]), text: text(120) })
+    u = updateScene(u, s2.id, { doc: docFromParagraphs([text(30)]), text: text(30) })
+    return { u, a, b }
+  }
+
+  it('sem livro escolhido (ou com um que não existe), não mostra nada', () => {
+    const { u } = twoBooks()
+    expect(bookGoal(u, null)).toBeNull()
+    expect(bookGoal(u, 'nao-existe')).toBeNull()
+  })
+
+  it('conta só as palavras do livro, sem meta quando não há prazo', () => {
+    const { u, a, b } = twoBooks()
+    expect(bookGoal(u, a.id)).toEqual({ words: 120, target: null, left: null, date: null })
+    expect(bookGoal(u, b.id)?.words).toBe(30)
+  })
+
+  it('com prazo, diz quanto falta para a meta do livro; passada a meta, falta 0', () => {
+    const { u, a, b } = twoBooks()
+    const withGoal = { ...u, settings: { ...u.settings, deadline: { words: 200, date: '2026-12-20' } } }
+    expect(bookGoal(withGoal, a.id)).toEqual({ words: 120, target: 200, left: 80, date: '2026-12-20' })
+    expect(bookGoal(withGoal, b.id)?.left).toBe(170)
+    const small = { ...u, settings: { ...u.settings, deadline: { words: 100, date: '2026-12-20' } } }
+    expect(bookGoal(small, a.id)).toMatchObject({ left: 0, target: 100 })
   })
 })

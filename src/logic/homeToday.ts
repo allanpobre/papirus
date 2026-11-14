@@ -1,6 +1,7 @@
 import type { Universe } from '../model/schema'
 import { countWords } from '../persistence/repository'
 import type { View } from '../state/workspace'
+import { bookOnly } from '../model/universe'
 import { deadlinePlan } from './deadline'
 import { currentStreak, todayKey, wordsByDay } from './stats'
 
@@ -77,4 +78,23 @@ export function worldCounts(u: Universe, hidden: View[] = [], withMesa = false):
     ['livro', words, `${plural(scenes, 'cena', 'cenas')}, ${plural(words, 'palavra', 'palavras')}`],
   ]
   return items.filter(([v, n]) => n > 0 && !hidden.includes(v)).map(([view, , text]) => ({ view, text }))
+}
+
+export interface BookGoal {
+  /** Palavras do livro escolhido. */
+  words: number
+  /** A meta com prazo do universo (Ajustes › Universo), se houver; com um livro escolhido, vale para ele. */
+  target: number | null
+  /** Quanto falta para a meta (0 = batida). */
+  left: number | null
+  date: string | null
+}
+
+/** O livro escolhido no alto: quantas palavras tem e quanto falta para a meta do livro (se houver prazo). Sem livro, `null`. */
+export function bookGoal(u: Universe, bookId: string | null): BookGoal | null {
+  if (!bookId || !u.stories.some((s) => s.id === bookId)) return null
+  const words = countWords(bookOnly(u, bookId))
+  const d = u.settings.deadline
+  if (!d) return { words, target: null, left: null, date: null }
+  return { words, target: d.words, left: Math.max(0, d.words - words), date: d.date }
 }

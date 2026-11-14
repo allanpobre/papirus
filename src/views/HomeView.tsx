@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { continuityQuestions, isOpen } from '../logic/continuity'
-import { streakLine, todayTarget, weekDots, worldCounts } from '../logic/homeToday'
+import { bookGoal, streakLine, todayTarget, weekDots, worldCounts } from '../logic/homeToday'
 import { wordsToday } from '../logic/stats'
 import { universeKind } from '../model/kind'
 import { SESSION_STATUS_LABEL } from '../model/labels'
@@ -65,6 +65,8 @@ export default function HomeView() {
   const today = wordsToday(universe)
   const { target, until } = todayTarget(universe)
   const week = weekDots(universe)
+  // Com um livro escolhido: as palavras dele e quanto falta para a meta (se houver prazo).
+  const goal = useMemo(() => bookGoal(universe, bookId), [universe, bookId])
   const streak = streakLine(universe)
   const questions = useMemo(() => continuityQuestions(universe, prefs.continuity).filter(isOpen), [universe, prefs.continuity])
   const inbox = universe.inbox.filter((i) => i.status === 'aberto').length
@@ -135,6 +137,20 @@ export default function HomeView() {
                 <strong className="tabular">{today.toLocaleString('pt-BR')}</strong>
                 {target > 0 ? ` de ${target.toLocaleString('pt-BR')}` : ` ${today === 1 ? 'palavra' : 'palavras'}`} hoje
                 {until && <span className="home-stat-sub"> para chegar a {untilFmt.format(new Date(`${until}T12:00:00Z`))}</span>}
+              </span>
+            </span>
+          )}
+          {goal && (
+            <span className="home-stat home-book-goal">
+              <span>
+                Neste livro: <strong className="tabular">{goal.words.toLocaleString('pt-BR')}</strong> {goal.words === 1 ? 'palavra' : 'palavras'}
+                {goal.target !== null && goal.date && (
+                  <span className="home-stat-sub">
+                    {goal.left === 0
+                      ? ` · meta de ${goal.target.toLocaleString('pt-BR')} palavras batida`
+                      : ` · faltam ${goal.left!.toLocaleString('pt-BR')} para ${goal.target.toLocaleString('pt-BR')} (até ${untilFmt.format(new Date(`${goal.date}T12:00:00Z`))})`}
+                  </span>
+                )}
               </span>
             </span>
           )}

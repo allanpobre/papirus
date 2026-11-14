@@ -148,3 +148,31 @@ test.describe('o livro escolhido no alto', () => {
     await expect(page.locator('[data-tour="livro-atual"]')).toHaveCount(0)
   })
 })
+
+test.describe('palavras e meta do livro escolhido, no Início', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('com um livro escolhido, o Início mostra as palavras dele e quanto falta para a meta com prazo', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    const stats = page.locator('.home-stats')
+    // Sem livro escolhido, nada muda: só o dia (e a semana).
+    await expect(page.locator('.home-book-goal')).toHaveCount(0)
+
+    // Escolhendo o livro 3, aparecem as palavras dele (só dele, não as do universo todo).
+    await pick(book(page), OZMA)
+    await expect(stats.locator('.home-book-goal')).toContainText(/Neste livro: [\d.]+ palavras/)
+    const doLivro = Number((await stats.locator('.home-book-goal strong').innerText()).replace(/\./g, ''))
+    expect(doLivro).toBeGreaterThan(100)
+    await pick(book(page), /^Todos/)
+    await expect(page.locator('.home-book-goal')).toHaveCount(0)
+
+    // Com a meta do livro (e o prazo), diz quanto falta.
+    await viaMore(page, 'Ajustes e dados')
+    await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true }).click()
+    await page.getByRole('textbox', { name: 'Meta do livro: palavras' }).fill('50000')
+    await nav(page, 'Início').click()
+    await pick(book(page), OZMA)
+    const meta = stats.locator('.home-book-goal')
+    await expect(meta).toContainText(`faltam ${(50000 - doLivro).toLocaleString('pt-BR')} para 50.000 (até `)
+  })
+})
