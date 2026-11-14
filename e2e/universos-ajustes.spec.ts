@@ -41,7 +41,7 @@ test('Ajustes em três grupos, cada painel dizendo para quem vale', async ({ pag
   await nav(page, 'Ajustes e dados').click()
   const cats = page.getByRole('navigation', { name: 'Categorias dos ajustes' })
   await expect(cats.getByRole('group', { name: 'Este universo' }).getByRole('button')).toHaveText(['Universo', 'Dados e backup', 'Lixeira e histórico', 'Importar e wiki'])
-  await expect(cats.getByRole('group', { name: 'Este aparelho' }).getByRole('button')).toHaveText(['Aparência', 'Escrita', 'Menu e ajuda'])
+  await expect(cats.getByRole('group', { name: 'Este aparelho' }).getByRole('button')).toHaveText(['Aparência', 'Escrita', 'Menu e ajuda', 'Todas as ferramentas'])
   await expect(cats.getByRole('group', { name: 'Sua conta' }).getByRole('button')).toHaveText(['Conta'])
   // O servidor fica em Avançado, fechado.
   await expect(cats.getByRole('button', { name: 'Servidor próprio' })).toBeHidden()

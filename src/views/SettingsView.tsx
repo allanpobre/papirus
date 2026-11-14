@@ -26,6 +26,7 @@ import { WikiCard } from './WikiCard'
 import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, EntityTemplatesCard, FieldTemplatesCard, ListTemplatesCard } from './SettingsParts'
+import { AllTools } from './AllTools'
 import { categoryFrom, matches, SETTINGS_CATEGORIES, SETTINGS_GROUPS, type SettingsCategory } from './settingsCategories'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useBackLayer } from '../ui/useBackLayer'
@@ -205,6 +206,29 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 </span>
               </button>
             ))}
+          </div>
+          <div className="level-example" aria-label="O que muda na ficha de um personagem">
+            <p className="field-label">Exemplo: a ficha de um personagem</p>
+            <div className="level-example-cols">
+              <div>
+                <strong>Simples mostra</strong>
+                <ul className="small">
+                  <li>Nome e resumo</li>
+                  <li>Quem é (espécie, povo…)</li>
+                  <li>Descrição e campos</li>
+                  <li>Ligações com outras fichas</li>
+                </ul>
+              </div>
+              <div>
+                <strong>Completo acrescenta</strong>
+                <ul className="small">
+                  <li>“É verdade no mundo?” (verdade, boato, segredo)</li>
+                  <li>“Quão pronta” está a ficha</li>
+                  <li>Listas e “No jogo”</li>
+                  <li>A Trama no menu</li>
+                </ul>
+              </div>
+            </div>
           </div>
           <p className="muted small">Trocar não apaga nada: o que fica escondido no Simples continua guardado e volta quando você escolhe Completo. Numa ficha, “Mostrar tudo nesta ficha” abre o resto só nela.</p>
           <div className="form-grid">
@@ -412,6 +436,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
         {show('conta') && <AccountCard />}
         {show('servidor') && <ServerCard />}
+        {show('ferramentas') && <AllTools />}
 
 {show('dados') && (
         <section className="settings-card settings-data">

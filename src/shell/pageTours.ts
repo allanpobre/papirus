@@ -358,6 +358,8 @@ export const PAGE_TOURS = {
       },
       { target: '.settings-scope', title: 'Para quem vale', body: 'Cada painel diz se vale só para este universo, para este aparelho ou para a conta.', optional: true },
       { target: '.settings-grid', title: 'Os ajustes', body: 'Tudo muda na hora e fica salvo. Apagar o universo fica no fim de Universo e pede confirmação. Baixar o livro (Word, EPUB, PDF) fica em Publicar.' },
+      { target: '.settings-nav', title: 'Não acha uma função?', body: 'Em “Todas as ferramentas” está cada área do Papirus com uma frase do que ela faz e um toque para abrir. No celular, o mesmo atalho fica no fim do menu “Mais”.', optional: true },
+      { title: 'Simples ou Completo', body: 'Em Universo, o exemplo ao lado das opções mostra o que muda na ficha: o Simples guarda só o essencial; o Completo acrescenta verdade/boato/segredo, “Quão pronta”, listas, “No jogo” e a Trama. Trocar não apaga nada.' },
       { title: 'Ajuda', body: 'Em Menu e ajuda dá para refazer o tour completo. Em cada tela, o botão (?) explica só ela.' },
     ],
   },

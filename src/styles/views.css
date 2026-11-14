@@ -10603,3 +10603,15 @@ h3.cork-act {
   font-weight: 600;
   text-overflow: ellipsis;
 }
+
+
+/* ─── Todas as ferramentas e o exemplo de Simples/Completo (Ajustes) ───────────────────────── */
+.all-tools-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.all-tools-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 12px; text-align: left; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); color: inherit; cursor: pointer; }
+.all-tools-row:hover { border-color: var(--accent); }
+.all-tools-text { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.all-tools-note { color: var(--muted); font-style: italic; }
+.level-example { margin: 12px 0 4px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: var(--radius); }
+.level-example-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.level-example ul { margin: 4px 0 0; padding-left: 18px; }
+@media (max-width: 520px) { .level-example-cols { grid-template-columns: 1fr; } }

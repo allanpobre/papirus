@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { relativeDate } from '../logic/relativeDate'
 import { canCreateAU, createAU } from '../logic/au'
@@ -527,6 +527,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
+            onTools={() => go('config', 'ferramentas')}
             shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
             defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
             onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
@@ -946,9 +947,9 @@ function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | 
 
 /** O "Mais" do celular em grupos, para achar cada área pelo que ela é. */
 const MORE_GROUPS: [string, View[]][] = [
-  ['Escrita', ['inicio', 'escrever', 'livro']],
-  ['Mundo', ['fichas', 'tramas']],
-  ['Mesa', ['rpg']],
+  ['Escrever', ['inicio', 'escrever', 'livro']],
+  ['Mundo e Trama', ['fichas', 'tramas']],
+  ['Mesa de RPG', ['rpg']],
   ['Ferramentas', ['inbox', 'archivist', 'guia', 'config']],
 ]
 
@@ -975,6 +976,7 @@ function PhoneNav({
   onShortcuts,
   onPlay,
   onGo,
+  onTools,
   onSearch,
   onLibrary,
   onShare,
@@ -992,6 +994,8 @@ function PhoneNav({
   /** Num livro sem Mesa: começar uma Mesa neste mesmo mundo. */
   onPlay?: () => void
   onGo: (v: View) => void
+  /** Abre Ajustes › Todas as ferramentas. */
+  onTools: () => void
   onSearch: () => void
   onLibrary: () => void
   onShare?: () => void
@@ -1117,6 +1121,22 @@ function PhoneNav({
                 <span className="rail-more-universe-text">
                   <strong>Jogar neste mundo</strong>
                   <span className="muted tiny">Uma Mesa de RPG com as fichas do livro</span>
+                </span>
+              </button>
+            )}
+            {!editing && (
+              <button
+                type="button"
+                className="rail-more-universe rail-more-tools"
+                onClick={() => {
+                  setOpen(false)
+                  onTools()
+                }}
+              >
+                <LayoutGrid size={16} aria-hidden="true" />
+                <span className="rail-more-universe-text">
+                  <strong>Todas as ferramentas</strong>
+                  <span className="muted tiny">Cada área com uma frase do que ela faz</span>
                 </span>
               </button>
             )}
