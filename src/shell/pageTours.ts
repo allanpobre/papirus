@@ -191,7 +191,7 @@ export const PAGE_TOURS = {
     steps: [
       { target: '.wiki-view-preview', title: 'Prévia', body: 'A wiki como os leitores vão ver, atualizada a cada mudança. Dá para clicar e navegar nela. O arquivo baixado leva também os retratos e os mapas.', optional: true },
       { target: '.wiki-styles', title: 'Estilo', body: 'Clássico, Moderno, Pergaminho ou Noturno. Embaixo: título, texto de boas-vindas, o que entra, seções, cor e letra.', optional: true },
-      { target: '[data-tour="wiki-link"]', title: 'Link para mandar', body: 'Um endereço para mandar aos jogadores ou leitores: abre a wiki no celular, sem conta e sem segredos, e acompanha as mudanças do mundo. Ele mora em Compartilhar (precisa da conta); dá para trocar ou desligar o link quando quiser.', optional: true },
+      { target: '[data-tour="wiki-link"]', title: 'Link para mandar', body: 'Um endereço para mandar aos jogadores ou leitores: abre a wiki no celular, sem conta e sem segredos, e acompanha as mudanças do mundo. Ele mora em Compartilhar (precisa da conta), onde você também escolhe até que cena a wiki do link vai (para não dar spoiler); dá para trocar ou desligar o link quando quiser.', optional: true },
       { target: '.wiki-view .settings-card:not(.wiki-link-box)', title: 'Baixar', body: 'O que entra (tudo menos segredos, ou só até uma cena) e o formato: site, texto ou dados.' },
     ],
   },
@@ -414,7 +414,7 @@ export const PAGE_TOURS = {
       { target: '.share-intro', title: 'Três jeitos', body: 'Pode ver (lê tudo, não muda nada), Pode editar (escreve junto, ao vivo) e Link de leitura (quem tiver o link lê sem conta).', optional: true },
       { target: '.share-invite', title: 'Convidar', body: 'O e-mail da pessoa e o que ela pode fazer. Ela entra no Papirus com esse e-mail e o universo aparece em “Compartilhados com você”.', optional: true },
       { target: '.share-members', title: 'Quem tem acesso', body: 'Troque o que cada pessoa pode fazer, ou tire o acesso, quando quiser.', optional: true },
-      { target: '[aria-labelledby="share-link"]', title: 'Link de leitura', body: 'Para quem não tem conta: leitores beta, jogadores. Abre como livro, como a wiki do mundo (sem segredos, com o visual da página Wiki) ou como o universo inteiro. Trocar o link faz o antigo parar de funcionar.', optional: true },
+      { target: '[aria-labelledby="share-link"]', title: 'Link de leitura', body: 'Para quem não tem conta: leitores beta, jogadores. Abre como livro, como a wiki do mundo (sem segredos, com o visual da página Wiki, e só até a cena que você escolher) ou como o universo inteiro. Trocar o link faz o antigo parar de funcionar.', optional: true },
       { target: '[aria-labelledby="share-segredos"]', title: 'Segredos', body: 'Desmarcado, fichas, fatos e ligações secretas e os trechos de segredo não saem do seu Papirus para quem só lê. Quem pode editar vê tudo.', optional: true },
       { title: 'Quem garante', body: 'Quem pode o quê é o servidor que garante, não só a tela.' },
     ],

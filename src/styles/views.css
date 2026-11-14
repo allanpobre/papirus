@@ -11049,3 +11049,15 @@ h3.cork-act {
     animation: none;
   }
 }
+
+/* O aviso de que a prévia da Wiki vai só até uma cena (a escolha do dono no Compartilhar). */
+.wiki-view-limit {
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.share-wiki-upto {
+  margin: 0.5rem 0;
+}

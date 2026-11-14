@@ -63,6 +63,17 @@ export interface WikiData {
   mapas: { nome: string; marcadores: { nome: string; x: number; y: number }[] }[]
 }
 
+/**
+ * Até que cena (posição no manuscrito) vai a wiki do link, escolhida pelo dono no Compartilhar. Sem escolha,
+ * ou se a cena escolhida foi apagada, vai tudo (menos os segredos, que nunca saem).
+ */
+export function linkUpTo(universe: Universe): number | null {
+  const id = universe.settings.wiki?.upToScene
+  if (!id) return null
+  const i = manuscriptOrder(universe).findIndex((s) => s.id === id)
+  return i < 0 ? null : i
+}
+
 export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { html: string; entries: number; data: WikiData } {
   const safe = readerCopy(universe, false)
   const scenes = manuscriptOrder(safe)
