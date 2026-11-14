@@ -603,7 +603,7 @@ export const PAGE_TOURS = {
       { target: '.dice-result', title: 'Resultado', body: 'O total e cada dado que saiu. Com uma sessão em andamento, vai para o registro.' },
       { target: '.dice-history', title: 'Histórico', body: 'As últimas rolagens.', optional: true },
       { target: '.tables', title: 'Tabelas aleatórias', body: 'Nomes de taverna, rumores, encontros: crie a lista e sorteie uma linha na hora.', optional: true },
-      { target: '.bestiary', title: 'Inimigos prontos', body: 'O bestiário da campanha: vida, Defesa, iniciativa e ataques de cada inimigo. No combate, “3” goblins entram na iniciativa numerados, com os ataques a um toque na vez deles. As espécies do Mundo aparecem em “Do Mundo”, para virar inimigo com um toque.', optional: true },
+      { target: '.bestiary', title: 'Inimigos prontos', body: 'O bestiário da campanha: vida, Defesa, iniciativa e ataques de cada inimigo. No combate, “3” goblins entram na iniciativa numerados, com os ataques a um toque na vez deles. As espécies do Mundo aparecem em “Do Mundo”, para virar inimigo com um toque. Primeira vez mestrando? Com o bestiário vazio, “Trazer inimigos comuns” põe Goblin, Lobo, Esqueleto, Bandido e Ogro (números do estilo D&D 5e, para você acertar ao seu sistema).', optional: true },
     ],
   },
   'rpg-sistemas': {

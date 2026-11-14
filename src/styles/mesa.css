@@ -2862,3 +2862,21 @@ body[data-sector='mesa'][data-mesa-tema] .rail {
 .bestiary-world p {
   margin: 0;
 }
+
+/* Barra da sessão em celulares estreitos (360–390 px): os cinco botões cabem numa linha, sem passar da borda
+   (sem os ícones dos três botões com texto, que já dizem o que fazem). */
+@media (max-width: 420px) {
+  .sm-acts {
+    gap: 0.25rem;
+    justify-content: flex-end;
+  }
+  .sm-acts .sm-ask {
+    margin-right: 0;
+  }
+  .sm-acts > .btn {
+    padding-inline: 0.55rem;
+  }
+  .sm-acts > .btn svg {
+    display: none;
+  }
+}
