@@ -179,3 +179,50 @@ test('passar o mouse numa ficha destaca o grupo dela sem mexer no resto do desen
   await expect(page.locator('.graph.has-focus')).toHaveCount(0)
   await expect.poll(() => opacity('.graph .node > circle:not(.node-ring)')).toBe('1')
 })
+
+test('no celular, quase nenhuma linha passa por cima de um nome (Terra de Oz)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/app/?exemplo')
+  await openPart(page, 'Ligações')
+  await expect(page.locator('.graph .node').first()).toBeVisible()
+  // Espera as bolinhas assentarem.
+  await page.waitForTimeout(1800)
+  const crossed = await page.evaluate(() => {
+    // O segmento passa pela caixa? (Liang–Barsky, como em src/logic/graph.ts.)
+    const hit = (a: { x: number; y: number }, b: { x: number; y: number }, box: { x: number; y: number; w: number; h: number }) => {
+      let t0 = 0
+      let t1 = 1
+      const dx = b.x - a.x
+      const dy = b.y - a.y
+      for (const [p, q] of [[-dx, a.x - box.x], [dx, box.x + box.w - a.x], [-dy, a.y - box.y], [dy, box.y + box.h - a.y]]) {
+        if (p === 0) {
+          if (q < 0) return false
+          continue
+        }
+        const t = q / p
+        if (p < 0) {
+          if (t > t1) return false
+          if (t > t0) t0 = t
+        } else {
+          if (t < t0) return false
+          if (t < t1) t1 = t
+        }
+      }
+      return t0 <= t1
+    }
+    const lines = [...document.querySelectorAll<SVGPathElement>('.graph .edge:not(.off):not(.edge-via) path')].map((p) => {
+      const m = p.getAttribute('d')!.match(/M([-\d.]+),([-\d.]+) L([-\d.]+),([-\d.]+)/)!
+      const c = p.getScreenCTM()!
+      const pt = (x: number, y: number) => ({ x: c.a * x + c.c * y + c.e, y: c.b * x + c.d * y + c.f })
+      return [pt(+m[1], +m[2]), pt(+m[3], +m[4])] as const
+    })
+    const names = [...document.querySelectorAll('.graph .node-label')].map((t) => {
+      const r = t.getBoundingClientRect()
+      return { name: t.textContent, box: { x: r.x + 1, y: r.y + 1, w: r.width - 2, h: r.height - 2 } }
+    })
+    return { total: names.length, crossed: names.filter((l) => lines.some(([a, b]) => hit(a, b, l.box))).map((l) => l.name) }
+  })
+  expect(crossed.total).toBeGreaterThan(50)
+  // Antes eram 22 nomes riscados por linhas; sobra, no máximo, um ou outro de quem tem muitas ligações.
+  expect(crossed.crossed.length, `riscados: ${crossed.crossed.join(', ')}`).toBeLessThanOrEqual(3)
+})

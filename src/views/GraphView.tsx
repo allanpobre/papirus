@@ -4,7 +4,7 @@ import { FamilyTree } from './FamilyTree'
 import { familyLinks } from '../logic/family'
 import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { forceLayout, neighborhood, placeLabels, separate, type GraphEdge, type Point } from '../logic/graph'
+import { forceLayout, neighborhood, separate, settleLabels, type GraphEdge, type LabelSpot, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
 import { appearances } from '../logic/reader'
 import { formatDate } from '../logic/calendar'
@@ -306,8 +306,10 @@ export default function GraphView() {
     [layoutKey],
   )
   // Depois das forças, uma passada que afasta as fichas até nenhuma bolinha ou nome encostar em outro;
-  // o desenho é então centrado na tela. `local` é o mesmo desenho a partir de (0, 0), do tamanho bw × bh.
-  const { target, local, bw, bh } = useMemo(() => {
+  // depois, os nomes escolhem o lugar (quem tem mais ligações escolhe primeiro) e, se uma linha ainda passa
+  // por cima de um nome, a bolinha se afasta um pouco. O desenho é então centrado na tela. O desenho tem
+  // o tamanho bw × bh.
+  const { target, bw, bh, labels } = useMemo(() => {
     const boxes = new Map(
       nodes.map((n) => {
         const r = radius(n.id)
@@ -315,7 +317,7 @@ export default function GraphView() {
       }),
     )
     const sep = separate(raw, boxes, { gap: narrow ? 8 : 12 })
-    if (!sep.size) return { target: sep, local: sep, bw: W, bh: baseH }
+    if (!sep.size) return { target: sep, bw: W, bh: baseH, labels: new Map<string, LabelSpot>() }
     let x0 = Infinity
     let y0 = Infinity
     let x1 = -Infinity
@@ -328,12 +330,19 @@ export default function GraphView() {
       y1 = Math.max(y1, p.y + b.top + b.h)
     }
     const M = 16
-    const local = new Map([...sep].map(([id, p]) => [id, { x: p.x - x0 + M, y: p.y - y0 + M }]))
+    const spread = new Map([...sep].map(([id, p]) => [id, { x: p.x - x0 + M, y: p.y - y0 + M }]))
     const bw = x1 - x0 + 2 * M
     const bh = y1 - y0 + 2 * M
+    const { pos: local, labels } = settleLabels(
+      [...nodes]
+        .sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0))
+        .map((n) => ({ id: n.id, width: labelWidth(n.name), height: LABEL_SIZE * 1.3, r: radius(n.id) })),
+      spread,
+      { width: bw, height: bh, pad: 4, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
+    )
     const dx = (W - bw) / 2
     const dy = (baseH - bh) / 2
-    return { target: new Map([...local].map(([id, p]) => [id, { x: p.x + dx, y: p.y + dy }])), local, bw, bh }
+    return { target: new Map([...local].map(([id, p]) => [id, { x: p.x + dx, y: p.y + dy }])), bw, bh, labels }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [raw, sizeKey, leadKey])
   /** O zoom que mostra o desenho inteiro. */
@@ -347,19 +356,6 @@ export default function GraphView() {
   const active = (e: Edge) => !e.relation || activeAt(e.relation, scene)
   const liveIds = new Set(visibleEdges.filter(active).flatMap((e) => [e.from, e.to]))
 
-  // Os nomes desviam uns dos outros e das bolinhas; quem tem mais ligações escolhe o lugar primeiro.
-  const labels = useMemo(
-    () =>
-      placeLabels(
-        [...nodes]
-          .sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0))
-          .map((n) => ({ id: n.id, width: labelWidth(n.name), height: LABEL_SIZE * 1.3, r: radius(n.id) })),
-        local,
-        { width: bw, height: bh, pad: 4, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [local, nodes, leadKey],
-  )
   const kinds = [...new Set(universe.entities.map((e) => e.kind))]
   const sel = selected ? byId(universe, 'entities', selected) : undefined
   const focus = hovered ?? selected
