@@ -14,10 +14,12 @@ interface Props {
   side?: boolean
   /** Janela que funciona como uma tela: o (?) no cabeçalho abre o tour dela. */
   help?: PageTourId
+  /** Ao fechar, o foco volta para onde estava (padrão). Em janelas abertas de dentro do texto, no celular, é melhor não voltar: o teclado abriria de novo. */
+  restoreFocus?: boolean
 }
 
 /** Janela dentro do app. Esc, clique fora ou o "voltar" do aparelho fecham; o foco volta para onde estava. */
-export function Modal({ title, onClose, children, footer, size = 'md', side = false, help }: Props) {
+export function Modal({ title, onClose, children, footer, size = 'md', side = false, help, restoreFocus = true }: Props) {
   const titleId = useId()
   const ref = useRef<HTMLDivElement>(null)
   useBackLayer(onClose)
@@ -29,7 +31,11 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
       ...(ref.current?.querySelectorAll<HTMLElement>('[autofocus], input:not([type=hidden]), textarea, select, button:not(.modal-close):not(.page-help)') ?? []),
     ].find((el) => el.offsetParent !== null)
     ;(first ?? ref.current)?.focus()
-    return () => previous?.focus?.()
+    return () => {
+      if (restoreFocus) previous?.focus?.()
+    }
+    // Só vale o que foi escolhido ao abrir a janela.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Se o botão com o foco some (ex.: "Criar o link" vira o link), o foco cai na página e o Esc

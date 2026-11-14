@@ -50,15 +50,11 @@ test.describe('escritora no celular', () => {
     // De volta ao Início (fechado o teclado, a barra de baixo volta), dois dos passos estão riscados.
     await page.keyboard.press('Escape')
     await expect(revisao).toHaveCount(0)
-    // Fechada a Revisão, o foco volta ao texto um instante depois (o teclado "abre" de novo e a barra
-    // de baixo some), às vezes depois de a barra já ter voltado: repete "fechar o teclado e tocar em
-    // Início" até o toque pegar, em vez de olhar uma vez só.
-    const fecharTeclado = page.getByRole('button', { name: 'Fechar o teclado' })
-    const inicio = page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Início', exact: true })
-    await expect(async () => {
-      if (await fecharTeclado.isVisible()) await fecharTeclado.click()
-      await inicio.click({ timeout: 1000 })
-    }).toPass({ timeout: 15000 })
+    // No celular, fechar a Revisão não devolve o foco ao texto: o teclado não abre de novo e a barra de baixo fica.
+    const editorFocado = await page.evaluate(() => !!document.activeElement?.closest('.ProseMirror'))
+    expect(editorFocado, 'o foco não volta ao texto ao fechar a Revisão').toBe(false)
+    await expect(page.getByRole('button', { name: 'Fechar o teclado' })).toHaveCount(0)
+    await tap(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Início', exact: true }))
     await expect(firstSteps(page).locator('li.is-done')).toHaveCount(2)
     await expect(firstSteps(page).getByRole('button', { name: 'Deixe um bilhete para amanhã' })).toBeVisible()
   })

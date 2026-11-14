@@ -10,6 +10,7 @@ import { useWorkspace } from '../../state/workspace'
 import { Select } from '../../ui/bits'
 import { EntityPicker } from '../../ui/EntityPicker'
 import { Modal } from '../../ui/Modal'
+import { useMediaQuery } from '../../ui/useMediaQuery'
 import { QuestionCard } from './QuestionCard'
 
 type Tab = 'nomes' | 'perguntas' | 'pendentes'
@@ -20,6 +21,8 @@ type Tab = 'nomes' | 'perguntas' | 'pendentes'
  */
 export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; questions: Question[]; onClose: () => void }) {
   const { universe, update, toast, go } = useWorkspace()
+  // No celular, fechar a Revisão não devolve o foco ao texto: senão o teclado abriria de novo.
+  const touch = useMediaQuery('(pointer: coarse), (max-width: 760px)')
   const [tab, setTab] = useState<Tab>('nomes')
   const [scope, setScope] = useState<'cena' | 'tudo'>('cena')
   const [hidden, setHidden] = useState<Set<string>>(new Set())
@@ -66,7 +69,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
   }
 
   return (
-    <Modal title="Revisão" onClose={onClose} size="lg" help="revisao">
+    <Modal title="Revisão" onClose={onClose} size="lg" help="revisao" restoreFocus={!touch}>
       <div className="tabs" role="tablist" onKeyDown={tabListKeys}>
         {(
           [
