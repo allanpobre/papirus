@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ostriaUniverse } from '../model/sampleOstria'
-import { createUniverse, draftEntity, insert } from '../model/universe'
-import { buildWiki } from './wiki'
+import { createUniverse, draftEntity, insert, manuscriptOrder } from '../model/universe'
+import { buildWiki, linkUpTo } from './wiki'
 
 describe('wiki do mundo', () => {
   it('tudo, menos os segredos', () => {
@@ -166,5 +166,21 @@ describe('wiki com o papel na história', () => {
     void mira
     void vila
     void kael
+  })
+})
+
+describe('até onde vai a wiki do link', () => {
+  it('sem escolha, vai tudo; com uma cena, vai até ela; se a cena sumiu, volta a ir tudo (os segredos nunca saem)', () => {
+    const u = ostriaUniverse()
+    expect(linkUpTo(u)).toBeNull()
+    const order = manuscriptOrder(u)
+    const withScene = (id: string | null) => ({ ...u, settings: { ...u.settings, wiki: { ...u.settings.wiki, upToScene: id } } })
+    expect(linkUpTo(withScene(order[2].id))).toBe(2)
+    expect(linkUpTo(withScene(null))).toBeNull()
+    expect(linkUpTo(withScene('cena-apagada'))).toBeNull()
+    // E a wiki montada com essa posição mostra só até a cena.
+    const early = buildWiki(withScene(order[0].id), { upTo: linkUpTo(withScene(order[0].id)) })
+    expect(early.html).toContain('até “A chegada”')
+    expect(early.html).not.toContain('<h2>Cassian</h2>')
   })
 })

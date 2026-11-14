@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { authClient, useAccount } from '../account/auth'
 import { upload } from '../account/cloud'
 import { useWorkspace } from '../state/workspace'
+import { manuscriptOrder } from '../model/universe'
 import { Modal } from '../ui/Modal'
 import { emailHash, withAU } from '../logic/au'
 import { AUsOfMyWorld } from './AUsOfMyWorld'
@@ -344,6 +345,31 @@ export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => 
                         ? 'Abre a wiki do mundo, com o visual da página Wiki: fichas, ligações, linha do tempo e mapas, sem nada secreto. Bom para mandar aos jogadores.'
                         : 'Abre todas as fichas, ligações e a linha do tempo de uma vez (cuidado com spoilers).'}
                   </p>
+                  {linkMode === 'wiki' && (
+                    <label className="field share-wiki-upto">
+                      <span className="field-label">Até onde vai a wiki do link</span>
+                      <select
+                        className="input input-sm"
+                        value={manuscriptOrder(universe).some((sc) => sc.id === universe.settings.wiki?.upToScene) ? universe.settings.wiki!.upToScene! : ''}
+                        disabled={busy}
+                        onChange={(e) => {
+                          const upToScene = e.target.value || null
+                          update((u) => ({ ...u, settings: { ...u.settings, wiki: { ...u.settings.wiki, upToScene } } }))
+                          // O link muda já: não espera o próximo envio da nuvem.
+                          const next = { ...universe, settings: { ...universe.settings, wiki: { ...universe.settings.wiki, upToScene } } }
+                          void act(async () => refreshReaderCopy(await sb(), share, next))
+                        }}
+                      >
+                        <option value="">A história toda (menos os segredos)</option>
+                        {manuscriptOrder(universe).map((sc, i) => (
+                          <option key={sc.id} value={sc.id}>
+                            Só o que o leitor sabe até “{sc.title || 'Sem título'}” ({i + 1})
+                          </option>
+                        ))}
+                      </select>
+                      <span className="muted tiny">Quem abre o link vê a wiki só até essa cena, sem os spoilers do resto. Os segredos nunca saem.</span>
+                    </label>
+                  )}
                   <div className="share-link-row">
                     <input className="input input-sm" readOnly aria-label="Link de leitura" value={link} onFocus={(e) => e.target.select()} />
                     <button type="button" className="btn btn-sm" onClick={() => void copy(link)}>
