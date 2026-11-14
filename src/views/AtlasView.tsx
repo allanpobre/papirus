@@ -18,7 +18,7 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
-import { chosenYear, rememberYear } from './timeYear'
+import { useChosenYear } from './timeYear'
 import { existsIn } from '../logic/timeMachine'
 import { formatYear } from '../model/labels'
 
@@ -177,7 +177,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
 
   const kinds = [...new Set(map.pins.map((p) => byId(universe, 'entities', p.entityId)?.kind).filter(Boolean) as string[])]
   // Máquina do tempo: com um ano escolhido (na Linha do tempo), o que ainda não existia (ou já acabou) some do mapa.
-  const [year, setYear] = useState(() => chosenYear(universe.id))
+  const [year, setYear] = useChosenYear(universe.id)
   const exists = (id: string) => {
     const e = byId(universe, 'entities', id)
     return year === null || !e || existsIn(e, year)
@@ -258,10 +258,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             <button
               type="button"
               className="link-btn"
-              onClick={() => {
-                setYear(null)
-                rememberYear(universe.id, null)
-              }}
+              onClick={() => setYear(null)}
             >
               Ver todos os tempos
             </button>

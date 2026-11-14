@@ -60,6 +60,9 @@ import { MoreMenu } from '../ui/MoreMenu'
 import { listsOf, listTemplatesFor, PLACE_KINDS } from '../model/lists'
 import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
+import { existsIn } from '../logic/timeMachine'
+import { useChosenYear } from './timeYear'
+import { YearBanner } from './YearBanner'
 
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly, peek, bookId, toast } = useWorkspace()
@@ -143,10 +146,16 @@ export default function EntitiesView() {
   const [where, setWhere] = useState<'tudo' | 'cenas' | 'notas'>('tudo')
   const inScenes = universe.entities.filter((e) => counts.get(e.id)).length
 
+  // Com a Máquina do tempo num ano, só aparece quem existia nele (dá para mostrar todas).
+  const [year, setYear] = useChosenYear(universe.id)
+  const [onlyThen, setOnlyThen] = useState(true)
+  const timeFilter = year !== null && onlyThen
+  const outOfYear = year === null ? 0 : universe.entities.filter((e) => !existsIn(e, year)).length
   const list = useMemo(() => {
     const q = fold(query.trim())
     return universe.entities
       .filter((e) => kind === 'todos' || e.kind === kind)
+      .filter((e) => !timeFilter || existsIn(e, year!))
       .filter((e) => !roleFilter || (roleFilter === 'sem' ? !roleIn(e, bookId) : roleIn(e, bookId) === roleFilter))
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
       // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
@@ -172,7 +181,7 @@ export default function EntitiesView() {
             : a.name.localeCompare(b.name, 'pt'),
       )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [universe.entities, kind, roleFilter, bookId, query, where, counts, scope, order, onlyBook, fresh])
+  }, [universe.entities, kind, roleFilter, bookId, query, where, counts, scope, order, onlyBook, fresh, timeFilter, year])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -317,6 +326,7 @@ export default function EntitiesView() {
             </button>
           </div>
         )}
+        {year !== null && <YearBanner year={year} hidden={outOfYear} filtering={onlyThen} onToggle={() => setOnlyThen(!onlyThen)} onExit={() => setYear(null)} />}
         {list.length === 0 ? (
           <Empty icon={<BookMarked size={28} />} title={universe.entities.length ? 'Nada com esse filtro.' : 'Nenhuma ficha ainda.'}>
             {!universe.entities.length && <p>{phone ? 'Toque no + para criar uma' : 'Crie uma acima'}, ou selecione um nome no texto e escolha “Ficha”.</p>}
