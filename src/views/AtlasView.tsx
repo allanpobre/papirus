@@ -4,6 +4,7 @@ import { centroid, regionIn, type Region } from '../logic/regions'
 import { coverLook } from '../ui/coverLook'
 import { tabListKeys } from '../ui/keys'
 import { useMemo, useRef, useState } from 'react'
+import { useScrollPinch } from '../ui/useScrollPinch'
 import { rangeText, routeOn } from '../logic/route'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
@@ -17,7 +18,7 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
-import { chosenYear, rememberYear } from './timeYear'
+import { useChosenYear } from './timeYear'
 import { existsIn } from '../logic/timeMachine'
 import { formatYear } from '../model/labels'
 
@@ -144,7 +145,8 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   const [pending, setPending] = useState<{ x: number; y: number } | null>(null)
   const [selectedPin, setSelectedPin] = useState<string | null>(null)
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(new Set())
-  const imgRef = useRef<HTMLDivElement>(null)
+  // No toque: um dedo move o mapa direto, dois dedos aproximam (e o zoom só é guardado ao soltar); o mouse segue com a rolagem.
+  const { scrollRef, imgRef, wasDrag, bind } = useScrollPinch(zoom, setZoom, { minZoom: 1, maxZoom: 4 })
   // Arrastar (só com o mouse, e só depois de mexer uns pixels: um clique não move).
   const dragging = useRef<{ id: string; x: number; y: number; moved: boolean; before: AtlasMap['pins'] } | null>(null)
   // Mover pelo toque: escolhe "Mover" no cartão e toca no lugar novo.
@@ -156,6 +158,10 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
   const setRegions = (regions: Region[]) => update((u) => patch(u, 'maps', map.id, { regions }))
 
+  const choosePin = (id: string) => {
+    setSelectedPin(id)
+    if (moving !== id) setMoving(null)
+  }
   const setPins = (pins: AtlasMap['pins']) => update((u) => patch(u, 'maps', map.id, { pins }))
   // Depois de mover, dá para voltar: o aviso traz "Desfazer".
   const movedToast = (before: AtlasMap['pins']) => toast('Marcador movido', { action: { label: 'Desfazer', run: () => setPins(before) } })
@@ -171,7 +177,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
 
   const kinds = [...new Set(map.pins.map((p) => byId(universe, 'entities', p.entityId)?.kind).filter(Boolean) as string[])]
   // Máquina do tempo: com um ano escolhido (na Linha do tempo), o que ainda não existia (ou já acabou) some do mapa.
-  const [year, setYear] = useState(() => chosenYear(universe.id))
+  const [year, setYear] = useChosenYear(universe.id)
   const exists = (id: string) => {
     const e = byId(universe, 'entities', id)
     return year === null || !e || existsIn(e, year)
@@ -223,7 +229,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           {extra ? 'Menos' : 'Mais'}
         </button>
         <span className="atlas-zoom atlas-extra">
-          <button type="button" className="btn-icon btn-sm" aria-label="Afastar" onClick={() => setZoom((z) => Math.max(0.5, z / 1.25))}>
+          <button type="button" className="btn-icon btn-sm" aria-label="Afastar" onClick={() => setZoom((z) => Math.max(1, z / 1.25))}>
             <Minus size={15} />
           </button>
           <span className="tabular small">{Math.round(zoom * 100)}%</span>
@@ -252,10 +258,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             <button
               type="button"
               className="link-btn"
-              onClick={() => {
-                setYear(null)
-                rememberYear(universe.id, null)
-              }}
+              onClick={() => setYear(null)}
             >
               Ver todos os tempos
             </button>
@@ -337,12 +340,14 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </button>
         </div>
       )}
-      <div className="atlas-scroll">
+      <div className="atlas-scroll" ref={scrollRef} {...bind} style={{ aspectRatio: `${map.width} / ${map.height}` }}>
         <div
           ref={imgRef}
           className={`atlas-image${placing !== null || moving || painting?.entityId ? ' placing' : ''}${painting?.entityId ? ' painting' : ''}`}
           style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: mapSrc ? `url("${mapSrc}")` : undefined }}
           onClick={(e) => {
+            // O que acabou de ser arrasto ou pinça no toque não vale como toque no mapa.
+            if (wasDrag()) return
             // Pintando uma região, todo toque vira um canto (mesmo em cima de um marcador).
             if (painting) {
               if (!painting.entityId) return
@@ -419,15 +424,18 @@ function MapCanvas({ map }: { map: AtlasMap }) {
                 style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
                 aria-label={`${p.label || e?.name || 'Marcador'}${e ? `, ${kindLabel(e.kind)}` : ''}`}
                 onPointerDown={(ev) => {
-                  ev.stopPropagation()
-                  setSelectedPin(p.id)
-                  if (moving !== p.id) setMoving(null)
-                  // No toque, só seleciona (arrastar sem querer era fácil demais).
+                  // No toque, o dedo que começa num marcador pode ser o começo de um arrasto do mapa: o toque sobe até o mapa
+                  // e o marcador só é escolhido no clique (um toque parado). Com o mouse, escolhe já e dá para arrastar o marcador.
                   if (ev.pointerType !== 'mouse') return
+                  ev.stopPropagation()
+                  choosePin(p.id)
                   ;(ev.currentTarget as Element).setPointerCapture?.(ev.pointerId)
                   dragging.current = { id: p.id, x: ev.clientX, y: ev.clientY, moved: false, before: map.pins }
                 }}
                 onPointerUp={finishDrag}
+                onClick={() => {
+                  if (!wasDrag()) choosePin(p.id)
+                }}
               >
                 <MapPin size={22} aria-hidden="true" />
                 <span className="pin-label">{p.label || e?.name || '?'}</span>

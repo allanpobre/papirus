@@ -116,6 +116,7 @@ export function BulkCreateDialog({ initialKind, onClose, onDone }: { initialKind
       <Field label="Um nome por linha" wide hint="Dá para colar uma lista de outro lugar. Linhas repetidas entram uma vez só.">
         {(id) => <textarea id={id} className="input textarea bulk-names" rows={8} autoFocus placeholder={'Doran\nSelma\nOrin'} value={text} onChange={(e) => setText(e.target.value)} />}
       </Field>
+      <NameIdeas kind={kind} culture={ownerId} onPick={(n) => setText((t) => (t.trim() ? `${t.replace(/\s+$/, '')}\n${n}` : n))} />
       {templates.length > 0 && (
         <Field label="A partir do modelo (opcional)">
           {(id) => <Select id={id} value={templateId} onChange={setTemplateId} options={[{ value: '', label: 'Nenhum: só o nome' }, ...templates.map((t) => ({ value: t.id, label: t.name }))]} />}

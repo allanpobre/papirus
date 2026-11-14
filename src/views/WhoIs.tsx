@@ -21,6 +21,7 @@ import { kindLabel } from '../model/labels'
 import type { Entity } from '../model/schema'
 import { patch } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
+import { ConfirmButton } from '../ui/ConfirmButton'
 
 /** Tipos em que "Quem é" aparece mesmo vazio, convidando a criar o primeiro item. */
 const INVITE_KINDS = ['personagem', 'faccao', 'reino']
@@ -123,23 +124,31 @@ export function WhoIsEditor({ entity: e }: { entity: Entity }) {
               </select>
             )}
             {option && (
-              <button type="button" className="link-btn small whois-open" onClick={() => go('fichas', option.id)}>
+              <button type="button" className="btn btn-sm btn-ghost whois-open" onClick={() => go('fichas', option.id)}>
                 Abrir {option.name || 'a opção'}
               </button>
             )}
-            <button
-              type="button"
-              className="btn-icon btn-sm whois-remove"
-              title={`Tirar “${d.name}” de ${kindLabel(e.kind).toLowerCase()}`}
-              aria-label={`Tirar ${d.name} deste tipo`}
-              onClick={() => update((u) => (d.appliesTo.length > 1 ? updateDefiner(u, d.id, { appliesTo: d.appliesTo.filter((k) => k !== e.kind) }) : removeDefiner(u, d.id)))}
-            >
-              <X size={13} />
-            </button>
+            <span className="whois-remove">
+              <ConfirmButton
+                className="btn-icon btn-sm"
+                title={`Tirar “${d.name}” de ${kindLabel(e.kind).toLowerCase()}`}
+                question={`Tirar “${d.name}” de todo ${kindLabel(e.kind).toLowerCase()}?`}
+                confirmLabel="Tirar"
+                onConfirm={() => update((u) => (d.appliesTo.length > 1 ? updateDefiner(u, d.id, { appliesTo: d.appliesTo.filter((k) => k !== e.kind) }) : removeDefiner(u, d.id)))}
+              >
+                <X size={14} aria-hidden="true" />
+                <span className="sr-only">Tirar {d.name} deste tipo</span>
+              </ConfirmButton>
+            </span>
           </div>
           {option && traits.length === 0 && (
             <p className="muted small">
               {option.name} ainda não passa nada. Em “Abrir {option.name}”, diga o que quem é assim tem.
+            </p>
+          )}
+          {traits.length > 0 && (
+            <p className="whois-from muted small">
+              Por ser {option?.name}. “Exceção” muda só nesta ficha.
             </p>
           )}
           {traits.length > 0 && (
@@ -151,14 +160,16 @@ export function WhoIsEditor({ entity: e }: { entity: Entity }) {
                     <>
                       <span className="whois-value">{t.value || '—'}</span>
                       {!readOnly && (
-                        <button type="button" className="link-btn small" onClick={() => setFields(addException(e, t.key))}>
+                        <button type="button" className="btn btn-sm btn-ghost whois-act" onClick={() => setFields(addException(e, t.key))}>
                           Exceção
                         </button>
                       )}
                     </>
                   ) : (
                     <>
-                      <s className="whois-rule">{t.value || '—'}</s>
+                      <span className="whois-rule">
+                        O padrão: <s>{t.value || '—'}</s>
+                      </span>
                       <input
                         className="input input-sm"
                         aria-label={`Exceção: ${t.key}`}
@@ -166,7 +177,7 @@ export function WhoIsEditor({ entity: e }: { entity: Entity }) {
                         value={t.exception}
                         onChange={(ev) => setFields(e.fields.map((f) => (fold(f.key.trim()) === fold(t.key.trim()) ? { ...f, value: ev.target.value, exception: true } : f)))}
                       />
-                      <button type="button" className="link-btn small" onClick={() => setFields(removeException(e, t.key))}>
+                      <button type="button" className="btn btn-sm btn-ghost whois-act" onClick={() => setFields(removeException(e, t.key))}>
                         Desfazer
                       </button>
                     </>

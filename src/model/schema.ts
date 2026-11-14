@@ -164,6 +164,14 @@ export const entitySchema = z.object({
    * Os modificadores são pela sigla do atributo ("FOR": 2), para valer em qualquer sistema com a mesma sigla.
    */
   game: z.object({ traits: z.array(z.string()).default([]), mods: z.record(z.string(), z.number()).default({}) }).optional(),
+  /**
+   * O idioma de um povo ou cultura (e de qualquer opção do "Quem é"): as sílabas com que se montam nomes ("kar-" só no
+   * começo, "-dor" só no fim), como ele soa e um exemplo. O "Sugerir nomes" usa as sílabas.
+   */
+  language: z
+    .object({ syllables: z.array(z.string()).default([]), sounds: z.string().default(''), example: z.string().default('') })
+    .optional()
+    .catch(undefined),
   /** Personagem: protagonista, antagonista, secundário ou figurante. Um valor desconhecido (de outra versão) vira vazio. */
   role: z.enum(STORY_ROLES).optional().catch(undefined),
   /**
@@ -587,6 +595,8 @@ export const wikiSettingsSchema = z.object({
   color: z.string().nullable().optional(),
   font: z.enum(WIKI_FONTS).optional(),
   style: z.enum(WIKI_STYLES).optional().catch(undefined),
+  /** Até que cena vai a wiki do link (id da cena). Sem valor, vai tudo, menos os segredos. */
+  upToScene: z.string().nullable().optional(),
 })
 export type WikiSettings = z.infer<typeof wikiSettingsSchema>
 

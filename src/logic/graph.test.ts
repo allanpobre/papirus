@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { forceLayout, placeLabels, separate, type Point, type SeparateBox } from './graph'
+import { crossedLabels, forceLayout, placeLabels, separate, settleLabels, type Point, type SeparateBox } from './graph'
 
 const box = (pos: Map<string, Point>) => {
   const xs = [...pos.values()].map((p) => p.x)
@@ -114,5 +114,94 @@ describe('afastar as fichas', () => {
     const out = separate(pos, new Map([['a', box], ['b', box]]))
     expect(out.get('a')).toEqual({ x: 0, y: 0 })
     expect(out.get('b')).toEqual({ x: 500, y: 0 })
+  })
+})
+
+describe('nomes sem linha por cima', () => {
+  const node = (id: string, width = 60) => ({ id, width, height: 16, r: 12 })
+  const rectOf = (n: { id: string; width: number; height: number }, p: Point, s: { dx: number; dy: number; anchor: string }) => {
+    const x = s.anchor === 'middle' ? p.x + s.dx - n.width / 2 : s.anchor === 'start' ? p.x + s.dx : p.x + s.dx - n.width
+    return { x, y: p.y + s.dy - n.height * 0.8, w: n.width, h: n.height }
+  }
+  const area = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) =>
+    Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y))
+
+  it('com linhas em cruz (cima, baixo e lados), o nome vai para um canto', () => {
+    const pos = new Map<string, Point>([
+      ['a', { x: 200, y: 200 }],
+      ['n', { x: 200, y: 100 }],
+      ['s', { x: 200, y: 300 }],
+      ['e', { x: 300, y: 200 }],
+      ['w', { x: 100, y: 200 }],
+    ])
+    const edges = ['n', 's', 'e', 'w'].map((to) => ({ from: 'a', to }))
+    const nodes = [node('a', 50)]
+    const spots = placeLabels(nodes, pos, { edges })
+    const s = spots.get('a')!
+    // Nem embaixo nem em cima nem dos lados (as linhas passam ali): num canto.
+    expect(s.dx).not.toBe(0)
+    expect(Math.abs(s.dy)).toBeGreaterThan(12)
+    expect(crossedLabels(nodes, pos, spots, edges)).toBe(0)
+  })
+
+  // Um desenho de verdade: o mesmo que o mapa de Ligações faz (forças, afastar, nomes), com 40 fichas e 70 ligações.
+  const graph = () => {
+    const ids = Array.from({ length: 40 }, (_, i) => `f${i}`)
+    const edges: { from: string; to: string }[] = []
+    for (let i = 1; i < ids.length; i++) edges.push({ from: ids[i], to: ids[Math.floor((i - 1) / 3)] })
+    for (let i = 0; i < 30; i++) edges.push({ from: ids[(i * 7) % 40], to: ids[(i * 11 + 5) % 40] })
+    const list = edges.filter((e, i) => e.from !== e.to && edges.findIndex((o) => o.from === e.from && o.to === e.to) === i)
+    const nodes = ids.map((id, i) => ({ id, width: 40 + (i % 5) * 18, height: 16, r: 11 }))
+    const raw = forceLayout(ids.map((id) => ({ id })), list, { width: 700, height: 600, margin: 56, stretch: 1.7 })
+    const boxes = new Map(nodes.map((n) => [n.id, { w: Math.max(2 * n.r, n.width), h: 2 * n.r + 4 + 16, top: -n.r }]))
+    return { nodes, edges: list, pos: separate(raw, boxes, { gap: 8 }) }
+  }
+
+  it('afastar a bolinha tira linhas de cima dos nomes sem encostar em mais nada', () => {
+    const { nodes, edges, pos } = graph()
+    const only = placeLabels(nodes, pos, { edges })
+    const before = crossedLabels(nodes, pos, only, edges)
+    const settled = settleLabels(nodes, pos, { edges })
+    const after = crossedLabels(nodes, settled.pos, settled.labels, edges)
+    expect(before).toBeGreaterThan(3)
+    expect(after).toBeLessThan(before)
+
+    // Ninguém andou mais que o alcance, e nenhum nome ou bolinha encosta em outro.
+    for (const [id, p] of settled.pos) expect(Math.hypot(p.x - pos.get(id)!.x, p.y - pos.get(id)!.y)).toBeLessThanOrEqual(36.001)
+    const rects = nodes.map((n) => ({ n, box: rectOf(n, settled.pos.get(n.id)!, settled.labels.get(n.id)!) }))
+    const circles = nodes.map((n) => ({ x: settled.pos.get(n.id)!.x - n.r, y: settled.pos.get(n.id)!.y - n.r, w: 2 * n.r, h: 2 * n.r }))
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = 0; j < nodes.length; j++) {
+        if (i < j) expect(area(rects[i].box, rects[j].box)).toBe(0)
+        if (i !== j) expect(area(rects[i].box, circles[j])).toBe(0)
+        if (i < j) expect(area(circles[i], circles[j])).toBe(0)
+      }
+    }
+  })
+
+  it('é sempre o mesmo desenho, e não mexe em quem não tem linha por cima do nome', () => {
+    const { nodes, edges, pos } = graph()
+    const a = settleLabels(nodes, pos, { edges })
+    const b = settleLabels(nodes, pos, { edges })
+    expect(b).toEqual(a)
+    // Sem ligações não há o que desviar: nada se mexe.
+    const free = settleLabels(nodes, pos, { edges: [] })
+    expect(free.pos).toEqual(pos)
+  })
+
+  it('a bolinha não sai da área', () => {
+    const { nodes, edges, pos } = graph()
+    const xs = [...pos.values()].map((p) => p.x)
+    const ys = [...pos.values()].map((p) => p.y)
+    const width = Math.max(...xs) + 30
+    const height = Math.max(...ys) + 30
+    const settled = settleLabels(nodes, pos, { edges, width, height, pad: 4 })
+    for (const n of nodes) {
+      const p = settled.pos.get(n.id)!
+      expect(p.x - n.r).toBeGreaterThanOrEqual(4 - 0.001)
+      expect(p.x + n.r).toBeLessThanOrEqual(width - 4 + 0.001)
+      expect(p.y - n.r).toBeGreaterThanOrEqual(4 - 0.001)
+      expect(p.y + n.r).toBeLessThanOrEqual(height - 4 + 0.001)
+    }
   })
 })

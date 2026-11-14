@@ -138,18 +138,20 @@ interface Box {
 
 const overlap = (a: Box, b: Box) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y))
 
-/** O segmento de `a` a `b` passa pela caixa? (Liang–Barsky.) */
+/** O segmento de `a` a `b` passa pela caixa? (Liang–Barsky, com uma rejeição rápida antes.) */
 function crosses(a: Point, b: Point, box: Box): boolean {
-  let t0 = 0
-  let t1 = 1
+  const x1 = box.x + box.w
+  const y1 = box.y + box.h
+  // Rápido: o segmento inteiro de um lado só da caixa.
+  if ((a.x < box.x && b.x < box.x) || (a.x > x1 && b.x > x1) || (a.y < box.y && b.y < box.y) || (a.y > y1 && b.y > y1)) return false
   const dx = b.x - a.x
   const dy = b.y - a.y
-  for (const [p, q] of [
-    [-dx, a.x - box.x],
-    [dx, box.x + box.w - a.x],
-    [-dy, a.y - box.y],
-    [dy, box.y + box.h - a.y],
-  ]) {
+  let t0 = 0
+  let t1 = 1
+  // As quatro bordas: (p, q) = (-dx, a.x - x), (dx, x1 - a.x), (-dy, a.y - y), (dy, y1 - a.y).
+  for (let i = 0; i < 4; i++) {
+    const p = i === 0 ? -dx : i === 1 ? dx : i === 2 ? -dy : dy
+    const q = i === 0 ? a.x - box.x : i === 1 ? x1 - a.x : i === 2 ? a.y - box.y : y1 - a.y
     if (p === 0) {
       if (q < 0) return false
       continue
@@ -166,69 +168,283 @@ function crosses(a: Point, b: Point, box: Box): boolean {
   return t0 <= t1
 }
 
+interface Placement {
+  spot: LabelSpot
+  box: Box
+}
+
+/** Um segmento (uma linha do mapa) com as pontas vivas: se a bolinha anda, a linha acompanha. */
+interface Seg {
+  from: string
+  to: string
+  a: Point
+  b: Point
+}
+
+interface Bounds {
+  width: number
+  height: number
+  pad: number
+}
+
 /**
- * Onde escrever o nome de cada bolinha para que os nomes não fiquem uns sobre os outros, sobre
- * outra bolinha, cortados na borda nem riscados por uma linha: embaixo (o lugar de sempre), em cima,
- * à direita ou à esquerda. Na ordem recebida: quem vem primeiro escolhe primeiro. Sem lugar livre,
- * fica onde atrapalha menos.
+ * Os lugares possíveis do nome, do melhor para o pior: embaixo (o de sempre), em cima, à direita e
+ * à esquerda; depois nos quatro cantos; por último, esses mesmos um pouco mais afastados.
  */
-export function placeLabels(
-  nodes: LabelNode[],
-  pos: Map<string, Point>,
-  { width = Infinity, height = Infinity, gap = 4, pad = 0, edges = [] as GraphEdge[] } = {},
-): Map<string, LabelSpot> {
-  const out = new Map<string, LabelSpot>()
-  const circles: { id: string; box: Box }[] = []
-  for (const n of nodes) {
-    const p = pos.get(n.id)
-    if (p) circles.push({ id: n.id, box: { x: p.x - n.r, y: p.y - n.r, w: 2 * n.r, h: 2 * n.r } })
+function labelPlacements(n: LabelNode, p: Point, gap: number): Placement[] {
+  const { width: w, height: h, r } = n
+  // A linha de base fica a ~80% da altura da caixa do texto.
+  const base = h * 0.8
+  const at = (x: number, y: number, dx: number, dy: number, anchor: LabelSpot['anchor']): Placement => ({ box: { x, y, w, h }, spot: { dx, dy, anchor } })
+  const k = r * 0.72 + 1
+  const g = gap + 12
+  return [
+    at(p.x - w / 2, p.y + r + gap, 0, r + gap + base, 'middle'),
+    at(p.x - w / 2, p.y - r - gap - h, 0, -r - gap - h + base, 'middle'),
+    at(p.x + r + gap + 1, p.y - h / 2, r + gap + 1, -h / 2 + base, 'start'),
+    at(p.x - r - gap - 1 - w, p.y - h / 2, -r - gap - 1, -h / 2 + base, 'end'),
+    at(p.x + k, p.y + k + gap, k, k + gap + base, 'start'),
+    at(p.x - k - w, p.y + k + gap, -k, k + gap + base, 'end'),
+    at(p.x + k, p.y - k - gap - h, k, -k - gap - h + base, 'start'),
+    at(p.x - k - w, p.y - k - gap - h, -k, -k - gap - h + base, 'end'),
+    at(p.x - w / 2, p.y + r + g, 0, r + g + base, 'middle'),
+    at(p.x - w / 2, p.y - r - g - h, 0, -r - g - h + base, 'middle'),
+    at(p.x + r + g + 1, p.y - h / 2, r + g + 1, -h / 2 + base, 'start'),
+    at(p.x - r - g - 1 - w, p.y - h / 2, -r - g - 1, -h / 2 + base, 'end'),
+  ]
+}
+
+/**
+ * Quanto atrapalha pôr o nome ali (0 = lugar livre). `labels` e `circles` têm uma caixa por ficha, na ordem de
+ * `nodes` (sem caixa ainda = o nome dela não foi posto); a ficha `self` não conta contra si mesma.
+ */
+function placementCost(o: Placement, n: LabelNode, self: number, labels: (Box | undefined)[], circles: (Box | undefined)[], segs: Seg[], { width, height, pad }: Bounds): number {
+  let cost = 0
+  for (let i = 0; i < labels.length; i++) {
+    if (i === self) continue
+    // Encostar em outro nome ou em outra bolinha é o pior: custa mais que qualquer linha por baixo.
+    const l = labels[i]
+    if (l) {
+      const a = overlap(o.box, l)
+      if (a > 0) cost += 10000 + a
+    }
+    const c = circles[i]
+    if (c) {
+      const a = overlap(o.box, c)
+      if (a > 0) cost += 5000 + a
+    }
   }
-  const placed: Box[] = []
-  for (const n of nodes) {
-    const p = pos.get(n.id)
-    if (!p) continue
-    const { width: w, height: h, r } = n
-    // A linha de base fica a ~80% da altura da caixa do texto.
-    const base = h * 0.8
-    const options: { box: Box; spot: LabelSpot }[] = [
-      { box: { x: p.x - w / 2, y: p.y + r + gap, w, h }, spot: { dx: 0, dy: r + gap + base, anchor: 'middle' } },
-      { box: { x: p.x - w / 2, y: p.y - r - gap - h, w, h }, spot: { dx: 0, dy: -r - gap - h + base, anchor: 'middle' } },
-      { box: { x: p.x + r + gap + 1, y: p.y - h / 2, w, h }, spot: { dx: r + gap + 1, dy: -h / 2 + base, anchor: 'start' } },
-      { box: { x: p.x - r - gap - 1 - w, y: p.y - h / 2, w, h }, spot: { dx: -r - gap - 1, dy: -h / 2 + base, anchor: 'end' } },
-    ]
-    let best = options[0]
-    let bestCost = Infinity
-    for (const o of options) {
-      let cost = 0
-      // Encostar em outro nome ou em outra bolinha é o pior: custa mais que qualquer linha por baixo.
-      for (const b of placed) {
-        const a = overlap(o.box, b)
-        if (a > 0) cost += 10000 + a
-      }
-      for (const c of circles) {
-        const a = c.id !== n.id ? overlap(o.box, c.box) : 0
-        if (a > 0) cost += 5000 + a
-      }
-      // Fora da área também custa: o nome cortado na borda não se lê.
-      const out =
-        Math.max(0, pad - o.box.x) + Math.max(0, o.box.x + o.box.w - (width - pad)) + Math.max(0, pad - o.box.y) + Math.max(0, o.box.y + o.box.h - (height - pad))
-      cost += out * h * 2
-      // Uma linha passando por cima do nome atrapalha menos que outro nome, mas atrapalha.
-      for (const e of edges) {
-        const a = pos.get(e.from)
-        const b = pos.get(e.to)
-        if (a && b && crosses(a, b, o.box)) cost += h * 4
-      }
+  // Fora da área também custa: o nome cortado na borda não se lê.
+  const out = Math.max(0, pad - o.box.x) + Math.max(0, o.box.x + o.box.w - (width - pad)) + Math.max(0, pad - o.box.y) + Math.max(0, o.box.y + o.box.h - (height - pad))
+  cost += out * n.height * 2
+  // Uma linha passando por cima do nome atrapalha menos que outro nome, mas atrapalha.
+  for (const e of segs) if (crosses(e.a, e.b, o.box)) cost += n.height * 4
+  return cost
+}
+
+const circleBox = (p: Point, r: number): Box => ({ x: p.x - r, y: p.y - r, w: 2 * r, h: 2 * r })
+
+function segmentsOf(pos: Map<string, Point>, edges: GraphEdge[]): Seg[] {
+  const segs: Seg[] = []
+  for (const e of edges) {
+    const a = pos.get(e.from)
+    const b = pos.get(e.to)
+    if (a && b) segs.push({ from: e.from, to: e.to, a, b })
+  }
+  return segs
+}
+
+/** Escolhe o melhor lugar do nome de `n` entre os possíveis (o primeiro que não atrapalha em nada, se houver). */
+function bestPlacement(n: LabelNode, p: Point, self: number, labels: (Box | undefined)[], circles: (Box | undefined)[], segs: Seg[], gap: number, bounds: Bounds, from?: Placement): { place: Placement; cost: number } {
+  let best = from
+  let bestCost = from ? placementCost(from, n, self, labels, circles, segs, bounds) : Infinity
+  if (bestCost > 0) {
+    for (const o of labelPlacements(n, p, gap)) {
+      const cost = placementCost(o, n, self, labels, circles, segs, bounds)
       if (cost < bestCost) {
         best = o
         bestCost = cost
         if (cost === 0) break
       }
     }
-    placed.push(best.box)
-    out.set(n.id, best.spot)
   }
+  return { place: best!, cost: bestCost }
+}
+
+function placeAll(nodes: LabelNode[], pos: Map<string, Point>, segs: Seg[], gap: number, bounds: Bounds): { places: (Placement | undefined)[]; labels: (Box | undefined)[]; circles: (Box | undefined)[] } {
+  const places: (Placement | undefined)[] = nodes.map(() => undefined)
+  const labels: (Box | undefined)[] = nodes.map(() => undefined)
+  const circles = nodes.map((n) => {
+    const p = pos.get(n.id)
+    return p ? circleBox(p, n.r) : undefined
+  })
+  nodes.forEach((n, i) => {
+    const p = pos.get(n.id)
+    if (!p) return
+    const { place } = bestPlacement(n, p, i, labels, circles, segs, gap, bounds)
+    places[i] = place
+    labels[i] = place.box
+  })
+  return { places, labels, circles }
+}
+
+/**
+ * Onde escrever o nome de cada bolinha para que os nomes não fiquem uns sobre os outros, sobre
+ * outra bolinha, cortados na borda nem riscados por uma linha: embaixo (o lugar de sempre), em cima,
+ * à direita ou à esquerda, e, se as linhas tomam esses quatro, nos cantos. Na ordem recebida: quem
+ * vem primeiro escolhe primeiro. Sem lugar livre, fica onde atrapalha menos.
+ */
+export function placeLabels(
+  nodes: LabelNode[],
+  pos: Map<string, Point>,
+  { width = Infinity, height = Infinity, gap = 4, pad = 0, edges = [] as GraphEdge[] } = {},
+): Map<string, LabelSpot> {
+  const { places } = placeAll(nodes, pos, segmentsOf(pos, edges), gap, { width, height, pad })
+  const out = new Map<string, LabelSpot>()
+  nodes.forEach((n, i) => {
+    const o = places[i]
+    if (o) out.set(n.id, o.spot)
+  })
   return out
+}
+
+/**
+ * Quantos nomes têm uma linha passando por cima, dado onde cada nome foi posto. (Para medir o desenho
+ * e para os testes; o desenho usa `settleLabels`.)
+ */
+export function crossedLabels(nodes: LabelNode[], pos: Map<string, Point>, spots: Map<string, LabelSpot>, edges: GraphEdge[]): number {
+  const segs = segmentsOf(pos, edges)
+  let count = 0
+  for (const n of nodes) {
+    const p = pos.get(n.id)
+    const s = spots.get(n.id)
+    if (!p || !s) continue
+    const base = n.height * 0.8
+    const x = s.anchor === 'middle' ? p.x + s.dx - n.width / 2 : s.anchor === 'start' ? p.x + s.dx : p.x + s.dx - n.width
+    const box = { x, y: p.y + s.dy - base, w: n.width, h: n.height }
+    if (segs.some((e) => crosses(e.a, e.b, box))) count++
+  }
+  return count
+}
+
+const DIRECTIONS = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [0.7071, 0.7071],
+  [-0.7071, 0.7071],
+  [0.7071, -0.7071],
+  [-0.7071, -0.7071],
+]
+
+/**
+ * Põe os nomes (como `placeLabels`) e, para quem ainda ficou com uma linha passando por cima do nome,
+ * afasta um pouco a bolinha (ou a de quem a linha liga), só se isso tirar a linha do nome sem encostar
+ * em mais nada. Cada bolinha anda no máximo `reach` e nunca sai da área; o nome do outro lado também
+ * é testado a cada passo. Determinístico: o mesmo desenho sai sempre igual. `maxTrials` limita o
+ * trabalho em mundos muito grandes (o que passar disso fica como está).
+ */
+export function settleLabels(
+  nodes: LabelNode[],
+  pos: Map<string, Point>,
+  { width = Infinity, height = Infinity, gap = 4, pad = 0, edges = [] as GraphEdge[], reach = 36, step = 6, spacing = 4, maxTrials = 6000 } = {},
+): { pos: Map<string, Point>; labels: Map<string, LabelSpot> } {
+  const cur = new Map([...pos].map(([id, p]) => [id, { x: p.x, y: p.y }]))
+  const bounds: Bounds = { width, height, pad }
+  const segs = segmentsOf(cur, edges)
+  const incident = new Map<string, Seg[]>()
+  for (const e of segs) {
+    for (const id of e.from === e.to ? [e.from] : [e.from, e.to]) {
+      const list = incident.get(id)
+      if (list) list.push(e)
+      else incident.set(id, [e])
+    }
+  }
+  const { places, labels, circles } = placeAll(nodes, cur, segs, gap, bounds)
+
+  /** Quantas linhas riscam o nome da ficha `i`, ou riscam o nome de outra ao sair dela. */
+  const crossingsAround = (i: number) => {
+    let c = 0
+    const own = labels[i]
+    if (own) for (const e of segs) if (crosses(e.a, e.b, own)) c++
+    for (const e of incident.get(nodes[i].id) ?? []) {
+      for (let j = 0; j < labels.length; j++) {
+        const l = labels[j]
+        if (j !== i && l && crosses(e.a, e.b, l)) c++
+      }
+    }
+    return c
+  }
+  /** Cada nome volta a escolher o melhor lugar, agora sabendo onde estão todos os outros. */
+  const relabel = () => {
+    nodes.forEach((n, i) => {
+      const p = cur.get(n.id)
+      if (!p) return
+      const { place } = bestPlacement(n, p, i, labels, circles, segs, gap, bounds, places[i])
+      places[i] = place
+      labels[i] = place.box
+    })
+  }
+
+  let trials = 0
+  for (let pass = 0; pass < 3 && trials < maxTrials; pass++) {
+    relabel()
+    let moved = false
+    for (let i = 0; i < nodes.length && trials < maxTrials; i++) {
+      const n = nodes[i]
+      const p = cur.get(n.id)
+      if (!p) continue
+      const before = crossingsAround(i)
+      if (before === 0) continue
+      const home = { x: p.x, y: p.y }
+      const homePlace = places[i]!
+      const mine = circles[i]!
+      let best: { x: number; y: number; place: Placement; count: number } | null = null
+      // Do mais perto para o mais longe: no primeiro lugar que deixa tudo limpo, para.
+      search: for (let d = step; d <= reach; d += step) {
+        for (const [ux, uy] of DIRECTIONS) {
+          trials++
+          p.x = home.x + ux * d
+          p.y = home.y + uy * d
+          if (p.x - n.r < pad || p.y - n.r < pad || p.x + n.r > width - pad || p.y + n.r > height - pad) continue
+          mine.x = p.x - n.r
+          mine.y = p.y - n.r
+          const grown = { x: mine.x - spacing, y: mine.y - spacing, w: mine.w + 2 * spacing, h: mine.h + 2 * spacing }
+          let free = true
+          for (let j = 0; j < nodes.length && free; j++) {
+            if (j === i) continue
+            const c = circles[j]
+            const l = labels[j]
+            if ((c && overlap(grown, c) > 0) || (l && overlap(grown, l) > 0)) free = false
+          }
+          if (!free) continue
+          // O nome desta bolinha, no melhor lugar que ela tem ali (sem encostar em mais nada).
+          const { place, cost } = bestPlacement(n, p, i, labels, circles, segs, gap, bounds)
+          if (cost >= 5000) continue
+          labels[i] = place.box
+          const count = crossingsAround(i)
+          if (count < before && (!best || count < best.count)) best = { x: p.x, y: p.y, place, count }
+          if (best?.count === 0) break search
+        }
+      }
+      p.x = best ? best.x : home.x
+      p.y = best ? best.y : home.y
+      mine.x = p.x - n.r
+      mine.y = p.y - n.r
+      places[i] = best ? best.place : homePlace
+      labels[i] = places[i]!.box
+      if (best) moved = true
+    }
+    if (!moved) break
+  }
+  relabel()
+  const out = new Map<string, LabelSpot>()
+  nodes.forEach((n, i) => {
+    const o = places[i]
+    if (o) out.set(n.id, o.spot)
+  })
+  return { pos: cur, labels: out }
 }
 
 export interface SeparateBox {

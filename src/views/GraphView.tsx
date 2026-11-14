@@ -2,9 +2,9 @@ import { bookScope } from '../logic/bookScope'
 import { isLead, nodeRadius, roleIn } from '../logic/roles'
 import { FamilyTree } from './FamilyTree'
 import { familyLinks } from '../logic/family'
-import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
+import { Maximize, Minus, Network, Pause, Play, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { forceLayout, neighborhood, placeLabels, separate, type GraphEdge, type Point } from '../logic/graph'
+import { forceLayout, neighborhood, separate, settleLabels, type GraphEdge, type LabelSpot, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
 import { appearances } from '../logic/reader'
 import { formatDate } from '../logic/calendar'
@@ -125,6 +125,9 @@ export default function GraphView() {
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(new Set())
   const [selected, setSelected] = useState<string | null>(focusId)
   const [hovered, setHovered] = useState<string | null>(null)
+  // A busca (a lupa, no celular): aberta ou não, e a ficha que acabou de ser achada (o anel pulsa um instante).
+  const [findOpen, setFindOpen] = useState(false)
+  const [found, setFound] = useState<string | null>(null)
   const [view, setView] = useState({ x: 0, y: 0, k: 1 })
   const [inTime, setInTime] = useState(false)
   const [sceneIndex, setSceneIndex] = useState(0)
@@ -183,6 +186,37 @@ export default function GraphView() {
     frame.current = 0
     if (live.current) setView(live.current)
     live.current = null
+  }
+  /** Leva o desenho até `next` em meio segundo (sem animar para quem pediu menos movimento). */
+  const fly = useRef<{ id: number; to: { x: number; y: number; k: number } } | null>(null)
+  const flyTo = (next: { x: number; y: number; k: number }) => {
+    if (fly.current) cancelAnimationFrame(fly.current.id)
+    const from = live.current ?? view
+    if (calm()) {
+      fly.current = null
+      setView(next)
+      return
+    }
+    const start = performance.now()
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / 450)
+      const k = ease(t)
+      gRef.current?.setAttribute('transform', transformOf({ x: from.x + (next.x - from.x) * k, y: from.y + (next.y - from.y) * k, k: from.k + (next.k - from.k) * k }))
+      if (t < 1) fly.current = { id: requestAnimationFrame(step), to: next }
+      else {
+        fly.current = null
+        setView(next)
+      }
+    }
+    fly.current = { id: requestAnimationFrame(step), to: next }
+  }
+  /** Um dedo ou o mouse tocou no meio do voo: o desenho para onde ia chegar. */
+  const stopFly = () => {
+    if (!fly.current) return
+    cancelAnimationFrame(fly.current.id)
+    setView(fly.current.to)
+    live.current = fly.current.to
+    fly.current = null
   }
   const endPointer = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId)
@@ -260,6 +294,8 @@ export default function GraphView() {
   const firstSeen = useMemo(() => appearances(scenes, universe.entities).first, [scenes, universe.entities])
   // Fichas novas (que ainda não aparecem em livro nenhum) valem para qualquer livro: a mesma regra de Fichas, Linha do tempo e Mapas.
   const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
+  // Com um livro escolhido, quem não aparece nele nem é ficha nova não entra no mapa (a busca não oferece).
+  const hiddenByBook = useMemo(() => (book ? universe.entities.filter((e) => !firstSeen.has(e.id) && !scope?.inNoBook(e.id)).map((e) => e.id) : []), [universe.entities, book, firstSeen, scope])
   const { nodes, visibleEdges } = useMemo(() => {
     // Com um livro: quem aparece nele e quem ainda não aparece em livro nenhum (fichas novas).
     let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind) && (!book || firstSeen.has(e.id) || Boolean(scope?.inNoBook(e.id)))).map((e) => e.id))
@@ -306,8 +342,10 @@ export default function GraphView() {
     [layoutKey],
   )
   // Depois das forças, uma passada que afasta as fichas até nenhuma bolinha ou nome encostar em outro;
-  // o desenho é então centrado na tela. `local` é o mesmo desenho a partir de (0, 0), do tamanho bw × bh.
-  const { target, local, bw, bh } = useMemo(() => {
+  // depois, os nomes escolhem o lugar (quem tem mais ligações escolhe primeiro) e, se uma linha ainda passa
+  // por cima de um nome, a bolinha se afasta um pouco. O desenho é então centrado na tela. O desenho tem
+  // o tamanho bw × bh.
+  const { target, bw, bh, labels } = useMemo(() => {
     const boxes = new Map(
       nodes.map((n) => {
         const r = radius(n.id)
@@ -315,7 +353,7 @@ export default function GraphView() {
       }),
     )
     const sep = separate(raw, boxes, { gap: narrow ? 8 : 12 })
-    if (!sep.size) return { target: sep, local: sep, bw: W, bh: baseH }
+    if (!sep.size) return { target: sep, bw: W, bh: baseH, labels: new Map<string, LabelSpot>() }
     let x0 = Infinity
     let y0 = Infinity
     let x1 = -Infinity
@@ -328,12 +366,19 @@ export default function GraphView() {
       y1 = Math.max(y1, p.y + b.top + b.h)
     }
     const M = 16
-    const local = new Map([...sep].map(([id, p]) => [id, { x: p.x - x0 + M, y: p.y - y0 + M }]))
+    const spread = new Map([...sep].map(([id, p]) => [id, { x: p.x - x0 + M, y: p.y - y0 + M }]))
     const bw = x1 - x0 + 2 * M
     const bh = y1 - y0 + 2 * M
+    const { pos: local, labels } = settleLabels(
+      [...nodes]
+        .sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0))
+        .map((n) => ({ id: n.id, width: labelWidth(n.name), height: LABEL_SIZE * 1.3, r: radius(n.id) })),
+      spread,
+      { width: bw, height: bh, pad: 4, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
+    )
     const dx = (W - bw) / 2
     const dy = (baseH - bh) / 2
-    return { target: new Map([...local].map(([id, p]) => [id, { x: p.x + dx, y: p.y + dy }])), local, bw, bh }
+    return { target: new Map([...local].map(([id, p]) => [id, { x: p.x + dx, y: p.y + dy }])), bw, bh, labels }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [raw, sizeKey, leadKey])
   /** O zoom que mostra o desenho inteiro. */
@@ -347,19 +392,31 @@ export default function GraphView() {
   const active = (e: Edge) => !e.relation || activeAt(e.relation, scene)
   const liveIds = new Set(visibleEdges.filter(active).flatMap((e) => [e.from, e.to]))
 
-  // Os nomes desviam uns dos outros e das bolinhas; quem tem mais ligações escolhe o lugar primeiro.
-  const labels = useMemo(
-    () =>
-      placeLabels(
-        [...nodes]
-          .sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0))
-          .map((n) => ({ id: n.id, width: labelWidth(n.name), height: LABEL_SIZE * 1.3, r: radius(n.id) })),
-        local,
-        { width: bw, height: bh, pad: 4, edges: visibleEdges.filter((e) => e.kind !== 'por-tras') },
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [local, nodes, leadKey],
-  )
+  // A lupa: o desenho vai até a ficha (se ela está no mapa) e a destaca; se não está (um filtro, nenhuma ligação,
+  // ainda não apareceu na história), mostra só ela e quem se liga a ela, como "Centrar numa ficha".
+  const foundTimer = useRef(0)
+  const find = (id: string) => {
+    setFindOpen(false)
+    setSelected(id)
+    setFound(id)
+    clearTimeout(foundTimer.current)
+    foundTimer.current = window.setTimeout(() => setFound(null), 2200)
+    const spot = shownNodes.some((n) => n.id === id) ? target.get(id) : undefined
+    if (!spot) {
+      const kind = universe.entities.find((e) => e.id === id)?.kind
+      if (kind && hiddenKinds.has(kind)) setHiddenKinds((h) => new Set([...h].filter((k) => k !== kind)))
+      if (inTime && !appeared(id)) setInTime(false)
+      setFocusId(id)
+      setView({ x: 0, y: 0, k: 1 })
+      return
+    }
+    // A ficha vai para a parte de cima da tela: o cartão dela abre embaixo (no celular) e não a cobre.
+    const k = Math.min(2, Math.max(1, view.k))
+    const cy = narrow ? H * 0.27 : H / 2
+    flyTo({ k, x: k * (W / 2 - spot.x), y: cy - H / 2 - k * (spot.y - H / 2) })
+  }
+  useEffect(() => () => clearTimeout(foundTimer.current), [])
+
   const kinds = [...new Set(universe.entities.map((e) => e.kind))]
   const sel = selected ? byId(universe, 'entities', selected) : undefined
   const focus = hovered ?? selected
@@ -382,6 +439,9 @@ export default function GraphView() {
         {/* No celular, o grafo vem primeiro: os filtros ficam atrás deste botão. */}
         {universe.relations.length > 0 && <button type="button" className="btn btn-sm graph-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
           <SlidersHorizontal size={14} aria-hidden="true" /> Filtros{filterCount > 0 && <span className="chip-count"> {filterCount}</span>}
+        </button>}
+        {nodes.length > 0 && <button type="button" className="btn btn-sm graph-find-btn" aria-expanded={findOpen} aria-controls="graph-find" onClick={() => setFindOpen(!findOpen)}>
+          <Search size={14} aria-hidden="true" /> Achar ficha
         </button>}
         <div className="graph-controls">
           <EntityPicker
@@ -413,6 +473,25 @@ export default function GraphView() {
           )}
         </div>
       </header>
+
+      {findOpen && (
+        <div
+          id="graph-find"
+          className="graph-find"
+          role="search"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.stopPropagation()
+              setFindOpen(false)
+            }
+          }}
+        >
+          <EntityPicker label="Achar uma ficha" hideLabel placeholder="Achar uma ficha pelo nome…" value={null} allowCreate={false} autoFocus exclude={hiddenByBook} onChange={(id) => id && find(id)} />
+          <button type="button" className="btn-icon" aria-label="Fechar a busca" onClick={() => setFindOpen(false)}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {hasFamily && (
         <div className="segmented graph-mode" role="radiogroup" aria-label="Como ver">
@@ -564,6 +643,7 @@ export default function GraphView() {
             role="group"
             aria-label={`Grafo com ${shownNodes.length} fichas e ${visibleEdges.filter((e) => active(e) && appeared(e.from) && appeared(e.to)).length} ligações`}
             onPointerDown={(e) => {
+              stopFly()
               // Arrastar o grafo nunca seleciona texto (no app do Claude, texto selecionado abre uma camada que escurece a tela).
               e.preventDefault()
               getSelection()?.removeAllRanges()
@@ -619,7 +699,8 @@ export default function GraphView() {
               endPointer(e)
             }}
             onPointerCancel={endPointer}
-            onLostPointerCapture={endPointer}
+            // Começar o arrasto solta a captura que o toque tinha na bolinha de baixo (o aviso sobe até aqui): isso não é o fim do gesto.
+            onLostPointerCapture={(e) => e.target === e.currentTarget && endPointer(e)}
           >
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -684,6 +765,7 @@ export default function GraphView() {
                     dim={inTime && !liveIds.has(n.id)}
                     isNew={inTime && firstSeen.get(n.id) === sceneAt}
                     hl={highlight ? highlight.has(n.id) : false}
+                    found={n.id === found}
                     labelDx={spot?.dx ?? 0}
                     labelDy={spot?.dy ?? r + 17}
                     labelAnchor={spot?.anchor ?? 'middle'}

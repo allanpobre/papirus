@@ -3,6 +3,7 @@ import { CalendarRange, Dices, Feather, Plus, Trash2, SlidersHorizontal } from '
 import { useMemo, useState } from 'react'
 import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
+import { placesInRegion, placesWithin, regionChoices } from '../logic/placeScope'
 import { formatYear } from '../model/labels'
 import type { Session, TimelineEvent, Universe } from '../model/schema'
 import { bookScenes, byId, draftEvent, entityName, insert, patch, remove, sceneTitle } from '../model/universe'
@@ -24,6 +25,14 @@ export default function TimelineView() {
     return age === null ? entityName(universe, id) : `${entityName(universe, id)} (${ageLabel(age)})`
   }
   const [filterIds, setFilterIds] = useState<string[]>([])
+  // Onde aconteceu: um lugar (com o que fica dentro dele) e/ou uma região pintada no mapa. Valem juntos.
+  const [placeId, setPlaceId] = useState<string | null>(null)
+  const [regionKey, setRegionKey] = useState('')
+  const regions = useMemo(() => regionChoices(universe), [universe])
+  // Uma região apagada no mapa deixa de filtrar (e some da lista).
+  const region = regions.some((r) => r.key === regionKey) ? regionKey : ''
+  const placeSets = useMemo(() => [...(placeId ? [placesWithin(universe, placeId)] : []), ...(region ? [placesInRegion(universe, region)] : [])], [universe, placeId, region])
+  const atPlace = (id: string | null) => placeSets.every((set) => id !== null && set.has(id))
   const [minImportance, setMinImportance] = useState(1)
   const [showScenes, setShowScenes] = useState(true)
   const [editing, setEditing] = useState<string | null>(nav.view === 'timeline' ? (nav.id ?? null) : null)
@@ -40,15 +49,18 @@ export default function TimelineView() {
       universe.events
         .filter((e) => e.kind === 'evento' && e.importance >= minImportance)
         .filter((e) => eventBelongs(e, scope))
-        .filter((e) => filterIds.length === 0 || filterIds.some((id) => e.entityIds.includes(id) || e.placeId === id)),
-    [universe.events, minImportance, filterIds, scope],
+        .filter((e) => filterIds.length === 0 || filterIds.some((id) => e.entityIds.includes(id) || e.placeId === id))
+        .filter((e) => atPlace(e.placeId)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [universe.events, minImportance, filterIds, scope, placeSets],
   )
   const scenes = showScenes
     ? bookScenes(universe, bookId).filter((s) => s.date && (filterIds.length === 0 || filterIds.some((id) => s.presentIds.includes(id) || s.povId === id || s.placeId === id)))
+        .filter((s) => atPlace(s.placeId))
     : []
 
   // As sessões de jogo com ano no mundo entram junto das cenas (vale o mesmo "Mostrar cenas e sessões").
-  const sessions = showScenes && filterIds.length === 0 ? universe.sessions.filter((s) => s.worldYear !== null && s.status !== 'planejada') : []
+  const sessions = showScenes && filterIds.length === 0 && placeSets.length === 0 ? universe.sessions.filter((s) => s.worldYear !== null && s.status !== 'planejada') : []
 
   type Row =
     | { year: number; day: number | null; kind: 'evento'; ev: TimelineEvent }
@@ -92,7 +104,7 @@ export default function TimelineView() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   // Sem nenhum evento nem cena com data, não há o que filtrar.
   const nothingYet = universe.events.length === 0 && !universe.scenes.some((s) => s.date)
-  const activeFilters = (filterIds.length ? 1 : 0) + (minImportance > 1 ? 1 : 0) + (showScenes ? 0 : 1)
+  const activeFilters = (filterIds.length ? 1 : 0) + (placeId ? 1 : 0) + (region ? 1 : 0) + (minImportance > 1 ? 1 : 0) + (showScenes ? 0 : 1)
 
   return (
     <div className="view timeline-view">
@@ -117,6 +129,14 @@ export default function TimelineView() {
         <div className="timeline-filter-entities">
           <EntityMultiPicker label="Mostrar só o que envolve" value={filterIds} onChange={setFilterIds} placeholder="Filtrar por ficha…" />
         </div>
+        <div className="timeline-filter-place">
+          <EntityPicker label="Onde aconteceu" kinds={['lugar', 'reino']} value={placeId} onChange={setPlaceId} allowCreate={false} placeholder="Um lugar (e o que fica dentro dele)…" />
+        </div>
+        {regions.length > 0 && (
+          <Field label="Região do mapa">
+            {(id) => <Select id={id} value={region} onChange={setRegionKey} options={[{ value: '', label: 'Qualquer lugar' }, ...regions.map((r) => ({ value: r.key, label: r.label }))]} />}
+          </Field>
+        )}
         <Field label="Importância mínima">
           {(id) => (
             <Select

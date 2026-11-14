@@ -24,8 +24,8 @@ export function WikiLinkPage({ universe, ownerEmail, server }: { universe: Unive
     let alive = true
     void (async () => {
       try {
-        const [{ buildWiki }, images] = await Promise.all([import('../export/wiki'), wikiImages(universe)])
-        if (alive) setHtml(buildWiki(universe, { upTo: null, images }).html)
+        const [{ buildWiki, linkUpTo }, images] = await Promise.all([import('../export/wiki'), wikiImages(universe)])
+        if (alive) setHtml(buildWiki(universe, { upTo: linkUpTo(universe), images }).html)
       } catch {
         if (alive) setFailed(true)
       }

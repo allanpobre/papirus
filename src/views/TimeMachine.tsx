@@ -1,10 +1,10 @@
-import { Hourglass, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Hourglass, Minus, Plus, X } from 'lucide-react'
+import { useMemo } from 'react'
 import { ageLabel } from '../logic/age'
 import { worldAt, worldBounds } from '../logic/timeMachine'
 import { formatYear, kindLabel } from '../model/labels'
 import { useWorkspace } from '../state/workspace'
-import { chosenYear, rememberYear } from './timeYear'
+import { useChosenYear } from './timeYear'
 
 /**
  * Máquina do tempo: arraste os anos e veja o mundo naquele momento — quem vivia (com a idade),
@@ -13,15 +13,11 @@ import { chosenYear, rememberYear } from './timeYear'
 export function TimeMachine() {
   const { universe, go } = useWorkspace()
   const bounds = useMemo(() => worldBounds(universe), [universe])
-  const [year, setYearState] = useState<number | null>(() => chosenYear(universe.id))
+  const [year, setYear] = useChosenYear(universe.id)
   const suffix = universe.settings.calendarSuffix
   const shown = year ?? bounds?.min ?? 0
   const at = useMemo(() => (year === null ? null : worldAt(universe, year)), [universe, year])
   if (!bounds) return null
-  const setYear = (y: number | null) => {
-    setYearState(y)
-    rememberYear(universe.id, y)
-  }
   const fy = (y: number) => formatYear(y, suffix)
 
   return (
@@ -31,7 +27,7 @@ export function TimeMachine() {
           <Hourglass size={16} aria-hidden="true" /> Máquina do tempo
         </h2>
         {year !== null && (
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setYear(null)}>
+          <button type="button" className="btn btn-sm time-machine-exit" onClick={() => setYear(null)}>
             <X size={14} aria-hidden="true" /> Sair do ano
           </button>
         )}
@@ -40,6 +36,7 @@ export function TimeMachine() {
         <span className="tiny muted tabular">{fy(bounds.min)}</span>
         <input
           type="range"
+          className="time-machine-ruler"
           aria-label="Ano"
           min={bounds.min}
           max={bounds.max}
@@ -47,17 +44,26 @@ export function TimeMachine() {
           onChange={(e) => setYear(Number(e.target.value))}
         />
         <span className="tiny muted tabular">{fy(bounds.max)}</span>
-        <input
-          className="input time-machine-year tabular"
-          type="number"
-          aria-label="Ir para o ano"
-          value={year ?? ''}
-          placeholder="Ano"
-          onChange={(e) => setYear(e.target.value === '' ? null : Number(e.target.value))}
-        />
+        <div className="time-machine-steps">
+          <button type="button" className="btn-icon time-machine-step" aria-label="Um ano antes" onClick={() => setYear(Math.max(bounds.min, shown - 1))}>
+            <Minus size={18} />
+          </button>
+          <input
+            className="input time-machine-year tabular"
+            type="number"
+            inputMode="numeric"
+            aria-label="Ir para o ano"
+            value={year ?? ''}
+            placeholder="Ano"
+            onChange={(e) => setYear(e.target.value === '' ? null : Number(e.target.value))}
+          />
+          <button type="button" className="btn-icon time-machine-step" aria-label="Um ano depois" onClick={() => setYear(Math.min(bounds.max, shown + 1))}>
+            <Plus size={18} />
+          </button>
+        </div>
       </div>
       {at === null ? (
-        <p className="muted small">Arraste para ver o mundo num ano: quem vivia e com que idade, quem mandava, o que existia. Os Mapas também apagam o que ainda não existia.</p>
+        <p className="muted small">Arraste a régua para ver o mundo num ano: quem vivia e com que idade, quem mandava, o que existia. As Fichas e os Mapas também mostram só o que existia nele.</p>
       ) : (
         <div className="time-machine-out">
           <p className="time-machine-year-label">

@@ -17,6 +17,8 @@ interface Props {
   hideLabel?: boolean
   exclude?: string[]
   allowCreate?: boolean
+  /** Já abre com o cursor no campo (e a lista aberta). */
+  autoFocus?: boolean
 }
 
 /**
@@ -32,6 +34,7 @@ export function EntityPicker({
   hideLabel,
   exclude = [],
   allowCreate = true,
+  autoFocus,
 }: Props) {
   const { universe, update } = useWorkspace()
   const [query, setQuery] = useState('')
@@ -93,6 +96,7 @@ export function EntityPicker({
             ref={inputRef}
             id={inputId}
             className="input"
+            autoFocus={autoFocus}
             role="combobox"
             aria-expanded={open}
             aria-controls={listId}
