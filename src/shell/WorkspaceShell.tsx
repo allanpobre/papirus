@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { relativeDate } from '../logic/relativeDate'
 import { canCreateAU, createAU } from '../logic/au'
 import { AUBanner } from '../views/AUBanner'
@@ -738,7 +739,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
             {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
             {BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
-            <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
+            {/* Cada área tem o seu próprio aviso de erro: se uma tela quebrar, o menu e o resto do app continuam. */}
+            <ErrorBoundary resetKey={nav.view} label="Esta parte deu erro" onHome={nav.view === 'inicio' ? undefined : () => go('inicio')} copyDetails>
+              <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
+            </ErrorBoundary>
           </Suspense>
         </main>
 
