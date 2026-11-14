@@ -10167,6 +10167,85 @@ h3.cork-act {
   .whois-open {
     justify-self: start;
   }
+
+  /* Pedir a confirmação ocupa a linha toda, em vez de espremer o nome. */
+  .whois-pick:has(.confirm) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'label' 'remove' 'pick' 'open';
+  }
+}
+
+/* Quem é, no dedo: escolher a opção, ver o que passa e marcar uma exceção sem acertar em alvos de 20 px. */
+.whois-from {
+  margin: 0.15rem 0 0;
+}
+
+.whois-remove .confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
+@media (max-width: 760px) {
+  .whois-pick > select.select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .whois-pick .btn,
+  .whois-add .btn,
+  .whois-add .chip,
+  .whois-pick .btn-icon {
+    min-height: 40px;
+  }
+
+  .whois-remove .btn-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Cada característica em linhas: o nome, depois o valor e o botão da exceção; na exceção, o padrão riscado e o campo inteiro. */
+  .whois-traits {
+    gap: 0.5rem;
+  }
+
+  .whois-traits li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.1rem 0.5rem;
+  }
+
+  .whois-traits li > .whois-key {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+  }
+
+  .whois-traits li > .whois-value {
+    grid-column: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .whois-traits li > .whois-act {
+    grid-column: 2;
+    min-height: 40px;
+  }
+
+  .whois-traits .is-exception > .whois-rule,
+  .whois-traits .is-exception > .input,
+  .whois-traits .is-exception > .whois-act {
+    grid-column: 1 / -1;
+  }
+
+  .whois-traits .is-exception > .input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .whois-traits .is-exception > .whois-act {
+    justify-self: start;
+  }
 }
 
 /* ---------------------------------------------------------------- Acabamento: barras de ferramentas */
