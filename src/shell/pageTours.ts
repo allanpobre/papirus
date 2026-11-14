@@ -253,6 +253,7 @@ export const PAGE_TOURS = {
         body: 'Qualquer ficha junta outras com o nome que você quiser: as Raças e Criaturas de um reino, os Membros de um clã. “Adicionar” põe várias de uma vez. O que todos de uma lista têm aparece na ficha de cada um, com “de onde veio” ao lado.',
         optional: true,
       },
+      { target: '.language-editor', title: 'Idioma', body: 'Num povo ou cultura (e em qualquer opção do “Quem é”), anote as sílabas do idioma. Ao criar uma ficha, “Sugerir nomes” pode montar nomes no estilo dele.', optional: true },
       { target: '.kv-typed', title: 'Campos com tipo', body: 'Cada campo pode ser texto, número, ano ou uma ficha. “Mãe: Ilsa” leva à ficha da Ilsa e vira ligação dos dois lados.', optional: true },
       { title: 'Fichas nascem do texto também', body: 'No Escrever, selecione um nome e escolha “Ficha”. E os nomes novos que você ainda não cadastrou aparecem no botão Revisar da margem.' },
     ],

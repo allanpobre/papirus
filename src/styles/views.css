@@ -5631,6 +5631,19 @@ button.arc-dot {
   gap: 0.3rem;
 }
 
+/* A escolha do povo (ou cultura) de cujo idioma vêm os nomes. Na linha curta de criar, só depois do primeiro sorteio. */
+.name-ideas-culture {
+  max-width: 14rem;
+}
+
+.name-ideas.is-compact:not(.has-names) .name-ideas-culture {
+  display: none;
+}
+
+.language-tries {
+  margin: 0.4rem 0 0;
+}
+
 /* Desafio do dia e progresso (Início). */
 .play-challenge .eyebrow,
 .play-progress .eyebrow {
