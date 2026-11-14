@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { pagedDocument } from './pagedDocument'
 import { downloadText, fileNameFor } from '../export/download'
 import { BOOK_PRESETS, PAGE_SIZES, alsoByTitles, bookTitle, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
-import { PAPERS, charsPerLine, cm, coverTemplateSvg, lineComfort, mm, spineMm, wrapSize, type Paper } from '../export/printCover'
+import { PAPERS, charsPerLine, cm, coverTemplateSvg, lineComfort, mm, spineMm, wrapBreakdown, wrapSize, type Paper } from '../export/printCover'
 import { BOOK_FONTS, fontFaces } from '../export/bookFonts'
 import { shelf, styleOf, updateBook } from '../export/shelf'
 import { downloadEpub } from './epubDownload'
@@ -495,7 +495,10 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
             ) : (
               (() => {
                 const size = wrapSize(design, pages, paper)
+                const conta = wrapBreakdown(design, pages, paper)
+                const n = (x: number, digits = 1) => x.toLocaleString('pt-BR', { maximumFractionDigits: digits })
                 return (
+                  <>
                   <dl className="book-wrap-size">
                     <div>
                       <dt>Lombada</dt>
@@ -508,6 +511,25 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
                       </dd>
                     </div>
                   </dl>
+                  <details className="book-wrap-why">
+                    <summary>De onde vêm estas medidas?</summary>
+                    <ul className="small">
+                      <li>
+                        <strong>Lombada</strong>: o livro tem {conta.pages} páginas{conta.even !== conta.pages ? `; o papel sai em folhas de duas, então contam ${conta.even}` : ''}. Cada página, no papel {PAPERS[paper].label.toLowerCase()}, tem {n(conta.perPage, 3)} mm de espessura:{' '}
+                        {conta.even} × {n(conta.perPage, 3)} mm = {n(conta.spine)} mm.
+                      </li>
+                      <li>
+                        <strong>Largura da capa inteira</strong>: sangria {n(conta.bleed, 2)} mm + contracapa {n(conta.pageWidth)} mm + lombada {n(conta.spine)} mm + capa {n(conta.pageWidth)} mm + sangria {n(conta.bleed, 2)} mm = {n(conta.width)} mm.
+                      </li>
+                      <li>
+                        <strong>Altura</strong>: sangria {n(conta.bleed, 2)} mm + {n(conta.pageHeight)} mm do livro + sangria {n(conta.bleed, 2)} mm = {n(conta.height)} mm.
+                      </li>
+                      <li>
+                        A <strong>sangria</strong> é o que passa do corte (3,2 mm, 1/8 de polegada) para a cor não deixar uma faixa branca se o corte variar.
+                      </li>
+                    </ul>
+                  </details>
+                  </>
                 )
               })()
             )}
