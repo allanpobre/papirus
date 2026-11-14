@@ -10670,3 +10670,26 @@ h3.cork-act {
   gap: 0.4rem 1.2rem;
   margin: 0.4rem 0 0.2rem;
 }
+
+
+/* Presença (a tabela larga): a coluna das cenas fica presa à esquerda enquanto se rola de lado; no celular, mais estreita. */
+.matrix thead th:first-child,
+.matrix th[scope='row'] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--paper);
+  box-shadow: 1px 0 0 var(--line);
+}
+@media (max-width: 760px) {
+  .matrix th[scope='row'] {
+    max-width: 9.5rem;
+  }
+  .matrix th[scope='row'] .link-btn {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
+}

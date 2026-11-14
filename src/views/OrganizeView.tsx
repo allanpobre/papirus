@@ -1,6 +1,7 @@
 import { GripVertical, PanelsTopLeft } from 'lucide-react'
+import { autoScrollSpeed } from '../logic/autoScroll'
 import { tabListKeys } from '../ui/keys'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { mapNotices, promiseLines, STRUCTURE_LABEL, STRUCTURES, storyMap, withoutCard, type MapNotice, type MapScene, type PromiseLine, type Structure } from '../logic/map'
 import { longestAbsence, presenceMatrix } from '../logic/stats'
 import { SCENE_STATUS_LABEL, SEED_STATUS_LABEL } from '../model/labels'
@@ -90,7 +91,42 @@ function Corkboard() {
   const drop = () => {
     if (drag) update((u) => placeScene(u, drag.id, drag.story, drag.before))
     setDrag(null)
+    point.current = null
   }
+  // Perto da borda de cima ou de baixo, a tela rola sozinha enquanto o dedo segura o cartão (senão, no celular, não dá para
+  // levar uma cena para longe: arrastando, a página não rola). O alvo é refeito a cada quadro, com o dedo parado.
+  const point = useRef<{ x: number; y: number } | null>(null)
+  const targetRef = useRef(target)
+  useEffect(() => {
+    targetRef.current = target
+  })
+  const dragging = drag !== null
+  useEffect(() => {
+    if (!dragging) return
+    let frame = 0
+    const tick = () => {
+      const p = point.current
+      if (p) {
+        const board = document.querySelector<HTMLElement>('.corkboard')
+        const scroller = board ? scrollParent(board) : null
+        if (scroller) {
+          const box = scroller === document.scrollingElement ? { top: 0, bottom: innerHeight } : scroller.getBoundingClientRect()
+          // Em cima, o começo da área; embaixo, o que sobra acima da barra do celular.
+          const top = Math.max(box.top, 0)
+          const bottom = Math.min(box.bottom, document.querySelector('.rail-phone')?.getBoundingClientRect().top ?? innerHeight)
+          const speed = autoScrollSpeed(p.y, top, bottom)
+          if (speed) {
+            scroller.scrollBy(0, speed)
+            const t = targetRef.current(p.x, p.y)
+            if (t) setDrag((d) => (d && (t.story !== d.story || t.before !== d.before) ? { ...d, ...t } : d))
+          }
+        }
+      }
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [dragging])
   return (
     <div className={`corkboard${drag ? ' is-dragging' : ''}`}>
       {groups.map((g) => {
@@ -147,15 +183,20 @@ function Corkboard() {
           onPointerDown={(e) => {
             e.preventDefault()
             ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+            point.current = { x: e.clientX, y: e.clientY }
             setDrag({ id: s.id, story: g.id, before: scenes[i + 1]?.id ?? null })
           }}
           onPointerMove={(e) => {
             if (!drag) return
+            point.current = { x: e.clientX, y: e.clientY }
             const t = target(e.clientX, e.clientY)
             if (t && (t.story !== drag.story || t.before !== drag.before)) setDrag({ ...drag, ...t })
           }}
           onPointerUp={drop}
-          onPointerCancel={() => setDrag(null)}
+          onPointerCancel={() => {
+            setDrag(null)
+            point.current = null
+          }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
               e.preventDefault()
@@ -197,6 +238,15 @@ function Corkboard() {
       </li>
     )
   }
+}
+
+/** O elemento que rola com a página (o primeiro pai com rolagem; senão, a própria página). */
+function scrollParent(el: HTMLElement): HTMLElement {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY
+    if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p
+  }
+  return (document.scrollingElement as HTMLElement) ?? document.documentElement
 }
 
 const pct = (x: number) => `${(x * 100).toFixed(2)}%`
