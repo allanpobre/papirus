@@ -574,6 +574,10 @@
   flex: 1 1 320px;
 }
 
+.timeline-filter-place {
+  flex: 1 1 240px;
+}
+
 .era-strip {
   position: relative;
   height: 78px;
@@ -788,6 +792,8 @@
 .atlas-scroll {
   position: relative;
   overflow: auto;
+  /* O toque move e aproxima o mapa direto (src/ui/useScrollPinch.ts); o mouse segue com a rolagem. */
+  touch-action: none;
   max-height: calc(100vh - 13rem);
   border: 1px solid var(--line);
   border-radius: var(--radius-l);
@@ -5365,6 +5371,39 @@ button.arc-dot {
 .family {
   display: block;
   max-width: none;
+  /* O dedo move o desenho (não rola a página); o nome não é selecionado ao arrastar. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.family:active {
+  cursor: grabbing;
+}
+
+/* A área da árvore: do tamanho do desenho aberto, com os botões de zoom no canto. */
+.family-stage {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.family-zoom {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+}
+
+.family-hint {
+  margin: 0.5rem 0 0;
 }
 
 .family path,
@@ -7689,13 +7728,30 @@ button.fight-line {
 }
 
 /* Ligações: no computador, os filtros ficam à vista; no celular, atrás do botão "Filtros". */
-.graph-filters-btn {
+.graph-filters-btn,
+.graph-find-btn,
+.graph-find {
   display: none;
 }
 
 @media (max-width: 760px) {
-  .graph-filters-btn {
+  .graph-filters-btn,
+  .graph-find-btn {
     display: inline-flex;
+  }
+
+  /* A lupa: a busca de uma ficha fica à vista, sem abrir os filtros. */
+  .graph-find {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .graph-find .picker {
+    flex: 1;
+    width: auto;
+    min-width: 0;
   }
 
   .graph-view:not(.filters-open) .graph-controls,
@@ -9259,6 +9315,107 @@ h3.cork-act {
 .time-machine-year {
   width: 6.5rem;
   flex: none;
+}
+
+.time-machine-steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* O aviso de que as Fichas mostram só o que existia no ano escolhido, com a saída à vista. */
+.year-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.7rem;
+  margin: 0 0 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  font-size: 0.88rem;
+}
+
+.year-banner-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.year-banner-exit {
+  margin-left: auto;
+}
+
+/* No celular: a régua é grande para o dedo (a bolinha e a faixa), os botões − e + têm o tamanho de um toque,
+   e a régua ocupa uma linha inteira. */
+@media (max-width: 760px) {
+  .time-machine-ctrl {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  .time-machine-ctrl input.time-machine-ruler {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 44px;
+    margin: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    touch-action: pan-y;
+  }
+
+  .time-machine-ctrl .time-machine-ruler::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 25%, var(--line));
+  }
+
+  .time-machine-ctrl .time-machine-ruler::-moz-range-track {
+    height: 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 25%, var(--line));
+  }
+
+  .time-machine-ctrl .time-machine-ruler::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 34px;
+    height: 34px;
+    margin-top: -12px;
+    border-radius: 50%;
+    border: 3px solid var(--paper);
+    background: var(--accent);
+    box-shadow: var(--shadow-2);
+  }
+
+  .time-machine-ctrl .time-machine-ruler::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid var(--paper);
+    background: var(--accent);
+    box-shadow: var(--shadow-2);
+  }
+
+  .time-machine-step {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--surface);
+  }
+
+  /* Os botões − e + e o ano numa linha própria, no meio. */
+  .time-machine-steps {
+    flex: 1 1 100%;
+    justify-content: center;
+    gap: 0.8rem;
+  }
+
+  .time-machine-exit {
+    min-height: 40px;
+  }
 }
 
 .time-machine-out {
@@ -10867,4 +11024,28 @@ h3.cork-act {
   flex-wrap: wrap;
   gap: 0.4rem;
   justify-content: center;
+}
+
+/* A ficha que a busca acabou de achar: o anel pulsa um instante (parado, para quem pediu menos movimento). */
+.node.found .node-ring {
+  opacity: 1;
+  stroke-width: 3;
+  animation: node-found 0.9s ease-out 2;
+}
+
+@keyframes node-found {
+  from {
+    stroke-width: 9;
+    opacity: 0.2;
+  }
+  to {
+    stroke-width: 3;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node.found .node-ring {
+    animation: none;
+  }
 }
