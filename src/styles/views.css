@@ -10693,3 +10693,89 @@ h3.cork-act {
     text-align: left;
   }
 }
+
+
+/* Tabela de fichas no celular: rola de lado, a coluna do nome fica presa à esquerda, e o toque edita a célula. */
+.entity-table-wrap .table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.entity-table thead th:first-child,
+.entity-table tbody th[scope='row'] {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface);
+  box-shadow: 1px 0 0 var(--line);
+}
+.entity-table thead th:first-child {
+  background: var(--surface-2);
+}
+.table-rename {
+  display: none;
+}
+@media (pointer: coarse) {
+  .table-rename {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-left: 0.15rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: transparent;
+    color: var(--muted);
+    vertical-align: middle;
+  }
+  .table-cell {
+    min-height: 2.2rem;
+  }
+}
+@media (max-width: 760px) {
+  /* Sem ficha aberta, a tabela ocupa a tela (a lista fica escondida atrás dos filtros). */
+  .fichas-view.is-table:not(.has-detail) > .split-detail {
+    display: block;
+  }
+  .fichas-view.is-table:not(.has-detail) > .split-list .entity-list {
+    display: none;
+  }
+  .entity-table tbody th[scope='row'] {
+    max-width: 10.5rem;
+    overflow: hidden;
+  }
+  .entity-table td {
+    min-width: 6.5rem;
+  }
+}
+
+.table-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.table-name-cell .table-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+.table-name-cell .table-rename {
+  flex: none;
+}
+@media (max-width: 520px) {
+  /* Procurar, tipo, papel e ordem: a busca ocupa a primeira linha inteira e os filtros vêm embaixo. */
+  .fichas-view .list-tools {
+    flex-wrap: wrap;
+  }
+  .fichas-view .list-tools > .input {
+    flex: 1 1 100%;
+  }
+  .fichas-view .list-tools > .select {
+    flex: 1 1 0;
+    min-width: 5.5rem;
+    max-width: none;
+  }
+}

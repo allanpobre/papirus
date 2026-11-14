@@ -92,7 +92,8 @@ export default function EntitiesView() {
     remember('mundo-vista', l)
     setPicked(null)
   }
-  const table = layout === 'tabela' && !phone
+  // A tabela também vale no celular (rola de lado, com a coluna do nome presa); abrindo uma ficha, a tela é a dela.
+  const table = layout === 'tabela'
   const templates = templatesOf(universe)
   const fromTemplate = (t: (typeof templates)[number]) => {
     let id = ''
@@ -269,7 +270,7 @@ export default function EntitiesView() {
           />
         </div>
         <div className="list-modes">
-          {!phone && (
+          {
             <div className="segmented" role="radiogroup" aria-label="Vista do Mundo">
               <button type="button" role="radio" aria-checked={!table} onClick={() => changeLayout('lista')}>
                 Lista
@@ -278,7 +279,7 @@ export default function EntitiesView() {
                 Tabela
               </button>
             </div>
-          )}
+          }
           {!readOnly && !table && (
             <button type="button" className="btn btn-ghost btn-sm" aria-pressed={picked !== null} onClick={() => setPicked(picked ? null : new Set())}>
               {picked ? 'Pronto' : 'Selecionar'}
