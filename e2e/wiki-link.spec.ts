@@ -58,6 +58,13 @@ test('wiki com link: o dono pega o link na página Wiki, e quem abre vê a wiki 
   await expect(wiki.getByText('Ninguém em Ostria sabe que ele sobreviveu')).toHaveCount(0)
   await expect(wiki.getByText('Último príncipe da Casa de Vaelor')).toHaveCount(0)
   await expect(reader.getByRole('button', { name: 'Baixar' })).toBeEnabled()
+  // No celular, a wiki ocupa a tela inteira (sem rolagem de lado, sem faixa vazia) e a busca e o Índice estão à mão.
+  expect(await reader.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  const quadro = (await reader.locator('iframe.wiki-link-frame').boundingBox())!
+  expect(quadro.width).toBeGreaterThanOrEqual(388)
+  expect(quadro.height).toBeGreaterThan(600)
+  await expect(wiki.locator('#busca')).toBeVisible()
+  await expect(wiki.locator('#menu')).toBeVisible()
 
   // Desligado o link, a wiki para de abrir.
   await page.getByRole('button', { name: 'Compartilhar', exact: true }).first().click()

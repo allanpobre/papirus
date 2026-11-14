@@ -266,6 +266,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
 .sans,nav,.bar,.kind,.meta,dt,.when,.small,.card small,.pager,footer,h3,.group,.kicker{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
 .bar{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;padding:10px 20px;background:var(--bar-bg);color:var(--bar-ink);border-bottom:1px solid var(--bar-line)}
 .bar .home{color:var(--bar-ink);text-decoration:none;font:600 1.05rem/1.2 var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0}
+.bar .home-short{display:none}
 .bar input{flex:0 1 280px;min-width:0;padding:9px 14px;border:1px solid var(--bar-line);border-radius:999px;background:var(--bar-field);color:var(--ink);font:15px system-ui,sans-serif}
 .bar button{display:none;min-height:40px;padding:0 14px;border:1px solid var(--bar-line);border-radius:999px;background:transparent;color:var(--bar-ink);font:600 14px system-ui,sans-serif}
 .wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:36px;max-width:1180px;margin:0 auto;padding:28px 20px 56px}
@@ -311,14 +312,16 @@ figcaption{color:var(--muted);font:14px system-ui,sans-serif;margin-top:6px}
 footer{max-width:1180px;margin:0 auto;padding:0 20px 36px;color:var(--muted);font-size:13px;text-align:center}
 ${look.extra}
 @media (max-width:760px){
-.wrap{grid-template-columns:1fr;padding:16px 14px 40px;gap:16px}.bar{padding:10px 14px}.bar button{display:block}.bar input{flex-basis:0;flex-grow:1}.bar .home{flex:0 1 auto;max-width:34%}
+.wrap{grid-template-columns:1fr;padding:16px 14px 40px;gap:16px}.bar{padding:8px 12px;gap:8px}.bar button{display:block;min-height:44px}.bar input{flex-basis:0;flex-grow:1;min-height:44px;font-size:16px}
+.bar .home{flex:0 0 auto;max-width:none}.bar .home-name{display:none}.bar .home-short{display:inline;font:600 15px system-ui,sans-serif}.bar .home{padding:10px 2px;min-height:44px;display:flex;align-items:center}
+.pager a{display:inline-flex;align-items:center;min-height:44px}.more a{padding:12px 18px}.entry li{margin:.4rem 0}.cites a{display:inline-block;padding:9px 4px}
 .js nav#indice{display:none;position:static;max-height:none;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
-.js nav#indice.aberto{display:block}nav#indice li a{padding:9px 10px}
+.js nav#indice.aberto{display:block}nav#indice li a{padding:12px 10px}
 .entry{padding:22px 18px}.infobox{float:none;width:auto;margin:14px 0}.portrait{max-height:360px}.hero{padding:30px 14px 24px}.cards{grid-template-columns:1fr}}
 ${ws.font === 'livro' ? '.entry p{text-align:justify;hyphens:auto}.entry p:not(.summary)+p{text-indent:1.4em;margin-top:-.6em}' : ''}
 @media print{.bar,nav#indice,.pager{display:none!important}.page{display:block!important}.wrap{display:block}.entry{break-inside:avoid}}
 </style></head><body class="estilo-${style}">
-<header class="bar"><a class="home" href="#inicio">${esc(title)}</a><input type="search" id="busca" placeholder="Procurar…" aria-label="Procurar na wiki"><button type="button" id="menu" aria-expanded="false" aria-controls="indice">Índice</button></header>
+<header class="bar"><a class="home" href="#inicio" aria-label="${esc(title)}: início"><span class="home-name">${esc(title)}</span><span class="home-short" aria-hidden="true">Início</span></a><input type="search" id="busca" placeholder="Procurar…" aria-label="Procurar na wiki"><button type="button" id="menu" aria-expanded="false" aria-controls="indice">Índice</button></header>
 <div class="wrap">
 <nav id="indice" aria-label="Índice"><h2>Início</h2><ul><li><a href="#inicio">${esc(title)}</a></li>${timeline ? '<li><a href="#linha-do-tempo">Linha do tempo</a></li>' : ''}${atlas ? `<li><a href="#mapas">${maps.length === 1 ? 'Mapa' : 'Mapas'}</a></li>` : ''}</ul>
 ${kinds.map((k) => `<h2>${esc(kindPlural(k))}</h2><ul>${byKind.get(k)!.map((e) => `<li><a href="#${anchor(e.entity.id)}">${esc(e.entity.name)}</a></li>`).join('')}</ul>`).join('')}
