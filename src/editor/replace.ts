@@ -54,6 +54,16 @@ export function findInBook(u: Universe, query: string, opts: FindOptions): Hit[]
   return hits
 }
 
+/**
+ * Os achados de um livro só e os de todos, para "Só neste livro" e "Em todos os livros". Sem livro escolhido (`null`),
+ * os dois são iguais. As chaves dos achados são as mesmas, então `replaceInBook` troca só o que ficou marcado.
+ */
+export function splitHitsByBook(u: Universe, hits: Hit[], bookId: string | null): { book: Hit[]; all: Hit[] } {
+  if (!bookId) return { book: hits, all: hits }
+  const inBook = new Set(u.scenes.filter((s) => s.storyId === bookId).map((s) => s.id))
+  return { book: hits.filter((h) => inBook.has(h.sceneId)), all: hits }
+}
+
 /** Troca no documento os achados escolhidos, sem perder negrito, itálico, menções e comentários. */
 export function replaceInDoc(doc: SceneDoc, query: string, replacement: string, opts: FindOptions, keep: (index: number) => boolean = () => true): { doc: SceneDoc; text: string; count: number } | null {
   const node = PMNode.fromJSON(schema(), doc)

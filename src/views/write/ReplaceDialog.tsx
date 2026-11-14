@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useState } from 'react'
-import { findInBook, replaceInBook, type FindOptions, type Hit } from '../../editor/replace'
+import { findInBook, replaceInBook, splitHitsByBook, type FindOptions, type Hit } from '../../editor/replace'
 import { byId } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { Modal } from '../../ui/Modal'
@@ -13,14 +13,18 @@ const SHOWN = 400
  * trecho para desmarcar o que não deve mudar. Guarda um snapshot antes e dá para desfazer.
  */
 export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; onClose: () => void }) {
-  const { universe, update, toast, repo, go, readOnly } = useWorkspace()
+  const { universe, update, toast, repo, go, readOnly, bookId } = useWorkspace()
+  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  // Com um livro escolhido no alto, procura só nele (e mostra quantos achados há em todos os livros).
+  const [scope, setScope] = useState<'livro' | 'todos'>('livro')
   const [find, setFind] = useState(initial.find ?? '')
   const [replacement, setReplacement] = useState(initial.replace ?? '')
   const [opts, setOpts] = useState<FindOptions>({ wholeWord: false, matchCase: false, ...initial.opts })
   const query = useDeferredValue(find)
-  const hits = useMemo(() => findInBook(universe, query, opts), [universe, query, opts])
+  const found = useMemo(() => splitHitsByBook(universe, findInBook(universe, query, opts), book ? book.id : null), [universe, query, opts, book])
+  const hits = book && scope === 'livro' ? found.book : found.all
   // O que foi desmarcado vale só para esta busca: mudou a busca, tudo volta marcado.
-  const signature = `${query}\u0000${opts.wholeWord}${opts.matchCase}`
+  const signature = `${query}\u0000${opts.wholeWord}${opts.matchCase}${scope}`
   const [off, setOff] = useState<{ signature: string; keys: Set<string> }>({ signature, keys: new Set() })
   const unchecked = off.signature === signature ? off.keys : new Set<string>()
   const chosen = hits.filter((h) => !unchecked.has(h.key))
@@ -105,6 +109,21 @@ export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; o
         </label>
         <span className="muted tiny">Procura nos títulos e no texto das cenas. Fichas e notas não mudam.</span>
       </div>
+      {book && (
+        <div className="replace-scope" role="radiogroup" aria-label="Onde procurar">
+          {(
+            [
+              ['livro', `Só neste livro (${found.book.length})`],
+              ['todos', `Em todos os livros (${found.all.length})`],
+            ] as const
+          ).map(([value, label]) => (
+            <label key={value} className="check">
+              <input type="radio" name="replace-scope" checked={scope === value} onChange={() => setScope(value)} />
+              {label}
+            </label>
+          ))}
+        </div>
+      )}
 
       {query && (
         <div className="replace-results" aria-live="polite">

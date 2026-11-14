@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { docFromParagraphs } from '../model/doc'
 import type { SceneDoc } from '../model/schema'
 import { addScene, addStory, createUniverse, manuscriptOrder, updateScene } from '../model/universe'
-import { findInBook, findRanges, followCase, replaceInBook, replaceInDoc } from './replace'
+import { findInBook, findRanges, followCase, replaceInBook, replaceInDoc, splitHitsByBook } from './replace'
 
 const loose = { wholeWord: false, matchCase: false }
 const word = { wholeWord: true, matchCase: false }
@@ -84,5 +84,45 @@ describe('trocar no livro todo', () => {
     expect(sb.text).toBe('Ninguém viu Kiel.')
     // Nada marcado: nada muda.
     expect(replaceInBook(u, 'kael', 'kiel', word, new Set()).universe).toBe(u)
+  })
+})
+
+describe('procurar e trocar com um livro escolhido', () => {
+  /** "Kael" aparece duas vezes no livro 1 e três no livro 2. */
+  function twoBooks() {
+    let u = createUniverse('Série')
+    let um, dois, a, b
+    ;[u, um] = addStory(u, 'Livro um')
+    ;[u, dois] = addStory(u, 'Livro dois')
+    ;[u, a] = addScene(u, um.id, 'Começo')
+    ;[u, b] = addScene(u, dois.id, 'Outro começo')
+    u = updateScene(u, a.id, { doc: docFromParagraphs(['Kael desceu.', 'Kael riu.']), text: 'Kael desceu.\n\nKael riu.' })
+    u = updateScene(u, b.id, { doc: docFromParagraphs(['Kael subiu.', 'Kael viu Kael.']), text: 'Kael subiu.\n\nKael viu Kael.' })
+    return { u, um, dois, a, b }
+  }
+
+  it('separa os achados do livro e os de todos, com as mesmas chaves', () => {
+    const { u, um, dois, a, b } = twoBooks()
+    const hits = findInBook(u, 'kael', word)
+    expect(hits).toHaveLength(5)
+    const doUm = splitHitsByBook(u, hits, um.id)
+    expect(doUm.book.map((h) => h.sceneId)).toEqual([a.id, a.id])
+    expect(doUm.all).toBe(hits)
+    expect(splitHitsByBook(u, hits, dois.id).book.map((h) => h.sceneId)).toEqual([b.id, b.id, b.id])
+    // Sem livro escolhido, os dois são o universo todo.
+    expect(splitHitsByBook(u, hits, null)).toEqual({ book: hits, all: hits })
+  })
+
+  it('trocar só os achados do livro deixa o outro livro como estava', () => {
+    const { u, um, a, b } = twoBooks()
+    const hits = findInBook(u, 'kael', word)
+    const { book } = splitHitsByBook(u, hits, um.id)
+    const { universe, count, sceneIds } = replaceInBook(u, 'kael', 'Kiel', word, new Set(book.map((h) => h.key)))
+    expect(count).toBe(2)
+    expect(sceneIds).toEqual([a.id])
+    const [sa, sb] = [universe.scenes.find((s) => s.id === a.id)!, universe.scenes.find((s) => s.id === b.id)!]
+    expect(sa.text).toBe('Kiel desceu.\n\nKiel riu.')
+    // O livro 2 não mudou nada (nem o objeto).
+    expect(sb).toBe(u.scenes.find((s) => s.id === b.id))
   })
 })

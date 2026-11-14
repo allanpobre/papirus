@@ -176,3 +176,42 @@ test.describe('palavras e meta do livro escolhido, no Início', () => {
     await expect(meta).toContainText(`faltam ${(50000 - doLivro).toLocaleString('pt-BR')} para 50.000 (até `)
   })
 })
+
+test.describe('procurar e trocar com um livro escolhido', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('"Só neste livro" é o padrão, mostra quantos achados há em cada, e "Em todos os livros" amplia', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    await pick(book(page), OZMA)
+    await nav(page, 'Escrever').click()
+    // O Ctrl+K do computador não existe no celular: abre pelo "Mais" da barra da cena (⋯) ou por Procurar e trocar.
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('papirus:trocar-no-livro', { detail: { find: 'Dorothy' } })))
+    const janela = page.getByRole('dialog', { name: 'Procurar e trocar no livro' })
+    await expect(janela).toBeVisible()
+    const escopo = janela.getByRole('radiogroup', { name: 'Onde procurar' })
+    const numeros = async () => {
+      const so = await escopo.getByLabel(/^Só neste livro/).locator('xpath=..').innerText()
+      const todos = await escopo.getByLabel(/^Em todos os livros/).locator('xpath=..').innerText()
+      return [Number(so.match(/\((\d+)\)/)![1]), Number(todos.match(/\((\d+)\)/)![1])]
+    }
+    await expect(escopo.getByLabel(/^Só neste livro/)).toBeChecked()
+    await expect.poll(async () => (await numeros())[1]).toBeGreaterThan(0)
+    const [soNeste, emTodos] = await numeros()
+    // O livro 3 do exemplo (Ozma de Oz, em trechos) tem menos "Dorothy" que o universo todo.
+    expect(soNeste).toBeLessThan(emTodos)
+    await expect(janela.getByText(new RegExp(`^${soNeste} achados? em`))).toBeVisible()
+
+    // Em todos os livros: o resumo passa a contar todos.
+    await escopo.getByLabel(/^Em todos os livros/).check()
+    await expect(janela.getByText(new RegExp(`^${emTodos} achados? em`))).toBeVisible()
+    await janela.getByRole('button', { name: 'Cancelar' }).click()
+  })
+
+  test('sem livro escolhido, a janela não pergunta o escopo', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    await nav(page, 'Escrever').click()
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('papirus:trocar-no-livro', { detail: { find: 'Dorothy' } })))
+    await expect(page.getByRole('dialog', { name: 'Procurar e trocar no livro' })).toBeVisible()
+    await expect(page.getByRole('radiogroup', { name: 'Onde procurar' })).toHaveCount(0)
+  })
+})
