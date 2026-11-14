@@ -8,6 +8,8 @@ import { rangeText, routeOn } from '../logic/route'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
 import { byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
+import { CropDialog } from '../images/CropDialog'
+import type { Rect } from '../images/crop'
 import { useWorkspace } from '../state/workspace'
 import { Empty, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -53,10 +55,11 @@ export default function AtlasView() {
   const fileRef = useRef<HTMLInputElement>(null)
   const map = (mapId && byId(universe, 'maps', mapId)) || universe.maps[0]
 
-  const addMap = async (file?: File) => {
+  const [cropping, setCropping] = useState<File | null>(null)
+  const addMap = async (file?: File, crop?: Rect) => {
     try {
       // O mapa vai para as imagens do universo (fora do arquivo do universo, que fica leve).
-      const img = file ? await addImage(file, 'mapa').then((r) => ({ data: r.ref, width: r.width, height: r.height })) : blankParchment()
+      const img = file ? await addImage(file, 'mapa', crop).then((r) => ({ data: r.ref, width: r.width, height: r.height })) : blankParchment()
       let id = ''
       update((u) => {
         const [next, m] = insert(u, 'maps', draftMap(file ? file.name.replace(/\.[^.]+$/, '') : 'Mapa em branco', img.data, img.width, img.height))
@@ -89,11 +92,25 @@ export default function AtlasView() {
           accept="image/*"
           hidden
           onChange={(e) => {
-            const f = e.target.files?.[0]
-            if (f) void addMap(f)
+            // Copia a lista antes de limpar o campo (limpar esvazia a lista). O mapa passa por um recorte livre.
+            const f = Array.from(e.target.files ?? [])[0]
             e.target.value = ''
+            if (f) setCropping(f)
           }}
         />
+        {cropping && (
+          <CropDialog
+            file={cropping}
+            square={false}
+            title="Recortar o mapa"
+            onCancel={() => setCropping(null)}
+            onDone={(crop) => {
+              const f = cropping
+              setCropping(null)
+              void addMap(f, crop)
+            }}
+          />
+        )}
       </header>
 
       {map ? (

@@ -1,3 +1,5 @@
+import { isWhole, pixelRect, type Rect } from './crop'
+
 /** Tamanhos máximos (lado maior, em pixels) por uso. */
 export const IMAGE_SIZES = { retrato: 800, capa: 1600, cena: 1600, mapa: 2400 } as const
 export type ImageUse = keyof typeof IMAGE_SIZES
@@ -32,24 +34,27 @@ function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promi
  * Encolhe a imagem neste aparelho antes de guardar: lado maior até `maxSide`, em WebP
  * (ou JPEG, onde o navegador não gera WebP). Uma foto de celular de 4 MB vira ~150 KB.
  */
-export async function compressImage(file: Blob, use: ImageUse): Promise<{ blob: Blob; width: number; height: number }> {
+export async function compressImage(file: Blob, use: ImageUse, crop?: Rect): Promise<{ blob: Blob; width: number; height: number }> {
   if (!file.type.startsWith('image/')) throw new Error('Esse arquivo não é uma imagem.')
   const img = await decode(file)
   try {
-    const scale = Math.min(1, IMAGE_SIZES[use] / Math.max(img.width, img.height))
-    const width = Math.max(1, Math.round(img.width * scale))
-    const height = Math.max(1, Math.round(img.height * scale))
+    // O recorte (em pixels da imagem original): só essa parte é guardada, já encolhida.
+    const from = crop && !isWhole(crop, img.width, img.height) ? pixelRect(crop, img.width, img.height) : { x: 0, y: 0, w: img.width, h: img.height }
+    const cropped = from.w !== img.width || from.h !== img.height
+    const scale = Math.min(1, IMAGE_SIZES[use] / Math.max(from.w, from.h))
+    const width = Math.max(1, Math.round(from.w * scale))
+    const height = Math.max(1, Math.round(from.h * scale))
     const canvas = document.createElement('canvas')
     canvas.width = width
     canvas.height = height
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Não foi possível ler esta imagem.')
-    ctx.drawImage(img.source, 0, 0, width, height)
+    ctx.drawImage(img.source, from.x, from.y, from.w, from.h, 0, 0, width, height)
     let blob = await toBlob(canvas, 'image/webp', 0.82)
     if (!blob || blob.type !== 'image/webp') blob = await toBlob(canvas, 'image/jpeg', 0.85)
     if (!blob) throw new Error('Não foi possível preparar esta imagem.')
     // Já pequena e num formato bom: fica a original, se for menor.
-    if (scale === 1 && file.size < blob.size && /^image\/(webp|jpeg|png)$/.test(file.type)) blob = file
+    if (!cropped && scale === 1 && file.size < blob.size && /^image\/(webp|jpeg|png)$/.test(file.type)) blob = file
     if (blob.size > MAX_IMAGE_BYTES) throw new Error('Imagem grande demais, mesmo reduzida. Tente outra.')
     return { blob, width, height }
   } finally {

@@ -10779,3 +10779,88 @@ h3.cork-act {
     max-width: none;
   }
 }
+
+
+/* Recortar a imagem (retrato quadrado; mapa livre). */
+.crop {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+}
+.crop-probe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.crop-square {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 2px solid var(--accent);
+  background: var(--surface-3);
+  touch-action: none;
+  cursor: grab;
+}
+.crop-square img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.crop-zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(100%, 288px);
+}
+.crop-zoom input {
+  flex: 1;
+  min-height: 32px;
+}
+.crop-free {
+  position: relative;
+  max-width: 100%;
+  background: var(--surface-3);
+  touch-action: none;
+  user-select: none;
+}
+.crop-free img {
+  display: block;
+  opacity: 0.55;
+}
+.crop-box {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--ink) 38%, transparent);
+  cursor: move;
+  touch-action: none;
+}
+.crop-handle {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--paper);
+  touch-action: none;
+}
+.crop-handle-nw { left: -14px; top: -14px; cursor: nwse-resize; }
+.crop-handle-n { left: calc(50% - 14px); top: -14px; cursor: ns-resize; }
+.crop-handle-ne { right: -14px; top: -14px; cursor: nesw-resize; }
+.crop-handle-e { right: -14px; top: calc(50% - 14px); cursor: ew-resize; }
+.crop-handle-se { right: -14px; bottom: -14px; cursor: nwse-resize; }
+.crop-handle-s { left: calc(50% - 14px); bottom: -14px; cursor: ns-resize; }
+.crop-handle-sw { left: -14px; bottom: -14px; cursor: nesw-resize; }
+.crop-handle-w { left: -14px; top: calc(50% - 14px); cursor: ew-resize; }
+.crop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+}
