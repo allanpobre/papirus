@@ -2,8 +2,8 @@ import { PanelsTopLeft, PenLine, SearchCheck } from 'lucide-react'
 import { useState } from 'react'
 import { SCENE_SHIFTS, type Scene } from '../../model/schema'
 import { updateScene } from '../../model/universe'
-import { recall, remember } from '../../state/prefs'
 import { useWorkspace } from '../../state/workspace'
+import { SHIFT_LABEL } from './writingModeStore'
 
 /*
  * A escrita em três momentos (Stephen King: escreva com a porta fechada, revise com ela aberta):
@@ -11,10 +11,6 @@ import { useWorkspace } from '../../state/workspace'
  */
 
 export type WritingMode = 'mapa' | 'pagina' | 'revisao'
-
-/** Em que modo a tela de escrever abre: o último usado (Página, se nunca mudou). */
-export const savedMode = (): 'pagina' | 'revisao' => (recall('escrita-modo') === 'revisao' ? 'revisao' : 'pagina')
-export const saveMode = (m: 'pagina' | 'revisao') => remember('escrita-modo', m)
 
 const MODES: [WritingMode, string, typeof PenLine][] = [
   ['mapa', 'Estrutura', PanelsTopLeft],
@@ -36,7 +32,6 @@ export function WritingModes({ current, onPick }: { current: WritingMode; onPick
   )
 }
 
-export const SHIFT_LABEL: Record<Exclude<Scene['shift'], ''>, string> = { melhor: 'Melhor', pior: 'Pior', igual: 'Igual' }
 const SHIFT_HINT: Record<Exclude<Scene['shift'], ''>, string> = {
   melhor: 'A cena termina melhor para quem a vive',
   pior: 'A cena termina pior para quem a vive',

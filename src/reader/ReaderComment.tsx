@@ -1,29 +1,9 @@
 import { MessageSquarePlus, Send, X } from 'lucide-react'
 import { useBackLayer } from '../ui/useBackLayer'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { recall, remember } from '../state/prefs'
 
 export type SendComment = (f: { sceneId: string; quote: string; body: string; name: string }) => Promise<void>
-
-/**
- * Leitor beta: selecionar um trecho (ou tocar em "Comentar esta cena") e mandar um comentário
- * para quem escreveu. O nome fica guardado neste aparelho.
- */
-export function useSelectedQuote(container: React.RefObject<HTMLElement | null>, enabled: boolean): string {
-  const [quote, setQuote] = useState('')
-  useEffect(() => {
-    if (!enabled) return
-    const onChange = () => {
-      const sel = document.getSelection()
-      const text = sel?.toString().replace(/\s+/g, ' ').trim() ?? ''
-      const inside = sel?.anchorNode && container.current?.contains(sel.anchorNode) && (sel.anchorNode.parentElement?.closest('.leitor-text') ?? null)
-      setQuote(inside && text.length >= 3 ? text.slice(0, 600) : '')
-    }
-    document.addEventListener('selectionchange', onChange)
-    return () => document.removeEventListener('selectionchange', onChange)
-  }, [container, enabled])
-  return quote
-}
 
 export function CommentSheet({ sceneId, sceneTitle, quote, onSend, onClose, signedName }: { sceneId: string; sceneTitle: string; quote: string; onSend: SendComment; onClose: () => void; signedName?: string }) {
   useBackLayer(onClose)

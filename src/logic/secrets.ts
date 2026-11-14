@@ -35,11 +35,6 @@ export function stripSecrets(text: string): string {
     .trim()
 }
 
-/** Texto sem as marcações, mantendo os trechos (para o autor). */
-export function unmarkSecrets(text: string): string {
-  return text.replace(SECRET, '$1')
-}
-
 export const countSecrets = (text: string) => [...text.matchAll(SECRET)].length
 
 /** Envolve o trecho [start, end) com as marcações de segredo. */

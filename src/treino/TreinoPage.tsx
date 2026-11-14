@@ -6,7 +6,7 @@ import { todayKey } from '../logic/stats'
 import { newId } from '../model/universe'
 import { wordCount } from '../persistence/repository'
 import { recall, remember } from '../state/prefs'
-import { celebrate } from '../ui/Confetti'
+import { celebrate } from '../ui/celebrate'
 import { useBackLayer } from '../ui/useBackLayer'
 import { PageHelp } from '../ui/PageTour'
 import {
@@ -25,6 +25,7 @@ import {
   type TreinoSetup,
   type TreinoUnit,
 } from './treino'
+import { DRAFT, readDraft, type Draft } from './draft'
 
 /** O que abre o treino: a proposta e, ao refazer, o mesmo tempo e o mesmo mínimo. */
 export interface TreinoStart {
@@ -32,29 +33,6 @@ export interface TreinoStart {
   daily: boolean
   setup?: TreinoSetup
 }
-
-const DRAFT = 'treino-em-andamento'
-
-interface Draft {
-  prompt: string
-  daily: boolean
-  setup: TreinoSetup
-  text: string
-  /** Milissegundos já escritos (o relógio para quando a página fecha). */
-  elapsed: number
-  id: string
-}
-
-function readDraft(): Draft | null {
-  try {
-    const d = JSON.parse(recall(DRAFT) ?? 'null') as Draft | null
-    return d && typeof d.text === 'string' && d.setup ? d : null
-  } catch {
-    return null
-  }
-}
-
-export const hasDraft = () => readDraft() !== null
 
 function lastSetup(): TreinoSetup {
   try {

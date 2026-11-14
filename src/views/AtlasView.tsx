@@ -15,7 +15,7 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
-import { chosenYear, rememberYear } from './TimeMachine'
+import { chosenYear, rememberYear } from './timeYear'
 import { existsIn } from '../logic/timeMachine'
 import { formatYear } from '../model/labels'
 

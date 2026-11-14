@@ -1,24 +1,18 @@
 import { useEffect, useState } from 'react'
+import { onCelebrate } from './celebrate'
 
 /** Uma chuva rápida de confete, para comemorar. Some sozinha; sem animação para quem prefere menos movimento. */
 const COLORS = ['#1d6b58', '#e0a526', '#c0577a', '#2f6fae', '#7b5ea7', '#e46f3c']
-let fire: (() => void) | null = null
-
-export function celebrate() {
-  fire?.()
-}
-
 export function Confetti() {
   const [burst, setBurst] = useState(0)
-  useEffect(() => {
-    fire = () => {
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-      setBurst((b) => b + 1)
-    }
-    return () => {
-      fire = null
-    }
-  }, [])
+  useEffect(
+    () =>
+      onCelebrate(() => {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+        setBurst((b) => b + 1)
+      }),
+    [],
+  )
   useEffect(() => {
     if (!burst) return
     const t = setTimeout(() => setBurst(0), 2600)

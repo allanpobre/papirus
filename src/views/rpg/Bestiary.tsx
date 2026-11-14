@@ -9,14 +9,9 @@ import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { Modal } from '../../ui/Modal'
 import { useRpg } from './rpgContext'
+import { monsterLine } from './monsterLine'
 
-const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))
 const num = (v: string) => (v.trim() === '' || v === '-' ? null : Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : null)
-
-/** "PV 7 · CA 12 · Cimitarra +4 (1d6+2)". */
-export function monsterLine(m: Monster, defLabel: string): string {
-  return [`PV ${m.hp}`, m.defense !== null ? `${defLabel} ${m.defense}` : '', ...m.attacks.map((a) => `${a.name} ${signed(a.bonus)}${a.damage ? ` (${a.damage})` : ''}`)].filter(Boolean).join(' · ')
-}
 
 /** Um inimigo pronto: nome, vida, Defesa, iniciativa, ataques e notas. Tudo salva na hora. */
 export function MonsterEditor({ monster: m }: { monster: Monster }) {

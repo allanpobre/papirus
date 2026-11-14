@@ -4,7 +4,7 @@ import { codexSnapshot } from '../../share/snapshot'
 import { publishNow } from '../../share/useCodexSync'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
-import { useMesaLink } from './LiveTable'
+import { useMesaLink } from './useMesaLink'
 
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 

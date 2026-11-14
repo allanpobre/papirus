@@ -21,7 +21,7 @@ import { WorldCard } from './WorldCard'
 import { NextNote } from './NextNote'
 import { ProgressSection } from './PlayCards'
 import { startSprint } from './write/sprintClock'
-import { saveMode } from './write/WritingModes'
+import { saveMode } from './write/writingModeStore'
 import { DeadlineLine, WritingCalendar } from './WritingCalendar'
 
 const longDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })

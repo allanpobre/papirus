@@ -1,5 +1,4 @@
 import { Download, ExternalLink, Globe, SlidersHorizontal } from 'lucide-react'
-import type { Universe } from '../model/schema'
 import { useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
 import { kindPlural } from '../model/labels'
@@ -7,21 +6,9 @@ import type { WikiSettings } from '../model/schema'
 import { manuscriptOrder } from '../model/universe'
 import { coverLook, TONES } from '../ui/coverLook'
 import { useWorkspace } from '../state/workspace'
-import { imageDataUrl } from '../images/resolve'
+import { wikiImages } from './wikiImages'
 
 const FORMATS = { html: '.html', md: '.md', json: '.json' } as const
-
-/** A capa, os retratos e os mapas prontos para irem dentro do arquivo (a wiki abre sem internet). */
-export async function wikiImages(universe: Universe): Promise<Map<string, string>> {
-  const images = new Map<string, string>()
-  const refs = [universe.settings.cover, ...universe.entities.map((e) => e.image), ...universe.maps.map((m) => m.image)]
-  for (const ref of refs) {
-    if (!ref || images.has(ref)) continue
-    const data = await imageDataUrl(ref).catch(() => null)
-    if (data) images.set(ref, data)
-  }
-  return images
-}
 
 /**
  * Wiki do mundo: um arquivo HTML para jogadores ou leitores, sem segredos (e, se quiser, sem spoiler).

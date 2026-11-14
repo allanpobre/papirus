@@ -28,9 +28,6 @@ const askLabel = (r: { kind: string; name: string }) => (r.kind === 'iniciativa'
 /** Uma rolagem na mesa, vista do celular: a do jogador ou a de outro, com o veredito do mestre quando chega. */
 export type FeedRoll = TableRoll & { checked?: boolean; mine?: boolean }
 
-/** O nome de uma rolagem como a mesa lê: "Espada longa contra Goblin", "Espada longa (dano) em Goblin". */
-export const rollLabel = (r: TableRoll) => (r.aim ? `${r.name} ${r.kind === 'dano' ? 'em' : 'contra'} ${r.aim.name}` : r.name)
-
 interface Pending {
   roll: CodexRoll | null
   name: string

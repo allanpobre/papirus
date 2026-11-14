@@ -10,7 +10,8 @@ import { countWords } from '../persistence/repository'
 import { useBookUniverse, useWorkspace } from '../state/workspace'
 import { Empty, Select } from '../ui/bits'
 import { PageHelp } from '../ui/PageTour'
-import { saveMode, SceneFrame, SHIFT_LABEL, ShiftPicker, WritingModes } from './write/WritingModes'
+import { SceneFrame, ShiftPicker, WritingModes } from './write/WritingModes'
+import { saveMode, SHIFT_LABEL } from './write/writingModeStore'
 
 type Tab = 'mapa' | 'presenca' | 'ritmo'
 

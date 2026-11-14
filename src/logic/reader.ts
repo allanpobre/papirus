@@ -1,4 +1,4 @@
-import { formatYear, kindLabel } from '../model/labels'
+import { formatYear } from '../model/labels'
 import { cachedBy, identityCache } from '../model/memo'
 import type { Entity, Fact, Relation, Scene, Universe } from '../model/schema'
 import { byId, manuscriptOrder } from '../model/universe'
@@ -242,5 +242,3 @@ export function discoveries(book: ReaderBook, at: number) {
     items: [...revealedPassages(book, at, at), ...book.facts.filter((f) => f.at === at), ...book.relations.filter((r) => r.at === at)],
   }
 }
-
-export const entityKindLabel = (e: Entity) => kindLabel(e.kind)

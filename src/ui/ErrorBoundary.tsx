@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react'
+import { errorDetails } from './errorDetails'
 
 interface Props {
   children: ReactNode
@@ -12,26 +13,27 @@ interface Props {
   copyDetails?: boolean
 }
 
-/** O texto que "Copiar detalhes" põe na área de transferência. */
-export function errorDetails(error: Error, label: string | undefined, where: string): string {
-  const stack = (error.stack ?? '').split('\n').slice(0, 8).join('\n')
-  return [`Papirus ${typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : ''}`.trim(), label ?? '', `Onde: ${where}`, `Erro: ${error.message}`, stack].filter(Boolean).join('\n')
-}
-
 /**
  * Se uma parte da tela quebrar, mostra o que houve (e um jeito de sair) em vez de
  * derrubar o app inteiro numa tela vazia. Só desenha o aviso no lugar da parte que quebrou:
  * nada aqui mexe no universo, então o que já estava salvo continua como estava.
  */
-export class ErrorBoundary extends Component<Props, { error: Error | null; copied: boolean }> {
-  state = { error: null as Error | null, copied: false }
+interface State {
+  error: Error | null
+  copied: boolean
+  /** O `resetKey` com que o erro foi visto: mudou, o erro some. */
+  key: unknown
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { error: null, copied: false, key: this.props.resetKey }
 
   static getDerivedStateFromError(error: Error) {
     return { error, copied: false }
   }
 
-  componentDidUpdate(prev: Props) {
-    if (this.state.error && prev.resetKey !== this.props.resetKey) this.setState({ error: null, copied: false })
+  static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    return props.resetKey !== state.key ? { error: null, copied: false, key: props.resetKey } : null
   }
 
   private copy = async () => {

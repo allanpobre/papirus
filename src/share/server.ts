@@ -411,11 +411,6 @@ async function ping(cfg: ServerConfig, id: string) {
   }
 }
 
-/** Escuta avisos de atualização. Devolve a função que para de escutar. */
-export function listenCodex(cfg: ServerConfig, id: string, onUpdate: () => void, onStatus?: (live: boolean) => void): () => void {
-  return joinTable(cfg, id, { update: onUpdate, status: onStatus }).leave
-}
-
 /** Chave secreta nova (só fica com o mestre). */
 export function newShareKey(): string {
   const bytes = new Uint8Array(24)

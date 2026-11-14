@@ -76,7 +76,8 @@ import { nextNoteOf, todayTarget } from '../../logic/homeToday'
 import { TextMenu } from './TextMenu'
 import { FindBar } from './FindBar'
 import { isLore } from '../../logic/au'
-import { SceneFrame, saveMode, savedMode, WritingModes, type WritingMode } from './WritingModes'
+import { SceneFrame, WritingModes, type WritingMode } from './WritingModes'
+import { saveMode, savedMode } from './writingModeStore'
 
 type Dialog =
   | { kind: 'link'; sel: SelectionInfo }

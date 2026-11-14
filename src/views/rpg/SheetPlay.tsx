@@ -10,7 +10,7 @@ import { Picture } from '../../images/Picture'
 import { useImagePicker } from '../../images/useImagePicker'
 import { useWorkspace } from '../../state/workspace'
 import { Modal } from '../../ui/Modal'
-import { useAttack } from './Combat'
+import { useAttack } from './useAttack'
 import { useRpg } from './rpgContext'
 
 const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))

@@ -47,9 +47,6 @@ export function baseAttributeOf(system: GameSystem, sheet: Sheet, attributeId: s
   return sheet.attributes[attributeId] ?? system.attributes.find((a) => a.id === attributeId)?.default ?? 0
 }
 
-/** Primeiro recurso do sistema (normalmente a vida), para mostrar na iniciativa. */
-export const mainResource = (system: GameSystem | undefined) => system?.resources[0]
-
 type ResourceDef = GameSystem['resources'][number]
 
 /**

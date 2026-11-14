@@ -3,7 +3,7 @@ import '@fontsource-variable/literata/opsz-italic.css'
 import '@fontsource-variable/instrument-sans/index.css'
 import '@fontsource/young-serif/400.css'
 import '@fontsource/ibm-plex-mono/400.css'
-import { lazy, StrictMode, Suspense } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { followThemeColor } from './ui/themeColor'
 import './styles/tokens.css'
@@ -17,6 +17,7 @@ import './styles/oficina.css'
 import './styles/treino.css'
 import App from './App.tsx'
 import { readPlayerLink } from './share/server'
+import { PlayerLoader } from './player/PlayerLoader'
 import { startPwa, watchForUpdates } from './pwa'
 import { UpdateNotice } from './ui/UpdateNotice'
 import { ErrorBoundary } from './ui/ErrorBoundary'
@@ -24,9 +25,6 @@ import { GlobalErrors } from './ui/GlobalErrors'
 import { Confetti } from './ui/Confetti'
 import { captureAuthLink } from './account/auth'
 import { AuthLinkNotice } from './account/AuthLinkNotice'
-
-// O celular do jogador só é baixado por quem abre o link da mesa.
-const PlayerApp = lazy(() => import('./player/PlayerApp.tsx'))
 
 // Link de jogador (?mesa=…): só o Codex, sem biblioteca nem dados deste navegador.
 const player = readPlayerLink(location.search)
@@ -43,13 +41,7 @@ followThemeColor()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary label="O Papirus encontrou um erro.">{player ? (
-        <Suspense fallback={null}>
-          <PlayerApp id={player.id} server={player.server} />
-        </Suspense>
-      ) : (
-        <App />
-      )}</ErrorBoundary>
+    <ErrorBoundary label="O Papirus encontrou um erro.">{player ? <PlayerLoader id={player.id} server={player.server} /> : <App />}</ErrorBoundary>
     <GlobalErrors />
     {!player && <AuthLinkNotice />}
     {!player && <UpdateNotice />}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ErrorBoundary, errorDetails } from './ErrorBoundary'
+import { ErrorBoundary } from './ErrorBoundary'
+import { errorDetails } from './errorDetails'
 
 describe('erro numa parte da tela', () => {
   it('os detalhes copiados trazem o aviso, o lugar, a mensagem e o começo do rastro', () => {
@@ -17,5 +18,9 @@ describe('erro numa parte da tela', () => {
   it('guarda o erro e começa sem "copiado"', () => {
     const e = new Error('x')
     expect(ErrorBoundary.getDerivedStateFromError(e)).toEqual({ error: e, copied: false })
+    // Trocar o `resetKey` (a tela aberta) limpa o erro; o mesmo `resetKey` mantém.
+    const state = { error: e, copied: true, key: 'fichas' }
+    expect(ErrorBoundary.getDerivedStateFromProps({ children: null, resetKey: 'fichas' }, state)).toBeNull()
+    expect(ErrorBoundary.getDerivedStateFromProps({ children: null, resetKey: 'escrever' }, state)).toEqual({ error: null, copied: false, key: 'escrever' })
   })
 })
