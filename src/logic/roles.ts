@@ -1,5 +1,12 @@
 import { STORY_ROLES, type StoryRole } from '../model/schema'
 
+/** O papel de uma ficha no livro escolhido (`null` = todos os livros): o marcado para aquele livro, senão o geral. */
+export function roleIn(e: { role?: StoryRole | null; bookRoles?: Record<string, string> | null }, bookId: string | null): StoryRole | undefined {
+  const own = bookId ? e.bookRoles?.[bookId] : undefined
+  if (own && (STORY_ROLES as readonly string[]).includes(own)) return own as StoryRole
+  return e.role ?? undefined
+}
+
 /** A ordem dos papéis na história: protagonista primeiro, quem não tem papel por último. */
 export const roleRank = (role: StoryRole | undefined | null): number => {
   const i = role ? STORY_ROLES.indexOf(role) : -1

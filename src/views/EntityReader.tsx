@@ -8,6 +8,7 @@ import { DominoDialog } from './DominoDialog'
 import { TogetherHere } from './TogetherHere'
 import { factSentence } from '../logic/codex'
 import { appearancesOf } from '../logic/appearances'
+import { roleIn } from '../logic/roles'
 import { sessionsOf } from '../rpg/oneCharacter'
 import { derivedField, derivedText, onlyName } from '../logic/derivedFields'
 import { answerOf, isBlank, questionsFor } from '../logic/kindQuestions'
@@ -29,7 +30,7 @@ import { MapGlimpse } from './MapGlimpse'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
 export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
-  const { universe, go, goBack } = useWorkspace()
+  const { universe, go, goBack, bookId } = useWorkspace()
   const suffix = universe.settings.calendarSuffix
   // Efeito dominó (no Completo): "e se esta ficha sumir?".
   const [dominoOpen, setDominoOpen] = useState(false)
@@ -158,7 +159,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
       <div className="reader-title">
         <p className="eyebrow">
           <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" /> {kindLabel(e.kind)}
-          {e.role && <span className="entity-role"> · {ROLE_LABEL[e.role]}</span>}
+          {roleIn(e, bookId) && <span className="entity-role"> · {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
           <OriginChip item={e} full />
         </p>
         <h1>{e.name || 'Sem nome'}</h1>

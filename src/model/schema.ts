@@ -166,6 +166,11 @@ export const entitySchema = z.object({
   game: z.object({ traits: z.array(z.string()).default([]), mods: z.record(z.string(), z.number()).default({}) }).optional(),
   /** Personagem: protagonista, antagonista, secundário ou figurante. Um valor desconhecido (de outra versão) vira vazio. */
   role: z.enum(STORY_ROLES).optional().catch(undefined),
+  /**
+   * O papel por livro (id da história → papel), para quem muda de papel numa série: secundário no livro 1 e protagonista
+   * no 2. Opcional: sem marcação, vale o papel geral (`role`). Um valor desconhecido é ignorado ao ler.
+   */
+  bookRoles: z.record(z.string(), z.string()).optional().catch(undefined),
   ...timestamps,
 })
 

@@ -1,5 +1,5 @@
 import { bookScope } from '../logic/bookScope'
-import { isLead, nodeRadius } from '../logic/roles'
+import { isLead, nodeRadius, roleIn } from '../logic/roles'
 import { FamilyTree } from './FamilyTree'
 import { familyLinks } from '../logic/family'
 import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
@@ -287,7 +287,7 @@ export default function GraphView() {
     degree.set(e.to, (degree.get(e.to) ?? 0) + 1)
   }
   // O protagonista ganha uma bolinha um pouco maior (o desenho e os nomes se afastam contando com ela).
-  const leads = new Set(universe.entities.filter((e) => isLead(e.role)).map((e) => e.id))
+  const leads = new Set(universe.entities.filter((e) => isLead(roleIn(e, bookId))).map((e) => e.id))
   const leadKey = [...leads].join('|')
   const radius = (id: string) => nodeRadius(degree.get(id) ?? 0, narrow, leads.has(id))
   const labelWidth = (name: string) => (name || 'Sem nome').length * LABEL_SIZE * 0.6 + 8
