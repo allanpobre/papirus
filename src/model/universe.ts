@@ -1,3 +1,4 @@
+import { cachedBy, identityCache } from './memo'
 import type {
   AtlasMap,
   CollectionKey,
@@ -264,15 +265,27 @@ export function scenesOf(universe: Universe, storyId: string | null): Scene[] {
   return universe.scenes.filter((s) => s.storyId === storyId).sort((a, b) => a.order - b.order)
 }
 
-/** Todas as cenas na ordem de leitura: histórias em ordem, depois as cenas soltas. */
+const orderCache = identityCache()
+const bookScenesCache = identityCache()
+const bookStoriesCache = identityCache()
+const bookOnlyScenesCache = identityCache()
+
+/**
+ * Todas as cenas na ordem de leitura: histórias em ordem, depois as cenas soltas.
+ * O resultado é guardado enquanto as cenas e as histórias forem as mesmas: não altere o array devolvido.
+ */
 export function manuscriptOrder(universe: Universe): Scene[] {
-  return [...universe.stories.flatMap((s) => scenesOf(universe, s.id)), ...scenesOf(universe, null)]
+  return cachedBy(orderCache, [universe.scenes, universe.stories], () => [...universe.stories.flatMap((s) => scenesOf(universe, s.id)), ...scenesOf(universe, null)])
 }
 
-/** As cenas do livro escolhido no alto, na ordem de leitura; sem livro (null), todas. */
+/** As cenas do livro escolhido no alto, na ordem de leitura; sem livro (null), todas. (Guardado, como `manuscriptOrder`.) */
 export function bookScenes(universe: Universe, bookId: string | null): Scene[] {
   const order = manuscriptOrder(universe)
-  return bookId ? order.filter((s) => s.storyId === bookId) : order
+  if (!bookId) return order
+  const perBook = cachedBy(bookScenesCache, [order], () => new Map<string, Scene[]>())
+  let list = perBook.get(bookId)
+  if (!list) perBook.set(bookId, (list = order.filter((s) => s.storyId === bookId)))
+  return list
 }
 
 /**
@@ -281,7 +294,12 @@ export function bookScenes(universe: Universe, bookId: string | null): Scene[] {
  */
 export function bookOnly(universe: Universe, bookId: string | null): Universe {
   if (!bookId) return universe
-  return { ...universe, stories: universe.stories.filter((s) => s.id === bookId), scenes: universe.scenes.filter((s) => s.storyId === bookId) }
+  // Os arrays filtrados são guardados: assim as contas guardadas por array (quem aparece) valem de novo em outra tela.
+  const stories = cachedBy(bookStoriesCache, [universe.stories], () => new Map<string, Universe['stories']>())
+  const scenes = cachedBy(bookOnlyScenesCache, [universe.scenes], () => new Map<string, Scene[]>())
+  if (!stories.has(bookId)) stories.set(bookId, universe.stories.filter((s) => s.id === bookId))
+  if (!scenes.has(bookId)) scenes.set(bookId, universe.scenes.filter((s) => s.storyId === bookId))
+  return { ...universe, stories: stories.get(bookId)!, scenes: scenes.get(bookId)! }
 }
 
 export function addStory(universe: Universe, title = 'Nova história'): [Universe, Story] {
