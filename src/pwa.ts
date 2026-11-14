@@ -89,6 +89,15 @@ export function mainScriptOf(html: string, base: string): string | null {
 }
 
 let updateReady = false
+
+/** Marca que há versão nova (o aviso aparece). */
+function markUpdateReady() {
+  if (updateReady) return
+  updateReady = true
+  updateListeners.forEach((l) => l())
+}
+// Os testes pedem o aviso por este evento, sem precisar publicar uma versão nova.
+if (typeof addEventListener === 'function') addEventListener('papirus:versao-nova', markUpdateReady)
 const updateListeners = new Set<() => void>()
 
 async function checkForUpdate() {
@@ -102,10 +111,7 @@ async function checkForUpdate() {
     const res = await fetch(`${dir}?checar-versao=${Date.now()}`, { cache: 'no-store' })
     if (!res.ok) return
     const theirs = mainScriptOf(await res.text(), location.href)
-    if (theirs && theirs !== mine) {
-      updateReady = true
-      updateListeners.forEach((l) => l())
-    }
+    if (theirs && theirs !== mine) markUpdateReady()
   } catch {
     // Sem conexão: tenta de novo mais tarde.
   }

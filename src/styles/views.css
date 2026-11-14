@@ -444,9 +444,16 @@
   stroke-dasharray: 2 4;
 }
 
-.edge.dim,
-.node.dim {
+.edge.dim {
   opacity: 0.18;
+}
+
+/* Quem não está perto da ficha escolhida fica apagado, mas o nome continua legível (contraste de texto, WCAG AA). */
+.node.dim > :not(.node-label) {
+  opacity: 0.18;
+}
+.node.dim .node-label {
+  fill: var(--muted);
 }
 
 .edge-label {
