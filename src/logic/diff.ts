@@ -1,3 +1,5 @@
+import type { Scene } from '../model/schema'
+
 export interface DiffPart {
   kind: 'igual' | 'removido' | 'inserido'
   text: string
@@ -70,4 +72,30 @@ export function diffStats(parts: DiffPart[]) {
   const count = (k: DiffPart['kind']) =>
     parts.filter((p) => p.kind === k).reduce((n, p) => n + (p.text.match(/\S+/g)?.length ?? 0), 0)
   return { inserted: count('inserido'), removed: count('removido') }
+}
+
+/** Os dois lados do diff: o "antes" (com o que saiu) e o "depois" (com o que entrou), para ver um ao lado do outro. */
+export function splitDiff(parts: DiffPart[]): { before: DiffPart[]; after: DiffPart[] } {
+  return { before: parts.filter((p) => p.kind !== 'inserido'), after: parts.filter((p) => p.kind !== 'removido') }
+}
+
+/** O que se compara com uma versão: o texto atual da cena ('atual') ou outra versão guardada. */
+export type CompareTarget = 'atual' | string
+
+export interface SceneComparison {
+  /** Nome do lado "antes" e do "depois", para os títulos. */
+  fromName: string
+  toName: string
+  parts: DiffPart[]
+  stats: { inserted: number; removed: number }
+}
+
+/** Compara duas versões de uma cena, ou uma versão com o texto atual. `null` se a versão não existe. */
+export function compareSceneVersions(scene: Scene, fromId: string, to: CompareTarget): SceneComparison | null {
+  const from = scene.versions.find((v) => v.id === fromId)
+  if (!from) return null
+  const other = to === 'atual' ? undefined : scene.versions.find((v) => v.id === to)
+  if (to !== 'atual' && !other) return null
+  const parts = diffWords(from.text, other ? other.text : scene.text)
+  return { fromName: from.name, toName: other ? other.name : 'texto atual', parts, stats: diffStats(parts) }
 }
