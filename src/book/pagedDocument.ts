@@ -11,6 +11,10 @@ import polyfill from '../../node_modules/pagedjs/dist/paged.polyfill.min.js?raw'
  */
 export const safeStyle = (css: string) => css.replace(/<\//g, '<\\/')
 
+/** Depois de cada página montada, avisa quem abriu (a diagramação mostra "Montando página N…"). Sem o Paged, não faz nada. */
+const PROGRESS_JS =
+  "try{if(window.Paged&&Paged.Handler&&Paged.registerHandlers){Paged.registerHandlers(class extends Paged.Handler{afterPageLayout(el,page){try{parent.postMessage({papirusProgress:(page&&typeof page.position==='number'?page.position:0)+1},'*')}catch(e){}}})}}catch(e){}"
+
 export function pagedDocument(
   title: string,
   html: string,
@@ -29,5 +33,6 @@ export function pagedDocument(
 ${extra}
 <script>window.PagedConfig={auto:true,after:function(flow){try{${afterJs}}catch(e){}try{parent.postMessage({papirusPaged:flow.total},'*')}catch(e){}}}</script>
 <script>${script}</script>
+<script>${PROGRESS_JS}</script>
 </head><body class="${spreads ? 'spreads' : ''}">${html}</body></html>`
 }

@@ -114,6 +114,9 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
   const [spreads, setSpreads] = useState(() => !matchMedia('(max-width: 900px)').matches)
   const [zoom, setZoom] = useState(() => (matchMedia('(max-width: 900px)').matches ? 0.6 : 0.8))
   const [pages, setPages] = useState<number | null>(null)
+  // Enquanto monta: em que página está; "Cancelar" para a montagem (o livro inteiro leva um tempo num celular fraco).
+  const [progress, setProgress] = useState(0)
+  const [canceled, setCanceled] = useState(false)
   const [doc, setDoc] = useState('')
   const frame = useRef<HTMLIFrameElement>(null)
   const coverInput = useRef<HTMLInputElement>(null)
@@ -125,14 +128,29 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
   useEffect(() => {
     const t = setTimeout(() => {
       setPages(null)
+      setProgress(0)
+      setCanceled(false)
       setDoc(bookDocument(book.title, book.html, book.css, fonts, previewCss(design), spreads))
     }, 500)
     return () => clearTimeout(t)
   }, [book, fonts, spreads, design])
+  /** Para a montagem em andamento (a moldura vira uma página em branco) ou monta de novo. */
+  const cancelPagination = () => {
+    setCanceled(true)
+    setDoc('')
+  }
+  const paginateAgain = () => {
+    setPages(null)
+    setProgress(0)
+    setCanceled(false)
+    setDoc(bookDocument(book.title, book.html, book.css, fonts, previewCss(design), spreads))
+  }
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.source === frame.current?.contentWindow && typeof e.data?.papirusPaged === 'number') setPages(e.data.papirusPaged)
+      if (e.source !== frame.current?.contentWindow) return
+      if (typeof e.data?.papirusPaged === 'number') setPages(e.data.papirusPaged)
+      else if (typeof e.data?.papirusProgress === 'number') setProgress((n) => Math.max(n, e.data.papirusProgress))
     }
     addEventListener('message', onMessage)
     return () => removeEventListener('message', onMessage)
@@ -237,9 +255,19 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
           <strong>Diagramar: {book.title}</strong>
           <span className="muted tiny">
             {book.chapters} {book.chapters === 1 ? 'capítulo' : 'capítulos'} · {book.words.toLocaleString('pt-BR')} palavras ·{' '}
-            {pages === null ? 'paginando…' : `${pages} páginas`}
+            <span role="status">{pages !== null ? `${pages} páginas` : canceled ? 'montagem cancelada' : progress > 0 ? `montando página ${progress}…` : 'preparando o livro…'}</span>
           </span>
         </div>
+        {pages === null && doc && !canceled && book.chapters > 0 && (
+          <button type="button" className="btn btn-sm book-cancel" onClick={cancelPagination}>
+            Cancelar
+          </button>
+        )}
+        {canceled && (
+          <button type="button" className="btn btn-sm btn-primary book-cancel" onClick={paginateAgain}>
+            Montar de novo
+          </button>
+        )}
         <PageHelp tour="diagramar" />
         <button type="button" className="btn btn-sm btn-ghost book-panel-toggle" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
           {panelOpen ? 'Ver páginas' : 'Opções'}
