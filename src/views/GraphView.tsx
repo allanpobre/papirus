@@ -699,7 +699,8 @@ export default function GraphView() {
               endPointer(e)
             }}
             onPointerCancel={endPointer}
-            onLostPointerCapture={endPointer}
+            // Começar o arrasto solta a captura que o toque tinha na bolinha de baixo (o aviso sobe até aqui): isso não é o fim do gesto.
+            onLostPointerCapture={(e) => e.target === e.currentTarget && endPointer(e)}
           >
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

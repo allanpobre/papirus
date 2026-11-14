@@ -5365,6 +5365,39 @@ button.arc-dot {
 .family {
   display: block;
   max-width: none;
+  /* O dedo move o desenho (não rola a página); o nome não é selecionado ao arrastar. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.family:active {
+  cursor: grabbing;
+}
+
+/* A área da árvore: do tamanho do desenho aberto, com os botões de zoom no canto. */
+.family-stage {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.family-zoom {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+}
+
+.family-hint {
+  margin: 0.5rem 0 0;
 }
 
 .family path,

@@ -270,7 +270,7 @@ export const PAGE_TOURS = {
         title: 'Centrar e filtrar',
         body: 'Centre numa ficha para ver só quem está perto dela, e até que distância. “Incluir fica em” mostra onde cada lugar fica; “Só fichas com ligações” esconde as soltas.',
       },
-      { target: '.graph-mode', title: 'Ligações ou família', body: 'Com ligações de família (pai de, casado com…), dá para ver a Árvore da família.', optional: true },
+      { target: '.graph-mode', title: 'Ligações ou família', body: 'Com ligações de família (pai de, casado com…), dá para ver a Árvore da família. Arraste para andar por ela e aproxime com dois dedos (ou os botões + e −).', optional: true },
       { target: '.graph-bar', title: 'Tipos e tempo', body: 'Mostre ou esconda tipos de ficha. “Num ponto da história” mostra só o que vale numa cena, e o botão de tocar passa a história cena a cena.', optional: true },
       { target: '.graph-wrap', title: 'O mapa', body: 'Arraste as fichas para arrumar e o fundo para mover. Os botões + e − aproximam e afastam. Toque numa ficha para ver as ligações dela.', optional: true },
       { title: 'De onde vêm', body: 'As ligações nascem nas fichas: no modo Editar, adicione “irmão de”, “serve a”, “rival de”… Elas aparecem aqui sozinhas.' },

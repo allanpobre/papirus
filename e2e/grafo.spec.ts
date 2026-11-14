@@ -67,6 +67,10 @@ test.describe('no celular', () => {
     for (let i = 1; i <= 6; i++) await touch('touchMove', [[x + i * 12, y + i * 8]])
     await touch('touchEnd', [])
     await expect.poll(() => transform(page)).not.toBe(before)
+    // O desenho acompanhou o dedo até o fim (72 px para a direita), e não parou no primeiro passo: o aviso de que o
+    // toque largou a bolinha de baixo (lostpointercapture) não pode encerrar o arrasto.
+    const shift = (t: string | null) => Number(t?.match(/^translate\(([-\d.]+)/)?.[1])
+    expect(shift(await transform(page)) - shift(before)).toBeGreaterThan(50)
     await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toHaveCount(0)
     // Um toque de verdade (sem andar) numa bolinha à vista seleciona.
     await page.waitForTimeout(300)
