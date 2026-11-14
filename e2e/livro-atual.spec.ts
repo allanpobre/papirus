@@ -116,6 +116,23 @@ test.describe('o livro escolhido no alto', () => {
     await expect(page.locator('.cork-group')).toHaveCount(1)
   })
 
+  test('lugar novo, que ainda não está em cena nenhuma, não fica apagado nos Mapas', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    await pick(book(page), OZMA)
+    await openPart(page, 'Mapas')
+    // Marca um lugar novo no mapa (cria a ficha na hora): ele ainda não aparece em livro nenhum.
+    await page.getByRole('button', { name: 'Marcar lugar' }).click()
+    const map = (await page.locator('.atlas-image').boundingBox())!
+    await page.locator('.atlas-image').click({ position: { x: map.width * 0.3, y: map.height * 0.3 } })
+    await page.getByPlaceholder('Lugar…').fill('Vila Zorba')
+    await page.getByRole('option', { name: /Criar “Vila Zorba”/ }).or(page.getByRole('button', { name: /Criar “Vila Zorba”/ })).first().click()
+    const pin = page.locator('.pin').filter({ hasText: 'Vila Zorba' })
+    await expect(pin).toBeVisible()
+    await expect(pin).not.toHaveClass(/off-book/)
+    // Os lugares só de outros livros continuam apagados.
+    await expect(page.locator('.pin.off-book').first()).toBeAttached()
+  })
+
   test('Ler como livro começa no livro escolhido', async ({ page }) => {
     await page.goto('/app/?exemplo')
     await pick(book(page), OZMA)

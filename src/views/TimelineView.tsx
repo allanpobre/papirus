@@ -1,11 +1,11 @@
+import { bookScope, eventBelongs } from '../logic/bookScope'
 import { CalendarRange, Dices, Feather, Plus, Trash2, SlidersHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ageIn, ageLabel } from '../logic/age'
 import { formatDate } from '../logic/calendar'
 import { formatYear } from '../model/labels'
 import type { Session, TimelineEvent, Universe } from '../model/schema'
-import { sceneCounts } from '../logic/appearances'
-import { bookOnly, bookScenes, byId, draftEvent, entityName, insert, patch, remove, sceneTitle } from '../model/universe'
+import { bookScenes, byId, draftEvent, entityName, insert, patch, remove, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, CanonSelect, Empty, Field, Select, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -33,14 +33,15 @@ export default function TimelineView() {
   const eras = universe.events.filter((e) => e.kind === 'era').sort((a, b) => a.year - b.year)
   // Com um livro escolhido no alto: as cenas dele e os eventos de quem aparece nele (os eventos sem
   // ninguém, como uma guerra antiga, continuam: são o pano de fundo do mundo).
-  const inBook = useMemo(() => (bookId ? new Set(sceneCounts(bookOnly(universe, bookId)).keys()) : null), [universe, bookId])
+  // Lugares e fichas novas (ainda em livro nenhum) valem para qualquer livro, como em Fichas e Mapas.
+  const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
   const events = useMemo(
     () =>
       universe.events
         .filter((e) => e.kind === 'evento' && e.importance >= minImportance)
-        .filter((e) => !inBook || (!e.entityIds.length && !e.placeId) || e.entityIds.some((id) => inBook.has(id)) || (e.placeId !== null && inBook.has(e.placeId)))
+        .filter((e) => eventBelongs(e, scope))
         .filter((e) => filterIds.length === 0 || filterIds.some((id) => e.entityIds.includes(id) || e.placeId === id)),
-    [universe.events, minImportance, filterIds, inBook],
+    [universe.events, minImportance, filterIds, scope],
   )
   const scenes = showScenes
     ? bookScenes(universe, bookId).filter((s) => s.date && (filterIds.length === 0 || filterIds.some((id) => s.presentIds.includes(id) || s.povId === id || s.placeId === id)))

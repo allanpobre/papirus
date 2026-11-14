@@ -1,3 +1,4 @@
+import { bookScope } from '../logic/bookScope'
 import { OriginChip } from './AUBanner'
 import { PassesEditor, WhoIsEditor } from './WhoIs'
 import { whoIsKeys } from '../logic/definers'
@@ -128,9 +129,9 @@ export default function EntitiesView() {
   // Em quantas cenas cada ficha aparece: o que a história usa e o que está só nas notas (sem cobrança).
   // Com um livro escolhido no alto, conta só as cenas dele, e a lista mostra só quem aparece nele.
   const counts = useMemo(() => sceneCounts(bookOnly(universe, bookId)), [universe, bookId])
-  // Em todos os livros: quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro.
-  const countsAll = useMemo(() => (bookId ? sceneCounts(universe) : counts), [universe, bookId, counts])
-  const inNoBook = (id: string) => !countsAll.get(id)
+  // Quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro (a mesma regra da Linha do tempo e dos Mapas).
+  const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
+  const inNoBook = (id: string) => (scope ? scope.inNoBook(id) : !counts.get(id))
   const book = bookId ? byId(universe, 'stories', bookId) : undefined
   const [everyone, setEveryone] = useState(false)
   const onlyBook = Boolean(book) && !everyone
@@ -164,7 +165,7 @@ export default function EntitiesView() {
             : a.name.localeCompare(b.name, 'pt'),
       )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [universe.entities, kind, query, where, counts, countsAll, order, onlyBook, fresh])
+  }, [universe.entities, kind, query, where, counts, scope, order, onlyBook, fresh])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
