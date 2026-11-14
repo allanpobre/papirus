@@ -444,15 +444,19 @@
   stroke-dasharray: 2 4;
 }
 
-.edge.dim {
+/* Com uma ficha em destaque (mouse, foco ou escolhida), tudo fora do grupo dela apaga. É CSS (e não uma classe em
+   cada peça) para que passar o mouse não obrigue a desenhar de novo todas as bolinhas e linhas. */
+.graph.has-focus .edge:not(.hl):not(.off) {
   opacity: 0.18;
 }
 
 /* Quem não está perto da ficha escolhida fica apagado, mas o nome continua legível (contraste de texto, WCAG AA). */
-.node.dim > :not(.node-label) {
+.node.dim > :not(.node-label),
+.graph.has-focus .node:not(.hl) > :not(.node-label) {
   opacity: 0.18;
 }
-.node.dim .node-label {
+.node.dim .node-label,
+.graph.has-focus .node:not(.hl) .node-label {
   fill: var(--muted);
 }
 
@@ -4491,17 +4495,17 @@ code {
 
 .edge-via path {
   stroke: var(--violet);
-  stroke-width: 1.4;
+  stroke-width: 1.8;
   stroke-dasharray: 3 4;
+}
+
+/* Quem está por trás de uma ligação fora do destaque fica mais fina (além de apagada). */
+.graph.has-focus .edge-via:not(.hl) path {
+  stroke-width: 1.4;
 }
 
 .edge-via-dot {
   fill: var(--violet);
-}
-
-.edge-via.lit path,
-.edge-via:not(.dim) path {
-  stroke-width: 1.8;
 }
 
 .node-ring {

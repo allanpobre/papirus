@@ -4,7 +4,6 @@ import { FamilyTree } from './FamilyTree'
 import { familyLinks } from '../logic/family'
 import { Maximize, Minus, Network, Pause, Play, Plus, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useImageSrc } from '../images/resolve'
 import { forceLayout, neighborhood, placeLabels, separate, type GraphEdge, type Point } from '../logic/graph'
 import { activeAt, relationSentence, scopeLabel } from '../logic/relations'
 import { appearances } from '../logic/reader'
@@ -16,6 +15,7 @@ import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
 import { AreaHead } from './AreaModes'
+import { EdgeShape, NodeShape, ViaShape, type NodeActions } from './GraphParts'
 
 /** Tamanho do desenho antes de medir a tela (e nos testes sem tela). */
 const FALLBACK = { w: 1200, h: 800 }
@@ -116,26 +116,6 @@ function useBoxSize(): [(el: HTMLElement | null) => void, { w: number; h: number
   return [ref, size]
 }
 
-/** O retrato da ficha dentro da bolinha (se ela tem imagem); senão, a inicial. */
-function NodeFace({ id, name, image, r }: { id: string; name: string; image: string | null | undefined; r: number }) {
-  const src = useImageSrc(image)
-  if (src) {
-    return (
-      <>
-        <clipPath id={`rosto-${id}`}>
-          <circle r={r - 1.5} />
-        </clipPath>
-        <image className="node-face" href={src} x={-r} y={-r} width={2 * r} height={2 * r} preserveAspectRatio="xMidYMid slice" clipPath={`url(#rosto-${id})`} aria-hidden="true" />
-      </>
-    )
-  }
-  return (
-    <text className="node-face node-initial" dy="0.36em" fontSize={Math.round(r * 0.95)} aria-hidden="true">
-      {(name.trim()[0] ?? '?').toLocaleUpperCase('pt-BR')}
-    </text>
-  )
-}
-
 export default function GraphView() {
   const { universe, nav, go, peek, bookId } = useWorkspace()
   const [focusId, setFocusId] = useState<string | null>(nav.view === 'relacoes' ? (nav.id ?? null) : null)
@@ -161,6 +141,30 @@ export default function GraphView() {
   const [wrapRef, measured] = useBoxSize()
   const { w: W, h: H } = measured ?? FALLBACK
   const narrow = W < 560
+  // O que as bolinhas fazem: um objeto só, que nunca muda (assim passar o mouse não redesenha todas elas).
+  const goRef = useRef(go)
+  useEffect(() => {
+    goRef.current = go
+  })
+  const actions = useMemo<NodeActions>(
+    () => ({
+      tap: (id) => {
+        if (suppressClick.current) return
+        setSelected((s) => (s === id ? null : id))
+      },
+      pick: (id) => setSelected(id),
+      open: (id) => goRef.current('fichas', id),
+      enter: (id, pointerType) => {
+        if (pointerType === 'mouse' && !drag.current?.moved) setHovered(id)
+      },
+      leave: (id, pointerType) => {
+        if (pointerType === 'mouse') setHovered((h) => (h === id ? null : h))
+      },
+      focus: (id) => setHovered(id),
+      blur: (id) => setHovered((h) => (h === id ? null : h)),
+    }),
+    [],
+  )
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<{ d: number; k: number } | null>(null)
   const transformOf = (v: { x: number; y: number; k: number }) => `translate(${v.x} ${v.y}) translate(${W / 2} ${H / 2}) scale(${v.k}) translate(${-W / 2} ${-H / 2})`
@@ -360,6 +364,7 @@ export default function GraphView() {
   const sel = selected ? byId(universe, 'entities', selected) : undefined
   const focus = hovered ?? selected
   const focusEdges = focus ? visibleEdges.filter((e) => active(e) && (e.from === focus || e.to === focus || e.relation?.via.some((v) => v.entityId === focus))) : []
+  const focusSet = new Set(focusEdges)
   const highlight = focus ? new Set([focus, ...focusEdges.flatMap((e) => [e.from, e.to, ...(e.relation ? [e.relation.fromId, e.relation.toId] : [])])]) : null
   const selRelations = sel ? universe.relations.filter((r) => r.fromId === sel.id || r.toId === sel.id || r.via.some((v) => v.entityId === sel.id)) : []
 
@@ -554,7 +559,7 @@ export default function GraphView() {
         <div className="graph-wrap" ref={wrapRef}>
           <svg
             ref={svgRef}
-            className="graph"
+            className={`graph${highlight ? ' has-focus' : ''}`}
             viewBox={`0 0 ${W} ${H}`}
             role="group"
             aria-label={`Grafo com ${shownNodes.length} fichas e ${visibleEdges.filter((e) => active(e) && appeared(e.from) && appeared(e.to)).length} ligações`}
@@ -627,89 +632,63 @@ export default function GraphView() {
                 const b = pos.get(e.to)
                 if (!a || !b) return null
                 if (!appeared(e.from) || !appeared(e.to) || (e.relation && (!appeared(e.relation.fromId) || !appeared(e.relation.toId)))) return null
-                const on = active(e)
-                const lit = highlight ? highlight.has(e.from) && highlight.has(e.to) && focusEdges.includes(e) : false
-                const dim = highlight && !lit
+                const off = !active(e)
+                const lit = focusSet.has(e)
                 if (e.kind === 'por-tras') {
                   // Quem está por trás aponta para o meio da relação principal.
                   const r = e.relation!
                   const p = pos.get(r.fromId)
                   const q = pos.get(r.toId)
                   if (!p || !q) return null
-                  const mx = (p.x + q.x) / 2
-                  const my = (p.y + q.y) / 2
-                  return (
-                    <g key={e.id} className={`edge edge-via${on ? '' : ' off'}${dim ? ' dim' : ''}`}>
-                      <path d={`M${a.x},${a.y} L${mx},${my}`} />
-                      <circle cx={mx} cy={my} r={3.5} className="edge-via-dot" />
-                      {lit && (
-                        <text x={(a.x + mx) / 2} y={(a.y + my) / 2 - 5} className="edge-label">
-                          {e.label}
-                        </text>
-                      )}
-                    </g>
-                  )
+                  return <ViaShape key={e.id} off={off} lit={lit} label={e.label} ax={a.x} ay={a.y} mx={(p.x + q.x) / 2} my={(p.y + q.y) / 2} />
                 }
                 const rr = radius(e.to)
                 const d = Math.hypot(b.x - a.x, b.y - a.y) || 1
-                const bx = b.x - ((b.x - a.x) / d) * (rr + 3)
-                const by = b.y - ((b.y - a.y) / d) * (rr + 3)
-                const scoped = e.relation && e.relation.scope.kind !== 'geral'
+                const row = lit ? focusEdges.filter((f) => f.kind !== 'por-tras' && ((f.from === e.from && f.to === e.to) || (f.from === e.to && f.to === e.from))).indexOf(e) : 0
                 return (
-                  <g
+                  <EdgeShape
                     key={e.id}
-                    className={`edge${e.kind === 'derivada' ? ' edge-derived' : ''}${on ? '' : ' off'}${dim ? ' dim' : ''}${lit ? ' lit' : ''}${e.canon && e.canon !== 'estabelecido' ? ` edge-${e.canon}` : ''}${scoped ? ' edge-scoped' : ''}`}
-                  >
-                    <path d={`M${a.x},${a.y} L${bx},${by}`} pathLength={e.kind === 'relacao' && e.canon !== 'rumor' ? 1 : undefined} markerEnd="url(#arrow)" />
-                    {lit && (
-                      // Duas ligações entre as mesmas fichas ("desconfia de" e "protege"): um nome em cima do outro, não por cima.
-                      <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 5 - 15 * focusEdges.filter((f) => f.kind !== 'por-tras' && ((f.from === e.from && f.to === e.to) || (f.from === e.to && f.to === e.from))).indexOf(e)} className="edge-label">
-                        {e.label}
-                      </text>
-                    )}
-                  </g>
+                    kind={e.kind}
+                    canon={e.canon}
+                    scoped={Boolean(e.relation && e.relation.scope.kind !== 'geral')}
+                    off={off}
+                    lit={lit}
+                    label={e.label}
+                    row={row}
+                    ax={a.x}
+                    ay={a.y}
+                    bx={b.x - ((b.x - a.x) / d) * (rr + 3)}
+                    by={b.y - ((b.y - a.y) / d) * (rr + 3)}
+                    cx={b.x}
+                    cy={b.y}
+                  />
                 )
               })}
               {shownNodes.map((n, i) => {
                 const p = pos.get(n.id)
                 if (!p) return null
                 const r = radius(n.id)
-                const dim = (highlight && !highlight.has(n.id)) || (inTime && !liveIds.has(n.id))
+                const spot = labels.get(n.id)
                 return (
-                  <g
+                  <NodeShape
                     key={n.id}
-                    className={`node kind-${n.kind}${n.id === selected ? ' selected' : ''}${dim ? ' dim' : ''}${inTime && firstSeen.get(n.id) === sceneAt ? ' is-new' : ''}`}
-                    style={{ ['--i' as string]: i }}
-                    transform={`translate(${p.x} ${p.y})`}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`${n.name}, ${kindLabel(n.kind)}`}
-                    onClick={() => {
-                      if (suppressClick.current) return
-                      setSelected(n.id === selected ? null : n.id)
-                    }}
-                    // Destacar ao passar por cima é só do mouse: no dedo, cada toque redesenharia tudo.
-                    onPointerEnter={(e) => e.pointerType === 'mouse' && !drag.current?.moved && setHovered(n.id)}
-                    onPointerLeave={(e) => e.pointerType === 'mouse' && setHovered((h) => (h === n.id ? null : h))}
-                    onFocus={() => setHovered(n.id)}
-                    onBlur={() => setHovered((h) => (h === n.id ? null : h))}
-                    onMouseDown={(e) => e.detail > 1 && e.preventDefault()}
-                    onDoubleClick={(e) => {
-                      e.preventDefault()
-                      getSelection()?.removeAllRanges()
-                      go('fichas', n.id)
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') setSelected(n.id)
-                    }}
-                  >
-                    {n.id === selected && <circle r={r + 7} className="node-ring" />}
-                    <circle r={r} />
-                    <NodeFace id={n.id} name={n.name} image={n.image} r={r} />
-                    <text x={labels.get(n.id)?.dx ?? 0} y={labels.get(n.id)?.dy ?? r + 17} textAnchor={labels.get(n.id)?.anchor ?? 'middle'} className="node-label">
-                      {n.name}
-                    </text>
-                  </g>
+                    id={n.id}
+                    name={n.name}
+                    kind={n.kind}
+                    image={n.image}
+                    index={i}
+                    x={p.x}
+                    y={p.y}
+                    r={r}
+                    selected={n.id === selected}
+                    dim={inTime && !liveIds.has(n.id)}
+                    isNew={inTime && firstSeen.get(n.id) === sceneAt}
+                    hl={highlight ? highlight.has(n.id) : false}
+                    labelDx={spot?.dx ?? 0}
+                    labelDy={spot?.dy ?? r + 17}
+                    labelAnchor={spot?.anchor ?? 'middle'}
+                    actions={actions}
+                  />
                 )
               })}
             </g>
