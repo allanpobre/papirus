@@ -117,3 +117,38 @@ test('um setor guardado que não existe mais (o "Mundos") não derruba o app', a
   await expect(page.getByText('O Papirus encontrou um erro.')).toHaveCount(0)
   await expect(page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Escrita' })).toHaveAttribute('aria-current', 'page')
 })
+
+/*
+ * O Início no celular, olhado como usuário: o próximo passo logo na primeira tela, as seções na ordem
+ * (o próximo passo, o que pede um olhar, o mundo, o ritmo) e nada passando da borda.
+ */
+for (const [largura, altura] of [
+  [390, 844],
+  [360, 640],
+] as const) {
+  test(`Início no celular (${largura}×${altura}): o próximo passo está à vista e as seções seguem a ordem`, async ({ page }) => {
+    await page.setViewportSize({ width: largura, height: altura })
+    await page.goto('/app/?exemplo')
+    const continuar = next(page).getByRole('button', { name: 'Continuar escrevendo' })
+    await expect(continuar).toBeVisible()
+    // Sem rolar: "Continuar escrevendo" fica acima da barra de baixo (uns 60 px).
+    const caixa = (await continuar.boundingBox())!
+    expect(caixa.y + caixa.height, 'Continuar escrevendo na primeira tela').toBeLessThan(altura - 64)
+    expect(caixa.height, 'área de toque do botão').toBeGreaterThanOrEqual(44)
+
+    // Nada passa da borda: nem a página, nem os botões do alto.
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
+    for (const nome of ['Anotar uma ideia', 'Buscar em tudo']) {
+      const b = (await page.getByRole('button', { name: nome }).first().boundingBox())!
+      expect(b.x + b.width, `${nome} dentro da tela`).toBeLessThanOrEqual(largura)
+    }
+
+    // A ordem de cima para baixo: o próximo passo, o que pede um olhar, o mundo (o que falta) e o ritmo.
+    const topo = async (seletor: string) => (await page.locator(seletor).first().boundingBox())!.y
+    const proximo = await topo('[aria-label="O próximo passo"]')
+    const olhar = await topo('[aria-label="Para quando der"]')
+    const mundo = await topo('.world-card')
+    const ritmo = await topo('.home-day')
+    expect([proximo, olhar, mundo, ritmo], 'ordem das seções').toEqual([proximo, olhar, mundo, ritmo].sort((a, b) => a - b))
+  })
+}

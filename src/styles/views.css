@@ -4268,6 +4268,14 @@ code {
   .home-day {
     order: 4;
   }
+  /* "O que falta no mundo" é parte do mundo: vem junto dele, depois do que pede um olhar (sem isto ia para antes). */
+  .world-card {
+    order: 2;
+  }
+  /* Botões do próximo passo com área de toque de verdade (44 px). */
+  .home-next-actions .btn {
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 520px) {
