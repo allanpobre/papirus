@@ -788,6 +788,8 @@
 .atlas-scroll {
   position: relative;
   overflow: auto;
+  /* O toque move e aproxima o mapa direto (src/ui/useScrollPinch.ts); o mouse segue com a rolagem. */
+  touch-action: none;
   max-height: calc(100vh - 13rem);
   border: 1px solid var(--line);
   border-radius: var(--radius-l);

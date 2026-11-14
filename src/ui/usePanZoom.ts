@@ -122,7 +122,11 @@ export function usePanZoom(area: Area, { minK = 0.3, maxK = 3, pad = 12 } = {}) 
         if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) return
         d.moved = true
         moved.current = true
-        ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
+        try {
+          ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
+        } catch {
+          // Um toque que o navegador já não conhece (acabou no meio do gesto): segue sem a captura.
+        }
       }
       const p = local(e.clientX, e.clientY)
       if (!p) return

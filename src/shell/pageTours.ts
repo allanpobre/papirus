@@ -295,7 +295,7 @@ export const PAGE_TOURS = {
       { target: '.atlas-view .area-tools', title: 'Mapas', body: 'Cada mapa numa aba. “Adicionar mapa” envia uma imagem: desenho à mão, Inkarnate, qualquer coisa.' },
       { target: '.atlas-toolbar', title: 'Marcar lugares', body: '“Marcar lugar” e toque no mapa para pôr um marcador ligado a uma ficha. Os botões − e + mudam o zoom, e os tipos mostram ou escondem marcadores.', optional: true },
       { target: '.atlas-route-pick', title: 'Caminho de', body: 'Escolha um personagem: o trajeto dele pelas cenas aparece no mapa, numerado na ordem.', optional: true },
-      { target: '.atlas-scroll', title: 'O mapa', body: 'Toque num marcador para ver a ficha, mudar o nome que aparece no mapa, Mover ou Remover. Com o mouse, dá para arrastar.', optional: true },
+      { target: '.atlas-scroll', title: 'O mapa', body: 'No celular, um dedo move o mapa e dois dedos aproximam (um arrasto que começa num marcador não o abre). Toque num marcador para ver a ficha, mudar o nome que aparece no mapa, Mover ou Remover. Com o mouse, dá para arrastar o marcador.', optional: true },
       { title: 'Nas fichas também', body: 'Cada ficha mostra o pedaço do mapa onde ela está (num personagem, o caminho dele pelas cenas). Numa campanha, o mestre revela o mapa aos jogadores; no Codex aparecem só os marcadores que a mesa já conhece.' },
     ],
   },
