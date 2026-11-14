@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { downloadText, fileNameFor } from '../export/download'
 import { setImageServer } from '../images/resolve'
 import type { Universe } from '../model/schema'
-import { wikiImages } from '../views/WikiCard'
+import { wikiImages } from '../views/wikiImages'
 import type { ServerConfig } from './server'
 import { shortName } from './sharing'
 

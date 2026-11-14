@@ -5,6 +5,7 @@ import { INITIATIVE_MODES, type Session, type Universe } from '../../model/schem
 import { byId, insert, patch } from '../../model/universe'
 import { addCondition, conditionsOf, initiativeOrder, isDown, lifeOf, removeCondition, roundsLeft } from '../../rpg/combat'
 import { addMonsters, draftMonster, sortedMonsters } from '../../rpg/bestiary'
+import { addStarterMonsters, missingStarters } from '../../rpg/starterBestiary'
 import {
   actedSide,
   autoInitiative,
@@ -685,6 +686,15 @@ function AddCombatants({ session }: { session: Session }) {
               })
               setMonsterId(id)
               setEditingMonster(id)
+            } else if (e.target.value === '+comuns') {
+              // Para quem nunca mestrou: cinco inimigos conhecidos, já com vida, Defesa e ataque.
+              let first: string | null = null
+              update((u) => {
+                const [next, id] = addStarterMonsters(u)
+                first = id
+                return next
+              })
+              if (first) setMonsterId(first)
             } else setMonsterId(e.target.value)
           }}
         >
@@ -694,6 +704,7 @@ function AddCombatants({ session }: { session: Session }) {
               {m.name || 'Sem nome'}
             </option>
           ))}
+          {missingStarters(universe).length > 0 && <option value="+comuns">+ Trazer inimigos comuns (Goblin, Lobo…)</option>}
           <option value="+novo">+ Novo inimigo pronto</option>
         </select>
         <label htmlFor="init-qtd" className="sr-only">

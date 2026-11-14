@@ -49,8 +49,6 @@ export const listsOf = (e: Entity | undefined): EntityList[] => e?.lists ?? []
 
 export const listTemplatesFor = (u: Universe, kind: string): string[] => u.settings.listTemplates?.[kind] ?? DEFAULT_LIST_TEMPLATES[kind] ?? []
 
-export const isMembership = (r: Relation) => Boolean(r.listId)
-
 /** Ex-membro: a ligação tem um fim ("até 340"). */
 export const isPast = (r: Relation) => r.scope.kind === 'periodo' && r.scope.toYear !== null
 

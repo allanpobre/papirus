@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { pagedDocument } from './pagedDocument'
 import { downloadText, fileNameFor } from '../export/download'
 import { BOOK_PRESETS, PAGE_SIZES, alsoByTitles, bookTitle, buildBook, defaultDesign, fontsOf, previewCss } from '../export/bookDesign'
-import { PAPERS, charsPerLine, cm, coverTemplateSvg, lineComfort, mm, spineMm, wrapSize, type Paper } from '../export/printCover'
+import { PAPERS, charsPerLine, cm, coverTemplateSvg, lineComfort, mm, spineMm, wrapBreakdown, wrapSize, type Paper } from '../export/printCover'
 import { BOOK_FONTS, fontFaces } from '../export/bookFonts'
 import { shelf, styleOf, updateBook } from '../export/shelf'
 import { downloadEpub } from './epubDownload'
@@ -114,6 +114,9 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
   const [spreads, setSpreads] = useState(() => !matchMedia('(max-width: 900px)').matches)
   const [zoom, setZoom] = useState(() => (matchMedia('(max-width: 900px)').matches ? 0.6 : 0.8))
   const [pages, setPages] = useState<number | null>(null)
+  // Enquanto monta: em que página está; "Cancelar" para a montagem (o livro inteiro leva um tempo num celular fraco).
+  const [progress, setProgress] = useState(0)
+  const [canceled, setCanceled] = useState(false)
   const [doc, setDoc] = useState('')
   const frame = useRef<HTMLIFrameElement>(null)
   const coverInput = useRef<HTMLInputElement>(null)
@@ -125,14 +128,29 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
   useEffect(() => {
     const t = setTimeout(() => {
       setPages(null)
+      setProgress(0)
+      setCanceled(false)
       setDoc(bookDocument(book.title, book.html, book.css, fonts, previewCss(design), spreads))
     }, 500)
     return () => clearTimeout(t)
   }, [book, fonts, spreads, design])
+  /** Para a montagem em andamento (a moldura vira uma página em branco) ou monta de novo. */
+  const cancelPagination = () => {
+    setCanceled(true)
+    setDoc('')
+  }
+  const paginateAgain = () => {
+    setPages(null)
+    setProgress(0)
+    setCanceled(false)
+    setDoc(bookDocument(book.title, book.html, book.css, fonts, previewCss(design), spreads))
+  }
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.source === frame.current?.contentWindow && typeof e.data?.papirusPaged === 'number') setPages(e.data.papirusPaged)
+      if (e.source !== frame.current?.contentWindow) return
+      if (typeof e.data?.papirusPaged === 'number') setPages(e.data.papirusPaged)
+      else if (typeof e.data?.papirusProgress === 'number') setProgress((n) => Math.max(n, e.data.papirusProgress))
     }
     addEventListener('message', onMessage)
     return () => removeEventListener('message', onMessage)
@@ -237,9 +255,19 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
           <strong>Diagramar: {book.title}</strong>
           <span className="muted tiny">
             {book.chapters} {book.chapters === 1 ? 'capítulo' : 'capítulos'} · {book.words.toLocaleString('pt-BR')} palavras ·{' '}
-            {pages === null ? 'paginando…' : `${pages} páginas`}
+            <span role="status">{pages !== null ? `${pages} páginas` : canceled ? 'montagem cancelada' : progress > 0 ? `montando página ${progress}…` : 'preparando o livro…'}</span>
           </span>
         </div>
+        {pages === null && doc && !canceled && book.chapters > 0 && (
+          <button type="button" className="btn btn-sm book-cancel" onClick={cancelPagination}>
+            Cancelar
+          </button>
+        )}
+        {canceled && (
+          <button type="button" className="btn btn-sm btn-primary book-cancel" onClick={paginateAgain}>
+            Montar de novo
+          </button>
+        )}
         <PageHelp tour="diagramar" />
         <button type="button" className="btn btn-sm btn-ghost book-panel-toggle" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
           {panelOpen ? 'Ver páginas' : 'Opções'}
@@ -467,7 +495,10 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
             ) : (
               (() => {
                 const size = wrapSize(design, pages, paper)
+                const conta = wrapBreakdown(design, pages, paper)
+                const n = (x: number, digits = 1) => x.toLocaleString('pt-BR', { maximumFractionDigits: digits })
                 return (
+                  <>
                   <dl className="book-wrap-size">
                     <div>
                       <dt>Lombada</dt>
@@ -480,6 +511,25 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
                       </dd>
                     </div>
                   </dl>
+                  <details className="book-wrap-why">
+                    <summary>De onde vêm estas medidas?</summary>
+                    <ul className="small">
+                      <li>
+                        <strong>Lombada</strong>: o livro tem {conta.pages} páginas{conta.even !== conta.pages ? `; o papel sai em folhas de duas, então contam ${conta.even}` : ''}. Cada página, no papel {PAPERS[paper].label.toLowerCase()}, tem {n(conta.perPage, 3)} mm de espessura:{' '}
+                        {conta.even} × {n(conta.perPage, 3)} mm = {n(conta.spine)} mm.
+                      </li>
+                      <li>
+                        <strong>Largura da capa inteira</strong>: sangria {n(conta.bleed, 2)} mm + contracapa {n(conta.pageWidth)} mm + lombada {n(conta.spine)} mm + capa {n(conta.pageWidth)} mm + sangria {n(conta.bleed, 2)} mm = {n(conta.width)} mm.
+                      </li>
+                      <li>
+                        <strong>Altura</strong>: sangria {n(conta.bleed, 2)} mm + {n(conta.pageHeight)} mm do livro + sangria {n(conta.bleed, 2)} mm = {n(conta.height)} mm.
+                      </li>
+                      <li>
+                        A <strong>sangria</strong> é o que passa do corte (3,2 mm, 1/8 de polegada) para a cor não deixar uma faixa branca se o corte variar.
+                      </li>
+                    </ul>
+                  </details>
+                  </>
                 )
               })()
             )}

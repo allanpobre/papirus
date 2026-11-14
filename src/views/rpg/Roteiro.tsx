@@ -7,7 +7,7 @@ import { addBeat, editBeat, playBeat, removeBeat, toggleBeat } from '../../rpg/s
 import { defenseLabel } from '../../rpg/sheets'
 import { useWorkspace } from '../../state/workspace'
 import { Fold } from '../../ui/Fold'
-import { monsterLine } from './Bestiary'
+import { monsterLine } from './monsterLine'
 import { useRpg } from './rpgContext'
 import { SecretsPanel } from './Secrets'
 

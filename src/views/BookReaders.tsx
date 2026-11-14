@@ -4,7 +4,7 @@ import { CHAPTER_EMOJIS, tally } from '../social/chapterReactions'
 import { useWorkspace } from '../state/workspace'
 import { Modal } from '../ui/Modal'
 import type { BookReaders } from './readersData'
-import { saveMode } from './write/WritingModes'
+import { saveMode } from './write/writingModeStore'
 
 /** A janela: cada capítulo com as reações e os comentários; tocar leva à cena, na Revisão. */
 export function BookReadersDialog({ readers, title, onClose }: { readers: BookReaders; title: string; onClose: () => void }) {

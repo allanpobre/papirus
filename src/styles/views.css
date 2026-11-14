@@ -444,9 +444,20 @@
   stroke-dasharray: 2 4;
 }
 
-.edge.dim,
-.node.dim {
+/* Com uma ficha em destaque (mouse, foco ou escolhida), tudo fora do grupo dela apaga. É CSS (e não uma classe em
+   cada peça) para que passar o mouse não obrigue a desenhar de novo todas as bolinhas e linhas. */
+.graph.has-focus .edge:not(.hl):not(.off) {
   opacity: 0.18;
+}
+
+/* Quem não está perto da ficha escolhida fica apagado, mas o nome continua legível (contraste de texto, WCAG AA). */
+.node.dim > :not(.node-label),
+.graph.has-focus .node:not(.hl) > :not(.node-label) {
+  opacity: 0.18;
+}
+.node.dim .node-label,
+.graph.has-focus .node:not(.hl) .node-label {
+  fill: var(--muted);
 }
 
 .edge-label {
@@ -4261,6 +4272,14 @@ code {
   .home-day {
     order: 4;
   }
+  /* "O que falta no mundo" é parte do mundo: vem junto dele, depois do que pede um olhar (sem isto ia para antes). */
+  .world-card {
+    order: 2;
+  }
+  /* Botões do próximo passo com área de toque de verdade (44 px). */
+  .home-next-actions .btn {
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 520px) {
@@ -4476,17 +4495,17 @@ code {
 
 .edge-via path {
   stroke: var(--violet);
-  stroke-width: 1.4;
+  stroke-width: 1.8;
   stroke-dasharray: 3 4;
+}
+
+/* Quem está por trás de uma ligação fora do destaque fica mais fina (além de apagada). */
+.graph.has-focus .edge-via:not(.hl) path {
+  stroke-width: 1.4;
 }
 
 .edge-via-dot {
   fill: var(--violet);
-}
-
-.edge-via.lit path,
-.edge-via:not(.dim) path {
-  stroke-width: 1.8;
 }
 
 .node-ring {
@@ -10562,7 +10581,8 @@ h3.cork-act {
   flex: 1;
   width: 100%;
   border: 0;
-  background: #fff;
+  /* Enquanto a wiki carrega, o fundo é o papel do tema (no escuro, não um clarão branco). */
+  background: var(--paper);
 }
 .wiki-link-loading {
   margin: 2rem auto;
@@ -10602,4 +10622,249 @@ h3.cork-act {
   font: inherit;
   font-weight: 600;
   text-overflow: ellipsis;
+}
+
+
+/* ─── Todas as ferramentas e o exemplo de Simples/Completo (Ajustes) ───────────────────────── */
+.all-tools-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.all-tools-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 12px; text-align: left; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); color: inherit; cursor: pointer; }
+.all-tools-row:hover { border-color: var(--accent); }
+.all-tools-text { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.all-tools-note { color: var(--muted); font-style: italic; }
+.level-example { margin: 12px 0 4px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: var(--radius); }
+.level-example-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.level-example ul { margin: 4px 0 0; padding-left: 18px; }
+@media (max-width: 520px) { .level-example-cols { grid-template-columns: 1fr; } }
+
+
+/* Aviso de espaço quase cheio (Início e Ajustes › Seus dados). */
+.storage-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  margin: 0 0 0.75rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--ochre-line);
+  border-radius: var(--radius-s);
+  background: var(--ochre-soft);
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+.storage-notice-text {
+  flex: 1 1 100%;
+}
+.storage-notice.is-full {
+  border-color: var(--danger, var(--ochre-line));
+}
+.storage-notice-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+}
+.storage-notice-card p {
+  margin: 0;
+}
+
+
+/* Procurar e trocar: "Só neste livro" / "Em todos os livros". */
+.replace-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  margin: 0.4rem 0 0.2rem;
+}
+
+
+/* Presença (a tabela larga): a coluna das cenas fica presa à esquerda enquanto se rola de lado; no celular, mais estreita. */
+.matrix thead th:first-child,
+.matrix th[scope='row'] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--paper);
+  box-shadow: 1px 0 0 var(--line);
+}
+@media (max-width: 760px) {
+  .matrix th[scope='row'] {
+    max-width: 9.5rem;
+  }
+  .matrix th[scope='row'] .link-btn {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
+}
+
+
+/* Tabela de fichas no celular: rola de lado, a coluna do nome fica presa à esquerda, e o toque edita a célula. */
+.entity-table-wrap .table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.entity-table thead th:first-child,
+.entity-table tbody th[scope='row'] {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface);
+  box-shadow: 1px 0 0 var(--line);
+}
+.entity-table thead th:first-child {
+  background: var(--surface-2);
+}
+.table-rename {
+  display: none;
+}
+@media (pointer: coarse) {
+  .table-rename {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-left: 0.15rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: transparent;
+    color: var(--muted);
+    vertical-align: middle;
+  }
+  .table-cell {
+    min-height: 2.2rem;
+  }
+}
+@media (max-width: 760px) {
+  /* Sem ficha aberta, a tabela ocupa a tela (a lista fica escondida atrás dos filtros). */
+  .fichas-view.is-table:not(.has-detail) > .split-detail {
+    display: block;
+  }
+  .fichas-view.is-table:not(.has-detail) > .split-list .entity-list {
+    display: none;
+  }
+  .entity-table tbody th[scope='row'] {
+    max-width: 10.5rem;
+    overflow: hidden;
+  }
+  .entity-table td {
+    min-width: 6.5rem;
+  }
+}
+
+.table-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.table-name-cell .table-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+.table-name-cell .table-rename {
+  flex: none;
+}
+@media (max-width: 520px) {
+  /* Procurar, tipo, papel e ordem: a busca ocupa a primeira linha inteira e os filtros vêm embaixo. */
+  .fichas-view .list-tools {
+    flex-wrap: wrap;
+  }
+  .fichas-view .list-tools > .input {
+    flex: 1 1 100%;
+  }
+  .fichas-view .list-tools > .select {
+    flex: 1 1 0;
+    min-width: 5.5rem;
+    max-width: none;
+  }
+}
+
+
+/* Recortar a imagem (retrato quadrado; mapa livre). */
+.crop {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+}
+.crop-probe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.crop-square {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 2px solid var(--accent);
+  background: var(--surface-3);
+  touch-action: none;
+  cursor: grab;
+}
+.crop-square img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.crop-zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(100%, 288px);
+}
+.crop-zoom input {
+  flex: 1;
+  min-height: 32px;
+}
+.crop-free {
+  position: relative;
+  max-width: 100%;
+  background: var(--surface-3);
+  touch-action: none;
+  user-select: none;
+}
+.crop-free img {
+  display: block;
+  opacity: 0.55;
+}
+.crop-box {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--ink) 38%, transparent);
+  cursor: move;
+  touch-action: none;
+}
+.crop-handle {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--paper);
+  touch-action: none;
+}
+.crop-handle-nw { left: -14px; top: -14px; cursor: nwse-resize; }
+.crop-handle-n { left: calc(50% - 14px); top: -14px; cursor: ns-resize; }
+.crop-handle-ne { right: -14px; top: -14px; cursor: nesw-resize; }
+.crop-handle-e { right: -14px; top: calc(50% - 14px); cursor: ew-resize; }
+.crop-handle-se { right: -14px; bottom: -14px; cursor: nwse-resize; }
+.crop-handle-s { left: calc(50% - 14px); bottom: -14px; cursor: ns-resize; }
+.crop-handle-sw { left: -14px; bottom: -14px; cursor: nesw-resize; }
+.crop-handle-w { left: -14px; top: calc(50% - 14px); cursor: ew-resize; }
+.crop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
 }

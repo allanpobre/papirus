@@ -1,10 +1,3 @@
-export interface DiceTerm {
-  sign: 1 | -1
-  count: number
-  sides: number
-  /** Manter os N maiores (kh) ou menores (kl). */
-  keep?: { mode: 'h' | 'l'; n: number }
-}
 
 export interface DiceRoll {
   expression: string

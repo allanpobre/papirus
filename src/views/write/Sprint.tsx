@@ -1,9 +1,8 @@
 import { Timer, X } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { playKey, unlockAudio } from '../../editor/keySounds'
-import { countWords } from '../../persistence/repository'
 import { useWorkspace } from '../../state/workspace'
-import { setSprint as set, sprintNow, subscribeSprint as subscribe } from './sprintClock'
+import { newSprint, setSprint as set, sprintGain, sprintNow, subscribeSprint as subscribe } from './sprintClock'
 
 const OPTIONS = [10, 15, 25] as const
 const mmss = (ms: number) => {
@@ -12,12 +11,12 @@ const mmss = (ms: number) => {
 }
 
 export function SprintButton() {
-  const { universe, toast, prefs } = useWorkspace()
+  const { universe, toast, prefs, bookId } = useWorkspace()
   const sprint = useSyncExternalStore(subscribe, sprintNow)
   const [open, setOpen] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const mine = sprint && sprint.universeId === universe.id ? sprint : null
-  const gained = mine ? Math.max(0, countWords(universe) - mine.startWords) : 0
+  const gained = mine ? sprintGain(universe, mine) : 0
 
   useEffect(() => {
     if (!mine) return
@@ -58,7 +57,7 @@ export function SprintButton() {
                 unlockAudio()
                 setOpen(false)
                 setNow(Date.now())
-                set({ universeId: universe.id, endsAt: Date.now() + m * 60_000, minutes: m, startWords: countWords(universe) })
+                set(newSprint(universe, m, bookId))
               }}
             >
               {m} min

@@ -1,12 +1,12 @@
 import { BookOpen, BookOpenText, Check, Copy, FileDown, FileText, FileType, Globe, Palette, Plus, Printer, Ruler, Trash2, Upload } from 'lucide-react'
 import { ReviewDialog } from '../book/ReviewDialog'
-import { lazy, Suspense, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { BOOK_FONTS } from '../export/bookFonts'
 import { BODY_FONT_KEY, PAGE_SIZES, bookTitle } from '../export/bookDesign'
 import { reviewStep, textStep, type StepState } from '../export/bookPath'
 import { fileNameFor, downloadText } from '../export/download'
 import { addBook, removeBook, shelf, storiesOutsideBooks } from '../export/shelf'
-import { reviewBook } from '../logic/review'
+import { reviewBook, reviewIfDone } from '../logic/review'
 import type { BookRecord } from '../model/schema'
 import { useAccount } from '../account/auth'
 import { useWorkspace } from '../state/workspace'
@@ -241,9 +241,20 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
   const { user } = useAccount()
   const title = bookTitle(universe, book)
   const author = book.author.trim()
-  const issues = useMemo(() => reviewBook(universe, book), [universe, book])
+  // A conferência do texto olha o livro inteiro (pesa num livro grande): a tela aparece primeiro e o resultado chega logo depois.
+  const issuesNow = reviewIfDone(universe, book)
+  const [, nudge] = useReducer((n: number) => n + 1, 0)
+  useEffect(() => {
+    if (issuesNow) return
+    const id = setTimeout(() => {
+      reviewBook(universe, book)
+      nudge()
+    }, 50)
+    return () => clearTimeout(id)
+  }, [issuesNow, universe, book])
+  const issues = issuesNow ?? []
   const text = textStep(universe, book, issues)
-  const review = reviewStep(issues)
+  const review: ReturnType<typeof reviewStep> = issuesNow ? reviewStep(issuesNow) : { state: 'neutro', detail: 'Conferindo o texto…', fix: 0, look: 0 }
   const readers = useBookReaders(book)
   // A wiki do mundo também sai daqui: quem procura "extrair" olha em Publicar.
   const [wiki, setWiki] = useState(false)

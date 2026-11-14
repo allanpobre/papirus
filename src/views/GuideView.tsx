@@ -98,7 +98,7 @@ const AREAS: Area[] = [
       { title: 'Perguntar ao mundo', what: 'Pergunte à sua lore com IA, usando a sua chave. Ela só lê o que você manda.', tour: 'archivist', view: 'archivist' },
       { title: 'Oficina', what: 'Aprender escrevendo: trilhas curtas, exercícios, imitação e o caderno.', tour: 'oficina', view: 'oficina' },
       { title: 'Comunidade', what: 'No início do app (Trocar de universo): novidades, continuar lendo, seguir, quem leu seus livros, bloquear e pedir AU.', tour: 'hub-comunidade' },
-      { title: 'Ajustes e dados', what: 'Este universo (Simples ou Completo, calendário), este aparelho (aparência, backup) e a sua conta.', tour: 'config', view: 'config' },
+      { title: 'Ajustes e dados', what: 'Este universo (Simples ou Completo, calendário), este aparelho (aparência, backup) e a sua conta. Em “Todas as ferramentas”, cada área com uma frase e um toque para abrir.', tour: 'config', view: 'config' },
     ],
   },
 ]

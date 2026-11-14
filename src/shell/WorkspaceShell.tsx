@@ -1,5 +1,6 @@
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { relativeDate } from '../logic/relativeDate'
 import { canCreateAU, createAU } from '../logic/au'
 import { AUBanner } from '../views/AUBanner'
@@ -32,22 +33,19 @@ import { wordsToday } from '../logic/stats'
 import { recordToday } from '../social/dailyWords'
 import { progressToShare, shareProgress } from '../social/activity'
 import { ShelfSync } from '../social/useShelfSync'
-import { AccountButton, AccountDialog } from '../account/AccountDialog'
+import { AccountButton } from '../account/AccountButton'
 import { Tour } from './Tour'
 import { usePlay } from './usePlay'
 import { backState, backTo, navigateTo, onBackNavigate } from './backStack'
 import { useBackLayer } from '../ui/useBackLayer'
 import { useImageSync } from '../images/useImageSync'
 import { embeddedImages } from '../images/backup'
-import { onSceneImageError } from '../editor/image'
-import { OficinaPage } from '../oficina/OficinaPage'
+import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
-import { ShareDialog } from '../share/ShareDialog'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
 import { readerCopy } from '../share/readerCopy'
-import { ReaderView } from '../reader/ReaderView'
 import type { SendComment } from '../reader/ReaderComment'
 import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
@@ -61,10 +59,14 @@ import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } f
 import { CaptureDialog } from './CaptureDialog'
 import { PeekDrawer } from './PeekDrawer'
 import { SearchPalette } from './SearchPalette'
-import { ReplaceHost } from '../views/write/ReplaceDialog'
+import { ReplaceHost } from '../views/write/ReplaceHost'
 import { migrateParents } from '../model/lists'
 import { modKey } from '../ui/keys'
 
+const OficinaPage = lazy(() => import('../oficina/OficinaPage').then((m) => ({ default: m.OficinaPage })))
+const ShareDialog = lazy(() => import('../share/ShareDialog').then((m) => ({ default: m.ShareDialog })))
+const AccountDialog = lazy(() => import('../account/AccountDialog').then((m) => ({ default: m.AccountDialog })))
+const ReaderView = lazy(() => import('../reader/ReaderView').then((m) => ({ default: m.ReaderView })))
 const HomeView = lazy(() => import('../views/HomeView'))
 const WriteView = lazy(() => import('../views/write/WriteView'))
 const EntitiesView = lazy(() => import('../views/EntitiesView'))
@@ -199,15 +201,27 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     return () => clearTimeout(t)
   }, [status, write])
 
+  // O mais novo do universo e do livro escolhido, para o `go` saber sem mudar a cada letra digitada.
+  const latest = useRef({ universe, bookId })
+  useEffect(() => {
+    latest.current = { universe, bookId }
+  })
   const go = useCallback(
     (view: View, id: string | null = null, options: { replace?: boolean } = {}) => {
       if (view === 'oficina') return setOficinaOpen(true)
+      // Ir a uma cena de outro livro (o bilhete, a busca, "onde parei"): o livro escolhido passa a ser o dela
+      // (ou "todos", se a cena é solta), para a cena aparecer na lista e o resto da tela seguir com ela.
+      if (view === 'escrever' && id) {
+        const { universe: u, bookId: chosen } = latest.current
+        const scene = chosen ? u.scenes.find((s) => s.id === id) : undefined
+        if (scene && scene.storyId !== chosen) setBookId(scene.storyId)
+      }
       navigateTo({ u: initial.id, view, id }, options.replace)
       navRef.current = { view, id }
       setNav({ view, id })
       remember(`vista:${initial.id}`, view)
     },
-    [initial.id],
+    [initial.id, setBookId],
   )
   // O tour passeia pelas telas sem encher o "voltar" de passos.
   const tourGo = useCallback((view: View) => go(view, null, { replace: true }), [go])
@@ -526,6 +540,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             inboxCount={openInbox}
             universeName={universe.name}
             onGo={go}
+            onTools={() => go('config', 'ferramentas')}
             shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
             defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
             onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
@@ -736,7 +751,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
             {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
             {BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
-            <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
+            {/* Cada área tem o seu próprio aviso de erro: se uma tela quebrar, o menu e o resto do app continuam. */}
+            <ErrorBoundary resetKey={nav.view} label="Esta parte deu erro" onHome={nav.view === 'inicio' ? undefined : () => go('inicio')} copyDetails>
+              <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
+            </ErrorBoundary>
           </Suspense>
         </main>
 
@@ -767,9 +785,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             }}
           />
         )}
-        {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
+        <Suspense fallback={null}>
+          {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
+          {shareOpen && <ShareDialog linkFocus={shareLink} onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
+        </Suspense>
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}
-        {shareOpen && <ShareDialog linkFocus={shareLink} onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
 
         <div className="toasts" aria-live="polite">
           {toasts.map((t) => (
@@ -799,6 +819,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           document.body,
         )}
       {oficinaOpen && (
+        <Suspense fallback={null}>
         <OficinaPage
           genre={kind === 'campanha' ? 'mestrar' : guessGuide(universe.settings.fieldTemplates)}
           onClose={() => setOficinaOpen(false)}
@@ -839,6 +860,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
                 }
           }
         />
+        </Suspense>
       )}
       {!readOnly && <ReplaceHost />}
       {readerOpen &&
@@ -941,9 +963,9 @@ function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | 
 
 /** O "Mais" do celular em grupos, para achar cada área pelo que ela é. */
 const MORE_GROUPS: [string, View[]][] = [
-  ['Escrita', ['inicio', 'escrever', 'livro']],
-  ['Mundo', ['fichas', 'tramas']],
-  ['Mesa', ['rpg']],
+  ['Escrever', ['inicio', 'escrever', 'livro']],
+  ['Mundo e Trama', ['fichas', 'tramas']],
+  ['Mesa de RPG', ['rpg']],
   ['Ferramentas', ['inbox', 'archivist', 'guia', 'config']],
 ]
 
@@ -970,6 +992,7 @@ function PhoneNav({
   onShortcuts,
   onPlay,
   onGo,
+  onTools,
   onSearch,
   onLibrary,
   onShare,
@@ -987,6 +1010,8 @@ function PhoneNav({
   /** Num livro sem Mesa: começar uma Mesa neste mesmo mundo. */
   onPlay?: () => void
   onGo: (v: View) => void
+  /** Abre Ajustes › Todas as ferramentas. */
+  onTools: () => void
   onSearch: () => void
   onLibrary: () => void
   onShare?: () => void
@@ -1115,6 +1140,22 @@ function PhoneNav({
                 </span>
               </button>
             )}
+            {!editing && (
+              <button
+                type="button"
+                className="rail-more-universe rail-more-tools"
+                onClick={() => {
+                  setOpen(false)
+                  onTools()
+                }}
+              >
+                <LayoutGrid size={16} aria-hidden="true" />
+                <span className="rail-more-universe-text">
+                  <strong>Todas as ferramentas</strong>
+                  <span className="muted tiny">Cada área com uma frase do que ela faz</span>
+                </span>
+              </button>
+            )}
             <div className="rail-more-foot">
               <button type="button" className="btn btn-ghost btn-sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
                 <Pin size={15} aria-hidden="true" /> {editing ? 'Pronto' : 'Escolher atalhos'}
@@ -1208,6 +1249,7 @@ function ReaderOverlay({
   useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
+      <Suspense fallback={null}>
       <ReaderView
         universe={copy}
         storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}${start >= 0 ? `:${bookId}` : ''}`}
@@ -1224,6 +1266,7 @@ function ReaderOverlay({
           ) : undefined
         }
       />
+      </Suspense>
     </div>
   )
 }

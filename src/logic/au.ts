@@ -17,7 +17,6 @@ const CANONIZABLE = ['entities', 'relations', 'events', 'facts'] as const
 
 type Canonizable = (typeof CANONIZABLE)[number]
 type Item = { id: string }
-export type Origin = NonNullable<Universe['derivedFrom']>
 export type OriginState = 'original' | 'mudou' | 'novo'
 
 /** Texto estável de um objeto (chaves em ordem), sem as datas, que mudam sem o conteúdo mudar. */

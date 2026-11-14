@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { isOutdatedSample, sampleFor, sampleUniverse } from './model/sample'
 import { BookLooks } from './book/BookLooks'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
 import { memoryStore, openBestStore, requestPersistentStorage } from './persistence/storage'
 import { fetchByLink, openShared, parseReadLink, shortName, type SharedWithMe } from './share/sharing'
-import { ReaderView } from './reader/ReaderView'
-import { WikiLinkPage } from './share/WikiLinkPage'
 import type { ServerConfig } from './share/server'
 import { commentSender } from './share/feedback'
 import type { LiveSource } from './share/useLiveSync'
@@ -18,6 +16,10 @@ import { syncLibrary } from './account/useCloud'
 import { remember, usePrefs } from './state/prefs'
 import type { View } from './state/workspace'
 import { backState, leavePage, navigateTo, onBackNavigate } from './shell/backStack'
+
+// Leitura por link e wiki por link: só quem abre esses links baixa essas páginas.
+const ReaderView = lazy(() => import('./reader/ReaderView').then((m) => ({ default: m.ReaderView })))
+const WikiLinkPage = lazy(() => import('./share/WikiLinkPage').then((m) => ({ default: m.WikiLinkPage })))
 
 interface Opened {
   universe: Universe
@@ -237,11 +239,17 @@ export default function App() {
     )
   }
 
-  if (opened.wiki) return <WikiLinkPage universe={opened.universe} ownerEmail={opened.wiki.ownerEmail} server={opened.wiki.server} />
+  if (opened.wiki)
+    return (
+      <Suspense fallback={null}>
+        <WikiLinkPage universe={opened.universe} ownerEmail={opened.wiki.ownerEmail} server={opened.wiki.server} />
+      </Suspense>
+    )
 
   if (opened.book) {
     return (
       <main className="leitor-app">
+        <Suspense fallback={null}>
         <ReaderView
           universe={opened.universe}
           storageKey={opened.book.key}
@@ -253,6 +261,7 @@ export default function App() {
             </p>
           }
         />
+        </Suspense>
       </main>
     )
   }

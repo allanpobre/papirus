@@ -150,3 +150,32 @@ test('no celular, os nomes não se sobrepõem e dá para escolher um livro só',
   await expect(page.locator('.graph-time')).toHaveCount(0)
   await expect(page.getByRole('button', { name: /Ver cena a cena/ })).toBeVisible()
 })
+
+test('passar o mouse numa ficha destaca o grupo dela sem mexer no resto do desenho', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await openPart(page, 'Ligações')
+  await page.locator('.graph .node').first().waitFor()
+  // Espera as bolinhas assentarem (a animação de entrada mexe em todas).
+  await page.waitForTimeout(1500)
+  const total = await page.locator('.graph .node').count()
+  expect(total).toBeGreaterThan(10)
+  // Conta quantas bolinhas e linhas têm o atributo mexido enquanto o mouse passa por cima de uma ficha.
+  await page.evaluate(() => {
+    const w = window as unknown as { __mut: Set<Element> }
+    w.__mut = new Set()
+    new MutationObserver((list) => list.forEach((m) => w.__mut.add((m.target as Element).closest('.node, .edge') ?? m.target as Element))).observe(document.querySelector('.graph')!, { subtree: true, attributes: true, childList: true })
+  })
+  const box = (await page.locator('.graph .node').first().locator('circle').first().boundingBox())!
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await expect(page.locator('.graph.has-focus')).toHaveCount(1)
+  const touched = await page.evaluate(() => (window as unknown as { __mut: Set<Element> }).__mut.size)
+  // Só quem entra no destaque (a ficha e quem se liga a ela) é redesenhado; o apagado vem por CSS.
+  expect(touched).toBeLessThan(total)
+  const opacity = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).opacity)
+  await expect.poll(() => opacity('.graph .node:not(.hl) > circle:not(.node-ring)')).toBe('0.18')
+  expect(await opacity('.graph .node.hl > circle:not(.node-ring)')).toBe('1')
+  // Ao tirar o mouse, tudo volta.
+  await page.mouse.move(2, 2)
+  await expect(page.locator('.graph.has-focus')).toHaveCount(0)
+  await expect.poll(() => opacity('.graph .node > circle:not(.node-ring)')).toBe('1')
+})

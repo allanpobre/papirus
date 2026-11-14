@@ -1,3 +1,5 @@
+import { bookScope } from '../logic/bookScope'
+import { compareByRole, roleIn } from '../logic/roles'
 import { OriginChip } from './AUBanner'
 import { PassesEditor, WhoIsEditor } from './WhoIs'
 import { whoIsKeys } from '../logic/definers'
@@ -90,7 +92,8 @@ export default function EntitiesView() {
     remember('mundo-vista', l)
     setPicked(null)
   }
-  const table = layout === 'tabela' && !phone
+  // A tabela também vale no celular (rola de lado, com a coluna do nome presa); abrindo uma ficha, a tela é a dela.
+  const table = layout === 'tabela'
   const templates = templatesOf(universe)
   const fromTemplate = (t: (typeof templates)[number]) => {
     let id = ''
@@ -104,11 +107,13 @@ export default function EntitiesView() {
     go('fichas', id)
   }
   const togglePick = (id: string) => setPicked((p) => (p ? (p.has(id) ? new Set([...p].filter((x) => x !== id)) : new Set([...p, id])) : p))
-  type Order = 'nome' | 'cenas' | 'recentes'
+  type Order = 'nome' | 'cenas' | 'recentes' | 'papel'
   const [order, setOrder] = useState<Order>(() => {
     const o = recall('fichas-ordem')
-    return o === 'cenas' || o === 'recentes' ? o : 'nome'
+    return o === 'cenas' || o === 'recentes' || o === 'papel' ? o : 'nome'
   })
+  // Filtro por papel na história ('' = todos; 'sem' = quem não tem papel).
+  const [roleFilter, setRoleFilter] = useState<string>('')
   const changeOrder = (o: Order) => {
     setOrder(o)
     remember('fichas-ordem', o)
@@ -128,9 +133,9 @@ export default function EntitiesView() {
   // Em quantas cenas cada ficha aparece: o que a história usa e o que está só nas notas (sem cobrança).
   // Com um livro escolhido no alto, conta só as cenas dele, e a lista mostra só quem aparece nele.
   const counts = useMemo(() => sceneCounts(bookOnly(universe, bookId)), [universe, bookId])
-  // Em todos os livros: quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro.
-  const countsAll = useMemo(() => (bookId ? sceneCounts(universe) : counts), [universe, bookId, counts])
-  const inNoBook = (id: string) => !countsAll.get(id)
+  // Quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro (a mesma regra da Linha do tempo e dos Mapas).
+  const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
+  const inNoBook = (id: string) => (scope ? scope.inNoBook(id) : !counts.get(id))
   const book = bookId ? byId(universe, 'stories', bookId) : undefined
   const [everyone, setEveryone] = useState(false)
   const onlyBook = Boolean(book) && !everyone
@@ -142,6 +147,7 @@ export default function EntitiesView() {
     const q = fold(query.trim())
     return universe.entities
       .filter((e) => kind === 'todos' || e.kind === kind)
+      .filter((e) => !roleFilter || (roleFilter === 'sem' ? !roleIn(e, bookId) : roleIn(e, bookId) === roleFilter))
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
       // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
       // Com um livro escolhido, somem só as fichas que aparecem apenas em outros livros.
@@ -157,14 +163,16 @@ export default function EntitiesView() {
           fold(e.description).includes(q),
       )
       .sort((a, b) =>
-        order === 'cenas'
+        order === 'papel'
+          ? compareByRole({ role: roleIn(a, bookId), name: a.name }, { role: roleIn(b, bookId), name: b.name })
+          : order === 'cenas'
           ? (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) || a.name.localeCompare(b.name, 'pt')
           : order === 'recentes'
             ? b.updatedAt.localeCompare(a.updatedAt)
             : a.name.localeCompare(b.name, 'pt'),
       )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [universe.entities, kind, query, where, counts, countsAll, order, onlyBook, fresh])
+  }, [universe.entities, kind, roleFilter, bookId, query, where, counts, scope, order, onlyBook, fresh])
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -237,6 +245,18 @@ export default function EntitiesView() {
             onChange={setKind}
             options={[{ value: 'todos', label: `Todas (${onlyBook ? inScenes : universe.entities.length})` },...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
           />
+          {universe.entities.some((e) => roleIn(e, bookId)) && (
+            <Select
+              label="Filtrar por papel"
+              value={roleFilter}
+              onChange={setRoleFilter}
+              options={[
+                { value: '', label: 'Todos os papéis' },
+                ...STORY_ROLES.filter((r) => universe.entities.some((e) => roleIn(e, bookId) === r)).map((r) => ({ value: r as string, label: `${ROLE_LABEL[r]} (${universe.entities.filter((e) => roleIn(e, bookId) === r).length})` })),
+                { value: 'sem', label: 'Sem papel' },
+              ]}
+            />
+          )}
           <Select<Order>
             label="Ordem da lista"
             value={order}
@@ -245,11 +265,12 @@ export default function EntitiesView() {
               { value: 'nome', label: 'A–Z' },
               { value: 'cenas', label: phone ? 'Cenas' : 'Mais nas cenas' },
               { value: 'recentes', label: 'Recentes' },
+              { value: 'papel', label: phone ? 'Papel' : 'Protagonistas primeiro' },
             ]}
           />
         </div>
         <div className="list-modes">
-          {!phone && (
+          {
             <div className="segmented" role="radiogroup" aria-label="Vista do Mundo">
               <button type="button" role="radio" aria-checked={!table} onClick={() => changeLayout('lista')}>
                 Lista
@@ -258,7 +279,7 @@ export default function EntitiesView() {
                 Tabela
               </button>
             </div>
-          )}
+          }
           {!readOnly && !table && (
             <button type="button" className="btn btn-ghost btn-sm" aria-pressed={picked !== null} onClick={() => setPicked(picked ? null : new Set())}>
               {picked ? 'Pronto' : 'Selecionar'}
@@ -317,9 +338,9 @@ export default function EntitiesView() {
                     {e.name || 'Sem nome'}
                     <OriginChip item={e} />
                   </span>
-                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{e.role ? ROLE_LABEL[e.role] : kindLabel(e.kind)}</span>}
+                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{roleIn(e, bookId) ? ROLE_LABEL[roleIn(e, bookId)!] : kindLabel(e.kind)}</span>}
                   <span className="entity-row-summary">
-                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}{e.role ? ` · ${ROLE_LABEL[e.role]}` : ''}</span>}
+                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}{roleIn(e, bookId) ? ` · ${ROLE_LABEL[roleIn(e, bookId)!]}` : ''}</span>}
                     {hasScenes && e.summary && ' · '}
                     {e.summary}
                   </span>
@@ -629,6 +650,28 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
                   />
                 )}
               </Field>
+            )}
+            {(e.kind === 'personagem' || e.role || e.bookRoles) && universe.stories.length > 1 && (
+              <fieldset className="field field-wide book-roles">
+                <legend className="field-label">Papel em cada livro (opcional)</legend>
+                <p className="field-hint">Numa série, quem é secundário no livro 1 pode ser protagonista no 2. Sem marcação, vale o papel de cima.</p>
+                {universe.stories.map((st) => (
+                  <label key={st.id} className="book-role-row">
+                    <span className="small">{st.title || 'Sem título'}</span>
+                    <Select<StoryRole | ''>
+                      label={`Papel de ${e.name || 'esta ficha'} em ${st.title || 'Sem título'}`}
+                      value={(e.bookRoles?.[st.id] as StoryRole | undefined) ?? ''}
+                      onChange={(v) => {
+                        const next = { ...(e.bookRoles ?? {}) }
+                        if (v) next[st.id] = v
+                        else delete next[st.id]
+                        set({ bookRoles: Object.keys(next).length ? next : undefined })
+                      }}
+                      options={[{ value: '', label: e.role ? `Igual ao geral (${ROLE_LABEL[e.role]})` : 'Igual ao geral' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
+                    />
+                  </label>
+                ))}
+              </fieldset>
             )}
             {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
             {(PLACE_KINDS.includes(e.kind) || e.parentId) && (

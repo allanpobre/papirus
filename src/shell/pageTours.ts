@@ -358,6 +358,8 @@ export const PAGE_TOURS = {
       },
       { target: '.settings-scope', title: 'Para quem vale', body: 'Cada painel diz se vale só para este universo, para este aparelho ou para a conta.', optional: true },
       { target: '.settings-grid', title: 'Os ajustes', body: 'Tudo muda na hora e fica salvo. Apagar o universo fica no fim de Universo e pede confirmação. Baixar o livro (Word, EPUB, PDF) fica em Publicar.' },
+      { target: '.settings-nav', title: 'Não acha uma função?', body: 'Em “Todas as ferramentas” está cada área do Papirus com uma frase do que ela faz e um toque para abrir. No celular, o mesmo atalho fica no fim do menu “Mais”.', optional: true },
+      { title: 'Simples ou Completo', body: 'Em Universo, o exemplo ao lado das opções mostra o que muda na ficha: o Simples guarda só o essencial; o Completo acrescenta verdade/boato/segredo, “Quão pronta”, listas, “No jogo” e a Trama. Trocar não apaga nada.' },
       { title: 'Ajuda', body: 'Em Menu e ajuda dá para refazer o tour completo. Em cada tela, o botão (?) explica só ela.' },
     ],
   },
@@ -601,7 +603,7 @@ export const PAGE_TOURS = {
       { target: '.dice-result', title: 'Resultado', body: 'O total e cada dado que saiu. Com uma sessão em andamento, vai para o registro.' },
       { target: '.dice-history', title: 'Histórico', body: 'As últimas rolagens.', optional: true },
       { target: '.tables', title: 'Tabelas aleatórias', body: 'Nomes de taverna, rumores, encontros: crie a lista e sorteie uma linha na hora.', optional: true },
-      { target: '.bestiary', title: 'Inimigos prontos', body: 'O bestiário da campanha: vida, Defesa, iniciativa e ataques de cada inimigo. No combate, “3” goblins entram na iniciativa numerados, com os ataques a um toque na vez deles. As espécies do Mundo aparecem em “Do Mundo”, para virar inimigo com um toque.', optional: true },
+      { target: '.bestiary', title: 'Inimigos prontos', body: 'O bestiário da campanha: vida, Defesa, iniciativa e ataques de cada inimigo. No combate, “3” goblins entram na iniciativa numerados, com os ataques a um toque na vez deles. As espécies do Mundo aparecem em “Do Mundo”, para virar inimigo com um toque. Primeira vez mestrando? Com o bestiário vazio, “Trazer inimigos comuns” põe Goblin, Lobo, Esqueleto, Bandido e Ogro (números do estilo D&D 5e, para você acertar ao seu sistema).', optional: true },
     ],
   },
   'rpg-sistemas': {

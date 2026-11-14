@@ -1,11 +1,12 @@
 import { compressImage, type ImageUse } from './compress'
+import type { Rect } from './crop'
 import { idToRef } from './ref'
 import { imagesChanged } from './resolve'
 import { imageId, saveImage } from './store'
 
 /** Encolhe, guarda neste aparelho e devolve a referência para pôr no universo ("img:…"). */
-export async function addImage(file: Blob, use: ImageUse): Promise<{ ref: string; width: number; height: number }> {
-  const { blob, width, height } = await compressImage(file, use)
+export async function addImage(file: Blob, use: ImageUse, crop?: Rect): Promise<{ ref: string; width: number; height: number }> {
+  const { blob, width, height } = await compressImage(file, use, crop)
   const id = await imageId(blob)
   await saveImage({ id, blob, width, height })
   imagesChanged()

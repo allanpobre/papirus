@@ -7,7 +7,7 @@ import type { Universe } from '../model/schema'
 import { countWords, wordCount, type Library } from '../persistence/repository'
 import { todayTotal, wordsHistory } from '../social/dailyWords'
 import { recall, remember } from '../state/prefs'
-import { celebrate } from '../ui/Confetti'
+import { celebrate } from '../ui/celebrate'
 
 /** Palavras em todos os universos deste aparelho (sem o exemplo), com o aberto já atualizado. */
 export async function totalWritten(library: Library, current: Universe): Promise<number> {

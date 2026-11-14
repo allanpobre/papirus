@@ -62,3 +62,38 @@ describe('universo grande', () => {
     expect(codex).toBeLessThan(500)
   })
 })
+
+describe('contas de "quem aparece" guardadas', () => {
+  it('a segunda tela que pede a mesma conta recebe a guardada, e mexer só numa ficha não refaz a conta do manuscrito', async () => {
+    const { sceneCounts } = await import('../logic/appearances')
+    const { bookOnly } = await import('../model/universe')
+    const livro = u.stories[0].id
+    const [first, ms1] = time('sceneCounts (primeira vez, livro inteiro)', () => sceneCounts(u))
+    const [again, ms2] = time('sceneCounts (guardada)', () => sceneCounts(u))
+    expect(again).toBe(first)
+    expect(ms2).toBeLessThan(Math.max(5, ms1 / 20))
+    // Um livro só: o recorte também é guardado, então a segunda tela não refaz.
+    time('sceneCounts do livro 1 (primeira vez)', () => sceneCounts(bookOnly(u, livro)))
+    const [, ms3] = time('sceneCounts do livro 1 (outra tela)', () => sceneCounts(bookOnly(u, livro)))
+    expect(ms3).toBeLessThan(Math.max(5, ms1 / 20))
+    // Mexer numa ficha (outro array de fichas) refaz; mexer em outra coisa (os fatos, por exemplo) não.
+    const semMudar = { ...u, facts: [...u.facts] }
+    expect(sceneCounts(semMudar)).toBe(first)
+    const outraFicha = { ...u, entities: [...u.entities] }
+    expect(sceneCounts(outraFicha)).not.toBe(first)
+  })
+})
+
+describe('conferência do texto do livro', () => {
+  it('é guardada: a segunda vez (outra visita a Publicar) não refaz a conta', async () => {
+    const { reviewBook, reviewIfDone } = await import('../logic/review')
+    const { defaultDesign } = await import('../export/bookDesign')
+    const d = defaultDesign()
+    expect(reviewIfDone(u, d)).toBeUndefined()
+    const [first, ms1] = time('reviewBook (primeira vez)', () => reviewBook(u, d))
+    const [again, ms2] = time('reviewBook (guardada)', () => reviewBook(u, d))
+    expect(again).toBe(first)
+    expect(reviewIfDone(u, d)).toBe(first)
+    expect(ms2).toBeLessThan(Math.max(5, ms1 / 20))
+  })
+})

@@ -1,8 +1,6 @@
 import { InstallButton } from '../ui/InstallButton'
-import { OficinaCover } from '../oficina/OficinaHome'
-import { OficinaPage } from '../oficina/OficinaPage'
 import type { GuideId } from '../oficina/guides'
-import { SocialDialog, type SocialTab } from '../social/SocialDialog'
+import type { SocialTab } from '../social/SocialDialog'
 import { getNoticeCount, subscribeNoticeCount } from '../social/social'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { useOficinaSector } from '../oficina/useOficinaSector'
@@ -40,7 +38,15 @@ import {
   Users,
   Wand2,
 } from 'lucide-react'
-import { AccountButton, AccountDialog } from '../account/AccountDialog'
+import { AccountButton } from '../account/AccountButton'
+
+const OficinaCover = lazy(() => import('../oficina/OficinaHome').then((m) => ({ default: m.OficinaCover })))
+const TreinoCard = lazy(() => import('../treino/TreinoCard').then((m) => ({ default: m.TreinoCard })))
+// Janelas e páginas pesadas: só são baixadas quando alguém abre.
+const OficinaPage = lazy(() => import('../oficina/OficinaPage').then((m) => ({ default: m.OficinaPage })))
+const SocialDialog = lazy(() => import('../social/SocialDialog').then((m) => ({ default: m.SocialDialog })))
+const ProfilePage = lazy(() => import('../social/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const AccountDialog = lazy(() => import('../account/AccountDialog').then((m) => ({ default: m.AccountDialog })))
 import { cleanName, families } from '../persistence/cloudCopy'
 import { authClient, useAccount } from '../account/auth'
 import { pendingConflicts, removeFromCloud, resolveConflict, syncedMap, type Diff } from '../account/cloud'
@@ -49,7 +55,7 @@ import { addVersion, baseName, keepVersion, repeatHints, replaceWith, trimVersio
 import { recall, remember } from '../state/prefs'
 import { Modal } from '../ui/Modal'
 import { TidyDialog } from './TidyDialog'
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { leaveShared, mySharedIds, sharedWithMe, shortName, stopSharing, type SharedWithMe } from '../share/sharing'
 import { migrate } from '../model/migrations'
 import { restoreEmbeddedImages } from '../images/backup'
@@ -62,7 +68,6 @@ import { createUniverse, newId } from '../model/universe'
 import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../model/templates'
 import { SYSTEM_TEMPLATES } from '../rpg/systems'
 import { MESA_THEMES } from '../rpg/themes'
-import { TreinoCard } from '../treino/TreinoCard'
 import { countWords, type Library, type LibraryEntry } from '../persistence/repository'
 import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistence/folder'
 import type { usePrefs } from '../state/prefs'
@@ -72,7 +77,6 @@ import { MoreMenu } from '../ui/MoreMenu'
 import { relativeDate } from '../logic/relativeDate'
 import { downloadText, fileNameFor } from '../export/download'
 import { embeddedImages } from '../images/backup'
-import { ProfilePage } from '../social/ProfilePage'
 import { Brand } from './Brand'
 import { PageHelp } from '../ui/PageTour'
 
@@ -489,6 +493,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   if (profileHandle) {
     return (
       <>
+        <Suspense fallback={null}>
         <ProfilePage
           handle={profileHandle}
           publicUrl={p.publicUrl}
@@ -500,6 +505,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           }}
         />
         {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
+        </Suspense>
       </>
     )
   }
@@ -1010,7 +1016,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             <Plus size={18} /> Novo universo
           </button>
         ))}
-      <TreinoCard compact onAccount={() => setAccountOpen(true)} />
+      <Suspense fallback={null}>
+        <TreinoCard compact onAccount={() => setAccountOpen(true)} />
+      </Suspense>
       {writing.length === 0 && sampleCard}
       {socialCard}
       {writing.length > 0 && !sampleEntry && sampleCard}
@@ -1081,7 +1089,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const oficina = (
     <>
       <OficinaClimate />
-      <OficinaCover onChoose={(id) => setOficinaOpen(id)} />
+      <Suspense fallback={null}>
+        <OficinaCover onChoose={(id) => setOficinaOpen(id)} />
+      </Suspense>
     </>
   )
 
@@ -1094,7 +1104,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
   // A Comunidade: novidades, o que está lendo, pessoas, seus livros e desafios (o mesmo da janela "Sua conta").
   const comunidade = (
-    <SocialDialog inline publicUrl={p.publicUrl} library={library} onSynced={onChanged} onClose={() => setPref('sector', 'escrita')} onAccount={() => setAccountOpen(true)} onOpenUniverse={(id) => onOpen(id)} />
+    <Suspense fallback={null}>
+      <SocialDialog inline publicUrl={p.publicUrl} library={library} onSynced={onChanged} onClose={() => setPref('sector', 'escrita')} onAccount={() => setAccountOpen(true)} onOpenUniverse={(id) => onOpen(id)} />
+    </Suspense>
   )
 
   return (
@@ -1142,7 +1154,6 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         )}
       </main>
 
-      {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
       {importChoice}
       {tidying && (
         <TidyDialog
@@ -1161,6 +1172,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           onClose={() => setTidying(false)}
         />
       )}
+      <Suspense fallback={null}>
+        {accountOpen && <AccountDialog library={library} prefs={p} setPref={setPref} onClose={() => setAccountOpen(false)} onSynced={onChanged} />}
       {socialTab && account.user && (
         <SocialDialog
           initialTab={socialTab}
@@ -1172,6 +1185,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         />
       )}
       {oficinaOpen && <OficinaPage start={oficinaOpen} onClose={() => setOficinaOpen(null)} />}
+      </Suspense>
     </div>
   )
 }

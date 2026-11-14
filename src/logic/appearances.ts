@@ -1,4 +1,5 @@
 import type { Entity, Universe } from '../model/schema'
+import { cachedBy, identityCache } from '../model/memo'
 import { manuscriptOrder } from '../model/universe'
 import { MentionMatcher } from './detection'
 import { mentionIdsInDoc } from './doc'
@@ -24,14 +25,22 @@ export function appearancesOf(universe: Universe, e: Entity) {
  * Em quantas cenas cada ficha aparece (de qualquer jeito: ponto de vista, presente, local ou
  * mencionada), numa passada só pelo manuscrito. A parte do iceberg que está à vista.
  */
+const countsCache = identityCache()
+
+/**
+ * Guardado enquanto as cenas, as histórias e as fichas forem as mesmas: Fichas, Ligações, Linha do tempo, Mapas e
+ * o Início dividem a mesma conta (num livro inteiro, ela é a parte mais pesada). Não altere o resultado.
+ */
 export function sceneCounts(universe: Universe): Map<string, number> {
-  const matcher = new MentionMatcher(universe.entities)
-  const counts = new Map<string, number>()
-  for (const s of manuscriptOrder(universe)) {
-    const ids = new Set<string>([...matcher.find(s.text).map((m) => m.entityId), ...mentionIdsInDoc(s.doc), ...s.presentIds])
-    if (s.povId) ids.add(s.povId)
-    if (s.placeId) ids.add(s.placeId)
-    for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1)
-  }
-  return counts
+  return cachedBy(countsCache, [universe.scenes, universe.stories, universe.entities], () => {
+    const matcher = new MentionMatcher(universe.entities)
+    const counts = new Map<string, number>()
+    for (const s of manuscriptOrder(universe)) {
+      const ids = new Set<string>([...matcher.find(s.text).map((m) => m.entityId), ...mentionIdsInDoc(s.doc), ...s.presentIds])
+      if (s.povId) ids.add(s.povId)
+      if (s.placeId) ids.add(s.placeId)
+      for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1)
+    }
+    return counts
+  })
 }

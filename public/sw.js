@@ -2,7 +2,10 @@
 // Páginas: rede primeiro (pega versão nova), cache se estiver offline.
 // Arquivos (js, css, fontes, ícones): cache primeiro; os nomes mudam a cada versão.
 // v2: marca e ícones novos (os nomes dos ícones não mudam, então o cache antigo sai).
-const CACHE = 'papirus-v3'
+// v4: acha os arquivos mesmo com "Vary" no servidor, só guarda página que veio certa e baixa todas as telas de antemão.
+const CACHE = 'papirus-v4'
+// A raiz do site (onde mora este arquivo): "/" no domínio próprio, "/nome/" numa subpasta.
+const ROOT = new URL('./', self.location).pathname
 
 self.addEventListener('install', () => self.skipWaiting())
 
@@ -15,11 +18,32 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// A página manda o que já carregou antes do service worker existir.
+// Os nomes dos arquivos mudam a cada versão: o nome já diz qual é, então o "Vary" do servidor não deve atrapalhar.
+const find = (req) => caches.match(req, { ignoreVary: true })
+
+// A página manda o que já carregou antes do service worker existir e, depois, a lista de todas as telas
+// (`prune`: o que ficou de versões antigas em /assets/ e não está na lista sai do cache).
 self.addEventListener('message', (event) => {
   const urls = event.data && event.data.cache
   if (!Array.isArray(urls)) return
-  event.waitUntil(caches.open(CACHE).then((c) => Promise.all(urls.map((u) => c.add(u).catch(() => undefined)))))
+  const prune = event.data.prune === true
+  event.waitUntil(
+    (async () => {
+      const c = await caches.open(CACHE)
+      await Promise.all(
+        urls.map(async (u) => {
+          if (await c.match(u, { ignoreVary: true })) return
+          await c.add(u).catch(() => undefined)
+        }),
+      )
+      if (!prune) return
+      const keep = new Set(urls.map((u) => new URL(u, self.location).pathname))
+      for (const req of await c.keys()) {
+        const path = new URL(req.url).pathname
+        if (path.startsWith(ROOT + 'assets/') && !keep.has(path)) await c.delete(req)
+      }
+    })(),
+  )
 })
 
 self.addEventListener('fetch', (event) => {
@@ -37,12 +61,21 @@ self.addEventListener('fetch', (event) => {
         try {
           // Sempre confere com o servidor (o GitHub Pages deixa guardar a página por 10 minutos):
           // assim, abrir o app depois de uma publicação já traz a versão nova.
-          const res = await fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
-          const c = await caches.open(CACHE)
-          c.put(url.pathname, res.clone())
+          const net = await fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
+          // Resposta de redirecionamento ("/app" → "/app/") não pode ir direto para a navegação: refaz sem a marca.
+          const res = net.redirected ? new Response(net.body, { status: net.status, statusText: net.statusText, headers: net.headers }) : net
+          // Só guarda página que veio certa (um erro do servidor não pode virar a "última versão").
+          if (res.ok) (await caches.open(CACHE)).put(url.pathname, res.clone())
           return res
         } catch {
-          return (await caches.match(url.pathname)) || (await caches.match(url.pathname + 'index.html')) || Response.error()
+          // Sem internet: a última página guardada. "/app" sem a barra e subpáginas do app caem no app.
+          const inApp = url.pathname === ROOT + 'app' || url.pathname.startsWith(ROOT + 'app/')
+          return (
+            (await find(url.pathname)) ||
+            (await find(url.pathname + 'index.html')) ||
+            (inApp ? await find(ROOT + 'app/') : undefined) ||
+            Response.error()
+          )
         }
       })(),
     )
@@ -51,7 +84,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     (async () => {
-      const hit = await caches.match(req)
+      const hit = await find(req)
       if (hit) return hit
       const res = await fetch(req)
       if (res.ok) (await caches.open(CACHE)).put(req, res.clone())

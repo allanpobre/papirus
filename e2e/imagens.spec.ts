@@ -59,6 +59,8 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Mira')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
   await page.locator('.portrait-edit input[type=file]').setInputFiles(await photo(page, '#c0577a', 1200, 1500))
+  // A imagem passa por um recorte antes de guardar: aqui, sem recortar.
+  await page.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
   await expect(page.getByRole('button', { name: 'Trocar a imagem da ficha' }).locator('img')).toHaveAttribute('src', /^blob:/)
   await expect(page.locator('.entity-row-pic')).toBeVisible()
   await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
@@ -105,6 +107,8 @@ test('imagens: o mapa novo vai para as imagens (o universo fica leve)', async ({
   await newUniverse(page, 'Mapas')
   await openPart(page, 'Mapas')
   await page.locator('.atlas-view input[type=file]').setInputFiles(await photo(page, '#4a5260', 3000, 2000))
+  // A imagem passa por um recorte antes de guardar: aqui, sem recortar.
+  await page.getByRole('dialog', { name: 'Recortar o mapa' }).getByRole('button', { name: 'Sem recortar' }).click()
   await expect(page.locator('.atlas-image')).toHaveAttribute('style', /blob:/)
   const stored = await page.evaluate(() => {
     for (let i = 0; i < localStorage.length; i++) {
@@ -148,6 +152,8 @@ test('imagens: com conta, sobem sozinhas e aparecem no outro aparelho', async ({
   await a.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Kael')
   await a.getByRole('button', { name: 'Criar ficha' }).click()
   await a.locator('.portrait-edit input[type=file]').setInputFiles(await photo(a, '#7b5ea7', 900, 900))
+  // A imagem passa por um recorte antes de guardar: aqui, sem recortar.
+  await a.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
   await expect.poll(() => fake.images.size, { timeout: 15_000 }).toBe(1)
   const [stored] = [...fake.images.values()]
   expect(stored.owner).toBe(PEOPLE.ana.id)
@@ -237,6 +243,8 @@ test('imagens: no Codex dos jogadores, a ficha revelada mostra o retrato (miniat
   await nav(page, 'Mundo').click()
   await page.locator('.entity-row-name', { hasText: /^Ostria$/ }).click()
   await page.locator('.portrait-edit input[type=file]').setInputFiles(await photo(page, '#2f6fae', 1200, 900))
+  // A imagem passa por um recorte antes de guardar: aqui, sem recortar.
+  await page.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
   await expect(page.locator('.entity-row-pic')).toBeVisible()
 
   await nav(page, 'Ajustes').click()

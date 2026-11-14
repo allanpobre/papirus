@@ -2,24 +2,7 @@ import { useEditorState, type Editor } from '@tiptap/react'
 import { Bold, BookmarkPlus, ChevronDown, ImagePlus, Italic, Link2, MessageSquarePlus, Quote, Redo2, SeparatorHorizontal, Sparkles, Undo2, UserPlus } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import type { SceneEditorActions, SelectionInfo } from './SceneEditor'
-
-/** Quanto o teclado do celular cobre a página (pela área visível do navegador). */
-function useKeyboardInset(): number {
-  const [inset, setInset] = useState(0)
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    const update = () => setInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)))
-    update()
-    vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
-    return () => {
-      vv.removeEventListener('resize', update)
-      vv.removeEventListener('scroll', update)
-    }
-  }, [])
-  return inset
-}
+import { useKeyboardInset } from './useKeyboardInset'
 
 /** Toque num botão da barra sem tirar o foco do texto (o teclado não fecha). */
 const keep = (e: { preventDefault: () => void }) => e.preventDefault()

@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { isLocalOnly } from '../model/sample'
 import { useWorkspace } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
-import { WikiCard, wikiImages } from './WikiCard'
+import { WikiCard } from './WikiCard'
+import { wikiImages } from './wikiImages'
 
 /**
  * A Wiki como página de verdade: de um lado, como ela sai (formato, recorte e Personalizar,

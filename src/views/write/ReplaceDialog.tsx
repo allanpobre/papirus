@@ -1,41 +1,30 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { findInBook, replaceInBook, type FindOptions, type Hit } from '../../editor/replace'
+import { useDeferredValue, useMemo, useState } from 'react'
+import { findInBook, replaceInBook, splitHitsByBook, type FindOptions, type Hit } from '../../editor/replace'
 import { byId } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { Modal } from '../../ui/Modal'
-import { onBookReplace, type ReplaceRequest } from './replaceEvents'
+import type { ReplaceRequest } from './replaceEvents'
 
 /** Quantos achados aparecem na lista (a troca vale para todos os marcados, mesmo os que não aparecem). */
 const SHOWN = 400
-
-/** Fica na área de trabalho e abre a janela quando alguém pede (barra da cena, Ctrl+K, ficha renomeada). */
-export function ReplaceHost() {
-  const [request, setRequest] = useState<ReplaceRequest | null>(null)
-  const [nonce, setNonce] = useState(0)
-  useEffect(
-    () =>
-      onBookReplace((r) => {
-        setRequest(r)
-        setNonce((n) => n + 1)
-      }),
-    [],
-  )
-  return request ? <ReplaceDialog key={nonce} initial={request} onClose={() => setRequest(null)} /> : null
-}
 
 /**
  * Procurar e trocar no livro todo: títulos e textos das cenas. Antes de trocar, a lista mostra cada
  * trecho para desmarcar o que não deve mudar. Guarda um snapshot antes e dá para desfazer.
  */
 export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; onClose: () => void }) {
-  const { universe, update, toast, repo, go, readOnly } = useWorkspace()
+  const { universe, update, toast, repo, go, readOnly, bookId } = useWorkspace()
+  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  // Com um livro escolhido no alto, procura só nele (e mostra quantos achados há em todos os livros).
+  const [scope, setScope] = useState<'livro' | 'todos'>('livro')
   const [find, setFind] = useState(initial.find ?? '')
   const [replacement, setReplacement] = useState(initial.replace ?? '')
   const [opts, setOpts] = useState<FindOptions>({ wholeWord: false, matchCase: false, ...initial.opts })
   const query = useDeferredValue(find)
-  const hits = useMemo(() => findInBook(universe, query, opts), [universe, query, opts])
+  const found = useMemo(() => splitHitsByBook(universe, findInBook(universe, query, opts), book ? book.id : null), [universe, query, opts, book])
+  const hits = book && scope === 'livro' ? found.book : found.all
   // O que foi desmarcado vale só para esta busca: mudou a busca, tudo volta marcado.
-  const signature = `${query}\u0000${opts.wholeWord}${opts.matchCase}`
+  const signature = `${query}\u0000${opts.wholeWord}${opts.matchCase}${scope}`
   const [off, setOff] = useState<{ signature: string; keys: Set<string> }>({ signature, keys: new Set() })
   const unchecked = off.signature === signature ? off.keys : new Set<string>()
   const chosen = hits.filter((h) => !unchecked.has(h.key))
@@ -120,6 +109,21 @@ export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; o
         </label>
         <span className="muted tiny">Procura nos títulos e no texto das cenas. Fichas e notas não mudam.</span>
       </div>
+      {book && (
+        <div className="replace-scope" role="radiogroup" aria-label="Onde procurar">
+          {(
+            [
+              ['livro', `Só neste livro (${found.book.length})`],
+              ['todos', `Em todos os livros (${found.all.length})`],
+            ] as const
+          ).map(([value, label]) => (
+            <label key={value} className="check">
+              <input type="radio" name="replace-scope" checked={scope === value} onChange={() => setScope(value)} />
+              {label}
+            </label>
+          ))}
+        </div>
+      )}
 
       {query && (
         <div className="replace-results" aria-live="polite">

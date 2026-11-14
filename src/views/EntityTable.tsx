@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Columns3 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Columns3, Pencil } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ageIn } from '../logic/age'
 import { unmarkReveals } from '../logic/reveals'
@@ -87,7 +87,28 @@ export function EntityTable({ rows, kind, counts, onOpen }: { rows: Entity[]; ki
     if (col === 'cenas') return String(counts.get(e.id) ?? 0)
     return fieldValue(e, col.slice('campo:'.length)).value
   }
-  const sorted = [...rows].sort((a, b) => sort.dir * text(a, sort.col).localeCompare(text(b, sort.col), 'pt', { numeric: true, sensitivity: 'base' }) || a.name.localeCompare(b.name, 'pt'))
+  // O valor de cada célula, calculado uma vez por linha e coluna (e não a cada desenho e a cada comparação da ordem):
+  // com o livro inteiro são centenas de células, e achar o valor de uma (listas, ligações, nascimento) não é de graça.
+  const visibleKey = visible.map((c) => c.id).join('|')
+  const grid = useMemo(() => {
+    const out = new Map<string, Map<string, { value: string; shown: string; from?: string }>>()
+    const cols = ['nome', ...visible.map((c) => c.id)]
+    for (const e of rows) {
+      const row = new Map<string, { value: string; shown: string; from?: string }>()
+      for (const col of cols) {
+        const f = col.startsWith('campo:') ? fieldValue(e, col.slice('campo:'.length)) : null
+        const value = f ? f.value : text(e, col)
+        row.set(col, { value, shown: unmarkReveals(value), from: f?.from })
+      }
+      out.set(e.id, row)
+    }
+    return out
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, visibleKey, universe, now, inherited, counts])
+  const sorted = useMemo(
+    () => [...rows].sort((a, b) => sort.dir * (grid.get(a.id)?.get(sort.col)?.value ?? '').localeCompare(grid.get(b.id)?.get(sort.col)?.value ?? '', 'pt', { numeric: true, sensitivity: 'base' }) || a.name.localeCompare(b.name, 'pt')),
+    [rows, sort, grid],
+  )
 
   const commit = (e: Entity, col: string, value: string) => {
     setEditing(null)
@@ -114,7 +135,8 @@ export function EntityTable({ rows, kind, counts, onOpen }: { rows: Entity[]; ki
 
   const cell = (e: Entity, c: Col) => {
     const isEditing = editing?.id === e.id && editing.col === c.id
-    const f = c.id.startsWith('campo:') ? fieldValue(e, c.id.slice('campo:'.length)) : null
+    const g = grid.get(e.id)?.get(c.id)
+    const f = g && g.from !== undefined ? { value: g.value, from: g.from } : c.id.startsWith('campo:') ? { value: g?.value ?? '', from: undefined as string | undefined } : null
     if (isEditing)
       return (
         <td key={c.id} className="is-editing">
@@ -133,7 +155,7 @@ export function EntityTable({ rows, kind, counts, onOpen }: { rows: Entity[]; ki
         </td>
       )
     // Sem as marcas de "a partir de…" (os segredos e revelações ficam na ficha).
-    const value = unmarkReveals(f ? f.value : text(e, c.id))
+    const value = g?.shown ?? ''
     return (
       <td key={c.id} className={c.id === 'cenas' || c.id === 'idade' ? 'is-num' : undefined}>
         {c.editable && !readOnly ? (
@@ -197,9 +219,17 @@ export function EntityTable({ rows, kind, counts, onOpen }: { rows: Entity[]; ki
                       onKeyDown={(ev) => ev.key === 'Enter' && (ev.target as HTMLInputElement).blur()}
                     />
                   ) : (
-                    <button type="button" className="link-btn table-name" onClick={() => onOpen(e.id)} onDoubleClick={() => !readOnly && setEditing({ id: e.id, col: 'nome' })}>
-                      {e.name || 'Sem nome'}
-                    </button>
+                    <div className="table-name-cell">
+                      <button type="button" className="link-btn table-name" onClick={() => onOpen(e.id)} onDoubleClick={() => !readOnly && setEditing({ id: e.id, col: 'nome' })}>
+                        {e.name || 'Sem nome'}
+                      </button>
+                      {/* No dedo não há duplo clique: um lápis ao lado do nome (só em tela de toque). */}
+                      {!readOnly && (
+                        <button type="button" className="table-rename" aria-label={`Renomear ${e.name || 'ficha'}`} onClick={() => setEditing({ id: e.id, col: 'nome' })}>
+                          <Pencil size={13} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                   )}
                 </th>
                 {visible.map((c) => cell(e, c))}

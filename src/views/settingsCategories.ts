@@ -1,7 +1,7 @@
-import { BookDown, Cloud, Feather, Globe, HardDrive, History, Palette, PanelLeft, Server, type LucideIcon } from 'lucide-react'
+import { BookDown, Cloud, Feather, Globe, HardDrive, History, LayoutGrid, Palette, PanelLeft, Server, type LucideIcon } from 'lucide-react'
 import { fold } from '../logic/text'
 
-export type SettingsCategory = 'universo' | 'dados' | 'historico' | 'livros' | 'aparencia' | 'escrita' | 'menu' | 'conta' | 'servidor'
+export type SettingsCategory = 'universo' | 'dados' | 'historico' | 'livros' | 'aparencia' | 'escrita' | 'menu' | 'ferramentas' | 'conta' | 'servidor'
 
 /** Para quem cada ajuste vale: este universo, este aparelho ou a conta (e o avançado, fechado). */
 export type SettingsGroup = 'universo' | 'aparelho' | 'conta' | 'avancado'
@@ -56,6 +56,14 @@ export const SETTINGS_CATEGORIES: { id: SettingsCategory; label: string; icon: L
     group: 'aparelho',
     scope: 'Vale para este aparelho, em todos os universos do mesmo tipo.',
     words: 'menu áreas esconder mostrar tour tutorial atalhos teclado ajuda versão',
+  },
+  {
+    id: 'ferramentas',
+    label: 'Todas as ferramentas',
+    icon: LayoutGrid,
+    group: 'aparelho',
+    scope: 'Uma lista de tudo o que o Papirus tem, para achar uma função.',
+    words: 'ferramentas funções áreas onde fica achar encontrar lista tudo mais menu recursos o que faz',
   },
   { id: 'conta', label: 'Conta', icon: Cloud, group: 'conta', scope: 'Vale para a sua conta, em todos os aparelhos.', words: 'conta login entrar sair nuvem sincronizar aparelhos' },
   {

@@ -14,13 +14,6 @@ declare module '@tiptap/core' {
   }
 }
 
-/** Erros ao colar ou arrastar uma imagem (mostrados pelo app). */
-let reportError: (message: string) => void = () => undefined
-export function onSceneImageError(fn: (message: string) => void) {
-  reportError = fn
-}
-export const sceneImageError = (message: string) => reportError(message)
-
 /** Imagem dentro da cena: um bloco próprio, entre parágrafos. Guarda só a referência. */
 export const SceneImage = Node.create({
   name: 'image',

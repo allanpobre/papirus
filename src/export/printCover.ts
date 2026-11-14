@@ -17,15 +17,35 @@ export type Paper = keyof typeof PAPERS
 /** Sangria de 1/8 de polegada em cada borda (o que passa do corte). */
 export const BLEED_MM = 3.175
 
+/** O papel se imprime em folhas de duas páginas: o livro tem sempre um número par de páginas (149 vira 150). */
+export const printedPages = (pages: number): number => Math.max(0, Math.ceil(pages / 2) * 2)
+
+/** A lombada, em mm: as páginas (para cima, até o par) vezes a espessura de cada página no papel escolhido. */
 export function spineMm(pages: number, paper: Paper): number {
-  return pages * PAPERS[paper].inch * 25.4
+  return printedPages(pages) * PAPERS[paper].inch * 25.4
 }
+
+/** A espessura de cada página no papel escolhido, em mm. */
+export const pageThicknessMm = (paper: Paper): number => PAPERS[paper].inch * 25.4
+
+/** A KDP só aceita texto na lombada a partir de 80 páginas (abaixo disso a lombada é fina demais). */
+export const MIN_SPINE_TEXT_PAGES = 80
+export const spineTextFits = (pages: number): boolean => printedPages(pages) >= MIN_SPINE_TEXT_PAGES
 
 /** O tamanho da capa inteira, em mm, com a sangria. */
 export function wrapSize(d: BookDesign, pages: number, paper: Paper): { spine: number; width: number; height: number } {
   const { w, h } = PAGE_SIZES[d.pageSize]
   const spine = spineMm(pages, paper)
   return { spine, width: BLEED_MM * 2 + w * 2 + spine, height: h + BLEED_MM * 2 }
+}
+
+/** As contas da capa inteira, uma a uma, para mostrar de onde vem cada medida. */
+export function wrapBreakdown(d: BookDesign, pages: number, paper: Paper) {
+  const { w, h } = PAGE_SIZES[d.pageSize]
+  const even = printedPages(pages)
+  const perPage = pageThicknessMm(paper)
+  const spine = spineMm(pages, paper)
+  return { pages, even, perPage, spine, bleed: BLEED_MM, pageWidth: w, pageHeight: h, width: BLEED_MM * 2 + w * 2 + spine, height: h + BLEED_MM * 2 }
 }
 
 /** "4,3 mm", "29,1 cm". */
@@ -56,8 +76,8 @@ ${line(spineX, 0, spineX, height, '#36c', '2 1.5')}${line(front, 0, front, heigh
 <rect x="${r(back + safe)}" y="${r(b + safe)}" width="${r(w - 2 * safe)}" height="${r(h - 2 * safe)}" fill="none" stroke="#2a2" stroke-width="0.2" stroke-dasharray="1 1"/>
 <rect x="${r(front + safe)}" y="${r(b + safe)}" width="${r(w - 2 * safe)}" height="${r(h - 2 * safe)}" fill="none" stroke="#2a2" stroke-width="0.2" stroke-dasharray="1 1"/>
 ${text(back + w / 2, b + h / 2, 'Contracapa')}${text(front + w / 2, b + h / 2, 'Capa')}${text(front + w / 2, b + h / 2 + 7, title, 3)}
-${spine >= 6 ? `<text x="${r(spineX + spine / 2)}" y="${r(b + h / 2)}" font-family="sans-serif" font-size="3" text-anchor="middle" fill="#555" transform="rotate(90 ${r(spineX + spine / 2)} ${r(b + h / 2)})">Lombada</text>` : ''}
-${text(back + w / 2, b + h - safe - 6, `Capa inteira ${cm(width)} × ${cm(height)} · lombada ${mm(spine)} (${pages} páginas, papel ${PAPERS[paper].label.toLowerCase()})`, 2.4)}
+${spineTextFits(pages) ? `<text x="${r(spineX + spine / 2)}" y="${r(b + h / 2)}" font-family="sans-serif" font-size="3" text-anchor="middle" fill="#555" transform="rotate(90 ${r(spineX + spine / 2)} ${r(b + h / 2)})">Lombada</text>` : ''}
+${text(back + w / 2, b + h - safe - 6, `Capa inteira ${cm(width)} × ${cm(height)} · lombada ${mm(spine)} (${printedPages(pages)} páginas, papel ${PAPERS[paper].label.toLowerCase()})`, 2.4)}
 ${text(back + w / 2, b + h - safe - 2, 'vermelho: sangria · preto: corte · azul: dobra · verde: área segura', 2.4)}
 </svg>`
 }

@@ -8,7 +8,7 @@ import type { Feedback } from '../share/feedback'
 import { chapterReactions, type ChapterReaction } from '../social/chapterReactions'
 import { shelfId } from '../social/social'
 import { useWorkspace } from '../state/workspace'
-import { useBetaFeedback } from './write/BetaReaders'
+import { useBetaFeedback } from './write/betaFeedback'
 
 /*
  * O que os leitores disseram, por capítulo (como o BetaBooks, que junta os comentários de

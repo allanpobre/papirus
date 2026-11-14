@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { tabListKeys } from '../../ui/keys'
 import { isOpen, type Question } from '../../logic/continuity'
 import { findCandidates, type Candidate } from '../../logic/detection'
+import { suggestKind, type KindGuess } from '../../logic/kindGuess'
 import { snippet } from '../../logic/text'
 import { KIND_LABEL } from '../../model/labels'
 import { ENTITY_KINDS, type Scene } from '../../model/schema'
@@ -10,6 +11,7 @@ import { useWorkspace } from '../../state/workspace'
 import { Select } from '../../ui/bits'
 import { EntityPicker } from '../../ui/EntityPicker'
 import { Modal } from '../../ui/Modal'
+import { useMediaQuery } from '../../ui/useMediaQuery'
 import { QuestionCard } from './QuestionCard'
 
 type Tab = 'nomes' | 'perguntas' | 'pendentes'
@@ -20,23 +22,31 @@ type Tab = 'nomes' | 'perguntas' | 'pendentes'
  */
 export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; questions: Question[]; onClose: () => void }) {
   const { universe, update, toast, go } = useWorkspace()
+  // No celular, fechar a Revisão não devolve o foco ao texto: senão o teclado abriria de novo.
+  const touch = useMediaQuery('(pointer: coarse), (max-width: 760px)')
   const [tab, setTab] = useState<Tab>('nomes')
   const [scope, setScope] = useState<'cena' | 'tudo'>('cena')
   const [hidden, setHidden] = useState<Set<string>>(new Set())
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [bulkKind, setBulkKind] = useState('personagem')
+  const [bulkKind, setBulkKind] = useState('auto')
 
   const candidates = useMemo(() => {
     const scenes = scope === 'cena' ? [scene] : manuscriptOrder(universe)
-    const merged = new Map<string, Candidate & { sceneId: string; source: string }>()
+    const merged = new Map<string, Candidate & { sceneId: string; source: string; sources: string[] }>()
     for (const s of scenes) {
       for (const c of findCandidates(s.text, universe.entities, universe.settings.ignoredNames)) {
         const prev = merged.get(c.text)
-        if (prev) prev.count += c.count
-        else merged.set(c.text, { ...c, sceneId: s.id, source: s.text })
+        if (prev) {
+          prev.count += c.count
+          if (prev.sources.length < 8) prev.sources.push(s.text)
+        } else merged.set(c.text, { ...c, sceneId: s.id, source: s.text, sources: [s.text] })
       }
     }
-    return [...merged.values()].filter((c) => !hidden.has(c.text)).sort((a, b) => b.count - a.count)
+    // O tipo sugerido vem do texto em volta de cada nome (só uma sugestão; dá para trocar).
+    return [...merged.values()]
+      .filter((c) => !hidden.has(c.text))
+      .map((c) => ({ ...c, guess: suggestKind(c.text, c.sources) }))
+      .sort((a, b) => b.count - a.count)
   }, [scope, scene, universe, hidden])
 
   const openQuestions = questions.filter(isOpen)
@@ -48,8 +58,10 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
     setHidden((h) => new Set([...h, ...texts]))
     setSelected((s) => new Set([...s].filter((t) => !texts.includes(t))))
   }
+  // `kind` 'auto' = o tipo sugerido pelo texto para cada nome.
   const create = (texts: string[], kind: string) => {
-    update((u) => texts.reduce((acc, t) => insert(acc, 'entities', draftEntity(kind, t))[0], u))
+    const kindOf = (t: string) => (kind === 'auto' ? (candidates.find((c) => c.text === t)?.guess ?? 'personagem') : kind)
+    update((u) => texts.reduce((acc, t) => insert(acc, 'entities', draftEntity(kindOf(t), t))[0], u))
     toast(texts.length === 1 ? `Ficha “${texts[0]}” criada` : `${texts.length} fichas criadas`)
     hide(texts)
   }
@@ -66,7 +78,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
   }
 
   return (
-    <Modal title="Revisão" onClose={onClose} size="lg" help="revisao">
+    <Modal title="Revisão" onClose={onClose} size="lg" help="revisao" restoreFocus={!touch}>
       <div className="tabs" role="tablist" onKeyDown={tabListKeys}>
         {(
           [
@@ -95,7 +107,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
             {selected.size > 0 && (
               <div className="review-bulk">
                 <span className="small">{selected.size} selecionados</span>
-                <Select label="Tipo para as novas fichas" value={bulkKind} onChange={setBulkKind} options={ENTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
+                <Select label="Tipo para as novas fichas" value={bulkKind} onChange={setBulkKind} options={[{ value: 'auto', label: 'Sugerido pelo texto' }, ...ENTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))]} />
                 <button type="button" className="btn btn-sm btn-primary" onClick={() => create([...selected], bulkKind)}>
                   Criar fichas
                 </button>
@@ -175,7 +187,7 @@ function CandidateRow({
   onIgnore,
   onLater,
 }: {
-  c: Candidate & { source: string }
+  c: Candidate & { source: string; guess: KindGuess }
   checked: boolean
   onCheck: (v: boolean) => void
   onCreate: (kind: string) => void
@@ -183,7 +195,7 @@ function CandidateRow({
   onIgnore: () => void
   onLater: () => void
 }) {
-  const [kind, setKind] = useState('personagem')
+  const [kind, setKind] = useState<string>(c.guess)
   const [aliasing, setAliasing] = useState(false)
   return (
     <li className="candidate">
@@ -199,6 +211,7 @@ function CandidateRow({
         ) : (
           <>
             <Select label={`Tipo de ${c.text}`} value={kind} onChange={setKind} options={ENTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
+            <span className="muted tiny candidate-guess">pelo texto: {KIND_LABEL[c.guess].toLowerCase()}</span>
             <button type="button" className="btn btn-sm btn-primary" onClick={() => onCreate(kind)}>
               Criar ficha
             </button>

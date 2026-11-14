@@ -29,7 +29,6 @@ export function splitReveals(text: string): RevealPart[] {
 }
 
 export const countReveals = (text: string) => [...text.matchAll(REVEAL)].length
-export const hasReveals = (text: string) => countReveals(text) > 0
 
 /** Tira as marcações e deixa os trechos (para quem vê tudo: autor, Codex dos jogadores). */
 export const unmarkReveals = (text: string) => text.replace(REVEAL, '$3')

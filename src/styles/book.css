@@ -1193,3 +1193,9 @@
 .book-top .more-menu-pop {
   min-width: 17rem;
 }
+
+/* Montando o livro: o andamento fica no alto (sempre à vista, mesmo com o painel de opções aberto no celular); "Cancelar" para. */
+.book-cancel {
+  flex: none;
+  white-space: nowrap;
+}

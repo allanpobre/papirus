@@ -1,4 +1,5 @@
-import { formatYear, kindLabel } from '../model/labels'
+import { formatYear } from '../model/labels'
+import { cachedBy, identityCache } from '../model/memo'
 import type { Entity, Fact, Relation, Scene, Universe } from '../model/schema'
 import { byId, manuscriptOrder } from '../model/universe'
 import { playerTag, factSentence } from './codex'
@@ -66,6 +67,12 @@ const isSecret = (canon: string) => canon === 'secreto'
  * elenco, ponto de vista ou lugar da cena. Serve ao caderno do leitor e ao grafo "num ponto da história".
  */
 export function appearances(scenes: Scene[], entities: Entity[]): { first: Map<string, number>; inScene: Map<string, Set<string>> } {
+  return cachedBy(appearancesCache, [scenes, entities], () => computeAppearances(scenes, entities))
+}
+
+const appearancesCache = identityCache()
+
+function computeAppearances(scenes: Scene[], entities: Entity[]): { first: Map<string, number>; inScene: Map<string, Set<string>> } {
   const known = new Set(entities.map((e) => e.id))
   const matcher = new MentionMatcher(entities)
   const first = new Map<string, number>()
@@ -235,5 +242,3 @@ export function discoveries(book: ReaderBook, at: number) {
     items: [...revealedPassages(book, at, at), ...book.facts.filter((f) => f.at === at), ...book.relations.filter((r) => r.at === at)],
   }
 }
-
-export const entityKindLabel = (e: Entity) => kindLabel(e.kind)

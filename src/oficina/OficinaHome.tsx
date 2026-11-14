@@ -456,7 +456,8 @@ function Library({ genre, progress, onChoose }: { genre?: GuideId; progress: Ofi
   const forTable = genre === 'mestrar' || genre === 'aventuras'
   const sections = forTable ? [SECTIONS[2], SECTIONS[0], SECTIONS[1]] : SECTIONS
   const doneIn = (g: Guide) => g.exercises.filter((e) => progress.done.includes(exerciseKey(g.id, e.title))).length
-  let i = 0
+  // A ordem em que cada guia aparece (para a animação de entrada), na ordem das seções.
+  const order = new Map(sections.flatMap((sec) => GUIDES.filter((g) => sectionOf(g) === sec.id)).map((g, n) => [g.id, n]))
   return (
     <div className="oficina-library">
       <p className="oficina-section-lede">Os guias completos: o que funciona, armadilhas, livros para estudar, curiosidades e mais exercícios.</p>
@@ -472,7 +473,7 @@ function Library({ genre, progress, onChoose }: { genre?: GuideId; progress: Ofi
               const done = doneIn(g)
               const read = progress.read.includes(g.id)
               return (
-                <li key={g.id} style={{ '--g': color, '--i': i++ } as React.CSSProperties}>
+                <li key={g.id} style={{ '--g': color, '--i': order.get(g.id) ?? 0 } as React.CSSProperties}>
                   <button type="button" className={`oficina-genre${g.id === mine ? ' is-mine' : ''}`} onClick={() => onChoose(g.id)}>
                     <span className="oficina-genre-icon" aria-hidden="true">
                       <Icon size={22} />

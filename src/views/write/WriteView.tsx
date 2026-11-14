@@ -76,7 +76,9 @@ import { nextNoteOf, todayTarget } from '../../logic/homeToday'
 import { TextMenu } from './TextMenu'
 import { FindBar } from './FindBar'
 import { isLore } from '../../logic/au'
-import { SceneFrame, saveMode, savedMode, WritingModes, type WritingMode } from './WritingModes'
+import { SceneFrame, WritingModes, type WritingMode } from './WritingModes'
+import { KEYBOARD_MIN_INSET, useKeyboardInset } from '../../editor/useKeyboardInset'
+import { saveMode, savedMode } from './writingModeStore'
 
 type Dialog =
   | { kind: 'link'; sel: SelectionInfo }
@@ -109,6 +111,8 @@ export default function WriteView() {
   const [dialog, setDialog] = useState<Dialog>(null)
   const [focus, setFocus] = useState(false)
   const phone = useMediaQuery('(max-width: 760px)')
+  // Com o teclado aberto na Página, a linha dos modos some e o texto ganha espaço (o teclado se fecha pelo botão da barra).
+  const keyboard = useKeyboardInset()
   const narrow = useMediaQuery('(max-width: 1180px)')
   // Página (porta fechada: só o texto) ou Revisão (porta aberta: a margem e as perguntas).
   const [mode, setModeState] = useState<'pagina' | 'revisao'>(savedMode)
@@ -398,7 +402,7 @@ export default function WriteView() {
 
   return (
     <div
-      className={`view write is-${mode}${treeOpen && !treeOverlay ? '' : ' tree-closed'}${marginVisible && !sheet ? '' : ' margin-closed'}${focus ? ' is-focus' : ''}${sheet && narrowMargin && !focus ? ' sheet-open' : ''}`}
+      className={`view write is-${mode}${treeOpen && !treeOverlay ? '' : ' tree-closed'}${marginVisible && !sheet ? '' : ' margin-closed'}${focus ? ' is-focus' : ''}${sheet && narrowMargin && !focus ? ' sheet-open' : ''}${phone && mode === 'pagina' && keyboard >= KEYBOARD_MIN_INSET ? ' is-typing' : ''}`}
     >
       {treeOpen && !focus && (
         <aside className={`write-tree${treeOverlay ? ' write-overlay write-overlay-left' : ''}`} aria-label="Manuscrito">

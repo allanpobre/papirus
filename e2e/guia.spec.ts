@@ -23,7 +23,7 @@ test.describe('no celular', () => {
   test('o Mais em grupos, com o Guia em Ferramentas', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
     await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mais' }).click()
-    for (const g of ['Escrita', 'Mundo', 'Mesa', 'Ferramentas']) await expect(page.getByRole('group', { name: g })).toBeVisible()
+    for (const g of ['Escrever', 'Mundo e Trama', 'Mesa de RPG', 'Ferramentas']) await expect(page.getByRole('group', { name: g })).toBeVisible()
     await page.getByRole('group', { name: 'Ferramentas' }).getByRole('button', { name: 'Guia' }).click()
     await expect(page.getByRole('searchbox', { name: 'Procurar no guia' })).toBeVisible()
   })

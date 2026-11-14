@@ -4,7 +4,7 @@ import { MentionMatcher } from '../logic/detection'
 import { readerBook, readerEntities } from '../logic/reader'
 import { relationSentence } from '../logic/relations'
 import { unmarkReveals } from '../logic/reveals'
-import { formatYear, kindLabel, kindPlural } from '../model/labels'
+import { formatYear, kindLabel, kindPlural, ROLE_LABEL } from '../model/labels'
 import type { Entity, Universe, WikiSettings } from '../model/schema'
 import { manuscriptOrder } from '../model/universe'
 import { readerCopy } from '../share/readerCopy'
@@ -42,6 +42,8 @@ export interface WikiData {
   fichas: {
     id: string
     tipo: string
+    /** O papel na história (Protagonista, Antagonista…), se a ficha tem. */
+    papel: string | null
     /** O tipo no plural, para agrupar ("Personagens"). */
     grupo: string
     nome: string
@@ -166,7 +168,8 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
     const cites = [...((show.cites && citedBy.get(e.id)) || [])].sort((a, b) => nameOf(a).localeCompare(nameOf(b), 'pt-BR'))
     const evs = eventsOf(e.id)
     const onMaps = mapsOf(e.id)
-    const search = [e.name, ...e.aliases, kindLabel(e.kind)].join(' ')
+    const roleText = e.role ? ROLE_LABEL[e.role] : ''
+    const search = [e.name, ...e.aliases, kindLabel(e.kind), roleText].join(' ')
     const portrait = show.portraits ? img(e.image) : null
     const box = [
       portrait ? `<img class="portrait" src="${portrait}" alt="${esc(e.name)}"/>` : '',
@@ -181,7 +184,7 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
     const prev = same[i - 1]?.entity
     const next = same[i + 1]?.entity
     return `<article class="entry page" id="${anchor(e.id)}" data-search="${esc(search.toLowerCase())}">
-<header><p class="kind">${esc(kindLabel(e.kind))}</p><h2>${esc(e.name)}</h2>${e.aliases.length ? `<p class="aliases">Também: ${e.aliases.map(esc).join(', ')}</p>` : ''}</header>
+<header><p class="kind">${esc(kindLabel(e.kind))}${roleText ? ` · ${esc(roleText)}` : ''}</p><h2>${esc(e.name)}</h2>${e.aliases.length ? `<p class="aliases">Também: ${e.aliases.map(esc).join(', ')}</p>` : ''}</header>
 ${summary.trim() ? `<p class="summary">${linked(summary, e.id)}</p>` : ''}
 ${box ? `<aside class="infobox">${box}</aside>` : ''}
 ${description.trim() ? (e.kind === 'documento' ? `<div class="doc-text">${paras(description, e.id)}</div>` : paras(description, e.id)) : ''}
@@ -343,6 +346,7 @@ window.addEventListener('hashchange',route);route()})();
     fichas: entries.map(({ entity: e, summary, description, fields }) => ({
       id: e.id,
       tipo: kindLabel(e.kind),
+      papel: e.role ? ROLE_LABEL[e.role] : null,
       grupo: kindPlural(e.kind),
       nome: e.name,
       apelidos: e.aliases,

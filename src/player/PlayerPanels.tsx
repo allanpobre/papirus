@@ -6,13 +6,11 @@ import { ClockFace } from '../ui/ClockFace'
 import { RollingDie } from '../ui/RollingDie'
 import { PartyCard } from '../views/rpg/CodexDoc'
 import type { FeedRoll } from './PlayerTable'
-import { rollLabel } from './PlayerTable'
+import { rollLabel } from './rollLabel'
+import { initials } from './labels'
 
 type Pc = CodexSnapshot['party'][number]
 type Combat = NonNullable<CodexSnapshot['combat']>
-
-/** "Goblin das falésias 2" → "G2"; "Brisa" → "B". */
-export const initials = (name: string) => (name.trim()[0] ?? '?').toUpperCase() + (name.match(/(\d+)$/)?.[1] ?? '')
 
 /**
  * O cartão do personagem (a aba "Eu"): a vida grande, a defesa, os ataques e os testes a um toque.

@@ -235,9 +235,6 @@ export async function syncShelf(sb: SupabaseClient, myId: string, universe: Univ
   return rows.length
 }
 
-/** Esquece o que foi enviado (para testes e ao trocar de conta). */
-export const resetShelfCache = () => sent.clear()
-
 /** Reduz uma foto para o perfil (quadrada, 256px, JPEG). */
 export async function shrinkAvatar(file: File): Promise<string> {
   const url = URL.createObjectURL(file)

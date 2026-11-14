@@ -4,18 +4,14 @@ import type { Monster } from '../../model/schema'
 import { insert, newId, patch, remove } from '../../model/universe'
 import { creaturesToAdd, draftMonster, monsterFromCreature, sortedMonsters } from '../../rpg/bestiary'
 import { defenseLabel } from '../../rpg/sheets'
+import { addStarterMonsters, missingStarters } from '../../rpg/starterBestiary'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 import { Modal } from '../../ui/Modal'
 import { useRpg } from './rpgContext'
+import { monsterLine } from './monsterLine'
 
-const signed = (n: number) => (n >= 0 ? `+${n}` : String(n))
 const num = (v: string) => (v.trim() === '' || v === '-' ? null : Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : null)
-
-/** "PV 7 · CA 12 · Cimitarra +4 (1d6+2)". */
-export function monsterLine(m: Monster, defLabel: string): string {
-  return [`PV ${m.hp}`, m.defense !== null ? `${defLabel} ${m.defense}` : '', ...m.attacks.map((a) => `${a.name} ${signed(a.bonus)}${a.damage ? ` (${a.damage})` : ''}`)].filter(Boolean).join(' · ')
-}
 
 /** Um inimigo pronto: nome, vida, Defesa, iniciativa, ataques e notas. Tudo salva na hora. */
 export function MonsterEditor({ monster: m }: { monster: Monster }) {
@@ -161,7 +157,17 @@ export function Bestiary() {
         </div>
       )}
       {monsters.length === 0 ? (
-        <p className="muted small">Nenhum inimigo pronto ainda.</p>
+        <>
+          <p className="muted small">Nenhum inimigo pronto ainda.</p>
+          {!readOnly && missingStarters(universe).length > 0 && (
+            <div className="bestiary-starter">
+              <p className="small">Primeira vez mestrando? Comece com cinco inimigos conhecidos (Goblin, Lobo, Esqueleto, Bandido e Ogro), já com vida, {defLabel} e ataque. Os números são do estilo D&D 5e: acerte para o seu sistema.</p>
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => update((u) => addStarterMonsters(u)[0])}>
+                <Plus size={14} /> Trazer inimigos comuns
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <ul className="bestiary-list">
           {monsters.map((m) => (

@@ -1,3 +1,4 @@
+import { bookScope } from '../logic/bookScope'
 import { Check, Hexagon, ImagePlus, MapPin, Minus, Plus, Trash2, X } from 'lucide-react'
 import { centroid, regionIn, type Region } from '../logic/regions'
 import { coverLook } from '../ui/coverLook'
@@ -6,8 +7,9 @@ import { useMemo, useRef, useState } from 'react'
 import { rangeText, routeOn } from '../logic/route'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
-import { bookOnly, byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
-import { sceneCounts } from '../logic/appearances'
+import { byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
+import { CropDialog } from '../images/CropDialog'
+import type { Rect } from '../images/crop'
 import { useWorkspace } from '../state/workspace'
 import { Empty, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -15,7 +17,7 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
-import { chosenYear, rememberYear } from './TimeMachine'
+import { chosenYear, rememberYear } from './timeYear'
 import { existsIn } from '../logic/timeMachine'
 import { formatYear } from '../model/labels'
 
@@ -53,10 +55,11 @@ export default function AtlasView() {
   const fileRef = useRef<HTMLInputElement>(null)
   const map = (mapId && byId(universe, 'maps', mapId)) || universe.maps[0]
 
-  const addMap = async (file?: File) => {
+  const [cropping, setCropping] = useState<File | null>(null)
+  const addMap = async (file?: File, crop?: Rect) => {
     try {
       // O mapa vai para as imagens do universo (fora do arquivo do universo, que fica leve).
-      const img = file ? await addImage(file, 'mapa').then((r) => ({ data: r.ref, width: r.width, height: r.height })) : blankParchment()
+      const img = file ? await addImage(file, 'mapa', crop).then((r) => ({ data: r.ref, width: r.width, height: r.height })) : blankParchment()
       let id = ''
       update((u) => {
         const [next, m] = insert(u, 'maps', draftMap(file ? file.name.replace(/\.[^.]+$/, '') : 'Mapa em branco', img.data, img.width, img.height))
@@ -89,11 +92,25 @@ export default function AtlasView() {
           accept="image/*"
           hidden
           onChange={(e) => {
-            const f = e.target.files?.[0]
-            if (f) void addMap(f)
+            // Copia a lista antes de limpar o campo (limpar esvazia a lista). O mapa passa por um recorte livre.
+            const f = Array.from(e.target.files ?? [])[0]
             e.target.value = ''
+            if (f) setCropping(f)
           }}
         />
+        {cropping && (
+          <CropDialog
+            file={cropping}
+            square={false}
+            title="Recortar o mapa"
+            onCancel={() => setCropping(null)}
+            onDone={(crop) => {
+              const f = cropping
+              setCropping(null)
+              void addMap(f, crop)
+            }}
+          />
+        )}
       </header>
 
       {map ? (
@@ -120,7 +137,8 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   const mapSrc = useImageSrc(map.image)
   // Com um livro escolhido no alto, os lugares dele ficam em destaque e os outros, apagados.
   const book = bookId ? byId(universe, 'stories', bookId) : undefined
-  const inBook = useMemo(() => (bookId ? new Set(sceneCounts(bookOnly(universe, bookId)).keys()) : null), [universe, bookId])
+  // Lugares novos (que ainda não aparecem em livro nenhum) não ficam apagados: a mesma regra de Fichas e Linha do tempo.
+  const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
   const [zoom, setZoom] = useState(1)
   const [placing, setPlacing] = useState<string | null>(null)
   const [pending, setPending] = useState<{ x: number; y: number } | null>(null)
@@ -222,9 +240,9 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             ))}
           </span>
         )}
-        {book && inBook && (
+        {book && scope && (
           <span className="atlas-year small">
-            Em destaque: os lugares de “{book.title || 'Sem título'}” ({visible.filter((p) => inBook.has(p.entityId)).length})
+            Em destaque: os lugares de “{book.title || 'Sem título'}” ({visible.filter((p) => scope.belongs(p.entityId)).length})
           </span>
         )}
         {year !== null && (
@@ -397,7 +415,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
               <button
                 key={p.id}
                 type="button"
-                className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}${inBook && !inBook.has(p.entityId) ? ' off-book' : ''}`}
+                className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}${scope && !scope.belongs(p.entityId) ? ' off-book' : ''}`}
                 style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
                 aria-label={`${p.label || e?.name || 'Marcador'}${e ? `, ${kindLabel(e.kind)}` : ''}`}
                 onPointerDown={(ev) => {

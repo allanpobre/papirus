@@ -141,3 +141,43 @@ test('estante: ler ali mesmo, reagir a um capítulo, e capítulo novo chega aos 
   await biaSocial.getByRole('tab', { name: /Novidades/ }).click()
   await expect(biaSocial.getByRole('list', { name: 'Novidades' })).toContainText('publicou 1 capítulo novo de “A Maré”')
 })
+
+test('estante com dois volumes: publicar, atualizar e tirar da estante age só no volume escolhido', async ({ page }) => {
+  test.setTimeout(120_000)
+  const fake = createFakeSupabase()
+  await page.context().addInitScript(() => localStorage.getItem('papirus:prefs') || localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
+  await fake.attach(page.context())
+  await page.goto('/app/?exemplo=ostria')
+  await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
+  await signIn(page, PEOPLE.ana.email)
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
+
+  // Dois volumes: o primeiro e o segundo.
+  await page.getByRole('button', { name: 'Novo livro' }).click()
+  await page.getByRole('textbox', { name: 'Título' }).fill('Volume 1')
+  await page.getByRole('button', { name: 'Criar livro' }).click()
+  await page.getByRole('button', { name: 'Novo livro' }).click()
+  await page.getByRole('textbox', { name: 'Título' }).fill('Volume 2')
+  await page.getByRole('button', { name: 'Criar livro' }).click()
+  const estante = page.getByRole('listbox', { name: 'Estante' })
+  await expect(estante.getByRole('option')).toHaveCount(2)
+
+  const linhas = () => fake.tables.papirus_shelf.map((r) => String(r.title)).sort()
+  // O volume escolhido (o novo, "Volume 2") vai para os amigos: só ele chega à estante do servidor.
+  await expect(page.getByRole('radiogroup', { name: 'Quem vê “Volume 2” no seu perfil' })).toBeVisible()
+  await page.getByRole('radiogroup', { name: 'Quem vê “Volume 2” no seu perfil' }).getByRole('radio', { name: 'Amigos' }).click()
+  await expect.poll(linhas, { timeout: 15_000 }).toEqual(['Volume 2'])
+
+  // O outro volume continua só do dono, até ser escolhido e publicado.
+  await estante.getByRole('option', { name: /Volume 1/ }).click()
+  const grupoOutro = page.getByRole('radiogroup', { name: 'Quem vê “Volume 1” no seu perfil' })
+  await expect(grupoOutro.getByRole('radio', { name: 'Só eu' })).toHaveAttribute('aria-checked', 'true')
+  await grupoOutro.getByRole('radio', { name: 'Todo mundo' }).click()
+  await expect.poll(() => linhas().length, { timeout: 15_000 }).toBe(2)
+  expect(linhas()).toEqual(['Volume 1', 'Volume 2'])
+
+  // Tirar o "Volume 2" da estante (Só eu) apaga só ele; o outro fica.
+  await estante.getByRole('option', { name: /Volume 2/ }).click()
+  await page.getByRole('radiogroup', { name: 'Quem vê “Volume 2” no seu perfil' }).getByRole('radio', { name: 'Só eu' }).click()
+  await expect.poll(linhas, { timeout: 15_000 }).toEqual(['Volume 1'])
+})

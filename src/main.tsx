@@ -16,8 +16,8 @@ import './styles/book.css'
 import './styles/oficina.css'
 import './styles/treino.css'
 import App from './App.tsx'
-import PlayerApp from './player/PlayerApp.tsx'
 import { readPlayerLink } from './share/server'
+import { PlayerLoader } from './player/PlayerLoader'
 import { startPwa, watchForUpdates } from './pwa'
 import { UpdateNotice } from './ui/UpdateNotice'
 import { ErrorBoundary } from './ui/ErrorBoundary'
@@ -41,7 +41,7 @@ followThemeColor()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary label="O Papirus encontrou um erro.">{player ? <PlayerApp id={player.id} server={player.server} /> : <App />}</ErrorBoundary>
+    <ErrorBoundary label="O Papirus encontrou um erro.">{player ? <PlayerLoader id={player.id} server={player.server} /> : <App />}</ErrorBoundary>
     <GlobalErrors />
     {!player && <AuthLinkNotice />}
     {!player && <UpdateNotice />}

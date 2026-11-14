@@ -144,3 +144,27 @@ describe('mapa político na wiki', () => {
     expect(html).toContain('No mapa: <a href="#mapas">Costa</a>')
   })
 })
+
+describe('wiki com o papel na história', () => {
+  it('mostra o papel ao lado do tipo, acha pelo papel na busca e leva o papel no .json', () => {
+    let u = createUniverse('Mundo')
+    let kael, mira, vila
+    ;[u, kael] = insert(u, 'entities', { ...draftEntity('personagem', 'Kael'), role: 'protagonista' as const })
+    ;[u, mira] = insert(u, 'entities', draftEntity('personagem', 'Mira'))
+    ;[u, vila] = insert(u, 'entities', draftEntity('lugar', 'Vila Velha'))
+    const { html, data } = buildWiki(u, { upTo: null })
+    expect(html).toContain('<p class="kind">Personagem · Protagonista</p><h2>Kael</h2>')
+    // Quem não tem papel (e o que não é personagem) fica só com o tipo.
+    expect(html).toContain('<p class="kind">Personagem</p><h2>Mira</h2>')
+    expect(html).toContain('<p class="kind">Lugar</p><h2>Vila Velha</h2>')
+    // A busca da wiki acha "protagonista" só no Kael.
+    const achados = [...html.matchAll(/data-search="([^"]*)"/g)].map((m) => m[1]).filter((t) => t.includes('protagonista'))
+    expect(achados).toHaveLength(1)
+    expect(achados[0]).toContain('kael')
+    expect(data.fichas.find((f) => f.nome === 'Kael')?.papel).toBe('Protagonista')
+    expect(data.fichas.find((f) => f.nome === 'Mira')?.papel).toBeNull()
+    void mira
+    void vila
+    void kael
+  })
+})

@@ -1,7 +1,7 @@
 import { Lock, Trophy } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { authClient, useAccount } from '../account/auth'
-import { Avatar } from '../social/SocialDialog'
+import { Avatar } from '../social/Avatar'
 import { recall, remember } from '../state/prefs'
 import { Modal } from '../ui/Modal'
 import { loadPlacar, localPoints, myPlacarSetting, periodStart, setPlacarSetting, type PlacarEscopo, type PlacarPeriodo, type PlacarRow, type PlacarVisibilidade } from './placar'

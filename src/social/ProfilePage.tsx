@@ -5,7 +5,7 @@ import { authClient, useAccount } from '../account/auth'
 import { anonClient } from '../share/server'
 import { Brand } from '../shell/Brand'
 import { OwnerShelf } from './ShelfBook'
-import { Avatar } from './SocialDialog'
+import { Avatar } from './Avatar'
 import { acceptFriend, cleanHandle, myFriends, profileByHandle, profileLink, removeFriend, requestFriend, type FriendEntry, type Profile } from './social'
 
 /**
