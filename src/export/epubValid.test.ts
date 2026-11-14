@@ -31,7 +31,10 @@ const dirOf = (path: string) => path.slice(0, path.lastIndexOf('/') + 1)
 const resolve = (base: string, href: string) => {
   const parts = (dirOf(base) + href.split('#')[0]).split('/')
   const out: string[] = []
-  for (const p of parts) p === '..' ? out.pop() : p !== '.' && p !== '' && out.push(p)
+  for (const p of parts) {
+    if (p === '..') out.pop()
+    else if (p !== '.' && p !== '') out.push(p)
+  }
   return out.join('/')
 }
 
