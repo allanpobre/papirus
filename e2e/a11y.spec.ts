@@ -169,6 +169,10 @@ test('a wiki aberta pelo link (celular): sem violações e com o botão Baixar a
   // O teclado chega no "Baixar".
   await reader.getByRole('button', { name: 'Baixar' }).focus()
   await expect(reader.getByRole('button', { name: 'Baixar' })).toBeFocused()
+  // No escuro, o fundo da moldura da wiki é o papel do tema, não um branco fixo.
+  await reader.emulateMedia({ colorScheme: 'dark' })
+  const fundo = await reader.locator('iframe.wiki-link-frame').evaluate((el) => getComputedStyle(el).backgroundColor)
+  expect(fundo, 'moldura da wiki no escuro').not.toBe('rgb(255, 255, 255)')
   console.log(found.join('\n'))
   expect(found).toEqual([])
 })
