@@ -574,6 +574,10 @@
   flex: 1 1 320px;
 }
 
+.timeline-filter-place {
+  flex: 1 1 240px;
+}
+
 .era-strip {
   position: relative;
   height: 78px;

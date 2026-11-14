@@ -282,7 +282,7 @@ export const PAGE_TOURS = {
       LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.timeline-view .quick-create', title: 'Novo evento', body: 'O nome e o ano, no calendário do seu mundo. Toque num evento para mudar o tipo (uma Era é uma faixa de tempo), a importância, quem participa e onde.' },
-      { target: '.timeline-filters', title: 'Filtrar', body: 'Mostre só o que envolve certas fichas, só os eventos mais importantes, e escolha se as cenas com data e as sessões de jogo aparecem.' },
+      { target: '.timeline-filters', title: 'Filtrar', body: 'Mostre só o que envolve certas fichas, só o que aconteceu num lugar (e nos lugares dentro dele) ou numa região pintada no mapa, só os eventos mais importantes, e escolha se as cenas com data e as sessões de jogo aparecem.' },
       { target: '.era-strip', title: 'Eras', body: 'As faixas de tempo do mundo, uma por linha.', optional: true },
       { target: '.timeline', title: 'Ano a ano', body: 'Os eventos, as cenas com data narrativa e as sessões de jogo com ano no mundo. Quem tem nascimento na ficha aparece com a idade daquele ano. Toque num evento para editar; numa cena, para abrir no editor; numa sessão, para abrir na Mesa.', optional: true },
       { title: 'O calendário', body: 'Meses, dias e o rótulo dos anos (como “DC”) ficam em Ajustes → Universo. O Papirus avisa datas impossíveis.' },
