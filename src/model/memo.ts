@@ -24,3 +24,11 @@ export function cachedBy<R>(cache: IdentityCache, keys: readonly object[], compu
   node.set(last, value)
   return value
 }
+
+/** O resultado guardado, se já houver (sem fazer a conta). */
+export function peekBy<R>(cache: IdentityCache, keys: readonly object[]): { value: R } | undefined {
+  let node: IdentityCache | undefined = cache
+  for (let i = 0; i < keys.length - 1 && node; i++) node = node.get(keys[i]) as IdentityCache | undefined
+  const last = keys[keys.length - 1]
+  return node?.has(last) ? { value: node.get(last) as R } : undefined
+}

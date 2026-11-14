@@ -83,3 +83,17 @@ describe('contas de "quem aparece" guardadas', () => {
     expect(sceneCounts(outraFicha)).not.toBe(first)
   })
 })
+
+describe('conferência do texto do livro', () => {
+  it('é guardada: a segunda vez (outra visita a Publicar) não refaz a conta', async () => {
+    const { reviewBook, reviewIfDone } = await import('../logic/review')
+    const { defaultDesign } = await import('../export/bookDesign')
+    const d = defaultDesign()
+    expect(reviewIfDone(u, d)).toBeUndefined()
+    const [first, ms1] = time('reviewBook (primeira vez)', () => reviewBook(u, d))
+    const [again, ms2] = time('reviewBook (guardada)', () => reviewBook(u, d))
+    expect(again).toBe(first)
+    expect(reviewIfDone(u, d)).toBe(first)
+    expect(ms2).toBeLessThan(Math.max(5, ms1 / 20))
+  })
+})

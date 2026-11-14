@@ -1,3 +1,4 @@
+import { cachedBy, identityCache, peekBy } from '../model/memo'
 import type { BookDesign, Scene, SceneDoc, Universe } from '../model/schema'
 import { scenesOf } from '../model/universe'
 import { storiesOf } from '../export/bookDesign'
@@ -65,7 +66,18 @@ export function bookScenes(universe: Universe, d: BookDesign): Scene[] {
   return stories.length ? stories.flatMap((s) => scenesOf(universe, s.id)) : scenesOf(universe, null)
 }
 
+const reviewCache = identityCache()
+const reviewKeys = (universe: Universe, d: BookDesign) => [universe.scenes, universe.stories, universe.entities, d] as const
+
+/** A conferência do texto do livro inteiro. Guardada enquanto as cenas, as histórias, as fichas e o livro forem os mesmos. */
 export function reviewBook(universe: Universe, d: BookDesign): ReviewIssue[] {
+  return cachedBy(reviewCache, reviewKeys(universe, d), () => computeReview(universe, d))
+}
+
+/** A conferência, se já foi feita (sem fazer a conta agora). */
+export const reviewIfDone = (universe: Universe, d: BookDesign): ReviewIssue[] | undefined => peekBy<ReviewIssue[]>(reviewCache, reviewKeys(universe, d))?.value
+
+function computeReview(universe: Universe, d: BookDesign): ReviewIssue[] {
   const issues: ReviewIssue[] = []
   const scenes = bookScenes(universe, d)
   const spellings = new Map<string, Map<string, { sceneId: string; title: string; excerpt: string }>>()

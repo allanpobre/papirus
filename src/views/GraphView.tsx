@@ -61,7 +61,15 @@ function useAnimatedPositions(target: Map<string, Point>, center: Point): Map<st
     const start = performance.now()
     const duration = 900
     let frame = 0
+    let last = start
     const step = (now: number) => {
+      // Aparelho lento (cada quadro leva mais de 60 ms): pula a animação e mostra o desenho pronto,
+      // em vez de refazer o desenho inteiro dezenas de vezes.
+      if (now - last > 60) {
+        setShown(target)
+        return
+      }
+      last = now
       const t = Math.min(1, (now - start) / duration)
       const k = ease(t)
       const next = new Map<string, Point>()

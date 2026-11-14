@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:offline": "node scripts/testar-offline.mjs",
+    "medir:celular": "node scripts/medir-celular.mjs",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "preview": "vite preview"
   },
