@@ -118,7 +118,8 @@ function WikiCustomize() {
   const outside = universe.entities.filter((e) => e.wikiHidden).length
   const cover = coverLook(universe.name).tone
   const color = ws.color ?? null
-  const changed = Object.values(ws).some((v) => v !== undefined)
+  // Até que cena vai o link é do Compartilhar: não conta como "do seu jeito" e não volta ao padrão junto.
+  const changed = Object.entries(ws).some(([k, v]) => k !== 'upToScene' && v !== undefined)
 
   return (
     <div className="wiki-custom" role="group" aria-label="Personalizar">
@@ -250,7 +251,7 @@ function WikiCustomize() {
           className="btn btn-ghost btn-sm"
           onClick={() => {
             setFieldsText('')
-            update((u) => ({ ...u, settings: { ...u.settings, wiki: undefined } }))
+            update((u) => ({ ...u, settings: { ...u.settings, wiki: u.settings.wiki?.upToScene ? { upToScene: u.settings.wiki.upToScene } : undefined } }))
           }}
         >
           Voltar ao padrão

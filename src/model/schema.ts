@@ -587,6 +587,8 @@ export const wikiSettingsSchema = z.object({
   color: z.string().nullable().optional(),
   font: z.enum(WIKI_FONTS).optional(),
   style: z.enum(WIKI_STYLES).optional().catch(undefined),
+  /** Até que cena vai a wiki do link (id da cena). Sem valor, vai tudo, menos os segredos. */
+  upToScene: z.string().nullable().optional(),
 })
 export type WikiSettings = z.infer<typeof wikiSettingsSchema>
 

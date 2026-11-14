@@ -1,6 +1,7 @@
 import { Link2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { isLocalOnly } from '../model/sample'
+import { manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
 import { WikiCard } from './WikiCard'
@@ -16,14 +17,16 @@ export default function WikiView() {
   // O link é do dono (o exemplo fica só neste aparelho e não se compartilha).
   const canLink = source.kind === 'proprio' && !readOnly && !isLocalOnly(universe)
   const [html, setHtml] = useState('')
+  // Se o dono limitou o link a uma cena (no Compartilhar), a prévia mostra o mesmo: é o que o link mostra.
+  const upScene = universe.settings.wiki?.upToScene ? manuscriptOrder(universe).find((s) => s.id === universe.settings.wiki?.upToScene) : undefined
   const images = useRef<Map<string, string> | null>(null)
   useEffect(() => {
     let alive = true
     const t = setTimeout(() => {
       void (async () => {
-        const [{ buildWiki }, imgs] = await Promise.all([import('../export/wiki'), images.current ? Promise.resolve(images.current) : wikiImages(universe)])
+        const [{ buildWiki, linkUpTo }, imgs] = await Promise.all([import('../export/wiki'), images.current ? Promise.resolve(images.current) : wikiImages(universe)])
         images.current = imgs
-        if (alive) setHtml(buildWiki(universe, { upTo: null, images: imgs }).html)
+        if (alive) setHtml(buildWiki(universe, { upTo: linkUpTo(universe), images: imgs }).html)
       })()
     }, 250)
     return () => {
@@ -37,6 +40,11 @@ export default function WikiView() {
       <ViewTop area="Wiki" tour="wiki" />
       <div className="wiki-view-body">
         <div className="wiki-view-preview-wrap">
+          {upScene && (
+            <p className="wiki-view-limit small" role="status">
+              A prévia vai só até “{upScene.title || 'Sem título'}”: é o que o link mostra. Para mudar, abra o Compartilhar.
+            </p>
+          )}
           {html ? <iframe className="wiki-view-preview" title="Prévia da wiki" sandbox="allow-scripts" srcDoc={html} /> : <div className="wiki-view-preview wiki-view-loading">Montando a prévia…</div>}
         </div>
         <div className="wiki-view-options">
