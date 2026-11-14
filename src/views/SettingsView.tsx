@@ -12,6 +12,8 @@ import type { Universe } from '../model/schema'
 import { forkUniverse, newId } from '../model/universe'
 import type { SnapshotInfo } from '../persistence/repository'
 import { isStoragePersisted, requestPersistentStorage, storageEstimate } from '../persistence/storage'
+import { formatBytes } from '../persistence/storageQuota'
+import { StorageNotice } from '../ui/StorageNotice'
 import { recall, remember, type Prefs } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { Field, Kbd, Select, Toggle, YearInput } from '../ui/bits'
@@ -441,6 +443,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 {show('dados') && (
         <section className="settings-card settings-data">
           <h2 className="section-title">Seus dados</h2>
+          <StorageNotice where="ajustes" />
           <p className="small">
             Tudo fica neste navegador. O histórico local não substitui um backup: exporte de vez em quando e guarde o arquivo em outro lugar.
           </p>
@@ -668,13 +671,6 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
       </div>
     </div>
   )
-}
-
-function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`
-  if (n < 1024 ** 2) return `${(n / 1024).toFixed(0)} KB`
-  if (n < 1024 ** 3) return `${(n / 1024 ** 2).toFixed(1)} MB`
-  return `${(n / 1024 ** 3).toFixed(1)} GB`
 }
 
 /** Áreas escondidas por perfil de uso. */

@@ -12,6 +12,7 @@ import { recall, remember } from '../state/prefs'
 import { BookPicker } from '../ui/BookPicker'
 import { useWorkspace, type View } from '../state/workspace'
 import { MoreMenu } from '../ui/MoreMenu'
+import { StorageNotice } from '../ui/StorageNotice'
 import { PageHelp } from '../ui/PageTour'
 import { GeneratedCover } from '../ui/GeneratedCover'
 import { useMediaQuery } from '../ui/useMediaQuery'
@@ -113,6 +114,7 @@ export default function HomeView() {
 
   return (
     <div className="view home">
+      <StorageNotice where="inicio" />
       <header className="home-today" data-tour="hoje">
         <div className="home-id">
           {cover ? <Picture value={cover} className="home-thumb" /> : <GeneratedCover name={universe.name.replace(/^Exemplo\s*[—–-]\s*/, '')} tone={universeKind(universe) === 'campanha' ? 'var(--accent)' : undefined} className="home-thumb" />}

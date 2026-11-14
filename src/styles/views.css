@@ -10615,3 +10615,33 @@ h3.cork-act {
 .level-example-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .level-example ul { margin: 4px 0 0; padding-left: 18px; }
 @media (max-width: 520px) { .level-example-cols { grid-template-columns: 1fr; } }
+
+
+/* Aviso de espaço quase cheio (Início e Ajustes › Seus dados). */
+.storage-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  margin: 0 0 0.75rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--ochre-line);
+  border-radius: var(--radius-s);
+  background: var(--ochre-soft);
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+.storage-notice-text {
+  flex: 1 1 100%;
+}
+.storage-notice.is-full {
+  border-color: var(--danger, var(--ochre-line));
+}
+.storage-notice-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+}
+.storage-notice-card p {
+  margin: 0;
+}
