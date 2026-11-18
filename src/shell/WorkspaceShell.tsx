@@ -39,7 +39,7 @@ import { usePlay } from './usePlay'
 import { backState, backTo, navigateTo, onBackNavigate } from './backStack'
 import { useBackLayer } from '../ui/useBackLayer'
 import { useImageSync } from '../images/useImageSync'
-import { embeddedImages } from '../images/backup'
+import { backupOf } from '../persistence/backupFile'
 import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
@@ -384,13 +384,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   const downloadBackup = useCallback(() => {
     const date = new Date().toISOString().slice(0, 10)
-    const file = repo.toFile(universe)
-    // As imagens vão dentro do arquivo: o backup sozinho basta para ter tudo de volta.
-    void embeddedImages(universe)
-      .catch(() => ({}))
-      .then((images) =>
-        downloadText(fileNameFor(`${universe.name}-backup-${date}`, 'json'), JSON.stringify(Object.keys(images).length ? { ...file, images } : file, null, 2), 'application/json'),
-      )
+    // Tudo dentro do arquivo (imagens, versões guardadas, o livro escolhido): o backup sozinho basta para ter tudo de volta.
+    void backupOf(repo, universe).then((file) => downloadText(fileNameFor(`${universe.name}-backup-${date}`, 'json'), JSON.stringify(file, null, 2), 'application/json'))
     markBackup({ last: new Date().toISOString() })
   }, [universe, repo, markBackup])
 

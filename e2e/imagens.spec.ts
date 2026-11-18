@@ -86,6 +86,10 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   // O backup leva as imagens dentro; importado em outro navegador, tudo volta.
   await nav(page, 'Ajustes').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Dados e backup' }).click()
+  // Uma versão guardada com nome também vai no backup (e volta).
+  await page.getByRole('textbox', { name: 'Nome do snapshot' }).fill('Antes do backup')
+  await page.getByRole('button', { name: 'Criar', exact: true }).click()
+  await expect(page.locator('.snapshots')).toContainText('Antes do backup')
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: /Baixar backup/ }).first().click()
   const file = await (await download).path()
@@ -93,6 +97,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   expect(Object.keys(json.images ?? {})).toHaveLength(3)
   expect(json.universe.settings.cover).toMatch(/^img:[0-9a-f]{32}$/)
   expect(json.images![json.universe.settings.cover.slice(4)]).toMatch(/^data:image\/(webp|jpeg);base64,/)
+  expect((json as { versions?: { info: { name: string } }[] }).versions?.map((v) => v.info.name)).toContain('Antes do backup')
 
   const other = await page.context().browser()!.newContext()
   await other.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
@@ -100,6 +105,10 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   await p2.goto('/app/')
   await p2.locator('input[type=file][accept*="json"]').first().setInputFiles(file)
   await expect(p2.locator('.home-id img.home-thumb')).toHaveAttribute('src', /^blob:/)
+  // A versão guardada voltou junto.
+  await p2.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Ajustes/ }).click()
+  await p2.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Dados e backup' }).click()
+  await expect(p2.locator('.snapshots')).toContainText('Antes do backup')
   await other.close()
 })
 
