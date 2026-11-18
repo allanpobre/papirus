@@ -42,6 +42,7 @@ import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 import { EntityRevealField } from './RevealControl'
 import { PhasesEditor } from './PhasesView'
+import { ReferencesEditor } from './ReferencesView'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -795,6 +796,9 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               <PhasesEditor entity={e} />
             </Fold>
           )}
+          <Fold id="ficha-referencias" title="Referências" defaultOpen={(e.refs?.length ?? 0) > 0}>
+            <ReferencesEditor entity={e} />
+          </Fold>
           <Fold id="ficha-mais-opcoes" title="Mais opções" defaultOpen={false}>
             <div className="form-grid">
               {!simple && (

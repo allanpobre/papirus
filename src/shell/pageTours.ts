@@ -259,6 +259,12 @@ export const PAGE_TOURS = {
         optional: true,
       },
       {
+        target: '.refs-read',
+        title: 'Referências',
+        body: 'O mural do que inspirou a ficha: imagens, links, trechos e personagens de outras obras, com o que você pegou de cada um. Só você vê: não vai para a wiki, o leitor nem o link.',
+        optional: true,
+      },
+      {
         target: '.reveal-control',
         title: 'O leitor descobre depois',
         body: 'No Quem é: em que cena o leitor descobre (a espécie verdadeira, por exemplo) e o que ele vê até lá. Nos campos, “até lá…” faz o mesmo com o texto. O app avisa se a revelação chega sem nenhuma pista antes.',

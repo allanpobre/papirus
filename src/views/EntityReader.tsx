@@ -18,6 +18,7 @@ import { glimpseOf } from '../logic/route'
 import { entityRevealAt, knownAt, partsAt, pointIndex, relationRevealAt, yearAt } from '../logic/storyPoint'
 import { entityAt, phaseAt } from '../logic/phases'
 import { PhasesReader } from './PhasesView'
+import { ReferencesReader } from './ReferencesView'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
@@ -461,6 +462,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           )}
 
           {(base.phases?.length ?? 0) > 0 && <PhasesReader entity={base} index={index} reader={reader} />}
+          {!reader && <ReferencesReader entity={base} />}
 
           {(shownAppearances.length > 0 || (!reader && sessions.length > 0)) && (
             <section>

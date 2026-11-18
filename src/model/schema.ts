@@ -106,6 +106,9 @@ export const ENTITY_KINDS = [
   'documento',
 ] as const
 
+/** Tipos de referência de uma ficha: imagem, link, trecho (citação) ou outra obra (personagem, pessoa, filme). */
+export const REF_KINDS = ['imagem', 'link', 'trecho', 'obra'] as const
+
 /** Que tipo de valor um campo guarda: texto livre, número, ano do calendário ou outra ficha. */
 export const FIELD_TYPES = ['texto', 'numero', 'ano', 'ficha'] as const
 
@@ -164,6 +167,27 @@ export const entitySchema = z.object({
    * ela seja citada antes. Sem isso, ela entra na primeira cena em que aparece.
    */
   reveal: z.object({ sceneId: z.string() }).optional().catch(undefined),
+  /**
+   * Referências: o que inspirou a ficha (imagem, link, trecho, personagem de outra obra), com o que se pegou de
+   * cada uma e o que ela não é. Só do autor: nunca vai para wiki, leitor ou link de leitura.
+   */
+  refs: z
+    .array(
+      z.object({
+        id: z.string(),
+        kind: z.enum(REF_KINDS).catch('trecho'),
+        title: z.string().default(''),
+        image: z.string().nullable().default(null),
+        url: z.string().default(''),
+        text: z.string().default(''),
+        /** O que se pegou daqui (aparência, voz…). */
+        took: z.array(z.string()).default([]),
+        /** O que não é (para não copiar demais). */
+        notThis: z.string().default(''),
+      }),
+    )
+    .optional()
+    .catch(undefined),
   /**
    * As fases: como a ficha muda ao longo da história. Cada fase vale a partir de uma cena e guarda só o que
    * muda (o resto vem de antes), com o porquê. A ficha "de base" é como ela começa.
