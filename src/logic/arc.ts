@@ -50,7 +50,7 @@ export function characterArc(universe: Universe, entityId: string): Arc {
   const reveals = new Map<number, string[]>()
   if (entity) {
     for (const part of [entity.description, ...entity.fields.map((f) => `${f.key}: ${f.value}`)].flatMap(splitReveals)) {
-      if (part.sceneTitle === null) continue
+      if (part.sceneTitle === null || part.until) continue
       const i = revealIndex(part, scenes)
       if (i !== null) reveals.set(i, [...(reveals.get(i) ?? []), part.text.trim()])
     }

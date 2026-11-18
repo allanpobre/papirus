@@ -15,7 +15,7 @@ import { answerOf, isBlank, questionsFor } from '../logic/kindQuestions'
 import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
-import { knownAt, partsAt, pointIndex, relationRevealAt, yearAt } from '../logic/storyPoint'
+import { entityRevealAt, knownAt, partsAt, pointIndex, relationRevealAt, yearAt } from '../logic/storyPoint'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
@@ -83,7 +83,17 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
    */
   const rich = (text: string) =>
     partsAt(text, index, scenes).flatMap((part, j) => {
-      if (reader && (part.secret || part.future)) return []
+      if (reader && (part.secret || part.future || (part.mask && !part.maskActive))) return []
+      // A máscara: o que o leitor lê antes da revelação. O autor vê riscado de leve, com a cena.
+      if (part.mask && !reader)
+        return [
+          <mark key={j} className={`mask-mark${part.maskActive ? ' is-active' : ''}`} title={`O leitor lê isto até “${part.revealTitle}”`}>
+            {linked(part.text)}{' '}
+            <span className="reveal-when">
+              <Eye size={11} aria-hidden="true" /> o leitor lê isto até “{part.revealTitle}”
+            </span>
+          </mark>,
+        ]
       if (part.secret)
         return [
           <mark key={j} className="secret-mark" title="Trecho secreto: só você vê">
@@ -203,6 +213,14 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             {e.editorial !== 'definido' && <EditorialBadge editorial={e.editorial} />}
           </div>
         )}
+        {!reader && e.reveal && (() => {
+          const rv = entityRevealAt(e, index, scenes)
+          return rv ? (
+            <p className={`reveal-when entity-reveal-note${rv.future ? ' is-future' : ''}`}>
+              <Eye size={12} aria-hidden="true" /> {rv.future ? 'O leitor só conhece esta ficha em' : 'O leitor conhece esta ficha em'} “{rv.title}”
+            </p>
+          ) : null
+        })()}
         {!known.known && (
           <p className="notice small story-point-unknown" role="status">
             O leitor ainda não conhece {e.name || 'esta ficha'} neste ponto.{' '}

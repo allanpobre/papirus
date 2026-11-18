@@ -2924,6 +2924,11 @@ code {
   border-radius: 3px;
 }
 
+.mk-mask {
+  background: color-mix(in srgb, var(--ochre) 16%, transparent);
+  border-radius: 3px;
+}
+
 .mk-secret.mk-reveal {
   background: linear-gradient(var(--wine-soft), var(--wine-soft)), var(--sky-soft);
 }
@@ -4725,13 +4730,14 @@ code {
 .with-reveal {
   display: flex;
   flex: 1;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.3rem;
   min-width: 0;
 }
 
 .with-reveal > .input {
-  flex: 1;
+  flex: 1 1 8rem;
   min-width: 0;
 }
 
@@ -11578,4 +11584,67 @@ button.presence-dot {
 
 .chip.is-future {
   border-style: dashed;
+}
+
+/* A máscara: o que o leitor lê antes da revelação. O autor vê riscado de leve, com a cena. */
+.mask-mark {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ochre) 10%, transparent);
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--ochre) 60%, transparent);
+}
+
+.mask-mark.is-active {
+  text-decoration: none;
+  background: color-mix(in srgb, var(--ochre) 18%, transparent);
+}
+
+.mask-mark .reveal-when {
+  color: var(--ochre);
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.reveal-mask-field {
+  display: grid;
+  gap: 0.15rem;
+  flex-basis: 100%;
+  margin-top: 0.25rem;
+}
+
+.reveal-picker-set {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.reveal-mask-input {
+  width: 12rem;
+  max-width: 100%;
+}
+
+/* Jogo limpo: o leitor teve pistas antes da revelação? */
+.fair-play {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.fair-play.is-warn {
+  color: var(--ochre);
+}
+
+.entity-reveal {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+
+.entity-reveal-note {
+  display: flex;
+  margin: 0.3rem 0 0;
 }

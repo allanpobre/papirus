@@ -40,6 +40,7 @@ import { EntityReader } from './EntityReader'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
+import { EntityRevealField } from './RevealControl'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -798,6 +799,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
                   <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
                 </>
               )}
+              <EntityRevealField entity={e} />
               <label className="toggle entity-wiki-toggle">
                 <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
                 <span className="toggle-track" aria-hidden="true" />

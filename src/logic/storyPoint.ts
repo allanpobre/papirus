@@ -1,4 +1,4 @@
-import type { Entity, Relation, Scene, Universe } from '../model/schema'
+import type { Entity, Scene, Universe } from '../model/schema'
 import { byId } from '../model/universe'
 import { chosenOf, passesOf, whoIs, type Trait } from './definers'
 import { appearances } from './reader'
@@ -38,6 +38,10 @@ export interface PointPart {
   revealTitle: string | null
   /** Ainda não revelado neste ponto (o autor vê com aviso; o leitor não vê). */
   future: boolean
+  /** Máscara ([até "Cena"]): o que o leitor lê antes da revelação. */
+  mask?: boolean
+  /** Máscara que o leitor ainda lê neste ponto (antes da cena). */
+  maskActive?: boolean
 }
 
 /**
@@ -49,9 +53,11 @@ export function partsAt(text: string, index: number, order: Scene[]): PointPart[
   const out: PointPart[] = []
   for (const r of splitReveals(text)) {
     const at = r.sceneTitle === null ? null : revealIndex(r, order)
-    const future = r.sceneTitle !== null && (at === null || at > index)
+    const future = r.sceneTitle !== null && !r.until && (at === null || at > index)
     const title = at !== null ? order[at].title || 'Sem título' : r.sceneTitle || null
-    for (const s of splitSecrets(r.text)) if (s.text) out.push({ text: s.text, secret: s.secret, revealAt: r.sceneTitle === null ? null : at, revealTitle: r.sceneTitle === null ? null : title, future })
+    // A máscara vale enquanto a cena não chega (sem a cena, vale sempre).
+    const extra = r.until ? { mask: true, maskActive: at === null || index < at } : {}
+    for (const s of splitSecrets(r.text)) if (s.text) out.push({ text: s.text, secret: s.secret, revealAt: r.sceneTitle === null ? null : at, revealTitle: r.sceneTitle === null ? null : title, future, ...extra })
   }
   return out
 }
@@ -59,7 +65,7 @@ export function partsAt(text: string, index: number, order: Scene[]): PointPart[
 /** O texto como o leitor o vê naquele ponto: sem segredos e sem o que ainda não foi revelado. */
 export function readerTextAt(text: string, index: number, order: Scene[]): string {
   return partsAt(text, index, order)
-    .filter((p) => !p.secret && !p.future)
+    .filter((p) => !p.secret && !p.future && (!p.mask || p.maskActive))
     .map((p) => p.text)
     .join('')
     .replace(/[ \t]+\n/g, '\n')
@@ -86,7 +92,7 @@ export interface RevealInfo {
   future: boolean
 }
 
-export function relationRevealAt(r: Pick<Relation, 'reveal'>, index: number, order: Scene[]): RevealInfo | null {
+export function relationRevealAt(r: { reveal?: { sceneId: string } }, index: number, order: Scene[]): RevealInfo | null {
   if (!r.reveal) return null
   const at = order.findIndex((s) => s.id === r.reveal!.sceneId)
   const title = at >= 0 ? order[at].title || 'Sem título' : 'uma cena que não existe mais'
@@ -127,4 +133,29 @@ export function whoIsAt(u: Universe, e: Entity, index: number, order: Scene[]): 
     })
   }
   return out
+}
+
+/** Quando o leitor conhece a ficha inteira (`reveal` da ficha): a cena e se ainda não chegou. */
+export function entityRevealAt(e: Pick<Entity, 'reveal'>, index: number, order: Scene[]): RevealInfo | null {
+  return e.reveal ? relationRevealAt(e, index, order) : null
+}
+
+/**
+ * Jogo limpo (como em Obra Dinn e Outer Wilds): o que o leitor teve antes da revelação para desconfiar.
+ * Conta as pistas (de Pistas e mistérios) ligadas às fichas, em cenas antes da revelação, e as cenas antes
+ * dela em que as fichas já aparecem. Sem nenhuma das duas, a revelação chega do nada.
+ */
+export function cluesBefore(u: Universe, order: Scene[], entityIds: string[], at: number): { clues: number; scenes: number } {
+  const ids = new Set(entityIds)
+  const index = new Map(order.map((s, i) => [s.id, i]))
+  let clues = 0
+  for (const seed of u.seeds) {
+    if (!seed.entityIds.some((id) => ids.has(id))) continue
+    for (const c of seed.clues) if (c.sceneId && (index.get(c.sceneId) ?? Infinity) < at) clues++
+    if (seed.setupSceneId && (index.get(seed.setupSceneId) ?? Infinity) < at) clues++
+  }
+  const { inScene } = appearances(order, u.entities.map((e) => (ids.has(e.id) ? { ...e, reveal: undefined } : e)))
+  let scenes = 0
+  for (let i = 0; i < Math.min(at, order.length); i++) if ([...ids].some((id) => inScene.get(order[i].id)?.has(id))) scenes++
+  return { clues, scenes }
 }

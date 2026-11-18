@@ -1,8 +1,62 @@
-import { Eye } from 'lucide-react'
+import { AlertTriangle, Eye } from 'lucide-react'
 import { useState } from 'react'
+import { cluesBefore } from '../logic/storyPoint'
 import type { Entity } from '../model/schema'
 import { byId, manuscriptOrder, patch, sceneTitle } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
+
+/**
+ * Jogo limpo: antes da revelação, o leitor teve alguma pista? Sem pista nem aparição antes, avisa
+ * (a revelação chega do nada). Com pistas, diz quantas.
+ */
+function FairPlay({ entityIds, sceneId }: { entityIds: string[]; sceneId: string }) {
+  const { universe } = useWorkspace()
+  const order = manuscriptOrder(universe)
+  const at = order.findIndex((s) => s.id === sceneId)
+  if (at < 0) return null
+  const { clues, scenes } = cluesBefore(universe, order, entityIds, at)
+  if (!clues && !scenes)
+    return (
+      <p className="fair-play is-warn small" role="note">
+        <AlertTriangle size={14} aria-hidden="true" /> Nenhuma pista antes desta cena: o leitor não tem como desconfiar. Para preparar, cite antes ou ligue uma pista em Trama › Pistas e mistérios.
+      </p>
+    )
+  return (
+    <p className="fair-play muted small" role="note">
+      Antes desta cena, o leitor tem {[clues > 0 && `${clues} ${clues === 1 ? 'pista' : 'pistas'}`, scenes > 0 && `${scenes} ${scenes === 1 ? 'cena em que isso aparece' : 'cenas em que isso aparece'}`].filter(Boolean).join(' e ')}.
+    </p>
+  )
+}
+
+/** "O leitor só conhece esta ficha a partir de…": a ficha inteira fica escondida do leitor até a cena. */
+export function EntityRevealField({ entity: e }: { entity: Entity }) {
+  const { universe, update, readOnly } = useWorkspace()
+  const order = manuscriptOrder(universe)
+  if (!order.length) return null
+  return (
+    <div className="entity-reveal">
+      <label className="field">
+        <span className="field-label">
+          <Eye size={14} aria-hidden="true" /> O leitor conhece esta ficha
+        </span>
+        <select
+          className="input select"
+          disabled={readOnly}
+          value={e.reveal?.sceneId ?? ''}
+          onChange={(ev) => update((u) => patch(u, 'entities', e.id, { reveal: ev.target.value ? { sceneId: ev.target.value } : undefined }))}
+        >
+          <option value="">Na primeira cena em que aparece</option>
+          {order.map((s, i) => (
+            <option key={s.id} value={s.id}>
+              Só a partir de {i + 1}. {sceneTitle(s)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {e.reveal && <FairPlay entityIds={[e.id]} sceneId={e.reveal.sceneId} />}
+    </div>
+  )
+}
 
 /**
  * "O leitor descobre depois": a cena em que o leitor fica sabendo de uma ligação (a espécie verdadeira,
@@ -56,6 +110,7 @@ export function RevealControl({ relationId, masks, what }: { relationId: string;
               </select>
             </label>
           )}
+          {reveal && relation && <FairPlay entityIds={[relation.toId]} sceneId={reveal.sceneId} />}
           <p className="muted tiny">Você sempre vê a verdade. Em “Ver como o leitor”, na wiki com limite e no link de leitura, quem lê vê {reveal?.maskId ? 'a máscara' : 'nada'} até essa cena.</p>
         </div>
       )}

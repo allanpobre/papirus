@@ -89,3 +89,50 @@ describe('revelação no "Quem é" (a espécie verdadeira)', () => {
     expect(readerBook(lost).relations.some((r) => r.entityIds.includes(kael.id) && r.entityIds.includes(vanderyu))).toBe(false)
   })
 })
+
+describe('máscara no texto e ficha revelada numa cena', () => {
+  it('[até "Cena"] é o que o leitor lê antes; o autor (e a wiki da história toda) fica com a verdade', async () => {
+    const { setMask, unmarkReveals, splitReveals } = await import('./reveals')
+    const { readerText } = await import('./reader')
+    const u = ostriaUniverse()
+    const order = manuscriptOrder(u)
+    const i = order.findIndex((s) => s.title === 'O retrato')
+    const base = `Tem olhos [a partir de "O retrato" #${order[i].id.slice(0, 6)}]cinzentos do príncipe[/a partir].`
+    const masked = setMask(base, 0, 'escuros')
+    expect(masked).toBe(`Tem olhos [até "O retrato" #${order[i].id.slice(0, 6)}]escuros[/até][a partir de "O retrato" #${order[i].id.slice(0, 6)}]cinzentos do príncipe[/a partir].`)
+    // Trocar e tirar a máscara.
+    expect(setMask(masked, 0, 'pretos')).toContain('[/até]')
+    expect(setMask(masked, 0, 'pretos')).not.toContain('escuros')
+    expect(setMask(masked, 0, '')).toBe(base)
+    expect(splitReveals(masked).filter((p) => p.until).map((p) => p.text)).toEqual(['escuros'])
+    // O leitor: a máscara antes, a verdade depois. A verdade (autor, wiki inteira) não tem a máscara.
+    expect(readerText(masked, i - 1, order)).toBe('Tem olhos escuros.')
+    expect(readerText(masked, i, order)).toBe('Tem olhos cinzentos do príncipe.')
+    expect(readerTextAt(masked, i - 1, order)).toBe('Tem olhos escuros.')
+    expect(unmarkReveals(masked)).toBe('Tem olhos cinzentos do príncipe.')
+    const parts = partsAt(masked, i - 1, order)
+    expect(parts.find((p) => p.text === 'escuros')).toMatchObject({ mask: true, maskActive: true })
+    expect(partsAt(masked, i, order).find((p) => p.text === 'escuros')?.maskActive).toBe(false)
+  })
+
+  it('a ficha revelada numa cena só entra para o leitor ali, mesmo citada antes; a cena apagada esconde de vez', async () => {
+    const { appearances } = await import('./reader')
+    const { patch } = await import('../model/universe')
+    const { cluesBefore } = await import('./storyPoint')
+    let u = ostriaUniverse()
+    const order = manuscriptOrder(u)
+    const mira = u.entities.find((e) => e.name === 'Mira')!
+    const antes = appearances(order, u.entities).first.get(mira.id)!
+    const depois = order.length - 1
+    u = patch(u, 'entities', mira.id, { reveal: { sceneId: order[depois].id } })
+    const ord = manuscriptOrder(u)
+    expect(appearances(ord, u.entities).first.get(mira.id)).toBe(depois)
+    expect(knownAt(u, ord, mira, depois - 1).known).toBe(false)
+    expect(knownAt(u, ord, mira, depois).known).toBe(true)
+    expect(appearances(ord, u.entities).inScene.get(ord[antes].id)?.has(mira.id)).toBe(false)
+    // Jogo limpo: antes da revelação, a Mira já aparecia em cenas (o leitor tem como desconfiar).
+    expect(cluesBefore(u, ord, [mira.id], depois).scenes).toBeGreaterThan(0)
+    const sumiu = patch(u, 'entities', mira.id, { reveal: { sceneId: 'nao-existe' } })
+    expect(appearances(manuscriptOrder(sumiu), sumiu.entities).first.has(mira.id)).toBe(false)
+  })
+})

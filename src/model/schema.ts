@@ -160,6 +160,11 @@ export const entitySchema = z.object({
   /** Fica fora da wiki do mundo, sem ser segredo (o nome pode aparecer no texto de outras fichas). */
   wikiHidden: z.boolean().optional(),
   /**
+   * O leitor só conhece esta ficha a partir de uma cena (a espécie secreta, o vilão de verdade), mesmo que
+   * ela seja citada antes. Sem isso, ela entra na primeira cena em que aparece.
+   */
+  reveal: z.object({ sceneId: z.string() }).optional().catch(undefined),
+  /**
    * "No jogo" (espécies, culturas e origens): traços e modificadores para a Mesa, separados da história.
    * Os modificadores são pela sigla do atributo ("FOR": 2), para valer em qualquer sistema com a mesma sigla.
    */
