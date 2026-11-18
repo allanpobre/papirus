@@ -308,7 +308,7 @@ export const PAGE_TOURS = {
       { target: '[data-tour="partes"]', title: 'A trama em duas partes', body: 'Pistas e mistérios, e Quem sabe o quê: as promessas ao leitor e o que cada um sabe. Toque para trocar de parte.', optional: true },
       { target: '.seeds-view .quick-create', title: 'Plantar', body: 'Uma promessa ao leitor ou uma pergunta. Semente liga uma preparação a um pagamento futuro; Mistério junta pistas.' },
       { target: '.seeds-view .filter-chips', title: 'Mostrar', body: 'Todas, só as sementes ou só os mistérios.' },
-      { target: '.board', title: 'O quadro', body: 'Colunas por estado: aberta, parcial, resolvida, abandonada. Toque num cartão para ligar as fichas envolvidas, a cena em que foi preparada, a cena em que se paga e as pistas. Nenhuma precisa ser resolvida.', optional: true },
+      { target: '.board', title: 'O quadro', body: 'Colunas por estado: aberta, parcial, resolvida, abandonada. Toque num cartão para ligar as fichas envolvidas, a cena em que foi preparada, a cena em que se paga e as pistas. Para mudar o estado, arraste o cartão para outra coluna ou toque em “Mover para…”. No celular, as colunas rolam de lado: os botões do alto levam a cada uma. Nenhuma precisa ser resolvida.', optional: true },
       { title: 'Lembretes no texto', body: 'Quando alguém ligado a uma trama aberta volta a uma cena, ela aparece na margem do Escrever, para você não esquecer.' },
     ],
   },

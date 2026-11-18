@@ -1,5 +1,5 @@
 import { HelpCircle, Plus, Sprout, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SEED_STATUS_LABEL } from '../model/labels'
 import { SEED_STATUSES, type Seed, type SeedStatus } from '../model/schema'
 import { byId, draftSeed, entityName, insert, manuscriptOrder, newId, patch, remove } from '../model/universe'
@@ -11,7 +11,7 @@ import { Modal } from '../ui/Modal'
 import { AreaHead } from './AreaModes'
 
 export default function SeedsView() {
-  const { universe, update, nav, bookId } = useWorkspace()
+  const { universe, update, nav, bookId, toast } = useWorkspace()
   const [kind, setKind] = useState<'todas' | Seed['kind']>('todas')
   const [title, setTitle] = useState('')
   const [newKind, setNewKind] = useState<Seed['kind']>('semente')
@@ -28,6 +28,43 @@ export default function SeedsView() {
   const opened = open ? byId(universe, 'seeds', open) : undefined
 
   const move = (id: string, status: SeedStatus) => update((u) => patch(u, 'seeds', id, { status }))
+  /** Mover com aviso e "Desfazer" (o botão "Mover para…" do celular). */
+  const moveWithUndo = (seed: Seed, status: SeedStatus) => {
+    const before = seed.status
+    move(seed.id, status)
+    toast(`“${seed.title || 'Sem título'}” foi para ${SEED_STATUS_LABEL[status]}`, { action: { label: 'Desfazer', run: () => move(seed.id, before) } })
+  }
+
+  // No celular as colunas rolam de lado, uma de cada vez; os botões do alto levam à coluna e dizem qual está à vista.
+  const boardRef = useRef<HTMLDivElement>(null)
+  const [shown, setShown] = useState<SeedStatus>('aberta')
+  useEffect(() => {
+    const el = boardRef.current
+    if (!el) return
+    let frame = 0
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const cols = [...el.querySelectorAll<HTMLElement>('.board-col')]
+        const left = el.getBoundingClientRect().left
+        let best = 0
+        cols.forEach((c, i) => {
+          if (Math.abs(c.getBoundingClientRect().left - left) < Math.abs(cols[best].getBoundingClientRect().left - left)) best = i
+        })
+        setShown(SEED_STATUSES[best] ?? 'aberta')
+      })
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      cancelAnimationFrame(frame)
+      el.removeEventListener('scroll', onScroll)
+    }
+  })
+  const goTo = (status: SeedStatus) => {
+    const col = boardRef.current?.querySelector<HTMLElement>(`.seed-col-${status}`)
+    col?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
+    setShown(status)
+  }
 
   return (
     <div className="view seeds-view">
@@ -84,7 +121,15 @@ export default function SeedsView() {
           <p>Anote o que você está plantando: uma arma na parede, uma frase que vai voltar, uma pergunta sem resposta.</p>
         </Empty>
       ) : (
-        <div className="board">
+        <>
+        <div className="board-jump" role="group" aria-label="Ir para a coluna">
+          {SEED_STATUSES.map((status) => (
+            <button key={status} type="button" className="chip" aria-pressed={shown === status} onClick={() => goTo(status)}>
+              {SEED_STATUS_LABEL[status]} <span className="chip-count">{seeds.filter((s) => s.status === status).length}</span>
+            </button>
+          ))}
+        </div>
+        <div className="board" ref={boardRef}>
           {SEED_STATUSES.map((status) => {
             const col = seeds.filter((s) => s.status === status)
             return (
@@ -118,24 +163,46 @@ export default function SeedsView() {
                       {s.entityIds.length > 0 && <span className="seed-who">{s.entityIds.map((id) => entityName(universe, id)).join(', ')}</span>}
                       {s.kind === 'misterio' && s.clues.length > 0 && <span className="muted tiny">{s.clues.length} pistas</span>}
                     </button>
-                    <label className="sr-only" htmlFor={`st-${s.id}`}>
-                      Estado de {s.title}
-                    </label>
-                    <Select<SeedStatus>
-                      id={`st-${s.id}`}
-                      value={s.status}
-                      onChange={(v) => move(s.id, v)}
-                      options={SEED_STATUSES.map((x) => ({ value: x, label: SEED_STATUS_LABEL[x] }))}
-                    />
+                    <MoveSeed seed={s} onMove={(to) => moveWithUndo(s, to)} />
                   </article>
                 ))}
               </section>
             )
           })}
         </div>
+        </>
       )}
 
       {opened && <SeedDialog seed={opened} onClose={() => setOpen(null)} />}
+    </div>
+  )
+}
+
+/** "Mover para…": os outros estados à vista, para quem não arrasta (celular). */
+function MoveSeed({ seed, onMove }: { seed: Seed; onMove: (to: SeedStatus) => void }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="seed-move">
+      <button type="button" className="btn btn-sm btn-ghost" aria-expanded={open} aria-label={`Mover ${seed.title || 'a trama'} para…`} onClick={() => setOpen(!open)}>
+        Mover para…
+      </button>
+      {open && (
+        <div className="seed-move-options" role="group" aria-label={`Mover ${seed.title || 'a trama'} para`}>
+          {SEED_STATUSES.filter((x) => x !== seed.status).map((x) => (
+            <button
+              key={x}
+              type="button"
+              className={`btn btn-sm seed-move-to seed-move-${x}`}
+              onClick={() => {
+                setOpen(false)
+                onMove(x)
+              }}
+            >
+              {SEED_STATUS_LABEL[x]}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -170,7 +237,7 @@ function SeedDialog({ seed: s, onClose }: { seed: Seed; onClose: () => void }) {
         </>
       }
     >
-      <div className="form-grid">
+      <div className="form-grid seed-form">
         <Field label="Título" wide>
           {(id) => <input id={id} className="input" value={s.title} onChange={(e) => set({ title: e.target.value })} />}
         </Field>

@@ -5178,16 +5178,80 @@ code {
   }
 }
 
+/* O quadro das tramas: os botões que levam a cada coluna só existem no celular. */
+.board-jump {
+  display: none;
+}
+
 @media (max-width: 640px) {
-  /* No celular, as colunas ficam uma embaixo da outra (vem depois da regra de 860px, que pede 4). */
+  /* No celular, as colunas rolam de lado, uma de cada vez (a próxima aparece um pedacinho, para convidar a deslizar). */
   .board {
-    grid-template-columns: minmax(0, 1fr);
-    overflow-x: visible;
+    display: flex;
+    gap: 0.7rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0;
+    padding-bottom: 0.6rem;
+    overscroll-behavior-x: contain;
   }
 
   .board-col {
+    flex: 0 0 86%;
+    scroll-snap-align: start;
     min-height: 0;
   }
+
+  .board-jump {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    margin: 0 0 0.6rem;
+    padding-bottom: 0.2rem;
+  }
+
+  .board-jump .chip {
+    flex: none;
+    min-height: 40px;
+  }
+
+  /* A janela da trama: o tipo e o estado, a preparação e o pagamento, dois a dois. */
+  .seed-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* "Mover para…" no cartão: os outros estados, um toque. */
+.seed-move {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.seed-move > .btn {
+  justify-self: start;
+  min-height: 40px;
+}
+
+.seed-move-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.seed-move-to {
+  min-height: 40px;
+}
+
+.seed-move-aberta {
+  border-color: var(--ochre);
+}
+.seed-move-parcial {
+  border-color: var(--sky);
+}
+.seed-move-resolvida {
+  border-color: var(--accent);
+}
+.seed-move-abandonada {
+  border-color: var(--muted);
 }
 
 /* ---------------------------------------------------------------- arco do personagem */
