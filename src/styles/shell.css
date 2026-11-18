@@ -219,8 +219,33 @@
 
 .pair-conflict-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.4rem;
+}
+
+.pair-conflict-lead {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/* Cada escolha diz o que faz: o nome e, embaixo, o que acontece com cada versão. */
+.pair-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.pair-choice span {
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.35;
+  opacity: 0.85;
 }
 
 .library-versions {

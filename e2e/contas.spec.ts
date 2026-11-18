@@ -321,3 +321,112 @@ test('duplas: mudou dos dois lados; junta sozinho quando não se cruzam e pergun
   expect(JSON.stringify(inCloud())).not.toContain('Mira também')
   expect(rows.size).toBe(1)
 })
+
+test.describe('dupla com dois lados diferentes, no celular', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test('está claro qual é qual e o que cada escolha faz; sem sinal avisa e nada se perde', async ({ page, context }) => {
+    test.setTimeout(120_000)
+    const rows = new Map<string, Record<string, unknown>>()
+    const net = { down: false }
+    await fakeAccounts(context, rows, net)
+    /** No celular, a lista de universos fica no "Mais". */
+    const paraALista = async () => {
+      // Com o cursor no texto, o celular troca a barra de baixo pela de formatação: tira o cursor.
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+      await page.getByRole('button', { name: 'Mais', exact: true }).click()
+      await page.getByRole('button', { name: /^Seus universos \(sair de/ }).click()
+    }
+    await page.goto('/app/')
+    await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Ostria')
+    await page.getByRole('button', { name: 'Criar universo' }).click()
+    await page.getByRole('button', { name: 'Começar a escrever' }).click()
+    await page.getByRole('textbox', { name: 'Texto da cena' }).click()
+    await page.keyboard.type('Era noite em Ostria.')
+    await page.waitForTimeout(900)
+    await paraALista()
+    await page.getByRole('button', { name: 'Entrar', exact: true }).first().click()
+    const dialog = page.getByRole('dialog', { name: 'Entrar no Papirus' })
+    await dialog.getByRole('textbox', { name: 'Endereço do projeto' }).fill(SERVER)
+    await dialog.getByRole('textbox', { name: 'Chave pública (anon key)' }).fill('eyJ.chave-de-teste')
+    await dialog.getByRole('button', { name: 'Pronto' }).click()
+    await dialog.getByRole('textbox', { name: 'E-mail' }).fill('ana@exemplo.com')
+    await dialog.getByLabel('Senha').fill('segredo123')
+    await dialog.getByRole('button', { name: 'Entrar', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Sua conta' }).getByRole('button', { name: 'Fechar' }).click()
+    await expect.poll(() => rows.size, { timeout: 15_000 }).toBe(1)
+    const id = [...rows.keys()][0]
+    type Cloud = { scenes: Record<string, unknown>[]; updatedAt: string }
+    const inCloud = () => (rows.get(id)!.data as { universe: Cloud }).universe
+    const otherDevice = (change: (u: Cloud) => Cloud) => {
+      const row = rows.get(id)!
+      const universe = { ...change(inCloud()), updatedAt: new Date(Date.now() + 60_000).toISOString() }
+      rows.set(id, { ...row, data: { ...(row.data as object), universe }, updated_at: universe.updatedAt })
+    }
+    await expect(page.getByText(/na nuvem: igual/).first()).toBeVisible({ timeout: 15_000 })
+
+    // Sem sinal, escreve aqui; e, no outro aparelho, a mesma cena muda de nome.
+    net.down = true
+    await page.getByRole('button', { name: /^Continuar escrevendo Ostria/ }).click()
+    await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Escrever/ }).click()
+    await page.getByRole('textbox', { name: 'Texto da cena' }).click()
+    await page.keyboard.press('Control+End')
+    await page.keyboard.type(' Mira também.')
+    await page.waitForTimeout(900)
+    await paraALista()
+    await expect(page.getByRole('button', { name: /^Continuar escrevendo Ostria/ })).toBeVisible()
+    otherDevice((u) => ({ ...u, scenes: u.scenes.map((x, i) => (i === 0 ? { ...x, title: 'A chegada, pelo outro aparelho' } : x)) }))
+    net.down = false
+    await page.reload()
+
+    // Qual é qual: cada lado com o nome, a hora, as palavras e o que mudou.
+    const ask = page.getByRole('group', { name: 'Duas versões de Ostria' })
+    await expect(ask).toBeVisible({ timeout: 15_000 })
+    await ask.scrollIntoViewIfNeeded()
+    const aqui = ask.locator('.pair-conflict-side').nth(0)
+    const nuvem = ask.locator('.pair-conflict-side').nth(1)
+    await expect(aqui).toContainText('Neste aparelho')
+    await expect(aqui).toContainText('6 palavras')
+    await expect(aqui).toContainText('1 cena mudou')
+    await expect(nuvem).toContainText('Na nuvem (outro aparelho)')
+    await expect(nuvem).toContainText('4 palavras')
+    await expect(ask).toContainText('Mudou dos dois lados: “A chegada, pelo outro aparelho”.')
+    // O que cada escolha faz, escrito no próprio botão.
+    await expect(ask).toContainText('Nada foi apagado nem enviado')
+    await expect(ask.getByRole('button', { name: /^Juntar as duas/ })).toContainText('Fica o que mudou nos dois lados')
+    await expect(ask.getByRole('button', { name: /^Ficar com a deste aparelho/ })).toContainText('A nuvem passa a ter esta. A que estava na nuvem fica guardada aqui, como versão.')
+    await expect(ask.getByRole('button', { name: /^Ficar com a da nuvem/ })).toContainText('Este aparelho passa a ter a da nuvem. A que estava aqui fica guardada como versão.')
+    // No celular: os dois lados um embaixo do outro, escolhas de largura inteira e com altura de dedo; nada passa da tela.
+    const caixa = async (l: ReturnType<typeof ask.locator>) => (await l.boundingBox())!
+    const [a, n, c] = [await caixa(aqui), await caixa(nuvem), await caixa(ask)]
+    expect(n.y).toBeGreaterThan(a.y + a.height - 1)
+    expect(Math.abs(a.width - n.width)).toBeLessThan(2)
+    for (const b of await ask.getByRole('button').all()) {
+      const r = (await b.boundingBox())!
+      expect(r.height).toBeGreaterThanOrEqual(43)
+      expect(r.width).toBeGreaterThan(c.width * 0.8)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+    // Sem sinal na hora de escolher: avisa, e as duas versões continuam lá.
+    net.down = true
+    await ask.getByRole('button', { name: /^Ficar com a deste aparelho/ }).click()
+    await expect(page.getByRole('alert').filter({ hasText: 'Não deu para resolver “Ostria”' })).toBeVisible()
+    await expect(ask).toBeVisible()
+    expect(JSON.stringify(inCloud())).not.toContain('Mira também')
+
+    // Com sinal: fica a deste aparelho, a nuvem passa a ter, e a da nuvem fica guardada.
+    net.down = false
+    await ask.getByRole('button', { name: /^Ficar com a deste aparelho/ }).click()
+    await expect(page.getByText('“Ostria” ficou com a versão deste aparelho. A da nuvem está guardada como versão.')).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Duas versões de Ostria' })).toHaveCount(0)
+    await expect.poll(() => JSON.stringify(inCloud()), { timeout: 15_000 }).toContain('Mira também')
+    await page.getByRole('list', { name: 'Universos', exact: true }).getByText('1 versão guardada').click()
+    const versoes = page.getByRole('list', { name: 'Versões guardadas de Ostria' })
+    await expect(versoes).toContainText('4 palavras')
+    // "Ficar com esta versão" diz o que vai acontecer antes de fazer.
+    await versoes.getByRole('button', { name: 'Ficar com esta versão' }).click()
+    await expect(page.getByText('Trocar o universo por esta versão? O que está no universo agora fica guardado como versão.')).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  })
+})
