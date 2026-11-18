@@ -2,6 +2,7 @@ import { derivedValue } from '../logic/derivedFields'
 import { factSentence } from '../logic/codex'
 import { MentionMatcher } from '../logic/detection'
 import { readerBook, readerEntities } from '../logic/reader'
+import { entityAt } from '../logic/phases'
 import { relationSentence } from '../logic/relations'
 import { unmarkReveals } from '../logic/reveals'
 import { formatYear, kindLabel, kindPlural, ROLE_LABEL } from '../model/labels'
@@ -82,7 +83,8 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   let relations: { text: string; ids: string[] }[]
   let events: { when: string; year: number; title: string; description: string; ids: string[] }[]
   if (upTo === null) {
-    entries = safe.entities.map((e) => ({
+    // A wiki da história toda: cada ficha como termina (com todas as fases).
+    entries = safe.entities.map((base) => entityAt(base, scenes.length - 1, scenes)).map((e) => ({
       entity: e,
       summary: unmarkReveals(e.summary),
       description: unmarkReveals(e.description),

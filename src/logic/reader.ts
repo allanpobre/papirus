@@ -6,6 +6,7 @@ import { playerTag, factSentence } from './codex'
 import { MentionMatcher } from './detection'
 import { mentionIdsInDoc } from './doc'
 import { activeAt } from './relations'
+import { entityAt } from './phases'
 import { revealIndex, splitReveals } from './reveals'
 import { stripSecrets } from './secrets'
 
@@ -233,9 +234,11 @@ export function revealedPassages(book: ReaderBook, at: number, upto: number): Re
 /** Fichas conhecidas até a cena `upto`, com o texto já filtrado. */
 export function readerEntities(book: ReaderBook, upto: number): ReaderEntity[] {
   const out: ReaderEntity[] = []
-  for (const [id, e] of book.entities) {
+  for (const [id, base] of book.entities) {
     const at = book.first.get(id)
     if (at === undefined || at > upto) continue
+    // Como a ficha está naquele ponto (as fases que o leitor já viu começar).
+    const e = entityAt(base, upto, book.scenes)
     out.push({
       entity: e,
       first: at,

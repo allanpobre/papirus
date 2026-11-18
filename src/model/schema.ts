@@ -165,6 +165,31 @@ export const entitySchema = z.object({
    */
   reveal: z.object({ sceneId: z.string() }).optional().catch(undefined),
   /**
+   * As fases: como a ficha muda ao longo da história. Cada fase vale a partir de uma cena e guarda só o que
+   * muda (o resto vem de antes), com o porquê. A ficha "de base" é como ela começa.
+   */
+  phases: z
+    .array(
+      z.object({
+        id: z.string(),
+        sceneId: z.string(),
+        /** Nome curto da fase ("General", "Depois da queda"). */
+        name: z.string().default(''),
+        /** Por quê: o que aconteceu. */
+        cause: z.string().default(''),
+        /** O nome pelo qual é conhecido a partir daqui (vazio = o mesmo). */
+        nameNow: z.string().default(''),
+        /** O resumo a partir daqui (vazio = o mesmo). */
+        summary: z.string().default(''),
+        /** Retrato a partir daqui (vazio = o mesmo). */
+        image: z.string().nullable().default(null),
+        /** Os campos que mudam, pela chave (os outros ficam como estavam). */
+        fields: z.array(z.object({ key: z.string(), value: z.string() })).default([]),
+      }),
+    )
+    .optional()
+    .catch(undefined),
+  /**
    * "No jogo" (espécies, culturas e origens): traços e modificadores para a Mesa, separados da história.
    * Os modificadores são pela sigla do atributo ("FOR": 2), para valer em qualquer sistema com a mesma sigla.
    */

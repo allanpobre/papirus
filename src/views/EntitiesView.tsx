@@ -41,6 +41,7 @@ import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 import { EntityRevealField } from './RevealControl'
+import { PhasesEditor } from './PhasesView'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -789,6 +790,11 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           <KnowledgeSection entity={e} entries={knows} />
 
           {/* O resto, fechado: muda pouco e não precisa estar sempre à vista. */}
+          {!simple && (
+            <Fold id="ficha-fases" title="Ao longo da história" defaultOpen={(e.phases?.length ?? 0) > 0}>
+              <PhasesEditor entity={e} />
+            </Fold>
+          )}
           <Fold id="ficha-mais-opcoes" title="Mais opções" defaultOpen={false}>
             <div className="form-grid">
               {!simple && (

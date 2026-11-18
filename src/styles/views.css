@@ -11648,3 +11648,143 @@ button.presence-dot {
   display: flex;
   margin: 0.3rem 0 0;
 }
+
+/* Fases: como a ficha muda ao longo da história. */
+.phase-now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0.4rem;
+}
+
+.phase-chip {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.phase-line {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase-line li {
+  padding: 0.3rem 0.5rem;
+  border-left: 3px solid var(--line);
+}
+
+.phase-line li.is-current {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 60%, transparent);
+}
+
+.phase-line li.is-after {
+  opacity: 0.6;
+}
+
+.phase-compare {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.phase-compare-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.phase-compare-pick select {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
+.phase-diff {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reader-text .phase-diff li + li,
+.reader-text .phase-line li + li {
+  margin-top: 0;
+}
+
+.reader-text .phase-diff,
+.reader-text .phase-line {
+  padding-left: 0;
+}
+
+.phase-diff li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+}
+
+.phase-diff-key {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.phase-diff-before {
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+.phase-diff-after {
+  font-weight: 600;
+}
+
+.phases-edit {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.phase-card {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.phase-card legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+}
+
+.phase-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.phase-fields {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.phase-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  gap: 0.3rem;
+  align-items: center;
+}

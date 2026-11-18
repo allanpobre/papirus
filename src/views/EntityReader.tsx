@@ -16,6 +16,8 @@ import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
 import { entityRevealAt, knownAt, partsAt, pointIndex, relationRevealAt, yearAt } from '../logic/storyPoint'
+import { entityAt, phaseAt } from '../logic/phases'
+import { PhasesReader } from './PhasesView'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
@@ -32,17 +34,20 @@ import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
-export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
+export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
   const { universe, go, goBack, bookId } = useWorkspace()
-  const suffix = universe.settings.calendarSuffix
-  // Efeito dominó (no Completo): "e se esta ficha sumir?".
-  const [dominoOpen, setDominoOpen] = useState(false)
-  const canDomino = worldLevel(universe) === 'completo' && universe.relations.some((r) => r.fromId === e.id || r.toId === e.id)
-  const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== e.id)), [universe.entities, e.id])
   // A régua da história: até qual cena se olha, e se é como o leitor (só o que ele já sabe ali).
   const scenes = manuscriptOrder(universe)
   const [point] = useStoryPoint(universe.id)
   const index = pointIndex(scenes, point.sceneId)
+  // A ficha como está naquele ponto: a base mais as fases que já começaram (nome, resumo, retrato, campos).
+  const e = entityAt(base, index, scenes)
+  const phase = phaseAt(base, index, scenes)
+  const suffix = universe.settings.calendarSuffix
+  // Efeito dominó (no Completo): "e se esta ficha sumir?".
+  const [dominoOpen, setDominoOpen] = useState(false)
+  const canDomino = worldLevel(universe) === 'completo' && universe.relations.some((r) => r.fromId === e.id || r.toId === e.id)
+  const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== base.id)), [universe.entities, base.id])
   const reader = point.reader && scenes.length > 0
   const now = point.sceneId ? yearAt(scenes, index) : undefined
   const known = reader ? knownAt(universe, scenes, e, index) : { known: true, first: null }
@@ -127,12 +132,12 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
   const knows = universe.knowledge.filter((k) => k.holderId === e.id)
   const events = universe.events.filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id).sort((a, b) => a.year - b.year)
   const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id))
-  const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
+  const appearances = useMemo(() => appearancesOf(universe, base), [universe, base])
   // Como o leitor: só as cenas até o ponto escolhido (as de depois seriam spoiler).
   const uptoIds = reader ? new Set(scenes.slice(0, index + 1).map((s) => s.id)) : null
   const shownAppearances = uptoIds ? appearances.filter((a) => uptoIds.has(a.scene.id)) : appearances
-  const sessions = useMemo(() => sessionsOf(universe, e.id), [universe, e.id])
-  const onMap = useMemo(() => glimpseOf(universe, e.id) !== null, [universe, e.id])
+  const sessions = useMemo(() => sessionsOf(universe, base.id), [universe, base.id])
+  const onMap = useMemo(() => glimpseOf(universe, base.id) !== null, [universe, base.id])
   const born = formatYear(e.startYear, suffix)
   const died = formatYear(e.endYear, suffix)
   const isPerson = e.kind === 'personagem'
@@ -206,6 +211,11 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           <OriginChip item={e} full />
         </p>
         <h1>{e.name || 'Sem nome'}</h1>
+        {phase && (
+          <p className="phase-now small">
+            <span className="phase-chip">{phase.phase.name || 'Fase'}</span> desde “{sceneTitle(scenes[phase.at])}”{phase.phase.cause && <span className="muted"> · {phase.phase.cause}</span>}
+          </p>
+        )}
         {/* Só o que foge do comum: verdade e pronta não precisam de selo. */}
         {(e.canon !== 'estabelecido' || e.editorial !== 'definido') && (
           <div className="entity-badges">
@@ -449,6 +459,8 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
               </ul>
             </section>
           )}
+
+          {(base.phases?.length ?? 0) > 0 && <PhasesReader entity={base} index={index} reader={reader} />}
 
           {(shownAppearances.length > 0 || (!reader && sessions.length > 0)) && (
             <section>

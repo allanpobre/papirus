@@ -246,6 +246,24 @@ export const PAGE_TOURS = {
         body: 'A ficha abre para ler, como uma página de enciclopédia: ligações, o que ela sabe, o mapa, as pistas, as cenas e as sessões em que aparece. Editar abre o formulário em partes: o básico, o “Quem é” (o que define a ficha neste mundo), a descrição, os campos e as ligações; o que é pouco usado fica em “Mais opções”. Num personagem de jogo, a aba Jogo mostra a ficha da Mesa.',
         optional: true,
       },
+      {
+        target: '.story-point',
+        title: 'Até onde na história',
+        body: 'A ficha muda com a história. Escolha uma cena e veja como ela está ali (a idade, as fases). “Ver como o leitor” esconde o que ele ainda não descobriu; você sempre vê a verdade, com o aviso de quando o leitor descobre.',
+        optional: true,
+      },
+      {
+        target: '.phases-read',
+        title: 'Ao longo da história',
+        body: 'As fases: a partir de uma cena, o que muda (nome, resumo, campos) e por quê. “Comparar” mostra o que mudou entre dois momentos. Em Editar, “Ao longo da história” cria as fases.',
+        optional: true,
+      },
+      {
+        target: '.reveal-control',
+        title: 'O leitor descobre depois',
+        body: 'No Quem é: em que cena o leitor descobre (a espécie verdadeira, por exemplo) e o que ele vê até lá. Nos campos, “até lá…” faz o mesmo com o texto. O app avisa se a revelação chega sem nenhuma pista antes.',
+        optional: true,
+      },
       { target: '.kind-questions', title: 'Para começar', body: 'Numa ficha vazia, três ou quatro perguntas do tipo dela. Uma linha basta, e as respostas viram campos. Dá para pular.', optional: true },
       {
         target: '.entity-lists',
