@@ -4,7 +4,7 @@ import { revealIndex, splitReveals } from '../logic/reveals'
 import { manuscriptOrder, scenesOf } from './universe'
 import { shelf } from '../export/shelf'
 import { universeSchema } from './schema'
-import { alienistaUniverse, isOutdatedSample, isSample, sampleFor, sampleKindOf, sampleUniverse } from './sample'
+import { alienistaUniverse, isOutdatedSample, isSample, sampleFor, sampleKindOf, sampleUniverse, OLD_OZ_DESCRIPTIONS, OZ_DESCRIPTION } from './sample'
 import { whoIs } from '../logic/definers'
 import { ostriaUniverse } from './sampleOstria'
 
@@ -57,6 +57,9 @@ describe('exemplo: O Alienista (o segundo)', () => {
     // A Terra de Oz de antes (sem os outros livros) também vira a atual; a atual não.
     const oldOz = { ...ostriaUniverse(), description: 'Universo de exemplo: O Mágico de Oz, de L. Frank Baum (1900, domínio público), traduzido para o Papirus. O livro inteiro, os quatro países no mapa, povos, segredos, linha do tempo e uma Mesa.' }
     expect(isOutdatedSample(oldOz)).toBe(true)
+    // A de antes dos papéis na história também; a atual não.
+    for (const d of OLD_OZ_DESCRIPTIONS) expect(isOutdatedSample({ ...oldOz, description: d })).toBe(true)
+    expect(OLD_OZ_DESCRIPTIONS).not.toContain(OZ_DESCRIPTION)
     expect(isOutdatedSample(await sampleUniverse())).toBe(false)
   })
 })
