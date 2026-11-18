@@ -265,6 +265,12 @@ export const PAGE_TOURS = {
         optional: true,
       },
       {
+        target: '.power-tree',
+        title: 'Poderes e magia',
+        body: 'Num “Sistema de magia”, a árvore: cada poder pede outros antes, pode ter um custo e vir de nascença para uma espécie ou linhagem. Comece por um modelo (escolas, elementos, graus, pactos, ofícios). No personagem, o bloco Poderes diz em que cena ele aprende cada um; a árvore acende pela régua e avisa se ele usa um poder antes de aprender.',
+        optional: true,
+      },
+      {
         target: '.refs-read',
         title: 'Referências',
         body: 'O mural do que inspirou a ficha: imagens, links, trechos e personagens de outras obras, com o que você pegou de cada um. Só você vê: não vai para a wiki, o leitor nem o link.',

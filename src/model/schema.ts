@@ -190,6 +190,28 @@ export const entitySchema = z.object({
     .optional()
     .catch(undefined),
   /**
+   * Poderes (numa ficha de sistema de magia): a árvore. Cada nó pede outros antes (todos), pode ter um custo ou
+   * condição e pode vir de nascença para quem é de uma ficha (uma espécie, uma linhagem, um clã).
+   */
+  nodes: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        requires: z.array(z.string()).default([]),
+        cost: z.string().optional(),
+        innate: z.array(z.string()).optional(),
+      }),
+    )
+    .optional()
+    .catch(undefined),
+  /** Os poderes que esta ficha aprende, e em que cena (sem cena: desde o começo). */
+  learned: z
+    .array(z.object({ systemId: z.string(), nodeId: z.string(), sceneId: z.string().nullable().optional() }))
+    .optional()
+    .catch(undefined),
+  /**
    * Referências: o que inspirou a ficha (imagem, link, trecho, personagem de outra obra), com o que se pegou de
    * cada uma e o que ela não é. Só do autor: nunca vai para wiki, leitor ou link de leitura.
    */

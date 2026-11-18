@@ -43,6 +43,8 @@ import { AppearanceList } from './AppearanceList'
 import { EntityRevealField } from './RevealControl'
 import { PhasesEditor } from './PhasesView'
 import { ReferencesEditor } from './ReferencesView'
+import { CharacterPowersEditor, PowerTreeEditor } from './PowersView'
+import { systemsOf } from '../logic/powers'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -716,6 +718,16 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           {!simple && (
             <Fold id="ficha-fases" title="Ao longo da história" defaultOpen={(e.phases?.length ?? 0) > 0}>
               <PhasesEditor entity={e} />
+            </Fold>
+          )}
+          {e.kind === 'magia' && (
+            <Fold id="ficha-arvore" title="Árvore de poderes" defaultOpen>
+              <PowerTreeEditor entity={e} />
+            </Fold>
+          )}
+          {!simple && e.kind !== 'magia' && systemsOf(universe).length > 0 && (
+            <Fold id="ficha-poderes" title="Poderes" defaultOpen={(e.learned?.length ?? 0) > 0}>
+              <CharacterPowersEditor entity={e} />
             </Fold>
           )}
           <Fold id="ficha-referencias" title="Referências" defaultOpen={(e.refs?.length ?? 0) > 0}>
