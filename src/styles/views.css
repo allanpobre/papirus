@@ -11217,3 +11217,12 @@ h3.cork-act {
 .share-wiki-upto {
   margin: 0.5rem 0;
 }
+
+/* Em que livro e cena o leitor fica sabendo do fato. */
+.fact-where {
+  margin: 0.25rem 0 0;
+}
+
+.fact-where.is-later {
+  color: var(--ochre);
+}

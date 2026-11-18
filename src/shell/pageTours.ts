@@ -326,7 +326,7 @@ export const PAGE_TOURS = {
       {
         target: '.fact-cards',
         title: 'Uma frase por fato',
-        body: 'Se é verdade (ou segredo, boato, lenda, mentira), quem disse e onde. Embaixo, quem sabe ou suspeita, e se o leitor já viu até a última cena.',
+        body: 'Se é verdade (ou segredo, boato, lenda, mentira), quem disse e onde. Embaixo, quem sabe ou suspeita, em que livro e cena o leitor fica sabendo e se ele já viu. Com um livro escolhido no alto, a aba começa pelos fatos “Revelados neste livro”; “Todos os fatos” mostra o universo inteiro.',
         optional: true,
       },
       { title: 'De onde vêm', body: 'No Escrever, selecione um trecho e escolha “Fato”: o trecho fica guardado como fonte. Um fato falso dito por alguém aparece no Codex dos jogadores só como “segundo fulano”.' },

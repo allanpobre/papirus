@@ -1,5 +1,5 @@
-import type { Fact, Knowledge, Universe } from '../model/schema'
-import { manuscriptOrder } from '../model/universe'
+import type { Fact, Knowledge, Scene, Story, Universe } from '../model/schema'
+import { byId, manuscriptOrder } from '../model/universe'
 
 /** Posição de cada cena na ordem de leitura. */
 export function sceneIndex(universe: Universe): Map<string, number> {
@@ -50,4 +50,28 @@ export function readerKnowsAt(universe: Universe, sceneId: string): Fact[] {
 /** Quem sabe algo sobre um fato, com o estado atual de cada um. */
 export function holdersOf(universe: Universe, factId: string): Knowledge[] {
   return universe.knowledge.filter((k) => k.factId === factId)
+}
+
+/** Os fatos que o leitor fica sabendo em cenas deste livro (a cena de onde o fato veio é dele). */
+export function revealedInBook(universe: Universe, bookId: string): Fact[] {
+  const inBook = new Set(universe.scenes.filter((s) => s.storyId === bookId).map((s) => s.id))
+  return universe.facts.filter((f) => f.sourceSceneId !== null && inBook.has(f.sourceSceneId))
+}
+
+/**
+ * Em que livro e cena o leitor fica sabendo de um fato, em relação ao livro escolhido no alto (ou a nenhum):
+ * sem cena (só do autor), neste livro, num livro anterior, num livro que vem depois, ou, sem livro escolhido, "em" tal cena.
+ */
+export type RevealWhere =
+  | { kind: 'sem-cena' }
+  | { kind: 'em' | 'neste' | 'antes' | 'depois'; scene: Scene; book: Story | null }
+
+export function revealWhere(universe: Universe, fact: Fact, bookId: string | null): RevealWhere {
+  const scene = fact.sourceSceneId ? byId(universe, 'scenes', fact.sourceSceneId) : undefined
+  if (!scene) return { kind: 'sem-cena' }
+  const book = scene.storyId ? (byId(universe, 'stories', scene.storyId) ?? null) : null
+  if (!bookId || !book) return { kind: 'em', scene, book }
+  if (book.id === bookId) return { kind: 'neste', scene, book }
+  const order = new Map(universe.stories.map((s, i) => [s.id, i]))
+  return { kind: (order.get(book.id) ?? 0) < (order.get(bookId) ?? 0) ? 'antes' : 'depois', scene, book }
 }
