@@ -22,7 +22,7 @@ import { ReferencesEditor, ReferencesReader } from './ReferencesView'
 import { BLOCK_LABEL, CONTENT_BLOCKS, contentEmpty, moveBlock, removeBlock, visibleBlocks, type Block, type BlockType } from '../model/blocks'
 import { AddBlock, BlockFrame } from './BlockFrame'
 import { ContentBlockEditor, ContentBlockView } from './ContentBlocks'
-import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, PortraitButton, RelationsSection } from './EntitiesView'
+import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, MoreOptionsEditor, PortraitButton, RelationsSection } from './EntitiesView'
 import { GameRules } from './GameRules'
 import { LanguageEditor } from './LanguageEditor'
 import { SecretTextarea } from '../ui/SecretText'
@@ -606,6 +606,10 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           </p>
           <Field label="Nome">{(id) => <input id={id} className="input" value={base.name} placeholder="Sem nome" onChange={(ev) => setBase({ name: ev.target.value })} />}</Field>
           <BasicsEditor entity={base} />
+          <p className="block-editor-head small">
+            <strong>Mais opções</strong>
+          </p>
+          <MoreOptionsEditor entity={base} simple={simple} />
         </div>
       )}
 

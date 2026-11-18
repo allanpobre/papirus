@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
@@ -56,7 +57,7 @@ test('o inimigo acompanha a ficha do Mundo: o que muda no "No jogo" da espécie 
   await page.getByRole('button', { name: 'Mais', exact: true }).click()
   await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
   await page.locator('.entity-row', { has: page.locator('.entity-row-name', { hasText: /^Kalidah$/ }) }).first().click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   const jogo = page.locator('details.fold', { hasText: 'No jogo' })
   if (!(await jogo.evaluate((d) => (d as HTMLDetailsElement).open))) await jogo.locator('summary').click()
   await jogo.getByLabel('Traços (um por linha)').fill('Garras longas\nCaça em dupla\nTem medo de água')

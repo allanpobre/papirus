@@ -241,9 +241,9 @@ export const PAGE_TOURS = {
       { target: '.where-chips', title: 'Nas cenas ou só nas notas', body: 'Mostre só o que a história já usa, ou só o que está nas notas. Nada precisa entrar no livro: parte do mundo fica embaixo d’água, como num iceberg.', optional: true },
       { target: '.world-overview', title: 'O mundo até aqui', body: 'Sem ficha aberta, um resumo: o que mais aparece nas cenas, o que está só nas notas e as fichas que ainda são só um nome.', optional: true },
       {
-        target: '.mode-switch',
-        title: 'Ler, editar e jogar',
-        body: 'A ficha abre para ler, como uma página de enciclopédia: ligações, o que ela sabe, o mapa, as pistas, as cenas e as sessões em que aparece. Editar abre o formulário em partes: o básico, o “Quem é” (o que define a ficha neste mundo), a descrição, os campos e as ligações; o que é pouco usado fica em “Mais opções”. Num personagem de jogo, a aba Jogo mostra a ficha da Mesa.',
+        target: '.reader-head .more-menu',
+        title: 'Uma página só',
+        body: 'A ficha é uma página, como numa enciclopédia, e se edita ali mesmo. O lápis do topo muda o básico (nome, resumo, apelidos e “Mais opções”). No “⋯”: editar tudo de uma vez num formulário, a ficha de jogo (num personagem da Mesa) e apagar.',
         optional: true,
       },
       {

@@ -1,10 +1,10 @@
-import { openPart } from './areas.ts'
+import { openPart, fichaModo } from './areas.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) }).first()
 
 test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mostra o que a história usa', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('papirus:ficha-modo', 'ler'))
+  await page.addInitScript(() => localStorage.setItem('papirus:ficha-vista', 'ler'))
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Mundo').click()
   const parts = page.getByRole('navigation', { name: 'Partes do mundo' })
@@ -39,7 +39,7 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
 })
 
 test('ficha nova abre em Editar com perguntas do tipo dela, em palavras simples', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('papirus:ficha-modo', 'ler'))
+  await page.addInitScript(() => localStorage.setItem('papirus:ficha-vista', 'ler'))
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Mundo').click()
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Sal Negro')
@@ -60,11 +60,11 @@ test('ficha nova abre em Editar com perguntas do tipo dela, em palavras simples'
   await questions.getByRole('textbox', { name: 'Quanto custa usar? O que se perde?' }).fill('Um dia de memória')
 
   // Em Ler, o campo aparece no quadro.
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   await expect(page.getByRole('complementary', { name: 'Em resumo' })).toContainText('Um dia de memória')
 
   // Um tipo próprio pelo "Outro…".
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await page.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('__outro')
   await page.getByRole('textbox', { name: 'Tipo', exact: true }).fill('Maldição')
   await page.keyboard.press('Enter')
@@ -76,7 +76,7 @@ test('ficha nova abre em Editar com perguntas do tipo dela, em palavras simples'
   await page.getByRole('button', { name: 'Criar ficha' }).click()
   await page.getByRole('region', { name: 'Para começar' }).getByRole('button', { name: 'Pular' }).click()
   await expect(page.getByRole('region', { name: 'Para começar' })).toHaveCount(0)
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   await expect(page.getByText('Ficha em branco. 4 perguntas sobre lugar ajudam a começar.')).toBeVisible()
   // "Responder" traz as perguntas de volta, mesmo depois de "Pular".
   await page.getByRole('button', { name: 'Responder' }).click()
@@ -154,8 +154,7 @@ test('efeito dominó: e se Cassian sumir?', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await openPart(page, 'Fichas')
   await page.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: /^Cassian$/ }) }).click()
-  const ler = page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' })
-  if ((await ler.getAttribute('aria-pressed')) !== 'true') await ler.click()
+  await fichaModo(page, 'Ler')
   await page.getByRole('button', { name: /E se sumir\?/ }).click()
   const d = page.getByRole('dialog', { name: 'E se Cassian sumir?' })
   await expect(d.getByRole('heading', { name: 'Ficam sem quem mande' })).toBeVisible()

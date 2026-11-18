@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { zipSync } from 'fflate'
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 /*
  * Trazer de outro app com arquivos no formato de exportação de cada um (e2e/fixtures/importar), pela tela de verdade.
@@ -43,7 +44,7 @@ test('o cofre do Obsidian em .zip: fichas por pasta, campos, links limpos e o re
   await page.locator('.entity-row', { hasText: 'Kael Arvoredo' }).first().click()
   // A ficha tem o retrato da nota e os campos do cabeçalho; o texto veio limpo.
   await expect(page.locator('.entity-detail, .entity-side, .split-detail').locator('img').first()).toBeVisible()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const ficha = page.locator('.split-detail, .entity-detail').first()
   await expect(ficha).toContainText('Idade')
   await expect(ficha).toContainText('Porto Velho')
@@ -64,7 +65,7 @@ test('a exportação do Kanka: o tipo vem do arquivo, o que era privado vira seg
 
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
   await page.locator('.entity-row', { hasText: 'Aldric Valmar' }).first().click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const ficha = page.locator('.split-detail, .entity-detail').first()
   await expect(ficha).toContainText('Aldric governa Valmar com mão de ferro')
   await expect(ficha).toContainText('Rei de Valmar')
@@ -84,7 +85,7 @@ test('os artigos do World Anvil: a lista {"articles": [...]} é lida, o BBCode v
   await janela.getByRole('button', { name: 'Trazer 4 fichas' }).click()
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
   await page.locator('.entity-row', { hasText: 'Lyra, a Cartógrafa' }).first().click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const ficha = page.locator('.split-detail, .entity-detail').first()
   await expect(ficha).toContainText('Nascida em Porto Velho')
   await expect(ficha).toContainText('Atlas do sul')

@@ -1,4 +1,4 @@
-import { openPart } from './areas.ts'
+import { openPart, fichaModo } from './areas.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 /*
@@ -79,7 +79,7 @@ test('retrato: o recorte é quadrado; arrastar com o dedo escolhe a parte que fi
   await janela.getByRole('button', { name: 'Usar este recorte' }).click()
   await expect(janela).toHaveCount(0)
 
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const r = await guardada(page, 'Mira')
   // Quadrado, encolhido (o lado menor da foto era 400) e com a parte da esquerda (vermelha).
   expect(r.w).toBe(r.h)
@@ -95,17 +95,17 @@ test('retrato: zoom pelo controle aproxima o enquadramento, e "Sem recortar" gua
   // Zoom máximo no centro: o recorte pega o encontro do vermelho e do azul, e fica pequeno.
   await janela.getByRole('slider', { name: 'Zoom do retrato' }).fill('4')
   await janela.getByRole('button', { name: 'Usar este recorte' }).click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const perto = await guardada(page, 'Brenn')
   expect(perto.w).toBe(perto.h)
   expect(vermelho(perto.esquerda), 'no zoom, a esquerda do recorte é a parte vermelha do meio').toBe(true)
   expect(azul(perto.direita), 'e a direita é a azul').toBe(true)
 
   // Trocar pela mesma foto, sem recortar: sai a imagem inteira (horizontal).
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await page.locator('.portrait-edit input[type=file]').setInputFiles(await foto(page))
   await page.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const inteira = await guardada(page, 'Brenn')
   expect(inteira.w).toBe(2 * inteira.h)
   expect(vermelho(inteira.esquerda) && azul(inteira.direita)).toBe(true)

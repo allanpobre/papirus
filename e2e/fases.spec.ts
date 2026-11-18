@@ -1,12 +1,11 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 /*
  * As fases: o personagem muda ao longo da história. No celular, o autor cria uma fase (a partir de uma cena,
  * o que muda e por quê), e a ficha muda com a régua; "comparar" mostra o que mudou.
  */
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
-
-const modo = (page: Page, nome: 'Ler' | 'Editar') => page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: nome })
 const ate = async (page: Page, cena: string | null) => {
   const sel = page.getByRole('group', { name: 'Ponto da história' }).getByRole('combobox', { name: 'Até onde na história' })
   await sel.selectOption(cena ? (await sel.locator('option', { hasText: cena }).getAttribute('value'))! : '')
@@ -16,7 +15,7 @@ test('uma fase muda nome e campos a partir de uma cena, e dá para comparar', as
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
-  await modo(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
 
   await page.getByText('Ao longo da história', { exact: true }).click()
   await page.getByRole('button', { name: 'Nova fase' }).click()
@@ -32,7 +31,7 @@ test('uma fase muda nome e campos a partir de uma cena, e dá para comparar', as
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
   // Ler, na história toda: como ele termina, com a fase de agora.
-  await modo(page, 'Ler').click()
+  await fichaModo(page, 'Ler')
   const ficha = page.getByRole('article', { name: /Ler a ficha/ })
   await expect(ficha.getByRole('heading', { level: 1 })).toHaveText('O Fugitivo')
   await expect(ficha.locator('.phase-now')).toContainText('Procurado desde “Duas portas” · Viu o regente')

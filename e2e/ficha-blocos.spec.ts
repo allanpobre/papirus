@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 /*
  * A ficha como página de blocos, no celular: editar um bloco ali mesmo (sem trocar para "Editar"), arrumar a
@@ -10,7 +11,7 @@ test('ficha de blocos: editar no lugar, arrumar, tirar, pôr de volta e acrescen
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const ficha = page.getByRole('article', { name: /^Ler a ficha/ })
   await expect(ficha).toBeVisible()
   const ordem = () => ficha.locator('.reader-text > [data-block]').evaluateAll((els) => els.map((el) => el.getAttribute('data-block')))

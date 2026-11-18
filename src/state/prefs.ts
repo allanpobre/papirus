@@ -103,6 +103,8 @@ const OLD_PHONE_SHORTCUTS = 'inicio,escrever,livro,fichas'
 
 function read(): Prefs {
   try {
+    // O Ler/Editar da ficha saiu (a ficha é uma página só): o modo antigo guardado não vale mais.
+    localStorage.removeItem('papirus:ficha-modo')
     const raw = localStorage.getItem(KEY)
     if (!raw) return DEFAULT_PREFS
     const saved = JSON.parse(raw) as Partial<Prefs>

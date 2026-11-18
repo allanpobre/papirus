@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { openPart } from './areas.ts'
+import { openPart, fichaModo } from './areas.ts'
 import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
@@ -578,7 +578,7 @@ test('procurar e trocar: na cena, no livro todo e ao renomear uma ficha', async 
   // Renomear uma ficha oferece trocar o nome antigo nas cenas, mostrando antes.
   await nav(page, /^Mundo$/).click()
   await page.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: /^Kael$/ }) }).click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await page.locator('#entity-name').fill('Kaelan')
   await page.locator('#entity-name').blur()
   await page.getByRole('button', { name: 'Ver e trocar' }).click()

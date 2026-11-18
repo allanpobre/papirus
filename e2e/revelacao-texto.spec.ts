@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 /*
  * Máscara no texto e ficha revelada numa cena, no celular. O autor marca o que o leitor lê até a revelação
@@ -10,7 +11,6 @@ const abrir = async (page: Page, nome: string) => {
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: new RegExp(`^${nome}`) }).first().click()
 }
-const modo = (page: Page, nome: 'Ler' | 'Editar') => page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: nome })
 const ate = async (page: Page, cena: string | null) => {
   const sel = page.getByRole('group', { name: 'Ponto da história' }).getByRole('combobox', { name: 'Até onde na história' })
   await sel.selectOption(cena ? (await sel.locator('option', { hasText: cena }).getAttribute('value'))! : '')
@@ -19,7 +19,7 @@ const ate = async (page: Page, cena: string | null) => {
 test('o leitor lê a máscara até a revelação, e só conhece a ficha a partir da cena marcada', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await abrir(page, 'Homem Pálido')
-  await modo(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
 
   // A arma (revelada em "A maré volta"): até lá, o leitor lê outra coisa.
   await page.getByRole('button', { name: 'Arma: o que o leitor lê até a cena' }).click()
@@ -28,7 +28,7 @@ test('o leitor lê a máscara até a revelação, e só conhece a ficha a partir
   await expect(page.getByRole('button', { name: 'Arma: o que o leitor lê até a cena' })).toContainText('até lá: Uma espada embrulhada')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
-  await modo(page, 'Ler').click()
+  await fichaModo(page, 'Ler')
   const quadro = page.getByRole('complementary', { name: 'Em resumo' })
   // Autor: a verdade e a máscara, cada uma com a cena.
   await expect(quadro.locator('.mask-mark')).toContainText('o leitor lê isto até “A maré volta”')
@@ -46,13 +46,13 @@ test('o leitor lê a máscara até a revelação, e só conhece a ficha a partir
   // A Rhea: o leitor só a conhece a partir de "Duas portas", mesmo citada antes. O app diz se há pistas antes.
   await page.getByRole('button', { name: 'Voltar para a lista' }).click()
   await abrir(page, 'Rhea')
-  await modo(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
   // Fica em "Mais opções", junto de "Entra na wiki".
   await page.getByText('Mais opções', { exact: true }).click()
   const quando = page.getByRole('combobox', { name: 'O leitor conhece esta ficha' })
   await quando.selectOption((await quando.locator('option', { hasText: 'Duas portas' }).getAttribute('value'))!)
   await expect(page.getByRole('note').filter({ hasText: /Antes desta cena, o leitor tem|Nenhuma pista antes/ })).toBeVisible()
-  await modo(page, 'Ler').click()
+  await fichaModo(page, 'Ler')
   await expect(page.locator('.entity-reveal-note')).toContainText('O leitor conhece esta ficha em “Duas portas”')
   await ate(page, 'O navio sem nome')
   await expect(page.locator('.entity-reveal-note')).toContainText('O leitor só conhece esta ficha em “Duas portas”')

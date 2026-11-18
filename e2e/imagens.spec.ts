@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { strFromU8, unzipSync } from 'fflate'
 import { createFakeSupabase, PASSWORD, SERVER, PEOPLE } from './fakeSupabase.ts'
 import { expect, test, type Page } from './fixtures.ts'
-import { openPart } from './areas.ts'
+import { openPart, fichaModo } from './areas.ts'
 
 /** Uma "foto" de teste: um PNG grande gerado no navegador (o app deve encolher). */
 async function photo(page: Page, color = '#2f6fae', w = 2400, h = 1600) {
@@ -63,7 +63,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   await page.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
   await expect(page.getByRole('button', { name: 'Trocar a imagem da ficha' }).locator('img')).toHaveAttribute('src', /^blob:/)
   await expect(page.locator('.entity-row-pic')).toBeVisible()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   await expect(page.getByRole('img', { name: 'Imagem de Mira' })).toBeVisible()
   expect(await page.getByRole('img', { name: 'Imagem de Mira' }).evaluate((img: HTMLImageElement) => img.naturalHeight)).toBe(800)
 

@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 /*
  * A espécie verdadeira revelada mais tarde (o caso do Malkai), no celular: o autor marca em que cena o leitor
@@ -10,8 +11,7 @@ test('Quem é revelado numa cena, com máscara até lá', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
-  const modo = (nome: 'Ler' | 'Editar') => page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: nome })
-  await modo('Editar').click()
+  await fichaModo(page, 'Editar')
 
   // A espécie, com duas opções: a que parece (Humano) e a verdadeira (Vanderyu).
   const quem = page.getByRole('region', { name: 'Quem é' })
@@ -35,7 +35,7 @@ test('Quem é revelado numa cena, com máscara até lá', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
   // O autor, lendo: a verdade, com a cena e a máscara ao lado.
-  await modo('Ler').click()
+  await fichaModo(page, 'Ler')
   const lendo = page.getByRole('region', { name: 'Quem é' })
   await expect(lendo).toContainText('Espécie: Vanderyu')
   await expect(lendo).toContainText('o leitor descobre em “O retrato” · até lá, parece Humano')
@@ -54,10 +54,10 @@ test('Quem é revelado numa cena, com máscara até lá', async ({ page }) => {
 
   // Sem máscara, antes da cena a linha some para o leitor.
   await regua.getByText('Ver como o leitor').click()
-  await modo('Editar').click()
+  await fichaModo(page, 'Editar')
   await quem.getByRole('button', { name: /O leitor descobre em “O retrato”/ }).click()
   await painel.getByRole('combobox', { name: 'Até lá, o leitor vê' }).selectOption({ label: 'Nada (fica escondido)' })
-  await modo('Ler').click()
+  await fichaModo(page, 'Ler')
   await ate.selectOption((await ate.locator('option', { hasText: 'A chegada' }).getAttribute('value'))!)
   await regua.getByText('Ver como o leitor').click()
   await expect(page.getByRole('region', { name: 'Quem é' })).toHaveCount(0)

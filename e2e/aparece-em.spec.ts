@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 /*
  * "Aparece em" na ficha, no celular: a tira com todas as cenas (as do personagem acesas), o nome em
@@ -10,8 +11,7 @@ test('a ficha mostra onde o personagem aparece, com o nome em destaque, e abre a
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
-  const ler = page.getByRole('button', { name: 'Ler', exact: true })
-  if (await ler.count()) await ler.click()
+  await fichaModo(page, 'Ler')
 
   const resumo = page.locator('.appear-sum')
   await expect(resumo).toContainText(/Em \d+ de \d+ cenas/)
