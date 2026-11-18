@@ -6,7 +6,7 @@ test('a apresentação leva ao app e ao exemplo', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'O mesmo mundo, agora na mesa.' })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toHaveCount(0)
 
-  await page.getByRole('link', { name: 'Ver um mundo de exemplo' }).click()
+  await page.getByRole('link', { name: 'Abrir o exemplo: O Mágico de Oz' }).click()
   await expect(page).toHaveURL(/\/app\/$/)
   // O exemplo abre direto, no Início do universo.
   await expect(page.getByRole('heading', { name: 'Exemplo — Terra de Oz' })).toBeVisible()
