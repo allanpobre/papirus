@@ -1,7 +1,7 @@
 import { OriginChip } from './AUBanner'
-import { WhoIsReader } from './WhoIs'
-import { definerListIds, whoIsKeys } from '../logic/definers'
-import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Eye, Lock, Shuffle } from 'lucide-react'
+import { PassesEditor, WhoIsEditor, WhoIsReader } from './WhoIs'
+import { definerListIds, definersFor, whoIsKeys } from '../logic/definers'
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Dices, Eye, LayoutList, Lock, Pencil, Shuffle } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { worldLevel } from '../model/kind'
 import { DominoDialog } from './DominoDialog'
@@ -15,28 +15,35 @@ import { answerOf, isBlank, questionsFor } from '../logic/kindQuestions'
 import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
-import { entityRevealAt, knownAt, partsAt, pointIndex, relationRevealAt, yearAt } from '../logic/storyPoint'
+import { entityRevealAt, knownAt, partsAt, pointIndex, relationRevealAt, whoIsAt, yearAt } from '../logic/storyPoint'
 import { entityAt, phaseAt } from '../logic/phases'
-import { PhasesReader } from './PhasesView'
-import { ReferencesReader } from './ReferencesView'
+import { PhasesEditor, PhasesReader } from './PhasesView'
+import { ReferencesEditor, ReferencesReader } from './ReferencesView'
+import { BLOCK_LABEL, CONTENT_BLOCKS, contentEmpty, moveBlock, removeBlock, visibleBlocks, type Block, type BlockType } from '../model/blocks'
+import { AddBlock, BlockFrame } from './BlockFrame'
+import { ContentBlockEditor, ContentBlockView } from './ContentBlocks'
+import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, PortraitButton, RelationsSection } from './EntitiesView'
+import { GameRules } from './GameRules'
+import { LanguageEditor } from './LanguageEditor'
+import { SecretTextarea } from '../ui/SecretText'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
-import { MembershipChips } from './EntityLists'
+import { ListsSection, MembershipChips } from './EntityLists'
 import { formatYear, KNOWLEDGE_LABEL, kindLabel, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
-import { byId, entityName, manuscriptOrder, sceneTitle } from '../model/universe'
+import { byId, entityName, manuscriptOrder, patch, sceneTitle } from '../model/universe'
 import { useStoryPoint } from '../state/storyPoint'
 import { StoryPointBar } from '../ui/StoryPointBar'
 import { useWorkspace } from '../state/workspace'
-import { CanonBadge, EditorialBadge } from '../ui/bits'
+import { CanonBadge, EditorialBadge, Field } from '../ui/bits'
 import { Picture } from '../images/Picture'
 import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
 export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
-  const { universe, go, goBack, bookId } = useWorkspace()
+  const { universe, go, goBack, bookId, readOnly, update, undoable } = useWorkspace()
   // A régua da história: até qual cena se olha, e se é como o leitor (só o que ele já sabe ali).
   const scenes = manuscriptOrder(universe)
   const [point] = useStoryPoint(universe.id)
@@ -47,6 +54,10 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const suffix = universe.settings.calendarSuffix
   // Efeito dominó (no Completo): "e se esta ficha sumir?".
   const [dominoOpen, setDominoOpen] = useState(false)
+  // A página de blocos: qual bloco se edita ali, o básico aberto e o "Arrumar a página".
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editHead, setEditHead] = useState(false)
+  const [arrange, setArrange] = useState(false)
   const canDomino = worldLevel(universe) === 'completo' && universe.relations.some((r) => r.fromId === e.id || r.toId === e.id)
   const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== base.id)), [universe.entities, base.id])
   const reader = point.reader && scenes.length > 0
@@ -187,6 +198,333 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
     ]),
   ].filter(Boolean) as [string, React.ReactNode][]
 
+  // --- A página de blocos: o que cada bloco mostra e, para o autor, o editor dele ali mesmo. ---
+  const tools = !readOnly && !reader
+  const simple = worldLevel(universe) === 'simples'
+  const withBlocks = (u: typeof universe, fn: (x: Entity) => Block[]) => {
+    const x = u.entities.find((y) => y.id === base.id)
+    return x ? patch(u, 'entities', x.id, { blocks: fn(x) }) : u
+  }
+  const saveBlocks = (fn: (x: Entity) => Block[]) => update((u) => withBlocks(u, fn))
+  const setBase = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', base.id, changes))
+  const isContent = (t: string) => (CONTENT_BLOCKS as readonly string[]).includes(t)
+  const labelOf = (b: Block) => (isContent(b.type) && b.title?.trim() ? `${BLOCK_LABEL[b.type as BlockType]} “${b.title.trim()}”` : BLOCK_LABEL[b.type as BlockType])
+
+  const whoDefs = definersFor(universe, e.kind)
+  const hasWho = whoDefs.length > 0 && whoIsAt(universe, e, index, scenes).some((r) => !(reader && r.reveal?.future && !r.mask))
+  const shownLists = lists.filter((l) => membersOf(universe, e.id, l.id).length > 0 || l.shared.length > 0)
+  const bookRelations = book ? book.relations.filter((it) => it.at <= index && it.entityIds.includes(e.id)).map((it) => linked(it.text)) : []
+  const bookFacts = book ? book.facts.filter((it) => it.at <= index && it.entityIds.includes(e.id)).map((it) => linked(it.text)) : []
+  const bookEvents = book
+    ? book.events
+        .filter((ev) => ev.at <= index && ev.entityIds.includes(e.id))
+        .map((ev) => (
+          <>
+            <span className="mini-year">{ev.when}</span> {ev.title}
+          </>
+        ))
+    : []
+
+  const quadroView =
+    e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0 || onMap ? (
+      <aside className="reader-infobox" aria-label="Em resumo">
+        {e.image && <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="reader-portrait" />}
+        {onMap && <MapGlimpse entity={e} />}
+        {infobox.length > 0 && (
+          <dl>
+            {infobox.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {children.length > 0 && (
+          <div>
+            <p className="reader-infobox-label">Contém</p>
+            <p>{links(children.map((c) => c.id))}</p>
+          </div>
+        )}
+        {e.tags.length > 0 && (
+          <div className="chips">
+            {e.tags.map((t) => (
+              <span key={t} className="chip">
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+      </aside>
+    ) : null
+
+  /** O que o bloco mostra; null quando não tem nada (some da página). */
+  const viewOf = (b: Block): React.ReactNode => {
+    switch (b.type) {
+      case 'quem-e':
+        return hasWho ? <WhoIsReader entity={e} link={link} at={{ index, reader, scenes }} /> : null
+      case 'texto':
+        if (paragraphs.length)
+          return paragraphs.map((p, i) => {
+            const shownP = rich(p)
+            return shownP.length ? <p key={i}>{shownP}</p> : null
+          })
+        if (onEdit && tools && isBlank(e) && open.length > 0)
+          return (
+            <div className="reader-blank">
+              <p>
+                {/* Com membros, ligações ou etiquetas, a ficha não está em branco: só falta o texto. */}
+                {connected ? 'Ainda sem descrição.' : 'Ficha em branco.'} {open.length === 1 ? '1 pergunta' : `${open.length} perguntas`} sobre {kindLabel(e.kind).toLowerCase()}{' '}
+                {open.length === 1 ? 'ajuda' : 'ajudam'} a começar.
+              </p>
+              <button type="button" className="btn btn-primary btn-sm" onClick={onEdit}>
+                Responder
+              </button>
+            </div>
+          )
+        return tools ? <p className="muted">Ainda sem descrição. Toque no lápis para escrever sobre esta ficha.</p> : null
+      case 'listas':
+        return shownLists.length ? (
+          <>
+            {shownLists.map((l) => {
+              const ms = membersOf(universe, e.id, l.id)
+              return (
+                <section key={l.id} aria-label={l.name}>
+                  <h2>{l.name}</h2>
+                  {l.shared.length > 0 && (
+                    <p className="muted small">
+                      Todos têm: {l.shared.filter((x) => x.key.trim()).map((x) => `${x.key} · ${x.value}`).join('; ')}
+                    </p>
+                  )}
+                  {ms.length > 0 && (
+                    <p>
+                      {ms.map(({ relation: r, member }, i) => (
+                        <Fragment key={r.id}>
+                          <span className={`reader-item${isPast(r) ? ' is-past' : ''}`}>
+                            {link(member.id)}
+                            {r.role && <span className="muted"> ({r.role})</span>}
+                            {isPast(r) && <span className="muted"> · até {r.scope.toYear}</span>}
+                            {i < ms.length - 1 && ','}
+                          </span>
+                          {i < ms.length - 1 && ' '}
+                        </Fragment>
+                      ))}
+                    </p>
+                  )}
+                </section>
+              )
+            })}
+          </>
+        ) : null
+      case 'ligacoes':
+        if (book) return bookRelations.length ? <ReaderKnows title="Ligações" items={bookRelations} /> : null
+        return relations.length + backlinks.length > 0 ? (
+          <section>
+            <h2>Ligações</h2>
+            <ul>
+              {backlinks.map(({ from, key }, i) => (
+                <li key={`campo-${i}`}>
+                  {e.name} é {key.toLocaleLowerCase('pt-BR') || 'ligado a'} de {link(from.id)}
+                </li>
+              ))}
+              {relations.map((r) => {
+                const rv = relationRevealAt(r, index, scenes)
+                return (
+                  <li key={r.id}>
+                    {r.fromId === e.id ? (
+                      <>
+                        {e.name} {r.type} {link(r.toId)}
+                      </>
+                    ) : (
+                      <>
+                        {link(r.fromId)} {r.type} {e.name}
+                      </>
+                    )}
+                    {relationDetails(universe, r) && <span className="muted"> · {relationDetails(universe, r)}</span>}
+                    {rv && (
+                      <span className={`reveal-when${rv.future ? ' is-future' : ''}`}>
+                        {' '}
+                        <Eye size={11} aria-hidden="true" /> {rv.future ? 'o leitor só descobre em' : 'o leitor descobre em'} “{rv.title}”
+                      </span>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        ) : null
+      case 'fatos':
+        if (book) return bookFacts.length ? <ReaderKnows title="Fatos" items={bookFacts} /> : null
+        return facts.length ? (
+          <section>
+            <h2>Fatos</h2>
+            <ul>
+              {facts.map((f) => (
+                <li key={f.id}>
+                  {linked(factSentence(universe, f))} <CanonBadge canon={f.canon} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null
+      case 'sabe':
+        return !reader && knows.length ? (
+          <section>
+            <h2>O que {e.name || 'esta ficha'} sabe</h2>
+            <ul>
+              {knows.map((k) => {
+                const f = byId(universe, 'facts', k.factId)
+                return (
+                  <li key={k.id}>
+                    <span className="muted">{KNOWLEDGE_LABEL[k.state]}:</span> {f ? linked(factSentence(universe, f)) : 'Fato removido'}
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        ) : null
+      case 'tempo':
+        if (book) return bookEvents.length ? <ReaderKnows title="Linha do tempo" items={bookEvents} /> : null
+        return events.length > 0 || born || died ? (
+          <section>
+            <h2>Linha do tempo</h2>
+            <ol className="mini-timeline">
+              {born && (
+                <li>
+                  <span className="mini-year">{born}</span> {isPerson ? 'Nascimento' : 'Início'}
+                </li>
+              )}
+              {events.map((ev) => (
+                <li key={ev.id}>
+                  <button type="button" className="link-btn" onClick={() => go('timeline', ev.id)}>
+                    <span className="mini-year">{formatYear(ev.year, suffix)}</span> {ev.title}
+                  </button>
+                </li>
+              ))}
+              {died && (
+                <li>
+                  <span className="mini-year">{died}</span> {isPerson ? 'Morte' : 'Fim'}
+                </li>
+              )}
+            </ol>
+          </section>
+        ) : null
+      case 'pistas':
+        return !reader && seeds.length ? (
+          <section>
+            <h2>Pistas e mistérios</h2>
+            <ul>
+              {seeds.map((sd) => (
+                <li key={sd.id}>
+                  <button type="button" className="link-btn" onClick={() => go('tramas', sd.id)}>
+                    {sd.title}
+                  </button>{' '}
+                  <span className={`seed-status seed-${sd.status}`}>{SEED_STATUS_LABEL[sd.status]}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null
+      case 'fases':
+        return (base.phases?.length ?? 0) > 0 ? <PhasesReader entity={base} index={index} reader={reader} /> : null
+      case 'referencias':
+        return !reader && (base.refs?.length ?? 0) > 0 ? <ReferencesReader entity={base} /> : null
+      case 'aparece':
+        return shownAppearances.length > 0 || (!reader && sessions.length > 0) ? (
+          <section>
+            <h2>Aparece em</h2>
+            {shownAppearances.length > 0 && <AppearanceList entity={e} appearances={shownAppearances} upto={point.sceneId ? index : null} onlyUpto={reader} />}
+            {!reader && sessions.length > 0 && (
+              <ul className="appearances appearances-sessions" aria-label="Sessões">
+                {sessions.map((x) => (
+                  <li key={x.sessionId}>
+                    <Dices size={14} aria-hidden="true" className="appearance-icon" />{' '}
+                    <button type="button" className="link-btn" onClick={() => go('rpg', x.sessionId)}>
+                      {x.label}
+                    </button>
+                    <span className="muted small"> {x.why.join(' · ')}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null
+      case 'nota':
+      case 'citacao':
+      case 'galeria':
+        return contentEmpty(b) && !tools ? null : <ContentBlockView block={b} author={tools} rich={rich} />
+      default:
+        return null
+    }
+  }
+
+  /** O editor de cada bloco, ali mesmo (sempre na ficha de verdade, sem as fases aplicadas). */
+  const editorOf = (b: Block): React.ReactNode | undefined => {
+    switch (b.type) {
+      case 'quadro':
+        return (
+          <>
+            <div className="row block-portrait">
+              <PortraitButton entity={base} onChange={(image) => setBase({ image })} />
+              <span className="small muted">Retrato</span>
+            </div>
+            <FieldsEditor entity={base} />
+          </>
+        )
+      case 'quem-e':
+        return (
+          <>
+            <WhoIsEditor entity={base} />
+            <PassesEditor entity={base} />
+            {!simple && <GameRules key={base.id} entity={base} />}
+            {!simple && <LanguageEditor key={`idioma-${base.id}`} entity={base} />}
+          </>
+        )
+      case 'texto':
+        return <Field label="Descrição" wide>{(id) => <SecretTextarea id={id} value={base.description} placeholder="Escreva livremente." onChange={(v) => setBase({ description: v })} />}</Field>
+      case 'listas':
+        return <ListsSection entity={base} />
+      case 'ligacoes':
+        return (
+          <>
+            <MembershipChips entity={base} editable />
+            <RelationsSection
+              entity={base}
+              outgoing={universe.relations.filter((r) => r.fromId === base.id && !r.listId)}
+              incoming={universe.relations.filter((r) => r.toId === base.id && !r.listId)}
+            />
+          </>
+        )
+      case 'fatos':
+        return <FactsEditor entity={base} />
+      case 'sabe':
+        return <KnowledgeSection entity={base} entries={knows} />
+      case 'fases':
+        return <PhasesEditor entity={base} />
+      case 'referencias':
+        return <ReferencesEditor entity={base} />
+      case 'nota':
+      case 'citacao':
+      case 'galeria':
+        return <ContentBlockEditor entity={base} block={b} />
+      default:
+        return undefined
+    }
+  }
+
+  const layout = visibleBlocks(base)
+  const quadro = layout.find((b) => b.type === 'quadro')
+  const shown = layout
+    .filter((b) => b.type !== 'quadro')
+    .map((block) => ({ block, node: viewOf(block) }))
+    .filter(({ block, node }) => node !== null || editingId === block.id)
+  const shownIds = shown.map((x) => x.block.id)
+  // O "+ Bloco" oferece os blocos de dados que estão vazios (e têm editor); no Simples, sem fases e listas.
+  const emptyTypes = layout
+    .filter((b) => !isContent(b.type) && editorOf(b) !== undefined && (b.type === 'quadro' ? !quadroView : !shownIds.includes(b.id)))
+    .map((b) => b.type as BlockType)
+    .filter((t) => !(simple && (t === 'fases' || t === 'listas')) && (t !== 'quem-e' || whoDefs.length > 0 || ['personagem', 'faccao', 'reino'].includes(base.kind)))
+
   return (
     <article className="entity entity-reader" aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
       <header className="reader-head">
@@ -198,6 +536,16 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           <button type="button" className="btn btn-ghost btn-sm" title="Efeito dominó: o que acontece se esta ficha sumir" onClick={() => setDominoOpen(true)}>
             <Shuffle size={15} aria-hidden="true" /> E se sumir?
           </button>
+        )}
+        {tools && (
+          <>
+            <button type="button" className="btn-icon" aria-label="Editar o básico" title="Editar nome, resumo, tipo e apelidos" aria-pressed={editHead} onClick={() => setEditHead(!editHead)}>
+              <Pencil size={16} />
+            </button>
+            <button type="button" className="btn-icon" aria-label="Arrumar a página" title="Subir, descer e tirar blocos" aria-pressed={arrange} onClick={() => setArrange(!arrange)}>
+              <LayoutList size={16} />
+            </button>
+          </>
         )}
         {modeSwitch}
       </header>
@@ -246,245 +594,63 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           </p>
         )}
         {known.known && <MembershipChips entity={e} at={{ index, reader, scenes }} />}
-        {known.known && <WhoIsReader entity={e} link={link} at={{ index, reader, scenes }} />}
       </div>
+
+      {editHead && tools && (
+        <div className="block-editor reader-head-editor" role="group" aria-label="Editando: o básico">
+          <p className="block-editor-head small">
+            <strong>O básico</strong>
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => setEditHead(false)}>
+              <Check size={14} aria-hidden="true" /> Pronto
+            </button>
+          </p>
+          <Field label="Nome">{(id) => <input id={id} className="input" value={base.name} placeholder="Sem nome" onChange={(ev) => setBase({ name: ev.target.value })} />}</Field>
+          <BasicsEditor entity={base} />
+        </div>
+      )}
 
       {known.known && (
-      <div className="reader-body">
-        {(e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0 || onMap) && (
-          <aside className="reader-infobox" aria-label="Em resumo">
-            {e.image && <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="reader-portrait" />}
-            {onMap && <MapGlimpse entity={e} />}
-            {infobox.length > 0 && (
-              <dl>
-                {infobox.map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-            {children.length > 0 && (
-              <div>
-                <p className="reader-infobox-label">Contém</p>
-                <p>{links(children.map((c) => c.id))}</p>
-              </div>
-            )}
-            {e.tags.length > 0 && (
-              <div className="chips">
-                {e.tags.map((t) => (
-                  <span key={t} className="chip">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
-          </aside>
-        )}
-
-        <div className={`reader-text${e.kind === 'documento' ? ' reader-doc' : ''}`}>
-          {paragraphs.length ? (
-            paragraphs.map((p, i) => {
-              const shown = rich(p)
-              return shown.length ? <p key={i}>{shown}</p> : null
-            })
-          ) : onEdit && isBlank(e) && open.length > 0 ? (
-            <div className="reader-blank">
-              <p>
-                {/* Com membros, ligações ou etiquetas, a ficha não está em branco: só falta o texto. */}
-                {connected ? 'Ainda sem descrição.' : 'Ficha em branco.'} {open.length === 1 ? '1 pergunta' : `${open.length} perguntas`} sobre {kindLabel(e.kind).toLowerCase()}{' '}
-                {open.length === 1 ? 'ajuda' : 'ajudam'} a começar.
-              </p>
-              <button type="button" className="btn btn-primary btn-sm" onClick={onEdit}>
-                Responder
-              </button>
-            </div>
-          ) : (
-            <p className="muted">Ainda sem descrição. Em “Editar” você escreve sobre esta ficha.</p>
+        <div className="reader-body">
+          {quadro && (quadroView || editingId === quadro.id) && (
+            <BlockFrame
+              block={quadro}
+              label={BLOCK_LABEL.quadro}
+              editor={editorOf(quadro)}
+              tools={tools}
+              arrange={arrange}
+              editing={editingId === quadro.id}
+              onEditing={(on) => setEditingId(on ? quadro.id : null)}
+              onRemove={() => saveBlocks((x) => removeBlock(x, quadro.id))}
+            >
+              {quadroView}
+            </BlockFrame>
           )}
-
-          {lists.map((l) => {
-            const ms = membersOf(universe, e.id, l.id)
-            if (!ms.length && !l.shared.length) return null
-            return (
-              <section key={l.id} aria-label={l.name}>
-                <h2>{l.name}</h2>
-                {l.shared.length > 0 && (
-                  <p className="muted small">
-                    Todos têm: {l.shared.filter((x) => x.key.trim()).map((x) => `${x.key} · ${x.value}`).join('; ')}
-                  </p>
-                )}
-                {ms.length > 0 && (
-                  <p>
-                    {ms.map(({ relation: r, member }, i) => (
-                      <Fragment key={r.id}>
-                        <span className={`reader-item${isPast(r) ? ' is-past' : ''}`}>
-                          {link(member.id)}
-                          {r.role && <span className="muted"> ({r.role})</span>}
-                          {isPast(r) && <span className="muted"> · até {r.scope.toYear}</span>}
-                          {i < ms.length - 1 && ','}
-                        </span>
-                        {i < ms.length - 1 && ' '}
-                      </Fragment>
-                    ))}
-                  </p>
-                )}
-              </section>
-            )
-          })}
-
-          {book && (
-            <ReaderKnows
-              title="Ligações"
-              items={book.relations.filter((it) => it.at <= index && it.entityIds.includes(e.id)).map((it) => linked(it.text))}
-            />
-          )}
-          {!book && relations.length + backlinks.length > 0 && (
-            <section>
-              <h2>Ligações</h2>
-              <ul>
-                {backlinks.map(({ from, key }, i) => (
-                  <li key={`campo-${i}`}>
-                    {e.name} é {key.toLocaleLowerCase('pt-BR') || 'ligado a'} de {link(from.id)}
-                  </li>
-                ))}
-                {relations.map((r) => (
-                  <li key={r.id}>
-                    {r.fromId === e.id ? (
-                      <>
-                        {e.name} {r.type} {link(r.toId)}
-                      </>
-                    ) : (
-                      <>
-                        {link(r.fromId)} {r.type} {e.name}
-                      </>
-                    )}
-                    {relationDetails(universe, r) && <span className="muted"> · {relationDetails(universe, r)}</span>}
-                    {(() => {
-                      const rv = relationRevealAt(r, index, scenes)
-                      return rv ? (
-                        <span className={`reveal-when${rv.future ? ' is-future' : ''}`}>
-                          {' '}
-                          <Eye size={11} aria-hidden="true" /> {rv.future ? 'o leitor só descobre em' : 'o leitor descobre em'} “{rv.title}”
-                        </span>
-                      ) : null
-                    })()}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {book && (
-            <ReaderKnows title="Fatos" items={book.facts.filter((it) => it.at <= index && it.entityIds.includes(e.id)).map((it) => linked(it.text))} />
-          )}
-          {!book && facts.length > 0 && (
-            <section>
-              <h2>Fatos</h2>
-              <ul>
-                {facts.map((f) => (
-                  <li key={f.id}>
-                    {linked(factSentence(universe, f))} <CanonBadge canon={f.canon} />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {!reader && knows.length > 0 && (
-            <section>
-              <h2>O que {e.name || 'esta ficha'} sabe</h2>
-              <ul>
-                {knows.map((k) => {
-                  const f = byId(universe, 'facts', k.factId)
-                  return (
-                    <li key={k.id}>
-                      <span className="muted">{KNOWLEDGE_LABEL[k.state]}:</span> {f ? linked(factSentence(universe, f)) : 'Fato removido'}
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          )}
-
-          {book && (
-            <ReaderKnows
-              title="Linha do tempo"
-              items={book.events
-                .filter((ev) => ev.at <= index && ev.entityIds.includes(e.id))
-                .map((ev) => (
-                  <>
-                    <span className="mini-year">{ev.when}</span> {ev.title}
-                  </>
-                ))}
-            />
-          )}
-          {!book && (events.length > 0 || born || died) && (
-            <section>
-              <h2>Linha do tempo</h2>
-              <ol className="mini-timeline">
-                {born && (
-                  <li>
-                    <span className="mini-year">{born}</span> {isPerson ? 'Nascimento' : 'Início'}
-                  </li>
-                )}
-                {events.map((ev) => (
-                  <li key={ev.id}>
-                    <button type="button" className="link-btn" onClick={() => go('timeline', ev.id)}>
-                      <span className="mini-year">{formatYear(ev.year, suffix)}</span> {ev.title}
-                    </button>
-                  </li>
-                ))}
-                {died && (
-                  <li>
-                    <span className="mini-year">{died}</span> {isPerson ? 'Morte' : 'Fim'}
-                  </li>
-                )}
-              </ol>
-            </section>
-          )}
-
-          {!reader && seeds.length > 0 && (
-            <section>
-              <h2>Pistas e mistérios</h2>
-              <ul>
-                {seeds.map((s) => (
-                  <li key={s.id}>
-                    <button type="button" className="link-btn" onClick={() => go('tramas', s.id)}>
-                      {s.title}
-                    </button>{' '}
-                    <span className={`seed-status seed-${s.status}`}>{SEED_STATUS_LABEL[s.status]}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {(base.phases?.length ?? 0) > 0 && <PhasesReader entity={base} index={index} reader={reader} />}
-          {!reader && <ReferencesReader entity={base} />}
-
-          {(shownAppearances.length > 0 || (!reader && sessions.length > 0)) && (
-            <section>
-              <h2>Aparece em</h2>
-              {shownAppearances.length > 0 && <AppearanceList entity={e} appearances={shownAppearances} upto={point.sceneId ? index : null} onlyUpto={reader} />}
-              {!reader && sessions.length > 0 && (
-                <ul className="appearances appearances-sessions" aria-label="Sessões">
-                  {sessions.map((x) => (
-                    <li key={x.sessionId}>
-                      <Dices size={14} aria-hidden="true" className="appearance-icon" />{' '}
-                      <button type="button" className="link-btn" onClick={() => go('rpg', x.sessionId)}>
-                        {x.label}
-                      </button>
-                      <span className="muted small"> {x.why.join(' · ')}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          )}
+          <div className={`reader-text${e.kind === 'documento' ? ' reader-doc' : ''}`}>
+            {shown.map(({ block: b, node }, i) => (
+              <BlockFrame
+                key={b.id}
+                block={b}
+                label={labelOf(b)}
+                editor={editorOf(b)}
+                tools={tools}
+                arrange={arrange}
+                first={i === 0}
+                last={i === shown.length - 1}
+                editing={editingId === b.id}
+                onEditing={(on) => setEditingId(on ? b.id : null)}
+                onMove={(step) => saveBlocks((x) => moveBlock(x, b.id, step, shownIds))}
+                onRemove={() => {
+                  if (editingId === b.id) setEditingId(null)
+                  if (isContent(b.type)) undoable(`${labelOf(b)} tirada da página`, (u) => withBlocks(u, (x) => removeBlock(x, b.id)))
+                  else saveBlocks((x) => removeBlock(x, b.id))
+                }}
+              >
+                {node}
+              </BlockFrame>
+            ))}
+            {tools && <AddBlock entity={base} empty={emptyTypes} onOpen={(type, id) => setEditingId(id ?? layout.find((b) => b.type === type)?.id ?? type)} />}
+          </div>
         </div>
-      </div>
       )}
 
       {(prev || next) && (

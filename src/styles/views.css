@@ -11891,3 +11891,124 @@ button.presence-dot {
 .ref-remove {
   justify-self: start;
 }
+
+/* Ficha de blocos: cada bloco com o lápis no canto; "Arrumar a página" mostra subir, descer e tirar. */
+.block {
+  position: relative;
+  min-width: 0;
+}
+.reader-text > .block + .block {
+  margin-top: 0.4rem;
+}
+.block-tools {
+  position: absolute;
+  top: 0.15rem;
+  right: 0;
+  display: flex;
+  gap: 0.15rem;
+  z-index: 1;
+}
+.block-tools .btn-icon {
+  opacity: 0.55;
+  background: var(--surface);
+}
+.block-tools .btn-icon:hover,
+.block-tools .btn-icon:focus-visible,
+.block.is-arranging .block-tools .btn-icon {
+  opacity: 1;
+}
+.block > section > h2,
+.block > .reader-blank,
+.block > p:first-child {
+  padding-right: 2.2rem;
+}
+.block.is-arranging {
+  outline: 1px dashed var(--line);
+  outline-offset: 4px;
+  border-radius: 6px;
+  padding-top: 2rem;
+}
+.block-quadro {
+  grid-area: box;
+}
+.reader-body:has(> .block-quadro.is-editing) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'box' 'text';
+}
+.block-editor {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  background: var(--surface);
+  display: grid;
+  gap: 0.6rem;
+}
+.block-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+}
+.block-form {
+  display: grid;
+  gap: 0.5rem;
+}
+.block-empty {
+  font-style: italic;
+}
+.block-quote {
+  margin: 1rem 0;
+}
+.block-quote blockquote {
+  margin: 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--accent);
+  font-style: italic;
+}
+.block-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.5rem;
+}
+.block-gallery-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+.block-gallery-item {
+  position: relative;
+}
+.block-gallery-item .btn-icon {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--surface);
+}
+.add-block {
+  margin-top: 1.2rem;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  text-align: left;
+}
+.add-block-menu {
+  margin-top: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.6rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.reader-head-editor {
+  margin: 0 0 1rem;
+}
+.reader-text > .block > p {
+  margin: 0 0 1em;
+}
