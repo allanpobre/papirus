@@ -1,6 +1,6 @@
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
-import { Bold, BookmarkPlus, ImagePlus, Italic, Link2, MessageSquarePlus, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
+import { Bold, BookmarkPlus, ImagePlus, Italic, Link2, MessageSquarePlus, Milestone, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { MentionMatcher } from '../logic/detection'
 import type { SceneDoc } from '../model/schema'
@@ -30,6 +30,8 @@ export interface SceneEditorActions {
   keep: (sel: SelectionInfo) => void
   /** Comentar o trecho (nota do autor). */
   comment: (sel: SelectionInfo) => void
+  /** "Isto muda alguém?" ou "isto revela algo?" (cria a fase ou marca a revelação). */
+  change: (sel: SelectionInfo) => void
   /** Clique num trecho comentado. */
   openComment: (commentId: string) => void
   /** Ctrl/⌘ + clique num nome. */
@@ -249,6 +251,9 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
           </button>
           <button type="button" className="bubble-btn" onClick={() => actions.createEntity(selection())}>
             <UserPlus size={15} /> Ficha
+          </button>
+          <button type="button" className="bubble-btn" title="Isto muda alguém ou revela algo?" onClick={() => actions.change(selection())}>
+            <Milestone size={15} /> Muda ou revela
           </button>
           <button type="button" className="bubble-btn" onClick={() => actions.comment(selection())}>
             <MessageSquarePlus size={15} /> Comentar

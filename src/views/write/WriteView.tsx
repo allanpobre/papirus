@@ -64,6 +64,7 @@ import { EntityMultiPicker, EntityPicker } from '../../ui/EntityPicker'
 import { FactDialog, type FactDraft } from '../../ui/FactDialog'
 import { Modal } from '../../ui/Modal'
 import { useMediaQuery } from '../../ui/useMediaQuery'
+import { ChangeDialog } from './ChangeDialog'
 import { LiveMargin } from './LiveMargin'
 import { ManuscriptTree } from './ManuscriptTree'
 import { ReadingMode } from './ReadingMode'
@@ -89,6 +90,7 @@ type Dialog =
   | { kind: 'versions' }
   | { kind: 'reading' }
   | { kind: 'comment'; sel: SelectionInfo }
+  | { kind: 'change'; sel: SelectionInfo }
   | null
 
 export default function WriteView() {
@@ -358,6 +360,7 @@ export default function WriteView() {
     },
     openEntity: (id: string) => peek(id),
     comment: (sel: SelectionInfo) => sel.text && setDialog({ kind: 'comment', sel }),
+    change: (sel: SelectionInfo) => sel.text && setDialog({ kind: 'change', sel }),
     openComment: (id: string) => {
       setFocusedComment(id)
       if (narrow) setNarrowMargin(true)
@@ -883,6 +886,7 @@ export default function WriteView() {
           }}
         />
       )}
+      {dialog?.kind === 'change' && scene && <ChangeDialog scene={scene} text={dialog.sel.text} paragraph={dialog.sel.paragraph} matcher={matcher} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'versions' && <VersionsDialog scene={scene} onClose={() => setDialog(null)} onRestored={() => setEditorNonce((n) => n + 1)} />}
       {dialog?.kind === 'reading' && (
         <ReadingMode

@@ -98,7 +98,7 @@ export const PAGE_TOURS = {
       {
         target: '.scene-text',
         title: 'Selecione um trecho',
-        body: 'Aparece uma barra para: Vincular o trecho a uma ficha, guardar um Fato (com quem disse e se é verdade), criar uma Ficha, Comentar ou Guardar em Ideias. No celular, a barra fica em cima do teclado. Nada vira ficha sozinho.',
+        body: 'Aparece uma barra para: Vincular o trecho a uma ficha, guardar um Fato (com quem disse e se é verdade), criar uma Ficha, “Muda ou revela” (o trecho vira uma fase do personagem ou marca quando o leitor descobre algo), Comentar ou Guardar em Ideias. No celular, a barra fica em cima do teclado. Nada vira ficha sozinho.',
       },
       {
         target: '.scene-review',
@@ -107,7 +107,7 @@ export const PAGE_TOURS = {
         optional: true,
       },
       { target: '.margin-review, [aria-label="Mostrar margem"], .margin-sheet-handle', title: 'Nomes novos', body: NOMES_NOVOS, optional: true },
-      { target: '[data-tour="margem"]', title: 'A margem', body: 'Quem aparece no parágrafo e na cena, comentários, leitores beta, pistas ligadas a quem está em cena e perguntas de continuidade. Dá para fechar.', optional: true },
+      { target: '[data-tour="margem"]', title: 'A margem', body: 'Sugestões do texto (um primeiro nome sozinho vira apelido; “Ilvani, uma dunmer” sugere a espécie), quem aparece no parágrafo e na cena, comentários, leitores beta, pistas ligadas a quem está em cena e perguntas de continuidade. Dá para fechar.', optional: true },
       {
         target: '.margin-sheet-handle',
         title: 'A margem no celular',

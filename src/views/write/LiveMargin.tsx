@@ -11,6 +11,7 @@ import { entityName, updateScene } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { CanonBadge } from '../../ui/bits'
 import { BetaReadersSection } from './BetaReaders'
+import { SuggestionsSection } from './SuggestionsSection'
 import { QuestionCard } from './QuestionCard'
 import { useSettled } from '../../ui/useSettled'
 
@@ -87,6 +88,8 @@ export function LiveMargin({ scene, paragraph, matcher, questions, candidates, o
       {top}
       <CommentsSection scene={scene} focused={focusedComment ?? null} onRemoveMark={onRemoveCommentMark} />
       <BetaReadersSection sceneId={scene.id} />
+
+      <SuggestionsSection text={calmText} />
 
       {here.length > 0 && (
         <section className="margin-section margin-here">

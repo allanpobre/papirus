@@ -12097,3 +12097,29 @@ button.presence-dot {
   flex: 1 1 10rem;
   min-width: 0;
 }
+
+/* Sugestões do texto na margem e a janela "Muda ou revela". */
+.suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.suggestions li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.suggestions p {
+  margin: 0;
+}
+.change-quote {
+  margin: 0 0 0.8rem;
+  padding-left: 0.8rem;
+  border-left: 3px solid var(--accent);
+  font-style: italic;
+}
