@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useAccount } from '../account/auth'
 import { KIND_NAME, removeFromTrash, restoreTrash, revertTo, timeAgo, TRASH_DAYS } from '../logic/history'
 import { shortName } from '../share/sharing'
+import type { TrashItem, Universe } from '../model/schema'
 import { useWorkspace, type View } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
 
@@ -13,6 +14,15 @@ function useWho() {
   const { user } = useAccount()
   const me = user?.email ? shortName(user.email) : null
   return (by: string | null) => (by === null || by === me ? 'Você' : by)
+}
+
+/** O que volta junto ao recuperar, quando não está dito no nome (as cenas de um livro, o livro de uma cena). */
+function hint(t: TrashItem, universe: Universe) {
+  const scenes = t.refs?.filter((r) => r.kind === 'scenes' && 'storyId' in r.changes).length ?? 0
+  if (t.kind === 'stories' && scenes)
+    return <span className="muted tiny">{scenes === 1 ? 'A cena dele ficou solta; volta' : `As ${scenes} cenas dele ficaram soltas; voltam`} para o livro ao recuperar.</span>
+  const book = t.kind === 'scenes' ? universe.trash.find((x) => x.id !== t.id && x.records.stories?.some((s) => t.records.scenes?.some((c) => c.storyId === s.id))) : undefined
+  return book ? <span className="muted tiny">O livro dela, “{book.label.replace(/ \(.*$/, '')}”, também está na lixeira e volta junto.</span> : null
 }
 
 /** O que foi apagado nos últimos 30 dias, para recuperar. */
@@ -39,6 +49,7 @@ export function TrashCard() {
                   <span className="muted tiny">
                     {KIND_NAME[t.kind]?.replace(/^(a|o) /, '') ?? 'item'} · {who(t.by)} apagou {timeAgo(t.deletedAt)}
                   </span>
+                  {hint(t, universe)}
                 </span>
                 {!readOnly && (
                   <span className="history-actions">
