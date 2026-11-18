@@ -211,6 +211,14 @@ export const relationSchema = z.object({
   listId: z.string().optional(),
   /** O papel dentro da lista: "líder", "rainha". */
   role: z.string().optional(),
+  /**
+   * O leitor só descobre esta ligação numa cena (a espécie verdadeira, o pai de verdade). Até lá, vê a
+   * máscara: outra ficha no lugar (outra espécie, outro pai) ou nada. Sem isso, vale desde o começo.
+   */
+  reveal: z
+    .object({ sceneId: z.string(), maskId: z.string().nullable().default(null) })
+    .optional()
+    .catch(undefined),
   ...timestamps,
 })
 

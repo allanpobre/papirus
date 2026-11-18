@@ -52,3 +52,40 @@ describe('o ponto da história', () => {
     expect(derivedText(u, kael, 'Idade')?.text).toMatch(/^19 anos em/)
   })
 })
+
+describe('revelação no "Quem é" (a espécie verdadeira)', () => {
+  it('o leitor vê a máscara até a cena da revelação; o caderno do leitor só registra a ligação ali', async () => {
+    const { addDefiner, addOption, choose, chosenOf } = await import('./definers')
+    const { readerBook } = await import('./reader')
+    const { patch } = await import('../model/universe')
+    let u = ostriaUniverse()
+    const order = manuscriptOrder(u)
+    const kael = u.entities.find((e) => e.name === 'Kael')!
+    const [u1, d] = addDefiner(u, 'Espécie', ['personagem'])
+    let humano: string
+    let vanderyu: string
+    ;[u, humano] = addOption(u1, d, 'Humano')
+    ;[u, vanderyu] = addOption(u, d, 'Vanderyu')
+    u = choose(u, kael.id, d, vanderyu)
+    const rel = chosenOf(u, kael.id, d)!.relationId
+    const at = order.findIndex((s) => s.title === 'O retrato')
+    u = patch(u, 'relations', rel, { reveal: { sceneId: order[at].id, maskId: humano } })
+    const ord = manuscriptOrder(u)
+    const { whoIsAt } = await import('./storyPoint')
+    const antes = whoIsAt(u, u.entities.find((e) => e.id === kael.id)!, at - 1, ord)[0]
+    expect(antes.option.name).toBe('Vanderyu')
+    expect(antes.mask?.name).toBe('Humano')
+    expect(antes.reveal).toMatchObject({ at, title: 'O retrato', future: true })
+    expect(whoIsAt(u, u.entities.find((e) => e.id === kael.id)!, at, ord)[0].reveal?.future).toBe(false)
+    // O caderno do leitor (wiki com limite, link de leitura): a ligação entra na cena da revelação, não antes,
+    // mesmo que as duas fichas já tenham aparecido (aqui, a Vanderyu está citada na primeira cena).
+    u = patch(u, 'scenes', ord[0].id, { presentIds: [...ord[0].presentIds, vanderyu] })
+    const item = readerBook(u).relations.find((r) => r.entityIds.includes(kael.id) && r.entityIds.includes(vanderyu))
+    expect(item?.at).toBe(at)
+    const semRevelacao = patch(u, 'relations', rel, { reveal: undefined })
+    expect(readerBook(semRevelacao).relations.find((r) => r.entityIds.includes(kael.id) && r.entityIds.includes(vanderyu))?.at).toBeLessThan(at)
+    // Cena da revelação apagada: o leitor nunca fica sabendo (por segurança).
+    const lost = patch(u, 'relations', rel, { reveal: { sceneId: 'sumiu', maskId: humano } })
+    expect(readerBook(lost).relations.some((r) => r.entityIds.includes(kael.id) && r.entityIds.includes(vanderyu))).toBe(false)
+  })
+})

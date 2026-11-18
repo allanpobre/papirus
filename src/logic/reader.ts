@@ -160,7 +160,10 @@ function relationAt(r: Relation, scenes: Scene[], seenAt: (id: string | null) =>
   const from = seenAt(r.fromId)
   const to = seenAt(r.toId)
   if (from === null || to === null) return null
-  const both = Math.max(from, to)
+  // Revelada numa cena: o leitor só fica sabendo ali (cena que não existe mais: nunca, por segurança).
+  const revealed = r.reveal ? scenes.findIndex((s) => s.id === r.reveal!.sceneId) : -1
+  if (r.reveal && revealed < 0) return null
+  const both = Math.max(from, to, revealed)
   if (r.scope.kind === 'geral' || r.scope.kind === 'periodo') return both
   for (let i = both; i < scenes.length; i++) if (activeAt(r, scenes[i])) return i
   return null

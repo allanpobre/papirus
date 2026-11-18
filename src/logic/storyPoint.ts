@@ -1,4 +1,6 @@
-import type { Entity, Scene, Universe } from '../model/schema'
+import type { Entity, Relation, Scene, Universe } from '../model/schema'
+import { byId } from '../model/universe'
+import { chosenOf, passesOf, whoIs, type Trait } from './definers'
 import { appearances } from './reader'
 import { revealIndex, splitReveals } from './reveals'
 import { splitSecrets } from './secrets'
@@ -73,4 +75,56 @@ export function readerTextAt(text: string, index: number, order: Scene[]): strin
 export function knownAt(universe: Universe, order: Scene[], entity: Pick<Entity, 'id'>, index: number): { known: boolean; first: number | null } {
   const first = appearances(order, universe.entities).first.get(entity.id) ?? null
   return { known: first !== null && first <= index, first }
+}
+
+/** Quando o leitor descobre uma ligação: a cena e o título; sem `reveal`, desde sempre (null). */
+export interface RevealInfo {
+  /** Posição da cena; `Infinity` se a cena não existe mais (o leitor nunca vê, por segurança). */
+  at: number
+  title: string
+  /** Ainda não revelada no ponto escolhido. */
+  future: boolean
+}
+
+export function relationRevealAt(r: Pick<Relation, 'reveal'>, index: number, order: Scene[]): RevealInfo | null {
+  if (!r.reveal) return null
+  const at = order.findIndex((s) => s.id === r.reveal!.sceneId)
+  const title = at >= 0 ? order[at].title || 'Sem título' : 'uma cena que não existe mais'
+  return { at: at >= 0 ? at : Infinity, title, future: at < 0 || at > index }
+}
+
+/** Um item do "Quem é" num ponto da história: a verdade, quando o leitor a descobre e o que ele vê até lá. */
+export interface WhoIsRowAt {
+  definerId: string
+  definerName: string
+  /** A verdade (o que o autor escolheu). */
+  option: Entity
+  traits: Trait[]
+  relationId: string
+  reveal: RevealInfo | null
+  /** O que o leitor vê antes da revelação (outra opção), ou nada. */
+  mask: Entity | null
+  maskTraits: { key: string; value: string }[]
+}
+
+export function whoIsAt(u: Universe, e: Entity, index: number, order: Scene[]): WhoIsRowAt[] {
+  const out: WhoIsRowAt[] = []
+  for (const row of whoIs(u, e)) {
+    if (!row.option) continue
+    const chosen = chosenOf(u, e.id, row.definer)
+    const relation = chosen ? byId(u, 'relations', chosen.relationId) : undefined
+    const reveal = relation ? relationRevealAt(relation, index, order) : null
+    const mask = relation?.reveal?.maskId ? (byId(u, 'entities', relation.reveal.maskId) ?? null) : null
+    out.push({
+      definerId: row.definer.id,
+      definerName: row.definer.name,
+      option: row.option,
+      traits: row.traits,
+      relationId: chosen?.relationId ?? '',
+      reveal,
+      mask,
+      maskTraits: mask ? passesOf(mask, row.definer).filter((p) => p.key.trim()) : [],
+    })
+  }
+  return out
 }

@@ -15,7 +15,7 @@ import { answerOf, isBlank, questionsFor } from '../logic/kindQuestions'
 import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
-import { knownAt, partsAt, pointIndex, yearAt } from '../logic/storyPoint'
+import { knownAt, partsAt, pointIndex, relationRevealAt, yearAt } from '../logic/storyPoint'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
@@ -216,8 +216,8 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             {[...Object.entries(e.game.mods).map(([k, n]) => `${n > 0 ? '+' : ''}${n} ${k}`), ...e.game.traits].join(' · ')}
           </p>
         )}
-        {known.known && <MembershipChips entity={e} />}
-        {known.known && <WhoIsReader entity={e} link={link} />}
+        {known.known && <MembershipChips entity={e} at={{ index, reader, scenes }} />}
+        {known.known && <WhoIsReader entity={e} link={link} at={{ index, reader, scenes }} />}
       </div>
 
       {known.known && (
@@ -332,6 +332,15 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
                       </>
                     )}
                     {relationDetails(universe, r) && <span className="muted"> · {relationDetails(universe, r)}</span>}
+                    {(() => {
+                      const rv = relationRevealAt(r, index, scenes)
+                      return rv ? (
+                        <span className={`reveal-when${rv.future ? ' is-future' : ''}`}>
+                          {' '}
+                          <Eye size={11} aria-hidden="true" /> {rv.future ? 'o leitor só descobre em' : 'o leitor descobre em'} “{rv.title}”
+                        </span>
+                      ) : null
+                    })()}
                   </li>
                 ))}
               </ul>

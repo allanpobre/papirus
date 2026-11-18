@@ -11548,3 +11548,34 @@ button.presence-dot {
 .presence-strip li.is-after .presence-dot {
   opacity: 0.35;
 }
+
+/* "O leitor descobre depois": a cena da revelação e a máscara, na escolha do Quem é. */
+.reveal-control {
+  margin-top: 0.25rem;
+}
+
+.reveal-control.is-set .reveal-toggle {
+  color: var(--sky);
+}
+
+.reveal-panel {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--sky) 35%, var(--line));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--sky-soft) 50%, var(--surface));
+}
+
+.reveal-panel p {
+  margin: 0;
+}
+
+.whois-reveal {
+  margin-left: 0.2rem;
+}
+
+.chip.is-future {
+  border-style: dashed;
+}
