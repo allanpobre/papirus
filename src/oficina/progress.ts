@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { GUIDES } from './guides'
 
 /**
  * O caminho de cada pessoa na Oficina, neste aparelho: guias já abertos, exercícios feitos,
@@ -40,7 +41,8 @@ function load(): OficinaProgress {
       read: list(raw?.read),
       done: list(raw?.done),
       steps: list(raw?.steps),
-      trail: typeof raw?.trail === 'string' ? raw.trail : null,
+      // Uma trilha guardada que não existe mais (de outra versão) vira "ainda não escolheu", em vez de derrubar a Oficina.
+      trail: typeof raw?.trail === 'string' && GUIDES.some((g) => g.id === raw.trail) ? raw.trail : null,
       asked: raw?.asked === true,
       notes: raw?.notes && typeof raw.notes === 'object' ? raw.notes : {},
     }

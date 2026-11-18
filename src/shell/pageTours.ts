@@ -676,7 +676,7 @@ export const PAGE_TOURS = {
       { target: '.oficina-first', title: 'Por onde começar', body: 'Escolha o que quer treinar. A resposta escolhe a trilha do passo de hoje; dá para trocar quando quiser.', optional: true },
       { target: '.oficina-today-card', title: 'O passo de hoje', body: 'O próximo passo da sua trilha, com quanto tempo leva. “Começar” abre a lição e o exercício.', optional: true },
       { target: '.oficina-trail-rows', title: 'Suas trilhas', body: 'Quanto você já andou em cada uma. Trilha completa ganha o selo.', optional: true },
-      { target: '.oficina-path', title: 'A trilha', body: 'Lições, uma revisão (reescrever o primeiro texto com a técnica nova), uma imitação de Machado de Assis e o desafio final. Toque em qualquer passo.', optional: true },
+      { target: '.oficina-path', title: 'A trilha', body: 'Lições, uma revisão (reescrever o primeiro texto com a técnica nova), uma imitação de Machado de Assis (e, em alguns guias, de O Mágico de Oz: lugar, diálogo, ritmo) e o desafio final. Toque em qualquer passo.', optional: true },
       { target: '.oficina-cad', title: 'O caderno', body: 'Cada texto, com a data e as suas respostas. Toque para reler ou refazer o passo.', optional: true },
       { target: '.oficina-ideas', title: 'Gerador de ideias', body: 'Sorteie uma ideia para escrever ou um gancho para a mesa. Dentro de um universo, ela vira uma cena com um toque.', optional: true },
       { target: '.oficina-shelf-section', title: 'Os guias', body: 'Toque num gênero ou técnica para ler o guia inteiro. A etiqueta mostra o do seu universo.', optional: true },
