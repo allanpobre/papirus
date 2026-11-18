@@ -46,6 +46,9 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
   const [state, setState] = useState<'carregando' | 'ok' | 'sumiu' | 'erro'>('carregando')
   const [error, setError] = useState('')
   const [live, setLive] = useState(false)
+  // O canal já esteve ao vivo e caiu (o celular dormiu): aparece como "Reconectando…" até voltar. E se o aparelho está sem rede.
+  const [dropped, setDropped] = useState(false)
+  const [offline, setOffline] = useState(() => navigator.onLine === false)
   const [fresh, setFresh] = useState(false)
   const [me, setMe] = useState<string | null>(() => recall(`codex-eu:${id}`))
   const [feed, setFeed] = useState<FeedRoll[]>([])
@@ -159,11 +162,26 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
     if (!server) return
     const first = setTimeout(() => void load(), 0)
     const timer = setInterval(() => void load(), POLL_MS)
-    const onVisible = () => document.visibilityState === 'visible' && void load()
+    // O celular acordou ou a rede voltou: confere o Codex agora e, se o canal caiu, refaz sem esperar a volta automática.
+    const wake = () => {
+      void load()
+      void table.current?.reconnect().catch(() => undefined)
+    }
+    const onVisible = () => document.visibilityState === 'visible' && wake()
+    const onOnline = () => {
+      setOffline(false)
+      wake()
+    }
+    const onOffline = () => setOffline(true)
     document.addEventListener('visibilitychange', onVisible)
+    addEventListener('online', onOnline)
+    addEventListener('offline', onOffline)
     const t = joinTable(server, id, {
       update: () => void load(),
-      status: setLive,
+      status: (l, d) => {
+        setLive(l)
+        setDropped(d)
+      },
       roll: (r) => setFeed((f) => (f.some((x) => x.id === r.id) ? f : [r, ...f].slice(0, 12))),
       check: (c) => setFeed((f) => f.map((x) => (x.id === c.id ? { ...x, verdict: c.verdict, tone: c.tone, checked: true } : x))),
       presence: (p) => setPeople((l) => withPresence(l, p, Date.now())),
@@ -185,6 +203,8 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
       clearInterval(timer)
       clearInterval(beat)
       document.removeEventListener('visibilitychange', onVisible)
+      removeEventListener('online', onOnline)
+      removeEventListener('offline', onOffline)
       document.removeEventListener('visibilitychange', onBack)
       removeEventListener('pagehide', onLeave)
       onLeave()
@@ -243,8 +263,12 @@ export default function PlayerApp({ id, server }: { id: string; server: ServerCo
             <span className="live-dot" aria-hidden="true" /> Sessão {codex.session.number}
           </span>
         )}
-        <span className={`player-live${live ? ' on' : ''}`} title={live ? 'Recebendo na hora' : 'Atualiza a cada 20 segundos'}>
-          <Radio size={13} aria-hidden="true" /> {live ? 'ao vivo' : 'atualiza sozinho'}
+        <span
+          className={`player-live${live ? ' on' : ''}${!live && (dropped || offline) ? ' is-lost' : ''}`}
+          role="status"
+          title={live ? 'Recebendo na hora' : offline ? 'Sem internet: volta sozinho quando a rede voltar' : dropped ? 'A conexão caiu: tentando de novo' : 'Atualiza a cada 20 segundos'}
+        >
+          <Radio size={13} aria-hidden="true" /> {live ? 'ao vivo' : offline ? 'sem internet' : dropped ? 'Reconectando…' : 'atualiza sozinho'}
         </span>
         <PageHelp tour="codex-jogador" />
         <button type="button" className="btn-icon" aria-label={dark ? 'Tema claro' : 'Tema escuro'} onClick={toggleTheme}>

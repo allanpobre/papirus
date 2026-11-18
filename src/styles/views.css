@@ -11226,3 +11226,25 @@ h3.cork-act {
 .fact-where.is-later {
   color: var(--ochre);
 }
+
+/* O celular do jogador perdeu a conexão: avisa que está tentando de novo (e que não é o fim do mundo). */
+.player-live.is-lost {
+  color: var(--ochre);
+  font-weight: 650;
+}
+
+.player-live.is-lost svg {
+  animation: player-lost 1.2s ease-in-out infinite;
+}
+
+@keyframes player-lost {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-live.is-lost svg {
+    animation: none;
+  }
+}

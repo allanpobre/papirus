@@ -80,11 +80,15 @@ export async function testServer(cfg: ServerConfig): Promise<void> {
  */
 interface Table {
   key: string
+  /** `channel` troca quando a conexão cai e se refaz (ver `reconnectTable`). */
   ready: Promise<{ sb: SupabaseClient; channel: RealtimeChannel } | null>
   subscribed: Promise<boolean>
   handlers: Set<(event: string, payload: unknown) => void>
-  statuses: Set<(live: boolean) => void>
+  /** `live`: o canal está entregando; `dropped`: já esteve e caiu (o celular dormiu, a rede foi embora). */
+  statuses: Set<(live: boolean, dropped: boolean) => void>
   live: boolean
+  /** Já esteve ao vivo alguma vez (para saber a diferença entre "ainda não conectou" e "caiu"). */
+  wasLive: boolean
   refs: number
   closing?: ReturnType<typeof setTimeout>
 }
@@ -93,6 +97,21 @@ const tables = new Map<string, Table>()
 /** Canais saindo: um canal novo no mesmo tópico espera o antigo sair de vez (o cliente devolveria o velho). */
 const leaving = new Map<string, Promise<unknown>>()
 const TABLE_EVENTS = ['atualizado', 'rolagem', 'conferida', 'presenca', 'saiu', 'quem', 'aviso', 'vez', 'ficha'] as const
+
+/** Põe o canal da mesa no cliente: os eventos vão aos `handlers` e o estado vai aos `statuses`. */
+function attachChannel(t: Table, sb: SupabaseClient, id: string, settle: (ok: boolean) => void): RealtimeChannel {
+  const channel = sb.channel(`papirus-codex-${id}`)
+  for (const event of TABLE_EVENTS) channel.on('broadcast', { event }, (msg) => t.handlers.forEach((h) => h(event, msg.payload)))
+  channel.subscribe((status) => {
+    t.live = status === 'SUBSCRIBED'
+    if (t.live) {
+      t.wasLive = true
+      settle(true)
+    } else if (status !== 'CLOSED') settle(false)
+    t.statuses.forEach((s) => s(t.live, !t.live && t.wasLive))
+  })
+  return channel
+}
 
 function openTable(cfg: ServerConfig, id: string): Table {
   const key = `${cfg.url}|${cfg.anonKey}|${id}`
@@ -110,20 +129,11 @@ function openTable(cfg: ServerConfig, id: string): Table {
     handlers: new Set(),
     statuses: new Set(),
     live: false,
+    wasLive: false,
     refs: 1,
   }
   t.ready = (leaving.get(key) ?? Promise.resolve()).then(() => anonClient(cfg)).then(
-    (sb) => {
-      const channel = sb.channel(`papirus-codex-${id}`)
-      for (const event of TABLE_EVENTS) channel.on('broadcast', { event }, (msg) => t.handlers.forEach((h) => h(event, msg.payload)))
-      channel.subscribe((status) => {
-        t.live = status === 'SUBSCRIBED'
-        if (t.live) settle(true)
-        else if (status !== 'CLOSED') settle(false)
-        t.statuses.forEach((s) => s(t.live))
-      })
-      return { sb, channel }
-    },
+    (sb) => ({ sb, channel: attachChannel(t, sb, id, settle) }),
     () => {
       settle(false)
       return null
@@ -131,6 +141,23 @@ function openTable(cfg: ServerConfig, id: string): Table {
   )
   tables.set(key, t)
   return t
+}
+
+/**
+ * O celular acordou (ou a rede voltou) e o canal não está entregando: refaz o canal do zero, sem esperar a
+ * volta automática (que demora segundos). Sem efeito se já está ao vivo.
+ */
+async function reconnectTable(t: Table, id: string) {
+  const r = await t.ready
+  if (!r || t.live) return
+  const old = r.channel
+  t.statuses.forEach((s) => s(false, true))
+  try {
+    await r.sb.removeChannel(old)
+  } catch {
+    // O canal velho já estava morto: segue.
+  }
+  r.channel = attachChannel(t, r.sb, id, () => {})
 }
 
 function releaseTable(t: Table) {
@@ -331,7 +358,8 @@ export function joinTable(
     update?: () => void
     roll?: (r: TableRoll) => void
     check?: (c: TableCheck) => void
-    status?: (live: boolean) => void
+    /** `dropped`: o canal já esteve ao vivo e caiu (aparece como "Reconectando…"). */
+    status?: (live: boolean, dropped: boolean) => void
     /** Alguém está (ou continua) na mesa. */
     presence?: (p: TablePresence) => void
     /** Alguém fechou a mesa. */
@@ -379,13 +407,15 @@ export function joinTable(
   t.handlers.add(handler)
   if (on.status) {
     t.statuses.add(on.status)
-    on.status(t.live)
+    on.status(t.live, !t.live && t.wasLive)
   }
   let left = false
   return {
     sendRoll: (r: TableRoll) => sendOn(t, 'rolagem', r),
     sendCheck: (c: TableCheck) => sendOn(t, 'conferida', c),
     ping: () => sendOn(t, 'atualizado', {}),
+    /** Acordou ou a rede voltou: refaz o canal se ele não estiver entregando. */
+    reconnect: () => reconnectTable(t, id),
     sendPresence: (p: TablePresence) => sendOn(t, 'presenca', p),
     sendLeft: (presenceId: string) => sendOn(t, 'saiu', { id: presenceId }),
     ask: () => sendOn(t, 'quem', {}),

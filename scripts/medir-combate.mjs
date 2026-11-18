@@ -58,7 +58,6 @@ if (await hp.count()) {
 }
 const cond = page.getByRole('combobox', { name: /^Adicionar condição a Goblin 3/ })
 if (await cond.count()) {
-  const opts = await cond.locator('option').allInnerTexts()
   await timed('condição: escolher', () => cond.selectOption({ index: 1 }))
   await timed('condição: duração 3 rodadas', () => page.getByRole('combobox', { name: /^Quanto tempo dura/ }).selectOption({ label: '3 rodadas' }))
 }
