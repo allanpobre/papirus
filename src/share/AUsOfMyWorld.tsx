@@ -7,14 +7,14 @@ import { useWorkspace } from '../state/workspace'
 import { ShareSection } from './ShareSection'
 import { openShared, sharedWithMe, shortName, type SharedWithMe } from './sharing'
 
-const KIND: Record<AUNews['key'], string> = { entities: 'Ficha', relations: 'Ligação', events: 'Data', facts: 'Fato' }
+const KIND: Record<AUNews['key'], string> = { entities: 'Ficha', relations: 'Ligação', events: 'Data', facts: 'Fato', stories: 'História' }
 
 /**
  * Os AUs feitos a partir deste mundo e mostrados ao autor ("Mostrar ao autor", no AU). O autor vê o
  * que nasceu ou mudou em cada um e escolhe o que vira canon aqui.
  */
 export function AUsOfMyWorld() {
-  const { universe, update } = useWorkspace()
+  const { universe, undoable } = useWorkspace()
   const { user, server } = useAccount()
   const [aus, setAus] = useState<{ item: SharedWithMe; au: Universe }[]>([])
   const [openId, setOpenId] = useState<string | null>(null)
@@ -93,6 +93,13 @@ export function AUsOfMyWorld() {
                       />
                       <span className="au-kind">{KIND[n.key]}</span> {n.label}
                       <span className={`au-chip au-chip-${n.state}`}>{n.state === 'novo' ? 'Nova no AU' : 'Mudou no AU'}</span>
+                      {n.key === 'stories' && (
+                        <span className="muted tiny au-news-hint">
+                          {n.state === 'novo'
+                            ? `Vira uma história nova no seu mundo, com ${n.scenes === 1 ? 'a cena' : `as ${n.scenes} cenas`} dela e as fichas que elas usam.`
+                            : `Já está no seu mundo; traz ${n.scenes === 1 ? 'a cena nova ou mudada' : `as ${n.scenes} cenas novas ou mudadas`}.`}
+                        </span>
+                      )}
                     </label>
                   </li>
                 ))}
@@ -102,10 +109,17 @@ export function AUsOfMyWorld() {
                 className="btn btn-primary btn-sm"
                 disabled={!chosen.size}
                 onClick={() => {
-                  const { extra } = canonize(universe, opened.au, [...chosen])
-                  update((u) => canonize(u, opened.au, [...chosen]).universe)
-                  const n = chosen.size
-                  setDone(`Pronto: ${n} ${n === 1 ? 'coisa virou' : 'coisas viraram'} canon${extra.length ? ` (e ${extra.length} ${extra.length === 1 ? 'ficha foi junto' : 'fichas foram juntas'}, porque eram usadas)` : ''}.`)
+                  const picked = [...chosen]
+                  const { extra, stories, scenes } = canonize(universe, opened.au, picked)
+                  const n = picked.length
+                  const text =
+                    `Pronto: ${n} ${n === 1 ? 'coisa virou' : 'coisas viraram'} canon` +
+                    (stories ? ` (${stories === 1 ? 'uma história' : `${stories} histórias`} com ${scenes === 1 ? 'a cena' : `${scenes} cenas`}; estão em Escrever)` : '') +
+                    (extra.length ? ` (e ${extra.length} ${extra.length === 1 ? 'ficha foi junto' : 'fichas foram juntas'}, porque eram usadas)` : '') +
+                    '.'
+                  // O desfazer devolve o universo a como estava antes (o aviso com o botão aparece embaixo da tela).
+                  undoable(`${text} Desfazer volta ao que era.`, (u) => canonize(u, opened.au, picked).universe)
+                  setDone(text)
                   setChosen(new Set())
                 }}
               >

@@ -1,12 +1,14 @@
 import type { Universe } from '../model/schema'
 import { newId, now } from '../model/universe'
 import { readerCopy } from '../share/readerCopy'
+import { mentionIdsInDoc } from './doc'
 
 /*
  * Universo alternativo (AU): outra pessoa, com a permissão do autor, cria um universo a partir do
  * mundo dele. O AU recebe o mundo (fichas, ligações, datas, fatos e mapas) e as histórias, que
  * viram lore: dá para ler, não para mudar. Os segredos nunca vão. O autor original vê o que nasceu
- * no AU e escolhe o que vira canon.
+ * no AU e escolhe o que vira canon: fichas, ligações, datas, fatos e, inteiras, as histórias que
+ * nasceram no AU (com as cenas delas).
  */
 
 /** O que o AU acompanha do original. As histórias e as cenas são lore: só leitura. */
@@ -198,10 +200,12 @@ export function pullOriginal(au: Universe, fresh: Universe): PullResult {
 
 /** Uma coisa do AU que o autor original pode canonizar. */
 export interface AUNews {
-  key: Canonizable
+  key: Canonizable | 'stories'
   id: string
   state: 'novo' | 'mudou'
   label: string
+  /** História: quantas cenas vão junto (as que ainda não estão iguais no original). */
+  scenes?: number
 }
 
 const nameOf = (u: Universe, id: string | null | undefined) => (id ? (u.entities.find((e) => e.id === id)?.name ?? '?') : '?')
@@ -230,11 +234,30 @@ export function auNews(au: Universe, original: Universe): AUNews[] {
       out.push({ key, id: item.id, state, label: labelOf(au, key, item) })
     }
   }
+  // Histórias que nasceram no AU: a história inteira, com as cenas dela. As do original são lore e não saem daqui.
+  const originalScenes = new Map(original.scenes.map((c) => [c.id, itemHash(c)]))
+  const originalStories = new Map(original.stories.map((st) => [st.id, itemHash(st)]))
+  for (const story of au.stories) {
+    if (originState(au, story) !== 'novo') continue
+    const scenes = scenesToCarry(au, story.id).filter((c) => originalScenes.get(c.id) !== itemHash(c))
+    const sameStory = originalStories.get(story.id) === itemHash(story)
+    if (sameStory && !scenes.length) continue
+    out.push({ key: 'stories', id: story.id, state: originalStories.has(story.id) ? 'mudou' : 'novo', label: story.title || 'Sem título', scenes: scenes.length })
+  }
   return out
 }
 
+/** As cenas de uma história do AU que nasceram lá (as do original são lore e ficam onde estão). */
+function scenesToCarry(au: Universe, storyId: string) {
+  return au.scenes.filter((c) => c.storyId === storyId && originState(au, c) === 'novo')
+}
+
 /** As fichas que uma coisa usa (para não canonizar uma ligação apontando para o nada). */
-function entityRefs(key: Canonizable, item: Item): string[] {
+function entityRefs(key: Canonizable | 'scenes', item: Item): string[] {
+  if (key === 'scenes') {
+    const c = item as Universe['scenes'][number]
+    return [c.povId, c.placeId, ...c.presentIds, ...mentionIdsInDoc(c.doc)].filter((x): x is string => !!x)
+  }
   if (key === 'entities') return [(item as Universe['entities'][number]).parentId].filter((x): x is string => !!x)
   if (key === 'relations') {
     const r = item as Universe['relations'][number]
@@ -249,25 +272,33 @@ function entityRefs(key: Canonizable, item: Item): string[] {
 }
 
 /**
- * Leva para o original o que o autor escolheu do AU. Se uma ligação, data ou fato usa uma ficha
- * que só existe no AU, ela vai junto. Devolve também o que foi junto.
+ * Leva para o original o que o autor escolheu do AU. Se uma ligação, data, fato ou cena usa uma ficha
+ * que só existe no AU, ela vai junto. Escolher uma história leva a história e as cenas que nasceram
+ * nela, como uma história nova no original (se já estava lá, é atualizada). Devolve também o que foi junto
+ * e quantas histórias e cenas entraram.
  */
-export function canonize(original: Universe, au: Universe, ids: string[]): { universe: Universe; extra: string[] } {
+export function canonize(original: Universe, au: Universe, ids: string[]): { universe: Universe; extra: string[]; stories: number; scenes: number } {
   const chosen = new Set(ids)
+  const storyIds = new Set(au.stories.filter((st) => chosen.has(st.id) && originState(au, st) === 'novo').map((st) => st.id))
+  for (const id of storyIds) chosen.delete(id)
+  const carried = au.scenes.filter((c) => c.storyId && storyIds.has(c.storyId) && originState(au, c) === 'novo')
   const extra: string[] = []
   const known = new Set(original.entities.map((e) => e.id))
   const queue = [...chosen]
+  const want = (ref: string) => {
+    if (known.has(ref) || chosen.has(ref) || !au.entities.some((e) => e.id === ref)) return
+    chosen.add(ref)
+    extra.push(ref)
+    queue.push(ref)
+  }
+  // As fichas que as cenas da história usam (ponto de vista, lugar, quem está, menções) vão junto.
+  for (const c of carried) for (const ref of entityRefs('scenes', c)) want(ref)
   while (queue.length) {
     const id = queue.pop()!
     for (const key of CANONIZABLE) {
       const item = (au[key] as Item[]).find((i) => i.id === id)
       if (!item) continue
-      for (const ref of entityRefs(key, item)) {
-        if (known.has(ref) || chosen.has(ref) || !au.entities.some((e) => e.id === ref)) continue
-        chosen.add(ref)
-        extra.push(ref)
-        queue.push(ref)
-      }
+      for (const ref of entityRefs(key, item)) want(ref)
     }
   }
   const next = { ...original } as Universe
@@ -282,5 +313,25 @@ export function canonize(original: Universe, au: Universe, ids: string[]): { uni
     }
     ;(next as unknown as Record<string, Item[]>)[key] = list
   }
-  return { universe: { ...next, updatedAt: t }, extra }
+  if (storyIds.size) {
+    const stories = [...original.stories]
+    for (const st of au.stories) {
+      if (!storyIds.has(st.id)) continue
+      const at = stories.findIndex((x) => x.id === st.id)
+      if (at >= 0) stories[at] = st
+      else stories.push(st)
+    }
+    const scenes = [...original.scenes]
+    for (const c of carried) {
+      const at = scenes.findIndex((x) => x.id === c.id)
+      if (at >= 0) scenes[at] = c
+      else scenes.push(c)
+    }
+    next.stories = stories
+    next.scenes = scenes
+  }
+  // Um fato que cita uma cena que não veio para o original fica sem a cena (e não apontando para o nada).
+  const sceneIds = new Set(next.scenes.map((c) => c.id))
+  next.facts = next.facts.map((f) => (f.sourceSceneId && !sceneIds.has(f.sourceSceneId) ? { ...f, sourceSceneId: null } : f))
+  return { universe: { ...next, updatedAt: t }, extra, stories: storyIds.size, scenes: carried.length }
 }

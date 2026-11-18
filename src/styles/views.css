@@ -10105,6 +10105,11 @@ h3.cork-act {
   list-style: none;
 }
 
+.au-news-hint {
+  display: block;
+  margin: 0.1rem 0 0 1.55rem;
+}
+
 .au-list li {
   display: flex;
   align-items: center;
