@@ -83,6 +83,7 @@ test('AU: o autor autoriza, a outra pessoa cria o AU com a lore, e o autor canon
   // E escreve uma história nova no AU, com uma cena (a história é dela: não é lore).
   await nav(bia, 'Escrever').click()
   const arvore = bia.getByRole('complementary', { name: 'Manuscrito' })
+  if (await bia.getByRole('button', { name: 'Mostrar manuscrito' }).count()) await bia.getByRole('button', { name: 'Mostrar manuscrito' }).click()
   await arvore.getByRole('button', { name: 'Nova história' }).click()
   await arvore.getByRole('region', { name: 'Nova história' }).getByRole('textbox', { name: 'Título da história' }).fill('A Selma em Ostria')
   await arvore.getByRole('region', { name: 'A Selma em Ostria' }).getByRole('button', { name: 'Nova cena' }).click()
@@ -105,9 +106,10 @@ test('AU: o autor autoriza, a outra pessoa cria o AU com a lore, e o autor canon
   // O aviso embaixo da tela tem o desfazer: devolve o universo a como estava, e a história volta a ser novidade.
   await page.getByRole('button', { name: 'Desfazer' }).click()
   await expect(share.getByRole('button', { name: 'Ver o que nasceu lá (2)' })).toBeVisible({ timeout: 20_000 })
-  await share.getByRole('button', { name: 'Ver o que nasceu lá (2)' }).click()
+  // A lista pode ter ficado aberta (o botão abre e fecha).
+  if (!(await share.getByRole('checkbox', { name: /A Selma em Ostria/ }).count())) await share.getByRole('button', { name: 'Ver o que nasceu lá (2)' }).click()
   await share.getByRole('checkbox', { name: /A Selma em Ostria/ }).check()
-  await share.getByRole('checkbox', { name: /Selma$/ }).check()
+  await share.getByRole('checkbox', { name: /^Ficha Selma/ }).check()
   await share.getByRole('button', { name: 'Canonizar (2)' }).click()
   await expect(share.getByText('2 coisas viraram canon (uma história com a cena; estão em Escrever)')).toBeVisible()
   await share.getByRole('button', { name: 'Fechar' }).click()
@@ -116,19 +118,22 @@ test('AU: o autor autoriza, a outra pessoa cria o AU com a lore, e o autor canon
   // A história e a cena chegaram ao mundo da Ana, e lá são dela (não é lore: dá para escrever).
   await nav(page, 'Escrever').click()
   const arvoreAna = page.getByRole('complementary', { name: 'Manuscrito' })
+  if (await page.getByRole('button', { name: 'Mostrar manuscrito' }).count()) await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
   await expect(arvoreAna.getByRole('region', { name: 'A Selma em Ostria' })).toContainText('Chegada da Selma')
-  await arvoreAna.getByRole('button', { name: 'Chegada da Selma', exact: true }).click()
+  await arvoreAna.getByRole('button', { name: /^Chegada da Selma/ }).click()
   await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toContainText('Selma desembarcou no porto de Ostria.')
   await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toHaveAttribute('contenteditable', 'true')
 
   // Bia traz as novidades: a Selma agora é do original.
   await bia.waitForTimeout(3000)
   await bia.getByRole('button', { name: 'Novidades do original' }).click()
+  await nav(bia, 'Mundo').click()
   await expect(row(bia, 'Selma').getByText('Original')).toBeVisible({ timeout: 20_000 })
   // A história que a Ana canonizou agora é do original: no AU, vira lore (só leitura), e continua uma só.
   await nav(bia, 'Escrever').click()
   const arvoreBia = bia.getByRole('complementary', { name: 'Manuscrito' })
+  if (await bia.getByRole('button', { name: 'Mostrar manuscrito' }).count()) await bia.getByRole('button', { name: 'Mostrar manuscrito' }).click()
   await expect(arvoreBia.getByRole('region', { name: 'A Selma em Ostria' })).toHaveCount(1)
-  await arvoreBia.getByRole('button', { name: 'Chegada da Selma', exact: true }).click()
+  await arvoreBia.getByRole('button', { name: /^Chegada da Selma/ }).click()
   await expect(bia.getByText('é lore, dá para ler, não para mudar')).toBeVisible()
 })
