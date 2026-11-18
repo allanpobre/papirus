@@ -270,6 +270,11 @@
   border-top: 1px solid var(--line);
 }
 
+/* Teclado aberto: o pé da página já está acima dele, então não precisa da folga da borda do aparelho. */
+.treino-keyboard .treino-count {
+  padding-bottom: 0.5rem;
+}
+
 .treino-count-bar {
   height: 8px;
   border-radius: 99px;
@@ -670,4 +675,33 @@
   gap: 0.35rem;
   margin: 0;
   color: var(--ink-2);
+}
+
+/* No celular (toque), os botões do treino e do placar têm pelo menos 44 px: o dedo não erra o "Terminar" por um fio. */
+@media (pointer: coarse) {
+  .treino-page .btn,
+  .treino-page .btn-icon,
+  .treino-page .segmented button,
+  .treino-page .start-chip,
+  .treino-page .treino-clock,
+  .placar .btn,
+  .placar .segmented button {
+    min-height: 44px;
+  }
+
+  .treino-page .btn-icon {
+    min-width: 44px;
+  }
+
+  .treino-page .treino-custom summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .treino-page .treino-prompt-mini summary {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+  }
 }

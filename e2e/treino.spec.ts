@@ -182,3 +182,191 @@ test('placar dos treinos: amigos e todo mundo, e cada um escolhe quem vê os pon
   await expect(placar.getByText('Só você vê a sua linha aqui.', { exact: false })).toHaveCount(0)
   await expect.poll(() => fake.tables.papirus_profiles.find((p) => p.user_id === PEOPLE.ana.id)?.placar).toBe('todos')
 })
+
+/*
+ * No celular (360 px, toque). O teclado é de mentira: no Android e no iPhone a janela não encolhe,
+ * só a área visível (visualViewport), e tudo que fica no pé da tela vai para baixo do teclado.
+ */
+test.describe('no celular', () => {
+  test.use({ viewport: { width: 360, height: 640 }, hasTouch: true, isMobile: true })
+
+  const TECLADO = 280
+
+  async function tecladoDeMentira(page: Page) {
+    await page.addInitScript((kb) => {
+      const ouvintes = new Set<() => void>()
+      let aberto = false
+      const falso = {
+        get height() {
+          return aberto ? innerHeight - kb : innerHeight
+        },
+        width: innerWidth,
+        offsetTop: 0,
+        offsetLeft: 0,
+        scale: 1,
+        addEventListener: (_: string, f: () => void) => ouvintes.add(f),
+        removeEventListener: (_: string, f: () => void) => ouvintes.delete(f),
+      }
+      Object.defineProperty(window, 'visualViewport', { configurable: true, get: () => falso })
+      ;(window as unknown as { __teclado: (a: boolean) => void }).__teclado = (a) => {
+        aberto = a
+        ouvintes.forEach((f) => f())
+      }
+    }, TECLADO)
+  }
+  const teclado = (page: Page, aberto: boolean) => page.evaluate((a) => (window as unknown as { __teclado: (a: boolean) => void }).__teclado(a), aberto)
+  const semRolagemLateral = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+
+  /** Esconde ou mostra o app, como ao trocar de aplicativo no celular. */
+  const trocarDeApp = (page: Page, escondido: boolean) =>
+    page.evaluate((h) => {
+      Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (h ? 'hidden' : 'visible') })
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => h })
+      document.dispatchEvent(new Event('visibilitychange'))
+    }, escondido)
+
+  /** Os botões do treino com menos de 44 px de altura (os que o dedo precisa acertar). */
+  const pequenos = (page: Page) =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('.treino-page button, .treino-page summary')]
+        .filter((e) => !e.closest('.treino-prompt-mini'))
+        .map((e) => ({ nome: (e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 30), h: Math.round(e.getBoundingClientRect().height) }))
+        .filter((b) => b.h < 44),
+    )
+
+  const abrirTreino = async (page: Page) => {
+    await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Começar o treino' }).click()
+    return page.getByRole('dialog', { name: 'Treino de escrita' })
+  }
+
+  test('escrever com o teclado aberto: a contagem e o fim do texto ficam acima do teclado', async ({ page }) => {
+    await tecladoDeMentira(page)
+    await page.goto('/app/')
+    const treino = await abrirTreino(page)
+    // Escolher o treino cabe na tela sem escorregar para os lados, e o que se toca tem pelo menos 44 px.
+    expect(await semRolagemLateral(page)).toBe(true)
+    expect(await pequenos(page)).toEqual([])
+    await treino.getByRole('button', { name: /^Começar/ }).click()
+    expect(await pequenos(page)).toEqual([])
+    const area = treino.getByRole('textbox', { name: 'Texto do treino' })
+    await area.click()
+    await area.fill(words(30))
+    await teclado(page, true)
+    const lugares = () =>
+      page.evaluate(() => {
+        const base = (s: string) => Math.round(document.querySelector(s)!.getBoundingClientRect().bottom)
+        return { visivel: Math.round(window.visualViewport!.height), contagem: base('.treino-count'), texto: base('.treino-area'), pagina: base('.treino-page'), terminar: Math.round(document.querySelector('.treino-top .btn-primary')!.getBoundingClientRect().bottom) }
+      })
+    const aberto = await lugares()
+    expect(aberto.visivel).toBe(640 - TECLADO)
+    expect(aberto.contagem, 'a contagem fica acima do teclado').toBeLessThanOrEqual(aberto.visivel)
+    expect(aberto.texto).toBeLessThan(aberto.contagem)
+    expect(aberto.terminar).toBeLessThan(aberto.visivel)
+    await expect(treino.getByText(/30\s+de \d+ palavras/)).toBeVisible()
+    // O texto ainda tem um bom pedaço da tela para escrever.
+    expect(await area.evaluate((e) => e.getBoundingClientRect().height)).toBeGreaterThan(120)
+    // Fechou o teclado: a página volta a ocupar a tela toda.
+    await teclado(page, false)
+    await expect.poll(async () => (await lugares()).pagina).toBe(640)
+  })
+
+  test('trocar de app no meio: o relógio para, o texto fica, e continuar é só voltar a escrever', async ({ page }) => {
+    await page.clock.install()
+    await page.goto('/app/')
+    const treino = await abrirTreino(page)
+    await treino.getByRole('button', { name: /^Aquecimento/ }).click()
+    await treino.getByRole('button', { name: /^Começar · 5 min/ }).click()
+    const area = treino.getByRole('textbox', { name: 'Texto do treino' })
+    await area.fill('Começo do texto, ainda sem pressa')
+    await page.clock.runFor(30_000)
+    await expect(treino.getByRole('timer')).toHaveText('4:30')
+
+    // Foi olhar outra coisa por dez minutos (mais do que o treino inteiro).
+    await trocarDeApp(page, true)
+    await page.clock.runFor(10 * 60_000)
+    await trocarDeApp(page, false)
+    await expect(treino.getByRole('timer')).toHaveText('4:30')
+    await expect(treino.getByText('Você saiu do app', { exact: false })).toBeVisible()
+    // Não terminou sozinho, e o texto está lá.
+    await expect(treino.getByRole('textbox', { name: 'Texto do treino' })).toHaveValue('Começo do texto, ainda sem pressa')
+    await expect(treino.getByRole('button', { name: 'Terminar' })).toBeVisible()
+
+    // Escrever de novo faz o relógio voltar a andar.
+    await area.press('End')
+    await area.pressSequentially(' e segue.')
+    await expect(treino.getByText('Você saiu do app', { exact: false })).toHaveCount(0)
+    await page.clock.runFor(10_000)
+    await expect(treino.getByRole('timer')).toHaveText('4:20')
+  })
+
+  test('o app fechado pelo sistema ou o "voltar" do aparelho no meio do treino não perdem o texto', async ({ page }) => {
+    await page.goto('/app/')
+    const treino = await abrirTreino(page)
+    await treino.getByRole('button', { name: /^Começar/ }).click()
+    await treino.getByRole('textbox', { name: 'Texto do treino' }).fill('Um texto que não pode se perder.')
+    // "Voltar" do Android: fecha a tela do treino, mas o rascunho fica guardado.
+    await page.goBack()
+    await expect(treino).toHaveCount(0)
+    await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Continuar o treino' }).click()
+    await expect(treino.getByRole('textbox', { name: 'Texto do treino' })).toHaveValue('Um texto que não pode se perder.')
+    await expect(treino.getByText('Relógio parado.', { exact: false })).toBeVisible()
+    // Sistema matou o app: abre de novo e o treino continua.
+    await page.reload()
+    await page.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Continuar o treino' }).click()
+    await expect(treino.getByRole('textbox', { name: 'Texto do treino' })).toHaveValue('Um texto que não pode se perder.')
+  })
+
+  test('terminar sem sinal guarda no aparelho e, quando a internet volta, vai para a nuvem; o placar cabe na tela', async ({ browser }) => {
+    const fake = createFakeSupabase()
+    fake.tables.papirus_profiles.push(
+      { user_id: PEOPLE.ana.id, handle: 'ana', name: 'Ana', bio: '', avatar: null, placar: 'amigos' },
+      { user_id: PEOPLE.bia.id, handle: 'bia', name: 'Bia', bio: '', avatar: null, placar: 'amigos' },
+    )
+    fake.tables.papirus_friendships.push({ requester: PEOPLE.ana.id, addressee: PEOPLE.bia.id, status: 'aceita' })
+    const d = new Date()
+    const hoje = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    fake.tables.papirus_treinos.push({ user_id: PEOPLE.bia.id, id: crypto.randomUUID(), day: hoje, prompt: 'P', daily: true, minutes: 30, target: 10, unit: 'palavras', words: 300, chars: 1500, seconds: 1800, done: true, text: '', at: new Date().toISOString(), ranked: true })
+    const context = await browser.newContext({ viewport: { width: 360, height: 640 }, hasTouch: true, isMobile: true })
+    await context.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
+    await fake.attach(context)
+    const a = await context.newPage()
+    await a.goto('/app/')
+    await signIn(a, PEOPLE.ana.email)
+
+    // No túnel: sem sinal. Escreve, termina, o resultado aparece normalmente.
+    fake.setOffline(true)
+    const treino = await abrirTreino(a)
+    await treino.getByRole('button', { name: /^Começar/ }).click()
+    await treino.getByRole('textbox', { name: 'Texto do treino' }).fill(words(40))
+    await treino.getByRole('button', { name: 'Terminar' }).click()
+    await expect(treino.getByText('Faltaram', { exact: false })).toBeVisible()
+    expect(await semRolagemLateral(a)).toBe(true)
+    expect(await pequenos(a)).toEqual([])
+    await expect(treino.getByRole('definition').first()).toHaveText('40')
+    expect(fake.tables.papirus_treinos.filter((t) => t.user_id === PEOPLE.ana.id)).toHaveLength(0)
+
+    // O histórico diz que ainda não foi para a nuvem.
+    await treino.getByRole('button', { name: 'Ver seus treinos' }).click()
+    const historico = a.getByRole('dialog', { name: 'Seus treinos' })
+    await expect(historico).toContainText('Não foi para a nuvem')
+    expect(await semRolagemLateral(a)).toBe(true)
+
+    // A internet volta: sobe sozinho, sem precisar abrir nada de novo.
+    fake.setOffline(false)
+    await a.evaluate(() => window.dispatchEvent(new Event('online')))
+    await expect.poll(() => fake.tables.papirus_treinos.filter((t) => t.user_id === PEOPLE.ana.id).length).toBe(1)
+    await expect(historico).toContainText('Guardados na sua conta.')
+    await historico.getByRole('button', { name: 'Fechar' }).click()
+
+    // O placar, no celular: sem barra lateral, e os controles ao alcance do dedo.
+    await a.getByRole('region', { name: 'Treino de hoje' }).getByRole('button', { name: 'Placar' }).click()
+    const placar = a.getByRole('dialog', { name: 'Placar dos treinos' })
+    await expect(placar.getByRole('list', { name: 'Placar' })).toBeVisible()
+    expect(await semRolagemLateral(a)).toBe(true)
+    for (const nome of ['Amigos', 'Todo mundo']) {
+      const altura = await placar.getByRole('radio', { name: nome }).first().evaluate((e) => e.getBoundingClientRect().height)
+      expect(Math.round(altura), nome).toBeGreaterThanOrEqual(44)
+    }
+    await context.close()
+  })
+})

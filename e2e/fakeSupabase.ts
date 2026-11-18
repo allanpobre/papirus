@@ -136,6 +136,8 @@ export function createFakeSupabase() {
   }
   const pick = (r: Row, select: string | null) => (!select || select === '*' ? r : Object.fromEntries(select.split(',').map((c) => [c, r[c]])))
 
+  let offline = false
+
   async function attach(context: BrowserContext) {
     // Storage: a pasta pública de imagens (supabase/imagens.sql), com o limite por conta.
     await context.route(`${SERVER}/storage/v1/**`, async (route) => {
@@ -229,6 +231,8 @@ export function createFakeSupabase() {
 
     await context.route(`${SERVER}/rest/v1/**`, async (route) => {
       const req = route.request()
+      // Sem sinal: a conexão cai (o aparelho está no túnel), e o app mostra "Sem conexão".
+      if (offline) return route.abort('connectionfailed')
       if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
       const url = new URL(req.url())
       const me = userOf(route)
@@ -464,5 +468,5 @@ export function createFakeSupabase() {
     })
   }
 
-  return { tables, images, attach, mail, linkFor }
+  return { tables, images, attach, mail, linkFor, setOffline: (v: boolean) => (offline = v) }
 }

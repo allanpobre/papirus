@@ -53,6 +53,20 @@ export function useTreinoSync(): TreinoCloudState & { account: ReturnType<typeof
     // Só quando a conta muda; o resto é a cada treino guardado.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, account.loading])
+  // Sem sinal na hora de guardar: quando o aparelho volta a ter internet (ou a pessoa volta ao app), tenta de novo.
+  useEffect(() => {
+    if (!userId) return
+    const retry = () => status.state === 'erro' && syncTreinosNow(account)
+    const onVisible = () => document.visibilityState === 'visible' && retry()
+    addEventListener('online', retry)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      removeEventListener('online', retry)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+    // Só quando a conta muda; `account` novo a cada desenho não deve refazer os ouvintes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
   const s = useSyncExternalStore(
     (fn) => {
       listeners.add(fn)

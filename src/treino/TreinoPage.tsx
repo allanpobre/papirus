@@ -1,6 +1,7 @@
 import { ArrowLeft, Check, Dices, Flag, Pause, Play, RotateCcw, Save, Timer, Trophy, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { KEYBOARD_MIN_INSET, useKeyboardInset } from '../editor/useKeyboardInset'
 import { DAILY_PROMPTS, promptOfTheDay, saveChallenge } from '../logic/play'
 import { todayKey } from '../logic/stats'
 import { newId } from '../model/universe'
@@ -80,6 +81,11 @@ export function TreinoPage({
   const [paused, setPaused] = useState(Boolean(draft))
   const [result, setResult] = useState<{ treino: Treino | null; record: boolean; before: number } | null>(null)
   const [kept, setKept] = useState(false)
+  // O relógio parou porque a pessoa saiu do app (e não porque tocou em pausa).
+  const [away, setAway] = useState(Boolean(draft))
+  // No celular o teclado cobre o pé da página (a janela não encolhe, só a área visível): a página termina acima dele.
+  const coberto = useKeyboardInset()
+  const keyboard = coberto >= KEYBOARD_MIN_INSET ? coberto : 0
   const id = useRef(draft?.id ?? newId())
   const since = useRef<number | null>(null)
   const area = useRef<HTMLTextAreaElement>(null)
@@ -100,6 +106,22 @@ export function TreinoPage({
     addEventListener('keydown', onKey)
     return () => removeEventListener('keydown', onKey)
   }, [phase, onClose])
+
+  // Trocou de app no meio: o relógio para (o tempo fora não é tempo de escrita) e o texto já está guardado no rascunho.
+  useEffect(() => {
+    if (phase !== 'escrevendo') return
+    const stop = () => {
+      setPaused(true)
+      setAway(true)
+    }
+    const onVisibility = () => document.visibilityState === 'hidden' && stop()
+    document.addEventListener('visibilitychange', onVisibility)
+    addEventListener('pagehide', stop)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      removeEventListener('pagehide', stop)
+    }
+  }, [phase])
 
   const limit = setup.minutes * 60_000
   const left = limit - elapsed
@@ -177,12 +199,17 @@ export function TreinoPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, limit, elapsed])
 
+  const resume = () => {
+    setPaused(false)
+    setAway(false)
+  }
+
   const begin = (s: TreinoSetup) => {
     remember('treino-ajuste', JSON.stringify(s))
     setSetup(s)
     setText('')
     setElapsed(0)
-    setPaused(false)
+    resume()
     setResult(null)
     setKept(false)
     metAt.current = false
@@ -201,7 +228,7 @@ export function TreinoPage({
   const tries = attemptsOf(treinos(), { prompt, unit: setup.unit })
 
   return createPortal(
-    <div className={`treino-page treino-${phase}`} role="dialog" aria-modal="true" aria-label="Treino de escrita">
+    <div className={`treino-page treino-${phase}${keyboard ? ' treino-keyboard' : ''}`} style={keyboard ? { bottom: keyboard } : undefined} role="dialog" aria-modal="true" aria-label="Treino de escrita">
       <header className="treino-top">
         {phase === 'escrevendo' ? (
           <>
@@ -209,7 +236,7 @@ export function TreinoPage({
               type="button"
               className={`treino-clock${limit > 0 && left <= 60_000 ? ' is-ending' : ''}`}
               aria-label={paused ? 'Continuar o relógio' : 'Pausar o relógio'}
-              onClick={() => setPaused(!paused)}
+              onClick={() => (paused ? resume() : setPaused(true))}
             >
               {paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
               <span className="tabular" role="timer" aria-live="off">
@@ -333,7 +360,7 @@ export function TreinoPage({
           </details>
           {paused && (
             <p className="treino-paused" role="status">
-              Relógio parado. Toque no tempo para continuar.
+              {away ? 'Relógio parado. Você saiu do app. Toque no tempo para continuar, ou é só escrever.' : 'Relógio parado. Toque no tempo para continuar.'}
             </p>
           )}
           <textarea
@@ -345,7 +372,7 @@ export function TreinoPage({
             autoFocus={!paused}
             onChange={(e) => {
               setText(e.target.value)
-              if (paused && phase === 'escrevendo') setPaused(false)
+              if (paused && phase === 'escrevendo') resume()
             }}
           />
           <footer className="treino-count" aria-live="polite">
