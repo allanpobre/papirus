@@ -32,7 +32,7 @@ const plain = (paragraphs: string[]) =>
 
 /** Descrição do universo de exemplo; também serve para reconhecê-lo (se o autor mudar, vira dele). */
 export const SAMPLE_DESCRIPTION =
-  'Universo de exemplo: O Alienista, de Machado de Assis (1882, domínio público), com a grafia de hoje. Fichas, ligações, linha do tempo e uma Mesa montadas a partir do livro.'
+  'Universo de exemplo: O Alienista, de Machado de Assis (1882, domínio público), com a grafia de hoje. Fichas com o papel de cada um, ligações, linha do tempo e uma Mesa montadas a partir do livro.'
 
 /** O exemplo principal: a Terra de Oz (também serve para reconhecê-lo). */
 export const OZ_DESCRIPTION =
@@ -54,17 +54,25 @@ const OLD_SAMPLE_DESCRIPTIONS = [
   ...OLD_OZ_DESCRIPTIONS,
 ]
 
+/** O Alienista de antes (sem os papéis na história): ao abrir, vira o Alienista atual (não o Oz). */
+export const OLD_ALIENISTA_DESCRIPTIONS = [
+  'Universo de exemplo: O Alienista, de Machado de Assis (1882, domínio público), com a grafia de hoje. Fichas, ligações, linha do tempo e uma Mesa montadas a partir do livro.',
+]
+
 /** Exemplo de fantasia que os testes usam (`?exemplo=ostria`): é exemplo, mas não é trocado. */
 const TEST_SAMPLE_DESCRIPTION = 'Exemplo de fantasia (base dos testes). Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.'
 
-export const isSample = (u: Universe) => [OZ_DESCRIPTION, SAMPLE_DESCRIPTION, TEST_SAMPLE_DESCRIPTION, ...OLD_SAMPLE_DESCRIPTIONS].includes(u.description)
+export const isSample = (u: Universe) => [OZ_DESCRIPTION, SAMPLE_DESCRIPTION, TEST_SAMPLE_DESCRIPTION, ...OLD_SAMPLE_DESCRIPTIONS, ...OLD_ALIENISTA_DESCRIPTIONS].includes(u.description)
 /** Qual exemplo é (para "Recomeçar" abrir o mesmo). */
 export type SampleKind = 'oz' | 'alienista'
 export const sampleKindOf = (u: Pick<Universe, 'description'>): SampleKind | null =>
   u.description === OZ_DESCRIPTION ? 'oz' : u.description === SAMPLE_DESCRIPTION ? 'alienista' : null
 /** O exemplo fica só neste aparelho: sem conta, estante, compartilhar ou metas. O de testes não (é a base dos testes disso). */
 export const isLocalOnly = (u: Universe) => isSample(u) && u.description !== TEST_SAMPLE_DESCRIPTION
-export const isOutdatedSample = (u: Universe) => OLD_SAMPLE_DESCRIPTIONS.includes(u.description)
+export const isOutdatedSample = (u: Universe) => outdatedSampleKind(u) !== null
+/** Um exemplo de versão antiga: qual exemplo atual entra no lugar (o Alienista vira o Alienista; o resto, o Oz). */
+export const outdatedSampleKind = (u: Pick<Universe, 'description'>): SampleKind | null =>
+  OLD_ALIENISTA_DESCRIPTIONS.includes(u.description) ? 'alienista' : OLD_SAMPLE_DESCRIPTIONS.includes(u.description) ? 'oz' : null
 
 /**
  * O exemplo principal, para conhecer o Papirus sem começar do zero: a Terra de Oz, com
@@ -244,6 +252,18 @@ export function buildSample(chapters: { titulo: string; paragrafos: string[] }[]
   const presidente = ent('personagem', 'Presidente da câmara', { summary: 'Defende a Casa Verde contra os revoltosos e quer “trinta almudes de sangue” como desforra.' })
   const benedita = ent('personagem', 'Benedita', { summary: 'Mucama de D. Evarista.' })
   const salustiano = ent('personagem', 'Salustiano', { summary: 'Advogado de qualidades morais e mentais perigosas: provou verdadeiro um testamento falso.' })
+  // O papel de cada um na história (aparece na ficha e na lista).
+  for (const [who, role] of [
+    [bacamarte, 'protagonista'],
+    [porfirio, 'antagonista'],
+    [evarista, 'secundario'],
+    [crispim, 'secundario'],
+    [lopes, 'secundario'],
+    [costa, 'secundario'],
+    [gil, 'figurante'],
+    [coelho, 'figurante'],
+  ] as const)
+    u = patch(u, 'entities', who.id, { role })
 
   // ─── Linha do tempo ──────────────────────────────────────────────────
   const ev = (title: string, year: number, extra: Partial<ReturnType<typeof draftEvent>> = {}) => {
