@@ -57,7 +57,7 @@ const AREAS: Area[] = [
     icon: Earth,
     intro: 'Tudo o que existe na história: fichas, como se ligam, quando aconteceu e onde fica.',
     parts: [
-      { title: 'Fichas', what: 'Personagens, lugares, facções e o que mais você inventar. Cada ficha tem o “Quem é” (o que a define neste mundo), a descrição, os campos e as ligações.', tour: 'fichas', view: 'fichas' },
+      { title: 'Fichas', what: 'Personagens, lugares, facções e o que mais você inventar. Cada ficha tem o “Quem é” (o que a define neste mundo), a descrição, os campos e as ligações, e muda ao longo da história: fases, o que o leitor só descobre depois e a régua “até onde na história”.', tour: 'fichas', view: 'fichas' },
       { title: 'Ligações', what: 'Quem é o quê de quem, num mapa que você navega cena a cena, e a árvore da família.', tour: 'relacoes', view: 'relacoes' },
       { title: 'Linha do tempo', what: 'Eras, eventos e cenas datadas, com a Máquina do tempo para ver o mundo num ano.', tour: 'timeline', view: 'timeline' },
       { title: 'Mapas', what: 'A imagem do seu mapa com os lugares marcados, o caminho de cada personagem e as regiões de quem manda.', tour: 'atlas', view: 'atlas' },

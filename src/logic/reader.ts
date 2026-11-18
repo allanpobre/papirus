@@ -6,6 +6,7 @@ import { playerTag, factSentence } from './codex'
 import { MentionMatcher } from './detection'
 import { mentionIdsInDoc } from './doc'
 import { activeAt } from './relations'
+import { entityAt } from './phases'
 import { revealIndex, splitReveals } from './reveals'
 import { stripSecrets } from './secrets'
 
@@ -86,6 +87,15 @@ function computeAppearances(scenes: Scene[], entities: Entity[]): { first: Map<s
     inScene.set(s.id, ids)
     for (const id of ids) if (!first.has(id)) first.set(id, i)
   })
+  // Ficha revelada numa cena: antes dela, o leitor não a conhece (nem nas cenas em que é citada).
+  for (const e of entities) {
+    if (!e.reveal) continue
+    const at = scenes.findIndex((s) => s.id === e.reveal!.sceneId)
+    const seen = first.get(e.id)
+    if (at < 0) first.delete(e.id)
+    else if (seen !== undefined && seen < at) first.set(e.id, at)
+    for (const [i, s] of scenes.entries()) if (at < 0 || i < at) inScene.get(s.id)?.delete(e.id)
+  }
   return { first, inScene }
 }
 
@@ -160,7 +170,10 @@ function relationAt(r: Relation, scenes: Scene[], seenAt: (id: string | null) =>
   const from = seenAt(r.fromId)
   const to = seenAt(r.toId)
   if (from === null || to === null) return null
-  const both = Math.max(from, to)
+  // Revelada numa cena: o leitor só fica sabendo ali (cena que não existe mais: nunca, por segurança).
+  const revealed = r.reveal ? scenes.findIndex((s) => s.id === r.reveal!.sceneId) : -1
+  if (r.reveal && revealed < 0) return null
+  const both = Math.max(from, to, revealed)
   if (r.scope.kind === 'geral' || r.scope.kind === 'periodo') return both
   for (let i = both; i < scenes.length; i++) if (activeAt(r, scenes[i])) return i
   return null
@@ -180,6 +193,8 @@ export function readerText(text: string, upto: number, scenes: Scene[]): string 
     .filter((p) => {
       if (p.sceneTitle === null) return true
       const i = revealIndex(p, scenes)
+      // A máscara: o leitor lê até a cena (sem a cena, fica para sempre, e a verdade não aparece).
+      if (p.until) return i === null || upto < i
       // Cena não encontrada (apagada ou renomeada sem o #id): fica escondido, por segurança.
       return i !== null && i <= upto
     })
@@ -204,7 +219,7 @@ export function revealedPassages(book: ReaderBook, at: number, upto: number): Re
     if (seen === undefined || seen > upto) continue
     for (const source of [e.summary, e.description, ...e.fields.map((f) => f.value)]) {
       for (const p of splitReveals(stripSecretsKeepingReveals(source))) {
-        if (p.sceneTitle === null) continue
+        if (p.sceneTitle === null || p.until) continue
         const i = revealIndex(p, book.scenes)
         if (i === null) continue
         // Se a ficha só aparece depois da cena marcada, o trecho chega junto com ela.
@@ -219,9 +234,11 @@ export function revealedPassages(book: ReaderBook, at: number, upto: number): Re
 /** Fichas conhecidas até a cena `upto`, com o texto já filtrado. */
 export function readerEntities(book: ReaderBook, upto: number): ReaderEntity[] {
   const out: ReaderEntity[] = []
-  for (const [id, e] of book.entities) {
+  for (const [id, base] of book.entities) {
     const at = book.first.get(id)
     if (at === undefined || at > upto) continue
+    // Como a ficha está naquele ponto (as fases que o leitor já viu começar).
+    const e = entityAt(base, upto, book.scenes)
     out.push({
       entity: e,
       first: at,

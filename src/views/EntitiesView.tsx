@@ -9,7 +9,7 @@ import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
 import { factSentence } from '../logic/codex'
-import { fold, snippet } from '../logic/text'
+import { fold } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
 import { RelationDetails } from './RelationDetails'
 import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
@@ -39,6 +39,10 @@ import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
+import { AppearanceList } from './AppearanceList'
+import { EntityRevealField } from './RevealControl'
+import { PhasesEditor } from './PhasesView'
+import { ReferencesEditor } from './ReferencesView'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -787,6 +791,14 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           <KnowledgeSection entity={e} entries={knows} />
 
           {/* O resto, fechado: muda pouco e não precisa estar sempre à vista. */}
+          {!simple && (
+            <Fold id="ficha-fases" title="Ao longo da história" defaultOpen={(e.phases?.length ?? 0) > 0}>
+              <PhasesEditor entity={e} />
+            </Fold>
+          )}
+          <Fold id="ficha-referencias" title="Referências" defaultOpen={(e.refs?.length ?? 0) > 0}>
+            <ReferencesEditor entity={e} />
+          </Fold>
           <Fold id="ficha-mais-opcoes" title="Mais opções" defaultOpen={false}>
             <div className="form-grid">
               {!simple && (
@@ -797,6 +809,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
                   <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
                 </>
               )}
+              <EntityRevealField entity={e} />
               <label className="toggle entity-wiki-toggle">
                 <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
                 <span className="toggle-track" aria-hidden="true" />
@@ -815,21 +828,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
         <aside className="entity-side">
           <MapGlimpse entity={e} />
           <Fold id="ficha-apari-es" title="Aparições">
-            {appearances.length === 0 ? (
-              <p className="muted small">Ainda não aparece no manuscrito.</p>
-            ) : (
-              <ul className="appearances">
-                {appearances.map(({ scene, roles, found }) => (
-                  <li key={scene.id}>
-                    <button type="button" className="link-btn" onClick={() => go('escrever', scene.id)}>
-                      {scene.title || 'Sem título'}
-                    </button>
-                    <span className="muted small"> {roles.join(' · ')}</span>
-                    {found[0] && <p className="appearance-snippet">{snippet(scene.text, found[0].from, found[0].to, 50)}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AppearanceList entity={e} appearances={appearances} empty={<p className="muted small">Ainda não aparece no manuscrito.</p>} />
           </Fold>
 
           {children.length > 0 && (

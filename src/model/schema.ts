@@ -106,6 +106,9 @@ export const ENTITY_KINDS = [
   'documento',
 ] as const
 
+/** Tipos de referência de uma ficha: imagem, link, trecho (citação) ou outra obra (personagem, pessoa, filme). */
+export const REF_KINDS = ['imagem', 'link', 'trecho', 'obra'] as const
+
 /** Que tipo de valor um campo guarda: texto livre, número, ano do calendário ou outra ficha. */
 export const FIELD_TYPES = ['texto', 'numero', 'ano', 'ficha'] as const
 
@@ -160,6 +163,57 @@ export const entitySchema = z.object({
   /** Fica fora da wiki do mundo, sem ser segredo (o nome pode aparecer no texto de outras fichas). */
   wikiHidden: z.boolean().optional(),
   /**
+   * O leitor só conhece esta ficha a partir de uma cena (a espécie secreta, o vilão de verdade), mesmo que
+   * ela seja citada antes. Sem isso, ela entra na primeira cena em que aparece.
+   */
+  reveal: z.object({ sceneId: z.string() }).optional().catch(undefined),
+  /**
+   * Referências: o que inspirou a ficha (imagem, link, trecho, personagem de outra obra), com o que se pegou de
+   * cada uma e o que ela não é. Só do autor: nunca vai para wiki, leitor ou link de leitura.
+   */
+  refs: z
+    .array(
+      z.object({
+        id: z.string(),
+        kind: z.enum(REF_KINDS).catch('trecho'),
+        title: z.string().default(''),
+        image: z.string().nullable().default(null),
+        url: z.string().default(''),
+        text: z.string().default(''),
+        /** O que se pegou daqui (aparência, voz…). */
+        took: z.array(z.string()).default([]),
+        /** O que não é (para não copiar demais). */
+        notThis: z.string().default(''),
+      }),
+    )
+    .optional()
+    .catch(undefined),
+  /**
+   * As fases: como a ficha muda ao longo da história. Cada fase vale a partir de uma cena e guarda só o que
+   * muda (o resto vem de antes), com o porquê. A ficha "de base" é como ela começa.
+   */
+  phases: z
+    .array(
+      z.object({
+        id: z.string(),
+        sceneId: z.string(),
+        /** Nome curto da fase ("General", "Depois da queda"). */
+        name: z.string().default(''),
+        /** Por quê: o que aconteceu. */
+        cause: z.string().default(''),
+        /** O nome pelo qual é conhecido a partir daqui (vazio = o mesmo). */
+        nameNow: z.string().default(''),
+        /** O resumo a partir daqui (vazio = o mesmo). */
+        summary: z.string().default(''),
+        /** Retrato a partir daqui (vazio = o mesmo). */
+        image: z.string().nullable().default(null),
+        /** Os campos que mudam, pela chave (os outros ficam como estavam). */
+        fields: z.array(z.object({ key: z.string(), value: z.string() })).default([]),
+      }),
+    )
+    .optional()
+    .catch(undefined),
+  /**
    * "No jogo" (espécies, culturas e origens): traços e modificadores para a Mesa, separados da história.
    * Os modificadores são pela sigla do atributo ("FOR": 2), para valer em qualquer sistema com a mesma sigla.
    */
@@ -211,6 +265,14 @@ export const relationSchema = z.object({
   listId: z.string().optional(),
   /** O papel dentro da lista: "líder", "rainha". */
   role: z.string().optional(),
+  /**
+   * O leitor só descobre esta ligação numa cena (a espécie verdadeira, o pai de verdade). Até lá, vê a
+   * máscara: outra ficha no lugar (outra espécie, outro pai) ou nada. Sem isso, vale desde o começo.
+   */
+  reveal: z
+    .object({ sceneId: z.string(), maskId: z.string().nullable().default(null) })
+    .optional()
+    .catch(undefined),
   ...timestamps,
 })
 

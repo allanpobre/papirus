@@ -1,10 +1,11 @@
-import { Plus, Sparkles, X } from 'lucide-react'
+import { Eye, Plus, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
 import {
   addDefiner,
   addException,
   addOption,
   choose,
+  chosenOf,
   definersFor,
   definersOf,
   membersCount,
@@ -18,7 +19,9 @@ import {
 } from '../logic/definers'
 import { fold } from '../logic/text'
 import { kindLabel } from '../model/labels'
-import type { Entity } from '../model/schema'
+import type { Entity, Scene } from '../model/schema'
+import { whoIsAt } from '../logic/storyPoint'
+import { RevealControl } from './RevealControl'
 import { patch } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -141,6 +144,9 @@ export function WhoIsEditor({ entity: e }: { entity: Entity }) {
               </ConfirmButton>
             </span>
           </div>
+          {option && chosenOf(universe, e.id, d) && (
+            <RevealControl relationId={chosenOf(universe, e.id, d)!.relationId} masks={optionsFor(universe, d).filter((o) => o.id !== option.id)} what={`${d.name.toLowerCase()} de ${e.name || 'esta ficha'}`} />
+          )}
           {option && traits.length === 0 && (
             <p className="muted small">
               {option.name} ainda não passa nada. Em “Abrir {option.name}”, diga o que quem é assim tem.
@@ -287,36 +293,62 @@ export function PassesEditor({ entity: e }: { entity: Entity }) {
 }
 
 /** "Quem é" na leitura: as escolhas, o que vem com elas e as exceções. */
-export function WhoIsReader({ entity: e, link }: { entity: Entity; link: (id: string) => React.ReactNode }) {
+export function WhoIsReader({
+  entity: e,
+  link,
+  at,
+}: {
+  entity: Entity
+  link: (id: string) => React.ReactNode
+  /** O ponto da história (a régua): o que o leitor já descobriu ali, e se é para ver como ele. */
+  at?: { index: number; reader: boolean; scenes: Scene[] }
+}) {
   const { universe } = useWorkspace()
-  const rows = whoIs(universe, e).filter((r) => r.option)
+  const scenes = at?.scenes ?? []
+  const rows = whoIsAt(universe, e, at ? at.index : scenes.length - 1, scenes)
   const defs = definersFor(universe, e.kind)
   if (!rows.length || !defs.length) return null
+  const reader = at?.reader ?? false
+  // Como o leitor, antes da revelação: a máscara (outra opção) ou nada.
+  const visible = rows.filter((r) => !(reader && r.reveal?.future && !r.mask))
+  if (!visible.length) return null
   return (
     <section className="whois-read" aria-label="Quem é">
-      {rows.map(({ definer: d, option, traits }) => (
-        <div key={d.id}>
-          <p>
-            <span className="whois-key">{d.name}:</span> {link(option!.id)}
-          </p>
-          {traits.length > 0 && (
-            <ul className="whois-traits">
-              {traits.map((t) => (
-                <li key={t.key} className={t.exception !== null ? 'is-exception' : undefined}>
-                  <span className="whois-key">{t.key}:</span>{' '}
-                  {t.exception === null ? (
-                    t.value || '—'
-                  ) : (
-                    <>
-                      <s>{t.value || '—'}</s> {t.exception.trim() || 'não tem'} <span className="muted small">(exceção)</span>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ))}
+      {visible.map((r) => {
+        const hidden = reader && r.reveal?.future
+        const shown = hidden ? r.mask! : r.option
+        const traits = hidden ? r.maskTraits.map((t) => ({ ...t, exception: null as string | null })) : r.traits
+        return (
+          <div key={r.definerId}>
+            <p>
+              <span className="whois-key">{r.definerName}:</span> {link(shown.id)}
+              {!reader && r.reveal && (
+                <span className={`reveal-when whois-reveal${r.reveal.future ? ' is-future' : ''}`}>
+                  {' '}
+                  <Eye size={11} aria-hidden="true" /> {r.reveal.future ? 'o leitor só descobre em' : 'o leitor descobre em'} “{r.reveal.title}”
+                  {r.mask && <> · até lá, parece {r.mask.name || 'outra opção'}</>}
+                </span>
+              )}
+            </p>
+            {traits.length > 0 && (
+              <ul className="whois-traits">
+                {traits.map((t) => (
+                  <li key={t.key} className={t.exception !== null ? 'is-exception' : undefined}>
+                    <span className="whois-key">{t.key}:</span>{' '}
+                    {t.exception === null ? (
+                      t.value || '—'
+                    ) : (
+                      <>
+                        <s>{t.value || '—'}</s> {t.exception.trim() || 'não tem'} <span className="muted small">(exceção)</span>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )
+      })}
     </section>
   )
 }

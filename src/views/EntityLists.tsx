@@ -1,10 +1,11 @@
 import { definerListIds } from '../logic/definers'
-import { Check, ListPlus, MoreHorizontal, Pencil, Plus, Trash2, Users, X } from 'lucide-react'
+import { Check, Eye, ListPlus, MoreHorizontal, Pencil, Plus, Trash2, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { fold } from '../logic/text'
 import { addList, addMembers, endMembership, inheritedConflicts, inheritedFields, isPast, listTemplatesFor, listsOf, membersOf, membershipsOf, removeList, removeMembership, setRole, updateList, type EntityList } from '../model/lists'
 import { kindLabel, kindPlural } from '../model/labels'
-import type { Entity } from '../model/schema'
+import type { Entity, Scene } from '../model/schema'
+import { relationRevealAt } from '../logic/storyPoint'
 import { byId, entityName, namesOf, patch } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { YearInput } from '../ui/bits'
@@ -14,19 +15,35 @@ import { Modal } from '../ui/Modal'
 import { MoreMenu } from '../ui/MoreMenu'
 
 /** "Faz parte de": as listas em que a ficha está (o clã, a espécie, os habitantes do reino). */
-export function MembershipChips({ entity: e, editable = false }: { entity: Entity; editable?: boolean }) {
+export function MembershipChips({
+  entity: e,
+  editable = false,
+  at,
+}: {
+  entity: Entity
+  editable?: boolean
+  /** O ponto da história (a régua): como o leitor, o que ele ainda não descobriu não aparece. */
+  at?: { index: number; reader: boolean; scenes: Scene[] }
+}) {
   const { universe, update, peek } = useWorkspace()
   // As do "Quem é" (Corpo: Meio-ciborgue) aparecem lá.
   const fromWho = definerListIds(universe)
-  const ms = membershipsOf(universe, e.id).filter((m) => !fromWho.has(m.list.id))
+  const ms = membershipsOf(universe, e.id)
+    .filter((m) => !fromWho.has(m.list.id))
+    .map((m) => ({ ...m, reveal: at ? relationRevealAt(m.relation, at.index, at.scenes) : null }))
+    .filter((m) => !(at?.reader && m.reveal?.future))
   if (!ms.length) return null
   return (
     <div className="memberships" aria-label="Faz parte de">
       <span className="memberships-label">Faz parte de</span>
-      {ms.map(({ relation: r, owner, list }) => (
-        <span key={r.id} className={`chip chip-entity${isPast(r) ? ' is-past' : ''}`} title={isPast(r) ? `Até ${r.scope.toYear}` : undefined}>
+      {ms.map(({ relation: r, owner, list, reveal }) => (
+        <span
+          key={r.id}
+          className={`chip chip-entity${isPast(r) ? ' is-past' : ''}${reveal?.future ? ' is-future' : ''}`}
+          title={reveal ? `O leitor ${reveal.future ? 'só ' : ''}descobre em “${reveal.title}”` : isPast(r) ? `Até ${r.scope.toYear}` : undefined}
+        >
           <button type="button" className="chip-link" onClick={() => peek(owner.id)}>
-            {owner.name || 'Sem nome'}
+            {reveal && <Eye size={11} aria-label="Revelado depois" />} {owner.name || 'Sem nome'}
             <span className="chip-sub">
               {' '}
               · {list.name}

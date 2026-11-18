@@ -109,5 +109,5 @@ test('as espécies do Mundo viram inimigos prontos com um toque', async ({ page 
   await bestiario.getByRole('button', { name: 'Lobo cinzento' }).click()
   await expect(bestiario.locator('.bestiary-row', { hasText: 'Lobo cinzento' })).toBeVisible()
   // Já no bestiário: sai da lista "Do Mundo".
-  await expect(bestiario.locator('.bestiary-world')).toHaveCount(0)
+  await expect(bestiario.locator('.bestiary-world').getByRole('button', { name: /Lobo cinzento/ })).toHaveCount(0)
 })

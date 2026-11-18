@@ -78,13 +78,14 @@ const PLAYER_KEYS = new Set(['jogador', 'jogadora', 'quem joga', 'jogado por'])
 
 /**
  * Um campo vazio que outra parte do app já sabe, em texto: a "Idade" (pelo nascimento e o ano
- * mais tardio das cenas) e o que está na ficha de jogo ligada a esta ficha ("Jogador", "Classe", "Raça").
+ * mais tardio das cenas, ou o ano do ponto da história escolhido) e o que está na ficha de jogo ligada a esta ficha ("Jogador", "Classe", "Raça").
  */
-export function derivedText(u: Universe, e: Entity, key: string): { text: string; via: string } | null {
+export function derivedText(u: Universe, e: Entity, key: string, at?: number | null): { text: string; via: string } | null {
   const k = fold(key.trim())
   if (!k) return null
   if (k === 'idade') {
-    const now = storyNow(u)
+    // Num ponto da história escolhido (a régua), a idade é a daquele ano; senão, a do "agora" da história.
+    const now = at === undefined ? storyNow(u) : at
     const age = ageIn(e, now)
     if (age !== null && now !== null) return { text: `${ageLabel(age)} em ${formatYear(now, u.settings.calendarSuffix)}`, via: 'pelo nascimento' }
   }

@@ -11,6 +11,7 @@ import { formatDate } from '../logic/calendar'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { Relation } from '../model/schema'
 import { bookScenes, byId, entityName } from '../model/universe'
+import { useStoryPoint } from '../state/storyPoint'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
@@ -262,6 +263,13 @@ export default function GraphView() {
     setView({ x: 0, y: 0, k: 1 })
   }, [bookId])
   const scene = inTime ? (scenes[Math.min(sceneIndex, scenes.length - 1)] ?? null) : null
+  // O ponto da história escolhido em outra tela (a régua da ficha): o cena a cena começa nele.
+  const [point, setPoint] = useStoryPoint(universe.id)
+  const enterTime = () => {
+    const at = point.sceneId ? scenes.findIndex((x) => x.id === point.sceneId) : -1
+    if (at >= 0) setSceneIndex(at)
+    setInTime(true)
+  }
 
   // Tocar a história: avança uma cena por vez.
   useEffect(() => {
@@ -532,14 +540,14 @@ export default function GraphView() {
           <button type="button" role="radio" aria-checked={!inTime} onClick={() => { setInTime(false); setPlaying(false) }}>
             Todas
           </button>
-          <button type="button" role="radio" aria-checked={inTime} disabled={!scenes.length} onClick={() => setInTime(true)}>
+          <button type="button" role="radio" aria-checked={inTime} disabled={!scenes.length} onClick={() => enterTime()}>
             Num ponto da história
           </button>
         </div>
       </div>
 
       {!inTime && scenes.length > 1 && universe.relations.some((r) => r.scope.kind !== 'geral') && (
-        <button type="button" className="graph-time-hint" onClick={() => setInTime(true)}>
+        <button type="button" className="graph-time-hint" onClick={() => enterTime()}>
           <Play size={14} aria-hidden="true" /> Algumas ligações mudam ao longo da história. Ver cena a cena
         </button>
       )}
@@ -566,7 +574,10 @@ export default function GraphView() {
             aria-valuetext={scene.title}
             onChange={(e) => {
               setPlaying(false)
-              setSceneIndex(Number(e.target.value))
+              const i = Number(e.target.value)
+              setSceneIndex(i)
+              // A régua da história: a cena escolhida aqui vale também para as fichas.
+              if (scenes[i]) setPoint({ ...point, sceneId: scenes[i].id })
             }}
           />
           <button

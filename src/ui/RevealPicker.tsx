@@ -1,6 +1,6 @@
 import { BookOpenCheck } from 'lucide-react'
 import { useState, type RefObject } from 'react'
-import { revealIndex, splitReveals, unmarkReveals, wrapReveal } from '../logic/reveals'
+import { masksOf, revealIndex, setMask, splitReveals, unmarkReveals, wrapReveal } from '../logic/reveals'
 import { manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 
@@ -12,21 +12,49 @@ export function RevealPicker({ value, onChange, inputRef, label }: { value: stri
   const { universe, readOnly } = useWorkspace()
   const order = manuscriptOrder(universe)
   const [picking, setPicking] = useState(false)
-  const marked = splitReveals(value).find((p) => p.sceneTitle !== null)
+  const marked = splitReveals(value).find((p) => p.sceneTitle !== null && !p.until)
+  const mask = masksOf(value)[0]?.text ?? ''
+  const [masking, setMasking] = useState(false)
   if (!order.length || readOnly) return null
 
   if (marked) {
     const at = revealIndex(marked, order)
     return (
-      <button
-        type="button"
-        className="btn btn-ghost btn-xs reveal-chip"
-        title="Tirar a marcação: o leitor passa a ver junto com a ficha"
-        aria-label={`${label}: só a partir da cena ${at === null ? '?' : at + 1}. Tirar a marcação`}
-        onClick={() => onChange(unmarkReveals(value))}
-      >
-        <BookOpenCheck size={13} /> cena {at === null ? '?' : at + 1}
-      </button>
+      <span className="reveal-picker-set">
+        <button
+          type="button"
+          className="btn btn-ghost btn-xs reveal-chip"
+          title="Tirar a marcação: o leitor passa a ver junto com a ficha"
+          aria-label={`${label}: só a partir da cena ${at === null ? '?' : at + 1}. Tirar a marcação`}
+          onClick={() => onChange(unmarkReveals(value))}
+        >
+          <BookOpenCheck size={13} /> cena {at === null ? '?' : at + 1}
+        </button>
+        {masking ? (
+          <input
+            className="input input-sm reveal-mask-input"
+            autoFocus
+            aria-label={`${label}: o que o leitor lê até a cena ${at === null ? '?' : at + 1}`}
+            placeholder="Até lá, o leitor lê…"
+            defaultValue={mask}
+            onBlur={(e) => {
+              setMasking(false)
+              if (e.target.value !== mask) onChange(setMask(value, 0, e.target.value))
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+          />
+        ) : (
+          <button
+            type="button"
+            className="btn btn-ghost btn-xs reveal-mask-btn"
+            title="O que o leitor lê antes dessa cena (a máscara)"
+            aria-label={`${label}: o que o leitor lê até a cena`}
+            onClick={() => setMasking(true)}
+          >
+            {mask ? `até lá: ${mask.slice(0, 24)}${mask.length > 24 ? '…' : ''}` : 'até lá…'}
+          </button>
+        )}
+      </span>
     )
   }
 

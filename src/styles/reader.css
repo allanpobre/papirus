@@ -466,6 +466,7 @@ button.leitor-found-card {
 
 .reveal-list li {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 0.35rem;
 }

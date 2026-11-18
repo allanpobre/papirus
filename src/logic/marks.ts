@@ -4,9 +4,11 @@
  */
 const SECRET = /\[segredo\]([\s\S]*?)\[\/segredo\]/gi
 const REVEAL = /\[a partir de(?:\s+"[^"\]]*")?(?:\s+#[0-9a-z-]{4,})?\s*\]([\s\S]*?)\[\/a partir\]/gi
+/** A máscara: o que o leitor lê até a cena da revelação. */
+const MASK = /\[até(?:\s+"[^"\]]*")?(?:\s+#[0-9a-z-]{4,})?\s*\]([\s\S]*?)\[\/até\]/gi
 
 export interface MarkRange {
-  kind: 'secret' | 'reveal'
+  kind: 'secret' | 'reveal' | 'mask'
   /** Começo da marca de abertura. */
   start: number
   innerStart: number
@@ -20,6 +22,7 @@ export function markRanges(text: string): MarkRange[] {
   for (const [kind, re, close] of [
     ['secret', SECRET, '[/segredo]'.length],
     ['reveal', REVEAL, '[/a partir]'.length],
+    ['mask', MASK, '[/até]'.length],
   ] as const) {
     for (const m of text.matchAll(re)) {
       const end = m.index + m[0].length
@@ -36,6 +39,7 @@ export interface MarkSegment {
   tag: boolean
   secret: boolean
   reveal: boolean
+  mask: boolean
 }
 
 /** O texto em pedaços, cada um com o que vale para ele. */
@@ -53,9 +57,10 @@ export function markSegments(text: string, ranges = markRanges(text)): MarkSegme
       tag: inside.some((r) => b <= r.innerStart || a >= r.innerEnd),
       secret: inside.some((r) => r.kind === 'secret'),
       reveal: inside.some((r) => r.kind === 'reveal'),
+      mask: inside.some((r) => r.kind === 'mask'),
     }
     const last = out[out.length - 1]
-    if (last && last.tag === seg.tag && last.secret === seg.secret && last.reveal === seg.reveal) last.text += seg.text
+    if (last && last.tag === seg.tag && last.secret === seg.secret && last.reveal === seg.reveal && last.mask === seg.mask) last.text += seg.text
     else out.push(seg)
   }
   return out

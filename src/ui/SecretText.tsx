@@ -1,7 +1,7 @@
 import { BookOpen, BookOpenCheck, Lock, LockOpen } from 'lucide-react'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { markAt, markSegments, unwrapMark } from '../logic/marks'
-import { revealIndex, splitReveals, wrapReveal } from '../logic/reveals'
+import { revealIndex, setMask, splitReveals, wrapReveal } from '../logic/reveals'
 import { countSecrets, splitSecrets, wrapSecret } from '../logic/secrets'
 import { manuscriptOrder } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
@@ -19,7 +19,17 @@ export function SecretTextarea({ id, value, onChange, rows = 8, placeholder }: {
   const order = manuscriptOrder(universe)
   const [picking, setPicking] = useState(false)
   const [caret, setCaret] = useState<number | null>(null)
-  const reveals = splitReveals(value).filter((p) => p.sceneTitle !== null)
+  const reveals = splitReveals(value).filter((p) => p.sceneTitle !== null && !p.until)
+  // A máscara de cada revelação (o que o leitor lê até a cena), pela ordem: fica logo antes do trecho.
+  const parts = splitReveals(value)
+  const maskOf = (nth: number) => {
+    let n = -1
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i].sceneTitle === null || parts[i].until) continue
+      if (++n === nth) return parts[i - 1]?.until ? parts[i - 1].text : ''
+    }
+    return ''
+  }
   const segments = useMemo(() => markSegments(value), [value])
   const inSecret = caret === null ? undefined : markAt(value, caret, 'secret')
   const inReveal = caret === null ? undefined : markAt(value, caret, 'reveal')
@@ -49,7 +59,7 @@ export function SecretTextarea({ id, value, onChange, rows = 8, placeholder }: {
       <div className="marked-field">
         <div ref={back} className="input textarea textarea-prose marked-backdrop" aria-hidden="true">
           {segments.map((p, i) => (
-            <span key={i} className={[p.tag && 'mk-tag', p.secret && 'mk-secret', p.reveal && 'mk-reveal'].filter(Boolean).join(' ') || undefined}>
+            <span key={i} className={[p.tag && 'mk-tag', p.secret && 'mk-secret', p.reveal && 'mk-reveal', p.mask && 'mk-mask'].filter(Boolean).join(' ') || undefined}>
               {p.text}
             </span>
           ))}
@@ -155,6 +165,19 @@ export function SecretTextarea({ id, value, onChange, rows = 8, placeholder }: {
                   )}
                   : <em>{p.text.trim().slice(0, 80) || '(vazio)'}</em>
                 </span>
+                <label className="reveal-mask-field">
+                  <span className="muted tiny">Até lá, o leitor lê (opcional):</span>
+                  <input
+                    className="input input-sm"
+                    aria-label={`O que o leitor lê até a cena ${at === null ? '?' : at + 1}`}
+                    placeholder="Nada: o trecho só some"
+                    defaultValue={maskOf(i)}
+                    key={maskOf(i)}
+                    onBlur={(e) => {
+                      if (e.target.value !== maskOf(i)) onChange(setMask(value, i, e.target.value))
+                    }}
+                  />
+                </label>
               </li>
             )
           })}

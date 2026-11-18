@@ -2924,6 +2924,11 @@ code {
   border-radius: 3px;
 }
 
+.mk-mask {
+  background: color-mix(in srgb, var(--ochre) 16%, transparent);
+  border-radius: 3px;
+}
+
 .mk-secret.mk-reveal {
   background: linear-gradient(var(--wine-soft), var(--wine-soft)), var(--sky-soft);
 }
@@ -4725,13 +4730,14 @@ code {
 .with-reveal {
   display: flex;
   flex: 1;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.3rem;
   min-width: 0;
 }
 
 .with-reveal > .input {
-  flex: 1;
+  flex: 1 1 8rem;
   min-width: 0;
 }
 
@@ -11315,4 +11321,573 @@ h3.cork-act {
     min-width: 40px;
     min-height: 40px;
   }
+}
+
+/* "Aparece em" (como o X-Ray do Kindle): a tira com todas as cenas e a lista com o nome em destaque. */
+.appear {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.appear-sum {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.presence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+
+.presence-book {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.presence-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.presence-strip li,
+.reader-text .presence-strip li + li {
+  display: flex;
+  margin: 0;
+}
+
+.reader-text .presence-strip {
+  padding-left: 0;
+}
+
+.presence-dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+
+button.presence-dot {
+  cursor: pointer;
+}
+
+.presence-dot.is-pov {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.presence-dot.is-presente {
+  border-color: var(--ok);
+  background: var(--ok);
+}
+
+.presence-dot.is-local {
+  border-color: var(--sky);
+  background: var(--sky-soft);
+}
+
+.presence-dot.is-mencionado {
+  border-color: var(--ochre);
+  background: var(--ochre-soft);
+}
+
+@media (pointer: coarse) {
+  .presence-dot {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.appear-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.appear-roles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.appear-role {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.appear-role.is-pov {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.appear-role.is-presente {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.appear-role.is-local {
+  background: var(--sky-soft);
+  color: var(--sky);
+}
+
+.appear-role.is-mencionado {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+
+.appearance-snippet .appear-name {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--ink);
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* A régua da história: até qual cena se olha, e "ver como o leitor". Fica no alto da ficha, também ao rolar. */
+.story-point {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.story-point.is-set {
+  border-color: var(--sky);
+}
+
+.story-point.is-reader {
+  border-color: var(--ochre-line);
+  background: color-mix(in srgb, var(--ochre-soft) 60%, var(--surface));
+}
+
+.story-point-pick {
+  display: flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  color: var(--muted);
+}
+
+.story-point-pick select {
+  flex: 1;
+  min-width: 0;
+}
+
+.story-point-reader span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.story-point-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+@media (pointer: coarse) {
+  .story-point-pick select {
+    min-height: 40px;
+    font-size: 16px;
+  }
+}
+
+/* O que o leitor só descobre numa cena: o autor vê com a cena ao lado. */
+.reveal-mark {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--sky) 10%, transparent);
+  color: inherit;
+}
+
+.reveal-mark.is-future {
+  background: color-mix(in srgb, var(--sky) 22%, transparent);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sky) 55%, transparent);
+}
+
+.reveal-when {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--sky);
+  font-family: var(--font-ui, inherit);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.story-point-unknown {
+  margin-top: 0.5rem;
+}
+
+.presence-strip li.is-after .presence-dot {
+  opacity: 0.35;
+}
+
+/* "O leitor descobre depois": a cena da revelação e a máscara, na escolha do Quem é. */
+.reveal-control {
+  margin-top: 0.25rem;
+}
+
+.reveal-control.is-set .reveal-toggle {
+  color: var(--sky);
+}
+
+.reveal-panel {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--sky) 35%, var(--line));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--sky-soft) 50%, var(--surface));
+}
+
+.reveal-panel p {
+  margin: 0;
+}
+
+.whois-reveal {
+  margin-left: 0.2rem;
+}
+
+.chip.is-future {
+  border-style: dashed;
+}
+
+/* A máscara: o que o leitor lê antes da revelação. O autor vê riscado de leve, com a cena. */
+.mask-mark {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ochre) 10%, transparent);
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--ochre) 60%, transparent);
+}
+
+.mask-mark.is-active {
+  text-decoration: none;
+  background: color-mix(in srgb, var(--ochre) 18%, transparent);
+}
+
+.mask-mark .reveal-when {
+  color: var(--ochre);
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.reveal-mask-field {
+  display: grid;
+  gap: 0.15rem;
+  flex-basis: 100%;
+  margin-top: 0.25rem;
+}
+
+.reveal-picker-set {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.reveal-mask-input {
+  width: 12rem;
+  max-width: 100%;
+}
+
+/* Jogo limpo: o leitor teve pistas antes da revelação? */
+.fair-play {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.fair-play.is-warn {
+  color: var(--ochre);
+}
+
+.entity-reveal {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+
+.entity-reveal-note {
+  display: flex;
+  margin: 0.3rem 0 0;
+}
+
+/* Fases: como a ficha muda ao longo da história. */
+.phase-now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0.4rem;
+}
+
+.phase-chip {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.phase-line {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase-line li {
+  padding: 0.3rem 0.5rem;
+  border-left: 3px solid var(--line);
+}
+
+.phase-line li.is-current {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 60%, transparent);
+}
+
+.phase-line li.is-after {
+  opacity: 0.6;
+}
+
+.phase-compare {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.phase-compare-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.phase-compare-pick select {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
+.phase-diff {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reader-text .phase-diff li + li,
+.reader-text .phase-line li + li {
+  margin-top: 0;
+}
+
+.reader-text .phase-diff,
+.reader-text .phase-line {
+  padding-left: 0;
+}
+
+.phase-diff li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+}
+
+.phase-diff-key {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.phase-diff-before {
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+.phase-diff-after {
+  font-weight: 600;
+}
+
+.phases-edit {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.phase-card {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.phase-card legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+}
+
+.phase-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.phase-fields {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.phase-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+/* Referências: o mural do que inspirou a ficha (só do autor). */
+.refs-private {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-family: var(--font-ui, inherit);
+  font-weight: 400;
+}
+
+.refs-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reader-text .refs-wall {
+  padding-left: 0;
+}
+
+.reader-text .refs-wall li + li {
+  margin-top: 0;
+}
+
+.ref-card {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  min-width: 0;
+}
+
+.ref-card legend {
+  padding: 0 0.25rem;
+  color: var(--muted);
+}
+
+.ref-image {
+  width: 100%;
+  max-height: 14rem;
+  object-fit: cover;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.ref-title {
+  font-size: 0.92rem;
+}
+
+.ref-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  word-break: break-all;
+}
+
+.ref-quote {
+  margin: 0;
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--line);
+  font-family: var(--font-text);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.ref-took,
+.ref-took-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.ref-took-edit .chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ref-not {
+  margin: 0;
+}
+
+.refs-edit {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.refs-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.ref-remove {
+  justify-self: start;
 }
