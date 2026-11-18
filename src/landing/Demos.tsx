@@ -352,7 +352,7 @@ const SECTORS: { id: SectorId; name: string; icon: typeof Dices; lede: string; s
     icon: GraduationCap,
     lede: 'Para aprender um pouco por dia, escrevendo ou mestrando.',
     screens: [
-      { id: 'trilha', label: 'Trilhas', note: 'Cada guia vira uma trilha curta: lições, uma revisão, uma imitação de Machado de Assis e o desafio final. O passo de hoje fica no alto.', render: (s) => <TrilhaScreen step={s} /> },
+      { id: 'trilha', label: 'Trilhas', note: 'Cada guia vira uma trilha curta: lições, uma revisão, uma imitação de Machado de Assis (e de O Mágico de Oz) e o desafio final. O passo de hoje fica no alto.', render: (s) => <TrilhaScreen step={s} /> },
       { id: 'passo', label: 'O passo', note: 'Ler a técnica em um minuto, escrever com o relógio e olhar depois: as contas do texto e perguntas para você responder. Sem nota e sem IA.', render: (s) => <PassoScreen step={s} /> },
       { id: 'guia', label: 'Guia', note: 'Cada guia traz o que o leitor espera, o que funciona, armadilhas, livros para estudar e curiosidades, em seções que abrem e fecham.', render: (s) => <GuiaScreen step={s} /> },
     ],
@@ -814,7 +814,7 @@ const TRILHA: [string, string][] = [
   ['Mostrar e contar', 'Lição e treino'],
   ['Ponto de vista firme', 'Lição e treino'],
   ['Revisão', 'Reescrever o primeiro texto'],
-  ['Imitação', 'Machado de Assis, de memória'],
+  ['Imitação', 'Machado ou Baum, de memória'],
 ]
 
 function TrilhaScreen({ step }: { step: number }) {

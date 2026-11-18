@@ -12,6 +12,9 @@ export const GAME_KINDS = ['especie', 'cultura']
 
 const hasGame = (e: Entity | undefined): e is Entity => Boolean(e?.game && (e.game.traits.some((t) => t.trim()) || Object.values(e.game.mods).some((n) => n !== 0)))
 
+/** O "No jogo" de uma ficha, se tem algo (traços ou modificadores). */
+export const gameOf = (e: Entity | undefined): NonNullable<Entity['game']> | null => (hasGame(e) ? e.game! : null)
+
 /** As fichas com "No jogo" ligadas ao personagem: por campo do tipo ficha ou por ligação (qualquer lado). */
 export function gameSourcesOf(u: Universe, characterId: string): Entity[] {
   const byId = new Map(u.entities.map((e) => [e.id, e]))

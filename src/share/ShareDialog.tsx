@@ -8,6 +8,7 @@ import { manuscriptOrder } from '../model/universe'
 import { Modal } from '../ui/Modal'
 import { emailHash, withAU } from '../logic/au'
 import { AUsOfMyWorld } from './AUsOfMyWorld'
+import { ShareSection } from './ShareSection'
 import { AURequests } from './AURequests'
 import { answerAU } from '../social/community'
 import { DEFAULT_PUBLIC_URL } from './server'
@@ -216,10 +217,7 @@ export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => 
           </>
         ) : (
           <>
-            <section className="share-section" aria-labelledby="share-pessoas">
-              <h3 id="share-pessoas" className="share-title">
-                Pessoas
-              </h3>
+            <ShareSection id="share-pessoas" title="Pessoas" summary={members.length ? `${members.length} ${members.length === 1 ? 'pessoa' : 'pessoas'}` : 'Ninguém convidado'} openOnPhone>
               <form className="share-invite" onSubmit={add}>
                 <input
                   className="input"
@@ -300,7 +298,7 @@ export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => 
               ) : (
                 <p className="muted small">Ninguém convidado ainda.</p>
               )}
-            </section>
+            </ShareSection>
 
             <AUsOfMyWorld />
 
@@ -320,10 +318,7 @@ export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => 
               onDecline={(r) => void act(async () => answerAU(await sb(), r, 'recusado'))}
             />
 
-            <section className="share-section" aria-labelledby="share-link">
-              <h3 id="share-link" className="share-title">
-                Link de leitura
-              </h3>
+            <ShareSection id="share-link" title="Link de leitura" summary={link ? `Ligado · ${linkMode === 'livro' ? 'livro, sem spoiler' : linkMode === 'wiki' ? 'wiki do mundo' : 'universo inteiro'}` : 'Desligado'}>
               {link ? (
                 <>
                   <p className="small">Quem tiver este link lê “{universe.name}” sem conta, mas não muda nada.</p>
@@ -409,33 +404,32 @@ export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => 
                   </button>
                 </>
               )}
-            </section>
+            </ShareSection>
 
-            <section className="share-section" aria-labelledby="share-segredos">
-              <h3 id="share-segredos" className="share-title">
-                Segredos
-              </h3>
+            <ShareSection id="share-segredos" title="Segredos" summary={share.show_secrets ? 'Quem lê também vê' : 'Escondidos de quem só lê'}>
               <label className="check">
                 <input
                   type="checkbox"
                   checked={share.show_secrets}
                   disabled={busy}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    // Lê o marcador já: depois do primeiro `await`, a caixa (controlada) já voltou ao valor de antes.
+                    const show = e.target.checked
                     void act(async () => {
                       const client = await sb()
-                      const next = await updateShare(client, share, { show_secrets: e.target.checked })
+                      const next = await updateShare(client, share, { show_secrets: show })
                       await flush()
                       await refreshReaderCopy(client, next, universe)
                       setShare(next)
                     })
-                  }
+                  }}
                 />{' '}
                 Quem só pode ver (e o link) também vê o que é secreto
               </label>
               <p className="muted tiny">
                 Desmarcado, fichas, fatos e ligações secretas e os trechos [segredo] não saem do seu Papirus para quem só lê. Quem pode editar vê tudo.
               </p>
-            </section>
+            </ShareSection>
 
             <div className="share-stop">
               {confirmStop ? (

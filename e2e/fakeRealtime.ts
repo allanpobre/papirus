@@ -8,6 +8,8 @@ import type { BrowserContext, WebSocketRoute } from '@playwright/test'
 export async function fakeRealtime(context: BrowserContext, server: string) {
   const sockets = new Set<{ ws: WebSocketRoute; topics: Set<string> }>()
   const broadcasts: { topic: string; event: string; payload: unknown }[] = []
+  // O celular dormiu: `drop()` derruba os canais abertos e `refuse(true)` recusa as voltas até `refuse(false)`.
+  let refusing = false
 
   const relay = (from: WebSocketRoute, topic: string, event: string, payload: unknown) => {
     broadcasts.push({ topic, event, payload })
@@ -20,6 +22,10 @@ export async function fakeRealtime(context: BrowserContext, server: string) {
   }
 
   await context.routeWebSocket(new RegExp(`^${server.replace(/^https/, 'wss').replace(/\./g, '\\.')}/realtime/`), (ws) => {
+    if (refusing) {
+      void ws.close({ code: 1011, reason: 'sem rede' })
+      return
+    }
     const me = { ws, topics: new Set<string>() }
     sockets.add(me)
     ws.onClose(() => sockets.delete(me))
@@ -51,5 +57,16 @@ export async function fakeRealtime(context: BrowserContext, server: string) {
       relay(ws, topic, event, encoding === 1 ? JSON.parse(raw.toString()) : raw)
     })
   })
-  return { broadcasts }
+  return {
+    broadcasts,
+    /** Derruba todos os canais abertos (como o celular que dormiu). */
+    drop: () => {
+      for (const s of sockets) void s.ws.close({ code: 1006, reason: 'dormiu' })
+      sockets.clear()
+    },
+    /** Recusa (ou volta a aceitar) as conexões novas. */
+    refuse: (on: boolean) => {
+      refusing = on
+    },
+  }
 }

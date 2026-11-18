@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "entity_id": 101,
+      "name": "Aldric Valmar",
+      "title": "Rei de Valmar",
+      "type": "Rei",
+      "age": "52",
+      "sex": "homem",
+      "pronouns": "ele/dele",
+      "is_private": false,
+      "image": null,
+      "tags": [],
+      "entry": "<p>Aldric governa [location:2|Valmar] com mão de ferro. Seu irmão, [character:2], foi exilado.</p><p>Chefe da [organisation:1].</p>",
+      "entry_parsed": "<p>Aldric governa <a href=\"https://app.kanka.io/w/1/locations/2\" data-toggle=\"tooltip\">Valmar</a> com mão de ferro. Seu irmão, <a href=\"https://app.kanka.io/w/1/characters/2\">Brant Valmar</a>, foi exilado.</p><p>Chefe da <a href=\"https://app.kanka.io/w/1/organisations/1\">Ordem do Farol</a>.</p>"
+    },
+    {
+      "id": 2,
+      "entity_id": 102,
+      "name": "Brant Valmar",
+      "title": null,
+      "type": "Exilado",
+      "age": "47",
+      "is_private": true,
+      "image": null,
+      "tags": [],
+      "entry": "<p>Irmão mais novo de [character:1]. Vive escondido em [location:3] e sabe onde está a coroa.</p>"
+    }
+  ],
+  "links": {
+    "first": "https://api.kanka.io/1.0/campaigns/1/characters?page=1"
+  },
+  "meta": {
+    "current_page": 1,
+    "total": 2
+  }
+}

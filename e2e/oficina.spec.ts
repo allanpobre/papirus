@@ -267,3 +267,81 @@ test('Oficina: a imitação de Machado esconde o trecho e compara lado a lado', 
   await expect(passo.getByText(/das palavras de Machado voltaram no seu texto/)).toBeVisible()
   await expect(passo.getByRole('region', { name: 'O original' }).locator('mark', { hasText: 'Bacamarte' })).toBeVisible()
 })
+
+test('Oficina: a trilha de Diálogo tem a imitação de Oz logo depois da de Machado, e o passo fica feito', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 })
+  await page.goto('/app/')
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  await page.getByRole('tab', { name: 'Trilhas' }).click()
+  await page.getByRole('button', { name: /^Diálogo/ }).click()
+  // Os dois passos de imitação ficam um depois do outro.
+  const imitacoes = page.getByRole('button', { name: /^Imitação:/ })
+  await expect(imitacoes).toHaveCount(2)
+  await expect(imitacoes.nth(0)).toContainText('Machado de Assis')
+  await expect(imitacoes.nth(1)).toContainText('Baum, diálogo')
+  await imitacoes.nth(1).click()
+
+  const passo = page.getByRole('dialog', { name: 'Oficina: Imitação: Baum, diálogo' })
+  // A conversa aparece em parágrafos, cada fala na sua linha, com a fonte embaixo.
+  await expect(passo.locator('.step-passage p')).toHaveCount(6)
+  await expect(passo.getByText('— Onde você conseguiu os sapatos de prata?')).toBeVisible()
+  await expect(passo.locator('.step-passage cite')).toContainText('L. Frank Baum, O Maravilhoso Mágico de Oz (1900)')
+  await passo.getByRole('button', { name: 'Já li · esconder o trecho' }).click()
+  await expect(passo.getByText('— Onde você conseguiu os sapatos de prata?')).toHaveCount(0)
+  const chaves = passo.getByRole('list', { name: 'Palavras-chave' })
+  await expect(chaves).toContainText('Bruxa Má do Leste')
+  // A palavra que abre a fala não vira parte do nome.
+  await expect(chaves).not.toContainText('Ganhei da')
+
+  await passo.getByRole('textbox', { name: 'Texto do passo' }).fill('— Eu sou Dorothy, a Pequena e Humilde.\n— Onde você conseguiu os sapatos de prata?\n— Ganhei da Bruxa Má do Leste, quando a minha casa caiu em cima dela.')
+  await passo.getByRole('button', { name: 'Comparar' }).click()
+  await expect(passo.getByText(/das palavras de Baum voltaram no seu texto/)).toBeVisible()
+  await expect(passo.getByRole('region', { name: 'O original' })).toBeVisible()
+  await expect(passo.getByRole('region', { name: 'O original' }).locator('mark', { hasText: 'sapatos' })).toBeVisible()
+  await expect(passo.locator('.step-compare-label', { hasText: 'Baum' })).toBeVisible()
+  // No celular, nada passa da largura da tela.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+  await passo.getByRole('button', { name: 'Concluir o passo' }).click()
+  await expect(passo.getByText('Passo concluído')).toBeVisible()
+  await passo.getByRole('button', { name: 'Voltar à Oficina' }).click()
+  // Só o passo de Oz ficou feito (o de Machado, não).
+  await expect(page.locator('.oficina-node.is-done')).toHaveCount(1)
+  await expect(page.locator('.oficina-node.is-done')).toContainText('Baum, diálogo')
+})
+
+test('Oficina: todas as trilhas abrem, e cada passo abre com o título certo e sem erro', async ({ page }) => {
+  test.setTimeout(120_000)
+  await page.setViewportSize({ width: 390, height: 800 })
+  const erros: string[] = []
+  page.on('pageerror', (e) => erros.push(e.message))
+  page.on('console', (m) => m.type() === 'error' && erros.push(m.text()))
+  await page.goto('/app/')
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Oficina' }).click()
+  await page.getByRole('tab', { name: 'Trilhas' }).click()
+  const nomes = await page.locator('.oficina-trail-rows li button').evaluateAll((bs) => bs.map((b) => b.querySelector('strong')?.textContent ?? ''))
+  expect(nomes.length).toBe(14)
+  let passos = 0
+  for (const [n, nome] of nomes.entries()) {
+    await page.getByRole('tab', { name: 'Trilhas' }).click()
+    await page.locator('.oficina-trail-rows li button').nth(n).click()
+    await expect(page.getByRole('heading', { name: nome, level: 2 })).toBeVisible()
+    const titulos = await page.locator('.oficina-node-body strong').allTextContents()
+    expect(titulos.length, nome).toBeGreaterThanOrEqual(6)
+    for (const [i, titulo] of titulos.entries()) {
+      await page.locator('.oficina-node-body').nth(i).click()
+      const passo = page.getByRole('dialog', { name: `Oficina: ${titulo}` })
+      await expect(passo.getByRole('heading', { name: titulo, level: 1 }), `${nome}: ${titulo}`).toBeVisible()
+      await expect(passo.getByRole('button', { name: /^Escrever|^Já li/ }), `${nome}: ${titulo}`).toBeVisible()
+      await passo.getByRole('button', { name: 'Fechar o passo' }).click()
+      await expect(passo).toHaveCount(0)
+      passos++
+    }
+    // "Ler o guia" leva ao guia certo e volta.
+    await page.getByRole('button', { name: 'Ler o guia' }).click()
+    await expect(page.getByRole('heading', { name: nome, level: 1 })).toBeVisible()
+    await page.goBack()
+  }
+  expect(passos).toBeGreaterThan(100)
+  expect(erros).toEqual([])
+})

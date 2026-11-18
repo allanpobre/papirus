@@ -12,7 +12,7 @@ import { Flag, MessageCircle, Send, Trash2 } from 'lucide-react'
 import { BookLooks } from '../book/BookLooks'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { addComment, deleteComment, profilesByIds, type Profile, type ShelfComment, type ShelfRow } from './social'
-import { blockedIds, readingOf, report, REPORT_REASONS, saveReading } from './community'
+import { blockedIds, isMissing, readingOf, report, REPORT_REASONS, saveReading } from './community'
 
 /** Ler um livro da estante ali mesmo: o modo leitor por cima, com reações por capítulo. */
 export function ShelfReader({
@@ -220,8 +220,14 @@ function BookComments({ book, me, client, onAccount }: { book: ShelfRow; me: str
                       className="report-form"
                       onSubmit={(e) => {
                         e.preventDefault()
+                        setReported(false)
                         void act(async (sb) => {
-                          await report(sb, { target: c.author, reason, body: c.body, commentId: c.id, bookOwner: book.owner, bookId: book.id })
+                          try {
+                            await report(sb, { target: c.author, reason, body: c.body, commentId: c.id, bookOwner: book.owner, bookId: book.id })
+                          } catch (err) {
+                            // Quem lê não precisa saber de script: só que denunciar não está ligado neste servidor.
+                            throw isMissing(err) ? new Error('Denunciar ainda não está ligado neste servidor. Quem cuida dele precisa rodar o script supabase/comunidade.sql.') : err
+                          }
                           setReporting(null)
                           setReported(true)
                         })
@@ -234,6 +240,9 @@ function BookComments({ book, me, client, onAccount }: { book: ShelfRow; me: str
                       </select>
                       <button type="submit" className="btn btn-sm" disabled={busy}>
                         Denunciar
+                      </button>
+                      <button type="button" className="btn btn-sm btn-ghost" onClick={() => setReporting(null)}>
+                        Cancelar
                       </button>
                     </form>
                   )}

@@ -1,11 +1,13 @@
-import { Copy, Dices, Plus, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
+import { Copy, Dices, Download, FileUp, Plus, Trash2, X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { downloadText, fileNameFor } from '../../export/download'
 import { DiceError } from '../../logic/dice'
 import { MODIFIER_RULES, RESOLUTION_MODES, type GameSystem } from '../../model/schema'
 import { insert, newId, patch, removeSystem } from '../../model/universe'
 import { expandFormula, resolveRoll, type RollOutcome } from '../../rpg/rolls'
 import { draftSheet } from '../../rpg/sheets'
 import { SYSTEM_TEMPLATES, systemFromTemplate } from '../../rpg/systems'
+import { exportSystem, freeSystemName, readSystemFile } from '../../rpg/systemFile'
 import { useWorkspace } from '../../state/workspace'
 import { Empty, Field, Select, TagInput, YearInput } from '../../ui/bits'
 import { ConfirmButton } from '../../ui/ConfirmButton'
@@ -24,9 +26,35 @@ const RESOLUTION_LABEL: Record<GameSystem['resolution'], string> = {
 
 /** Sistemas de jogo: modelos prontos e editáveis, ou do zero. */
 export function SystemsTab() {
-  const { universe, update } = useWorkspace()
+  const { universe, update, toast, readOnly } = useWorkspace()
   const [openId, setOpenId] = useState<string | null>(universe.systems[0]?.id ?? null)
   const [creating, setCreating] = useState(universe.systems.length === 0)
+  const fileInput = useRef<HTMLInputElement>(null)
+  // O que a última importação trouxe e o que não deu para trazer.
+  const [report, setReport] = useState<{ name: string; counts: string; warnings: string[] } | null>(null)
+
+  /** Traz um sistema de um arquivo .json (de "Exportar sistema"), com id novo e um nome que não repete. */
+  const importFile = async (file: File) => {
+    const read = readSystemFile(await file.text())
+    if (!read.system) {
+      toast(read.error ?? 'Não consegui trazer este arquivo.', { tone: 'erro' })
+      return
+    }
+    const system = { ...read.system, name: freeSystemName(read.system.name, universe.systems.map((x) => x.name)) }
+    let id = ''
+    update((u) => {
+      const [next, s] = insert(u, 'systems', system)
+      id = s.id
+      return next
+    })
+    setOpenId(id)
+    setCreating(false)
+    setReport({
+      name: system.name,
+      counts: `${system.attributes.length} atributos, ${system.skills.length} perícias, ${system.resources.length} recursos e ${system.conditions.length} condições`,
+      warnings: read.warnings,
+    })
+  }
   const system = universe.systems.find((s) => s.id === openId)
 
   const create = (templateId: string) => {
@@ -43,9 +71,51 @@ export function SystemsTab() {
   return (
     <div className={`split${system || creating ? ' has-detail' : ''}`}>
       <section className="split-list" aria-label="Sistemas">
-        <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
-          <Plus size={16} /> Novo sistema
-        </button>
+        <div className="inline-fields">
+          <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
+            <Plus size={16} /> Novo sistema
+          </button>
+          {!readOnly && (
+            <button type="button" className="btn btn-ghost" onClick={() => fileInput.current?.click()}>
+              <FileUp size={16} /> Importar sistema
+            </button>
+          )}
+        </div>
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          aria-label="Arquivo do sistema (.json)"
+          onChange={(e) => {
+            // Copia a lista antes de limpar o campo (limpar esvazia a lista do navegador).
+            const files = Array.from(e.target.files ?? [])
+            e.target.value = ''
+            if (files[0]) void importFile(files[0])
+          }}
+        />
+        {report && (
+          <div className="notice system-import-report" role="status">
+            <p>
+              <strong>“{report.name}” foi trazido</strong>: {report.counts}.
+            </p>
+            {report.warnings.length > 0 ? (
+              <>
+                <p className="small">O que não deu para trazer (ou mudou):</p>
+                <ul className="small">
+                  {report.warnings.map((w) => (
+                    <li key={w}>{w}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="small">Tudo veio, sem nada de fora.</p>
+            )}
+            <button type="button" className="btn btn-sm" onClick={() => setReport(null)}>
+              Entendi
+            </button>
+          </div>
+        )}
         <ul className="entity-list">
           {universe.systems.map((s) => (
             <li key={s.id}>
@@ -123,6 +193,9 @@ function SystemEditor({ system: s, onDeleted, onDuplicated }: { system: GameSyst
             {usedBy.length ? `Usado por: ${usedBy.map((g) => g.name).join(', ')}` : 'Nenhum grupo usa este sistema ainda (escolha no Painel do mestre).'}
           </span>
         </div>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => downloadText(fileNameFor(s.name || 'sistema', 'json'), exportSystem(s), 'application/json')}>
+          <Download size={14} /> Exportar (.json)
+        </button>
         <button
           type="button"
           className="btn btn-ghost btn-sm"

@@ -4,6 +4,7 @@ import { authClient, useAccount } from '../account/auth'
 import { auNews, canonize, type AUNews } from '../logic/au'
 import type { Universe } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
+import { ShareSection } from './ShareSection'
 import { openShared, sharedWithMe, shortName, type SharedWithMe } from './sharing'
 
 const KIND: Record<AUNews['key'], string> = { entities: 'Ficha', relations: 'Ligação', events: 'Data', facts: 'Fato' }
@@ -46,10 +47,7 @@ export function AUsOfMyWorld() {
 
   if (!aus.length) return null
   return (
-    <section className="share-section" aria-labelledby="share-aus">
-      <h3 id="share-aus" className="share-title">
-        <Sparkles size={14} aria-hidden="true" /> AUs do seu mundo
-      </h3>
+    <ShareSection id="share-aus" title="AUs do seu mundo" icon={<Sparkles size={14} aria-hidden="true" />} summary={`${aus.length} ${aus.length === 1 ? 'AU' : 'AUs'}`}>
       <p className="muted small">Universos alternativos que partiram de “{universe.name}”. Escolha o que deles vira canon aqui; o resto fica só no AU.</p>
       <ul className="au-list">
         {aus.map(({ item, au }) => {
@@ -124,6 +122,6 @@ export function AUsOfMyWorld() {
           )}
         </div>
       )}
-    </section>
+    </ShareSection>
   )
 }

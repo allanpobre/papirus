@@ -9,6 +9,7 @@ import { Field } from '../ui/bits'
 import { Modal } from '../ui/Modal'
 import { ServerFields } from '../views/ServerCard'
 import { authClient, sendMagicLink, sendPasswordReset, signIn, signUp, useAccount } from './auth'
+import { installedAdvice } from './linkAdvice'
 
 type Mode = 'entrar' | 'criar' | 'link'
 
@@ -83,7 +84,7 @@ export function AccountDialog({
         await signIn(server, email.trim(), password)
       } else if (mode === 'link') {
         await sendMagicLink(server, email.trim())
-        setNotice(`Enviamos um link para ${email.trim()}. Abra-o no aparelho em que quer entrar; ele vale uma vez só e por pouco tempo. Não chegou? Olhe o spam.`)
+        setNotice(`Enviamos um link para ${email.trim()}. Abra-o no aparelho em que quer entrar; ele vale uma vez só e por pouco tempo. Não chegou? Olhe o spam.${installedAdvice()}`)
       } else if (step === 1) {
         if (password.length < 6) throw new Error('A senha precisa ter pelo menos 6 caracteres.')
         if (password !== confirm) throw new Error('As duas senhas não são iguais.')
@@ -110,7 +111,7 @@ export function AccountDialog({
           <MailCheck size={36} aria-hidden="true" className="account-done-icon" />
           <h3>Confira seu e-mail</h3>
           <p className="small">
-            Mandamos um link para <strong>{checkEmail}</strong>. Abra-o neste aparelho para confirmar a conta. Seu perfil (@{cleanedHandle}) fica pronto quando você entrar.
+            Mandamos um link para <strong>{checkEmail}</strong>. Abra-o neste aparelho para confirmar a conta. Seu perfil (@{cleanedHandle}) fica pronto quando você entrar.{installedAdvice()}
           </p>
           <button
             type="button"
@@ -276,7 +277,7 @@ export function AccountDialog({
                   onClick={() =>
                     void act(async () => {
                       await sendPasswordReset(server, email.trim())
-                      setNotice(`Se existir uma conta com ${email.trim()}, chegou um e-mail. Abra o link e o Papirus pede a senha nova. Não chegou? Olhe o spam.`)
+                      setNotice(`Se existir uma conta com ${email.trim()}, chegou um e-mail. Abra o link e o Papirus pede a senha nova. Não chegou? Olhe o spam.${installedAdvice()}`)
                     })
                   }
                 >

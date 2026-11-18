@@ -219,8 +219,33 @@
 
 .pair-conflict-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.4rem;
+}
+
+.pair-conflict-lead {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/* Cada escolha diz o que faz: o nome e, embaixo, o que acontece com cada versão. */
+.pair-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.pair-choice span {
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.35;
+  opacity: 0.85;
 }
 
 .library-versions {
@@ -1549,6 +1574,58 @@ body:has(.rail-phone) .toasts {
 .share-title {
   margin: 0;
   font-size: 0.95rem;
+}
+
+/* Partes que abrem e fecham: o título e um resumo ficam à vista, e o conteúdo vem embaixo. */
+.share-collapse > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.share-collapse > summary::-webkit-details-marker {
+  display: none;
+}
+
+.share-collapse > summary .share-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.share-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.share-collapse[open] > summary .share-chevron {
+  transform: rotate(180deg);
+}
+
+.share-collapse-body {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.3rem;
+}
+
+@media (min-width: 641px) {
+  /* No computador, as partes já vêm abertas e o título não precisa parecer botão. */
+  .share-collapse > summary {
+    min-height: 0;
+  }
 }
 
 .share-invite {

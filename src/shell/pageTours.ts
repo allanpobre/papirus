@@ -308,7 +308,7 @@ export const PAGE_TOURS = {
       { target: '[data-tour="partes"]', title: 'A trama em duas partes', body: 'Pistas e mistérios, e Quem sabe o quê: as promessas ao leitor e o que cada um sabe. Toque para trocar de parte.', optional: true },
       { target: '.seeds-view .quick-create', title: 'Plantar', body: 'Uma promessa ao leitor ou uma pergunta. Semente liga uma preparação a um pagamento futuro; Mistério junta pistas.' },
       { target: '.seeds-view .filter-chips', title: 'Mostrar', body: 'Todas, só as sementes ou só os mistérios.' },
-      { target: '.board', title: 'O quadro', body: 'Colunas por estado: aberta, parcial, resolvida, abandonada. Toque num cartão para ligar as fichas envolvidas, a cena em que foi preparada, a cena em que se paga e as pistas. Nenhuma precisa ser resolvida.', optional: true },
+      { target: '.board', title: 'O quadro', body: 'Colunas por estado: aberta, parcial, resolvida, abandonada. Toque num cartão para ligar as fichas envolvidas, a cena em que foi preparada, a cena em que se paga e as pistas. Para mudar o estado, arraste o cartão para outra coluna ou toque em “Mover para…”. No celular, as colunas rolam de lado: os botões do alto levam a cada uma. Nenhuma precisa ser resolvida.', optional: true },
       { title: 'Lembretes no texto', body: 'Quando alguém ligado a uma trama aberta volta a uma cena, ela aparece na margem do Escrever, para você não esquecer.' },
     ],
   },
@@ -326,7 +326,7 @@ export const PAGE_TOURS = {
       {
         target: '.fact-cards',
         title: 'Uma frase por fato',
-        body: 'Se é verdade (ou segredo, boato, lenda, mentira), quem disse e onde. Embaixo, quem sabe ou suspeita, e se o leitor já viu até a última cena.',
+        body: 'Se é verdade (ou segredo, boato, lenda, mentira), quem disse e onde. Embaixo, quem sabe ou suspeita, em que livro e cena o leitor fica sabendo e se ele já viu. Com um livro escolhido no alto, a aba começa pelos fatos “Revelados neste livro”; “Todos os fatos” mostra o universo inteiro.',
         optional: true,
       },
       { title: 'De onde vêm', body: 'No Escrever, selecione um trecho e escolha “Fato”: o trecho fica guardado como fonte. Um fato falso dito por alguém aparece no Codex dos jogadores só como “segundo fulano”.' },
@@ -413,6 +413,7 @@ export const PAGE_TOURS = {
     title: 'Compartilhar',
     steps: [
       { target: '.share-intro', title: 'Três jeitos', body: 'Pode ver (lê tudo, não muda nada), Pode editar (escreve junto, ao vivo) e Link de leitura (quem tiver o link lê sem conta).', optional: true },
+      { target: '.share-collapse > summary', title: 'Partes que abrem e fecham', body: 'Cada parte (Pessoas, Link de leitura, Segredos…) tem um resumo ao lado do título, para saber como está sem abrir. Toque para abrir ou fechar. No celular, só a de Pessoas já vem aberta.', optional: true },
       { target: '.share-invite', title: 'Convidar', body: 'O e-mail da pessoa e o que ela pode fazer. Ela entra no Papirus com esse e-mail e o universo aparece em “Compartilhados com você”.', optional: true },
       { target: '.share-members', title: 'Quem tem acesso', body: 'Troque o que cada pessoa pode fazer, ou tire o acesso, quando quiser.', optional: true },
       { target: '[aria-labelledby="share-link"]', title: 'Link de leitura', body: 'Para quem não tem conta: leitores beta, jogadores. Abre como livro, como a wiki do mundo (sem segredos, com o visual da página Wiki, e só até a cena que você escolher) ou como o universo inteiro. Trocar o link faz o antigo parar de funcionar.', optional: true },
@@ -606,7 +607,7 @@ export const PAGE_TOURS = {
       { target: '.dice-result', title: 'Resultado', body: 'O total e cada dado que saiu. Com uma sessão em andamento, vai para o registro.' },
       { target: '.dice-history', title: 'Histórico', body: 'As últimas rolagens.', optional: true },
       { target: '.tables', title: 'Tabelas aleatórias', body: 'Nomes de taverna, rumores, encontros: crie a lista e sorteie uma linha na hora.', optional: true },
-      { target: '.bestiary', title: 'Inimigos prontos', body: 'O bestiário da campanha: vida, Defesa, iniciativa e ataques de cada inimigo. No combate, “3” goblins entram na iniciativa numerados, com os ataques a um toque na vez deles. As espécies do Mundo aparecem em “Do Mundo”, para virar inimigo com um toque. Primeira vez mestrando? Com o bestiário vazio, “Trazer inimigos comuns” põe Goblin, Lobo, Esqueleto, Bandido e Ogro (números do estilo D&D 5e, para você acertar ao seu sistema).', optional: true },
+      { target: '.bestiary', title: 'Inimigos prontos', body: 'O bestiário da campanha: vida, Defesa, iniciativa e ataques de cada inimigo. No combate, “3” goblins entram na iniciativa numerados, com os ataques a um toque na vez deles. As espécies do Mundo aparecem em “Do Mundo”, para virar inimigo com um toque. Primeira vez mestrando? Com o bestiário vazio, “Trazer inimigos comuns” põe Goblin, Lobo, Esqueleto, Bandido e Ogro (números do estilo D&D 5e, para você acertar ao seu sistema). Uma espécie (ou qualquer ficha) do Mundo vira inimigo com um toque, já com o “No jogo” dela; com quatro ou mais, aparecem a busca e os filtros por tipo e por nível.', optional: true },
     ],
   },
   'rpg-sistemas': {
@@ -615,6 +616,7 @@ export const PAGE_TOURS = {
       { target: '.split-list[aria-label="Sistemas"]', title: 'Os sistemas', body: 'As regras dos seus grupos. Cada grupo usa um; vários podem usar o mesmo.' },
       { target: '.template-picker', title: 'Começar de um modelo', body: 'D&D 5e, Tormenta 20, Ordem Paranormal, Call of Cthulhu, parada de dados ou sem sistema. Os modelos trazem só a estrutura; ajuste tudo.', optional: true },
       { target: '.system-editor', title: 'Editar', body: 'Atributos, recursos (PV, PM, Defesa), perícias, fórmulas de rolagem e condições. As fichas da mesa seguem o sistema.', optional: true },
+      { target: '.split-list[aria-label="Sistemas"]', title: 'Levar para outra campanha', body: '“Exportar (.json)”, no sistema aberto, guarda as regras num arquivo (só a estrutura: nada de fichas ou sessões). “Importar sistema” traz esse arquivo em outro universo e diz o que não deu para trazer.', optional: true },
     ],
   },
 
@@ -675,7 +677,7 @@ export const PAGE_TOURS = {
       { target: '.oficina-first', title: 'Por onde começar', body: 'Escolha o que quer treinar. A resposta escolhe a trilha do passo de hoje; dá para trocar quando quiser.', optional: true },
       { target: '.oficina-today-card', title: 'O passo de hoje', body: 'O próximo passo da sua trilha, com quanto tempo leva. “Começar” abre a lição e o exercício.', optional: true },
       { target: '.oficina-trail-rows', title: 'Suas trilhas', body: 'Quanto você já andou em cada uma. Trilha completa ganha o selo.', optional: true },
-      { target: '.oficina-path', title: 'A trilha', body: 'Lições, uma revisão (reescrever o primeiro texto com a técnica nova), uma imitação de Machado de Assis e o desafio final. Toque em qualquer passo.', optional: true },
+      { target: '.oficina-path', title: 'A trilha', body: 'Lições, uma revisão (reescrever o primeiro texto com a técnica nova), uma imitação de Machado de Assis (e, em alguns guias, de O Mágico de Oz: lugar, diálogo, ritmo) e o desafio final. Toque em qualquer passo.', optional: true },
       { target: '.oficina-cad', title: 'O caderno', body: 'Cada texto, com a data e as suas respostas. Toque para reler ou refazer o passo.', optional: true },
       { target: '.oficina-ideas', title: 'Gerador de ideias', body: 'Sorteie uma ideia para escrever ou um gancho para a mesa. Dentro de um universo, ela vira uma cena com um toque.', optional: true },
       { target: '.oficina-shelf-section', title: 'Os guias', body: 'Toque num gênero ou técnica para ler o guia inteiro. A etiqueta mostra o do seu universo.', optional: true },

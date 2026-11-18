@@ -237,7 +237,9 @@ export function StepPage({
             <>
               <p className="step-lesson">{step.text}</p>
               <blockquote className="step-passage">
-                <p>{step.passage.text}</p>
+                {step.passage.text.split('\n').map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
                 <cite>{step.passage.source}</cite>
               </blockquote>
               <button type="button" className="btn btn-primary btn-lg step-go" onClick={() => begin()}>
@@ -368,7 +370,7 @@ export function StepPage({
           {comparison && step.passage ? (
             <>
               <p className="step-score">
-                <strong className="tabular">{Math.round(comparison.score * 100)}%</strong> das palavras de Machado voltaram no seu texto
+                <strong className="tabular">{Math.round(comparison.score * 100)}%</strong> das palavras de {step.passage.author} voltaram no seu texto
               </p>
               <div className="step-compare">
                 <section aria-label="O seu texto">
@@ -376,7 +378,7 @@ export function StepPage({
                   <p>{segments(saved.text, (w) => w.length >= 4 && comparison.shared.has(w)).map((s, i) => (s.mark ? <mark key={i}>{s.text}</mark> : s.text))}</p>
                 </section>
                 <section aria-label="O original">
-                  <span className="step-compare-label">Machado</span>
+                  <span className="step-compare-label">{step.passage.author}</span>
                   <p>
                     {segments(step.passage.text, (w) => w.length >= 4 && comparison.shared.has(w)).map((s, i) =>
                       s.mark ? (

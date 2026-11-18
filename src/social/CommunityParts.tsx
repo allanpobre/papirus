@@ -49,7 +49,7 @@ function useAct(onDone: () => void) {
 const name = (p: Profile) => p.name || `@${p.handle}`
 
 /** No perfil de alguém: seguir, bloquear e os mundos abertos a AU (com o pedido). */
-export function PersonExtras({ person, myId, client, onChanged }: { person: Profile; myId: string | null; client: Client; onChanged: () => void }) {
+export function PersonExtras({ person, myId, client, blocked = false, onChanged }: { person: Profile; myId: string | null; client: Client; /** Você bloqueou esta pessoa. */ blocked?: boolean; onChanged: () => void }) {
   const [counts, setCounts] = useState<{ followers: number; following: number } | null>(null)
   const [following, setFollowing] = useState(false)
   const [worlds, setWorlds] = useState<OpenWorld[]>([])
@@ -97,7 +97,17 @@ export function PersonExtras({ person, myId, client, onChanged }: { person: Prof
           <strong>{counts.followers}</strong> {counts.followers === 1 ? 'seguidor' : 'seguidores'} · <strong>{counts.following}</strong> seguindo
         </p>
       )}
-      {myId && !isMe && (
+      {myId && !isMe && blocked && (
+        <div className="person-blocked" role="status">
+          <p className="small">
+            <Ban size={14} aria-hidden="true" /> Você bloqueou {name(person)}. A pessoa não pode comentar nos seus livros, reagir, pedir amizade, seguir você nem pedir AU.
+          </p>
+          <button type="button" className="btn btn-sm" disabled={busy} onClick={() => void act(async () => unblock(await client(), myId, person.user_id))}>
+            Desbloquear
+          </button>
+        </div>
+      )}
+      {myId && !isMe && !blocked && (
         <div className="inline-fields">
           <button
             type="button"
@@ -136,11 +146,11 @@ export function PersonExtras({ person, myId, client, onChanged }: { person: Prof
                 <li key={w.universe_id}>
                   <strong>{w.name || 'Sem nome'}</strong>
                   {w.blurb && <span className="small muted">{w.blurb}</span>}
-                  {!isMe && myId && (
+                  {!isMe && myId && !blocked && (
                     <>
                       {req ? (
                         <span className={`au-chip au-req-${req.status}`}>
-                          {req.status === 'pendente' ? 'Pedido enviado' : req.status === 'aceito' ? 'Aceito: está em “Compartilhados com você”' : 'Recusado'}
+                          {req.status === 'pendente' ? 'Pedido enviado: o autor ainda não respondeu' : req.status === 'aceito' ? 'Aceito: está em “Compartilhados com você”' : 'O autor não aceitou este pedido'}
                         </span>
                       ) : asking === w.universe_id ? (
                         <form
@@ -331,7 +341,7 @@ export function PeopleLists({ myId, client, onOpen }: { myId: string; client: Cl
         </p>
       )}
       <h4 className="section-label">Seguindo ({lists.following.length})</h4>
-      {lists.following.length ? <ul className="social-list">{lists.following.map((p) => row(p))}</ul> : <p className="muted small">Ninguém. No perfil de alguém, “Seguir” traz os capítulos novos dos livros públicos para as Novidades, sem precisar ser amigo.</p>}
+      {lists.following.length ? <ul className="social-list">{lists.following.map((p) => row(p))}</ul> : <p className="muted small">Você não segue ninguém. No perfil de alguém, “Seguir” traz os capítulos novos dos livros públicos para as Novidades, sem precisar ser amigo.</p>}
       <h4 className="section-label">Seguidores ({lists.followers.length})</h4>
       {lists.followers.length ? (
         <ul className="social-list">

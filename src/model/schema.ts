@@ -387,6 +387,14 @@ export const monsterSchema = z.object({
   initiative: z.number().int(),
   attacks: z.array(attackSchema).default([]),
   notes: z.string().default(''),
+  /** A ficha do Mundo de onde veio (uma espécie, uma criatura): o inimigo herda o "No jogo" dela e fica em dia. */
+  entityId: ref.optional(),
+  /** O tipo ("fera", "morto-vivo", "goblinoide") e o nível (ou ND), para achar no bestiário. Opcionais. */
+  type: z.string().optional(),
+  level: z.number().int().nullable().optional(),
+  /** O que vem do "No jogo" da ficha do Mundo: traços (aparecem na iniciativa) e modificadores pela sigla ("FOR": 2). */
+  traits: z.array(z.string()).optional(),
+  mods: z.record(z.string(), z.number()).optional(),
   ...timestamps,
 })
 
@@ -738,6 +746,17 @@ export const bookRecordSchema = bookDesignSchema.extend({
   ...timestamps,
 })
 
+/**
+ * Uma referência que mudou quando o item foi apagado (o ponto de vista de uma cena, as cenas de um livro, o
+ * lugar de um evento…), para voltar quando ele for recuperado. Cada campo guarda como era e como ficou.
+ */
+export const trashRefSchema = z.object({
+  /** Coleção do registro que mudou. */
+  kind: z.string(),
+  id,
+  changes: z.record(z.string(), z.object({ before: z.unknown().optional(), after: z.unknown().optional() })),
+})
+
 /** Algo apagado, guardado por 30 dias. `records` traz o item e o que saiu junto (relações, fatos…). */
 export const trashItemSchema = z.object({
   id,
@@ -748,6 +767,10 @@ export const trashItemSchema = z.object({
   deletedAt: z.string(),
   /** Quem apagou (nome curto da conta). `null` = sem conta. */
   by: z.string().nullable(),
+  /** O que mudou em outros registros por causa da exclusão (opcional: lixeiras antigas não têm). */
+  refs: z.array(trashRefSchema).optional(),
+  /** Onde cada registro apagado estava na lista (na ordem de `records`), para voltar ao mesmo lugar. */
+  index: z.record(z.string(), z.array(z.number())).optional(),
 })
 
 /** Uma linha do histórico: quem mudou o quê. Edições seguidas no mesmo item viram uma só. */
@@ -880,6 +903,7 @@ export type CollectionKey =
   | 'monsters'
   | 'books'
 export type TrashItem = z.infer<typeof trashItemSchema>
+export type TrashRef = z.infer<typeof trashRefSchema>
 export type BookDesign = z.infer<typeof bookDesignSchema>
 export type BookRecord = z.infer<typeof bookRecordSchema>
 export type HistoryEntry = z.infer<typeof historyEntrySchema>

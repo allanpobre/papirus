@@ -1,6 +1,7 @@
 import { fold } from '../logic/text'
 import { ALIENISTA } from '../model/alienistaTexto'
 import { GUIDES, sectionOf, type Guide, type GuideId } from './guides'
+import { OZ_TRECHOS } from './ozTrechos'
 import { PRACTICE, type Practice } from './practice'
 import { exerciseKey, type OficinaProgress } from './progress'
 import { wordsOf } from './textCounts'
@@ -8,8 +9,8 @@ import { wordsOf } from './textCounts'
 /*
  * As trilhas da Oficina: cada guia vira um caminho curto. As técnicas do guia viram lições
  * (ler um minuto, escrever dez), depois da terceira vem uma revisão (reescrever o primeiro
- * texto com a técnica nova), nos guias de escrita uma imitação de Machado de Assis, e no fim
- * um desafio com tudo junto.
+ * texto com a técnica nova), nos guias de escrita uma imitação de Machado de Assis (e, em quatro
+ * deles, outra de "O Mágico de Oz": lugar, diálogo e ritmo), e no fim um desafio com tudo junto.
  */
 
 export type StepKind = 'licao' | 'revisao' | 'imitacao' | 'desafio'
@@ -23,8 +24,11 @@ export const STEP_KIND_LABEL: Record<StepKind, string> = {
 
 /** Um trecho curto para a imitação, com as palavras-chave que ficam à vista. */
 export interface Passage {
+  /** O texto; trechos de mais de um parágrafo (conversas) separam cada um com uma quebra de linha. */
   text: string
   source: string
+  /** Quem escreveu o original, como aparece na comparação ("Machado", "Baum"). */
+  author: string
   keys: string[]
 }
 
@@ -68,6 +72,11 @@ const PASSAGES: Partial<Record<GuideId, [number, number]>> = {
   revisao: [12, 14],
 }
 
+/** Palavras que abrem frase com maiúscula ("Quando Dorothy chegou"): não fazem parte do nome que vem depois. */
+const OPENERS = new Set(
+  'quando entao mas depois enquanto porque como mesmo assim naquele naquela ao no na nos nas um uma o a os as de em ele ela eles elas se ja ate apos antes logo pois porem contudo todavia entretanto tambem nem eis ali la aqui so nao sim nada todos todas cada muito muitos tudo isso isto aquilo este esta esse essa aquele aquela seu sua onde ora era eram havia foi entre sobre sem com para por diante ainda agora ate'.split(' '),
+)
+
 const LONG_COMMON = new Set(['enquanto', 'primeiro', 'primeira', 'portanto', 'entretanto', 'qualquer', 'nenhuma', 'nenhum', 'algumas', 'alguns', 'naquele', 'naquela', 'daquele', 'daquela'])
 
 /**
@@ -88,12 +97,17 @@ export function keywordsOf(text: string, max = 7): string[] {
   const names: { word: string; at: number }[] = []
   for (let i = 0; i < tokens.length; i++) {
     if (!upper(tokens[i].word) || abbreviation(i)) continue
+    if (sentenceStart(i) && OPENERS.has(fold(tokens[i].word))) continue
     // Nomes compostos ficam juntos: "Simão Bacamarte", "Rio de Janeiro".
     let j = i
     while (j + 1 < tokens.length && text.slice(endOf(j), tokens[j + 1].at) === ' ') {
       if (upper(tokens[j + 1].word)) j++
       else if (/^(de|da|do|das|dos)$/.test(tokens[j + 1].word) && j + 2 < tokens.length && text.slice(endOf(j + 1), tokens[j + 2].at) === ' ' && upper(tokens[j + 2].word)) j += 2
       else break
+    }
+    // "Ganhei da Bruxa Má do Leste": no começo da frase, uma palavra comum seguida de "da/do" não abre o nome.
+    if (j - i >= 4 && sentenceStart(i) && /^(de|da|do|das|dos)$/.test(tokens[i + 1].word)) {
+      continue
     }
     // No começo da frase, só conta como nome se for composto.
     if (j > i || !sentenceStart(i)) names.push({ word: text.slice(tokens[i].at, endOf(j)), at: tokens[i].at })
@@ -119,7 +133,41 @@ export function passageOf(id: GuideId): Passage | null {
   const chapter = ALIENISTA[ref[0]]
   const text = chapter?.paragrafos[ref[1]]
   if (!text) return null
-  return { text, source: `Machado de Assis, O Alienista (1882), “${chapter.titulo}”`, keys: keywordsOf(text) }
+  return { text, source: `Machado de Assis, O Alienista (1882), “${chapter.titulo}”`, author: 'Machado', keys: keywordsOf(text) }
+}
+
+/** O que cada trecho de "O Mágico de Oz" ensina a imitar. */
+export type OzTheme = 'lugar' | 'dialogo' | 'ritmo'
+
+export const OZ_THEME_LABEL: Record<OzTheme, string> = {
+  lugar: 'descrição de lugar',
+  dialogo: 'diálogo',
+  ritmo: 'ritmo',
+}
+
+const OZ_THEME_TEXT: Record<OzTheme, string> = {
+  lugar: 'Leia a descrição com calma e repare no que o autor escolhe mostrar: cor, material, tamanho. Depois o trecho some, ficam só as palavras-chave, e você reescreve de memória. No fim, compare os dois lado a lado.',
+  dialogo: 'Leia a conversa: perguntas curtas, respostas diretas, quase nenhum enfeite. Depois o trecho some, ficam só as palavras-chave, e você reescreve de memória. No fim, compare os dois lado a lado.',
+  ritmo: 'Leia o trecho em voz baixa: uma frase longa que vai se juntando, depois uma curta que corta. Depois ele some, ficam só as palavras-chave, e você reescreve de memória. No fim, compare os dois lado a lado.',
+}
+
+/** Qual trecho de "O Mágico de Oz" (em `ozTrechos.ts`) cada trilha imita depois de Machado, e o que ele ensina. */
+const OZ_PASSAGES: Partial<Record<GuideId, { theme: OzTheme; trecho: keyof typeof OZ_TRECHOS }>> = {
+  fantasia: { theme: 'lugar', trecho: 'fantasia' },
+  realismo: { theme: 'lugar', trecho: 'realismo' },
+  dialogo: { theme: 'dialogo', trecho: 'dialogo' },
+  ritmo: { theme: 'ritmo', trecho: 'ritmo' },
+}
+
+export function ozPassageOf(id: GuideId): { theme: OzTheme; passage: Passage } | null {
+  const entry = OZ_PASSAGES[id]
+  if (!entry) return null
+  const trecho = OZ_TRECHOS[entry.trecho]
+  const text = trecho.paragrafos.join('\n')
+  return {
+    theme: entry.theme,
+    passage: { text, source: `L. Frank Baum, O Maravilhoso Mágico de Oz (1900), “${trecho.titulo}”`, author: 'Baum', keys: keywordsOf(text) },
+  }
 }
 
 function buildTrail(guide: Guide): Trail {
@@ -160,6 +208,21 @@ function buildTrail(guide: Guide): Trail {
         prompt: 'Reescreva o trecho de memória, com as palavras-chave à vista.',
         minutes: 0,
         target: Math.round(wordsOf(passage.text).length * 0.6),
+        ask: ['Você manteve a ordem das ideias do original?', 'O que o original tem que o seu não tem?'],
+      },
+    })
+  const oz = mestre ? null : ozPassageOf(guide.id)
+  if (oz)
+    steps.push({
+      id: 'imit-oz',
+      kind: 'imitacao',
+      title: `Imitação: Baum, ${OZ_THEME_LABEL[oz.theme]}`,
+      text: OZ_THEME_TEXT[oz.theme],
+      passage: oz.passage,
+      practice: {
+        prompt: 'Reescreva o trecho de memória, com as palavras-chave à vista.',
+        minutes: 0,
+        target: Math.round(wordsOf(oz.passage.text).length * 0.6),
         ask: ['Você manteve a ordem das ideias do original?', 'O que o original tem que o seu não tem?'],
       },
     })

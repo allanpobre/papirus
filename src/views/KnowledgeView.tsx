@@ -2,7 +2,7 @@ import { Lightbulb, Pencil, Plus, Trash2 } from 'lucide-react'
 import { tabListKeys } from '../ui/keys'
 import { useMemo, useState } from 'react'
 import { factSentence } from '../logic/codex'
-import { holdersOf, knowledgeAt, readerKnowsAt } from '../logic/knowledge'
+import { holdersOf, knowledgeAt, readerKnowsAt, revealedInBook, revealWhere } from '../logic/knowledge'
 import { fold } from '../logic/text'
 import { CANON_LABEL, CANON_ORDER, KNOWLEDGE_LABEL } from '../model/labels'
 import type { Canon, KnowledgeState } from '../model/schema'
@@ -61,20 +61,43 @@ export default function KnowledgeView() {
   )
 }
 
+/** Em que livro e cena o leitor fica sabendo do fato, em relação ao livro escolhido. */
+function RevealLine({ where, manyBooks }: { where: ReturnType<typeof revealWhere>; manyBooks: boolean }) {
+  if (where.kind === 'sem-cena') return <p className="fact-where muted small">O leitor ainda não fica sabendo: o fato não vem de nenhuma cena (é só do autor).</p>
+  const scene = `“${where.scene.title || 'Sem título'}”`
+  const book = `“${where.book?.title || 'Sem título'}”`
+  const text =
+    where.kind === 'neste'
+      ? `O leitor fica sabendo neste livro, em ${scene}.`
+      : where.kind === 'antes'
+        ? `O leitor já sabia desde o livro ${book}, em ${scene}.`
+        : where.kind === 'depois'
+          ? `O leitor só fica sabendo no livro ${book}, em ${scene}.`
+          : `O leitor fica sabendo em ${scene}${manyBooks && where.book ? `, no livro ${book}` : ''}.`
+  return <p className={`fact-where small${where.kind === 'depois' ? ' is-later' : ''}`}>{text}</p>
+}
+
 function FactsTab() {
-  const { universe, undoable, go } = useWorkspace()
+  const { universe, undoable, go, bookId } = useWorkspace()
   const [query, setQuery] = useState('')
+  // Com um livro escolhido no alto, começa pelos fatos que o leitor fica sabendo nele (dá para ver os de todo o universo).
+  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const [scope, setScope] = useState<'livro' | 'todos'>('livro')
+  const inBook = useMemo(() => (book ? new Set(revealedInBook(universe, book.id).map((f) => f.id)) : null), [universe, book])
+  const onlyBook = inBook !== null && scope === 'livro'
+  const manyBooks = universe.stories.length > 1
   const [canon, setCanon] = useState<'todos' | Canon>('todos')
   const [editing, setEditing] = useState<string | 'novo' | null>(null)
 
   const facts = useMemo(() => {
     const q = fold(query.trim())
     return universe.facts
+      .filter((f) => !onlyBook || inBook!.has(f.id))
       .filter((f) => canon === 'todos' || f.canon === canon)
       .filter((f) => !q || fold(factSentence(universe, f) + ' ' + f.quote + ' ' + f.note).includes(q))
-  }, [universe, query, canon])
-  // O que o leitor já viu ao fim do que está escrito.
-  const lastScene = manuscriptOrder(universe).at(-1)?.id
+  }, [universe, query, canon, onlyBook, inBook])
+  // O que o leitor já viu ao fim do que está escrito (ou ao fim do livro escolhido).
+  const lastScene = (book ? bookScenes(universe, book.id) : manuscriptOrder(universe)).at(-1)?.id
   const hasScenes = Boolean(lastScene)
   const readerSaw = useMemo(() => new Set(lastScene ? readerKnowsAt(universe, lastScene).map((f) => f.id) : []), [universe, lastScene])
 
@@ -89,7 +112,26 @@ function FactsTab() {
           <Plus size={16} /> Fato
         </button>
       </div>
-      {universe.facts.length === 0 ? (
+      {book && universe.facts.length > 0 && (
+        <div className="filter-chips" role="radiogroup" aria-label="Quais fatos">
+          <button type="button" role="radio" aria-checked={scope === 'livro'} className="chip" onClick={() => setScope('livro')}>
+            Revelados neste livro <span className="chip-count">{inBook!.size}</span>
+          </button>
+          <button type="button" role="radio" aria-checked={scope === 'todos'} className="chip" onClick={() => setScope('todos')}>
+            Todos os fatos <span className="chip-count">{universe.facts.length}</span>
+          </button>
+        </div>
+      )}
+      {onlyBook && facts.length === 0 && universe.facts.length > 0 ? (
+        <Empty icon={<Lightbulb size={32} />} title={`Nenhum fato é revelado em “${book!.title || 'Sem título'}”.`}>
+          <p>
+            O leitor só fica sabendo de um fato quando ele vem de uma cena do livro.{' '}
+            <button type="button" className="link-btn" onClick={() => setScope('todos')}>
+              Ver os fatos de todo o universo
+            </button>
+          </p>
+        </Empty>
+      ) : universe.facts.length === 0 ? (
         <Empty icon={<Lightbulb size={32} />} title="Nenhum fato registrado.">
           <p>No editor, selecione um trecho e escolha “Fato”. O trecho fica guardado como fonte.</p>
         </Empty>
@@ -116,6 +158,7 @@ function FactsTab() {
                   )}
                 </p>
                 {f.quote && <p className="fact-quote">“{f.quote}”</p>}
+                <RevealLine where={revealWhere(universe, f, book?.id ?? null)} manyBooks={manyBooks} />
                 <div className="fact-who">
                   {holders.map((k) => (
                     <span key={k.id} className={`chip knows-chip knows-${k.state}`}>

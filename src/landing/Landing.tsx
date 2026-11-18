@@ -325,7 +325,7 @@ export function Landing() {
               <GraduationCap size={14} aria-hidden="true" /> Oficina · para aprender
             </p>
             <h2 id="oficina-titulo">Aprenda escrevendo. Um pouco por dia.</h2>
-            <p className="lp-lede">Cada guia vira uma trilha curta: ler uma técnica em um minuto, escrever dez com o relógio e olhar o que escreveu, com contas e perguntas. Tem imitação de Machado de Assis, um caderno com tudo o que você treinou e trilhas para quem mestra.</p>
+            <p className="lp-lede">Cada guia vira uma trilha curta: ler uma técnica em um minuto, escrever dez com o relógio e olhar o que escreveu, com contas e perguntas. Tem imitação de Machado de Assis e de O Mágico de Oz, um caderno com tudo o que você treinou e trilhas para quem mestra.</p>
             <ul className="lp-shelf" aria-label="Guias da Oficina">
               {SHELF.map((g) => (
                 <li key={g}>{g}</li>
@@ -469,7 +469,7 @@ const SECTORS = [
     icon: GraduationCap,
     name: 'Oficina',
     title: 'Aprenda um pouco por dia',
-    items: ['Trilhas: ler um minuto, escrever dez', 'Imitação de Machado de Assis', 'Caderno com tudo o que você treinou', 'Gerador de ideias e de ganchos'],
+    items: ['Trilhas: ler um minuto, escrever dez', 'Imitação de Machado de Assis e de O Mágico de Oz', 'Caderno com tudo o que você treinou', 'Gerador de ideias e de ganchos'],
     href: '#oficina',
   },
 ] as const

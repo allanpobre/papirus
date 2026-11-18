@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Field } from '../ui/bits'
 import { Modal } from '../ui/Modal'
 import { dismissLinkNotice, skipRecovery, updatePassword, useAccount } from './auth'
+import { browserAdvice, SPENT_LINK_HELP } from './linkAdvice'
 
 /**
  * O que acontece ao abrir um link do e-mail: escolher a senha nova ("Esqueci a senha"),
@@ -10,12 +11,14 @@ import { dismissLinkNotice, skipRecovery, updatePassword, useAccount } from './a
  */
 export function AuthLinkNotice() {
   const { user, server, recovering, linkProblem, welcome } = useAccount()
+  // No navegador do celular, quem usa o app instalado precisa saber onde continuar (e o aviso fica mais tempo).
+  const advice = welcome ? browserAdvice(welcome.startsWith('Senha nova')) : null
   // O "você entrou" some sozinho.
   useEffect(() => {
     if (!welcome) return
-    const t = window.setTimeout(dismissLinkNotice, 9000)
+    const t = window.setTimeout(dismissLinkNotice, advice ? 20000 : 9000)
     return () => clearTimeout(t)
-  }, [welcome])
+  }, [welcome, advice])
   if (recovering && user && server) return <NewPassword email={user.email ?? ''} />
   if (linkProblem)
     return (
@@ -23,6 +26,7 @@ export function AuthLinkNotice() {
         <div className="account">
           <p className="small">{linkProblem}</p>
           <p className="small muted">Para pedir outro: Entrar › “Esqueci a senha” ou “Entrar sem senha”. Se o e-mail não chegar, olhe o spam.</p>
+          {/já foi usado/.test(linkProblem) && <p className="small muted">{SPENT_LINK_HELP}</p>}
           <div className="account-actions">
             <button type="button" className="btn btn-primary" onClick={dismissLinkNotice}>
               Entendi
@@ -36,6 +40,7 @@ export function AuthLinkNotice() {
       <div className="global-error auth-welcome" role="status">
         <span className="small">
           <Check size={14} aria-hidden="true" /> {welcome}
+          {advice && <span className="auth-welcome-advice"> {advice}</span>}
         </span>
         <button type="button" className="btn-icon btn-sm" aria-label="Fechar o aviso" onClick={dismissLinkNotice}>
           <X size={14} />

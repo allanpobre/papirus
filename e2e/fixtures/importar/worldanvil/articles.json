@@ -1,0 +1,48 @@
+{
+  "articles": [
+    {
+      "id": "a1",
+      "title": "Lyra, a Cartógrafa",
+      "slug": "lyra-a-cartografa",
+      "entityClass": "Person",
+      "templateType": "person",
+      "state": "public",
+      "isDraft": false,
+      "tags": "cartografia, guilda dos mapas",
+      "excerpt": "Mapeou a costa inteira, de Valmar às Brumas.",
+      "content": "[h1]Vida[/h1]\nNascida em @[Porto Velho](location:b2), Lyra aprendeu a ler o mar com o pai.\n[h2]Obras[/h2]\n[ul][li]Mapa da costa[/li][li]Atlas do sul[/li][/ul]\n[quote]O mar não tem dono, só mapas.[/quote]\n[img:99999]\nVeja também [url:https://exemplo.com/mapa]o mapa antigo[/url] e a @[Guilda dos Mapas](organization:c3)."
+    },
+    {
+      "id": "b2",
+      "title": "Porto Velho",
+      "slug": "porto-velho",
+      "entityClass": "Settlement",
+      "templateType": "settlement",
+      "state": "public",
+      "tags": "porto",
+      "excerpt": "",
+      "content": "[p]Um porto de cais de pedra e névoa baixa.[/p][p]Lá vive @[Lyra, a Cartógrafa](person:a1).[/p]"
+    },
+    {
+      "id": "c3",
+      "title": "Guilda dos Mapas",
+      "slug": "guilda-dos-mapas",
+      "entityClass": "Organization",
+      "templateType": "organization",
+      "state": "private",
+      "tags": "guilda",
+      "excerpt": "Quem mapeia o mar decide quem navega.",
+      "content": "[p]Uma guilda secreta. Só os mestres sabem onde fica a sede.[/p]"
+    },
+    {
+      "id": "d4",
+      "title": "O Atlas do Sul",
+      "slug": "o-atlas-do-sul",
+      "entityClass": "Document",
+      "state": "public",
+      "tags": "",
+      "excerpt": "",
+      "content": "[p]Atlas escrito à mão em pergaminho.[/p]"
+    }
+  ]
+}

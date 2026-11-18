@@ -37,7 +37,7 @@ export function createFakeSupabase() {
   const OWNER: Record<string, string> = { papirus_universes: 'user_id', papirus_profiles: 'user_id', papirus_friendships: 'requester', papirus_shelf: 'owner', papirus_shelf_reactions: 'user_id', papirus_shelf_comments: 'author', papirus_challenges: 'owner', papirus_challenge_members: 'user_id', papirus_challenge_days: 'user_id', papirus_shelf_text: 'owner', papirus_chapter_reactions: 'user_id', papirus_activity: 'actor', papirus_treinos: 'user_id', papirus_follows: 'follower', papirus_blocks: 'blocker', papirus_reading: 'user_id', papirus_reports: 'reporter', papirus_open_worlds: 'owner', papirus_au_requests: 'requester' }
   // Contas: as de sempre e as criadas no teste (com o que foi preenchido ao criar).
   const accounts: { id: string; email: string; password: string; meta: Record<string, unknown> }[] = Object.values(PEOPLE).map((p) => ({ ...p, password: PASSWORD, meta: {} }))
-  const mail: { kind: 'magiclink' | 'recovery'; email: string; redirectTo: string }[] = []
+  const mail: { kind: 'magiclink' | 'recovery' | 'signup'; email: string; redirectTo: string }[] = []
   /** O link que chegaria no e-mail (como o Supabase devolve: as chaves no #). */
   const linkFor = (m: (typeof mail)[number]) => {
     const a = accounts.find((x) => x.email === m.email)!
@@ -136,6 +136,10 @@ export function createFakeSupabase() {
   }
   const pick = (r: Row, select: string | null) => (!select || select === '*' ? r : Object.fromEntries(select.split(',').map((c) => [c, r[c]])))
 
+  let offline = false
+  let confirmarEmail = false
+  let semComunidade = false
+
   async function attach(context: BrowserContext) {
     // Storage: a pasta pública de imagens (supabase/imagens.sql), com o limite por conta.
     await context.route(`${SERVER}/storage/v1/**`, async (route) => {
@@ -194,6 +198,11 @@ export function createFakeSupabase() {
         if (accounts.some((a) => a.email === body.email)) return route.fulfill({ status: 422, headers: cors, json: { code: 422, error_code: 'user_already_exists', msg: 'User already registered' } })
         const a = { id: crypto.randomUUID(), email: body.email, password: body.password, meta: body.data ?? {} }
         accounts.push(a)
+        // Servidor que pede para confirmar o e-mail: cria a conta, manda o link e não entra ainda.
+        if (confirmarEmail) {
+          mail.push({ kind: 'signup', email: body.email, redirectTo: new URL(url).searchParams.get('redirect_to') ?? '' })
+          return route.fulfill({ headers: cors, json: session(a).user })
+        }
         return route.fulfill({ headers: cors, json: session(a) })
       }
       if (url.includes('/token')) {
@@ -229,10 +238,20 @@ export function createFakeSupabase() {
 
     await context.route(`${SERVER}/rest/v1/**`, async (route) => {
       const req = route.request()
+      // Sem sinal: a conexão cai (o aparelho está no túnel), e o app mostra "Sem conexão".
+      if (offline) return route.abort('connectionfailed')
       if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
       const url = new URL(req.url())
       const me = userOf(route)
       const path = url.pathname.replace('/rest/v1/', '')
+
+      // Servidor sem o script supabase/comunidade.sql: as tabelas e funções da Comunidade não existem.
+      if (semComunidade) {
+        const tabela = path.match(/^(papirus_(?:follows|blocks|reading|reports|open_worlds|au_requests))\b/)
+        const funcao = path.match(/^rpc\/(papirus_(?:block|blocked|reading_stats|follow_counts))\b/)
+        if (tabela) return route.fulfill({ status: 404, headers: cors, json: { code: 'PGRST205', message: `Could not find the table 'public.${tabela[1]}' in the schema cache` } })
+        if (funcao) return route.fulfill({ status: 404, headers: cors, json: { code: 'PGRST202', message: `Could not find the function public.${funcao[1]} in the schema cache` } })
+      }
 
       if (path === 'rpc/papirus_image_usage') {
         if (!me) return route.fulfill({ status: 401, headers: cors, json: { message: 'permission denied for function papirus_image_usage' } })
@@ -464,5 +483,5 @@ export function createFakeSupabase() {
     })
   }
 
-  return { tables, images, attach, mail, linkFor }
+  return { tables, images, attach, mail, linkFor, setOffline: (v: boolean) => (offline = v), setSemComunidade: (v: boolean) => (semComunidade = v), setConfirmarEmail: (v: boolean) => (confirmarEmail = v) }
 }

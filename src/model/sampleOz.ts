@@ -493,9 +493,9 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
     })
   }
   const atk = (name: string, bonus: number, damage: string, critical = '') => ({ id: crypto.randomUUID(), name, bonus, damage, critical })
-  ;[u] = insert(u, 'monsters', { name: 'Kalidah', hp: 34, defense: 13, initiative: 1, attacks: [atk('Garras', 6, '2d6+4'), atk('Mordida de tigre', 6, '1d10+4')], notes: 'Caçam em dupla. Uma ponte cortada resolve.' })
-  ;[u] = insert(u, 'monsters', { name: 'Lobo da Bruxa', hp: 11, defense: 13, initiative: 2, attacks: [atk('Mordida', 4, '2d4+2')], notes: 'Vêm quarenta de uma vez, ao som do apito de prata.' })
-  ;[u] = insert(u, 'monsters', { name: 'Macaco Alado', hp: 13, defense: 12, initiative: 3, attacks: [atk('Agarrar e voar', 4, '1d6+2')], notes: 'Só ataca a mando de quem tem o Barrete de Ouro. Não toca em quem tem o beijo da Bruxa do Norte.' })
+  ;[u] = insert(u, 'monsters', { entityId: kalidah.id, type: 'Fera', level: 4, name: 'Kalidah', hp: 34, defense: 13, initiative: 1, attacks: [atk('Garras', 6, '2d6+4'), atk('Mordida de tigre', 6, '1d10+4')], notes: 'Caçam em dupla. Uma ponte cortada resolve.' })
+  ;[u] = insert(u, 'monsters', { type: 'Fera', level: 1, name: 'Lobo da Bruxa', hp: 11, defense: 13, initiative: 2, attacks: [atk('Mordida', 4, '2d4+2')], notes: 'Vêm quarenta de uma vez, ao som do apito de prata.' })
+  ;[u] = insert(u, 'monsters', { type: 'Criatura mágica', level: 2, name: 'Macaco Alado', hp: 13, defense: 12, initiative: 3, attacks: [atk('Agarrar e voar', 4, '1d6+2')], notes: 'Só ataca a mando de quem tem o Barrete de Ouro. Não toca em quem tem o beijo da Bruxa do Norte.' })
   ;[u] = insert(u, 'tables', {
     name: 'Rumores da Cidade das Esmeraldas',
     entries: [

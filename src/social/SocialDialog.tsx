@@ -11,6 +11,7 @@ import { ConfirmButton } from '../ui/ConfirmButton'
 import { Modal } from '../ui/Modal'
 import { ChallengesTab } from './ChallengesTab'
 import { MyBooksTab, PeopleLists, PersonExtras, ReadingTab } from './CommunityParts'
+import { myBlocks } from './community'
 import type { PageTourId } from '../shell/pageTours'
 import { OwnerShelf } from './ShelfBook'
 import {
@@ -345,7 +346,7 @@ export function SocialDialog({ onClose, onAccount, initialHandle, publicUrl = ''
               try {
                 const p = await profileByHandle(await client(), handle)
                 if (p) setViewing(p)
-                else setError(`Ninguém com @${cleanHandle(handle)} (ainda).`)
+                else setError(`Não achei ninguém com @${cleanHandle(handle)}. Confira se o @ está certo.`)
               } catch (err) {
                 setError(err instanceof Error ? err.message : String(err))
               }
@@ -667,7 +668,7 @@ function FriendsTab({
             )}
           </ul>
         ) : (
-          <p className="muted small">Ninguém ainda. Procure pelo @ de alguém, ou mande o link do seu perfil.</p>
+          <p className="muted small">Você ainda não tem amigos por aqui. Procure o @ de alguém acima, ou mande o link do seu perfil (na aba Perfil).</p>
         )}
       </section>
 
@@ -723,6 +724,24 @@ function PersonView({
 }) {
   // A estante muda de acordo com a amizade (aceitar abre os livros "amigos").
   const status = relation?.status
+  // Quem eu bloqueei: some o "Adicionar amigo" e o "Seguir", e aparece o "Desbloquear".
+  const [blocked, setBlocked] = useState(false)
+  const [blockNonce, setBlockNonce] = useState(0)
+  useEffect(() => {
+    if (!myId || isMe) return
+    let off = false
+    void (async () => {
+      try {
+        const list = await myBlocks(await client(), myId)
+        if (!off) setBlocked(list.some((p) => p.user_id === person.user_id))
+      } catch {
+        // Sem o script da Comunidade no servidor não existe bloqueio.
+      }
+    })()
+    return () => {
+      off = true
+    }
+  }, [client, myId, isMe, person.user_id, blockNonce])
 
   return (
     <div className="social-person-view">
@@ -742,6 +761,8 @@ function PersonView({
                 <LogIn size={15} /> Entrar para adicionar
               </button>
             )
+          ) : blocked ? (
+            <span className="share-tag">Bloqueada</span>
           ) : !relation ? (
             <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={onAdd}>
               <UserPlus size={15} /> Adicionar amigo
@@ -766,7 +787,16 @@ function PersonView({
           )}
         </div>
       </header>
-      <PersonExtras person={person} myId={myId} client={client} onChanged={() => onChanged?.()} />
+      <PersonExtras
+        person={person}
+        myId={myId}
+        client={client}
+        blocked={blocked}
+        onChanged={() => {
+          setBlockNonce((n) => n + 1)
+          onChanged?.()
+        }}
+      />
 
       <h3 className="social-h">Estante</h3>
       <OwnerShelf
@@ -780,7 +810,9 @@ function PersonView({
         empty={
           isMe
             ? 'Nenhum livro à mostra. Na página Livro de um universo, escolha “Amigos” ou “Todo mundo”.'
-            : relation?.status === 'aceita'
+            : blocked
+              ? 'Você bloqueou esta pessoa. Desbloqueie para ver o que ela abre para você.'
+              : relation?.status === 'aceita'
               ? 'Nenhum livro à mostra por enquanto.'
               : 'Nada aberto para você. Livros só para amigos aparecem depois que o pedido é aceito.'
         }

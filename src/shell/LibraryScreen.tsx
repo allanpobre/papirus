@@ -724,7 +724,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                   {conflict.here && <span className="muted">{diffText(conflict.here, ['mudou', 'mudaram'])}</span>}
                 </div>
                 <div className="pair-conflict-side">
-                  <span className="pair-label">Na nuvem</span>
+                  <span className="pair-label">Na nuvem (outro aparelho)</span>
                   <strong>
                     <time dateTime={conflict.cloudAt} title={dateFmt.format(new Date(conflict.cloudAt))}>
                       {relativeDate(conflict.cloudAt)}
@@ -739,22 +739,28 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                   ? `Mudou dos dois lados: ${conflict.overlap.slice(0, 3).map((x) => (/^(o|a|os|as) /.test(x) ? x : `“${x}”`)).join(', ')}${conflict.overlap.length > 3 ? ` e mais ${conflict.overlap.length - 3}` : ''}.`
                   : `Entre as duas: ${diffText(conflict.between, ['diferente', 'diferentes'])}.`}
               </p>
+              <p className="small pair-conflict-lead">Nada foi apagado nem enviado. Escolha o que fazer (a versão que não ficar é guardada, e dá para voltar a ela):</p>
               <div className="pair-conflict-actions">
                 {conflict.canMerge && (
-                  <button type="button" className="btn btn-sm btn-primary" disabled={resolving !== null} onClick={() => void resolve(e, 'juntar')}>
-                    Juntar as duas
+                  <button type="button" className="btn pair-choice btn-primary" disabled={resolving !== null} onClick={() => void resolve(e, 'juntar')}>
+                    <strong>Juntar as duas</strong>
+                    <span>Fica o que mudou nos dois lados. Onde o mesmo item mudou nos dois, fica o deste aparelho e o da nuvem entra ao lado.</span>
                   </button>
                 )}
-                <button type="button" className="btn btn-sm" disabled={resolving !== null} onClick={() => void resolve(e, 'aqui')}>
-                  Ficar com a deste aparelho
+                <button type="button" className="btn pair-choice" disabled={resolving !== null} onClick={() => void resolve(e, 'aqui')}>
+                  <strong>Ficar com a deste aparelho</strong>
+                  <span>A nuvem passa a ter esta. A que estava na nuvem fica guardada aqui, como versão.</span>
                 </button>
-                <button type="button" className="btn btn-sm" disabled={resolving !== null} onClick={() => void resolve(e, 'nuvem')}>
-                  Ficar com a da nuvem
+                <button type="button" className="btn pair-choice" disabled={resolving !== null} onClick={() => void resolve(e, 'nuvem')}>
+                  <strong>Ficar com a da nuvem</strong>
+                  <span>Este aparelho passa a ter a da nuvem. A que estava aqui fica guardada como versão.</span>
                 </button>
               </div>
-              <p className="tiny muted">
-                A que não ficar vira versão guardada. {conflict.canMerge && 'Juntando, onde o mesmo item mudou dos dois lados, fica o deste aparelho e o da nuvem entra ao lado.'}
-              </p>
+              {resolving === e.id && (
+                <p className="small muted" role="status">
+                  Resolvendo…
+                </p>
+              )}
             </div>
           )}
           {versions.length > 0 && (
@@ -784,7 +790,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                         afterVersions()
                       }}
                     >
-                      Ficar com esta
+                      Ficar com esta versão
                     </ConfirmButton>
                     <button type="button" className="btn-icon btn-sm" aria-label="Baixar backup desta versão" title="Baixar backup (.json)" onClick={() => void downloadBackup(v)}>
                       <Download size={15} />

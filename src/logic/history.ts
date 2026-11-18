@@ -1,4 +1,4 @@
-import type { CollectionKey, HistoryEntry, TrashItem, Universe } from '../model/schema'
+import type { CollectionKey, HistoryEntry, TrashItem, TrashRef, Universe } from '../model/schema'
 import { newId } from '../model/universe'
 
 /**
@@ -107,7 +107,14 @@ export function track(before: Universe, after: Universe, by: string | null, now 
       return [`${n} ${n === 1 ? one : many}`]
     })
     const label = `${recordLabel(main, first)}${extra.length ? ` (e ${extra.join(', ')})` : ''}`
-    const item: TrashItem = { id: newId(), kind: main, label, records: removed as TrashItem['records'], deletedAt: at, by }
+    // O que mudou nos outros registros só por causa da exclusão, e onde cada item estava: para voltar como era.
+    const refs = refChanges(edited)
+    const index: Record<string, number[]> = {}
+    for (const k of removedKinds) {
+      const where = new Map(list(before, k).map((x, i) => [x.id, i]))
+      index[k] = removed[k].map((x) => where.get(x.id) ?? 0)
+    }
+    const item: TrashItem = { id: newId(), kind: main, label, records: removed as TrashItem['records'], deletedAt: at, by, ...(refs.length ? { refs } : {}), index }
     trash = [item, ...trash]
     history = [entry('apagou', main, first.id, recordLabel(main, first), at, by, null), ...history]
   }
@@ -146,18 +153,86 @@ export function purgeTrash(u: Universe, now = Date.now()): Universe {
   return keep.length === u.trash.length ? u : { ...u, trash: keep }
 }
 
-/** Devolve ao universo o que estava na lixeira (sem duplicar o que já voltou). */
+const same = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b)
+
+/** O que mudou, campo a campo, em cada registro que continuou existindo (menos a data de mexida). */
+function refChanges(edited: [CollectionKey, Item, Item][]): TrashRef[] {
+  const out: TrashRef[] = []
+  for (const [kind, now, prev] of edited) {
+    const changes: TrashRef['changes'] = {}
+    for (const key of Object.keys(prev)) {
+      if (key === 'updatedAt' || now[key] === prev[key] || same(now[key], prev[key])) continue
+      changes[key] = { before: prev[key], after: now[key] }
+    }
+    if (Object.keys(changes).length) out.push({ kind, id: now.id, changes })
+  }
+  return out
+}
+
+/**
+ * Põe de volta as referências que a exclusão tirou. Só desfaz o que ainda está como a exclusão deixou: se a pessoa
+ * mexeu depois, o que ela fez fica; nas listas (quem estava na cena, por exemplo), só soma de volta o que faltar.
+ */
+function applyRefs(next: Record<string, unknown>, refs: TrashRef[], at: string) {
+  const byKind = new Map<string, TrashRef[]>()
+  for (const r of refs) byKind.set(r.kind, [...(byKind.get(r.kind) ?? []), r])
+  for (const [kind, of] of byKind) {
+    const current = next[kind]
+    if (!Array.isArray(current)) continue
+    const changesOf = new Map(of.map((r) => [r.id, r.changes]))
+    next[kind] = (current as Item[]).map((rec) => {
+      const changes = changesOf.get(rec.id)
+      if (!changes) return rec
+      const patch: Record<string, unknown> = {}
+      for (const [key, { before, after }] of Object.entries(changes)) {
+        const cur = rec[key]
+        if (same(cur, after)) patch[key] = before
+        else if (Array.isArray(before) && Array.isArray(after) && Array.isArray(cur)) {
+          const lost = before.filter((x) => !after.some((y) => same(x, y)))
+          const add = lost.filter((x) => !cur.some((y) => same(x, y)))
+          if (add.length) patch[key] = [...cur, ...add]
+        }
+      }
+      return Object.keys(patch).length ? { ...rec, ...patch, ...('updatedAt' in rec ? { updatedAt: at } : {}) } : rec
+    })
+  }
+}
+
+/**
+ * Devolve ao universo o que estava na lixeira (sem duplicar o que já voltou), com as referências que a exclusão
+ * tirou (cenas de volta no livro, ficha de volta nas cenas e no mapa…). Uma cena cujo livro também está na
+ * lixeira traz o livro junto; se o livro foi apagado de vez, a cena volta solta, e não some.
+ */
 export function restoreTrash(u: Universe, trashId: string, by: string | null): Universe {
   const item = u.trash.find((t) => t.id === trashId)
   if (!item) return u
+  const stories = new Set<string>(item.records.scenes?.flatMap((s) => (typeof s.storyId === 'string' ? [s.storyId] : [])) ?? [])
+  for (const storyId of stories) {
+    if (u.stories.some((s) => s.id === storyId)) continue
+    const holder = u.trash.find((t) => t.id !== trashId && t.records.stories?.some((s) => s.id === storyId))
+    if (holder) u = restoreTrash(u, holder.id, by)
+  }
   const at = new Date().toISOString()
   const next: Record<string, unknown> = { ...u }
   for (const [k, records] of Object.entries(item.records)) {
     if (!TRACKED.includes(k as CollectionKey)) continue
-    const current = list(u, k as CollectionKey)
-    const have = new Set(current.map((x) => x.id))
-    next[k] = [...current, ...records.filter((r) => !have.has(r.id))]
+    const merged = [...list(u, k as CollectionKey)]
+    const have = new Set(merged.map((x) => x.id))
+    const where = item.index?.[k]
+    // Do primeiro para o último, cada um no lugar onde estava (ou no fim, se a lista encolheu).
+    records
+      .map((r, i) => [r, where?.[i] ?? merged.length] as const)
+      .filter(([r]) => !have.has(r.id))
+      .sort((a, b) => a[1] - b[1])
+      .forEach(([r, i]) => merged.splice(Math.min(i, merged.length), 0, r as Item))
+    next[k] = merged
   }
+  if (item.refs?.length) applyRefs(next, item.refs, at)
+  // Cena cujo livro não existe mais (foi apagado de vez): vira cena solta em vez de sumir da tela.
+  const have = new Set((next.stories as Item[]).map((s) => s.id))
+  const restoredScenes = new Set((item.records.scenes ?? []).map((s) => s.id))
+  let order = Math.max(-1, ...(next.scenes as Item[]).filter((s) => s.storyId === null).map((s) => Number(s.order))) + 1
+  next.scenes = (next.scenes as Item[]).map((s) => (restoredScenes.has(s.id) && typeof s.storyId === 'string' && !have.has(s.storyId) ? { ...s, storyId: null, order: order++, updatedAt: at } : s))
   const first = item.records[item.kind]?.[0]
   return {
     ...(next as Universe),

@@ -18,10 +18,12 @@ describe('segurança: o que vem do universo não vira código', () => {
     expect(doc).not.toContain('<script>alert(1)')
   })
 
-  it('o .zip abre só os textos e pula arquivo grande demais', () => {
+  it('o .zip abre só textos e imagens (como bytes, nunca como código) e pula arquivo grande demais ou de outro tipo', () => {
     const big = new Uint8Array(11_000_000)
-    const zip = zipSync({ 'notas/Kael.md': strToU8('# Kael'), 'imagem.png': strToU8('x'), 'enorme.md': big })
+    const zip = zipSync({ 'notas/Kael.md': strToU8('# Kael'), 'imagem.png': strToU8('x'), 'script.js': strToU8('alert(1)'), 'enorme.md': big, 'enorme.png': big, '.obsidian/app.json': strToU8('{}') })
     const files = unzipText('mundo.zip', zip)
-    expect(files.map((f) => f.path)).toEqual(['mundo/notas/Kael.md'])
+    expect(files.map((f) => f.path).sort()).toEqual(['mundo/imagem.png', 'mundo/notas/Kael.md'])
+    // A imagem vem só como bytes (sem texto): quem a usa a decodifica como imagem.
+    expect(files.find((f) => f.path.endsWith('.png'))).toMatchObject({ text: '' })
   })
 })
