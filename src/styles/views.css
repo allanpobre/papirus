@@ -12138,3 +12138,8 @@ button.presence-dot {
   flex-basis: 100%;
   padding: 0.5rem 0;
 }
+
+/* Primeira vez mais curta: o aviso de que mais partes aparecem conforme o uso. */
+.first-steps-hint {
+  margin: -0.4rem 0 0.8rem;
+}

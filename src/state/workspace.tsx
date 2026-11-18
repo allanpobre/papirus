@@ -92,6 +92,10 @@ export interface Workspace {
   hiddenViews: View[]
   /** Muda as áreas escondidas (vale para todos os universos deste tipo). */
   setHiddenViews: (views: View[]) => void
+  /** Primeira vez: as partes que ainda esperam o uso (já estão em `hiddenViews`). */
+  waitingViews: View[]
+  /** "Mostrar todas": desliga a primeira vez de vez. */
+  showAllParts: () => void
   /**
    * O livro escolhido no alto (uma história do universo), ou null para todos. Escrever, Trama, Mundo
    * e Publicar mostram só o que é dele. Fica guardado neste aparelho, por universo.

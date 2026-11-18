@@ -55,6 +55,7 @@ import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
 import { syncWorldBonuses } from '../rpg/worldBonuses'
 import { syncMonstersFromWorld } from '../rpg/bestiary'
+import { newlyReady, waitingViews } from '../logic/firstSteps'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -424,7 +425,14 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const campaignGroup = universe.groups.find((g) => g.id === recall(`rpg-grupo:${universe.id}`)) ?? universe.groups[0]
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
   useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
-  const hidden = useMemo(() => hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), [universe, prefs.menus, prefs.hiddenViews])
+  // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
+  const waiting = useMemo(() => waitingViews(universe, prefs.firstSteps), [universe, prefs.firstSteps])
+  const hidden = useMemo(() => [...new Set([...hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), ...waiting])], [universe, prefs.menus, prefs.hiddenViews, waiting])
+  // O que ficou pronto aparece e não some mais (mesmo que a ficha seja apagada depois).
+  useEffect(() => {
+    const fresh = newlyReady(universe, prefs.firstSteps)
+    if (fresh.length && prefs.firstSteps) setPref('firstSteps', { ...prefs.firstSteps, revealed: [...prefs.firstSteps.revealed, ...fresh] })
+  }, [universe, prefs.firstSteps, setPref])
   const ws: Workspace = useMemo(
     () => ({
       universe,
@@ -475,10 +483,12 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       kind,
       hiddenViews: hidden,
       setHiddenViews: (views: View[]) => setPref('menus', { ...prefs.menus, [kind]: views }),
+      waitingViews: waiting,
+      showAllParts: () => setPref('firstSteps', { active: false, revealed: prefs.firstSteps?.revealed ?? [] }),
       bookId,
       setBookId,
     }),
-    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev, kind, hidden, bookId, setBookId],
+    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev, kind, hidden, waiting, bookId, setBookId],
   )
 
   // Arrastar texto selecionado sem querer inicia o "arrastar e soltar" do navegador, e alguns

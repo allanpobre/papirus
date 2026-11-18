@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { QuestionType } from '../logic/continuity'
+import { cleanFirstSteps, type FirstSteps } from '../logic/firstSteps'
 import type { View } from './workspace'
 import { CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 
@@ -27,6 +28,8 @@ export interface Prefs {
   sector: 'escrita' | 'rpg' | 'oficina' | 'comunidade'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
+  /** Primeira vez mais curta: partes que esperam o uso no primeiro universo (sem valor: nunca ligou). */
+  firstSteps?: FirstSteps
   /** Último backup baixado e "lembrar depois", por universo (ISO). */
   backups: Record<string, { last?: string; snoozeUntil?: string }>
   /** Servidor do Codex ao vivo (Supabase). Vazio = usa o da publicação, se houver. */
@@ -114,6 +117,8 @@ function read(): Prefs {
     // Um setor que não existe mais (o "Mundos", que durou pouco) volta para a Escrita.
     if (saved.sector && !SECTORS.includes(saved.sector)) delete saved.sector
     // A Wiki deixou de ser área do menu: se ficou guardada como escondida, deixa de estar.
+    // Primeira vez: lê sem quebrar (parte desconhecida, de outra versão, fica de fora).
+    if ('firstSteps' in saved) saved.firstSteps = cleanFirstSteps(saved.firstSteps)
     if (saved.menus) saved.menus = Object.fromEntries(Object.entries(saved.menus).map(([k, v]) => [k, (v ?? []).filter((x) => (x as string) !== 'wiki')]))
     return { ...DEFAULT_PREFS, ...saved, continuity: { ...DEFAULT_PREFS.continuity, ...saved.continuity } }
   } catch {

@@ -2,6 +2,7 @@ import { BookMarked, CalendarRange, Globe, Lightbulb, MapIcon, Network, Sprout, 
 import type { ReactNode } from 'react'
 import { useWorkspace, type View } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
+import { WAITING } from '../logic/firstSteps'
 import type { PageTourId } from '../shell/pageTours'
 
 /*
@@ -32,7 +33,7 @@ const partLabel = (view: View) => [...PARTS.mundo, ...PARTS.trama].find(([v]) =>
  * (as escondidas no menu ficam de fora), a busca no celular, o (?) e o botão principal.
  */
 export function AreaHead({ current, tour, actions }: { current: View; tour: PageTourId; actions?: ReactNode }) {
-  const { go, hiddenViews } = useWorkspace()
+  const { go, hiddenViews, waitingViews, showAllParts } = useWorkspace()
   const area = areaOf(current)
   const parts = PARTS[area].filter(([v]) => v === current || !hiddenViews.includes(v))
   // A wiki do mundo: à mão em todas as partes do Mundo, direto na página com a prévia.
@@ -42,22 +43,36 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
         <Globe size={15} aria-hidden="true" /> <span className="area-wiki-label">Wiki</span>
       </button>
     ) : null
+  // Primeira vez: as partes que ainda esperam o uso, e quando aparecem ("Mostrar todas" desliga).
+  const waiting = WAITING.filter((w) => PARTS[area].some(([v]) => v === w.view) && waitingViews.includes(w.view))
+  const hint =
+    waiting.length > 0 ? (
+      <p className="first-steps-hint tiny muted">
+        Mais partes aparecem conforme você usa: {waiting.map((w) => `${partLabel(w.view)}, ${w.why}`).join('; ')}.{' '}
+        <button type="button" className="link-btn" onClick={showAllParts}>
+          Mostrar todas
+        </button>
+      </p>
+    ) : null
   return (
-    <ViewTop
-      className="area-head"
-      area={area === 'mundo' ? 'Mundo' : 'Trama'}
-      heading={partLabel(current)}
-      parts={parts.map(([v, label, Icon]) => ({ id: v, label, short: v === 'timeline' ? 'Tempo' : undefined, icon: Icon, current: v === current, onPick: () => go(v) }))}
-      partsLabel={area === 'mundo' ? 'Partes do mundo' : 'Partes da trama'}
-      tour={tour}
-      actions={
-        wikiButton || actions ? (
-          <>
-            {wikiButton}
-            {actions}
-          </>
-        ) : undefined
-      }
-    />
+    <>
+      <ViewTop
+        className="area-head"
+        area={area === 'mundo' ? 'Mundo' : 'Trama'}
+        heading={partLabel(current)}
+        parts={parts.map(([v, label, Icon]) => ({ id: v, label, short: v === 'timeline' ? 'Tempo' : undefined, icon: Icon, current: v === current, onPick: () => go(v) }))}
+        partsLabel={area === 'mundo' ? 'Partes do mundo' : 'Partes da trama'}
+        tour={tour}
+        actions={
+          wikiButton || actions ? (
+            <>
+              {wikiButton}
+              {actions}
+            </>
+          ) : undefined
+        }
+      />
+      {hint}
+    </>
   )
 }

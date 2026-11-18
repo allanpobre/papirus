@@ -120,6 +120,10 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const [profileHandle, setProfileHandle] = useState<string | undefined>(() => new URLSearchParams(location.search).get('perfil') ?? undefined)
   const fileRef = useRef<HTMLInputElement>(null)
   const { prefs: p, setPref } = prefs
+  // Quem já tem universos já usava o Papirus: a primeira vez mais curta não liga para essa pessoa.
+  useEffect(() => {
+    if (p.firstSteps === undefined && entries.length > 0) setPref('firstSteps', { active: false, revealed: [] })
+  }, [p.firstSteps, entries.length, setPref])
   const dark = p.theme === 'escuro' || (p.theme === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches)
   const account = useAccount()
   const cloud = useCloudStatus()
@@ -308,6 +312,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const create = (kind: 'escrita' | 'campanha') => {
     if (!p.onboarded) setPref('onboarded', true)
     const fallback = kind === 'campanha' ? 'Nova campanha' : 'Novo universo'
+    // O primeiro universo de quem nunca usou: as partes aparecem conforme o uso (a "primeira vez mais curta").
+    if (p.firstSteps === undefined && entries.length === 0) setPref('firstSteps', { active: true, revealed: [] })
     onCreated(applyTemplate(createUniverse(name.trim() || fallback), kind === 'campanha' ? 'rpg' : template, { system: rpgSystem }))
     setName('')
   }
