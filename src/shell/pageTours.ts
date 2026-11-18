@@ -615,6 +615,7 @@ export const PAGE_TOURS = {
       { target: '.split-list[aria-label="Sistemas"]', title: 'Os sistemas', body: 'As regras dos seus grupos. Cada grupo usa um; vários podem usar o mesmo.' },
       { target: '.template-picker', title: 'Começar de um modelo', body: 'D&D 5e, Tormenta 20, Ordem Paranormal, Call of Cthulhu, parada de dados ou sem sistema. Os modelos trazem só a estrutura; ajuste tudo.', optional: true },
       { target: '.system-editor', title: 'Editar', body: 'Atributos, recursos (PV, PM, Defesa), perícias, fórmulas de rolagem e condições. As fichas da mesa seguem o sistema.', optional: true },
+      { target: '.split-list[aria-label="Sistemas"]', title: 'Levar para outra campanha', body: '“Exportar (.json)”, no sistema aberto, guarda as regras num arquivo (só a estrutura: nada de fichas ou sessões). “Importar sistema” traz esse arquivo em outro universo e diz o que não deu para trazer.', optional: true },
     ],
   },
 

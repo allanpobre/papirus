@@ -1,7 +1,7 @@
 import type { GameSystem } from '../model/schema'
 import { newId, now } from '../model/universe'
 
-type SystemDraft = Omit<GameSystem, 'id' | 'createdAt' | 'updatedAt'>
+export type SystemDraft = Omit<GameSystem, 'id' | 'createdAt' | 'updatedAt'>
 
 interface TemplateSpec {
   id: string
