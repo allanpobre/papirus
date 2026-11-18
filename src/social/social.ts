@@ -62,7 +62,7 @@ const explain = (message: string) =>
           : /Failed to fetch|NetworkError|Load failed/i.test(message)
             ? 'Sem conexão com o servidor.'
             : /row-level security|permission/i.test(message)
-              ? 'Você não tem permissão para isso.'
+              ? 'Não dá: a pessoa não aceita isso agora.'
               : message
 
 function check<T>(r: { data: T; error: { message: string } | null }): T {

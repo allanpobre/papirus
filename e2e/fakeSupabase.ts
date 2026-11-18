@@ -137,6 +137,7 @@ export function createFakeSupabase() {
   const pick = (r: Row, select: string | null) => (!select || select === '*' ? r : Object.fromEntries(select.split(',').map((c) => [c, r[c]])))
 
   let offline = false
+  let semComunidade = false
 
   async function attach(context: BrowserContext) {
     // Storage: a pasta pública de imagens (supabase/imagens.sql), com o limite por conta.
@@ -237,6 +238,14 @@ export function createFakeSupabase() {
       const url = new URL(req.url())
       const me = userOf(route)
       const path = url.pathname.replace('/rest/v1/', '')
+
+      // Servidor sem o script supabase/comunidade.sql: as tabelas e funções da Comunidade não existem.
+      if (semComunidade) {
+        const tabela = path.match(/^(papirus_(?:follows|blocks|reading|reports|open_worlds|au_requests))\b/)
+        const funcao = path.match(/^rpc\/(papirus_(?:block|blocked|reading_stats|follow_counts))\b/)
+        if (tabela) return route.fulfill({ status: 404, headers: cors, json: { code: 'PGRST205', message: `Could not find the table 'public.${tabela[1]}' in the schema cache` } })
+        if (funcao) return route.fulfill({ status: 404, headers: cors, json: { code: 'PGRST202', message: `Could not find the function public.${funcao[1]} in the schema cache` } })
+      }
 
       if (path === 'rpc/papirus_image_usage') {
         if (!me) return route.fulfill({ status: 401, headers: cors, json: { message: 'permission denied for function papirus_image_usage' } })
@@ -468,5 +477,5 @@ export function createFakeSupabase() {
     })
   }
 
-  return { tables, images, attach, mail, linkFor, setOffline: (v: boolean) => (offline = v) }
+  return { tables, images, attach, mail, linkFor, setOffline: (v: boolean) => (offline = v), setSemComunidade: (v: boolean) => (semComunidade = v) }
 }

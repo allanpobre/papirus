@@ -11289,3 +11289,30 @@ h3.cork-act {
     font-size: 16px;
   }
 }
+
+/* Perfil de alguém que eu bloqueei: o aviso e o desbloquear no lugar do seguir. */
+.person-blocked {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.person-blocked p {
+  margin: 0;
+}
+
+.person-blocked svg {
+  vertical-align: -2px;
+}
+
+/* No celular, apagar e denunciar um comentário ficam lado a lado: cada botão com área de toque de verdade. */
+@media (pointer: coarse) {
+  .social-comment-head .btn-icon {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
