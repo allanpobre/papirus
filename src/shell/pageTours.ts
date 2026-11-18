@@ -23,7 +23,7 @@ const NOMES_NOVOS =
 const LIVRO_ATUAL = {
   target: '[data-tour="livro-atual"]',
   title: 'Qual livro',
-  body: 'Num universo com vários livros, escolha em qual você está (no Início ou no alto da lista de cenas). Escrever, Trama, Mundo e Publicar passam a mostrar só esse livro: as cenas dele, quem aparece nele, as tramas que passam por ele. Nas outras telas, um selo pequeno lembra o livro escolhido; “Todos os livros” mostra tudo junto.',
+  body: 'Num universo com vários livros, escolha em qual você está (no Início ou no alto da lista de cenas). Escrever, Trama, Mundo e Publicar passam a mostrar só esse livro: as cenas dele, quem aparece nele, as tramas que passam por ele. Nas outras telas, um selo pequeno lembra o livro escolhido; “Todos os livros” mostra tudo junto. Ficha criada com um livro escolhido entra na lista dele até aparecer no texto de algum.',
   optional: true,
 } as const
 
@@ -37,6 +37,12 @@ export const PAGE_TOURS = {
     title: 'Início',
     steps: [
       LIVRO_ATUAL,
+      {
+        target: '.update-notice',
+        title: 'Versão nova',
+        body: 'Quando sai uma versão nova do Papirus, um aviso pequeno aparece embaixo. “Atualizar” recarrega na hora (o que você escreveu já está salvo); o X deixa para depois.',
+        optional: true,
+      },
       {
         target: '.home-stats',
         title: 'O seu dia',
@@ -222,6 +228,12 @@ export const PAGE_TOURS = {
     title: 'Fichas',
     steps: [
       LIVRO_ATUAL,
+      {
+        target: '.entity-role',
+        title: 'O papel na história',
+        body: 'Protagonista, antagonista, secundário ou figurante. Aparece na ficha e na lista (que pode ordenar por papel). Num universo com vários livros, o papel pode mudar de um livro para outro (em “O básico”, no lápis do topo da ficha).',
+        optional: true,
+      },
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       {
         target: '.split-list .quick-create, .fichas-view .fab',
