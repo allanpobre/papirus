@@ -69,7 +69,7 @@ export function AUBanner() {
     <div className="shared-banner au-banner" role="status">
       <Sparkles size={15} aria-hidden="true" />
       <span>
-        Universo alternativo de <strong>“{from.name}”</strong>, de <strong>{owner}</strong>. As histórias de lá são lore: dá para ler, não para mudar.
+        Universo alternativo de <strong>“{from.name}”</strong>, de <strong>{owner}</strong>. As histórias de lá são lore: dá para ler, não para mudar. As que você escrever aqui o autor pode trazer para o mundo dele.
       </span>
       <button type="button" className="btn btn-sm" disabled={busy} onClick={() => void pull()}>
         <RefreshCw size={14} /> Novidades do original

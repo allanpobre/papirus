@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ostriaUniverse } from '../model/sampleOstria'
+import { addScene, addStory, updateScene } from '../model/universe'
 import { allowAU, auNews, canCreateAU, canonize, createAU, isLore, itemHash, originState, pullOriginal } from './au'
 
 const owner = { id: 'dono', email: 'ana@exemplo.com' }
@@ -86,5 +87,74 @@ describe('universo alternativo (AU)', () => {
   it('o resumo ignora a ordem das chaves e as datas', () => {
     expect(itemHash({ a: 1, b: [1, 2], updatedAt: 'x' })).toBe(itemHash({ b: [1, 2], a: 1, updatedAt: 'y' }))
     expect(itemHash({ a: 1 })).not.toBe(itemHash({ a: 2 }))
+  })
+
+  /** Um AU com uma história nova de duas cenas (a segunda usa uma ficha que só existe no AU). */
+  function auWithStory() {
+    const original = ostriaUniverse()
+    let au = createAU(original, owner)
+    const selma = { ...au.entities[0], id: 'selma-do-au', name: 'Selma' }
+    au = { ...au, entities: [...au.entities, selma] }
+    let story: ReturnType<typeof addStory>[1]
+    ;[au, story] = addStory(au, 'A Selma em Ostria')
+    let c1: ReturnType<typeof addScene>[1]
+    let c2: ReturnType<typeof addScene>[1]
+    ;[au, c1] = addScene(au, story.id, 'Chegada da Selma')
+    ;[au, c2] = addScene(au, story.id, 'O porto de manhã')
+    au = updateScene(au, c1.id, { text: 'Selma desembarcou.' })
+    au = updateScene(au, c2.id, { povId: selma.id, presentIds: [selma.id, au.entities[1].id], text: 'Selma olhou o porto.' })
+    return { original, au, story, c1, c2, selma }
+  }
+
+  it('o autor canoniza uma história do AU: ela e as cenas viram uma história nova no original, com as fichas que usam', () => {
+    const { original, au, story, c1, c2, selma } = auWithStory()
+    const news = auNews(au, original)
+    const item = news.find((n) => n.key === 'stories')!
+    expect(item).toMatchObject({ id: story.id, state: 'novo', label: 'A Selma em Ostria', scenes: 2 })
+    // As histórias do original são lore: nunca aparecem como novidade.
+    expect(news.filter((n) => n.key === 'stories')).toHaveLength(1)
+
+    const { universe, extra, stories, scenes } = canonize(original, au, [story.id])
+    expect([stories, scenes]).toEqual([1, 2])
+    expect(extra).toEqual([selma.id])
+    expect(universe.stories.at(-1)).toMatchObject({ id: story.id, title: 'A Selma em Ostria' })
+    expect(universe.scenes.filter((c) => c.storyId === story.id).map((c) => c.id)).toEqual([c1.id, c2.id])
+    expect(universe.scenes.find((c) => c.id === c2.id)).toMatchObject({ povId: selma.id, text: 'Selma olhou o porto.' })
+    expect(universe.entities.some((e) => e.id === selma.id)).toBe(true)
+    // O resto do original continua como estava.
+    expect(universe.stories.slice(0, original.stories.length)).toEqual(original.stories)
+    expect(universe.scenes.slice(0, original.scenes.length)).toEqual(original.scenes)
+    // Já canonizada: some da lista, e, ao trazer as novidades, vira "do original" no AU sem duplicar.
+    expect(auNews(au, universe).filter((n) => n.key === 'stories')).toEqual([])
+    const back = pullOriginal(au, universe).universe
+    expect(back.stories.filter((x) => x.id === story.id)).toHaveLength(1)
+    expect(originState(back, back.stories.find((x) => x.id === story.id)!)).toBe('original')
+    expect(back.scenes.filter((c) => c.storyId === story.id)).toHaveLength(2)
+  })
+
+  it('cena nova numa história já canonizada aparece como "mudou" e só traz o que falta', () => {
+    const { original, au, story } = auWithStory()
+    const first = canonize(original, au, [story.id]).universe
+    const [au2, c3] = addScene(au, story.id, 'Terceira cena')
+    const news = auNews(au2, first).find((n) => n.key === 'stories')!
+    expect(news).toMatchObject({ state: 'mudou', scenes: 1 })
+    const again = canonize(first, au2, [story.id])
+    expect(again.universe.scenes.filter((c) => c.storyId === story.id).map((c) => c.id)).toContain(c3.id)
+    expect(again.universe.stories.filter((x) => x.id === story.id)).toHaveLength(1)
+    expect(again.universe.scenes.filter((c) => c.storyId === story.id)).toHaveLength(3)
+  })
+
+  it('uma história do original (lore) não vira novidade, mesmo mexida no AU; e um fato não aponta para cena que não veio', () => {
+    const original = ostriaUniverse()
+    let au = createAU(original, owner)
+    const lore = au.stories[0]
+    au = { ...au, stories: au.stories.map((x) => (x.id === lore.id ? { ...x, title: 'Mexi na lore' } : x)) }
+    expect(auNews(au, original).some((n) => n.key === 'stories')).toBe(false)
+    expect(canonize(original, au, [lore.id]).stories).toBe(0)
+    // Um fato do AU que cita uma cena que só existe no AU: ao canonizar o fato sozinho, a cena fica de fora.
+    const [withScene, scene] = addScene(au, null, 'Só no AU')
+    const fact = { ...withScene.facts[0], id: 'fato-do-au', sourceSceneId: scene.id, value: 'novo valor' }
+    const result = canonize(original, { ...withScene, facts: [...withScene.facts, fact] }, ['fato-do-au'])
+    expect(result.universe.facts.find((f) => f.id === 'fato-do-au')!.sourceSceneId).toBeNull()
   })
 })
