@@ -36,8 +36,12 @@ describe('trazer de outros apps', () => {
   it('zip, tipos e texto limpo', () => {
     const zip = zipSync({ 'notas/Lendas/A Canção.md': strToU8('Quando a névoa sobe.'), 'img.png': new Uint8Array([1]) })
     const files = unzipText('cofre.zip', zip)
-    expect(files.map((f) => f.path)).toEqual(['cofre/notas/Lendas/A Canção.md'])
-    expect(readForeign(files).entities[0].kind).toBe('documento')
+    // As imagens vêm junto (podem ser o retrato de uma nota); uma que nenhuma nota usa só conta como arquivo de fora.
+    expect(files.map((f) => f.path).sort()).toEqual(['cofre/img.png', 'cofre/notas/Lendas/A Canção.md'])
+    const w = readForeign(files)
+    expect(w.entities).toHaveLength(1)
+    expect(w.skipped).toBe(1)
+    expect(w.entities[0].kind).toBe('documento')
     expect(kindFrom('Organization')).toBe('faccao')
     expect(kindFrom(undefined, 'qualquer')).toBe('conceito')
     expect(plainText('<p>a &amp; b</p>')).toBe('a & b')
