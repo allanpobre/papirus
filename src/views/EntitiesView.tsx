@@ -514,7 +514,7 @@ function SceneCount({ n }: { n: number }) {
 }
 
 /** O retrato (ou imagem) da ficha: toque para escolher; com imagem, dá para trocar ou tirar. */
-function PortraitButton({ entity: e, onChange }: { entity: Entity; onChange: (image: string | null) => void }) {
+export function PortraitButton({ entity: e, onChange }: { entity: Entity; onChange: (image: string | null) => void }) {
   const { toast } = useWorkspace()
   const picker = useImagePicker('retrato', (ref) => onChange(ref), (m) => toast(m, { tone: 'erro' }))
   return (
@@ -572,9 +572,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
       action: { label: 'Ver e trocar', run: () => openBookReplace({ find: old, replace: now, opts }) },
     })
   }
-  const [factFor, setFactFor] = useState<boolean>(false)
   const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
-  const summaryRef = useRef<HTMLInputElement>(null)
   const suffix = universe.settings.calendarSuffix
   // Ficha vazia: perguntas do tipo dela para começar (até sair da ficha, mesmo depois da primeira resposta).
   const [asking, setAsking] = useState(() => isBlank(e) && !skippedQuestions().includes(e.id))
@@ -583,13 +581,11 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   const outgoing = universe.relations.filter((r) => r.fromId === e.id && !r.listId)
   const incoming = universe.relations.filter((r) => r.toId === e.id && !r.listId)
   const children = universe.entities.filter((x) => x.parentId === e.id)
-  const facts = universe.facts.filter((f) => f.subjectId === e.id || f.objectId === e.id)
   const knows = universe.knowledge.filter((k) => k.holderId === e.id)
   const events = universe.events.filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id).sort((a, b) => a.year - b.year)
   const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id))
 
   const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
-  const whoKeys = useMemo(() => whoIsKeys(universe, e), [universe, e])
   const groupsOthers = listsOf(e).length > 0 || listTemplatesFor(universe, e.kind).length > 0
 
   return (
@@ -644,59 +640,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           )}
 
           {/* 1. Básico: o que se usa sempre. */}
-          <div className="form-grid entity-basics">
-            <Field label="Resumo" wide>
-              {(id) => (
-                <div className="with-reveal">
-                  <input ref={summaryRef} id={id} className="input" value={e.summary} placeholder="Uma linha sobre esta ficha" onChange={(ev) => set({ summary: ev.target.value })} />
-                  <RevealPicker label="Resumo" value={e.summary} inputRef={summaryRef} onChange={(v) => set({ summary: v })} />
-                </div>
-              )}
-            </Field>
-            <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
-            {(e.kind === 'personagem' || e.role) && (
-              <Field label="Papel na história">
-                {(id) => (
-                  <Select<StoryRole | ''>
-                    id={id}
-                    value={e.role ?? ''}
-                    onChange={(v) => set({ role: v || undefined })}
-                    options={[{ value: '', label: 'Sem papel marcado' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
-                  />
-                )}
-              </Field>
-            )}
-            {(e.kind === 'personagem' || e.role || e.bookRoles) && universe.stories.length > 1 && (
-              <fieldset className="field field-wide book-roles">
-                <legend className="field-label">Papel em cada livro (opcional)</legend>
-                <p className="field-hint">Numa série, quem é secundário no livro 1 pode ser protagonista no 2. Sem marcação, vale o papel de cima.</p>
-                {universe.stories.map((st) => (
-                  <label key={st.id} className="book-role-row">
-                    <span className="small">{st.title || 'Sem título'}</span>
-                    <Select<StoryRole | ''>
-                      label={`Papel de ${e.name || 'esta ficha'} em ${st.title || 'Sem título'}`}
-                      value={(e.bookRoles?.[st.id] as StoryRole | undefined) ?? ''}
-                      onChange={(v) => {
-                        const next = { ...(e.bookRoles ?? {}) }
-                        if (v) next[st.id] = v
-                        else delete next[st.id]
-                        set({ bookRoles: Object.keys(next).length ? next : undefined })
-                      }}
-                      options={[{ value: '', label: e.role ? `Igual ao geral (${ROLE_LABEL[e.role]})` : 'Igual ao geral' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
-                    />
-                  </label>
-                ))}
-              </fieldset>
-            )}
-            {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
-            {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
-              <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />
-            )}
-          </div>
-          <div className="entity-names">
-            <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
-            <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
-          </div>
+          <BasicsEditor entity={e} />
 
           {/* 2. Quem é: o que define a ficha neste mundo (e, numa opção, o que ela passa). */}
           <WhoIsEditor entity={e} />
@@ -711,50 +655,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
           {/* 4. Campos (com as datas). */}
           <Fold id="ficha-campos" title="Campos">
-            <div className="field">
-              <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
-              <div className="inline-fields">
-                <YearInput label="Ano de início" value={e.startYear} onChange={(v) => set({ startYear: v })} placeholder="Início" />
-                <span className="muted">—</span>
-                <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
-              </div>
-            </div>
-            <InheritedRows entity={e} />
-            {e.fields.map((f, i) =>
-              // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela; as exceções, no "Quem é".
-              (asking && askedKey(e.kind, f.key)) || (f.exception && whoKeys.has(fold(f.key.trim()))) ? null : (
-                <div key={i} className="kv-row kv-typed">
-                  <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
-                  <TypedValue
-                    entity={e}
-                    field={f}
-                    onChange={(changes) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, ...changes } : x)) })}
-                  />
-                  <select
-                    className="input select field-type"
-                    aria-label={`Tipo do campo ${f.key || ''}`.trim()}
-                    title="Tipo do campo"
-                    value={f.type ?? 'texto'}
-                    onChange={(ev) => {
-                      const type = ev.target.value as NonNullable<typeof f.type>
-                      set({ fields: e.fields.map((x, j) => (j === i ? { ...x, type, ...(type === 'ficha' ? {} : { ref: null }) } : x)) })
-                    }}
-                  >
-                    {FIELD_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {FIELD_TYPE_LABEL[t]}
-                      </option>
-                    ))}
-                  </select>
-                  <button type="button" className="btn-icon btn-sm" aria-label="Remover campo" onClick={() => set({ fields: e.fields.filter((_, j) => j !== i) })}>
-                    <X size={14} />
-                  </button>
-                </div>
-              ),
-            )}
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => set({ fields: [...e.fields, { key: '', value: '' }] })}>
-              <Plus size={14} /> Campo
-            </button>
+            <FieldsEditor entity={e} hide={(key) => asking && askedKey(e.kind, key)} />
           </Fold>
 
           {/* Uma ficha que junta outras (facção, reino, lugar) mostra as listas; nas outras, ficam em "Mais opções". */}
@@ -766,27 +667,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
           {universe.scenes.length > 0 && <ArcCard entity={e} />}
 
-          <section className="entity-section">
-            <div className="section-head">
-              <h2 className="section-title">Fatos</h2>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFactFor(true)}>
-                <Plus size={14} /> Fato
-              </button>
-            </div>
-            {facts.length === 0 ? (
-              <p className="muted small">Nenhum fato registrado. Selecione um trecho no texto e escolha “Fato”.</p>
-            ) : (
-              <ul className="fact-list">
-                {facts.map((f) => (
-                  <li key={f.id}>
-                    <span>{factSentence(universe, f)}</span>
-                    <CanonBadge canon={f.canon} />
-                    {f.speakerId && <span className="muted small">segundo {entityName(universe, f.speakerId)}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <FactsEditor entity={e} />
 
           <KnowledgeSection entity={e} entries={knows} />
 
@@ -904,7 +785,6 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
         </aside>
       </div>
 
-      {factFor && <FactDialog initial={{ subjectId: e.id }} onClose={() => setFactFor(false)} />}
     </article>
   )
 }
@@ -990,7 +870,7 @@ const RELATION_TYPES = [
   'serve a', 'governa', 'membro de', 'líder de', 'fundou', 'criou', 'causou', 'participou de', 'vive em', 'nasceu em', 'carrega', 'ama', 'teme',
 ]
 
-function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; outgoing: Universe['relations']; incoming: Universe['relations'] }) {
+export function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; outgoing: Universe['relations']; incoming: Universe['relations'] }) {
   const { universe, update, peek } = useWorkspace()
   const [type, setType] = useState('')
   const [targets, setTargets] = useState<string[]>([])
@@ -1217,7 +1097,7 @@ function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; o
   )
 }
 
-function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Universe['knowledge'] }) {
+export function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Universe['knowledge'] }) {
   const { universe, update } = useWorkspace()
   const [factId, setFactId] = useState('')
   const order = manuscriptOrder(universe)
@@ -1314,5 +1194,160 @@ function FieldValue({ value, label, placeholder = 'Valor', onChange }: { value: 
       <input ref={ref} className="input" aria-label="Valor" placeholder={placeholder} title={placeholder === 'Valor' ? undefined : placeholder} value={value} onChange={(ev) => onChange(ev.target.value)} />
       <RevealPicker label={label} value={value} inputRef={ref} onChange={onChange} />
     </div>
+  )
+}
+
+/** Os campos da ficha (com as datas de início e fim): o que o modo Editar e o bloco "Quadro" editam. */
+export function FieldsEditor({ entity: e, hide }: { entity: Entity; hide?: (key: string) => boolean }) {
+  const { universe, update } = useWorkspace()
+  const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
+  const whoKeys = whoIsKeys(universe, e)
+  // As respostas às perguntas do tipo ficam nas perguntas enquanto elas estão na tela.
+  const asking = Boolean(hide)
+  const askedKey = (_kind: string, key: string) => hide?.(key) ?? false
+  return (
+    <>
+      <div className="field">
+        <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
+        <div className="inline-fields">
+          <YearInput label="Ano de início" value={e.startYear} onChange={(v) => set({ startYear: v })} placeholder="Início" />
+          <span className="muted">—</span>
+          <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
+        </div>
+      </div>
+      <InheritedRows entity={e} />
+      {e.fields.map((f, i) =>
+        // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela; as exceções, no "Quem é".
+        (asking && askedKey(e.kind, f.key)) || (f.exception && whoKeys.has(fold(f.key.trim()))) ? null : (
+          <div key={i} className="kv-row kv-typed">
+            <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
+            <TypedValue
+              entity={e}
+              field={f}
+              onChange={(changes) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, ...changes } : x)) })}
+            />
+            <select
+              className="input select field-type"
+              aria-label={`Tipo do campo ${f.key || ''}`.trim()}
+              title="Tipo do campo"
+              value={f.type ?? 'texto'}
+              onChange={(ev) => {
+                const type = ev.target.value as NonNullable<typeof f.type>
+                set({ fields: e.fields.map((x, j) => (j === i ? { ...x, type, ...(type === 'ficha' ? {} : { ref: null }) } : x)) })
+              }}
+            >
+              {FIELD_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {FIELD_TYPE_LABEL[t]}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="btn-icon btn-sm" aria-label="Remover campo" onClick={() => set({ fields: e.fields.filter((_, j) => j !== i) })}>
+              <X size={14} />
+            </button>
+          </div>
+        ),
+      )}
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => set({ fields: [...e.fields, { key: '', value: '' }] })}>
+        <Plus size={14} /> Campo
+      </button>
+    </>
+  )
+}
+
+/** Os fatos da ficha, com o "+ Fato". */
+export function FactsEditor({ entity: e }: { entity: Entity }) {
+  const { universe } = useWorkspace()
+  const [factFor, setFactFor] = useState<boolean>(false)
+  const facts = universe.facts.filter((f) => f.subjectId === e.id || f.objectId === e.id)
+  return (
+    <>
+    <section className="entity-section">
+      <div className="section-head">
+        <h2 className="section-title">Fatos</h2>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFactFor(true)}>
+          <Plus size={14} /> Fato
+        </button>
+      </div>
+      {facts.length === 0 ? (
+        <p className="muted small">Nenhum fato registrado. Selecione um trecho no texto e escolha “Fato”.</p>
+      ) : (
+        <ul className="fact-list">
+          {facts.map((f) => (
+            <li key={f.id}>
+              <span>{factSentence(universe, f)}</span>
+              <CanonBadge canon={f.canon} />
+              {f.speakerId && <span className="muted small">segundo {entityName(universe, f.speakerId)}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+      {factFor && <FactDialog initial={{ subjectId: e.id }} onClose={() => setFactFor(false)} />}
+    </>
+  )
+}
+
+/** O básico da ficha: resumo, tipo, papel, onde fica, outros nomes e etiquetas. */
+export function BasicsEditor({ entity: e }: { entity: Entity }) {
+  const { universe, update } = useWorkspace()
+  const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
+  const summaryRef = useRef<HTMLInputElement>(null)
+  return (
+    <>
+    <div className="form-grid entity-basics">
+      <Field label="Resumo" wide>
+        {(id) => (
+          <div className="with-reveal">
+            <input ref={summaryRef} id={id} className="input" value={e.summary} placeholder="Uma linha sobre esta ficha" onChange={(ev) => set({ summary: ev.target.value })} />
+            <RevealPicker label="Resumo" value={e.summary} inputRef={summaryRef} onChange={(v) => set({ summary: v })} />
+          </div>
+        )}
+      </Field>
+      <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
+      {(e.kind === 'personagem' || e.role) && (
+        <Field label="Papel na história">
+          {(id) => (
+            <Select<StoryRole | ''>
+              id={id}
+              value={e.role ?? ''}
+              onChange={(v) => set({ role: v || undefined })}
+              options={[{ value: '', label: 'Sem papel marcado' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
+            />
+          )}
+        </Field>
+      )}
+      {(e.kind === 'personagem' || e.role || e.bookRoles) && universe.stories.length > 1 && (
+        <fieldset className="field field-wide book-roles">
+          <legend className="field-label">Papel em cada livro (opcional)</legend>
+          <p className="field-hint">Numa série, quem é secundário no livro 1 pode ser protagonista no 2. Sem marcação, vale o papel de cima.</p>
+          {universe.stories.map((st) => (
+            <label key={st.id} className="book-role-row">
+              <span className="small">{st.title || 'Sem título'}</span>
+              <Select<StoryRole | ''>
+                label={`Papel de ${e.name || 'esta ficha'} em ${st.title || 'Sem título'}`}
+                value={(e.bookRoles?.[st.id] as StoryRole | undefined) ?? ''}
+                onChange={(v) => {
+                  const next = { ...(e.bookRoles ?? {}) }
+                  if (v) next[st.id] = v
+                  else delete next[st.id]
+                  set({ bookRoles: Object.keys(next).length ? next : undefined })
+                }}
+                options={[{ value: '', label: e.role ? `Igual ao geral (${ROLE_LABEL[e.role]})` : 'Igual ao geral' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
+              />
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
+      {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
+        <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />
+      )}
+    </div>
+    <div className="entity-names">
+      <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
+      <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
+    </div>
+    </>
   )
 }

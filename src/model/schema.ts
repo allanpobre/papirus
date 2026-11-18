@@ -168,6 +168,28 @@ export const entitySchema = z.object({
    */
   reveal: z.object({ sceneId: z.string() }).optional().catch(undefined),
   /**
+   * Os blocos da página da ficha, na ordem escolhida (como no Notion). Sem isso, a ficha usa a ordem padrão do
+   * tipo dela. Os blocos de dados (Quem é, campos, ligações…) só mostram o que já está na ficha; os de conteúdo
+   * (nota, citação, galeria) guardam o que têm aqui.
+   */
+  blocks: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        /** Bloco de dados que a pessoa tirou da página (os dados continuam na ficha). */
+        hidden: z.boolean().optional(),
+        title: z.string().optional(),
+        text: z.string().optional(),
+        /** Citação: a cena de onde veio. */
+        sceneId: z.string().nullable().optional(),
+        /** Galeria: as imagens. */
+        images: z.array(z.string()).optional(),
+      }),
+    )
+    .optional()
+    .catch(undefined),
+  /**
    * Referências: o que inspirou a ficha (imagem, link, trecho, personagem de outra obra), com o que se pegou de
    * cada uma e o que ela não é. Só do autor: nunca vai para wiki, leitor ou link de leitura.
    */
