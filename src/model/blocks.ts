@@ -71,10 +71,13 @@ export const visibleBlocks = (e: Pick<Entity, 'kind' | 'blocks'>) => layoutOf(e)
 /** Os blocos de dados que foram tirados (para pôr de volta). */
 export const hiddenBlocks = (e: Pick<Entity, 'kind' | 'blocks'>) => layoutOf(e).filter((b) => b.hidden)
 
-/** Sobe ou desce um bloco entre os visíveis. Devolve a nova ordem (para guardar em `blocks`). */
-export function moveBlock(e: Pick<Entity, 'kind' | 'blocks'>, id: string, step: -1 | 1): Block[] {
+/**
+ * Sobe ou desce um bloco entre os que estão à vista (`among`: os ids que a página mostra; sem ele, os visíveis
+ * menos o quadro, que fica sempre no lugar dele). Devolve a nova ordem (para guardar em `blocks`).
+ */
+export function moveBlock(e: Pick<Entity, 'kind' | 'blocks'>, id: string, step: -1 | 1, among?: string[]): Block[] {
   const all = layoutOf(e)
-  const visible = all.filter((b) => !b.hidden)
+  const visible = all.filter((b) => (among ? among.includes(b.id) : !b.hidden && b.type !== 'quadro'))
   const i = visible.findIndex((b) => b.id === id)
   const j = i + step
   if (i < 0 || j < 0 || j >= visible.length) return all
@@ -101,3 +104,10 @@ export function addBlock(e: Pick<Entity, 'kind' | 'blocks'>, type: BlockType, af
 
 /** Muda o conteúdo de um bloco (nota, citação, galeria). */
 export const changeBlock = (e: Pick<Entity, 'kind' | 'blocks'>, id: string, changes: Partial<Block>): Block[] => layoutOf(e).map((b) => (b.id === id ? { ...b, ...changes } : b))
+
+/** Se o bloco de conteúdo ainda não tem nada (para o leitor, some da página). */
+export function contentEmpty(b: Block): boolean {
+  if (b.type === 'galeria') return !(b.images ?? []).length
+  if (b.type === 'citacao') return !b.text?.trim()
+  return !b.text?.trim() && !b.title?.trim()
+}

@@ -27,6 +27,9 @@ describe('a ficha como página de blocos', () => {
     expect(layoutOf(e).some((b) => b.id === nota.id)).toBe(false)
     // Nas pontas, não sai do lugar.
     expect(moveBlock(e, 'quadro', -1)).toEqual(layoutOf(e))
+    // Só entre os que a página mostra: os vazios do meio não "seguram" o bloco.
+    const moved = moveBlock(e, 'fatos', -1, ['texto', 'fatos'])
+    expect(moved.findIndex((b) => b.type === 'fatos')).toBeLessThan(moved.findIndex((b) => b.type === 'texto'))
   })
 
   it('bloco novo desta versão entra no fim; tipo desconhecido (de outra versão) é ignorado; repetido conta uma vez', () => {

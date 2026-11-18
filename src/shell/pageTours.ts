@@ -247,6 +247,12 @@ export const PAGE_TOURS = {
         optional: true,
       },
       {
+        target: '.block-tools',
+        title: 'Uma página de blocos',
+        body: 'Na leitura, o lápis de cada bloco edita ali mesmo. “Arrumar a página” (no topo) sobe, desce e tira blocos; tirar não apaga os dados. “+ Bloco”, no fim, acrescenta nota, citação de uma cena ou galeria, e traz de volta o que foi tirado.',
+        optional: true,
+      },
+      {
         target: '.story-point',
         title: 'Até onde na história',
         body: 'A ficha muda com a história. Escolha uma cena e veja como ela está ali (a idade, as fases). “Ver como o leitor” esconde o que ele ainda não descobriu; você sempre vê a verdade, com o aviso de quando o leitor descobre.',
