@@ -96,6 +96,7 @@ export function ReaderView({
   closeLabel = 'Fechar o modo leitor',
   footer,
   startAt,
+  endAt,
   onProgress,
   onComment,
   commenterName,
@@ -109,6 +110,8 @@ export function ReaderView({
   footer?: ReactNode
   /** Onde começar quando este aparelho ainda não leu (o "continuar lendo" de outro aparelho). */
   startAt?: number
+  /** Com um livro escolhido: a última cena dele (o "Ouvir" para no fim do livro, sem entrar no próximo). */
+  endAt?: number
   /** Avisa onde a pessoa está (para "continuar lendo" e "quem leu até onde"). */
   onProgress?: (current: number, furthest: number, total: number) => void
   /** Leitor beta: mandar comentários para quem escreveu. */
@@ -208,11 +211,17 @@ export function ReaderView({
   }
 
   // Ouvir: no fim do capítulo, vai para o próximo (e continua lendo).
-  const voice = useReadAloud(pageRef, String(current), () => {
-    if (current >= total - 1) return false
-    go(current + 1)
-    return true
-  })
+  const voice = useReadAloud(
+    pageRef,
+    String(current),
+    () => {
+      if (current >= total - 1 || (endAt !== undefined && current >= endAt)) return false
+      go(current + 1)
+      return true
+    },
+    // Lembra o parágrafo onde a voz parou (por livro, como a página); o nome vai para a tela de bloqueio.
+    { memoryKey: `${storageKey}:voz`, title: book.scenes[current]?.title || universe.name },
+  )
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

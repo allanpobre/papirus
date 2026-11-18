@@ -1247,7 +1247,10 @@ function ReaderOverlay({
 }) {
   const [copy] = useState(() => readerCopy(universe, false))
   // Os livros de antes continuam no caderno do leitor: quem lê o terceiro já leu os dois primeiros.
-  const start = bookId ? manuscriptOrder(copy).findIndex((s) => inBook(bookId, s.storyId)) : -1
+  const order = manuscriptOrder(copy)
+  const start = bookId ? order.findIndex((s) => inBook(bookId, s.storyId)) : -1
+  // O fim do livro (ou da série): o "Ouvir" para ali.
+  const end = bookId ? order.findLastIndex((s) => inBook(bookId, s.storyId)) : -1
   useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
@@ -1256,6 +1259,7 @@ function ReaderOverlay({
         universe={copy}
         storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}${start >= 0 ? `:${bookId}` : ''}`}
         startAt={start >= 0 ? start : undefined}
+        endAt={end >= 0 ? end : undefined}
         onClose={onClose}
         onComment={onComment}
         commenterName={commenterName}
