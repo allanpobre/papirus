@@ -11316,3 +11316,145 @@ h3.cork-act {
     min-height: 40px;
   }
 }
+
+/* "Aparece em" (como o X-Ray do Kindle): a tira com todas as cenas e a lista com o nome em destaque. */
+.appear {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.appear-sum {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.presence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+
+.presence-book {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.presence-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.presence-strip li,
+.reader-text .presence-strip li + li {
+  display: flex;
+  margin: 0;
+}
+
+.reader-text .presence-strip {
+  padding-left: 0;
+}
+
+.presence-dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+
+button.presence-dot {
+  cursor: pointer;
+}
+
+.presence-dot.is-pov {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.presence-dot.is-presente {
+  border-color: var(--ok);
+  background: var(--ok);
+}
+
+.presence-dot.is-local {
+  border-color: var(--sky);
+  background: var(--sky-soft);
+}
+
+.presence-dot.is-mencionado {
+  border-color: var(--ochre);
+  background: var(--ochre-soft);
+}
+
+@media (pointer: coarse) {
+  .presence-dot {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.appear-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.appear-roles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.appear-role {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.appear-role.is-pov {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.appear-role.is-presente {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.appear-role.is-local {
+  background: var(--sky-soft);
+  color: var(--sky);
+}
+
+.appear-role.is-mencionado {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+
+.appearance-snippet .appear-name {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--ink);
+  font-style: normal;
+  font-weight: 700;
+}

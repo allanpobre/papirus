@@ -17,16 +17,17 @@ import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
 import { unmarkReveals } from '../logic/reveals'
 import { splitSecrets } from '../logic/secrets'
-import { fold, snippet } from '../logic/text'
+import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
 import { MembershipChips } from './EntityLists'
 import { formatYear, KNOWLEDGE_LABEL, kindLabel, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
-import { byId, entityName, sceneTitle } from '../model/universe'
+import { byId, entityName } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge } from '../ui/bits'
 import { Picture } from '../images/Picture'
 import { MapGlimpse } from './MapGlimpse'
+import { AppearanceList } from './AppearanceList'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
 export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
@@ -364,19 +365,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           {(appearances.length > 0 || sessions.length > 0) && (
             <section>
               <h2>Aparece em</h2>
-              {appearances.length > 0 && (
-                <ul className="appearances" aria-label="Cenas">
-                  {appearances.map(({ scene, roles, found }) => (
-                    <li key={scene.id}>
-                      <button type="button" className="link-btn" onClick={() => go('escrever', scene.id)}>
-                        {sceneTitle(scene)}
-                      </button>
-                      <span className="muted small"> {roles.join(' · ')}</span>
-                      {found[0] && <p className="appearance-snippet">{snippet(scene.text, found[0].from, found[0].to, 50)}</p>}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {appearances.length > 0 && <AppearanceList entity={e} appearances={appearances} />}
               {sessions.length > 0 && (
                 <ul className="appearances appearances-sessions" aria-label="Sessões">
                   {sessions.map((x) => (

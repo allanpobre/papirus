@@ -75,6 +75,7 @@ import { NextNote } from '../NextNote'
 import { nextNoteOf, todayTarget } from '../../logic/homeToday'
 import { TextMenu } from './TextMenu'
 import { FindBar } from './FindBar'
+import { takeSceneFind } from './sceneFind'
 import { isLore } from '../../logic/au'
 import { SceneFrame, WritingModes, type WritingMode } from './WritingModes'
 import { KEYBOARD_MIN_INSET, useKeyboardInset } from '../../editor/useKeyboardInset'
@@ -150,7 +151,7 @@ export default function WriteView() {
   const editorRef = useRef<Editor | null>(null)
   const [editor, setEditor] = useState<Editor | null>(null)
   // Procurar na cena (Ctrl+F): o texto inicial e um número para reabrir do zero.
-  const [find, setFind] = useState<{ query: string; n: number } | null>(null)
+  const [find, setFind] = useState<{ query: string; n: number; jump?: boolean } | null>(null)
   const openFind = useCallback(() => {
     const ed = editorRef.current
     const sel = ed && !ed.isDestroyed ? ed.state.doc.textBetween(ed.state.selection.from, ed.state.selection.to, ' ') : ''
@@ -165,6 +166,13 @@ export default function WriteView() {
 
   // Se a cena aberta não existe (apagada, desfeita, outro universo), cai para a primeira.
   const scene = (sceneId ? byId(universe, 'scenes', sceneId) : undefined) ?? order[0]
+  // Veio do "Aparece em" de uma ficha: abre já procurando o nome, no primeiro lugar em que ele aparece.
+  const openedSceneId = scene?.id
+  useEffect(() => {
+    if (!openedSceneId) return
+    const query = takeSceneFind(openedSceneId)
+    if (query) setFind((f) => ({ query, n: (f?.n ?? 0) + 1, jump: true }))
+  }, [openedSceneId])
   // Num AU, as cenas do original são lore: dá para ler, não para mudar.
   const lore = isLore(universe, scene?.id)
 
@@ -563,6 +571,7 @@ export default function WriteView() {
             editor={editor}
             initial={find.query}
             phone={phone}
+            jump={find.jump}
             onClose={() => {
               setFind(null)
               editorRef.current?.commands.focus()

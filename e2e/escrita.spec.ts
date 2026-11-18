@@ -156,7 +156,9 @@ test('cria ficha a partir de uma seleção e a vê na margem e nas Fichas', asyn
   await page.locator('.entity-row-name', { hasText: /^Kael$/ }).click()
   const ficha = page.getByRole('region', { name: 'Ficha' })
   await expect(ficha.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Kael')
-  await expect(ficha.getByRole('button', { name: 'Nova cena', exact: true })).toBeVisible()
+  // Em "Aparições", a cena aparece pelo começo do texto (ainda sem título), com o nome em destaque.
+  await expect(ficha.getByRole('button', { name: 'Kael chegou ao porto antes do amanhecer', exact: true })).toBeVisible()
+  await expect(ficha.locator('.appear-name').first()).toHaveText('Kael')
 })
 
 test('a revisão encontra nomes novos e cria fichas sem interromper a escrita', async ({ page }) => {
@@ -364,7 +366,7 @@ test('versões: guarda, compara e volta para uma versão anterior da cena', asyn
   await expect(editor(page)).toHaveText('Era noite em Ostria.')
   await page.getByRole('button', { name: 'Mais ações da cena' }).click()
   await page.getByRole('button', { name: 'Versões da cena' }).click()
-  await expect(page.getByRole('dialog').getByText('Antes de voltar para “Noite”')).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Antes de voltar para “Noite”' })).toBeVisible()
 })
 
 test('leitura: ensaio mostra um parágrafo por vez', async ({ page }) => {

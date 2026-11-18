@@ -9,7 +9,7 @@ import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
 import { factSentence } from '../logic/codex'
-import { fold, snippet } from '../logic/text'
+import { fold } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
 import { RelationDetails } from './RelationDetails'
 import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
@@ -39,6 +39,7 @@ import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
+import { AppearanceList } from './AppearanceList'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -815,21 +816,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
         <aside className="entity-side">
           <MapGlimpse entity={e} />
           <Fold id="ficha-apari-es" title="Aparições">
-            {appearances.length === 0 ? (
-              <p className="muted small">Ainda não aparece no manuscrito.</p>
-            ) : (
-              <ul className="appearances">
-                {appearances.map(({ scene, roles, found }) => (
-                  <li key={scene.id}>
-                    <button type="button" className="link-btn" onClick={() => go('escrever', scene.id)}>
-                      {scene.title || 'Sem título'}
-                    </button>
-                    <span className="muted small"> {roles.join(' · ')}</span>
-                    {found[0] && <p className="appearance-snippet">{snippet(scene.text, found[0].from, found[0].to, 50)}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AppearanceList entity={e} appearances={appearances} empty={<p className="muted small">Ainda não aparece no manuscrito.</p>} />
           </Fold>
 
           {children.length > 0 && (

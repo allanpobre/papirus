@@ -9,7 +9,20 @@ import { openBookReplace } from './replaceEvents'
  * Procurar (e trocar) na cena aberta, com o Ctrl+F. Os achados ficam destacados no texto;
  * Enter vai para o próximo. "No livro todo" abre a busca em todas as cenas.
  */
-export function FindBar({ editor, initial, phone, onClose }: { editor: Editor | null; initial: string; phone: boolean; onClose: () => void }) {
+export function FindBar({
+  editor,
+  initial,
+  phone,
+  jump = false,
+  onClose,
+}: {
+  editor: Editor | null
+  initial: string
+  phone: boolean
+  /** Veio de fora (o "Aparece em" de uma ficha): mostra o primeiro achado sem abrir o teclado. */
+  jump?: boolean
+  onClose: () => void
+}) {
   const { toast, readOnly } = useWorkspace()
   const [query, setQuery] = useState(initial)
   const [replacement, setReplacement] = useState('')
@@ -20,8 +33,10 @@ export function FindBar({ editor, initial, phone, onClose }: { editor: Editor | 
   const input = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if (jump) return
     input.current?.focus()
     input.current?.select()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Conta de novo a cada mudança no texto.
@@ -53,6 +68,15 @@ export function FindBar({ editor, initial, phone, onClose }: { editor: Editor | 
     const el = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement)
     el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
   }
+
+  // Veio de fora: leva ao primeiro achado assim que o texto da cena estiver no editor.
+  const jumped = useRef(false)
+  useEffect(() => {
+    if (!jump || jumped.current || !hits.length) return
+    jumped.current = true
+    reveal(hits[0])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jump, hits])
 
   const go = (step: 1 | -1) => {
     if (!hits.length) return
