@@ -4,6 +4,7 @@ import { authClient, useAccount } from '../account/auth'
 import { auRequests, isMissing, openWorldsOf, setWorldOpen, type AURequest } from '../social/community'
 import { profilesByIds, type Profile } from '../social/social'
 import { useWorkspace } from '../state/workspace'
+import { ShareSection } from './ShareSection'
 
 /**
  * Pedidos de AU pelo perfil: o autor abre este mundo a pedidos (aparece em "Mundos abertos a AU"
@@ -43,10 +44,13 @@ export function AURequests({ busy, onAccept, onDecline }: { busy: boolean; onAcc
 
   if (missing || open === null || !userId || !server) return null
   return (
-    <section className="share-section" aria-labelledby="share-au-pedidos">
-      <h3 id="share-au-pedidos" className="share-title">
-        <Sparkles size={14} aria-hidden="true" /> Pedidos de AU pelo perfil
-      </h3>
+    <ShareSection
+      id="share-au-pedidos"
+      title="Pedidos de AU pelo perfil"
+      icon={<Sparkles size={14} aria-hidden="true" />}
+      summary={pending.length ? `${pending.length} ${pending.length === 1 ? 'pedido esperando' : 'pedidos esperando'}` : open ? 'Aceitando pedidos' : 'Desligado'}
+      openOnPhone={pending.length > 0}
+    >
       <label className="toggle small">
         <input
           type="checkbox"
@@ -92,6 +96,6 @@ export function AURequests({ busy, onAccept, onDecline }: { busy: boolean; onAcc
           })}
         </ul>
       )}
-    </section>
+    </ShareSection>
   )
 }

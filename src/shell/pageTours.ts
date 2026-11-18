@@ -413,6 +413,7 @@ export const PAGE_TOURS = {
     title: 'Compartilhar',
     steps: [
       { target: '.share-intro', title: 'Três jeitos', body: 'Pode ver (lê tudo, não muda nada), Pode editar (escreve junto, ao vivo) e Link de leitura (quem tiver o link lê sem conta).', optional: true },
+      { target: '.share-collapse > summary', title: 'Partes que abrem e fecham', body: 'Cada parte (Pessoas, Link de leitura, Segredos…) tem um resumo ao lado do título, para saber como está sem abrir. Toque para abrir ou fechar. No celular, só a de Pessoas já vem aberta.', optional: true },
       { target: '.share-invite', title: 'Convidar', body: 'O e-mail da pessoa e o que ela pode fazer. Ela entra no Papirus com esse e-mail e o universo aparece em “Compartilhados com você”.', optional: true },
       { target: '.share-members', title: 'Quem tem acesso', body: 'Troque o que cada pessoa pode fazer, ou tire o acesso, quando quiser.', optional: true },
       { target: '[aria-labelledby="share-link"]', title: 'Link de leitura', body: 'Para quem não tem conta: leitores beta, jogadores. Abre como livro, como a wiki do mundo (sem segredos, com o visual da página Wiki, e só até a cena que você escolher) ou como o universo inteiro. Trocar o link faz o antigo parar de funcionar.', optional: true },

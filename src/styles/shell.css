@@ -1576,6 +1576,58 @@ body:has(.rail-phone) .toasts {
   font-size: 0.95rem;
 }
 
+/* Partes que abrem e fecham: o título e um resumo ficam à vista, e o conteúdo vem embaixo. */
+.share-collapse > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.share-collapse > summary::-webkit-details-marker {
+  display: none;
+}
+
+.share-collapse > summary .share-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.share-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.share-collapse[open] > summary .share-chevron {
+  transform: rotate(180deg);
+}
+
+.share-collapse-body {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.3rem;
+}
+
+@media (min-width: 641px) {
+  /* No computador, as partes já vêm abertas e o título não precisa parecer botão. */
+  .share-collapse > summary {
+    min-height: 0;
+  }
+}
+
 .share-invite {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
