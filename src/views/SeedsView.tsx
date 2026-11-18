@@ -2,7 +2,7 @@ import { HelpCircle, Plus, Sprout, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { SEED_STATUS_LABEL } from '../model/labels'
 import { SEED_STATUSES, type Seed, type SeedStatus } from '../model/schema'
-import { byId, draftSeed, entityName, insert, manuscriptOrder, newId, patch, remove } from '../model/universe'
+import { byId, draftSeed, entityName, insert, manuscriptOrder, newId, patch, remove, inBook as storyInBook } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { Empty, Field, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -19,7 +19,7 @@ export default function SeedsView() {
 
   // Com um livro escolhido no alto: as tramas que passam por ele (plantadas, com pista ou pagas nele)
   // e as que ainda não estão em cena nenhuma (senão uma trama nova sumiria ao ser criada).
-  const inBook = new Set(bookId ? universe.scenes.filter((x) => x.storyId === bookId).map((x) => x.id) : [])
+  const inBook = new Set(bookId ? universe.scenes.filter((x) => storyInBook(bookId, x.storyId)).map((x) => x.id) : [])
   const touches = (s: Seed) => {
     const ids = [s.setupSceneId, s.payoffSceneId, ...s.clues.map((c) => c.sceneId)].filter(Boolean) as string[]
     return !ids.length || ids.some((id) => inBook.has(id))

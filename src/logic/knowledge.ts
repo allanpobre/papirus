@@ -1,5 +1,5 @@
 import type { Fact, Knowledge, Scene, Story, Universe } from '../model/schema'
-import { byId, manuscriptOrder } from '../model/universe'
+import { byId, manuscriptOrder, inBook as storyInBook } from '../model/universe'
 
 /** Posição de cada cena na ordem de leitura. */
 export function sceneIndex(universe: Universe): Map<string, number> {
@@ -54,7 +54,7 @@ export function holdersOf(universe: Universe, factId: string): Knowledge[] {
 
 /** Os fatos que o leitor fica sabendo em cenas deste livro (a cena de onde o fato veio é dele). */
 export function revealedInBook(universe: Universe, bookId: string): Fact[] {
-  const inBook = new Set(universe.scenes.filter((s) => s.storyId === bookId).map((s) => s.id))
+  const inBook = new Set(universe.scenes.filter((s) => storyInBook(bookId, s.storyId)).map((s) => s.id))
   return universe.facts.filter((f) => f.sourceSceneId !== null && inBook.has(f.sourceSceneId))
 }
 
@@ -71,7 +71,7 @@ export function revealWhere(universe: Universe, fact: Fact, bookId: string | nul
   if (!scene) return { kind: 'sem-cena' }
   const book = scene.storyId ? (byId(universe, 'stories', scene.storyId) ?? null) : null
   if (!bookId || !book) return { kind: 'em', scene, book }
-  if (book.id === bookId) return { kind: 'neste', scene, book }
+  if (storyInBook(bookId, book.id)) return { kind: 'neste', scene, book }
   const order = new Map(universe.stories.map((s, i) => [s.id, i]))
   return { kind: (order.get(book.id) ?? 0) < (order.get(bookId) ?? 0) ? 'antes' : 'depois', scene, book }
 }

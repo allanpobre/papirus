@@ -10,7 +10,7 @@ import { appearances } from '../logic/reader'
 import { formatDate } from '../logic/calendar'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { Relation } from '../model/schema'
-import { bookScenes, byId, entityName } from '../model/universe'
+import { bookScenes, byId, entityName, chosenBook } from '../model/universe'
 import { useStoryPoint } from '../state/storyPoint'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
@@ -251,7 +251,7 @@ export default function GraphView() {
   })
 
   // O livro escolhido no alto: o mapa mostra quem aparece nele, e o "cena a cena" anda só por ele.
-  const book = bookId ? universe.stories.find((s) => s.id === bookId) : undefined
+  const book = chosenBook(universe, bookId)
   const scenes = useMemo(() => bookScenes(universe, bookId), [universe, bookId])
   // Trocou o livro: o "cena a cena" volta ao começo e o desenho, ao centro.
   const lastBook = useRef(bookId)

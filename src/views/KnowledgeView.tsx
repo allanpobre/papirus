@@ -6,7 +6,7 @@ import { holdersOf, knowledgeAt, readerKnowsAt, revealedInBook, revealWhere } fr
 import { fold } from '../logic/text'
 import { CANON_LABEL, CANON_ORDER, KNOWLEDGE_LABEL } from '../model/labels'
 import type { Canon, KnowledgeState } from '../model/schema'
-import { bookScenes, byId, entityName, manuscriptOrder, removeFact } from '../model/universe'
+import { bookScenes, byId, entityName, manuscriptOrder, removeFact, chosenBook } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty, Field, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -81,7 +81,7 @@ function FactsTab() {
   const { universe, undoable, go, bookId } = useWorkspace()
   const [query, setQuery] = useState('')
   // Com um livro escolhido no alto, começa pelos fatos que o leitor fica sabendo nele (dá para ver os de todo o universo).
-  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const book = chosenBook(universe, bookId)
   const [scope, setScope] = useState<'livro' | 'todos'>('livro')
   const inBook = useMemo(() => (book ? new Set(revealedInBook(universe, book.id).map((f) => f.id)) : null), [universe, book])
   const onlyBook = inBook !== null && scope === 'livro'

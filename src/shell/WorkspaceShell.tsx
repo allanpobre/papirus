@@ -13,7 +13,7 @@ import { addBook, shelf } from '../export/shelf'
 import { authClient, useAccount } from '../account/auth'
 import { syncedMap } from '../account/cloud'
 import type { Scene, Universe } from '../model/schema'
-import { addScene, draftInbox, insert, manuscriptOrder, updateScene } from '../model/universe'
+import { addScene, draftInbox, insert, manuscriptOrder, updateScene, inBook, bookIdsOf, seriesId } from '../model/universe'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
@@ -132,7 +132,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
   // O livro escolhido no alto. Um livro que não existe mais (apagado, ou de outra versão) vale como "todos".
   const [bookPick, setBookPick] = useState<string | null>(() => recall(`livro:${initial.id}`))
-  const bookId = bookPick && universe.stories.length > 1 && universe.stories.some((s) => s.id === bookPick) ? bookPick : null
+  // Um livro ou uma série (ids com vírgula): valem só os livros que ainda existem; uma série que ficou com um só vira esse livro.
+  const bookId = bookPick && universe.stories.length > 1 ? seriesId(universe, bookIdsOf(bookPick) ?? []) : null
   const setBookId = useCallback(
     (id: string | null) => {
       setBookPick(id)
@@ -215,7 +216,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       if (view === 'escrever' && id) {
         const { universe: u, bookId: chosen } = latest.current
         const scene = chosen ? u.scenes.find((s) => s.id === id) : undefined
-        if (scene && scene.storyId !== chosen) setBookId(scene.storyId)
+        if (scene && !inBook(chosen, scene.storyId)) setBookId(scene.storyId)
       }
       navigateTo({ u: initial.id, view, id }, options.replace)
       navRef.current = { view, id }
@@ -1246,7 +1247,7 @@ function ReaderOverlay({
 }) {
   const [copy] = useState(() => readerCopy(universe, false))
   // Os livros de antes continuam no caderno do leitor: quem lê o terceiro já leu os dois primeiros.
-  const start = bookId ? manuscriptOrder(copy).findIndex((s) => s.storyId === bookId) : -1
+  const start = bookId ? manuscriptOrder(copy).findIndex((s) => inBook(bookId, s.storyId)) : -1
   useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">

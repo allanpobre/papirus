@@ -27,6 +27,7 @@ import {
   patch,
   remove,
   removeEntity,
+  chosenBook,
 } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
@@ -147,7 +148,7 @@ export default function EntitiesView() {
   // Quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro (a mesma regra da Linha do tempo e dos Mapas).
   const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
   const inNoBook = (id: string) => (scope ? scope.inNoBook(id) : !counts.get(id))
-  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const book = chosenBook(universe, bookId)
   const [everyone, setEveryone] = useState(false)
   const onlyBook = Boolean(book) && !everyone
   const hasScenes = universe.scenes.some((sc) => sc.text.trim())

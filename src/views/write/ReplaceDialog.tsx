@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { findInBook, replaceInBook, splitHitsByBook, type FindOptions, type Hit } from '../../editor/replace'
-import { byId } from '../../model/universe'
+import { byId, chosenBook } from '../../model/universe'
 import { useWorkspace } from '../../state/workspace'
 import { Modal } from '../../ui/Modal'
 import type { ReplaceRequest } from './replaceEvents'
@@ -14,7 +14,7 @@ const SHOWN = 400
  */
 export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; onClose: () => void }) {
   const { universe, update, toast, repo, go, readOnly, bookId } = useWorkspace()
-  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const book = chosenBook(universe, bookId)
   // Com um livro escolhido no alto, procura só nele (e mostra quantos achados há em todos os livros).
   const [scope, setScope] = useState<'livro' | 'todos'>('livro')
   const [find, setFind] = useState(initial.find ?? '')

@@ -12128,3 +12128,13 @@ button.presence-dot {
   border-left: 3px solid var(--accent);
   font-style: italic;
 }
+
+/* Série: escolher vários livros juntos no seletor de livro. */
+.book-series {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  flex-basis: 100%;
+  padding: 0.5rem 0;
+}

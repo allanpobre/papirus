@@ -8,7 +8,7 @@ import { useScrollPinch } from '../ui/useScrollPinch'
 import { rangeText, routeOn } from '../logic/route'
 import { kindLabel, kindPlural } from '../model/labels'
 import type { AtlasMap } from '../model/schema'
-import { byId, draftMap, entityName, insert, newId, patch, remove } from '../model/universe'
+import { byId, draftMap, entityName, insert, newId, patch, remove, chosenBook } from '../model/universe'
 import { CropDialog } from '../images/CropDialog'
 import type { Rect } from '../images/crop'
 import { useWorkspace } from '../state/workspace'
@@ -137,7 +137,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   const { universe, update, peek, go, undoable, toast, bookId } = useWorkspace()
   const mapSrc = useImageSrc(map.image)
   // Com um livro escolhido no alto, os lugares dele ficam em destaque e os outros, apagados.
-  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const book = chosenBook(universe, bookId)
   // Lugares novos (que ainda não aparecem em livro nenhum) não ficam apagados: a mesma regra de Fichas e Linha do tempo.
   const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
   const [zoom, setZoom] = useState(1)

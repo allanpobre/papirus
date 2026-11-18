@@ -50,6 +50,7 @@ import {
   sceneTitle,
   updateScene,
   DEFAULT_SCENE_TITLE,
+  inBook,
 } from '../../model/universe'
 import { wordCount } from '../../persistence/repository'
 import { recall, remember } from '../../state/prefs'
@@ -221,7 +222,7 @@ export default function WriteView() {
   }, [bookId])
   // A cena aberta é de outro livro (veio de um link, ou mudou de livro): o livro do alto vai junto.
   useEffect(() => {
-    if (scene && bookId && scene.storyId !== bookId) setBookId(scene.storyId)
+    if (scene && bookId && !inBook(bookId, scene.storyId)) setBookId(scene.storyId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene?.id, scene?.storyId])
 
