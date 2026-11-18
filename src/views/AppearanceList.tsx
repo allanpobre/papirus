@@ -10,11 +10,26 @@ import { askSceneFind } from './write/sceneFind'
  * acesas, pela força do papel) e a lista das cenas, com o nome em destaque no trecho. Tocar abre a
  * cena já no lugar em que ela aparece.
  */
-export function AppearanceList({ entity, appearances: given, empty }: { entity: Entity; appearances?: Appearance[]; empty?: React.ReactNode }) {
+export function AppearanceList({
+  entity,
+  appearances: given,
+  empty,
+  upto = null,
+  onlyUpto = false,
+}: {
+  entity: Entity
+  appearances?: Appearance[]
+  empty?: React.ReactNode
+  /** O ponto da história (posição da cena): as casinhas depois dele ficam apagadas. */
+  upto?: number | null
+  /** Como o leitor: as cenas depois do ponto nem aparecem como botão. */
+  onlyUpto?: boolean
+}) {
   const { universe, go } = useWorkspace()
   const appearances = useMemo(() => given ?? appearancesOf(universe, entity), [given, universe, entity])
   const strip = useMemo(() => presenceStrip(universe, appearances), [universe, appearances])
-  const total = strip.reduce((n, g) => n + g.dots.length, 0)
+  // Como o leitor, o livro "acaba" no ponto escolhido.
+  const total = onlyUpto && upto !== null ? upto + 1 : strip.reduce((n, g) => n + g.dots.length, 0)
   const mentions = appearances.reduce((n, a) => n + a.found.length, 0)
   const books = strip.filter((g) => g.dots.some((d) => d.role)).length > 1
 
@@ -43,8 +58,8 @@ export function AppearanceList({ entity, appearances: given, empty }: { entity: 
             {strip.length > 1 && <span className="presence-book-title tiny muted">{g.title}</span>}
             <ol className="presence-strip">
               {g.dots.map((d, i) => (
-                <li key={d.scene.id}>
-                  {d.role ? (
+                <li key={d.scene.id} className={upto !== null && d.position > upto ? 'is-after' : undefined}>
+                  {d.role && !(onlyUpto && upto !== null && d.position > upto) ? (
                     <button
                       type="button"
                       className={`presence-dot is-${d.role}`}

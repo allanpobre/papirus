@@ -82,6 +82,8 @@ export function snippetParts(text: string, hits: { from: number; to: number }[],
 export interface PresenceDot {
   scene: Scene
   role: AppearanceRole | null
+  /** A posição da cena na ordem de leitura (o livro todo). */
+  position: number
 }
 
 /**
@@ -91,14 +93,14 @@ export interface PresenceDot {
 export function presenceStrip(universe: Universe, appearances: Appearance[]): { storyId: string | null; title: string; dots: PresenceDot[] }[] {
   const role = new Map(appearances.map((a) => [a.scene.id, a.roles[0] ?? null]))
   const groups: { storyId: string | null; title: string; dots: PresenceDot[] }[] = []
-  for (const scene of manuscriptOrder(universe)) {
+  for (const [position, scene] of manuscriptOrder(universe).entries()) {
     let g = groups.at(-1)
     if (!g || g.storyId !== scene.storyId) {
       const story = universe.stories.find((st) => st.id === scene.storyId)
       g = { storyId: scene.storyId, title: story ? story.title || 'Sem título' : 'Sem capítulo', dots: [] }
       groups.push(g)
     }
-    g.dots.push({ scene, role: role.get(scene.id) ?? null })
+    g.dots.push({ scene, role: role.get(scene.id) ?? null, position })
   }
   return groups
 }

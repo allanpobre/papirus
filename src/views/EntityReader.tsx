@@ -1,7 +1,7 @@
 import { OriginChip } from './AUBanner'
 import { WhoIsReader } from './WhoIs'
 import { definerListIds, whoIsKeys } from '../logic/definers'
-import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Lock, Shuffle } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Dices, Eye, Lock, Shuffle } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { worldLevel } from '../model/kind'
 import { DominoDialog } from './DominoDialog'
@@ -15,14 +15,16 @@ import { answerOf, isBlank, questionsFor } from '../logic/kindQuestions'
 import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
-import { unmarkReveals } from '../logic/reveals'
-import { splitSecrets } from '../logic/secrets'
+import { knownAt, partsAt, pointIndex, yearAt } from '../logic/storyPoint'
+import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
 import { MembershipChips } from './EntityLists'
 import { formatYear, KNOWLEDGE_LABEL, kindLabel, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
 import type { Entity } from '../model/schema'
-import { byId, entityName } from '../model/universe'
+import { byId, entityName, manuscriptOrder, sceneTitle } from '../model/universe'
+import { useStoryPoint } from '../state/storyPoint'
+import { StoryPointBar } from '../ui/StoryPointBar'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge } from '../ui/bits'
 import { Picture } from '../images/Picture'
@@ -37,6 +39,14 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
   const [dominoOpen, setDominoOpen] = useState(false)
   const canDomino = worldLevel(universe) === 'completo' && universe.relations.some((r) => r.fromId === e.id || r.toId === e.id)
   const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== e.id)), [universe.entities, e.id])
+  // A régua da história: até qual cena se olha, e se é como o leitor (só o que ele já sabe ali).
+  const scenes = manuscriptOrder(universe)
+  const [point] = useStoryPoint(universe.id)
+  const index = pointIndex(scenes, point.sceneId)
+  const reader = point.reader && scenes.length > 0
+  const now = point.sceneId ? yearAt(scenes, index) : undefined
+  const known = reader ? knownAt(universe, scenes, e, index) : { known: true, first: null }
+  const book = useMemo(() => (reader ? readerBook(universe) : null), [reader, universe])
   const link = (id: string, label?: string) => (
     <button type="button" className="reader-link" onClick={() => go('fichas', id)}>
       {label ?? (entityName(universe, id) || 'Ficha removida')}
@@ -66,17 +76,31 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
     out.push(text.slice(last))
     return out
   }
-  /** Texto livre: sem as marcas de spoiler, com os segredos destacados (só o autor vê esta página) e os nomes como links. */
+  /**
+   * Texto livre num ponto da história, com os nomes como links. Para o autor: os segredos destacados e o que
+   * o leitor só descobre numa cena, marcado com ela (mais forte se ainda não chegou). Como o leitor: só o que
+   * ele já sabe naquele ponto.
+   */
   const rich = (text: string) =>
-    splitSecrets(unmarkReveals(text)).map((part, j) =>
-      part.secret ? (
-        <mark key={j} className="secret-mark" title="Trecho secreto: só você vê">
-          <Lock size={12} aria-label="Segredo" /> {linked(part.text)}
-        </mark>
-      ) : (
-        <Fragment key={j}>{linked(part.text)}</Fragment>
-      ),
-    )
+    partsAt(text, index, scenes).flatMap((part, j) => {
+      if (reader && (part.secret || part.future)) return []
+      if (part.secret)
+        return [
+          <mark key={j} className="secret-mark" title="Trecho secreto: só você vê">
+            <Lock size={12} aria-label="Segredo" /> {linked(part.text)}
+          </mark>,
+        ]
+      if (part.revealTitle !== null && !reader)
+        return [
+          <mark key={j} className={`reveal-mark${part.future ? ' is-future' : ''}`} title={`O leitor ${part.future ? 'só ' : ''}descobre em “${part.revealTitle}”`}>
+            {linked(part.text)}{' '}
+            <span className="reveal-when">
+              <Eye size={11} aria-hidden="true" /> {part.future ? 'o leitor só descobre em' : 'o leitor descobre em'} “{part.revealTitle}”
+            </span>
+          </mark>,
+        ]
+      return [<Fragment key={j}>{linked(part.text)}</Fragment>]
+    })
 
   const parent = e.parentId ? byId(universe, 'entities', e.parentId) : undefined
   const children = universe.entities.filter((x) => x.parentId === e.id)
@@ -94,6 +118,9 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
   const events = universe.events.filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id).sort((a, b) => a.year - b.year)
   const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id))
   const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
+  // Como o leitor: só as cenas até o ponto escolhido (as de depois seriam spoiler).
+  const uptoIds = reader ? new Set(scenes.slice(0, index + 1).map((s) => s.id)) : null
+  const shownAppearances = uptoIds ? appearances.filter((a) => uptoIds.has(a.scene.id)) : appearances
   const sessions = useMemo(() => sessionsOf(universe, e.id), [universe, e.id])
   const onMap = useMemo(() => glimpseOf(universe, e.id) !== null, [universe, e.id])
   const born = formatYear(e.startYear, suffix)
@@ -116,19 +143,23 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
   const infobox = [
     parent && ['Fica em', link(parent.id)],
     born && [isPerson ? 'Nascimento' : 'Início', born],
-    died && [isPerson ? 'Morte' : 'Fim', died],
+    died && !reader && [isPerson ? 'Morte' : 'Fim', died],
     e.aliases.length > 0 && ['Também conhecido como', e.aliases.join(', ')],
     // Campo vazio não aparece, a não ser que as ligações respondam ("Líder" ← "Malkai líder de…").
     ...e.fields.flatMap((f): [string, React.ReactNode][] => {
       if (f.exception && whoKeys.has(fold(f.key.trim()))) return []
       // Campo que aponta para uma ficha vira link; ano vem com o rótulo do calendário.
       if (f.type === 'ficha' && f.ref) return [[f.key || 'Campo', link(f.ref)]]
-      if (f.value.trim()) return [[f.key || 'Campo', f.type === 'ano' && Number.isFinite(Number(f.value)) ? formatYear(Number(f.value), suffix) : rich(f.value)]]
+      if (f.value.trim()) {
+        if (f.type === 'ano' && Number.isFinite(Number(f.value))) return [[f.key || 'Campo', formatYear(Number(f.value), suffix)]]
+        const shown = rich(f.value)
+        return shown.length ? [[f.key || 'Campo', shown]] : []
+      }
       if (!f.key.trim()) return []
       const ids = derivedField(universe, e, f.key)
       if (ids.length) return [[f.key, <>{links(ids)}</>]]
       // A idade pelo nascimento; o jogador e a classe pela ficha de jogo.
-      const text = derivedText(universe, e, f.key)
+      const text = derivedText(universe, e, f.key, now)
       return text ? [[f.key, text.text]] : []
     }),
     // O que vem das listas (a espécie, o reino, o clã), com a origem.
@@ -156,6 +187,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
       </header>
       {dominoOpen && <DominoDialog entity={e} onClose={() => setDominoOpen(false)} />}
       <TogetherHere entityId={e.id} />
+      <StoryPointBar />
 
       <div className="reader-title">
         <p className="eyebrow">
@@ -171,17 +203,24 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             {e.editorial !== 'definido' && <EditorialBadge editorial={e.editorial} />}
           </div>
         )}
-        {e.summary && <p className="reader-lede">{rich(e.summary)}</p>}
+        {!known.known && (
+          <p className="notice small story-point-unknown" role="status">
+            O leitor ainda não conhece {e.name || 'esta ficha'} neste ponto.{' '}
+            {known.first !== null ? `Aparece pela primeira vez em “${sceneTitle(scenes[known.first])}”.` : 'Ainda não aparece em nenhuma cena.'}
+          </p>
+        )}
+        {known.known && e.summary && rich(e.summary).length > 0 && <p className="reader-lede">{rich(e.summary)}</p>}
         {e.game && (e.game.traits.length > 0 || Object.keys(e.game.mods).length > 0) && (
           <p className="reader-game small">
             <Dices size={14} aria-hidden="true" /> No jogo:{' '}
             {[...Object.entries(e.game.mods).map(([k, n]) => `${n > 0 ? '+' : ''}${n} ${k}`), ...e.game.traits].join(' · ')}
           </p>
         )}
-        <MembershipChips entity={e} />
-        <WhoIsReader entity={e} link={link} />
+        {known.known && <MembershipChips entity={e} />}
+        {known.known && <WhoIsReader entity={e} link={link} />}
       </div>
 
+      {known.known && (
       <div className="reader-body">
         {(e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0 || onMap) && (
           <aside className="reader-infobox" aria-label="Em resumo">
@@ -217,9 +256,10 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
 
         <div className={`reader-text${e.kind === 'documento' ? ' reader-doc' : ''}`}>
           {paragraphs.length ? (
-            paragraphs.map((p, i) => (
-              <p key={i}>{rich(p)}</p>
-            ))
+            paragraphs.map((p, i) => {
+              const shown = rich(p)
+              return shown.length ? <p key={i}>{shown}</p> : null
+            })
           ) : onEdit && isBlank(e) && open.length > 0 ? (
             <div className="reader-blank">
               <p>
@@ -265,7 +305,13 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             )
           })}
 
-          {relations.length + backlinks.length > 0 && (
+          {book && (
+            <ReaderKnows
+              title="Ligações"
+              items={book.relations.filter((it) => it.at <= index && it.entityIds.includes(e.id)).map((it) => linked(it.text))}
+            />
+          )}
+          {!book && relations.length + backlinks.length > 0 && (
             <section>
               <h2>Ligações</h2>
               <ul>
@@ -292,7 +338,10 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             </section>
           )}
 
-          {facts.length > 0 && (
+          {book && (
+            <ReaderKnows title="Fatos" items={book.facts.filter((it) => it.at <= index && it.entityIds.includes(e.id)).map((it) => linked(it.text))} />
+          )}
+          {!book && facts.length > 0 && (
             <section>
               <h2>Fatos</h2>
               <ul>
@@ -305,7 +354,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             </section>
           )}
 
-          {knows.length > 0 && (
+          {!reader && knows.length > 0 && (
             <section>
               <h2>O que {e.name || 'esta ficha'} sabe</h2>
               <ul>
@@ -321,7 +370,19 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             </section>
           )}
 
-          {(events.length > 0 || born || died) && (
+          {book && (
+            <ReaderKnows
+              title="Linha do tempo"
+              items={book.events
+                .filter((ev) => ev.at <= index && ev.entityIds.includes(e.id))
+                .map((ev) => (
+                  <>
+                    <span className="mini-year">{ev.when}</span> {ev.title}
+                  </>
+                ))}
+            />
+          )}
+          {!book && (events.length > 0 || born || died) && (
             <section>
               <h2>Linha do tempo</h2>
               <ol className="mini-timeline">
@@ -346,7 +407,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             </section>
           )}
 
-          {seeds.length > 0 && (
+          {!reader && seeds.length > 0 && (
             <section>
               <h2>Pistas e mistérios</h2>
               <ul>
@@ -362,11 +423,11 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
             </section>
           )}
 
-          {(appearances.length > 0 || sessions.length > 0) && (
+          {(shownAppearances.length > 0 || (!reader && sessions.length > 0)) && (
             <section>
               <h2>Aparece em</h2>
-              {appearances.length > 0 && <AppearanceList entity={e} appearances={appearances} />}
-              {sessions.length > 0 && (
+              {shownAppearances.length > 0 && <AppearanceList entity={e} appearances={shownAppearances} upto={point.sceneId ? index : null} onlyUpto={reader} />}
+              {!reader && sessions.length > 0 && (
                 <ul className="appearances appearances-sessions" aria-label="Sessões">
                   {sessions.map((x) => (
                     <li key={x.sessionId}>
@@ -383,6 +444,7 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
           )}
         </div>
       </div>
+      )}
 
       {(prev || next) && (
         <nav className="reader-pager" aria-label="Outras fichas">
@@ -409,5 +471,20 @@ export function EntityReader({ entity: e, order, modeSwitch, onEdit }: { entity:
         </nav>
       )}
     </article>
+  )
+}
+
+/** Uma seção do que o leitor já sabe naquele ponto (ligações, fatos, datas), como no caderno do leitor. */
+function ReaderKnows({ title, items }: { title: string; items: React.ReactNode[] }) {
+  if (!items.length) return null
+  return (
+    <section>
+      <h2>{title}</h2>
+      <ul>
+        {items.map((it, i) => (
+          <li key={i}>{it}</li>
+        ))}
+      </ul>
+    </section>
   )
 }

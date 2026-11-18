@@ -11458,3 +11458,93 @@ button.presence-dot {
   font-style: normal;
   font-weight: 700;
 }
+
+/* A régua da história: até qual cena se olha, e "ver como o leitor". Fica no alto da ficha, também ao rolar. */
+.story-point {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.story-point.is-set {
+  border-color: var(--sky);
+}
+
+.story-point.is-reader {
+  border-color: var(--ochre-line);
+  background: color-mix(in srgb, var(--ochre-soft) 60%, var(--surface));
+}
+
+.story-point-pick {
+  display: flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  color: var(--muted);
+}
+
+.story-point-pick select {
+  flex: 1;
+  min-width: 0;
+}
+
+.story-point-reader span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.story-point-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+@media (pointer: coarse) {
+  .story-point-pick select {
+    min-height: 40px;
+    font-size: 16px;
+  }
+}
+
+/* O que o leitor só descobre numa cena: o autor vê com a cena ao lado. */
+.reveal-mark {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--sky) 10%, transparent);
+  color: inherit;
+}
+
+.reveal-mark.is-future {
+  background: color-mix(in srgb, var(--sky) 22%, transparent);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sky) 55%, transparent);
+}
+
+.reveal-when {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--sky);
+  font-family: var(--font-ui, inherit);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.story-point-unknown {
+  margin-top: 0.5rem;
+}
+
+.presence-strip li.is-after .presence-dot {
+  opacity: 0.35;
+}
