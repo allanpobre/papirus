@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "id": 2,
+      "entity_id": 201,
+      "name": "Valmar",
+      "type": "Cidade",
+      "is_private": false,
+      "entry": "<p>A capital do reino, de torres brancas à beira-mar.</p><ul><li>Porto</li><li>Mercado das Sombras</li></ul>"
+    },
+    {
+      "id": 3,
+      "entity_id": 202,
+      "name": "Pedra Alta",
+      "type": "Vila",
+      "is_private": false,
+      "entry": "<p>Vila nas montanhas, escondida das estradas. Perto de [location:2].</p>"
+    }
+  ],
+  "links": {
+    "first": "https://api.kanka.io/1.0/campaigns/1/locations?page=1"
+  },
+  "meta": {
+    "current_page": 1,
+    "total": 2
+  }
+}

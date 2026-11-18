@@ -1,8 +1,11 @@
 import { FileUp, Import } from 'lucide-react'
 import { useRef, useState } from 'react'
-import type { ForeignWorld } from '../import/foreignWorld'
+import type { ForeignFile, ForeignWorld } from '../import/foreignWorld'
 import { kindPlural } from '../model/labels'
 import { useWorkspace } from '../state/workspace'
+
+const IMAGE = /\.(png|jpe?g|webp|gif)$/i
+const MIME: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' }
 
 /**
  * Trazer um mundo de outro app: Obsidian (notas .md ou o cofre em .zip), Kanka e World Anvil
@@ -18,10 +21,12 @@ export function ForeignImport({ onDone }: { onDone?: () => void }) {
     setBusy(true)
     try {
       const { readForeign, unzipText } = await import('../import/foreignWorld')
-      const all = []
+      const all: ForeignFile[] = []
       for (const f of files) {
+        const path = (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name
         if (/\.zip$/i.test(f.name)) all.push(...unzipText(f.name, new Uint8Array(await f.arrayBuffer())))
-        else all.push({ path: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name, text: await f.text() })
+        else if (IMAGE.test(f.name)) all.push({ path, text: '', bytes: new Uint8Array(await f.arrayBuffer()) })
+        else all.push({ path, text: await f.text() })
       }
       const w = readForeign(all)
       if (!w.entities.length) toast('Não achei fichas nesses arquivos. Use notas .md, exportações .json ou um .zip.', { tone: 'erro' })
@@ -36,15 +41,31 @@ export function ForeignImport({ onDone }: { onDone?: () => void }) {
   const bring = async () => {
     if (!found) return
     const { applyForeign } = await import('../import/foreignWorld')
+    // As imagens das notas (retratos) vão para o aparelho antes; se alguma falhar, a ficha vem sem ela.
+    let withImage = 0
+    const entities = await Promise.all(
+      found.entities.map(async (e) => {
+        if (!e.imageFile) return e
+        try {
+          const { addImage } = await import('../images/add')
+          const ext = e.imageFile.name.split('.').pop()?.toLowerCase() ?? 'png'
+          const { ref } = await addImage(new Blob([e.imageFile.bytes.slice().buffer], { type: MIME[ext] ?? 'image/png' }), 'retrato')
+          withImage++
+          return { ...e, imageRef: ref }
+        } catch {
+          return e
+        }
+      }),
+    )
     let created = 0
     let existing = 0
     update((u) => {
-      const out = applyForeign(u, found)
+      const out = applyForeign(u, { ...found, entities })
       created = out.created
       existing = out.existing
       return out.universe
     })
-    toast(`${created} ${created === 1 ? 'ficha trazida' : 'fichas trazidas'}${existing ? `; ${existing} já existiam e ficaram como estavam` : ''}.`)
+    toast(`${created} ${created === 1 ? 'ficha trazida' : 'fichas trazidas'}${withImage ? `, ${withImage} com imagem` : ''}${existing ? `; ${existing} já existiam e ficaram como estavam` : ''}.`)
     setFound(null)
     onDone?.()
   }
@@ -66,7 +87,7 @@ export function ForeignImport({ onDone }: { onDone?: () => void }) {
         type="file"
         multiple
         hidden
-        accept=".md,.markdown,.txt,.json,.zip"
+        accept=".md,.markdown,.txt,.json,.zip,.png,.jpg,.jpeg,.webp,.gif"
         aria-label="Arquivos de outro app"
         onChange={(e) => {
           // Copia a lista antes de limpar o campo (limpar esvazia a lista do navegador).
@@ -79,7 +100,11 @@ export function ForeignImport({ onDone }: { onDone?: () => void }) {
           <p>
             Achei <strong>{found.entities.length}</strong> {found.entities.length === 1 ? 'ficha' : 'fichas'} ({found.sources.join(', ')}):{' '}
             {byKind.map(([k, n]) => `${n} ${kindPlural(k).toLocaleLowerCase('pt-BR')}`).join(', ')}.
-            {found.skipped > 0 && <span className="muted"> {found.skipped} arquivos ficaram de fora (imagens, configurações ou repetidos).</span>}
+            {found.entities.some((e) => e.secret) && (
+              <span> {found.entities.filter((e) => e.secret).length} {found.entities.filter((e) => e.secret).length === 1 ? 'era privada' : 'eram privadas'} no outro app e {found.entities.filter((e) => e.secret).length === 1 ? 'vira' : 'viram'} segredo aqui.</span>
+            )}
+            {found.entities.some((e) => e.imageFile) && <span> {found.entities.filter((e) => e.imageFile).length} com imagem.</span>}
+            {found.skipped > 0 && <span className="muted"> {found.skipped} arquivos ficaram de fora (moldes, configurações, imagens que nenhuma nota usa ou repetidos).</span>}
           </p>
           <div className="button-stack">
             <button type="button" className="btn btn-primary" disabled={readOnly} onClick={() => void bring()}>

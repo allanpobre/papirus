@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "entity_id": 401,
+      "name": "Profecia do Mar Calmo",
+      "type": "Profecia",
+      "is_private": false,
+      "entry": "<blockquote>Quando o mar calar, a coroa voltará.</blockquote><p>Registrada por monges de [location:3].</p>"
+    }
+  ],
+  "links": {
+    "first": "https://api.kanka.io/1.0/campaigns/1/notes?page=1"
+  },
+  "meta": {
+    "current_page": 1,
+    "total": 1
+  }
+}

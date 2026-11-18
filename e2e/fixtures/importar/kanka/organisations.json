@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "entity_id": 301,
+      "name": "Ordem do Farol",
+      "type": "Ordem religiosa",
+      "is_private": false,
+      "entry": "<p>Guardiões do farol. Seu chefe é [character:1|o Rei].</p>"
+    }
+  ],
+  "links": {
+    "first": "https://api.kanka.io/1.0/campaigns/1/organisations?page=1"
+  },
+  "meta": {
+    "current_page": 1,
+    "total": 1
+  }
+}
