@@ -11248,3 +11248,44 @@ h3.cork-act {
     animation: none;
   }
 }
+
+/* Bestiário: busca e filtros (no celular, a busca em cima e os dois filtros lado a lado) e o que vem do "No jogo". */
+.bestiary-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+}
+
+.bestiary-filters > input[type='search'] {
+  flex: 1 1 100%;
+}
+
+.bestiary-filters > select {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.monster-world {
+  display: grid;
+  gap: 0.3rem;
+  margin-block: 0.4rem;
+}
+
+.monster-world p {
+  margin: 0;
+}
+
+.monster-traits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .bestiary-filters > input,
+  .bestiary-filters > select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}

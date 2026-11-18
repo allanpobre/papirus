@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { byId, createUniverse, draftEntity, draftGroup, draftSession, insert, patch } from '../model/universe'
-import { creaturesToAdd, monsterFromCreature } from './bestiary'
+import { creaturesToAdd, draftMonster, monsterFromCreature } from './bestiary'
 import { linkPlayerSheets, linkToWorld, sessionsOf, sheetsOf, worldMatch } from './oneCharacter'
 import { draftSheet } from './sheets'
 
@@ -71,7 +71,8 @@ describe('um personagem só', () => {
     let lobo
     ;[u, lobo] = insert(u, 'entities', { ...draftEntity('especie', 'Lobo cinzento'), summary: 'Caça em bando nas falésias.' })
     ;[u] = insert(u, 'entities', draftEntity('especie', 'Goblin'))
-    ;[u] = insert(u, 'monsters', { ...monsterFromCreature({ ...lobo, name: 'goblin' }) })
+    // Um inimigo criado à mão com o mesmo nome (sem acento ou maiúscula) já conta.
+    ;[u] = insert(u, 'monsters', draftMonster('goblin'))
     expect(creaturesToAdd(u).map((e) => e.name)).toEqual(['Lobo cinzento'])
     expect(monsterFromCreature(lobo)).toMatchObject({ name: 'Lobo cinzento', notes: 'Caça em bando nas falésias.' })
   })

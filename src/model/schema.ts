@@ -387,6 +387,14 @@ export const monsterSchema = z.object({
   initiative: z.number().int(),
   attacks: z.array(attackSchema).default([]),
   notes: z.string().default(''),
+  /** A ficha do Mundo de onde veio (uma espécie, uma criatura): o inimigo herda o "No jogo" dela e fica em dia. */
+  entityId: ref.optional(),
+  /** O tipo ("fera", "morto-vivo", "goblinoide") e o nível (ou ND), para achar no bestiário. Opcionais. */
+  type: z.string().optional(),
+  level: z.number().int().nullable().optional(),
+  /** O que vem do "No jogo" da ficha do Mundo: traços (aparecem na iniciativa) e modificadores pela sigla ("FOR": 2). */
+  traits: z.array(z.string()).optional(),
+  mods: z.record(z.string(), z.number()).optional(),
   ...timestamps,
 })
 

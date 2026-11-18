@@ -1,12 +1,13 @@
 import { Plus, Skull, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Monster } from '../../model/schema'
-import { insert, newId, patch, remove } from '../../model/universe'
-import { creaturesToAdd, draftMonster, monsterFromCreature, sortedMonsters } from '../../rpg/bestiary'
+import { byId, entityName, insert, newId, patch, remove } from '../../model/universe'
+import { creaturesToAdd, draftMonster, filterMonsters, monsterFromCreature, monsterTypes, sortedMonsters } from '../../rpg/bestiary'
 import { defenseLabel } from '../../rpg/sheets'
 import { addStarterMonsters, missingStarters } from '../../rpg/starterBestiary'
 import { useWorkspace } from '../../state/workspace'
 import { ConfirmButton } from '../../ui/ConfirmButton'
+import { EntityPicker } from '../../ui/EntityPicker'
 import { Modal } from '../../ui/Modal'
 import { useRpg } from './rpgContext'
 import { monsterLine } from './monsterLine'
@@ -15,7 +16,7 @@ const num = (v: string) => (v.trim() === '' || v === '-' ? null : Number.isFinit
 
 /** Um inimigo pronto: nome, vida, Defesa, iniciativa, ataques e notas. Tudo salva na hora. */
 export function MonsterEditor({ monster: m }: { monster: Monster }) {
-  const { update, undoable, readOnly } = useWorkspace()
+  const { universe, update, undoable, readOnly, go } = useWorkspace()
   const { system } = useRpg()
   const defLabel = defenseLabel(system)
   const set = (c: Partial<Monster>) => update((u) => patch(u, 'monsters', m.id, c))
@@ -42,6 +43,45 @@ export function MonsterEditor({ monster: m }: { monster: Monster }) {
           <input className="input input-sm" aria-label="Bônus de iniciativa" title="Bônus somado ao d20 da iniciativa" inputMode="numeric" value={m.initiative} readOnly={readOnly} onChange={(e) => set({ initiative: num(e.target.value) ?? 0 })} />
         </label>
       </div>
+      <div className="monster-grid">
+        <label className="field">
+          <span className="field-label">Tipo</span>
+          <input className="input input-sm" list={`${field}-tipos`} placeholder="Fera, morto-vivo…" value={m.type ?? ''} readOnly={readOnly} onChange={(e) => set({ type: e.target.value })} />
+          <datalist id={`${field}-tipos`}>
+            {monsterTypes(universe.monsters).map((t) => (
+              <option key={t} value={t} />
+            ))}
+          </datalist>
+        </label>
+        <label className="field">
+          <span className="field-label">Nível</span>
+          <input className="input input-sm" aria-label="Nível do inimigo" inputMode="numeric" placeholder="1" value={m.level ?? ''} readOnly={readOnly} onChange={(e) => set({ level: num(e.target.value) })} />
+        </label>
+      </div>
+      {m.entityId && byId(universe, 'entities', m.entityId) && (
+        <div className="monster-world" aria-label="Do Mundo">
+          <p className="small">
+            <strong>Do Mundo:</strong> {entityName(universe, m.entityId)}.{' '}
+            <button type="button" className="link-btn" onClick={() => go('fichas', m.entityId!)}>
+              Abrir a ficha
+            </button>
+          </p>
+          {(m.traits?.length ?? 0) > 0 || Object.keys(m.mods ?? {}).length > 0 ? (
+            <ul className="chips monster-traits" aria-label="O que vem do No jogo">
+              {Object.entries(m.mods ?? {}).map(([k, n]) => (
+                <li key={k} className="chip">{`${k} ${n > 0 ? '+' : ''}${n}`}</li>
+              ))}
+              {(m.traits ?? []).map((t) => (
+                <li key={t} className="chip">
+                  {t}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted small">A ficha ainda não tem “No jogo”. Quando tiver, o inimigo herda os traços e os modificadores.</p>
+          )}
+        </div>
+      )}
       <h4 className="section-label">Ataques</h4>
       {m.attacks.length === 0 && <p className="muted small">Sem ataques: na vez dele, o ataque rápido pede bônus e dano.</p>}
       <ul className="monster-attacks">
@@ -102,9 +142,25 @@ export function Bestiary() {
   const { universe, update, readOnly } = useWorkspace()
   const { system } = useRpg()
   const [open, setOpen] = useState<string | null>(null)
-  const monsters = sortedMonsters(universe)
+  const all = sortedMonsters(universe)
   const creatures = creaturesToAdd(universe)
   const defLabel = defenseLabel(system)
+  // Com bastante inimigo, busca e filtros por tipo e por nível (no celular, a lista não cabe numa olhada).
+  const [text, setText] = useState('')
+  const [type, setType] = useState('')
+  const [level, setLevel] = useState('')
+  const types = useMemo(() => monsterTypes(all), [all])
+  const monsters = useMemo(() => filterMonsters(all, { text, type, level }), [all, text, type, level])
+  const filtering = Boolean(text.trim() || type || level)
+  const create = (draft: ReturnType<typeof draftMonster>) => {
+    let id = ''
+    update((u) => {
+      const [next, m] = insert(u, 'monsters', draft)
+      id = m.id
+      return next
+    })
+    setOpen(id)
+  }
 
   return (
     <section className="bestiary" aria-labelledby="bestiario-titulo">
@@ -129,34 +185,56 @@ export function Bestiary() {
           <Plus size={14} /> Novo inimigo
         </button>
       )}
-      {!readOnly && creatures.length > 0 && (
+      {!readOnly && (
         <div className="bestiary-world">
           <p className="small">
-            <strong>Do Mundo:</strong> as espécies que você criou viram inimigos com um toque.
+            <strong>Do Mundo:</strong> as espécies que você criou viram inimigos com um toque, já com o “No jogo” delas (traços e modificadores).
           </p>
-          <div className="chips">
-            {creatures.map((e) => (
-              <button
-                key={e.id}
-                type="button"
-                className="chip"
-                onClick={() => {
-                  let id = ''
-                  update((u) => {
-                    const [next, m] = insert(u, 'monsters', monsterFromCreature(e))
-                    id = m.id
-                    return next
-                  })
-                  setOpen(id)
-                }}
-              >
-                <Plus size={12} aria-hidden="true" /> {e.name}
-              </button>
-            ))}
-          </div>
+          {creatures.length > 0 && (
+            <div className="chips">
+              {creatures.map((e) => (
+                <button key={e.id} type="button" className="chip" onClick={() => create(monsterFromCreature(e))}>
+                  <Plus size={12} aria-hidden="true" /> {e.name}
+                </button>
+              ))}
+            </div>
+          )}
+          {universe.entities.length > 0 && (
+            <EntityPicker label="Inimigo a partir de outra ficha do Mundo" placeholder="Uma criatura, um vilão…" value={null} allowCreate={false} onChange={(id) => id && create(monsterFromCreature(byId(universe, 'entities', id)!))} />
+          )}
         </div>
       )}
-      {monsters.length === 0 ? (
+      {all.length >= 4 && (
+        <div className="bestiary-filters" role="search" aria-label="Buscar inimigos">
+          <input className="input input-sm" type="search" aria-label="Buscar inimigo" placeholder="Buscar inimigo…" value={text} onChange={(e) => setText(e.target.value)} />
+          <select className="input select input-sm" aria-label="Tipo de inimigo" value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="">Todos os tipos</option>
+            {types.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <select className="input select input-sm" aria-label="Nível do inimigo" value={level} onChange={(e) => setLevel(e.target.value)}>
+            <option value="">Qualquer nível</option>
+            <option value="1-3">Nível 1 a 3</option>
+            <option value="4-6">Nível 4 a 6</option>
+            <option value="7+">Nível 7 ou mais</option>
+            <option value="sem">Sem nível</option>
+          </select>
+          {filtering && (
+            <span className="muted small" role="status">
+              {monsters.length} de {all.length}{' '}
+              <button type="button" className="link-btn" onClick={() => { setText(''); setType(''); setLevel('') }}>
+                Limpar
+              </button>
+            </span>
+          )}
+        </div>
+      )}
+      {all.length > 0 && monsters.length === 0 ? (
+        <p className="muted small">Nenhum inimigo com esse filtro.</p>
+      ) : monsters.length === 0 ? (
         <>
           <p className="muted small">Nenhum inimigo pronto ainda.</p>
           {!readOnly && missingStarters(universe).length > 0 && (

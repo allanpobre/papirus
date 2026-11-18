@@ -54,6 +54,7 @@ import { useMesaSector } from '../rpg/useMesaSector'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
 import { syncWorldBonuses } from '../rpg/worldBonuses'
+import { syncMonstersFromWorld } from '../rpg/bestiary'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -318,6 +319,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   useEffect(() => {
     if (readOnly || universe.sheets.length === 0) return
     if (syncWorldBonuses(universe) !== universe) tracked((u) => syncWorldBonuses(u))
+  }, [universe, readOnly, tracked])
+  // E os inimigos do bestiário que vieram de uma ficha do Mundo acompanham o "No jogo" dela.
+  useEffect(() => {
+    if (readOnly || !universe.monsters.some((m) => m.entityId)) return
+    if (syncMonstersFromWorld(universe) !== universe) tracked((u) => syncMonstersFromWorld(u))
   }, [universe, readOnly, tracked])
   // Um personagem só: uma vez por universo, os personagens de jogador de antes ganham a ficha no Mundo.
   const playersLinked = universe.settings.playersLinked
