@@ -429,7 +429,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
   useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
   // Nova cara (teste): o clima do mundo vale no app inteiro.
-  useWorldClimate(prefs.novaCara ? climaOf(universe) : null)
+  useWorldClimate(prefs.novaCara ? climaOf(universe) : null, universe.settings.climaModo ?? 'escuro')
   useNovaFlag(!!prefs.novaCara)
   // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
   const waiting = useMemo(() => waitingViews(universe, prefs.firstSteps), [universe, prefs.firstSteps])

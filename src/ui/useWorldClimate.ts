@@ -23,14 +23,16 @@ export function useNovaFlag(on: boolean) {
   }, [on])
 }
 
-export function useWorldClimate(clima: Clima | null) {
+export function useWorldClimate(clima: Clima | null, modo: 'escuro' | 'claro' = 'escuro') {
   useEffect(() => {
     if (!clima || clima === 'caderno') return
     void import('../styles/climas.css')
     void FONTS[clima]?.().catch(() => undefined)
     document.body.dataset.clima = clima
+    document.body.dataset.climaModo = modo
     return () => {
       delete document.body.dataset.clima
+      delete document.body.dataset.climaModo
     }
-  }, [clima])
+  }, [clima, modo])
 }

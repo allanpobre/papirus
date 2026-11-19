@@ -754,6 +754,8 @@ export const universeSettingsSchema = z.object({
   worldLevel: z.enum(['simples', 'completo']).optional().catch(undefined),
   /** O clima do mundo (com a "Nova cara"): muda cores, letras, molduras e texturas do app inteiro. Sem valor: caderno. */
   clima: z.enum(['caderno', 'fantasia', 'ficcao', 'terror']).optional().catch(undefined),
+  /** O clima em claro ou escuro (sem valor: escuro). */
+  climaModo: z.enum(['escuro', 'claro']).optional().catch(undefined),
   /** Os personagens de jogador de antes já ganharam a ficha no Mundo (uma vez por universo). */
   playersLinked: z.boolean().optional(),
   /**

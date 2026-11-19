@@ -24,6 +24,11 @@ test('o clima do mundo muda o app inteiro com a Nova cara, e some ao desligar', 
   await expect(page.locator('body')).toHaveAttribute('data-clima', 'fantasia')
   const fundo = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
   await expect.poll(fundo).toBe('rgb(23, 17, 11)')
+  // Claro: o mesmo clima de dia.
+  await page.getByRole('radiogroup', { name: 'Claro ou escuro' }).getByRole('radio', { name: 'Claro' }).click()
+  await expect(page.locator('body')).toHaveAttribute('data-clima-modo', 'claro')
+  await expect.poll(fundo).toBe('rgb(235, 223, 196)')
+  await page.getByRole('radiogroup', { name: 'Claro ou escuro' }).getByRole('radio', { name: 'Escuro' }).click()
   // Outro clima, na hora.
   await climas.getByRole('radio', { name: /Terror/ }).click()
   await expect(page.locator('body')).toHaveAttribute('data-clima', 'terror')
