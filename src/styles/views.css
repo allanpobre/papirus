@@ -13087,3 +13087,27 @@ body[data-clima='terror'] .focus-lines line {
   text-align: center;
   margin: 0 0 0.3rem;
 }
+
+/* Quem é, na leitura: a característica e o valor numa linha que quebra normalmente (sem colunas). */
+.whois-read .whois-traits li > .whois-value {
+  grid-column: 1 / -1;
+  overflow-wrap: normal;
+}
+/* Nova cara: atributos em volta do retrato usam a largura que sobra e não cortam palavra no meio. */
+.hero-stat {
+  width: calc(50% - 100px);
+  min-width: 70px;
+}
+.hero-stat b {
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: auto;
+}
+/* Nova cara: o texto da Visão vem primeiro; "Em resumo" e o mapa descem para depois dele. */
+.entity-reader.is-hero .reader-body {
+  display: flex;
+  flex-direction: column;
+}
+.entity-reader.is-hero .reader-body > .block-quadro {
+  order: 2;
+}
