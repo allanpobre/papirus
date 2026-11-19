@@ -33,6 +33,7 @@ import { useWorkspace } from '../state/workspace'
 import { worldLevel } from '../model/kind'
 import { GameRules } from './GameRules'
 import { LanguageEditor } from './LanguageEditor'
+import { CultureWorkshop } from './CultureWorkshop'
 import { TogetherHere } from './TogetherHere'
 import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityGame } from './EntityGame'
@@ -809,6 +810,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           <PassesEditor entity={e} />
           {!simple && <GameRules key={e.id} entity={e} />}
           {!simple && <LanguageEditor key={`idioma-${e.id}`} entity={e} />}
+            {!simple && <CultureWorkshop key={`cultura-${e.id}`} entity={e} />}
 
           {/* 3. Descrição. */}
           <Field label="Descrição" wide>

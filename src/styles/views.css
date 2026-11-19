@@ -13471,3 +13471,99 @@ body[data-nova] .view-top.has-parts .view-top-end {
   font-style: italic;
   color: var(--accent);
 }
+
+/* ---------------------------------------------------------------- Oficina da cultura e festas */
+.culture-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+.culture-card {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+.culture-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+.culture-card.is-done {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-faint);
+}
+.culture-card.is-done span {
+  color: var(--ink-2);
+}
+.culture-card[aria-expanded='true'] {
+  outline: 2px solid var(--accent);
+}
+.culture-answer {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.culture-day {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  font-family: var(--font-text, inherit);
+  line-height: 1.55;
+}
+.culture-feast {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.culture-feast > :first-child,
+.culture-feast > input[aria-label='O que acontece'] {
+  grid-column: 1 / -1;
+}
+.feast-strip {
+  margin: 0 0 14px;
+}
+.feast-strip h3 {
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+.feast-strip ul {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0 0 4px;
+  list-style: none;
+  overflow-x: auto;
+}
+.feast-chip {
+  display: grid;
+  flex: none;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+.feast-chip span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}

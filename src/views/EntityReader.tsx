@@ -27,6 +27,7 @@ import { ContentBlockEditor, ContentBlockView } from './ContentBlocks'
 import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, MoreOptionsEditor, PortraitButton, RelationsSection } from './EntitiesView'
 import { GameRules } from './GameRules'
 import { LanguageEditor } from './LanguageEditor'
+import { CultureWorkshop } from './CultureWorkshop'
 import { SecretTextarea } from '../ui/SecretText'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
@@ -489,6 +490,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             <PassesEditor entity={base} />
             {!simple && <GameRules key={base.id} entity={base} />}
             {!simple && <LanguageEditor key={`idioma-${base.id}`} entity={base} />}
+            {!simple && <CultureWorkshop key={`cultura-${base.id}`} entity={base} />}
           </>
         )
       case 'texto':

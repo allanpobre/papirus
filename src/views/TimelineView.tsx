@@ -14,6 +14,7 @@ import { EntityMultiPicker, EntityPicker } from '../ui/EntityPicker'
 import { Modal } from '../ui/Modal'
 import { AreaHead } from './AreaModes'
 import { TimeMachine } from './TimeMachine'
+import { FeastStrip } from './FeastStrip'
 
 export default function TimelineView() {
   const { universe, update, nav, go, undoable, bookId } = useWorkspace()
@@ -157,6 +158,7 @@ export default function TimelineView() {
       </div>}
 
       <TimeMachine />
+      <FeastStrip />
 
       {eras.length > 0 && (
         <div className="era-strip" aria-label="Eras" style={{ height: 30 * eras.length + 28 }}>

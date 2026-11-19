@@ -288,6 +288,11 @@ export const entitySchema = z.object({
   bookRoles: z.record(z.string(), z.string()).optional().catch(undefined),
   /** Os livros desta ficha, escolhidos à mão (além dos livros em que ela aparece no texto). */
   books: z.array(z.string()).optional().catch(undefined),
+  /** Cultura: as festas de todo ano (mês e dia no calendário do mundo, se houver). */
+  feasts: z
+    .array(z.object({ id: z.string(), name: z.string(), month: z.number().int().optional(), day: z.number().int().optional(), about: z.string().default('') }))
+    .optional()
+    .catch(undefined),
   ...timestamps,
 })
 

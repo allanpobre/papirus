@@ -13,6 +13,17 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-19e',
+    when: '19 de novembro',
+    title: 'Culturas vivas',
+    items: [
+      'Numa cultura, a “Oficina da cultura” traz cartas sobre o dia a dia: comida, roupa, cumprimento, tabu, mortos, o que é belo, trabalho e como se vira adulto.',
+      'Toque numa carta e escolha uma ideia ou escreva a sua: a resposta vira um campo da ficha.',
+      '“Um dia na vida”: um texto curto montado com as respostas (e o “olá” na língua do povo), para pôr na descrição.',
+      'Festas de todo ano, com mês e dia do calendário do mundo, aparecem no alto da Linha do tempo.',
+    ],
+  },
+  {
     id: '2026-11-19d',
     when: '19 de novembro',
     title: 'Línguas de verdade',
