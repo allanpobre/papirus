@@ -348,6 +348,8 @@ export const eventSchema = z.object({
   placeId: ref,
   importance: z.number().int().min(1).max(3),
   canon: canonSchema,
+  /** Os eventos que causaram este ("a guerra causou a fome"): setas na Linha do tempo em faixas. */
+  causes: z.array(id).optional().catch(undefined),
   ...timestamps,
 })
 

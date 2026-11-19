@@ -13,6 +13,17 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-19g',
+    when: '19 de novembro',
+    title: 'Linha do tempo em faixas',
+    items: [
+      'Na Linha do tempo, “Faixas”: uma faixa por personagem, por reino ou grupo, ou por lugar, com as eras no fundo.',
+      'Arraste um evento para o lado para mudar o ano (com “Desfazer”).',
+      'Causa e consequência: no evento, “Causado por”. Nas faixas, uma seta liga os dois, e um aviso aparece se a consequência ficar antes da causa.',
+      'Com a régua da história numa cena, uma linha mostra em que ano a história está.',
+    ],
+  },
+  {
     id: '2026-11-19f',
     when: '19 de novembro',
     title: 'Mapas com rotas e dias de viagem',
