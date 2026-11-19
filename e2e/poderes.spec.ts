@@ -48,3 +48,21 @@ test('poderes: árvore pelo modelo, aprende numa cena, acende pela régua e avis
   await expect(poderes.getByRole('listitem', { name: 'Segundo grau, ainda não' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
+
+test('sem sistema ainda: o personagem acha os Poderes no "+ Bloco" e cria o sistema ali mesmo', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
+  await fichaModo(page, 'Ler')
+  await page.getByRole('button', { name: 'Bloco', exact: true }).click()
+  await page.getByRole('group', { name: 'Acrescentar bloco' }).getByRole('button', { name: 'Poderes' }).click()
+  const novo = page.getByRole('group', { name: 'Criar o sistema de poderes' })
+  await novo.getByRole('textbox', { name: 'Nome do sistema' }).fill('Marés')
+  await novo.getByRole('button', { name: 'Elementos' }).click()
+  // O sistema nasceu: já dá para marcar o que o Kael tem.
+  const editando = page.getByRole('group', { name: 'Editando: Poderes' })
+  await editando.getByRole('checkbox', { name: 'Água' }).check()
+  await editando.getByRole('button', { name: 'Pronto' }).click()
+  await expect(page.getByRole('region', { name: 'Poderes' }).getByRole('listitem', { name: 'Água, tem' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Poderes' })).toContainText('Marés')
+})

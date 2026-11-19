@@ -45,7 +45,7 @@ import { EntityRevealField } from './RevealControl'
 import { PhasesEditor } from './PhasesView'
 import { ReferencesEditor } from './ReferencesView'
 import { CharacterPowersEditor, PowerTreeEditor } from './PowersView'
-import { systemsOf } from '../logic/powers'
+import { canHavePowers } from '../logic/powers'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -726,7 +726,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               <PowerTreeEditor entity={e} />
             </Fold>
           )}
-          {!simple && e.kind !== 'magia' && systemsOf(universe).length > 0 && (
+          {!simple && canHavePowers(e.kind) && (
             <Fold id="ficha-poderes" title="Poderes" defaultOpen={(e.learned?.length ?? 0) > 0}>
               <CharacterPowersEditor entity={e} />
             </Fold>

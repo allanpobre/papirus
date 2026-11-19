@@ -22,7 +22,7 @@ import { ReferencesEditor, ReferencesReader } from './ReferencesView'
 import { BLOCK_LABEL, CONTENT_BLOCKS, contentEmpty, moveBlock, removeBlock, visibleBlocks, type Block, type BlockType } from '../model/blocks'
 import { AddBlock, BlockFrame } from './BlockFrame'
 import { CharacterPowers, CharacterPowersEditor, PowerTree, PowerTreeEditor } from './PowersView'
-import { powersAt, systemsOf } from '../logic/powers'
+import { canHavePowers, powersAt } from '../logic/powers'
 import { ContentBlockEditor, ContentBlockView } from './ContentBlocks'
 import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, MoreOptionsEditor, PortraitButton, RelationsSection } from './EntitiesView'
 import { GameRules } from './GameRules'
@@ -535,7 +535,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
     .map((b) => b.type as BlockType)
     .filter((t) => !(simple && (t === 'fases' || t === 'listas' || t === 'poderes')))
     // A árvore é do sistema de magia; os poderes, de quem pode ter (com algum sistema no mundo).
-    .filter((t) => (t !== 'arvore' || base.kind === 'magia') && (t !== 'poderes' || (base.kind !== 'magia' && systemsOf(universe).length > 0)))
+    .filter((t) => (t !== 'arvore' || base.kind === 'magia') && (t !== 'poderes' || canHavePowers(base.kind)))
     .filter((t) => (t !== 'quem-e' || whoDefs.length > 0 || ['personagem', 'faccao', 'reino'].includes(base.kind)))
 
   return (

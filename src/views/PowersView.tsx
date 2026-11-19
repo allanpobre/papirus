@@ -1,7 +1,8 @@
 import { Plus, Sparkles, Trash2, TriangleAlert } from 'lucide-react'
 import { levelsOf, powerIssues, powerKey, powersAt, POWER_TEMPLATES, systemsOf, templateNodes, type PowerHad, type PowerNode } from '../logic/powers'
 import type { Entity, Scene } from '../model/schema'
-import { entityName, manuscriptOrder, newId, patch, sceneTitle } from '../model/universe'
+import { draftEntity, entityName, insert, manuscriptOrder, newId, patch, sceneTitle } from '../model/universe'
+import { useState } from 'react'
 import { useWorkspace } from '../state/workspace'
 import { EntityPicker } from '../ui/EntityPicker'
 
@@ -167,23 +168,45 @@ export function CharacterPowers({ entity: e, index, reader, link }: { entity: En
   )
 }
 
+/**
+ * Ainda não há sistema de poderes no mundo: cria um aqui mesmo, a partir de um modelo (vira uma ficha de
+ * "Sistema de magia", onde a árvore se edita depois). Assim ninguém precisa saber onde ele mora para começar.
+ */
+function NewSystem() {
+  const { update, go } = useWorkspace()
+  const [name, setName] = useState('Magia')
+  const create = (template: string) =>
+    update((u) => insert(u, 'entities', { ...draftEntity('magia', name.trim() || 'Magia'), nodes: templateNodes(template) })[0])
+  return (
+    <div className="power-new" role="group" aria-label="Criar o sistema de poderes">
+      <p className="small">Este mundo ainda não tem sistema de poderes. Dê um nome e escolha como ele funciona (dá para mudar tudo depois):</p>
+      <input className="input" aria-label="Nome do sistema" value={name} onChange={(ev) => setName(ev.target.value)} />
+      <div className="chips">
+        {POWER_TEMPLATES.map((t) => (
+          <button key={t.id} type="button" className="chip" title={t.hint} onClick={() => create(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <p className="tiny muted">
+        A árvore fica numa ficha de “Sistema de magia”.{' '}
+        <button type="button" className="link-btn" onClick={() => go('fichas', null)}>
+          Ver as fichas
+        </button>
+      </p>
+    </div>
+  )
+}
+
 /** Escolher os poderes do personagem e em que cena aprende cada um. Os de nascença vêm sozinhos. */
 export function CharacterPowersEditor({ entity: e }: { entity: Entity }) {
-  const { universe, update, go } = useWorkspace()
+  const { universe, update } = useWorkspace()
   const scenes = manuscriptOrder(universe)
   const systems = systemsOf(universe)
   const born = powersAt(universe, { ...e, learned: [] }, scenes.length - 1, scenes)
   const learned = e.learned ?? []
   const save = (next: NonNullable<Entity['learned']>) => update((u) => patch(u, 'entities', e.id, { learned: next }))
-  if (!systems.length)
-    return (
-      <p className="small muted">
-        Ainda não há sistema de poderes. Crie uma ficha de “Sistema de magia” e monte a árvore nela.{' '}
-        <button type="button" className="link-btn" onClick={() => go('fichas', null)}>
-          Ir para as fichas
-        </button>
-      </p>
-    )
+  if (!systems.length) return <NewSystem />
   return (
     <div className="power-learn">
       {systems.map((s) => (
