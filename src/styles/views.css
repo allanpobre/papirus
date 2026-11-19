@@ -12143,3 +12143,32 @@ button.presence-dot {
 .first-steps-hint {
   margin: -0.4rem 0 0.8rem;
 }
+
+/* Ajustes › Universo: o clima do mundo (Nova cara). */
+.clima-choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.clima-option {
+  display: grid;
+  gap: 0.3rem;
+  text-align: left;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.clima-option[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.clima-swatch {
+  display: block;
+  height: 44px;
+  border-radius: var(--radius-s);
+  border: 1px solid rgb(0 0 0 / 20%);
+}

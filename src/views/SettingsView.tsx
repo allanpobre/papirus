@@ -1,4 +1,5 @@
 import { CAMPAIGN_HIDDEN, worldLevel } from '../model/kind'
+import { CLIMAS, climaOf } from '../model/climas'
 import { todayKey } from '../logic/stats'
 import { InstallButton } from '../ui/InstallButton'
 import { HistoryCard, TrashCard } from './HistoryCards'
@@ -196,6 +197,24 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               ? 'Fica na aba Mesa de Seus universos e abre na Mesa. O menu mostra o que serve para o mestre.'
               : 'Fica no setor Escrita do início e abre no Início do universo.'}
           </p>
+          <p className="field-label" id="clima-mundo">
+            O clima deste mundo
+          </p>
+          <div className="clima-choice" role="radiogroup" aria-labelledby="clima-mundo">
+            {CLIMAS.map((c) => (
+              <button key={c.id} type="button" role="radio" aria-checked={climaOf(universe) === c.id} className="clima-option" onClick={() => setSetting('clima', c.id === 'caderno' ? undefined : c.id)}>
+                <span className="clima-swatch" aria-hidden="true" style={{ background: `linear-gradient(135deg, ${c.swatch[0]} 0 45%, ${c.swatch[1]} 45% 75%, ${c.swatch[2]} 75%)` }} />
+                <strong>{c.name}</strong>
+                <span className="small muted">{c.hint}</span>
+              </button>
+            ))}
+          </div>
+          <label className="toggle">
+            <input type="checkbox" role="switch" checked={!!prefs.novaCara} onChange={(e) => setPref('novaCara', e.target.checked || undefined)} />
+            <span className="toggle-track" aria-hidden="true" />
+            <span>Nova cara (teste): usar o clima no app inteiro</span>
+          </label>
+          <p className="muted small">Em teste: as cores, as letras e as texturas mudam com o clima de cada mundo. Desligado, o Papirus fica como sempre.</p>
           <p className="field-label" id="nivel-mundo">
             O Mundo deste universo
           </p>

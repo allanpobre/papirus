@@ -51,6 +51,8 @@ import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
+import { useWorldClimate } from '../ui/useWorldClimate'
+import { climaOf } from '../model/climas'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
 import { syncWorldBonuses } from '../rpg/worldBonuses'
@@ -425,6 +427,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const campaignGroup = universe.groups.find((g) => g.id === recall(`rpg-grupo:${universe.id}`)) ?? universe.groups[0]
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
   useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
+  // Nova cara (teste): o clima do mundo vale no app inteiro.
+  useWorldClimate(prefs.novaCara ? climaOf(universe) : null)
   // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
   const waiting = useMemo(() => waitingViews(universe, prefs.firstSteps), [universe, prefs.firstSteps])
   const hidden = useMemo(() => [...new Set([...hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), ...waiting])], [universe, prefs.menus, prefs.hiddenViews, waiting])
