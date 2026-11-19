@@ -523,7 +523,7 @@ function WorldSheetScreen({ step }: { step: number }) {
   return (
     <div className="lp-scr lp-scr-mundo" aria-hidden="true">
       <p className="lp-mundo-kind">
-        <span className="lp-mundo-dot" /> Personagem
+        <span className="lp-mundo-dot" /> Personagem · Secundário
       </p>
       <p className="lp-mundo-name">Ilsa</p>
       <p className="lp-mundo-lede">Guardiã da Torre de Marfim. Morreu na Queda.</p>

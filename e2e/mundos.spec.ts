@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) }).first()
 const world = (page: Page) => page.getByRole('region', { name: /mundo/ })
@@ -28,7 +29,7 @@ test('o mundo no Início: o que falta, e Simples ou Completo em qualquer univers
   await expect(nav(page, 'Trama')).toHaveCount(0)
   await nav(page, 'Início').click()
   await world(page).getByRole('button', { name: /2 fichas sem resumo/ }).click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await expect(page.getByText('É verdade no mundo?')).toHaveCount(0)
   await page.getByRole('button', { name: 'Mostrar tudo nesta ficha' }).click()
   await page.getByText('Mais opções', { exact: true }).click()

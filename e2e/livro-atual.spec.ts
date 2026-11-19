@@ -266,3 +266,34 @@ test.describe('bilhete e sprint com um livro escolhido', () => {
     await expect(relogio).not.toContainText('+12')
   })
 })
+
+test.describe('uma série: vários livros juntos', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('juntar os livros de Oz sem a Zixi: o manuscrito e as fichas seguem a série, e ela fica guardada', async ({ page }) => {
+    await page.goto('/app/?exemplo')
+    await book(page).selectOption('__varios')
+    const series = page.getByRole('group', { name: 'Escolher os livros da série' })
+    const boxes = series.getByRole('checkbox')
+    const n = await boxes.count()
+    expect(n).toBeGreaterThan(2)
+    // Todos menos o último (a Zixi).
+    for (let i = 0; i < n - 1; i++) await boxes.nth(i).check()
+    await series.getByRole('button', { name: `Juntar ${n - 1} livros` }).click()
+    await expect(book(page).locator('option:checked')).toContainText(' + ')
+    await expect(book(page).locator('option:checked')).not.toContainText('Zixi')
+
+    // Escrever: a lista de cenas mostra as histórias da série, sem a Zixi.
+    await nav(page, 'Escrever').click()
+    await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
+    const tree = page.getByRole('complementary', { name: 'Manuscrito' })
+    await expect(tree.getByRole('textbox', { name: 'Título da história' })).toHaveCount(n - 1)
+    await expect(tree.getByRole('textbox', { name: 'Título da história' }).filter({ hasText: /Zixi/ })).toHaveCount(0)
+    await page.keyboard.press('Escape')
+
+    // Recarregar mantém a série.
+    await page.reload()
+    await nav(page, 'Início').click()
+    await expect(book(page).locator('option:checked')).toContainText(' + ')
+  })
+})

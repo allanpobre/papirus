@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { QuestionType } from '../logic/continuity'
 import { migrate } from '../model/migrations'
 import { restoreEmbeddedImages } from '../images/backup'
+import { restoreBackupExtras } from '../persistence/backupFile'
 import { ImageButtons, Picture } from '../images/Picture'
 import type { Universe } from '../model/schema'
 import { forkUniverse, newId } from '../model/universe'
@@ -101,7 +102,11 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
       const imported = migrate(raw).universe
       await restoreEmbeddedImages(raw)
       if (mode === 'novo') onOpenOther({ ...imported, id: newId(), name: `${imported.name} (importado)` })
-      else await replaceWith(imported, 'importar o backup')
+      else {
+        // Substituindo este universo: as versões guardadas e o livro escolhido do backup voltam junto.
+        await restoreBackupExtras(repo, raw, universe.id)
+        await replaceWith(imported, 'importar o backup')
+      }
     } catch (err) {
       toast(`Não foi possível importar: ${err instanceof Error ? err.message : String(err)}`, { tone: 'erro' })
     }

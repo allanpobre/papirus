@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { openPart } from './areas.ts'
+import { openPart, fichaModo } from './areas.ts'
 
 const nav = (page: Page, name: RegExp) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name }).first()
 
@@ -21,7 +21,7 @@ test('um personagem só: a Kaya criada na Mesa está no Mundo, com a aba Jogo', 
   // No Mundo, a Kaya já existe, com a ficha de jogo na aba Jogo.
   await nav(page, /^Mundo/).click()
   await page.locator('.entity-row-name', { hasText: /^Kaya$/ }).click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Jogo' }).click()
+  await fichaModo(page, 'Jogo')
   const jogo = page.getByRole('region', { name: 'Ficha de jogo de Kaya' })
   await expect(jogo).toContainText('Personagem de jogador · joga Ana')
   await expect(jogo.getByRole('list', { name: 'Recursos' })).toBeVisible()
@@ -65,7 +65,7 @@ test('fim da sessão: "O que aconteceu?" vai para a Linha do tempo e para o "Apa
   // Nas fichas, "Aparece em" mostra a sessão: a Kaya jogou; o Brenn está no resumo.
   await openPart(page, 'Fichas')
   await page.locator('.entity-row-name', { hasText: /^Brenn$/ }).click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   await expect(page.getByRole('list', { name: 'Sessões' })).toContainText('Sessão 1 no resumo')
   await page.locator('.entity-row-name', { hasText: /^Kaya$/ }).click()
   await expect(page.getByRole('list', { name: 'Sessões' })).toContainText('Sessão 1 jogou · no resumo')

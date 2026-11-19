@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { openPart } from './areas.ts'
+import { openPart, fichaModo } from './areas.ts'
 import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
@@ -464,7 +464,7 @@ test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', asyn
   await page.goto('/app/?exemplo=alienista')
   await page.getByRole('navigation', { name: 'O seu mundo' }).getByRole('button', { name: /\d+ fichas$/ }).click()
   await page.locator('.entity-row-name', { hasText: /^D\. Evarista$/ }).click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const reader = page.getByRole('article', { name: 'Ler a ficha D. Evarista' })
   await expect(reader.getByRole('heading', { level: 1, name: 'D. Evarista' })).toBeVisible()
   await expect(reader).not.toContainText('[a partir de')
@@ -476,7 +476,7 @@ test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', asyn
   await page.reload()
   await page.locator('.entity-row-name', { hasText: /^Simão Bacamarte$/ }).click()
   await expect(page.getByRole('article', { name: 'Ler a ficha Simão Bacamarte' })).toBeVisible()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Simão Bacamarte')
 })
 

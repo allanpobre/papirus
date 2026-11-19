@@ -10,7 +10,7 @@ import { newId } from './universe'
 export type Block = NonNullable<Entity['blocks']>[number]
 
 /** Os blocos de dados (um de cada, sempre existem) e os de conteúdo (quantos quiser). */
-export const DATA_BLOCKS = ['quadro', 'quem-e', 'texto', 'listas', 'ligacoes', 'fatos', 'sabe', 'fases', 'tempo', 'pistas', 'referencias', 'aparece'] as const
+export const DATA_BLOCKS = ['quadro', 'quem-e', 'texto', 'arvore', 'poderes', 'listas', 'ligacoes', 'fatos', 'sabe', 'fases', 'tempo', 'pistas', 'referencias', 'aparece'] as const
 export const CONTENT_BLOCKS = ['nota', 'citacao', 'galeria'] as const
 export type DataBlock = (typeof DATA_BLOCKS)[number]
 export type ContentBlock = (typeof CONTENT_BLOCKS)[number]
@@ -20,6 +20,8 @@ export const BLOCK_LABEL: Record<BlockType, string> = {
   quadro: 'Quadro (retrato e campos)',
   'quem-e': 'Quem é',
   texto: 'Texto',
+  arvore: 'Árvore de poderes',
+  poderes: 'Poderes',
   listas: 'Listas',
   ligacoes: 'Ligações',
   fatos: 'Fatos',
@@ -41,8 +43,9 @@ const isContent = (t: string): t is ContentBlock => (CONTENT_BLOCKS as readonly 
 export function defaultOrder(kind: string): DataBlock[] {
   const lugar = kind === 'lugar' || kind === 'reino'
   const grupo = kind === 'faccao' || kind === 'cultura' || kind === 'religiao' || kind === 'especie'
-  if (lugar || grupo) return ['quadro', 'quem-e', 'texto', 'listas', 'ligacoes', 'fatos', 'tempo', 'fases', 'pistas', 'referencias', 'sabe', 'aparece']
-  return ['quadro', 'quem-e', 'texto', 'ligacoes', 'listas', 'fatos', 'sabe', 'fases', 'tempo', 'pistas', 'referencias', 'aparece']
+  if (kind === 'magia') return ['quadro', 'texto', 'arvore', 'quem-e', 'listas', 'ligacoes', 'fatos', 'tempo', 'fases', 'pistas', 'referencias', 'sabe', 'poderes', 'aparece']
+  if (lugar || grupo) return ['quadro', 'quem-e', 'texto', 'arvore', 'poderes', 'listas', 'ligacoes', 'fatos', 'tempo', 'fases', 'pistas', 'referencias', 'sabe', 'aparece']
+  return ['quadro', 'quem-e', 'texto', 'poderes', 'arvore', 'ligacoes', 'listas', 'fatos', 'sabe', 'fases', 'tempo', 'pistas', 'referencias', 'aparece']
 }
 
 /**

@@ -1,5 +1,6 @@
 import { devices } from '@playwright/test'
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name, exact: true })
 const row = (page: Page, name: string) => page.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: new RegExp(`^${name}$`) }) })
@@ -33,7 +34,7 @@ test('Mundo: criar várias de uma vez, busca nos campos e na descrição, e a or
 
   // Tipos próprios aparecem na criação rápida.
   await row(page, 'Kael').click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await page.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('__outro')
   await page.getByPlaceholder('Nome do tipo: navio, doença, idioma…').fill('Contrabandista')
   await page.keyboard.press('Enter')
@@ -43,7 +44,7 @@ test('Mundo: criar várias de uma vez, busca nos campos e na descrição, e a or
 test('ficha: ligações numa linha, outros nomes no alto e campo que aponta para outra ficha', async ({ page }) => {
   await mundo(page)
   await row(page, 'Kael').click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
 
   // Outros nomes e etiquetas à vista, sem abrir "Mais detalhes".
   await expect(
@@ -71,7 +72,7 @@ test('ficha: ligações numa linha, outros nomes no alto e campo que aponta para
 
   // Do outro lado, em Ler: "Ilsa é mãe de Kael".
   await row(page, 'Ilsa').click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   await expect(page.getByRole('article', { name: 'Ler a ficha Ilsa' })).toContainText('Ilsa é mãe de Kael')
 })
 
@@ -100,7 +101,7 @@ test.describe('no celular', () => {
 test('listas: Habitantes do reino, vários de uma vez, e o que todos têm aparece em cada um', async ({ page }) => {
   await mundo(page)
   await row(page, 'Reino de Ostria').click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   const listas = page.getByRole('region', { name: 'Listas' })
   // O reino sugere as listas dele; um toque cria.
   await listas.getByRole('button', { name: 'Habitantes' }).click()
@@ -117,12 +118,12 @@ test('listas: Habitantes do reino, vários de uma vez, e o que todos têm aparec
 
   // Do outro lado: "Faz parte de" e o idioma, com a origem.
   await row(page, 'Kael').click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const ler = page.getByRole('article', { name: 'Ler a ficha Kael' })
   await expect(ler.getByLabel('Faz parte de')).toContainText('Reino de Ostria · Habitantes')
   await expect(ler.locator('.reader-infobox')).toContainText('ostriano · de Reino de Ostria')
   // Mudar só nele.
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await page.getByRole('button', { name: 'Mudar só nesta' }).click()
   await expect(page.locator('.inherited-row.is-overridden')).toContainText('diferente nesta ficha')
 })
@@ -158,7 +159,7 @@ test('selecionar várias no Mundo e pôr uma etiqueta em todas; a tabela compara
 test('modelo de ficha: "Usar como modelo" e criar outra já preenchida', async ({ page }) => {
   await mundo(page)
   await row(page, 'Kael').click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await page.getByRole('button', { name: 'Campo', exact: true }).click()
   await page.locator('.kv-typed').last().getByRole('textbox', { name: 'Campo' }).fill('Ofício')
   await page.locator('.kv-typed').last().getByRole('textbox', { name: 'Valor' }).fill('contrabandista')
@@ -178,19 +179,19 @@ test('modelo de ficha: "Usar como modelo" e criar outra já preenchida', async (
 test('em Ler, campo vazio some; o que as ligações já dizem preenche o campo', async ({ page }) => {
   await mundo(page)
   await row(page, 'Ostria').click()
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   // Dois campos vazios: "Clima" e "Quem governa" (Cassian governa Ostria, pelas ligações).
   for (const key of ['Clima', 'Quem governa']) {
     await page.getByRole('button', { name: 'Campo', exact: true }).click()
     await page.locator('.kv-typed').last().getByRole('textbox', { name: 'Campo' }).fill(key)
   }
   await expect(page.locator('.kv-typed').last().getByRole('textbox', { name: 'Valor' })).toHaveAttribute('placeholder', 'Cassian · pelas ligações')
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Ler' }).click()
+  await fichaModo(page, 'Ler')
   const box = page.getByRole('article', { name: 'Ler a ficha Ostria' }).getByRole('complementary', { name: 'Em resumo' })
   await expect(box.locator('div', { has: page.locator('dt', { hasText: 'Quem governa' }) }).locator('dd')).toHaveText('Cassian')
   await expect(box.locator('dt', { hasText: 'Clima' })).toHaveCount(0)
   // No "Espiar", o mesmo: sem o campo vazio, com quem governa.
-  await page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: 'Editar' }).click()
+  await fichaModo(page, 'Editar')
   await page.locator('.entity-side').getByRole('button', { name: 'Espiar' }).click()
   const peek = page.getByRole('dialog', { name: 'Ostria' })
   await expect(peek.locator('dl.kv')).toContainText('Quem governaCassian')

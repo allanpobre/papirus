@@ -1,3 +1,4 @@
+import { Link2 } from 'lucide-react'
 import { useState } from 'react'
 
 /*
@@ -53,7 +54,10 @@ export function WikiDemo() {
           ))}
         </ul>
       </div>
-      <figcaption className="small">Um site num arquivo só, sem os segredos. Abre em qualquer navegador.</figcaption>
+      <p className="lp-wiki-link small" aria-hidden="true">
+        <Link2 size={13} /> Pegar o link da wiki
+      </p>
+      <figcaption className="small">Um site num arquivo só, ou um link para mandar: sem os segredos, abre em qualquer navegador.</figcaption>
     </figure>
   )
 }

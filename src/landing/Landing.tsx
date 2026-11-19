@@ -146,7 +146,7 @@ export function Landing() {
                 </a>
               )}
               <a className="btn btn-ghost btn-lg" href={`${APP}?exemplo`}>
-                <Sparkles size={18} /> Ver um mundo de exemplo
+                <Sparkles size={18} /> Abrir o exemplo: O Mágico de Oz
               </a>
             </div>
             <ul className="lp-proof">
@@ -228,7 +228,7 @@ export function Landing() {
               <Globe size={14} aria-hidden="true" /> Mundo · para quem constrói
             </p>
             <h2 id="mundo-titulo">O mundo cresce junto com a história.</h2>
-            <p className="lp-lede">Cada universo tem o seu mundo: fichas, ligações, linha do tempo e mapas. Comece no Simples e abra o Completo quando quiser; nada se perde.</p>
+            <p className="lp-lede">Cada universo tem o seu mundo: fichas, ligações, linha do tempo e mapas. Comece no Simples e abra o Completo quando quiser; nada se perde. Para ver tudo pronto, abra o exemplo: “O Mágico de Oz” inteiro, com os quatro países no mapa.</p>
             <ul className="lp-checks">
               {WORLD.map(({ icon: Icon, title, text }) => (
                 <li key={title}>
@@ -433,8 +433,10 @@ export function Landing() {
 }
 
 const FEATURES = [
-  { icon: BookMarked, title: 'Fichas', text: 'Personagens, lugares, facções e o que mais você inventar. Cada ficha se lê como enciclopédia, com o lugar no mapa, e a ficha vazia traz perguntas para começar.' },
-  { icon: Network, title: 'Ligações', text: 'Quem é filho, rival ou criador de quem, num grafo que você navega cena a cena. Uma ligação pode ter vários nomes.' },
+  { icon: BookMarked, title: 'Fichas', text: 'Personagens, lugares, facções e o que mais você inventar, com o papel de cada um na história (protagonista, antagonista…). A ficha é uma página que você edita ali mesmo, e a vazia traz perguntas para começar.' },
+  { icon: History, title: 'A ficha acompanha a história', text: 'Escolha até onde na história e veja o personagem como está ali: a idade, o nome, o que mudou. “Ver como o leitor” esconde o que ele ainda não descobriu.' },
+  { icon: Network, title: 'Ligações', text: 'Quem é filho, rival ou criador de quem, num grafo que você navega cena a cena, sem um nome encostar no outro. Uma ligação pode ter vários nomes.' },
+  { icon: BookOpenCheck, title: 'Vários livros num universo', text: 'Uma série inteira no mesmo mundo: escolha em qual livro você está (ou junte alguns) e as telas mostram só ele.' },
   { icon: CalendarRange, title: 'Linha do tempo', text: 'Eras, eventos e cenas datadas, com um calendário próprio (“12 de Neblina de 359 DC”) e a idade de cada um em cada evento.' },
   { icon: MapIcon, title: 'Mapas', text: 'Suba a imagem do seu mapa e marque os lugares. Revele ao grupo só os marcadores que ele conhece.' },
   { icon: EyeOff, title: 'Segredos e spoilers', text: 'Trechos secretos nas fichas, fatos falsos com quem os contou e partes que o leitor só vê depois de certa cena.' },
@@ -483,7 +485,7 @@ const WORLD = [
   { icon: Dices, title: 'No jogo', text: 'espécie e cultura dão os bônus na ficha de jogo da mesa.' },
   { icon: FolderInput, title: 'Trazer de outros apps', text: 'notas do Obsidian, Kanka e World Anvil.' },
   { icon: Sparkles, title: 'Universos alternativos', text: 'quem você autorizar cria um AU do seu mundo, sem os segredos; você escolhe o que dele vira canon.' },
-  { icon: Globe, title: 'Wiki do mundo', text: 'um site para leitores ou jogadores, em quatro estilos, sem segredos e, se quiser, sem spoiler.' },
+  { icon: Globe, title: 'Wiki do mundo', text: 'um site para leitores ou jogadores, em quatro estilos, sem segredos e, se quiser, sem spoiler. Também por link: quem recebe lê no navegador, sem conta.' },
 ] as const
 
 const BOOK = [

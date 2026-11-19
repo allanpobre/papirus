@@ -2,7 +2,7 @@ import { getSchema, getText, getTextSerializersFromSchema } from '@tiptap/core'
 import { Node as PMNode } from '@tiptap/pm/model'
 import { Transform } from '@tiptap/pm/transform'
 import type { SceneDoc, Universe } from '../model/schema'
-import { manuscriptOrder } from '../model/universe'
+import { manuscriptOrder, inBook as storyInBook } from '../model/universe'
 import { baseExtensions } from './extensions'
 import { findInDoc, findRanges, followCase, searchPattern, type FindOptions } from './find'
 
@@ -60,7 +60,7 @@ export function findInBook(u: Universe, query: string, opts: FindOptions): Hit[]
  */
 export function splitHitsByBook(u: Universe, hits: Hit[], bookId: string | null): { book: Hit[]; all: Hit[] } {
   if (!bookId) return { book: hits, all: hits }
-  const inBook = new Set(u.scenes.filter((s) => s.storyId === bookId).map((s) => s.id))
+  const inBook = new Set(u.scenes.filter((s) => storyInBook(bookId, s.storyId)).map((s) => s.id))
   return { book: hits.filter((h) => inBook.has(h.sceneId)), all: hits }
 }
 

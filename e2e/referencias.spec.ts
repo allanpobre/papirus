@@ -1,12 +1,11 @@
-import { expect, test, type Page } from './fixtures.ts'
+import { expect, test } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 /*
  * Referências da ficha (o mural do que a inspirou), no celular: imagem, link e trecho, com o que se pegou
  * de cada um. Só o autor vê: "como o leitor", o mural some.
  */
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
-
-const modo = (page: Page, nome: 'Ler' | 'Editar') => page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name: nome })
 // Um PNG de 2x2 pixels.
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8DwnwEJMDEgARQOAEsFAgHC5n9hAAAAAElFTkSuQmCC', 'base64')
 
@@ -14,7 +13,7 @@ test('o mural de referências: imagem, link e trecho, com o que se pegou; o leit
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
-  await modo(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
   await page.getByText('Referências', { exact: true }).click()
   const novo = page.getByRole('group', { name: 'Nova referência' })
 
@@ -36,7 +35,7 @@ test('o mural de referências: imagem, link e trecho, com o que se pegou; o leit
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
   // Lendo: o mural, marcado como só do autor.
-  await modo(page, 'Ler').click()
+  await fichaModo(page, 'Ler')
   const mural = page.getByRole('region', { name: 'Referências' })
   await expect(mural).toContainText('só você vê')
   await expect(mural.locator('blockquote')).toHaveText('Um homem não tem nome.')

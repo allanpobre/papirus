@@ -21,8 +21,10 @@ import { PhasesEditor, PhasesReader } from './PhasesView'
 import { ReferencesEditor, ReferencesReader } from './ReferencesView'
 import { BLOCK_LABEL, CONTENT_BLOCKS, contentEmpty, moveBlock, removeBlock, visibleBlocks, type Block, type BlockType } from '../model/blocks'
 import { AddBlock, BlockFrame } from './BlockFrame'
+import { CharacterPowers, CharacterPowersEditor, PowerTree, PowerTreeEditor } from './PowersView'
+import { powersAt, systemsOf } from '../logic/powers'
 import { ContentBlockEditor, ContentBlockView } from './ContentBlocks'
-import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, PortraitButton, RelationsSection } from './EntitiesView'
+import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, MoreOptionsEditor, PortraitButton, RelationsSection } from './EntitiesView'
 import { GameRules } from './GameRules'
 import { LanguageEditor } from './LanguageEditor'
 import { SecretTextarea } from '../ui/SecretText'
@@ -283,6 +285,10 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             </div>
           )
         return tools ? <p className="muted">Ainda sem descrição. Toque no lápis para escrever sobre esta ficha.</p> : null
+      case 'arvore':
+        return (base.nodes?.length ?? 0) > 0 ? <PowerTree system={base} link={link} /> : null
+      case 'poderes':
+        return !simple && (powersAt(universe, base, index, scenes, reader).size > 0 || (base.learned?.length ?? 0) > 0) ? <CharacterPowers entity={base} index={index} reader={reader} link={link} /> : null
       case 'listas':
         return shownLists.length ? (
           <>
@@ -482,6 +488,10 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
         )
       case 'texto':
         return <Field label="Descrição" wide>{(id) => <SecretTextarea id={id} value={base.description} placeholder="Escreva livremente." onChange={(v) => setBase({ description: v })} />}</Field>
+      case 'arvore':
+        return <PowerTreeEditor entity={base} />
+      case 'poderes':
+        return <CharacterPowersEditor entity={base} />
       case 'listas':
         return <ListsSection entity={base} />
       case 'ligacoes':
@@ -523,7 +533,10 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const emptyTypes = layout
     .filter((b) => !isContent(b.type) && editorOf(b) !== undefined && (b.type === 'quadro' ? !quadroView : !shownIds.includes(b.id)))
     .map((b) => b.type as BlockType)
-    .filter((t) => !(simple && (t === 'fases' || t === 'listas')) && (t !== 'quem-e' || whoDefs.length > 0 || ['personagem', 'faccao', 'reino'].includes(base.kind)))
+    .filter((t) => !(simple && (t === 'fases' || t === 'listas' || t === 'poderes')))
+    // A árvore é do sistema de magia; os poderes, de quem pode ter (com algum sistema no mundo).
+    .filter((t) => (t !== 'arvore' || base.kind === 'magia') && (t !== 'poderes' || (base.kind !== 'magia' && systemsOf(universe).length > 0)))
+    .filter((t) => (t !== 'quem-e' || whoDefs.length > 0 || ['personagem', 'faccao', 'reino'].includes(base.kind)))
 
   return (
     <article className="entity entity-reader" aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
@@ -606,6 +619,10 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           </p>
           <Field label="Nome">{(id) => <input id={id} className="input" value={base.name} placeholder="Sem nome" onChange={(ev) => setBase({ name: ev.target.value })} />}</Field>
           <BasicsEditor entity={base} />
+          <p className="block-editor-head small">
+            <strong>Mais opções</strong>
+          </p>
+          <MoreOptionsEditor entity={base} simple={simple} />
         </div>
       )}
 

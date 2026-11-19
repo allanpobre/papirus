@@ -13,7 +13,7 @@ import { addBook, shelf } from '../export/shelf'
 import { authClient, useAccount } from '../account/auth'
 import { syncedMap } from '../account/cloud'
 import type { Scene, Universe } from '../model/schema'
-import { addScene, draftInbox, insert, manuscriptOrder, updateScene } from '../model/universe'
+import { addScene, draftInbox, insert, manuscriptOrder, updateScene, inBook, bookIdsOf, seriesId } from '../model/universe'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
@@ -39,7 +39,7 @@ import { usePlay } from './usePlay'
 import { backState, backTo, navigateTo, onBackNavigate } from './backStack'
 import { useBackLayer } from '../ui/useBackLayer'
 import { useImageSync } from '../images/useImageSync'
-import { embeddedImages } from '../images/backup'
+import { backupOf } from '../persistence/backupFile'
 import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
@@ -55,6 +55,7 @@ import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
 import { syncWorldBonuses } from '../rpg/worldBonuses'
 import { syncMonstersFromWorld } from '../rpg/bestiary'
+import { newlyReady, waitingViews } from '../logic/firstSteps'
 import { firstView, hiddenViewsFor, universeKind, CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
 import { ALL_ITEMS, CONFIG_ITEM, DEFAULT_SHORTCUTS, NAV, TOOLS, type NavItem } from './nav'
 import { CaptureDialog } from './CaptureDialog'
@@ -132,7 +133,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [sampleNoteClosed, setSampleNoteClosed] = useState(() => recall('exemplo-aviso') === 'fechado')
   // O livro escolhido no alto. Um livro que não existe mais (apagado, ou de outra versão) vale como "todos".
   const [bookPick, setBookPick] = useState<string | null>(() => recall(`livro:${initial.id}`))
-  const bookId = bookPick && universe.stories.length > 1 && universe.stories.some((s) => s.id === bookPick) ? bookPick : null
+  // Um livro ou uma série (ids com vírgula): valem só os livros que ainda existem; uma série que ficou com um só vira esse livro.
+  const bookId = bookPick && universe.stories.length > 1 ? seriesId(universe, bookIdsOf(bookPick) ?? []) : null
   const setBookId = useCallback(
     (id: string | null) => {
       setBookPick(id)
@@ -215,7 +217,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       if (view === 'escrever' && id) {
         const { universe: u, bookId: chosen } = latest.current
         const scene = chosen ? u.scenes.find((s) => s.id === id) : undefined
-        if (scene && scene.storyId !== chosen) setBookId(scene.storyId)
+        if (scene && !inBook(chosen, scene.storyId)) setBookId(scene.storyId)
       }
       navigateTo({ u: initial.id, view, id }, options.replace)
       navRef.current = { view, id }
@@ -384,13 +386,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
 
   const downloadBackup = useCallback(() => {
     const date = new Date().toISOString().slice(0, 10)
-    const file = repo.toFile(universe)
-    // As imagens vão dentro do arquivo: o backup sozinho basta para ter tudo de volta.
-    void embeddedImages(universe)
-      .catch(() => ({}))
-      .then((images) =>
-        downloadText(fileNameFor(`${universe.name}-backup-${date}`, 'json'), JSON.stringify(Object.keys(images).length ? { ...file, images } : file, null, 2), 'application/json'),
-      )
+    // Tudo dentro do arquivo (imagens, versões guardadas, o livro escolhido): o backup sozinho basta para ter tudo de volta.
+    void backupOf(repo, universe).then((file) => downloadText(fileNameFor(`${universe.name}-backup-${date}`, 'json'), JSON.stringify(file, null, 2), 'application/json'))
     markBackup({ last: new Date().toISOString() })
   }, [universe, repo, markBackup])
 
@@ -428,7 +425,14 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const campaignGroup = universe.groups.find((g) => g.id === recall(`rpg-grupo:${universe.id}`)) ?? universe.groups[0]
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
   useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
-  const hidden = useMemo(() => hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), [universe, prefs.menus, prefs.hiddenViews])
+  // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
+  const waiting = useMemo(() => waitingViews(universe, prefs.firstSteps), [universe, prefs.firstSteps])
+  const hidden = useMemo(() => [...new Set([...hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), ...waiting])], [universe, prefs.menus, prefs.hiddenViews, waiting])
+  // O que ficou pronto aparece e não some mais (mesmo que a ficha seja apagada depois).
+  useEffect(() => {
+    const fresh = newlyReady(universe, prefs.firstSteps)
+    if (fresh.length && prefs.firstSteps) setPref('firstSteps', { ...prefs.firstSteps, revealed: [...prefs.firstSteps.revealed, ...fresh] })
+  }, [universe, prefs.firstSteps, setPref])
   const ws: Workspace = useMemo(
     () => ({
       universe,
@@ -479,10 +483,12 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
       kind,
       hiddenViews: hidden,
       setHiddenViews: (views: View[]) => setPref('menus', { ...prefs.menus, [kind]: views }),
+      waitingViews: waiting,
+      showAllParts: () => setPref('firstSteps', { active: false, revealed: prefs.firstSteps?.revealed ?? [] }),
       bookId,
       setBookId,
     }),
-    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev, kind, hidden, bookId, setBookId],
+    [universe, update, status, flush, repo, library, prefs, setPref, nav, go, goBack, toast, undoable, onClose, folder, downloadBackup, source, readOnly, others, remoteRev, kind, hidden, waiting, bookId, setBookId],
   )
 
   // Arrastar texto selecionado sem querer inicia o "arrastar e soltar" do navegador, e alguns
@@ -1251,7 +1257,10 @@ function ReaderOverlay({
 }) {
   const [copy] = useState(() => readerCopy(universe, false))
   // Os livros de antes continuam no caderno do leitor: quem lê o terceiro já leu os dois primeiros.
-  const start = bookId ? manuscriptOrder(copy).findIndex((s) => s.storyId === bookId) : -1
+  const order = manuscriptOrder(copy)
+  const start = bookId ? order.findIndex((s) => inBook(bookId, s.storyId)) : -1
+  // O fim do livro (ou da série): o "Ouvir" para ali.
+  const end = bookId ? order.findLastIndex((s) => inBook(bookId, s.storyId)) : -1
   useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
@@ -1260,6 +1269,7 @@ function ReaderOverlay({
         universe={copy}
         storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}${start >= 0 ? `:${bookId}` : ''}`}
         startAt={start >= 0 ? start : undefined}
+        endAt={end >= 0 ? end : undefined}
         onClose={onClose}
         onComment={onComment}
         commenterName={commenterName}

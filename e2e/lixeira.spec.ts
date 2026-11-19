@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 test('lixeira e histórico: apagar, recuperar e voltar como estava', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
@@ -103,13 +104,12 @@ test('apagar uma ficha e recuperar: volta com as ligações, o ponto de vista da
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
-  const ler = page.getByRole('button', { name: 'Ler', exact: true })
-  if (await ler.count()) await ler.click()
+  await fichaModo(page, 'Ler')
   // Antes: Kael é irmão da Mira e desconfia de gente.
   const ficha = page.getByRole('region', { name: 'Ficha: E se sumir?' }).or(page.getByRole('main'))
   await expect(ficha.first()).toContainText('irmão de')
 
-  await page.getByRole('button', { name: 'Editar', exact: true }).click()
+  await page.getByRole('button', { name: 'Mais da ficha' }).click()
   await page.getByRole('button', { name: 'Apagar ficha' }).click()
   await page.getByRole('button', { name: 'Apagar ficha' }).last().click()
   await expect(page.getByRole('button', { name: /^Kael/ })).toHaveCount(0)
@@ -128,7 +128,7 @@ test('apagar uma ficha e recuperar: volta com as ligações, o ponto de vista da
   // Depois: a ficha, as ligações e o ponto de vista da cena voltaram.
   await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
-  if (await ler.count()) await ler.click()
+  await fichaModo(page, 'Ler')
   await expect(ficha.first()).toContainText('irmão de')
   await nav(page, 'Escrever').click()
   await page.getByRole('button', { name: /A chegada/ }).first().click()

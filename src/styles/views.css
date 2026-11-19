@@ -10105,6 +10105,11 @@ h3.cork-act {
   list-style: none;
 }
 
+.au-news-hint {
+  display: block;
+  margin: 0.1rem 0 0 1.55rem;
+}
+
 .au-list li {
   display: flex;
   align-items: center;
@@ -12011,4 +12016,130 @@ button.presence-dot {
 }
 .reader-text > .block > p {
   margin: 0 0 1em;
+}
+
+/* Poderes: a árvore em níveis (acesa conforme a régua) e os editores. */
+.power-tree {
+  list-style: none;
+  margin: 0.5rem 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.power-level {
+  display: grid;
+  gap: 0.25rem;
+}
+.power-level > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 0.8rem;
+  border-left: 2px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.power-node {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1 1 9rem;
+  max-width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.power-node.is-lit {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+.power-node.is-dark {
+  opacity: 0.55;
+}
+.power-how {
+  color: var(--accent);
+}
+.power-issues {
+  list-style: none;
+  padding: 0;
+  font-family: var(--font-ui);
+}
+.power-edit,
+.power-learn {
+  display: grid;
+  gap: 0.6rem;
+}
+.power-node-edit {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.power-node-edit .row {
+  display: flex;
+  gap: 0.4rem;
+}
+.power-learn-system {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.7rem;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.power-learn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.power-learn-row select {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+/* Sugestões do texto na margem e a janela "Muda ou revela". */
+.suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.suggestions li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.suggestions p {
+  margin: 0;
+}
+.change-quote {
+  margin: 0 0 0.8rem;
+  padding-left: 0.8rem;
+  border-left: 3px solid var(--accent);
+  font-style: italic;
+}
+
+/* Série: escolher vários livros juntos no seletor de livro. */
+.book-series {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  flex-basis: 100%;
+  padding: 0.5rem 0;
+}
+
+/* Primeira vez mais curta: o aviso de que mais partes aparecem conforme o uso. */
+.first-steps-hint {
+  margin: -0.4rem 0 0.8rem;
 }

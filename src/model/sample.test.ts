@@ -4,7 +4,7 @@ import { revealIndex, splitReveals } from '../logic/reveals'
 import { manuscriptOrder, scenesOf } from './universe'
 import { shelf } from '../export/shelf'
 import { universeSchema } from './schema'
-import { alienistaUniverse, isOutdatedSample, isSample, sampleFor, sampleKindOf, sampleUniverse } from './sample'
+import { alienistaUniverse, isOutdatedSample, isSample, sampleFor, sampleKindOf, sampleUniverse, OLD_OZ_DESCRIPTIONS, OZ_DESCRIPTION, OLD_ALIENISTA_DESCRIPTIONS, outdatedSampleKind, SAMPLE_DESCRIPTION } from './sample'
 import { whoIs } from '../logic/definers'
 import { ostriaUniverse } from './sampleOstria'
 
@@ -46,6 +46,14 @@ describe('exemplo: O Alienista (o segundo)', () => {
     expect(names(5)).toContain('Porfírio')
   })
 
+  it('o Alienista marca o papel de cada um na história', async () => {
+    const u = await alienistaUniverse()
+    const role = (n: string) => u.entities.find((e) => e.name === n)?.role
+    expect(role('Simão Bacamarte')).toBe('protagonista')
+    expect(role('Porfírio')).toBe('antagonista')
+    expect(role('Crispim Soares')).toBe('secundario')
+  })
+
   it('o exemplo antigo é reconhecido e trocado pelo novo', async () => {
     const old = { ...ostriaUniverse(), description: 'Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido, um regente com medo e uma herdeira que não sabe quem é.' }
     expect(isOutdatedSample(old)).toBe(true)
@@ -57,6 +65,13 @@ describe('exemplo: O Alienista (o segundo)', () => {
     // A Terra de Oz de antes (sem os outros livros) também vira a atual; a atual não.
     const oldOz = { ...ostriaUniverse(), description: 'Universo de exemplo: O Mágico de Oz, de L. Frank Baum (1900, domínio público), traduzido para o Papirus. O livro inteiro, os quatro países no mapa, povos, segredos, linha do tempo e uma Mesa.' }
     expect(isOutdatedSample(oldOz)).toBe(true)
+    // A de antes dos papéis na história também; a atual não.
+    for (const d of OLD_OZ_DESCRIPTIONS) expect(isOutdatedSample({ ...oldOz, description: d })).toBe(true)
+    expect(OLD_OZ_DESCRIPTIONS).not.toContain(OZ_DESCRIPTION)
+    expect(outdatedSampleKind(oldOz)).toBe('oz')
+    // O Alienista de antes dos papéis vira o Alienista atual (não o Oz); o atual não é trocado.
+    for (const d of OLD_ALIENISTA_DESCRIPTIONS) expect(outdatedSampleKind({ description: d })).toBe('alienista')
+    expect(OLD_ALIENISTA_DESCRIPTIONS).not.toContain(SAMPLE_DESCRIPTION)
     expect(isOutdatedSample(await sampleUniverse())).toBe(false)
   })
 })

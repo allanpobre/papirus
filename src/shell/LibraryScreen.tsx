@@ -76,7 +76,7 @@ import { ConfirmButton } from '../ui/ConfirmButton'
 import { MoreMenu } from '../ui/MoreMenu'
 import { relativeDate } from '../logic/relativeDate'
 import { downloadText, fileNameFor } from '../export/download'
-import { embeddedImages } from '../images/backup'
+import { backupOf, restoreBackupExtras } from '../persistence/backupFile'
 import { Brand } from './Brand'
 import { PageHelp } from '../ui/PageTour'
 
@@ -120,6 +120,10 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const [profileHandle, setProfileHandle] = useState<string | undefined>(() => new URLSearchParams(location.search).get('perfil') ?? undefined)
   const fileRef = useRef<HTMLInputElement>(null)
   const { prefs: p, setPref } = prefs
+  // Quem já tem universos já usava o Papirus: a primeira vez mais curta não liga para essa pessoa.
+  useEffect(() => {
+    if (p.firstSteps === undefined && entries.length > 0) setPref('firstSteps', { active: false, revealed: [] })
+  }, [p.firstSteps, entries.length, setPref])
   const dark = p.theme === 'escuro' || (p.theme === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches)
   const account = useAccount()
   const cloud = useCloudStatus()
@@ -215,7 +219,11 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       // Importar nunca sobrescreve sozinho: se este universo já está aqui, a pessoa escolhe o que fazer com o backup.
       const here = entries.find((e) => e.id === u.id)
       if (here) setImporting({ backup: u, here: here.cloudCopyOf ? (entries.find((e) => e.id === here.cloudCopyOf) ?? here) : here })
-      else onCreated(u)
+      else {
+        // As versões guardadas e o livro escolhido voltam junto.
+        await restoreBackupExtras(library.repository(u.id), raw, u.id)
+        onCreated(u)
+      }
     } catch (err) {
       setError(`Não foi possível importar “${file.name}”: ${err instanceof Error ? err.message : String(err)}`)
     }
@@ -226,10 +234,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     const repo = library.repository(e.id)
     const u = await repo.load()
     if (!u) return
-    const file = repo.toFile(u)
-    const images = await embeddedImages(u).catch(() => ({}))
+    const file = await backupOf(repo, u)
     const date = new Date().toISOString().slice(0, 10)
-    downloadText(fileNameFor(`${u.name}-backup-${date}`, 'json'), JSON.stringify(Object.keys(images).length ? { ...file, images } : file, null, 2), 'application/json')
+    downloadText(fileNameFor(`${u.name}-backup-${date}`, 'json'), JSON.stringify(file, null, 2), 'application/json')
     setPref('backups', { ...p.backups, [e.id]: { ...p.backups[e.id], last: new Date().toISOString() } })
   }
 
@@ -305,6 +312,8 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   const create = (kind: 'escrita' | 'campanha') => {
     if (!p.onboarded) setPref('onboarded', true)
     const fallback = kind === 'campanha' ? 'Nova campanha' : 'Novo universo'
+    // O primeiro universo de quem nunca usou: as partes aparecem conforme o uso (a "primeira vez mais curta").
+    if (p.firstSteps === undefined && entries.length === 0) setPref('firstSteps', { active: true, revealed: [] })
     onCreated(applyTemplate(createUniverse(name.trim() || fallback), kind === 'campanha' ? 'rpg' : template, { system: rpgSystem }))
     setName('')
   }

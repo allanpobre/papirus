@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { openPart } from './areas.ts'
+import { openPart, fichaModo } from './areas.ts'
 
 /*
  * A régua da história na ficha, no celular: até qual cena se olha, e "ver como o leitor".
@@ -10,8 +10,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 const abrir = async (page: import('@playwright/test').Page, nome: string) => {
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: new RegExp(`^${nome}`) }).first().click()
-  const ler = page.getByRole('button', { name: 'Ler', exact: true })
-  if (await ler.count()) await ler.click()
+  await fichaModo(page, 'Ler')
 }
 
 test('a ficha muda com o ponto da história: o autor vê as marcas, o leitor só o que já sabe', async ({ page }) => {
@@ -64,7 +63,7 @@ test('a ficha muda com o ponto da história: o autor vê as marcas, o leitor só
   const segunda = await cena.getAttribute('aria-valuetext')
   await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Rhea/ }).first().click()
-  if (await page.getByRole('button', { name: 'Ler', exact: true }).count()) await page.getByRole('button', { name: 'Ler', exact: true }).click()
+  await fichaModo(page, 'Ler')
   await expect(rhea.getByRole('combobox', { name: 'Até onde na história' }).locator('option:checked')).toContainText(segunda!)
 
   // Voltando para a história toda e o modo autor, tudo volta.

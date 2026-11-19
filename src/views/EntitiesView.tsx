@@ -27,6 +27,7 @@ import {
   patch,
   remove,
   removeEntity,
+  chosenBook,
 } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
@@ -43,6 +44,8 @@ import { AppearanceList } from './AppearanceList'
 import { EntityRevealField } from './RevealControl'
 import { PhasesEditor } from './PhasesView'
 import { ReferencesEditor } from './ReferencesView'
+import { CharacterPowersEditor, PowerTreeEditor } from './PowersView'
+import { systemsOf } from '../logic/powers'
 import { derivedHint, onlyName } from '../logic/derivedFields'
 import { answer, askedKey, isBlank } from '../logic/kindQuestions'
 import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
@@ -73,7 +76,8 @@ export default function EntitiesView() {
   const { universe, update, nav, go, readOnly, peek, bookId, toast } = useWorkspace()
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<FichaMode>(() => {
-    const saved = recall('ficha-modo')
+    // A chave antiga ("ficha-modo") guardava "editar" do tempo do Ler/Editar: agora a ficha abre na página.
+    const saved = recall('ficha-vista')
     return !readOnly && (saved === 'editar' || saved === 'jogo') ? saved : 'ler'
   })
   // A ficha que acabou de nascer aqui abre para editar.
@@ -81,7 +85,7 @@ export default function EntitiesView() {
   const changeMode = (m: FichaMode) => {
     setMode(m)
     setFresh(null)
-    remember('ficha-modo', m)
+    remember('ficha-vista', m)
   }
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState<string>('todos')
@@ -144,7 +148,7 @@ export default function EntitiesView() {
   // Quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro (a mesma regra da Linha do tempo e dos Mapas).
   const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
   const inNoBook = (id: string) => (scope ? scope.inNoBook(id) : !counts.get(id))
-  const book = bookId ? byId(universe, 'stories', bookId) : undefined
+  const book = chosenBook(universe, bookId)
   const [everyone, setEveryone] = useState(false)
   const onlyBook = Boolean(book) && !everyone
   const hasScenes = universe.scenes.some((sc) => sc.text.trim())
@@ -415,7 +419,7 @@ export default function EntitiesView() {
               key={selected.id}
               entity={selected}
               order={list}
-              modeSwitch={!readOnly && <ModeSwitch mode="ler" game={hasGame} onChange={changeMode} />}
+              modeSwitch={!readOnly && <ModeSwitch mode="ler" game={hasGame} onChange={changeMode} entity={selected} />}
               onEdit={
                 readOnly
                   ? undefined
@@ -535,21 +539,61 @@ export function PortraitButton({ entity: e, onChange }: { entity: Entity; onChan
 type FichaMode = 'ler' | 'editar' | 'jogo'
 
 /** Alternar entre ler a ficha como uma página, editá-la e (num personagem de jogo) ver a ficha de jogo. */
-function ModeSwitch({ mode, game = false, onChange }: { mode: FichaMode; game?: boolean; onChange: (m: FichaMode) => void }) {
+/**
+ * Sem "Ler/Editar": a ficha é uma página só, editada no lugar. O formulário inteiro ("Editar tudo de uma vez") e a
+ * ficha de jogo ficam no menu "⋯"; deles, "Ver a página" volta.
+ */
+function ModeSwitch({ mode, game = false, onChange, entity }: { mode: FichaMode; game?: boolean; onChange: (m: FichaMode) => void; entity?: Entity }) {
+  const { undoable, go } = useWorkspace()
+  if (mode !== 'ler')
+    return (
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange('ler')}>
+        <BookOpen size={15} aria-hidden="true" /> Ver a página
+      </button>
+    )
   return (
-    <div className="mode-switch" role="group" aria-label="Modo da ficha">
-      <button type="button" aria-pressed={mode === 'ler'} onClick={() => onChange('ler')}>
-        <BookOpen size={15} aria-hidden="true" /> Ler
-      </button>
-      <button type="button" aria-pressed={mode === 'editar'} onClick={() => onChange('editar')}>
-        <PenLine size={15} aria-hidden="true" /> Editar
-      </button>
-      {game && (
-        <button type="button" aria-pressed={mode === 'jogo'} onClick={() => onChange('jogo')}>
-          <Dices size={15} aria-hidden="true" /> Jogo
-        </button>
+    <MoreMenu label="Mais da ficha">
+      {(close) => (
+        <>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              close()
+              onChange('editar')
+            }}
+          >
+            <PenLine size={15} aria-hidden="true" /> Editar tudo de uma vez
+          </button>
+          {game && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                close()
+                onChange('jogo')
+              }}
+            >
+              <Dices size={15} aria-hidden="true" /> Ficha de jogo
+            </button>
+          )}
+          {entity && (
+            <ConfirmButton
+              className="btn btn-ghost btn-sm"
+              question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
+              confirmLabel="Apagar ficha"
+              onConfirm={() => {
+                close()
+                undoable(`Ficha “${entity.name}” apagada`, (u) => removeEntity(u, entity.id))
+                go('fichas', null, { replace: true })
+              }}
+            >
+              <Trash2 size={15} aria-hidden="true" /> Apagar ficha
+            </ConfirmButton>
+          )}
+        </>
       )}
-    </div>
+    </MoreMenu>
   )
 }
 
@@ -677,26 +721,21 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
               <PhasesEditor entity={e} />
             </Fold>
           )}
+          {e.kind === 'magia' && (
+            <Fold id="ficha-arvore" title="Árvore de poderes" defaultOpen>
+              <PowerTreeEditor entity={e} />
+            </Fold>
+          )}
+          {!simple && e.kind !== 'magia' && systemsOf(universe).length > 0 && (
+            <Fold id="ficha-poderes" title="Poderes" defaultOpen={(e.learned?.length ?? 0) > 0}>
+              <CharacterPowersEditor entity={e} />
+            </Fold>
+          )}
           <Fold id="ficha-referencias" title="Referências" defaultOpen={(e.refs?.length ?? 0) > 0}>
             <ReferencesEditor entity={e} />
           </Fold>
           <Fold id="ficha-mais-opcoes" title="Mais opções" defaultOpen={false}>
-            <div className="form-grid">
-              {!simple && (
-                <>
-                  <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
-                    {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
-                  </Field>
-                  <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
-                </>
-              )}
-              <EntityRevealField entity={e} />
-              <label className="toggle entity-wiki-toggle">
-                <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
-                <span className="toggle-track" aria-hidden="true" />
-                <span>Entra na wiki</span>
-              </label>
-            </div>
+            <MoreOptionsEditor entity={e} simple={simple} />
             {!simple && !groupsOthers && <ListsSection entity={e} />}
           </Fold>
           {worldLevel(universe) === 'simples' && (
@@ -1349,5 +1388,29 @@ export function BasicsEditor({ entity: e }: { entity: Entity }) {
       <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
     </div>
     </>
+  )
+}
+
+/** "Mais opções": se é verdade no mundo, quão pronta, quando o leitor conhece e se entra na wiki. */
+export function MoreOptionsEditor({ entity: e, simple }: { entity: Entity; simple: boolean }) {
+  const { update } = useWorkspace()
+  const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
+  return (
+    <div className="form-grid">
+      {!simple && (
+        <>
+          <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
+            {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
+          </Field>
+          <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
+        </>
+      )}
+      <EntityRevealField entity={e} />
+      <label className="toggle entity-wiki-toggle">
+        <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
+        <span className="toggle-track" aria-hidden="true" />
+        <span>Entra na wiki</span>
+      </label>
+    </div>
   )
 }

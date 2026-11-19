@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { isOutdatedSample, sampleFor, sampleUniverse } from './model/sample'
+import { outdatedSampleKind, sampleFor } from './model/sample'
 import { BookLooks } from './book/BookLooks'
 import type { Universe } from './model/schema'
 import { Library, type LibraryEntry } from './persistence/repository'
@@ -99,8 +99,9 @@ export default function App() {
       let universe = await repo.load()
       if (!universe) throw new Error('Este universo não foi encontrado neste navegador.')
       // Exemplo de uma versão antiga do Papirus: troca pelo atual (nada nele é do autor).
-      if (isOutdatedSample(universe)) {
-        universe = { ...(await sampleUniverse()), id: universe.id }
+      const outdated = outdatedSampleKind(universe)
+      if (outdated) {
+        universe = { ...(await sampleFor(outdated)), id: universe.id }
         await repo.save(universe)
         await lib.touch(universe)
       }

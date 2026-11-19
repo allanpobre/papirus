@@ -279,12 +279,37 @@ export function manuscriptOrder(universe: Universe): Scene[] {
 }
 
 /** As cenas do livro escolhido no alto, na ordem de leitura; sem livro (null), todas. (Guardado, como `manuscriptOrder`.) */
+/*
+ * O livro escolhido no alto pode ser um livro (o id da história) ou uma série: dois ou mais livros juntos,
+ * guardados como os ids separados por vírgula (ids não têm vírgula). Sem nada (null), todos os livros.
+ */
+
+/** Os livros da escolha (null: todos). */
+export const bookIdsOf = (bookId: string | null): string[] | null => (bookId ? bookId.split(',').filter(Boolean) : null)
+/** A escolha é uma série (mais de um livro)? */
+export const isSeries = (bookId: string | null): boolean => (bookIdsOf(bookId)?.length ?? 0) > 1
+/** A história faz parte da escolha? (sem escolha, todas fazem) */
+export const inBook = (bookId: string | null, storyId: string | null | undefined): boolean => !bookId || (!!storyId && bookIdsOf(bookId)!.includes(storyId))
+/** A série como valor guardado (na ordem do universo). Um livro só vira o id dele; nenhum, null. */
+export const seriesId = (universe: Universe, ids: string[]): string | null => {
+  const picked = universe.stories.map((s) => s.id).filter((id) => ids.includes(id))
+  return picked.length ? picked.join(',') : null
+}
+/** O livro escolhido para mostrar (título): um livro, ou a série com os títulos juntos. */
+export function chosenBook(universe: Universe, bookId: string | null): { id: string; title: string } | undefined {
+  const ids = bookIdsOf(bookId)
+  if (!ids) return undefined
+  const stories = universe.stories.filter((s) => ids.includes(s.id))
+  if (!stories.length) return undefined
+  return { id: bookId!, title: stories.map((s) => s.title || 'Sem título').join(' + ') }
+}
+
 export function bookScenes(universe: Universe, bookId: string | null): Scene[] {
   const order = manuscriptOrder(universe)
   if (!bookId) return order
   const perBook = cachedBy(bookScenesCache, [order], () => new Map<string, Scene[]>())
   let list = perBook.get(bookId)
-  if (!list) perBook.set(bookId, (list = order.filter((s) => s.storyId === bookId)))
+  if (!list) perBook.set(bookId, (list = order.filter((s) => inBook(bookId, s.storyId))))
   return list
 }
 
@@ -297,8 +322,8 @@ export function bookOnly(universe: Universe, bookId: string | null): Universe {
   // Os arrays filtrados são guardados: assim as contas guardadas por array (quem aparece) valem de novo em outra tela.
   const stories = cachedBy(bookStoriesCache, [universe.stories], () => new Map<string, Universe['stories']>())
   const scenes = cachedBy(bookOnlyScenesCache, [universe.scenes], () => new Map<string, Scene[]>())
-  if (!stories.has(bookId)) stories.set(bookId, universe.stories.filter((s) => s.id === bookId))
-  if (!scenes.has(bookId)) scenes.set(bookId, universe.scenes.filter((s) => s.storyId === bookId))
+  if (!stories.has(bookId)) stories.set(bookId, universe.stories.filter((s) => inBook(bookId, s.id)))
+  if (!scenes.has(bookId)) scenes.set(bookId, universe.scenes.filter((s) => inBook(bookId, s.storyId)))
   return { ...universe, stories: stories.get(bookId)!, scenes: scenes.get(bookId)! }
 }
 

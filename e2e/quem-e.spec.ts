@@ -1,14 +1,14 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { fichaModo } from './areas.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name, exact: true })
 const row = (page: Page, name: string) => page.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: new RegExp(`^${name}$`) }) })
-const mode = (page: Page, name: 'Ler' | 'Editar') => page.getByRole('group', { name: 'Modo da ficha' }).getByRole('button', { name })
 
 test('Quem é: o mundo diz o que define alguém, a opção passa o que tem e a ficha pode ser exceção', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Mundo').click()
   await row(page, 'Kael').click()
-  await mode(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
 
   // Num mundo cyberpunk, o que define é o corpo.
   const who = page.getByRole('region', { name: 'Quem é' })
@@ -22,7 +22,7 @@ test('Quem é: o mundo diz o que define alguém, a opção passa o que tem e a f
 
   // Na opção: o que passa para quem é assim.
   await who.getByRole('button', { name: 'Abrir Meio-ciborgue' }).click()
-  await mode(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
   const passes = page.getByRole('region', { name: 'O que passa para quem é Meio-ciborgue' })
   await passes.getByRole('button', { name: 'Característica' }).click()
   await passes.getByRole('textbox', { name: 'Característica', exact: true }).fill('Sente frio')
@@ -32,12 +32,12 @@ test('Quem é: o mundo diz o que define alguém, a opção passa o que tem e a f
   // De volta ao Kael: herda, e vira exceção.
   await nav(page, 'Mundo').click()
   await row(page, 'Kael').click()
-  await mode(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
   const traits = page.getByRole('list', { name: 'Por ser Meio-ciborgue' })
   await expect(traits).toContainText('Sente frio')
   await traits.getByRole('button', { name: 'Exceção' }).click()
   await traits.getByRole('textbox', { name: 'Exceção: Sente frio' }).fill('sim')
-  await mode(page, 'Ler').click()
+  await fichaModo(page, 'Ler')
   const read = page.getByRole('region', { name: 'Quem é' })
   await expect(read).toContainText('Corpo: Meio-ciborgue')
   await expect(read).toContainText('sim (exceção)')
@@ -45,7 +45,7 @@ test('Quem é: o mundo diz o que define alguém, a opção passa o que tem e a f
   // Vale também para reinos: o convite aparece na ficha do reino.
   await nav(page, 'Mundo').click()
   await row(page, 'Reino de Ostria').click()
-  await mode(page, 'Editar').click()
+  await fichaModo(page, 'Editar')
   await expect(page.getByRole('region', { name: 'Quem é' })).toContainText('O que define reino ou plano neste mundo?')
   await expect(page.getByRole('region', { name: 'Quem é' }).getByRole('button', { name: 'Corpo' })).toBeVisible()
 })
@@ -58,7 +58,7 @@ test.describe('Quem é no celular (390 px), com o exemplo de Oz', () => {
     await page.getByRole('button', { name: 'Mais', exact: true }).click()
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
     await row(page, 'Lenhador de Lata').first().click()
-    await mode(page, 'Editar').click()
+    await fichaModo(page, 'Editar')
     const who = page.getByRole('region', { name: 'Quem é' })
     await who.scrollIntoViewIfNeeded()
     return who
@@ -96,12 +96,12 @@ test.describe('Quem é no celular (390 px), com o exemplo de Oz', () => {
     await campo.fill('cinza')
     expect(await semRolagem()).toBe(true)
     // Na leitura, a exceção aparece junto do que era.
-    await mode(page, 'Ler').click()
+    await fichaModo(page, 'Ler')
     await expect(page.getByRole('region', { name: 'Quem é' })).toContainText('Povo: Winkies')
     await expect(page.getByRole('region', { name: 'Quem é' })).toContainText('cinza (exceção)')
 
     // Desfazer a exceção volta ao padrão.
-    await mode(page, 'Editar').click()
+    await fichaModo(page, 'Editar')
     await page.getByRole('list', { name: 'Por ser Winkies' }).getByRole('button', { name: 'Desfazer' }).first().click()
     await expect(page.getByRole('list', { name: 'Por ser Winkies' }).getByRole('textbox', { name: 'Exceção: Cor' })).toHaveCount(0)
     await expect(page.getByRole('list', { name: 'Por ser Winkies' })).toContainText('amarelo')
@@ -116,7 +116,7 @@ test.describe('Quem é no celular (390 px), com o exemplo de Oz', () => {
 
     // Abrir a opção: o que ela passa se edita em linhas que cabem na tela.
     await who.getByRole('button', { name: 'Abrir Lata' }).click()
-    await mode(page, 'Editar').click()
+    await fichaModo(page, 'Editar')
     const passes = page.getByRole('region', { name: 'O que passa para quem é Lata' })
     await passes.scrollIntoViewIfNeeded()
     const key = passes.getByRole('textbox', { name: 'Característica', exact: true }).first()
@@ -129,7 +129,7 @@ test.describe('Quem é no celular (390 px), com o exemplo de Oz', () => {
     await page.getByRole('button', { name: 'Mais', exact: true }).click()
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
     await row(page, 'Lenhador de Lata').first().click()
-    await mode(page, 'Editar').click()
+    await fichaModo(page, 'Editar')
     const region = page.getByRole('region', { name: 'Quem é' })
     await region.getByRole('button', { name: 'Tirar Povo deste tipo' }).click()
     const pergunta = region.getByRole('group', { name: /Tirar “Povo” de todo personagem\?/ })

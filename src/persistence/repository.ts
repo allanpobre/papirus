@@ -162,6 +162,16 @@ export class UniverseRepository {
     return info
   }
 
+  /** Põe de volta uma versão que veio de um backup (com o nome e a data dela). Não repete a que já está. */
+  async importSnapshot(info: SnapshotInfo, universe: Universe): Promise<boolean> {
+    const list = await this.listSnapshots()
+    if (list.some((s) => s.id === info.id)) return false
+    await this.store.set(snapshotKey(info.id), this.toFile(universe))
+    const next = [...list, { ...info, auto: false }].sort((a, b) => b.at.localeCompare(a.at))
+    await this.store.set(this.k.snapshots, next)
+    return true
+  }
+
   async readSnapshot(snapshotId: string): Promise<Universe> {
     const raw = await this.store.get(snapshotKey(snapshotId))
     if (raw === undefined) throw new Error('Snapshot não encontrado.')
