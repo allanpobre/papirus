@@ -1,7 +1,8 @@
-import { ArrowRight, BookOpenText, Dices, Earth, Feather, House, Search, Sprout, Wrench, type LucideIcon } from 'lucide-react'
+import { ArrowRight, BookOpenText, Dices, Earth, Feather, House, Search, Sprout, Wrench, type LucideIcon, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { fold } from '../logic/text'
 import { PAGE_TOURS, type PageTourId } from '../shell/pageTours'
+import { NovidadesDialog } from '../novidades/NovidadesDialog'
 import { remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
@@ -112,6 +113,7 @@ function stepsOf(area: Area, part: Part) {
 }
 
 export default function GuideView() {
+  const [newsOpen, setNewsOpen] = useState(false)
   const { go, kind } = useWorkspace()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState<string | null>(null)
@@ -137,7 +139,16 @@ export default function GuideView() {
 
   return (
     <div className="view guide-view">
-      <ViewTop area="Guia" tour="guia" />
+      <ViewTop
+        area="Guia"
+        tour="guia"
+        actions={
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setNewsOpen(true)}>
+            <Sparkles size={15} aria-hidden="true" /> O que mudou
+          </button>
+        }
+      />
+      {newsOpen && <NovidadesDialog onClose={() => setNewsOpen(false)} />}
       <p className="muted guide-lede">Todas as ferramentas do Papirus, área por área. Toque numa parte para ver tudo o que ela faz; “Abrir” leva até ela, e lá o (?) mostra cada coisa no lugar.</p>
       <label className="guide-search">
         <Search size={16} aria-hidden="true" />

@@ -13111,3 +13111,33 @@ body[data-clima='terror'] .focus-lines line {
 .entity-reader.is-hero .reader-body > .block-quadro {
   order: 2;
 }
+
+/* O que mudou (novidades do Papirus). */
+.novidades {
+  display: grid;
+  gap: 1rem;
+}
+.novidade h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.1rem 0 0.4rem;
+  font-family: var(--font-display);
+}
+.novidade.is-new h3 {
+  color: var(--accent);
+}
+.novidade ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+.novidades-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 0.3rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
