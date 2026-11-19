@@ -290,7 +290,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           )
         return tools ? <p className="muted">Ainda sem descrição. Toque no lápis para escrever sobre esta ficha.</p> : null
       case 'arvore':
-        return (base.nodes?.length ?? 0) > 0 ? <PowerTree system={base} link={link} /> : null
+        return (base.nodes?.length ?? 0) > 0 ? <PowerTree system={base} link={link} editable={tools} /> : null
       case 'poderes':
         return !simple && (powersAt(universe, base, index, scenes, reader).size > 0 || (base.learned?.length ?? 0) > 0) ? <CharacterPowers entity={base} index={index} reader={reader} link={link} /> : null
       case 'listas':

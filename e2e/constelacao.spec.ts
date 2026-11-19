@@ -54,3 +54,40 @@ test('constelação: estrelas acendem pela régua e a carta mostra o poder', asy
     await page.screenshot({ path: process.env.SHOT })
   }
 })
+
+test.describe('no computador', () => {
+  test.use({ viewport: { width: 1280, height: 900 }, hasTouch: false, isMobile: false })
+  test('na ficha do sistema, arrastar de uma estrela até outra liga (e de novo desliga)', async ({ page }) => {
+    await page.addInitScript(() => {
+      const prefs = JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}')
+      localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, novaCara: true }))
+    })
+    await page.goto('/app/?exemplo=ostria')
+    await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
+    await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
+    await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Marés')
+    await page.getByRole('combobox', { name: 'Tipo da nova ficha' }).selectOption('magia')
+    await page.getByRole('button', { name: 'Criar ficha' }).click()
+    await fichaModo(page, 'Editar')
+    await page.getByRole('group', { name: 'Começar com um modelo' }).getByRole('button', { name: 'Elementos' }).click()
+    await fichaModo(page, 'Ler')
+    const ceu = page.getByRole('group', { name: 'Constelação de Marés' })
+    const arrastar = async (de: string, ate: string) => {
+      await ceu.scrollIntoViewIfNeeded()
+      const a = (await ceu.getByRole('button', { name: de, exact: true }).locator('.star-dot').boundingBox())!
+      const b = (await ceu.getByRole('button', { name: ate, exact: true }).locator('.star-dot').boundingBox())!
+      await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+      await page.mouse.down()
+      await page.mouse.move((a.x + b.x) / 2, (a.y + b.y) / 2, { steps: 5 })
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 5 })
+      await page.mouse.up()
+    }
+    // Ar passa a pedir Terra.
+    await arrastar('Terra', 'Ar')
+    await ceu.getByRole('button', { name: 'Ar', exact: true }).click()
+    await expect(page.getByRole('region', { name: 'Poder: Ar' })).toContainText('pede: Terra')
+    // De novo: desliga.
+    await arrastar('Terra', 'Ar')
+    await expect(page.getByRole('region', { name: 'Poder: Ar' })).not.toContainText('pede:')
+  })
+})

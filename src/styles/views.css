@@ -13070,3 +13070,20 @@ body[data-clima='terror'] .focus-lines line {
   display: flex;
   gap: 0.5rem;
 }
+.power-sky-lines line.is-drag {
+  stroke: var(--star);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+  opacity: 1;
+}
+.power-sky.is-linking {
+  cursor: crosshair;
+  touch-action: none;
+}
+.power-sky.is-editable .star {
+  touch-action: none;
+}
+.power-sky-hint {
+  text-align: center;
+  margin: 0 0 0.3rem;
+}

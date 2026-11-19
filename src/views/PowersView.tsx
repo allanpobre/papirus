@@ -1,5 +1,5 @@
 import { Plus, Sparkles, Trash2, TriangleAlert } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { levelsOf, powerIssues, powerKey, powersAt, POWER_TEMPLATES, systemsOf, templateNodes, type PowerHad, type PowerNode } from '../logic/powers'
 import type { Entity, Scene } from '../model/schema'
 import { entityName, manuscriptOrder, newId, patch, sceneTitle } from '../model/universe'
@@ -12,10 +12,10 @@ import { EntityPicker } from '../ui/EntityPicker'
  */
 
 /** A árvore em níveis: quem não pede nada no alto; cada nó mostra o que pede, o custo e de quem é de nascença. */
-export function PowerTree({ system, had, scenes = [], link }: { system: Entity; had?: Map<string, PowerHad>; scenes?: Scene[]; link: (id: string) => React.ReactNode }) {
+export function PowerTree({ system, had, scenes = [], link, editable = false }: { system: Entity; had?: Map<string, PowerHad>; scenes?: Scene[]; link: (id: string) => React.ReactNode; editable?: boolean }) {
   const { prefs } = useWorkspace()
   // Nova cara: a árvore vira uma constelação (estrelas que acendem), como no Skyrim.
-  if (prefs.novaCara) return <PowerSky system={system} had={had} scenes={scenes} link={link} />
+  if (prefs.novaCara) return <PowerSky system={system} had={had} scenes={scenes} link={link} editable={editable && !had} />
   const nodes = system.nodes ?? []
   const name = (id: string) => nodes.find((n) => n.id === id)?.name ?? '?'
   return (
@@ -64,8 +64,24 @@ export function PowerTree({ system, had, scenes = [], link }: { system: Entity; 
  * acesas são as que a ficha tem naquele ponto da história. Tocar numa estrela mostra a carta dela. Cada
  * estrela é um botão (o leitor de tela lê o nome e se está acesa).
  */
-export function PowerSky({ system, had, scenes = [], link }: { system: Entity; had?: Map<string, PowerHad>; scenes?: Scene[]; link: (id: string) => React.ReactNode }) {
+export function PowerSky({ system, had, scenes = [], link, editable = false }: { system: Entity; had?: Map<string, PowerHad>; scenes?: Scene[]; link: (id: string) => React.ReactNode; editable?: boolean }) {
+  const { update } = useWorkspace()
   const nodes = system.nodes ?? []
+  // Montar arrastando (quem escreve, na ficha do sistema): de uma estrela até outra = "esta pede aquela".
+  const skyRef = useRef<HTMLDivElement>(null)
+  const [drag, setDrag] = useState<{ from: string; x: number; y: number; moved: boolean } | null>(null)
+  const toggleRequire = (from: string, to: string) =>
+    update((u) => {
+      const sys = u.entities.find((x) => x.id === system.id)
+      if (!sys) return u
+      return patch(u, 'entities', sys.id, {
+        nodes: (sys.nodes ?? []).map((n) => (n.id !== to ? n : { ...n, requires: n.requires.includes(from) ? n.requires.filter((r) => r !== from) : [...n.requires, from] })),
+      })
+    })
+  const relPos = (ev: React.PointerEvent) => {
+    const r = skyRef.current!.getBoundingClientRect()
+    return { x: ((ev.clientX - r.left) / r.width) * 100, y: ((ev.clientY - r.top) / r.height) * 100 }
+  }
   const levels = levelsOf(nodes)
   const [picked, setPicked] = useState<string | null>(null)
   const pos = new Map<string, { x: number; y: number }>()
@@ -82,7 +98,29 @@ export function PowerSky({ system, had, scenes = [], link }: { system: Entity; h
         <strong>{system.name || 'Poderes'}</strong>
         <span className="tiny muted">{count !== null ? `${count} de ${nodes.length} acesas · ` : ''}toque numa estrela</span>
       </p>
-      <div className="power-sky" style={{ height: `${Math.max(2, levels.length) * 104}px` }} role="group" aria-label={`Constelação de ${system.name || 'poderes'}`}>
+      {editable && <p className="tiny muted power-sky-hint">Arraste de uma estrela até outra para dizer que ela pede a primeira (de novo desfaz).</p>}
+      <div
+        ref={skyRef}
+        className={`power-sky${editable ? ' is-editable' : ''}${drag?.moved ? ' is-linking' : ''}`}
+        style={{ height: `${Math.max(2, levels.length) * 104}px` }}
+        role="group"
+        aria-label={`Constelação de ${system.name || 'poderes'}`}
+        onPointerMove={(ev) => {
+          if (!drag) return
+          const p = relPos(ev)
+          const far = Math.abs(p.x - (pos.get(drag.from)?.x ?? 0)) + Math.abs(p.y - (pos.get(drag.from)?.y ?? 0)) > 4
+          setDrag({ ...drag, ...p, moved: drag.moved || far })
+        }}
+        onPointerUp={(ev) => {
+          if (!drag) return
+          if (drag.moved) {
+            const target = (document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null)?.closest<HTMLElement>('[data-node]')?.dataset.node
+            if (target && target !== drag.from) toggleRequire(drag.from, target)
+          }
+          setDrag(null)
+        }}
+        onPointerLeave={() => setDrag(null)}
+      >
         <svg className="power-sky-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           {nodes.flatMap((n) =>
             n.requires.map((r) => {
@@ -93,6 +131,7 @@ export function PowerSky({ system, had, scenes = [], link }: { system: Entity; h
               return <line key={`${r}-${n.id}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={on ? 'is-on' : ''} vectorEffect="non-scaling-stroke" />
             }),
           )}
+          {drag?.moved && pos.get(drag.from) && <line x1={pos.get(drag.from)!.x} y1={pos.get(drag.from)!.y} x2={drag.x} y2={drag.y} className="is-drag" vectorEffect="non-scaling-stroke" />}
         </svg>
         {nodes.map((n) => {
           const p = pos.get(n.id)!
@@ -105,7 +144,16 @@ export function PowerSky({ system, had, scenes = [], link }: { system: Entity; h
               style={{ left: `${p.x}%`, top: `${p.y}%` }}
               aria-label={`${n.name || 'Sem nome'}${had ? (on ? ', acesa' : ', apagada') : ''}`}
               aria-pressed={picked === n.id}
-              onClick={() => setPicked(picked === n.id ? null : n.id)}
+              data-node={n.id}
+              onPointerDown={() => {
+                if (!editable) return
+                const p = pos.get(n.id)!
+                setDrag({ from: n.id, x: p.x, y: p.y, moved: false })
+              }}
+              onClick={() => {
+                if (drag?.moved) return
+                setPicked(picked === n.id ? null : n.id)
+              }}
             >
               <span className="star-dot" aria-hidden="true" />
               <span className="star-name">{n.name || 'Sem nome'}</span>
