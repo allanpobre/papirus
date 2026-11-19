@@ -38,6 +38,7 @@ import { TogetherHere } from './TogetherHere'
 import { appearancesOf, sceneCounts } from '../logic/appearances'
 import { EntityGame } from './EntityGame'
 import { EntityReader } from './EntityReader'
+import { CharacterCreator } from './CharacterCreator'
 import { KindQuestions } from './KindQuestions'
 import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
@@ -437,7 +438,17 @@ export default function EntitiesView() {
         {table ? (
           <EntityTable rows={list} kind={kind} counts={counts} onOpen={(id) => peek(id)} />
         ) : selected ? (
-          shownMode === 'jogo' && !readOnly ? (
+          // Nova cara: o personagem que acabou de nascer abre no criador (escolher em cartas), não no formulário.
+          nova && !readOnly && fresh === selected.id && selected.kind === 'personagem' ? (
+            <CharacterCreator
+              key={selected.id}
+              entity={selected}
+              onDone={() => {
+                setFresh(null)
+                setMode('ler')
+              }}
+            />
+          ) : shownMode === 'jogo' && !readOnly ? (
             <EntityGame key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="jogo" game onChange={changeMode} />} />
           ) : shownMode === 'ler' || readOnly ? (
             <EntityReader

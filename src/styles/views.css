@@ -12866,3 +12866,114 @@ body[data-clima='terror'] .focus-lines line {
 .graph-back-mural {
   margin: 0 0 0.4rem;
 }
+
+/* Nova cara: o criador de personagem (escolher em cartas, como no começo de um RPG). */
+.creator {
+  display: grid;
+  gap: 1.1rem;
+  padding-bottom: 2rem;
+}
+.creator-head {
+  text-align: center;
+  padding-top: 0.6rem;
+}
+.creator-name {
+  width: 100%;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  background: transparent;
+  color: var(--ink);
+  text-align: center;
+  font: 600 2rem var(--font-display);
+  padding: 0.2rem;
+}
+.creator-name:focus {
+  outline: none;
+  border-bottom-width: 3px;
+}
+.creator-step h2 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+.creator-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+.creator-card {
+  position: relative;
+  display: grid;
+  gap: 0.3rem;
+  align-content: start;
+  padding: 0 0 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+}
+.creator-card > :not(.creator-face) {
+  padding-inline: 0.6rem;
+}
+.creator-card.is-text {
+  padding: 0.7rem 0;
+}
+.creator-card[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft), var(--shadow-2);
+}
+.creator-card strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+.creator-sum {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.creator-face {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.creator-face .gen-cover,
+.creator-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.creator-face.is-big {
+  width: 140px;
+  aspect-ratio: 3 / 4;
+  border-radius: 70px 70px var(--radius) var(--radius);
+  border: 2px solid var(--accent);
+}
+.creator-portrait {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+}
+.creator-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 50%;
+  padding: 2px;
+}
+.creator-foot {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+}
