@@ -13,6 +13,17 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-19d',
+    when: '19 de novembro',
+    title: 'Línguas de verdade',
+    items: [
+      'Num povo ou cultura, a parte “Língua” começa com cartas de som (áspero, macio, muitas vogais…) que montam as sílabas.',
+      'Nomes de pessoa, de lugar (com um fim como “-heim”) e de família (com um começo como “Mac”).',
+      'Um dicionário pequeno, com “Gerar” palavra, e uma frase traduzida palavra a palavra.',
+      'Lugares sugeridos no estilo de um povo já saem com o fim de lugar dele.',
+    ],
+  },
+  {
     id: '2026-11-19c',
     when: '19 de novembro',
     title: 'Rolar no mundo',

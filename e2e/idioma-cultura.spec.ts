@@ -7,11 +7,11 @@ async function culturaComIdioma(page: import('@playwright/test').Page) {
   await page.getByRole('combobox', { name: 'Tipo da nova ficha' }).selectOption({ label: 'Cultura' })
   await page.getByLabel('Nome da nova ficha').fill('Gente do Sal')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
-  const idioma = page.locator('details.fold', { hasText: 'Idioma' })
+  const idioma = page.locator('details.fold', { has: page.locator('summary', { hasText: 'Língua' }) })
   await expect(idioma).toBeVisible()
   await idioma.locator('summary').click()
   await idioma.getByLabel('Sílabas').fill('sal- vo ra mi -dun -esh')
-  await idioma.getByLabel('Como soa').fill('macio, com s e v')
+  await idioma.getByLabel('Em palavras').fill('macio, com s e v')
   await idioma.getByLabel('Um exemplo').fill('Salvo mi dun')
   return idioma
 }
@@ -19,16 +19,16 @@ async function culturaComIdioma(page: import('@playwright/test').Page) {
 test('o povo ganha um idioma (sílabas, como soa e um exemplo) e dá para testar nomes ali mesmo', async ({ page }) => {
   const idioma = await culturaComIdioma(page)
   // "Testar": nomes montados só com as sílabas.
-  await idioma.getByRole('button', { name: 'Testar: sugerir nomes' }).click()
-  const tries = await idioma.getByLabel('Nomes de teste').innerText()
-  const names = tries.split(' · ')
+  await idioma.getByRole('button', { name: 'Pessoas' }).click()
+  const tries = await idioma.getByLabel('Nomes de pessoas').innerText()
+  const names = tries.replace('Pessoas: ', '').split(' · ')
   expect(names.length).toBeGreaterThanOrEqual(3)
   for (const n of names) expect(n.toLowerCase(), n).toMatch(/^(sal|vo|ra|mi|dun|esh)+$/)
   // E o que foi escrito fica guardado.
   await page.reload()
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
   await page.getByRole('button', { name: /^Gente do Sal/ }).first().click()
-  await expect(page.locator('details.fold', { hasText: 'Idioma' }).getByLabel('Sílabas')).toHaveValue('sal- vo ra mi -dun -esh')
+  await expect(page.locator('details.fold', { has: page.locator('summary', { hasText: 'Língua' }) }).getByLabel('Sílabas')).toHaveValue('sal- vo ra mi -dun -esh')
 })
 
 test('ao criar uma ficha, "Sugerir nomes" pode ser no estilo de um povo com idioma; sem idioma, no dos nomes que já existem', async ({ page }) => {
@@ -71,4 +71,23 @@ test('criar várias fichas na lista de um povo: os nomes sugeridos já vêm no e
   // Tocar num nome o põe numa linha nova da lista.
   await janela.getByRole('group', { name: 'Nomes sugeridos' }).getByRole('button').first().click()
   await expect(janela.getByRole('textbox', { name: 'Um nome por linha' })).toHaveValue(nomes[0])
+})
+
+test('língua: carta de som, nome de lugar, dicionário e frase traduzida', async ({ page }) => {
+  const lingua = await culturaComIdioma(page)
+  await lingua.getByRole('button', { name: /Som áspero/ }).click()
+  await expect(lingua.getByLabel('Sílabas')).toHaveValue(/kar-/)
+  await lingua.getByLabel('Fim de lugar').fill('-heim')
+  await lingua.getByRole('button', { name: 'Lugares' }).click()
+  const lugares = (await lingua.getByLabel('Nomes de lugares').innerText()).replace('Lugares: ', '').split(' · ')
+  for (const n of lugares) expect(n).toMatch(/heim$/)
+  await lingua.getByLabel('Quer dizer').fill('rio')
+  await lingua.getByLabel('Palavra na língua').fill('dun')
+  await lingua.getByRole('button', { name: 'Guardar', exact: true }).click()
+  await expect(lingua.getByRole('list', { name: 'Dicionário' })).toContainText('dun')
+  await lingua.getByLabel('Em português').fill('O rio canta')
+  const frase = lingua.getByLabel('Frase traduzida')
+  await expect(frase).toContainText('dun')
+  await lingua.getByRole('button', { name: 'Guardar a palavra nova' }).click()
+  await expect(lingua.getByRole('list', { name: 'Dicionário' })).toContainText('canta')
 })

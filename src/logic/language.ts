@@ -68,3 +68,83 @@ export function cultureOf(u: Universe, entityId: string): Entity | null {
   }
   return null
 }
+
+/* ---------------------------------------------------------------- Língua de verdade: sons, nomes, dicionário */
+
+/** Cartas de som: cada uma traz sílabas que soam de um jeito. Tocar numa carta junta as sílabas dela. */
+export const SOUND_CARDS: { id: string; name: string; hint: string; syllables: string[] }[] = [
+  { id: 'aspero', name: 'Som áspero', hint: 'k, r, g, th: duro, de montanha', syllables: ['kar-', 'gro-', 'thor', 'ur', 'krag', '-dur', '-gath', '-rok'] },
+  { id: 'macio', name: 'Som macio', hint: 'l, n, v: fluido, de floresta', syllables: ['el-', 'lia-', 'vel', 'na', 'lin', '-wen', '-iel', '-ael'] },
+  { id: 'vogais', name: 'Muitas vogais', hint: 'aberto, cantado, de ilha', syllables: ['ao-', 'ia', 'oe', 'ua', 'ei', '-oa', '-ae', '-ui'] },
+  { id: 'sibilante', name: 'Sibilante', hint: 's, z, x: sussurrado, de deserto', syllables: ['sa-', 'zah-', 'is', 'shi', 'xar', '-sir', '-az', '-ess'] },
+  { id: 'curto', name: 'Curto e seco', hint: 'sílabas fechadas, de gelo', syllables: ['bjo-', 'sig-', 'ulf', 'har', 'ste', '-vik', '-dr', '-holm'] },
+  { id: 'nobre', name: 'Nobre e longo', hint: 'para impérios e linhagens', syllables: ['aure-', 'vala-', 'mer', 'ion', 'ost', '-anor', '-erion', '-ius'] },
+]
+
+/** Junta as sílabas de uma carta às que já existem, sem repetir. */
+export function addSoundCard(syllables: string[], cardId: string): string[] {
+  const card = SOUND_CARDS.find((c) => c.id === cardId)
+  return card ? [...syllables, ...card.syllables.filter((s) => !syllables.includes(s))] : syllables
+}
+
+export type NameKind = 'pessoa' | 'lugar' | 'familia'
+
+/** Nomes de pessoa, de lugar (com o fim de lugar do idioma) ou de família (com o começo de família). */
+export function kindNames(lang: Language, kind: NameKind, count = 6, random = Math.random, avoid: string[] = []): string[] {
+  const base = languageNames(lang, count, random, avoid)
+  if (kind === 'lugar') {
+    const end = (lang.placeEnding ?? '').trim().replace(/^-/, '')
+    return end ? base.map((n) => (fold(n).endsWith(fold(end)) ? n : n + end.toLocaleLowerCase('pt-BR'))) : base
+  }
+  if (kind === 'familia') {
+    const pre = lang.familyPrefix ?? ''
+    // "Mac" vira "Mac Arel"; "O'" ou "al-" grudam no nome ("O'Arel", "al-Arel").
+    const p = pre.trim()
+    return p ? base.map((n) => `${p}${/['-]$/.test(p) ? '' : ' '}${n}`) : base
+  }
+  return base
+}
+
+/** Um número sempre igual para o mesmo texto, para a mesma palavra virar sempre a mesma tradução. */
+function seeded(text: string): () => number {
+  let h = 2166136261
+  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)
+    return ((h ^= h >>> 16) >>> 0) / 4294967296
+  }
+}
+
+/** Uma palavra nova no idioma para um significado: sempre a mesma para o mesmo significado, fora das que já existem. */
+export function wordFor(lang: Language, meaning: string): string {
+  const taken = (lang.words ?? []).map((w) => w.word)
+  const [w] = languageNames(lang, 1, seeded(fold(meaning)), taken)
+  return (w ?? '').toLocaleLowerCase('pt-BR')
+}
+
+/** Palavras pequenas que não se traduzem (artigos, preposições). */
+const GLUE = new Set(['o', 'a', 'os', 'as', 'um', 'uma', 'de', 'do', 'da', 'dos', 'das', 'e', 'em', 'no', 'na', 'nos', 'nas', 'que', 'ao', 'à'])
+
+export interface Translated {
+  /** A palavra em português. */
+  pt: string
+  /** No idioma (vazio para as que não se traduzem). */
+  word: string
+  /** Já está no dicionário? Se não, é sugestão. */
+  known: boolean
+}
+
+/** Traduz palavra a palavra: o que está no dicionário vale; o resto ganha uma sugestão (sempre a mesma). */
+export function translate(lang: Language, phrase: string): Translated[] {
+  const dict = new Map((lang.words ?? []).map((w) => [fold(w.meaning.trim()), w.word]))
+  return phrase
+    .split(/\s+/)
+    .map((raw) => raw.replace(/[^\p{L}'-]/gu, ''))
+    .filter(Boolean)
+    .map((pt) => {
+      const key = fold(pt)
+      if (dict.has(key)) return { pt, word: dict.get(key)!, known: true }
+      if (GLUE.has(pt.toLocaleLowerCase('pt-BR'))) return { pt, word: '', known: true }
+      return { pt, word: wordFor(lang, key), known: false }
+    })
+}
