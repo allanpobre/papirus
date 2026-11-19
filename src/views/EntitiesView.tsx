@@ -4,7 +4,7 @@ import { OriginChip } from './AUBanner'
 import { PassesEditor, WhoIsEditor } from './WhoIs'
 import { whoIsKeys } from '../logic/definers'
 import { NameIdeas } from './NameIdeas'
-import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X, SlidersHorizontal } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
 import { useMemo, useRef, useState } from 'react'
@@ -53,6 +53,7 @@ import { Fold } from '../ui/Fold'
 import { ArcCard } from './ArcCard'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { SecretTextarea } from '../ui/SecretText'
+import { GeneratedCover } from '../ui/GeneratedCover'
 import { RevealPicker } from '../ui/RevealPicker'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
@@ -73,7 +74,10 @@ import { useChosenYear } from './timeYear'
 import { YearBanner } from './YearBanner'
 
 export default function EntitiesView() {
-  const { universe, update, nav, go, readOnly, peek, bookId, toast } = useWorkspace()
+  const { universe, update, nav, go, readOnly, peek, bookId, toast, prefs } = useWorkspace()
+  // Nova cara: fichas como cartas com rosto e os filtros num botão.
+  const nova = !!prefs.novaCara
+  const [filtersOpen, setFiltersOpen] = useState(false)
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<FichaMode>(() => {
     // A chave antiga ("ficha-modo") guardava "editar" do tempo do Ler/Editar: agora a ficha abre na página.
@@ -257,6 +261,14 @@ export default function EntitiesView() {
           <>
         <div className="list-tools">
           <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Procurar…" title="Procura no nome, nos campos e na descrição" value={query} onChange={(e) => setQuery(e.target.value)} />
+          {/* Nova cara: menos controles à vista; tipo, papel, ordem e vista ficam num botão. */}
+          {nova && (
+            <button type="button" className="btn btn-ghost list-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+              <SlidersHorizontal size={16} aria-hidden="true" /> Filtros{kind !== 'todos' || roleFilter ? ' •' : ''}
+            </button>
+          )}
+          {(!nova || filtersOpen) && (
+          <>
           <Select
             label="Filtrar por tipo"
             value={kind}
@@ -286,7 +298,10 @@ export default function EntitiesView() {
               { value: 'papel', label: phone ? 'Papel' : 'Protagonistas primeiro' },
             ]}
           />
+          </>
+          )}
         </div>
+        {(!nova || filtersOpen) && (
         <div className="list-modes">
           {
             <div className="segmented" role="radiogroup" aria-label="Vista do Mundo">
@@ -304,6 +319,7 @@ export default function EntitiesView() {
             </button>
           )}
         </div>
+        )}
           </>
         )}
         {book && (
@@ -341,7 +357,7 @@ export default function EntitiesView() {
             {!universe.entities.length && <p>{phone ? 'Toque no + para criar uma' : 'Crie uma acima'}, ou selecione um nome no texto e escolha “Ficha”.</p>}
           </Empty>
         ) : (
-          <ul className="entity-list">
+          <ul className={`entity-list${nova && !picked ? ' is-cards' : ''}`}>
             {list.map((e) => (
               <li key={e.id}>
                 {picked ? (
@@ -352,7 +368,16 @@ export default function EntitiesView() {
                   </label>
                 ) : (
                 <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
-                  {e.image ? <Picture value={e.image} className="entity-row-pic" /> : <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />}
+                  {nova ? (
+                    <span className="entity-card-face" aria-hidden="true">
+                      {e.image ? <Picture value={e.image} className="entity-card-img" /> : <GeneratedCover name={e.name || '?'} />}
+                      {roleIn(e, bookId) && <span className="entity-card-role">{ROLE_LABEL[roleIn(e, bookId)!]}</span>}
+                    </span>
+                  ) : e.image ? (
+                    <Picture value={e.image} className="entity-row-pic" />
+                  ) : (
+                    <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />
+                  )}
                   <span className="entity-row-name">
                     {e.name || 'Sem nome'}
                     <OriginChip item={e} />

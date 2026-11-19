@@ -561,7 +561,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             current={area}
             inboxCount={openInbox}
             universeName={universe.name}
-            onGo={go}
+            onGo={(v) => go(nova && v === 'fichas' && universe.maps.length > 0 && nav.view !== 'fichas' && nav.view !== 'atlas' ? 'atlas' : v)}
             onTools={() => go('config', 'ferramentas')}
             shortcuts={nova ? NOVA_PLACES(visibleItems.some((i) => i.view === 'rpg')) : kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
             fixed={nova}
