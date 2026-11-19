@@ -15,6 +15,9 @@ import { fold } from './text'
 export type PowerNode = NonNullable<Entity['nodes']>[number]
 export type Learned = NonNullable<Entity['learned']>[number]
 
+/** Quem pode ter poderes (o bloco aparece no "+ Bloco" destes tipos, e nos tipos próprios do autor). */
+export const canHavePowers = (kind: string) => !['magia', 'lugar', 'reino', 'conceito', 'documento', 'religiao'].includes(kind)
+
 /** As fichas que têm árvore de poderes. */
 export const systemsOf = (u: Universe): Entity[] => u.entities.filter((e) => (e.nodes?.length ?? 0) > 0)
 
