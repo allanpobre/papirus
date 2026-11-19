@@ -27,8 +27,8 @@ test('lugares grandes na barra, História com a linha do tempo e o resto no Menu
   // O Menu tem o resto (Início, Publicar, Ajustes…), sem "Escolher atalhos".
   await barra.getByRole('button', { name: 'Menu' }).click()
   const menu = page.getByRole('group', { name: 'Todas as áreas' })
-  await expect(menu.getByRole('button', { name: 'Início', exact: true })).toBeVisible()
+  await expect(menu.getByRole('button', { name: /^Início/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Escolher atalhos' })).toHaveCount(0)
-  await menu.getByRole('button', { name: 'Início', exact: true }).click()
+  await menu.getByRole('button', { name: /^Início/ }).click()
   await expect(page.getByRole('region', { name: 'Em qual livro você vai trabalhar?' })).toBeVisible()
 })

@@ -14,6 +14,20 @@ export const SETTINGS_GROUPS: { id: SettingsGroup; label: string }[] = [
 ]
 
 /** Categorias dos Ajustes. As palavras ajudam a busca a achar o que a pessoa procura; `scope` diz para quem vale. */
+/** Uma frase do que tem dentro de cada categoria (aparece com a Nova cara, para ninguém precisar abrir para descobrir). */
+export const SETTINGS_HINTS: Record<SettingsCategory, string> = {
+  universo: 'Nome, capa, clima, Simples ou Completo, calendário e meta.',
+  dados: 'Baixar e trazer backup, pasta no computador, imagens e espaço.',
+  historico: 'O que foi apagado e as versões de antes, para voltar atrás.',
+  livros: 'Trazer um livro do Word ou Markdown e baixar a wiki.',
+  aparencia: 'Tema claro ou escuro, cor de destaque, letra e tamanho.',
+  escrita: 'O que aparece enquanto você escreve: nomes, margem, perguntas e som.',
+  menu: 'Esconder áreas do menu, atalhos, passeios e ajuda.',
+  ferramentas: 'Todas as áreas do Papirus, cada uma com uma frase.',
+  conta: 'Entrar, nuvem, amigos e o que você compartilha.',
+  servidor: 'Usar um servidor próprio (só para quem instala o Papirus).',
+}
+
 export const SETTINGS_CATEGORIES: { id: SettingsCategory; label: string; icon: LucideIcon; group: SettingsGroup; scope: string; words: string }[] = [
   {
     id: 'universo',

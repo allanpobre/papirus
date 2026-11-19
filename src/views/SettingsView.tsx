@@ -31,7 +31,7 @@ import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
 import { AccentPicker, AccountCard, EntityTemplatesCard, FieldTemplatesCard, ListTemplatesCard } from './SettingsParts'
 import { AllTools } from './AllTools'
-import { categoryFrom, matches, SETTINGS_CATEGORIES, SETTINGS_GROUPS, type SettingsCategory } from './settingsCategories'
+import { categoryFrom, matches, SETTINGS_CATEGORIES, SETTINGS_GROUPS, SETTINGS_HINTS, type SettingsCategory } from './settingsCategories'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useBackLayer } from '../ui/useBackLayer'
 import { isConfigured } from '../share/server'
@@ -132,9 +132,16 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               <ul>
                 {SETTINGS_CATEGORIES.filter((c) => c.group === g.id).map((c) => (
                   <li key={c.id}>
-                    <button type="button" className="settings-nav-item" aria-current={!query && cat === c.id && !listOnPhone ? 'page' : undefined} onClick={() => choose(c.id)}>
-                      <c.icon size={16} aria-hidden="true" />
-                      <span>{c.label}</span>
+                    <button type="button" className={`settings-nav-item${prefs.novaCara ? ' is-rich' : ''}`} aria-current={!query && cat === c.id && !listOnPhone ? 'page' : undefined} onClick={() => choose(c.id)}>
+                      <c.icon size={prefs.novaCara ? 20 : 16} aria-hidden="true" />
+                      {prefs.novaCara ? (
+                        <span className="settings-nav-text">
+                          <span>{c.label}</span>
+                          <small>{SETTINGS_HINTS[c.id]}</small>
+                        </span>
+                      ) : (
+                        <span>{c.label}</span>
+                      )}
                       <ChevronRight size={16} className="settings-nav-go" aria-hidden="true" />
                     </button>
                   </li>
