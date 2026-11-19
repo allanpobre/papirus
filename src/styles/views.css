@@ -12503,3 +12503,146 @@ body[data-clima='terror'] .hero-frame {
     padding-bottom: 110px;
   }
 }
+
+/* Nova cara: a constelação de poderes (estrelas que acendem; o formato muda com o clima). */
+.power-sky-wrap {
+  margin: 0.4rem 0 1rem;
+  font-family: var(--font-ui);
+}
+.power-sky-title {
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+  margin: 0 0 0.3rem;
+  text-align: center;
+}
+.power-sky-title strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+.power-sky {
+  position: relative;
+  border-radius: var(--radius-l);
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(1.2px 1.2px at 12% 18%, var(--ink) 50%, transparent 52%),
+    radial-gradient(1px 1px at 72% 34%, var(--ink) 50%, transparent 52%),
+    radial-gradient(1.4px 1.4px at 38% 76%, var(--ink) 50%, transparent 52%),
+    radial-gradient(1px 1px at 88% 82%, var(--ink) 50%, transparent 52%),
+    radial-gradient(1px 1px at 55% 12%, var(--ink) 50%, transparent 52%),
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--star) 14%, transparent), transparent 70%),
+    #0b1020;
+  overflow: hidden;
+  /* O céu é sempre noturno, em qualquer clima: as letras ficam claras. */
+  --ink: #e8eef8;
+  --muted: #8b97ab;
+  --line-strong: #3a4660;
+  --star: #f2d27a;
+}
+body[data-clima] .power-sky {
+  --star: var(--accent);
+}
+body[data-clima='fantasia'] .power-sky {
+  background-color: #120c07;
+}
+body[data-clima='terror'] .power-sky {
+  background-color: #0a0606;
+}
+.power-sky-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.power-sky-lines line {
+  stroke: var(--line-strong);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 5;
+  opacity: 0.8;
+}
+.power-sky-lines line.is-on {
+  stroke: var(--star);
+  stroke-width: 2;
+  stroke-dasharray: none;
+  opacity: 0.9;
+}
+.star {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  width: 96px;
+  background: none;
+  border: 0;
+  padding: 4px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.star-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  background: transparent;
+  transition: transform 0.15s;
+}
+.star.is-on {
+  color: var(--ink);
+}
+.star.is-on .star-dot {
+  border-color: var(--star);
+  background: var(--star);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--star) 18%, transparent), 0 0 18px var(--star);
+}
+.star.is-picked .star-dot {
+  transform: scale(1.35);
+  outline: 2px solid var(--star);
+  outline-offset: 5px;
+}
+.star-name {
+  font-size: 0.72rem;
+  line-height: 1.15;
+  text-align: center;
+}
+body[data-clima='ficcao'] .star-dot {
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+body[data-clima='ficcao'] .star.is-picked .star-dot {
+  transform: rotate(45deg) scale(1.35);
+}
+body[data-clima='terror'] .star-dot {
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+}
+body[data-clima='terror'] .star.is-picked .star-dot {
+  transform: rotate(-45deg) scale(1.35);
+}
+.star-card {
+  margin-top: 0.6rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+.star-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--accent);
+}
+.star-card p {
+  margin: 0.3rem 0 0;
+}
+.star-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.star-card .chip.ok {
+  border-color: var(--ok);
+  color: var(--ok);
+}

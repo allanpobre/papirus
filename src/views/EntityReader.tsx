@@ -784,7 +784,7 @@ const HERO_TABS: [HeroTab, string][] = [
   ['diario', 'Diário'],
   ['referencias', 'Referências'],
 ]
-const HERO_TAB_OF: Record<string, HeroTab> = { ligacoes: 'ligacoes', listas: 'ligacoes', poderes: 'poderes', arvore: 'poderes', fases: 'diario', tempo: 'diario', aparece: 'diario', referencias: 'referencias' }
+const HERO_TAB_OF: Record<string, HeroTab> = { ligacoes: 'ligacoes', listas: 'ligacoes', poderes: 'poderes', fases: 'diario', tempo: 'diario', aparece: 'diario', referencias: 'referencias' }
 
 /** Uma seção do que o leitor já sabe naquele ponto (ligações, fatos, datas), como no caderno do leitor. */
 function ReaderKnows({ title, items }: { title: string; items: React.ReactNode[] }) {
