@@ -13334,3 +13334,61 @@ body[data-nova] .view-top.has-parts .view-top-end {
 .settings-nav-item.is-rich[aria-current='page'] {
   border-color: var(--accent);
 }
+
+/* ---------------------------------------------------------------- Rolar no mundo */
+.roll-tables {
+  margin: 10px 0 14px;
+}
+.roll-die {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 14px;
+  border: 2px solid var(--accent);
+  border-radius: 22px;
+  background: var(--accent-faint);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  animation: roll-spin 0.45s ease-out;
+}
+.roll-die:active {
+  transform: scale(0.95);
+}
+@keyframes roll-spin {
+  from { transform: rotate(-25deg) scale(0.9); }
+  to { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roll-die { animation: none; }
+}
+.roll-result {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.roll-result h3 {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.roll-result p {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+.roll-result .roll-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.roll-before {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}

@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-19c',
+    when: '19 de novembro',
+    title: 'Rolar no mundo',
+    items: [
+      'No Mundo, o botão “Rolar” sorteia boatos, encontros na estrada, nomes de taverna, segredos, o clima do dia e festas.',
+      'O sorteio usa o seu mundo: lugares, povos, personagens e grupos que já existem (nunca os secretos), e nomes novos na língua de um povo.',
+      'Gostou? “Virar pista” leva para a Trama; “Virar ideia” guarda em Ideias. As tabelas que você cria na Mesa também aparecem.',
+    ],
+  },
+  {
     id: '2026-11-19b',
     when: '19 de novembro',
     title: 'Cada ficha é dos seus livros',

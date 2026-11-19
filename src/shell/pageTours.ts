@@ -235,6 +235,7 @@ export const PAGE_TOURS = {
         optional: true,
       },
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       {
         target: '.split-list .quick-create, .fichas-view .fab',
         title: 'Nova ficha',
@@ -311,6 +312,7 @@ export const PAGE_TOURS = {
     steps: [
       LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       { target: '.graph-filters-btn', title: 'Filtros', body: 'No celular, o grafo vem primeiro. Os filtros (centrar numa ficha, tipos, um ponto da história) ficam aqui.', optional: true },
       { target: '.graph-find-btn', title: 'Achar uma ficha', body: 'A lupa leva o desenho até a ficha que você escolher e a deixa em destaque, com as ligações dela. Se ela não estiver no mapa agora, aparece só ela e quem se liga a ela.', optional: true },
       {
@@ -330,6 +332,7 @@ export const PAGE_TOURS = {
     steps: [
       LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       { target: '.timeline-view .quick-create', title: 'Novo evento', body: 'O nome e o ano, no calendário do seu mundo. Toque num evento para mudar o tipo (uma Era é uma faixa de tempo), a importância, quem participa e onde.' },
       { target: '.timeline-filters', title: 'Filtrar', body: 'Mostre só o que envolve certas fichas, só o que aconteceu num lugar (e nos lugares dentro dele) ou numa região pintada no mapa, só os eventos mais importantes, e escolha se as cenas com data e as sessões de jogo aparecem.' },
       { target: '.time-machine', title: 'Máquina do tempo', body: 'Arraste a régua (ou use − e +) para ver o mundo num ano: quem vivia e com que idade, quem mandava, o que existia. As Fichas e os Mapas passam a mostrar só o que existia nesse ano, com um aviso e o botão “Sair do ano”.', optional: true },
@@ -342,6 +345,7 @@ export const PAGE_TOURS = {
     title: 'Mapas',
     steps: [
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       { target: '.atlas-view .area-tools', title: 'Mapas', body: 'Cada mapa numa aba. “Adicionar mapa” envia uma imagem: desenho à mão, Inkarnate, qualquer coisa.' },
       { target: '.atlas-toolbar', title: 'Marcar lugares', body: '“Marcar lugar” e toque no mapa para pôr um marcador ligado a uma ficha. Os botões − e + mudam o zoom, e os tipos mostram ou escondem marcadores.', optional: true },
       { target: '.atlas-route-pick', title: 'Caminho de', body: 'Escolha um personagem: o trajeto dele pelas cenas aparece no mapa, numerado na ordem.', optional: true },

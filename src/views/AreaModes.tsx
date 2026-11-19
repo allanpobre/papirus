@@ -1,5 +1,6 @@
-import { BookMarked, CalendarRange, Globe, Lightbulb, MapIcon, Network, Sprout, type LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Dices, BookMarked, CalendarRange, Globe, Lightbulb, MapIcon, Network, Sprout, type LucideIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { RollDialog } from './RollDialog'
 import { useWorkspace, type View } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
 import { WAITING } from '../logic/firstSteps'
@@ -44,11 +45,17 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
   const area = areaOf(current, nova)
   const parts = partsOf(nova)[area].filter(([v]) => v === current || !hiddenViews.includes(v))
   // A wiki do mundo: à mão em todas as partes do Mundo, direto na página com a prévia.
+  const [rolling, setRolling] = useState(false)
   const wikiButton =
     area === 'mundo' ? (
+      <>
+      <button type="button" className="btn btn-ghost btn-sm area-roll" aria-label="Rolar no mundo" title="Rolar no mundo: boatos, encontros, segredos, tirados do seu mundo" onClick={() => setRolling(true)}>
+        <Dices size={15} aria-hidden="true" /> <span className="area-wiki-label">Rolar</span>
+      </button>
       <button type="button" className="btn btn-ghost btn-sm area-wiki" aria-label="Wiki" title="Ver, personalizar e baixar a wiki do mundo" onClick={() => go('wiki')}>
         <Globe size={15} aria-hidden="true" /> <span className="area-wiki-label">Wiki</span>
       </button>
+      </>
     ) : null
   // Primeira vez: as partes que ainda esperam o uso, e quando aparecem ("Mostrar todas" desliga).
   const waiting = WAITING.filter((w) => partsOf(nova)[area].some(([v]) => v === w.view) && waitingViews.includes(w.view))
@@ -80,6 +87,7 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
         }
       />
       {hint}
+    {rolling && <RollDialog onClose={() => setRolling(false)} />}
     </>
   )
 }
