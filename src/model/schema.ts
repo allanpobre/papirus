@@ -752,6 +752,8 @@ export const universeSettingsSchema = z.object({
   kind: z.enum(['escrita', 'campanha']).optional().catch(undefined),
   /** O jeito do Mundo: Simples mostra o essencial nas fichas e no menu; Completo, tudo. Só esconde, nunca apaga. */
   worldLevel: z.enum(['simples', 'completo']).optional().catch(undefined),
+  /** O clima do mundo (com a "Nova cara"): muda cores, letras, molduras e texturas do app inteiro. Sem valor: caderno. */
+  clima: z.enum(['caderno', 'fantasia', 'ficcao', 'terror']).optional().catch(undefined),
   /** Os personagens de jogador de antes já ganharam a ficha no Mundo (uma vez por universo). */
   playersLinked: z.boolean().optional(),
   /**

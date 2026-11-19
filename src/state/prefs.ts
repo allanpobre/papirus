@@ -28,6 +28,8 @@ export interface Prefs {
   sector: 'escrita' | 'rpg' | 'oficina' | 'comunidade'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
+  /** "Nova cara (teste)": o clima de cada mundo vale no app inteiro. */
+  novaCara?: boolean
   /** Primeira vez mais curta: partes que esperam o uso no primeiro universo (sem valor: nunca ligou). */
   firstSteps?: FirstSteps
   /** Último backup baixado e "lembrar depois", por universo (ISO). */

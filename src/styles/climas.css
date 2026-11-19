@@ -1,0 +1,123 @@
+/*
+ * Climas do mundo ("Nova cara (teste)"): o universo inteiro muda de cara conforme o clima escolhido em
+ * Ajustes › Universo. Só troca as variáveis de sempre (como os temas da Mesa) e acrescenta materiais:
+ * textura de fundo, molduras e profundidade. "Caderno" não tem regra: é o Papirus de sempre.
+ * Na Mesa, o tema da mesa vale por cima (mesa.css vem depois e tem a mesma força).
+ */
+
+/* Base comum dos climas escuros: avisos legíveis no escuro e profundidade. */
+body[data-clima='fantasia'],
+body[data-clima='ficcao'],
+body[data-clima='terror'] {
+  color-scheme: dark;
+  --accent-hover: color-mix(in srgb, var(--accent) 82%, var(--ink));
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  --accent-faint: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  --inverse-bg: var(--ink);
+  --inverse-fg: var(--bg);
+  --ochre: #e9c463;
+  --ochre-soft: #352c17;
+  --ochre-line: #9c7f3a;
+  --danger: #ff8a7a;
+  --danger-soft: #401f1c;
+  --ok: #8fd6a0;
+  --ok-soft: #1c3124;
+  --violet: #b9a6f5;
+  --violet-soft: #2a2542;
+  --wine: #ef9cc0;
+  --wine-soft: #3d2131;
+  --sky: #93c3f0;
+  --sky-soft: #1c2b3d;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 45%);
+  --shadow-2: 0 14px 36px rgb(0 0 0 / 65%), 0 2px 8px rgb(0 0 0 / 45%);
+  --shadow-page: 0 1px 0 rgb(0 0 0 / 30%), 0 20px 48px -20px rgb(0 0 0 / 80%);
+  background-attachment: fixed;
+}
+
+/* Fantasia: pergaminho escuro, ouro e letras gravadas. */
+body[data-clima='fantasia'] {
+  --bg: #17110b;
+  --surface: #221910;
+  --surface-2: #2a1f14;
+  --surface-3: #352819;
+  --paper: #1f170f;
+  --ink: #f1e4c8;
+  --ink-2: #d8c7a3;
+  --muted: #b09a72;
+  --line: #4a3a24;
+  --line-strong: #6b5332;
+  --accent: #d9b45b;
+  --accent-ink: #1a1405;
+  --font-display: 'Cinzel', 'Young Serif', Georgia, serif;
+  --font-text: 'EB Garamond', 'Literata Variable', Georgia, serif;
+  --radius-s: 4px;
+  --radius: 6px;
+  --radius-l: 10px;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(120% 60% at 50% 0%, rgb(217 180 91 / 10%), transparent 60%),
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 1.5%) 0 2px, transparent 2px 6px);
+}
+
+/* Ficção científica: painéis escuros, linhas finas e luz azul. */
+body[data-clima='ficcao'] {
+  --bg: #070b16;
+  --surface: #0c1426;
+  --surface-2: #0f1930;
+  --surface-3: #15223f;
+  --paper: #0b1222;
+  --ink: #dff6ff;
+  --ink-2: #b6d6e6;
+  --muted: #7fa3b8;
+  --line: #1c3354;
+  --line-strong: #2b4f7a;
+  --accent: #38d3ff;
+  --accent-ink: #04121a;
+  --font-display: 'IBM Plex Mono', ui-monospace, monospace;
+  --radius-s: 2px;
+  --radius: 3px;
+  --radius-l: 4px;
+  background-color: var(--bg);
+  background-image:
+    repeating-linear-gradient(0deg, rgb(56 211 255 / 4%) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgb(56 211 255 / 4%) 0 1px, transparent 1px 32px);
+}
+
+/* Terror: escuro, papel velho e vermelho de sangue. */
+body[data-clima='terror'] {
+  --bg: #0b0909;
+  --surface: #151010;
+  --surface-2: #1b1414;
+  --surface-3: #241a1a;
+  --paper: #120e0e;
+  --ink: #e2d6c8;
+  --ink-2: #c4b6a6;
+  --muted: #8f7f73;
+  --line: #352222;
+  --line-strong: #553333;
+  --accent: #c8323a;
+  --accent-ink: #fff4f0;
+  --font-display: 'Playfair Display', 'Young Serif', Georgia, serif;
+  --font-text: 'Crimson Pro', 'Literata Variable', Georgia, serif;
+  --radius-s: 0px;
+  --radius: 2px;
+  --radius-l: 3px;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(90% 60% at 50% 20%, rgb(200 50 58 / 8%), transparent 70%),
+    repeating-radial-gradient(circle at 30% 40%, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 3px);
+}
+
+/* Materiais: títulos gravados e destaque com brilho, no lugar do chapado. */
+body[data-clima='fantasia'] :is(h1, h2, .view-top-area, .section-title) {
+  letter-spacing: 0.04em;
+}
+body[data-clima='ficcao'] :is(h1, h2, .view-top-area, .section-title) {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+body[data-clima='fantasia'] .btn-primary,
+body[data-clima='ficcao'] .btn-primary,
+body[data-clima='terror'] .btn-primary {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent), 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
