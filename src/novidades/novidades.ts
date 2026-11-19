@@ -21,6 +21,7 @@ export const NOVIDADES: Novidade[] = [
       'Dê a escala do mapa (dias a pé de ponta a ponta) e as rotas calculam os dias sozinhas; ou escreva os dias.',
       'No “Caminho de” um personagem, aparece quanto leva cada trecho e um aviso quando a história o faz viajar rápido demais.',
       'Camadas: mostre ou esconda fronteiras, povos e línguas, crenças e rotas. Regiões agora também podem ser de um povo ou de uma religião.',
+      'Sem mapa? “Gerar” cria um continente (costa, montanhas, rios e florestas) para marcar os lugares por cima.',
     ],
   },
   {

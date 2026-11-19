@@ -1,5 +1,5 @@
 import { bookScope } from '../logic/bookScope'
-import { Check, Hexagon, ImagePlus, MapPin, Minus, Plus, Route as RouteIcon, Trash2, TriangleAlert, X } from 'lucide-react'
+import { Check, Hexagon, ImagePlus, MapPin, Mountain, Minus, Plus, Route as RouteIcon, Trash2, TriangleAlert, X } from 'lucide-react'
 import { daysText, fastTravels, MODE_LABEL, modeDays, ROUTE_LABEL, routeDays, travelDays, type Mode, type Route } from '../logic/travel'
 import { ROUTE_KINDS } from '../model/schema'
 import { centroid, inside, regionIn, type Region } from '../logic/regions'
@@ -21,6 +21,7 @@ import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
 import { GeneratedCover } from '../ui/GeneratedCover'
+import { drawContinent } from './continentCanvas'
 import { membersOf } from '../model/lists'
 import { useChosenYear } from './timeYear'
 import { existsIn } from '../logic/timeMachine'
@@ -61,6 +62,23 @@ export default function AtlasView() {
   const map = (mapId && byId(universe, 'maps', mapId)) || universe.maps[0]
 
   const [cropping, setCropping] = useState<File | null>(null)
+  // Gerar um continente: costa, montanhas, rios e florestas. "Outro" no aviso troca a imagem por outra semente.
+  const addContinent = () => {
+    const img = drawContinent(Math.floor(Math.random() * 1e9))
+    let id = ''
+    update((u) => {
+      const [next, m] = insert(u, 'maps', draftMap('Continente', img.data, img.width, img.height))
+      id = m.id
+      return next
+    })
+    setMapId(id)
+    const again = () => {
+      const next = drawContinent(Math.floor(Math.random() * 1e9))
+      update((u) => patch(u, 'maps', id, { image: next.data }))
+      toast('Outro continente.', { action: { label: 'Outro', run: again } })
+    }
+    toast('Continente gerado. Marque os lugares por cima.', { action: { label: 'Outro', run: again } })
+  }
   const addMap = async (file?: File, crop?: Rect) => {
     try {
       // O mapa vai para as imagens do universo (fora do arquivo do universo, que fica leve).
@@ -90,6 +108,9 @@ export default function AtlasView() {
         </div>
         <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
           <ImagePlus size={16} /> Adicionar mapa
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={addContinent} title="Gerar um continente (costa, montanhas, rios e florestas) para começar">
+          <Mountain size={16} /> Gerar
         </button>
         <input
           ref={fileRef}
@@ -126,6 +147,9 @@ export default function AtlasView() {
           <div className="inline-fields">
             <button type="button" className="btn btn-primary" onClick={() => fileRef.current?.click()}>
               <ImagePlus size={16} /> Enviar imagem
+            </button>
+            <button type="button" className="btn" onClick={addContinent}>
+              <Mountain size={16} /> Gerar um continente
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => void addMap()}>
               Começar com um pergaminho em branco
