@@ -27,8 +27,7 @@ import {
   patch,
   remove,
   removeEntity,
-  chosenBook,
-} from '../model/universe'
+  chosenBook, bookIdsOf } from '../model/universe'
 import { recall, remember } from '../state/prefs'
 import { useWorkspace } from '../state/workspace'
 import { worldLevel } from '../model/kind'
@@ -115,7 +114,8 @@ export default function EntitiesView() {
   const fromTemplate = (t: (typeof templates)[number]) => {
     let id = ''
     update((u) => {
-      const [next, ent] = createFromTemplate(u, t, newName.trim())
+      const [made, ent] = createFromTemplate(u, t, newName.trim())
+      const next = bookIdsOf(bookId) ? patch(made, 'entities', ent.id, { books: bookIdsOf(bookId)! }) : made
       id = ent.id
       return next
     })
@@ -153,6 +153,8 @@ export default function EntitiesView() {
   // Quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro (a mesma regra da Linha do tempo e dos Mapas).
   const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
   const inNoBook = (id: string) => (scope ? scope.inNoBook(id) : !counts.get(id))
+  // Com um livro escolhido: quantas fichas ainda não são de livro nenhum (só aparecem em "Todos os livros").
+  const noBook = scope ? universe.entities.filter((e) => inNoBook(e.id)).length : 0
   const book = chosenBook(universe, bookId)
   const [everyone, setEveryone] = useState(false)
   const onlyBook = Boolean(book) && !everyone
@@ -174,7 +176,7 @@ export default function EntitiesView() {
       .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
       // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
       // Com um livro escolhido, somem só as fichas que aparecem apenas em outros livros.
-      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || inNoBook(e.id) || e.id === fresh)
+      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || Boolean(scope?.belongs(e.id)) || e.id === fresh)
       .filter(
         (e) =>
           !q ||
@@ -203,7 +205,7 @@ export default function EntitiesView() {
     if (!name) return
     let id = ''
     update((u) => {
-      const [next, ent] = insert(u, 'entities', draftEntity(newKind, name))
+      const [next, ent] = insert(u, 'entities', { ...draftEntity(newKind, name), ...(bookIdsOf(bookId) ? { books: bookIdsOf(bookId)! } : {}) })
       id = ent.id
       return next
     })
@@ -327,7 +329,8 @@ export default function EntitiesView() {
           <p className="book-filter-note small">
             {onlyBook ? (
               <>
-                Quem aparece em “{book.title || 'Sem título'}” e as fichas que ainda não estão em livro nenhum.{' '}
+                Quem aparece em “{book.title || 'Sem título'}” ou foi posto nele.{' '}
+                {noBook > 0 && <strong>{noBook === 1 ? '1 ficha ainda sem livro.' : `${noBook} fichas ainda sem livro.`} </strong>}
                 <button type="button" className="link-btn" onClick={() => setEveryone(true)}>
                   Ver todas as fichas
                 </button>
@@ -428,7 +431,7 @@ export default function EntitiesView() {
               setCreating(null)
               setKind(k)
               setQuery('')
-              if (onlyBook && book) toast(`Fichas criadas. Ficam na lista de “${book.title || 'Sem título'}” (e de qualquer livro) até aparecerem no texto de algum.`)
+              if (onlyBook && book) toast(`Fichas criadas em “${book.title || 'Sem título'}”.`)
             }}
           />
         )}
@@ -1391,6 +1394,28 @@ export function BasicsEditor({ entity: e }: { entity: Entity }) {
             />
           )}
         </Field>
+      )}
+      {universe.stories.length > 1 && (
+        <fieldset className="field field-wide ficha-books">
+          <legend className="field-label">Livros desta ficha</legend>
+          <p className="field-hint">Escolhendo um livro no alto, a ficha aparece nos livros marcados aqui e nos livros em que ela aparece no texto. Sem nenhum e sem cena, ela só aparece em “Todos os livros”.</p>
+          <div className="chips" role="group" aria-label="Livros desta ficha">
+            {universe.stories.map((st) => {
+              const on = (e.books ?? []).includes(st.id)
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  className="chip"
+                  aria-pressed={on}
+                  onClick={() => set({ books: on ? (e.books ?? []).filter((b) => b !== st.id) : [...(e.books ?? []), st.id] })}
+                >
+                  {st.title || 'Sem título'}
+                </button>
+              )
+            })}
+          </div>
+        </fieldset>
       )}
       {(e.kind === 'personagem' || e.role || e.bookRoles) && universe.stories.length > 1 && (
         <fieldset className="field field-wide book-roles">

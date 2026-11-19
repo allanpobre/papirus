@@ -27,22 +27,32 @@ describe('quem vale para o livro escolhido', () => {
     expect(bookScope(u, null)).toBeNull()
   })
 
-  it('vale quem aparece no livro e quem ainda não aparece em livro nenhum', () => {
+  it('vale quem aparece no livro; a ficha sem livro e sem cena não aparece em todos os livros', () => {
     const { u, um, dois, ana, beto, cris, vila } = twoBooks()
     const livroUm = bookScope(u, um.id)!
     expect(livroUm.belongs(ana.id)).toBe(true)
     expect(livroUm.belongs(beto.id)).toBe(false)
-    // Fichas novas (nem em cena nenhuma) valem para qualquer livro.
-    expect(livroUm.belongs(cris.id)).toBe(true)
-    expect(livroUm.belongs(vila.id)).toBe(true)
+    // Sem livro e sem cena: fica só em "Todos os livros" (e é contada como "sem livro").
+    expect(livroUm.belongs(cris.id)).toBe(false)
+    expect(livroUm.belongs(vila.id)).toBe(false)
     expect(livroUm.inNoBook(cris.id)).toBe(true)
     expect(livroUm.inNoBook(ana.id)).toBe(false)
-    expect(livroUm.inBook(cris.id)).toBe(false)
 
     const livroDois = bookScope(u, dois.id)!
     expect(livroDois.belongs(beto.id)).toBe(true)
     expect(livroDois.belongs(ana.id)).toBe(false)
-    expect(livroDois.belongs(vila.id)).toBe(true)
+  })
+
+  it('a ficha posta num livro à mão (ou com papel nele) vale só para ele', () => {
+    const { u, um, dois, cris } = twoBooks()
+    const comLivro = { ...u, entities: u.entities.map((e) => (e.id === cris.id ? { ...e, books: [dois.id] } : e)) }
+    expect(bookScope(comLivro, dois.id)!.belongs(cris.id)).toBe(true)
+    expect(bookScope(comLivro, um.id)!.belongs(cris.id)).toBe(false)
+    expect(bookScope(comLivro, um.id)!.inNoBook(cris.id)).toBe(false)
+    const comPapel = { ...u, entities: u.entities.map((e) => (e.id === cris.id ? { ...e, bookRoles: { [um.id]: 'figurante' } } : e)) }
+    expect(bookScope(comPapel, um.id)!.belongs(cris.id)).toBe(true)
+    // Numa série (os dois livros juntos), vale quem é de qualquer um deles.
+    expect(bookScope(comLivro, `${um.id},${dois.id}`)!.belongs(cris.id)).toBe(true)
   })
 
   it('quando a ficha nova entra numa cena, passa a valer só para aquele livro', () => {

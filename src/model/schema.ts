@@ -277,6 +277,8 @@ export const entitySchema = z.object({
    * no 2. Opcional: sem marcação, vale o papel geral (`role`). Um valor desconhecido é ignorado ao ler.
    */
   bookRoles: z.record(z.string(), z.string()).optional().catch(undefined),
+  /** Os livros desta ficha, escolhidos à mão (além dos livros em que ela aparece no texto). */
+  books: z.array(z.string()).optional().catch(undefined),
   ...timestamps,
 })
 
