@@ -12,6 +12,17 @@ const FONTS: Partial<Record<Clima, () => Promise<unknown>>> = {
  * O clima do mundo vale no app inteiro enquanto o universo está aberto (com a "Nova cara (teste)"). Sem clima
  * (ou caderno), nada muda. Ao fechar o universo, volta ao de sempre.
  */
+/** A Nova cara está ligada (algumas peças mudam de lugar, como a régua no rodapé). */
+export function useNovaFlag(on: boolean) {
+  useEffect(() => {
+    if (!on) return
+    document.body.dataset.nova = ''
+    return () => {
+      delete document.body.dataset.nova
+    }
+  }, [on])
+}
+
 export function useWorldClimate(clima: Clima | null) {
   useEffect(() => {
     if (!clima || clima === 'caderno') return

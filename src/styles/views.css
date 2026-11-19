@@ -12297,3 +12297,209 @@ button.presence-dot {
   margin-left: auto;
   flex: 0 0 auto;
 }
+
+/* Nova cara: a tela do personagem (retrato em moldura, atributos em volta, selos e abas). */
+.entity-reader.is-hero .hero {
+  text-align: center;
+  padding: 0.2rem 0 0.4rem;
+}
+.hero-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 270px;
+  margin: 0 auto;
+  max-width: 460px;
+}
+.hero-frame {
+  width: 176px;
+  height: 228px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--accent);
+  border-radius: 88px 88px var(--radius) var(--radius);
+  background: var(--surface-3);
+  box-shadow: 0 0 0 6px rgb(0 0 0 / 18%), var(--shadow-2), inset 0 -40px 60px rgb(0 0 0 / 35%);
+  cursor: pointer;
+}
+.hero-frame:disabled {
+  cursor: default;
+}
+.hero-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+body[data-clima='ficcao'] .hero-frame {
+  border-radius: 3px;
+  clip-path: polygon(14% 0, 100% 0, 100% 86%, 86% 100%, 0 100%, 0 14%);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+body[data-clima='terror'] .hero-frame {
+  border-radius: 0;
+  border-color: color-mix(in srgb, var(--accent) 40%, #5a3a35);
+  filter: sepia(0.35) contrast(1.08);
+}
+.hero-stat {
+  position: absolute;
+  width: 84px;
+  display: grid;
+  gap: 0.1rem;
+  font-family: var(--font-display);
+}
+.hero-stat small {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-stat b {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+.hero-stat b :is(a, button) {
+  font: inherit;
+}
+.hero-stat.is-changed b {
+  color: var(--ok);
+}
+.hero-stat.is-changed small::after {
+  content: ' ▲';
+  color: var(--ok);
+}
+.hero-stat-1 {
+  left: 0;
+  top: 24px;
+  text-align: left;
+}
+.hero-stat-2 {
+  right: 0;
+  top: 24px;
+  text-align: right;
+}
+.hero-stat-3 {
+  left: 0;
+  bottom: 30px;
+  text-align: left;
+}
+.hero-stat-4 {
+  right: 0;
+  bottom: 30px;
+  text-align: right;
+}
+.hero-name {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin: 0.4rem 0 0.2rem;
+  line-height: 1.1;
+}
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+.hero-role,
+.hero-kind {
+  padding: 0.15rem 0.7rem;
+  border: 1px solid var(--accent);
+  border-radius: 99px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hero-kind {
+  border-color: var(--line-strong);
+  color: var(--muted);
+}
+.hero-seals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0.7rem 0 0;
+}
+.hero-seal {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.hero-seal.is-locked {
+  border-style: dashed;
+  color: var(--muted);
+}
+.reader-title.is-under-hero {
+  text-align: center;
+}
+.reader-title.is-under-hero .reader-lede {
+  margin-inline: auto;
+  max-width: 34em;
+}
+.hero-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.1rem;
+  margin: 0.6rem 0 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.hero-tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.5rem 0.1rem;
+  font: 600 0.74rem var(--font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+.hero-tabs button[aria-current='page'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+/* A régua no rodapé (Nova cara, no celular): uma linha que não cobre a página. */
+@media (max-width: 760px) {
+  body[data-nova] .entity-reader .story-point {
+    position: fixed;
+    top: auto;
+    flex-wrap: nowrap;
+    left: 8px;
+    right: 8px;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+    z-index: 25;
+    margin: 0;
+    border-radius: 22px;
+    box-shadow: var(--shadow-2);
+  }
+  body[data-nova] .entity-reader .story-point-note {
+    display: none;
+  }
+  body[data-nova] .entity-reader .story-point-pick {
+    flex: 1 1 auto;
+  }
+  body[data-nova] .entity-reader .story-point-reader {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  body[data-nova] .entity-reader {
+    padding-bottom: 110px;
+  }
+}

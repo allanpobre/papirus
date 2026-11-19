@@ -40,12 +40,14 @@ import { StoryPointBar } from '../ui/StoryPointBar'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge, Field } from '../ui/bits'
 import { Picture } from '../images/Picture'
+import { GeneratedCover } from '../ui/GeneratedCover'
 import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
 export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
-  const { universe, go, goBack, bookId, readOnly, update, undoable } = useWorkspace()
+  const { universe, go, goBack, bookId, readOnly, update, undoable, prefs } = useWorkspace()
+  const nova = !!prefs.novaCara
   // A régua da história: até qual cena se olha, e se é como o leitor (só o que ele já sabe ali).
   const scenes = manuscriptOrder(universe)
   const [point] = useStoryPoint(universe.id)
@@ -60,6 +62,8 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editHead, setEditHead] = useState(false)
   const [arrange, setArrange] = useState(false)
+  // Nova cara: a ficha vira a tela do personagem, com abas.
+  const [tab, setTab] = useState<HeroTab>('visao')
   const canDomino = worldLevel(universe) === 'completo' && universe.relations.some((r) => r.fromId === e.id || r.toId === e.id)
   const others = useMemo(() => new MentionMatcher(universe.entities.filter((x) => x.id !== base.id)), [universe.entities, base.id])
   const reader = point.reader && scenes.length > 0
@@ -230,7 +234,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const quadroView =
     e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0 || onMap ? (
       <aside className="reader-infobox" aria-label="Em resumo">
-        {e.image && <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="reader-portrait" />}
+        {e.image && !nova && <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="reader-portrait" />}
         {onMap && <MapGlimpse entity={e} />}
         {infobox.length > 0 && (
           <dl>
@@ -538,8 +542,24 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
     .filter((t) => (t !== 'arvore' || base.kind === 'magia') && (t !== 'poderes' || (base.kind !== 'magia' && systemsOf(universe).length > 0)))
     .filter((t) => (t !== 'quem-e' || whoDefs.length > 0 || ['personagem', 'faccao', 'reino'].includes(base.kind)))
 
+  // --- Nova cara: a tela do personagem (retrato, atributos em volta, selos e abas). ---
+  const heroStats = infobox.filter(([k]) => k !== 'Também conhecido como' && k !== 'Fica em').slice(0, 4)
+  const changedKeys = new Set((phase?.phase.fields ?? []).map((f) => fold(f.key.trim())))
+  const seals = known.known
+    ? whoIsAt(universe, e, index, scenes).flatMap((r) => {
+        const hidden = reader && r.reveal?.future
+        if (hidden && !r.mask) return []
+        const shownOpt = hidden ? r.mask! : r.option
+        return [{ id: r.definerId, label: shownOpt.name || 'Sem nome', optionId: shownOpt.id, locked: !reader && !!r.reveal?.future, title: r.definerName }]
+      })
+    : []
+  const tabOf = (t: string): HeroTab => HERO_TAB_OF[t] ?? 'visao'
+  const tabs = HERO_TABS.filter(([t]) => t === 'visao' || shown.some(({ block }) => tabOf(block.type) === t))
+  const activeTab = tabs.some(([t]) => t === tab) ? tab : 'visao'
+  const inTab = nova ? shown.filter(({ block }) => tabOf(block.type) === activeTab) : shown
+
   return (
-    <article className="entity entity-reader" aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
+    <article className={`entity entity-reader${nova ? ' is-hero' : ''}`} aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
       <header className="reader-head">
         <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => goBack('fichas', null)}>
           <ArrowLeft size={18} />
@@ -566,14 +586,53 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
       <TogetherHere entityId={e.id} />
       <StoryPointBar />
 
-      <div className="reader-title">
+      {nova && (
+        <section className="hero" aria-label={`Retrato de ${e.name || 'Sem nome'}`}>
+          <div className="hero-stage">
+            <button
+              type="button"
+              className="hero-frame"
+              aria-label={tools ? 'Trocar o retrato e os campos' : `Retrato de ${e.name || 'Sem nome'}`}
+              disabled={!tools || !quadro}
+              onClick={() => quadro && setEditingId(quadro.id)}
+            >
+              {e.image ? <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="hero-portrait" /> : <GeneratedCover name={e.name || '?'} className="hero-portrait" />}
+            </button>
+            {heroStats.map(([k, v], i) => (
+              <div key={k} className={`hero-stat hero-stat-${i + 1}${changedKeys.has(fold(k.trim())) ? ' is-changed' : ''}`}>
+                <small>{k}</small>
+                <b>{v}</b>
+              </div>
+            ))}
+          </div>
+          <h1 className="hero-name">{e.name || 'Sem nome'}</h1>
+          <p className="hero-tags">
+            {roleIn(e, bookId) && <span className="hero-role">★ {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
+            {!roleIn(e, bookId) && <span className="hero-kind">{kindLabel(e.kind)}</span>}
+            {phase && <span className="phase-chip">{phase.phase.name || 'Fase'}</span>}
+            <OriginChip item={e} full />
+          </p>
+          {seals.length > 0 && (
+            <p className="hero-seals">
+              {seals.map((s) => (
+                <button key={s.id} type="button" className={`hero-seal${s.locked ? ' is-locked' : ''}`} title={s.locked ? `${s.title}: o leitor ainda não sabe` : s.title} onClick={() => go('fichas', s.optionId)}>
+                  {s.locked && <Lock size={11} aria-label="Segredo por enquanto" />} {s.label}
+                </button>
+              ))}
+            </p>
+          )}
+        </section>
+      )}
+      <div className={`reader-title${nova ? ' is-under-hero' : ''}`}>
+        {!nova && (
         <p className="eyebrow">
           <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" /> {kindLabel(e.kind)}
           {roleIn(e, bookId) && <span className="entity-role"> · {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
           <OriginChip item={e} full />
         </p>
-        <h1>{e.name || 'Sem nome'}</h1>
-        {phase && (
+        )}
+        {!nova && <h1>{e.name || 'Sem nome'}</h1>}
+        {!nova && phase && (
           <p className="phase-now small">
             <span className="phase-chip">{phase.phase.name || 'Fase'}</span> desde “{sceneTitle(scenes[phase.at])}”{phase.phase.cause && <span className="muted"> · {phase.phase.cause}</span>}
           </p>
@@ -626,9 +685,18 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
         </div>
       )}
 
+      {known.known && nova && tabs.length > 1 && (
+        <nav className="hero-tabs" aria-label="Partes da ficha">
+          {tabs.map(([t, label]) => (
+            <button key={t} type="button" aria-current={activeTab === t ? 'page' : undefined} onClick={() => setTab(t)}>
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
       {known.known && (
         <div className="reader-body">
-          {quadro && (quadroView || editingId === quadro.id) && (
+          {quadro && (nova ? editingId === quadro.id || (activeTab === 'visao' && quadroView && (infobox.length > 4 || onMap || children.length > 0 || e.tags.length > 0)) : quadroView || editingId === quadro.id) && (
             <BlockFrame
               block={quadro}
               label={BLOCK_LABEL.quadro}
@@ -643,7 +711,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             </BlockFrame>
           )}
           <div className={`reader-text${e.kind === 'documento' ? ' reader-doc' : ''}`}>
-            {shown.map(({ block: b, node }, i) => (
+            {inTab.map(({ block: b, node }, i) => (
               <BlockFrame
                 key={b.id}
                 block={b}
@@ -652,7 +720,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
                 tools={tools}
                 arrange={arrange}
                 first={i === 0}
-                last={i === shown.length - 1}
+                last={i === inTab.length - 1}
                 editing={editingId === b.id}
                 onEditing={(on) => setEditingId(on ? b.id : null)}
                 onMove={(step) => saveBlocks((x) => moveBlock(x, b.id, step, shownIds))}
@@ -665,7 +733,16 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
                 {node}
               </BlockFrame>
             ))}
-            {tools && <AddBlock entity={base} empty={emptyTypes} onOpen={(type, id) => setEditingId(id ?? layout.find((b) => b.type === type)?.id ?? type)} />}
+            {tools && (
+              <AddBlock
+                entity={base}
+                empty={emptyTypes}
+                onOpen={(type, id) => {
+                  setEditingId(id ?? layout.find((b) => b.type === type)?.id ?? type)
+                  if (nova) setTab(tabOf(type))
+                }}
+              />
+            )}
           </div>
         </div>
       )}
@@ -697,6 +774,17 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
     </article>
   )
 }
+
+/** Nova cara: as abas da tela do personagem e em qual delas mora cada bloco. */
+type HeroTab = 'visao' | 'ligacoes' | 'poderes' | 'diario' | 'referencias'
+const HERO_TABS: [HeroTab, string][] = [
+  ['visao', 'Visão'],
+  ['ligacoes', 'Ligações'],
+  ['poderes', 'Poderes'],
+  ['diario', 'Diário'],
+  ['referencias', 'Referências'],
+]
+const HERO_TAB_OF: Record<string, HeroTab> = { ligacoes: 'ligacoes', listas: 'ligacoes', poderes: 'poderes', arvore: 'poderes', fases: 'diario', tempo: 'diario', aparece: 'diario', referencias: 'referencias' }
 
 /** Uma seção do que o leitor já sabe naquele ponto (ligações, fatos, datas), como no caderno do leitor. */
 function ReaderKnows({ title, items }: { title: string; items: React.ReactNode[] }) {

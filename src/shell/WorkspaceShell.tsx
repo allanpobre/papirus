@@ -51,7 +51,7 @@ import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
-import { useWorldClimate } from '../ui/useWorldClimate'
+import { useNovaFlag, useWorldClimate } from '../ui/useWorldClimate'
 import { BookBand } from '../ui/BookShelf'
 import { climaOf } from '../model/climas'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
@@ -430,6 +430,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
   // Nova cara (teste): o clima do mundo vale no app inteiro.
   useWorldClimate(prefs.novaCara ? climaOf(universe) : null)
+  useNovaFlag(!!prefs.novaCara)
   // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
   const waiting = useMemo(() => waitingViews(universe, prefs.firstSteps), [universe, prefs.firstSteps])
   const hidden = useMemo(() => [...new Set([...hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), ...waiting])], [universe, prefs.menus, prefs.hiddenViews, waiting])
