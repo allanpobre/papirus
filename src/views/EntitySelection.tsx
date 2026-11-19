@@ -1,7 +1,7 @@
-import { Tag, Trash2, Users, X } from 'lucide-react'
+import { BookOpen, Tag, Trash2, Users, X } from 'lucide-react'
 import { useState } from 'react'
 import { addTagToMany, setKindOfMany } from '../model/lists'
-import { removeEntity } from '../model/universe'
+import { patch, removeEntity } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -11,8 +11,8 @@ import { useKindOptions } from './kindOptions'
 
 /** A barra de baixo quando há fichas marcadas no Mundo: o que fazer com todas de uma vez. */
 export function SelectionBar({ ids, onClear }: { ids: string[]; onClear: () => void }) {
-  const { undoable } = useWorkspace()
-  const [open, setOpen] = useState<null | 'lista' | 'etiqueta' | 'tipo'>(null)
+  const { undoable, universe } = useWorkspace()
+  const [open, setOpen] = useState<null | 'lista' | 'etiqueta' | 'tipo' | 'livro'>(null)
   const n = ids.length
   return (
     <div className="selection-bar" role="toolbar" aria-label="Fichas marcadas">
@@ -26,6 +26,11 @@ export function SelectionBar({ ids, onClear }: { ids: string[]; onClear: () => v
       <button type="button" className="btn btn-sm" disabled={!n} onClick={() => setOpen('tipo')}>
         Tipo
       </button>
+      {universe.stories.length > 1 && (
+        <button type="button" className="btn btn-sm" disabled={!n} onClick={() => setOpen('livro')}>
+          <BookOpen size={14} /> Livro
+        </button>
+      )}
       <ConfirmButton
         className="btn btn-sm btn-ghost selection-danger"
         question={`Apagar ${n === 1 ? 'a ficha marcada' : `as ${n} fichas marcadas`}? Cenas e fatos ficam, sem o vínculo.`}
@@ -51,6 +56,32 @@ export function SelectionBar({ ids, onClear }: { ids: string[]; onClear: () => v
             onClear()
           }}
         />
+      )}
+      {open === 'livro' && (
+        <Modal title={`Livro de ${n === 1 ? '1 ficha' : `${n} fichas`}`} size="sm" onClose={() => setOpen(null)}>
+          <p className="small muted">As fichas marcadas passam a ser deste livro (e continuam nos outros em que já estavam).</p>
+          <div className="chips" role="group" aria-label="Pôr no livro">
+            {universe.stories.map((st) => (
+              <button
+                key={st.id}
+                type="button"
+                className="chip"
+                onClick={() => {
+                  undoable(`${n === 1 ? '1 ficha' : `${n} fichas`} em “${st.title || 'Sem título'}”`, (u) =>
+                    ids.reduce((acc, id) => {
+                      const e = acc.entities.find((x) => x.id === id)
+                      return e && !(e.books ?? []).includes(st.id) ? patch(acc, 'entities', id, { books: [...(e.books ?? []), st.id] }) : acc
+                    }, u),
+                  )
+                  setOpen(null)
+                  onClear()
+                }}
+              >
+                {st.title || 'Sem título'}
+              </button>
+            ))}
+          </div>
+        </Modal>
       )}
       {open === 'tipo' && (
         <KindDialog

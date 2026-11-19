@@ -440,7 +440,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
               <button
                 key={p.id}
                 type="button"
-                className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}${scope && !scope.belongs(p.entityId) ? ' off-book' : ''}`}
+                className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}${scope && !scope.belongs(p.entityId) && !scope.inNoBook(p.entityId) ? ' off-book' : ''}`}
                 style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
                 aria-label={`${p.label || e?.name || 'Marcador'}${e ? `, ${kindLabel(e.kind)}` : ''}`}
                 onPointerDown={(ev) => {

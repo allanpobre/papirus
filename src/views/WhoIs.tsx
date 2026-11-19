@@ -335,13 +335,16 @@ export function WhoIsReader({
                 {traits.map((t) => (
                   <li key={t.key} className={t.exception !== null ? 'is-exception' : undefined}>
                     <span className="whois-key">{t.key}:</span>{' '}
-                    {t.exception === null ? (
-                      t.value || '—'
-                    ) : (
-                      <>
-                        <s>{t.value || '—'}</s> {t.exception.trim() || 'não tem'} <span className="muted small">(exceção)</span>
-                      </>
-                    )}
+                    {/* O valor numa peça só: no celular, a lista é uma grade e cada pedaço solto virava uma coluna. */}
+                    <span className="whois-value">
+                      {t.exception === null ? (
+                        t.value || '—'
+                      ) : (
+                        <>
+                          <s>{t.value || '—'}</s> {t.exception.trim() || 'não tem'} <span className="muted small">(exceção)</span>
+                        </>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>

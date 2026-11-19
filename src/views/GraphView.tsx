@@ -318,10 +318,10 @@ function GraphCanvas({ onMural }: { onMural?: () => void }) {
   // Fichas novas (que ainda não aparecem em livro nenhum) valem para qualquer livro: a mesma regra de Fichas, Linha do tempo e Mapas.
   const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
   // Com um livro escolhido, quem não aparece nele nem é ficha nova não entra no mapa (a busca não oferece).
-  const hiddenByBook = useMemo(() => (book ? universe.entities.filter((e) => !firstSeen.has(e.id) && !scope?.inNoBook(e.id)).map((e) => e.id) : []), [universe.entities, book, firstSeen, scope])
+  const hiddenByBook = useMemo(() => (book ? universe.entities.filter((e) => !firstSeen.has(e.id) && !scope?.belongs(e.id)).map((e) => e.id) : []), [universe.entities, book, firstSeen, scope])
   const { nodes, visibleEdges } = useMemo(() => {
     // Com um livro: quem aparece nele e quem ainda não aparece em livro nenhum (fichas novas).
-    let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind) && (!book || firstSeen.has(e.id) || Boolean(scope?.inNoBook(e.id)))).map((e) => e.id))
+    let ids = new Set(universe.entities.filter((e) => !hiddenKinds.has(e.kind) && (!book || firstSeen.has(e.id) || Boolean(scope?.belongs(e.id)))).map((e) => e.id))
     let es = edges.filter((e) => ids.has(e.from) && ids.has(e.to) && (e.kind !== 'por-tras' || ids.has(e.relation!.toId)))
     if (focusId && ids.has(focusId)) {
       const near = neighborhood(focusId, es, depth)

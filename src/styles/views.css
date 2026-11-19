@@ -13087,3 +13087,57 @@ body[data-clima='terror'] .focus-lines line {
   text-align: center;
   margin: 0 0 0.3rem;
 }
+
+/* Quem é, na leitura: a característica e o valor numa linha que quebra normalmente (sem colunas). */
+.whois-read .whois-traits li > .whois-value {
+  grid-column: 1 / -1;
+  overflow-wrap: normal;
+}
+/* Nova cara: atributos em volta do retrato usam a largura que sobra e não cortam palavra no meio. */
+.hero-stat {
+  width: calc(50% - 100px);
+  min-width: 70px;
+}
+.hero-stat b {
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: auto;
+}
+/* Nova cara: o texto da Visão vem primeiro; "Em resumo" e o mapa descem para depois dele. */
+.entity-reader.is-hero .reader-body {
+  display: flex;
+  flex-direction: column;
+}
+.entity-reader.is-hero .reader-body > .block-quadro {
+  order: 2;
+}
+
+/* O que mudou (novidades do Papirus). */
+.novidades {
+  display: grid;
+  gap: 1rem;
+}
+.novidade h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.1rem 0 0.4rem;
+  font-family: var(--font-display);
+}
+.novidade.is-new h3 {
+  color: var(--accent);
+}
+.novidade ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+.novidades-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 0.3rem;
+  border-radius: 50%;
+  background: var(--accent);
+}

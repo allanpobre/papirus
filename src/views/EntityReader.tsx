@@ -543,7 +543,9 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
     .filter((t) => (t !== 'quem-e' || whoDefs.length > 0 || ['personagem', 'faccao', 'reino'].includes(base.kind)))
 
   // --- Nova cara: a tela do personagem (retrato, atributos em volta, selos e abas). ---
-  const heroStats = infobox.filter(([k]) => k !== 'Também conhecido como' && k !== 'Fica em').slice(0, 4)
+  // Em volta do retrato, só o que é curto (idade, casa, uma palavra): o resto fica na Visão, sem espremer.
+  const rawOf = (k: string) => e.fields.find((f) => (f.key || 'Campo') === k)?.value ?? ''
+  const heroStats = infobox.filter(([k]) => k !== 'Também conhecido como' && k !== 'Fica em' && rawOf(k).trim().length <= 22).slice(0, 4)
   const changedKeys = new Set((phase?.phase.fields ?? []).map((f) => fold(f.key.trim())))
   const seals = known.known
     ? whoIsAt(universe, e, index, scenes).flatMap((r) => {

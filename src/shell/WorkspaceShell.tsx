@@ -53,6 +53,8 @@ import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { useNovaFlag, useWorldClimate } from '../ui/useWorldClimate'
 import { BookBand } from '../ui/BookShelf'
+import { NovidadesDialog } from '../novidades/NovidadesDialog'
+import { takeUnseen } from '../novidades/novidades'
 import { climaOf } from '../model/climas'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
@@ -428,6 +430,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const campaignGroup = universe.groups.find((g) => g.id === recall(`rpg-grupo:${universe.id}`)) ?? universe.groups[0]
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
   useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
+  // Novidades: depois de uma atualização, um aviso leva a "O que mudou" (que também fica no Menu).
+  const [newsOpen, setNewsOpen] = useState(false)
+  const [newsUnseen, setNewsUnseen] = useState(false)
+  useEffect(() => {
+    if (!takeUnseen()) return
+    setNewsUnseen(true)
+    toast('O Papirus mudou. Veja o que há de novo.', { action: { label: 'Ver', run: () => setNewsOpen(true) } })
+    // Só na abertura do universo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // Nova cara (teste): o clima do mundo vale no app inteiro.
   useWorldClimate(prefs.novaCara ? climaOf(universe) : null, universe.settings.climaModo ?? 'escuro')
   useNovaFlag(!!prefs.novaCara)
@@ -573,6 +585,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             onShare={source.kind === 'proprio' ? () => setShareOpen(true) : undefined}
             extras={
               <>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setNewsOpen(true)
+                    setNewsUnseen(false)
+                  }}
+                >
+                  <Sparkles size={15} aria-hidden="true" /> Novidades{newsUnseen && <span className="novidades-dot" aria-label="(há novidades)" />}
+                </button>
                 <AccountButton onClick={() => setAccountOpen(true)} />
                 <ThemeToggle prefs={prefs} setPref={setPref} />
               </>
@@ -810,6 +832,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
         <Suspense fallback={null}>
           {accountOpen && <AccountDialog library={library} prefs={prefs} setPref={setPref} onClose={() => setAccountOpen(false)} />}
+          {newsOpen && <NovidadesDialog onClose={() => { setNewsOpen(false); setNewsUnseen(false) }} />}
           {shareOpen && <ShareDialog linkFocus={shareLink} onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
         </Suspense>
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}

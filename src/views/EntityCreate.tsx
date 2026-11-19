@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { byId, draftEntity, insert } from '../model/universe'
+import { byId, draftEntity, insert, bookIdsOf, patch } from '../model/universe'
 import { createFromTemplate, templatesOf } from '../model/entityTemplates'
 import { addMembers, listsOf } from '../model/lists'
 import { EntityPicker } from '../ui/EntityPicker'
@@ -11,7 +11,9 @@ import { namesFromText, useKindOptions } from './kindOptions'
 
 /** No celular: criar uma ficha sem sair da lista ("Criar e fazer outra") ou abrir a nova. */
 export function NewEntityDialog({ initialKind, onClose, onOpen, onMany }: { initialKind: string; onClose: () => void; onOpen: (id: string) => void; onMany: () => void }) {
-  const { update, toast } = useWorkspace()
+  const { update, toast, bookId } = useWorkspace()
+  // Com um livro escolhido, a ficha nasce dele (não aparece nos outros livros).
+  const inBook = bookIdsOf(bookId)
   const options = useKindOptions()
   const [name, setName] = useState('')
   const [kind, setKind] = useState(initialKind)
@@ -20,7 +22,7 @@ export function NewEntityDialog({ initialKind, onClose, onOpen, onMany }: { init
     if (!n) return
     let id = ''
     update((u) => {
-      const [next, e] = insert(u, 'entities', draftEntity(kind, n))
+      const [next, e] = insert(u, 'entities', { ...draftEntity(kind, n), ...(inBook ? { books: inBook } : {}) })
       id = e.id
       return next
     })
@@ -68,7 +70,8 @@ export function NewEntityDialog({ initialKind, onClose, onOpen, onMany }: { init
 
 /** Várias fichas de uma vez: um nome por linha. Dá para desfazer. */
 export function BulkCreateDialog({ initialKind, onClose, onDone }: { initialKind: string; onClose: () => void; onDone: (kind: string) => void }) {
-  const { universe, undoable } = useWorkspace()
+  const { universe, undoable, bookId } = useWorkspace()
+  const inBook = bookIdsOf(bookId)
   const options = useKindOptions()
   const [text, setText] = useState('')
   const [kind, setKind] = useState(initialKind)
@@ -90,7 +93,8 @@ export function BulkCreateDialog({ initialKind, onClose, onDone }: { initialKind
       const ids: string[] = []
       let next = u
       for (const n of names) {
-        const [after, e] = template ? createFromTemplate(next, template, n) : insert(next, 'entities', draftEntity(kind, n))
+        let [after, e] = template ? createFromTemplate(next, template, n) : insert(next, 'entities', draftEntity(kind, n))
+        if (inBook) after = patch(after, 'entities', e.id, { books: inBook })
         ids.push(e.id)
         next = after
       }
