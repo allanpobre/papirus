@@ -22,6 +22,9 @@ test('Mundo pelo mapa e fichas como cartas, com os filtros num botão', async ({
   const lista = page.getByRole('region', { name: 'Lista de fichas' })
   await expect(lista.locator('.entity-list.is-cards')).toBeVisible()
   await expect(lista.locator('.entity-card-face').first()).toBeVisible()
+  // Em grupos, por tipo: Personagens primeiro, com a protagonista na frente.
+  await expect(lista.locator('.entity-group-head h3').first()).toHaveText(/^Personagens/)
+  await expect(lista.locator('.entity-list.is-cards .entity-row-name').first()).toHaveText(/^Dorothy/)
   // Menos controles: o filtro de tipo só aparece ao abrir "Filtros".
   await expect(lista.getByRole('combobox', { name: 'Filtrar por tipo' })).toHaveCount(0)
   await lista.getByRole('button', { name: /^Filtros/ }).click()

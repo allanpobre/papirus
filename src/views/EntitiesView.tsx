@@ -1,5 +1,5 @@
 import { bookScope } from '../logic/bookScope'
-import { compareByRole, roleIn } from '../logic/roles'
+import { compareByRole, roleIn, roleRank } from '../logic/roles'
 import { OriginChip } from './AUBanner'
 import { PassesEditor, WhoIsEditor } from './WhoIs'
 import { whoIsKeys } from '../logic/definers'
@@ -53,7 +53,6 @@ import { Fold } from '../ui/Fold'
 import { ArcCard } from './ArcCard'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { SecretTextarea } from '../ui/SecretText'
-import { GeneratedCover } from '../ui/GeneratedCover'
 import { RevealPicker } from '../ui/RevealPicker'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FactDialog } from '../ui/FactDialog'
@@ -362,7 +361,13 @@ export default function EntitiesView() {
           </Empty>
         ) : (
           <ul className={`entity-list${nova && !picked ? ' is-cards' : ''}`}>
-            {list.map((e) => (
+            {(nova && !picked ? groupedCards(list, (x) => (counts.get(x.id) ?? 0) > 0 || !hasScenes, bookId) : list.map((e) => ({ e }))).map((row) =>
+              'head' in row ? (
+                <li key={row.key} className={`entity-group-head${row.sub ? ' is-sub' : ''}`}>
+                  {row.sub ? <p className="tiny muted">{row.head}</p> : <h3>{row.head}</h3>}
+                </li>
+              ) : (
+              ((e) => (
               <li key={e.id}>
                 {picked ? (
                   <label className={`entity-row is-picking${picked.has(e.id) ? ' is-picked' : ''}`}>
@@ -374,7 +379,14 @@ export default function EntitiesView() {
                 <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
                   {nova ? (
                     <span className="entity-card-face" aria-hidden="true">
-                      {e.image ? <Picture value={e.image} className="entity-card-img" /> : <GeneratedCover name={e.name || '?'} />}
+                      {e.image ? (
+                        <Picture value={e.image} className="entity-card-img" />
+                      ) : (
+                        // Sem imagem: a cor do tipo e a inicial (calmo e igual para o mesmo tipo, sem sorteio).
+                        <span className="entity-card-plain" style={{ '--k': `var(--kind-${e.kind}, var(--accent))` } as React.CSSProperties}>
+                          {(e.name.trim()[0] ?? '?').toLocaleUpperCase('pt-BR')}
+                        </span>
+                      )}
                       {roleIn(e, bookId) && <span className="entity-card-role">{ROLE_LABEL[roleIn(e, bookId)!]}</span>}
                     </span>
                   ) : e.image ? (
@@ -395,7 +407,9 @@ export default function EntitiesView() {
                 </button>
                 )}
               </li>
-            ))}
+              ))(row.e)
+              ),
+            )}
           </ul>
         )}
         {picked && (
@@ -1474,4 +1488,27 @@ export function MoreOptionsEditor({ entity: e, simple }: { entity: Entity; simpl
       </label>
     </div>
   )
+}
+
+/**
+ * Nova cara: as cartas em grupos (Personagens, Lugares, Sistemas de magia…), com quem está no texto primeiro
+ * (protagonista na frente) e um subtítulo "Ainda só nas notas" para o resto. Assim a galeria não embaralha.
+ */
+function groupedCards(list: Entity[], inText: (e: Entity) => boolean, bookId: string | null): ({ head: string; key: string; sub?: boolean } | { e: Entity })[] {
+  const kinds = [...new Set(list.map((e) => e.kind))].sort((a, b) => {
+    const ia = (ENTITY_KINDS as readonly string[]).indexOf(a)
+    const ib = (ENTITY_KINDS as readonly string[]).indexOf(b)
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b, 'pt-BR')
+  })
+  const out: ({ head: string; key: string; sub?: boolean } | { e: Entity })[] = []
+  for (const k of kinds) {
+    const all = list.filter((e) => e.kind === k)
+    const shown = all.filter(inText).sort((a, b) => roleRank(roleIn(a, bookId)) - roleRank(roleIn(b, bookId)))
+    const notes = all.filter((e) => !inText(e))
+    out.push({ head: `${kindPlural(k)} (${all.length})`, key: `h-${k}` })
+    for (const e of shown) out.push({ e })
+    if (notes.length && shown.length) out.push({ head: 'Ainda só nas notas', key: `n-${k}`, sub: true })
+    for (const e of notes) out.push({ e })
+  }
+  return out
 }

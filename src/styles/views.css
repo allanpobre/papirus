@@ -13141,3 +13141,33 @@ body[data-clima='terror'] .focus-lines line {
   border-radius: 50%;
   background: var(--accent);
 }
+
+/* Nova cara: cartas em grupos (por tipo) e capas calmas (a cor do tipo e a inicial). */
+.entity-list.is-cards > .entity-group-head {
+  grid-column: 1 / -1;
+  margin: 0.6rem 0 -0.2rem;
+}
+.entity-group-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.3rem;
+}
+.entity-group-head.is-sub p {
+  margin: 0.2rem 0 -0.3rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.entity-card-plain {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font: 600 2.4rem var(--font-display);
+  color: color-mix(in srgb, var(--k) 70%, var(--ink));
+  background:
+    radial-gradient(80% 90% at 50% 20%, color-mix(in srgb, var(--k) 22%, transparent), transparent 70%),
+    color-mix(in srgb, var(--k) 10%, var(--surface-2));
+}
