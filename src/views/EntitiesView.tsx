@@ -65,6 +65,7 @@ import { SelectionBar } from './EntitySelection'
 import { EntityTable } from './EntityTable'
 import { createFromTemplate, saveAsTemplate, templatesOf } from '../model/entityTemplates'
 import { MoreMenu } from '../ui/MoreMenu'
+import { MenuGroup, MenuItem } from '../ui/MenuItem'
 import { listsOf, listTemplatesFor, PLACE_KINDS } from '../model/lists'
 import { useKindOptions } from './kindOptions'
 import { useMediaQuery } from '../ui/useMediaQuery'
@@ -596,56 +597,120 @@ type FichaMode = 'ler' | 'editar' | 'jogo'
  * Sem "Ler/Editar": a ficha é uma página só, editada no lugar. O formulário inteiro ("Editar tudo de uma vez") e a
  * ficha de jogo ficam no menu "⋯"; deles, "Ver a página" volta.
  */
-function ModeSwitch({ mode, game = false, onChange, entity }: { mode: FichaMode; game?: boolean; onChange: (m: FichaMode) => void; entity?: Entity }) {
-  const { undoable, go } = useWorkspace()
+function ModeSwitch({
+  mode,
+  game = false,
+  onChange,
+  entity,
+  extra,
+}: {
+  mode: FichaMode
+  game?: boolean
+  onChange: (m: FichaMode) => void
+  entity?: Entity
+  /** Itens da própria página da ficha (o básico, arrumar, e se sumir), no alto do menu. */
+  extra?: (close: () => void) => React.ReactNode
+}) {
+  const { undoable, go, prefs } = useWorkspace()
   if (mode !== 'ler')
     return (
       <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange('ler')}>
         <BookOpen size={15} aria-hidden="true" /> Ver a página
       </button>
     )
+  const nova = !!prefs.novaCara
   return (
-    <MoreMenu label="Mais da ficha">
-      {(close) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => {
-              close()
-              onChange('editar')
-            }}
-          >
-            <PenLine size={15} aria-hidden="true" /> Editar tudo de uma vez
-          </button>
-          {game && (
+    <MoreMenu label="Mais da ficha" popClass={nova ? 'menu-rich' : undefined}>
+      {(close) =>
+        nova ? (
+          <>
+            {extra?.(close)}
+            <MenuItem
+              icon={PenLine}
+              title="Editar tudo de uma vez"
+              hint="O formulário inteiro, com todos os campos."
+              onClick={() => {
+                close()
+                onChange('editar')
+              }}
+            />
+            {game && (
+              <>
+                <MenuGroup>Ver</MenuGroup>
+                <MenuItem
+                  icon={Dices}
+                  title="Ficha de jogo"
+                  hint="Atributos e rolagens da Mesa."
+                  onClick={() => {
+                    close()
+                    onChange('jogo')
+                  }}
+                />
+              </>
+            )}
+            {entity && (
+              <>
+                <MenuGroup>Cuidado</MenuGroup>
+                <ConfirmButton
+                  className="menu-item is-danger"
+                  question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
+                  confirmLabel="Apagar ficha"
+                  onConfirm={() => {
+                    close()
+                    undoable(`Ficha “${entity.name}” apagada`, (u) => removeEntity(u, entity.id))
+                    go('fichas', null, { replace: true })
+                  }}
+                >
+                  <Trash2 size={18} aria-hidden="true" />
+                  <span>
+                    <strong>Apagar ficha</strong>
+                    <small>Dá para desfazer logo depois.</small>
+                  </span>
+                </ConfirmButton>
+              </>
+            )}
+          </>
+        ) : (
+          <>
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={() => {
                 close()
-                onChange('jogo')
+                onChange('editar')
               }}
             >
-              <Dices size={15} aria-hidden="true" /> Ficha de jogo
+              <PenLine size={15} aria-hidden="true" /> Editar tudo de uma vez
             </button>
-          )}
-          {entity && (
-            <ConfirmButton
-              className="btn btn-ghost btn-sm"
-              question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
-              confirmLabel="Apagar ficha"
-              onConfirm={() => {
-                close()
-                undoable(`Ficha “${entity.name}” apagada`, (u) => removeEntity(u, entity.id))
-                go('fichas', null, { replace: true })
-              }}
-            >
-              <Trash2 size={15} aria-hidden="true" /> Apagar ficha
-            </ConfirmButton>
-          )}
-        </>
-      )}
+            {game && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  close()
+                  onChange('jogo')
+                }}
+              >
+                <Dices size={15} aria-hidden="true" /> Ficha de jogo
+              </button>
+            )}
+            {entity && (
+              <ConfirmButton
+                className="btn btn-ghost btn-sm"
+                question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
+                confirmLabel="Apagar ficha"
+                onConfirm={() => {
+                  close()
+                  undoable(`Ficha “${entity.name}” apagada`, (u) => removeEntity(u, entity.id))
+                  go('fichas', null, { replace: true })
+                }}
+              >
+                <Trash2 size={15} aria-hidden="true" /> Apagar ficha
+              </ConfirmButton>
+            )}
+          </>
+        )
+      }
     </MoreMenu>
   )
 }

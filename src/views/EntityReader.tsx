@@ -2,7 +2,7 @@ import { OriginChip } from './AUBanner'
 import { PassesEditor, WhoIsEditor, WhoIsReader } from './WhoIs'
 import { definerListIds, definersFor, whoIsKeys } from '../logic/definers'
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, Dices, Eye, LayoutList, Lock, Pencil, Shuffle } from 'lucide-react'
-import { Fragment, useMemo, useState } from 'react'
+import { cloneElement, Fragment, isValidElement, useMemo, useState } from 'react'
 import { worldLevel } from '../model/kind'
 import { DominoDialog } from './DominoDialog'
 import { TogetherHere } from './TogetherHere'
@@ -41,6 +41,7 @@ import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge, Field } from '../ui/bits'
 import { Picture } from '../images/Picture'
 import { GeneratedCover } from '../ui/GeneratedCover'
+import { MenuGroup, MenuItem } from '../ui/MenuItem'
 import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 
@@ -567,6 +568,33 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           <ArrowLeft size={18} />
         </button>
         <span className="reader-head-space" />
+        {nova ? (
+          <>
+            {tools && (
+              <button type="button" className="btn btn-sm ficha-edit-btn" aria-pressed={editHead} onClick={() => setEditHead(!editHead)}>
+                <Pencil size={15} aria-hidden="true" /> Editar
+              </button>
+            )}
+            {isValidElement(modeSwitch)
+              ? cloneElement(modeSwitch as React.ReactElement<{ extra?: (close: () => void) => React.ReactNode }>, {
+                  extra: (close: () => void) => (
+                    <>
+                      <MenuGroup>Editar</MenuGroup>
+                      <MenuItem icon={Pencil} title="O básico" hint="Nome, resumo, tipo, papel, apelidos e mais opções." pressed={editHead} onClick={() => (close(), setEditHead(!editHead))} />
+                      <MenuItem icon={LayoutList} title="Arrumar a página" hint="Subir, descer e tirar blocos (os dados ficam)." pressed={arrange} onClick={() => (close(), setArrange(!arrange))} />
+                      {canDomino && (
+                        <>
+                          <MenuGroup>Ver</MenuGroup>
+                          <MenuItem icon={Shuffle} title="E se sumir?" hint="O que cai junto se esta ficha sumir do mundo." onClick={() => (close(), setDominoOpen(true))} />
+                        </>
+                      )}
+                    </>
+                  ),
+                })
+              : modeSwitch}
+          </>
+        ) : (
+          <>
         {canDomino && (
           <button type="button" className="btn btn-ghost btn-sm" title="Efeito dominó: o que acontece se esta ficha sumir" onClick={() => setDominoOpen(true)}>
             <Shuffle size={15} aria-hidden="true" /> E se sumir?
@@ -583,6 +611,8 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           </>
         )}
         {modeSwitch}
+          </>
+        )}
       </header>
       {dominoOpen && <DominoDialog entity={e} onClose={() => setDominoOpen(false)} />}
       <TogetherHere entityId={e.id} />

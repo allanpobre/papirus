@@ -38,3 +38,27 @@ test('tela do personagem: retrato, selos, abas e editar pelo retrato', async ({ 
   await expect(page.getByRole('group', { name: /^Editando: Quadro/ })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
+
+test('topo da ficha: "Editar" escrito e o "⋯" com itens explicados', async ({ page }) => {
+  await page.addInitScript(() => {
+    const prefs = JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}')
+    localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, novaCara: true }))
+  })
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
+  await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Dorothy/ }).first().click()
+  await fichaModo(page, 'Ler')
+  // "Editar" abre o básico.
+  await page.getByRole('button', { name: 'Editar', exact: true }).click()
+  await expect(page.getByRole('group', { name: 'Editando: o básico' })).toBeVisible()
+  await page.getByRole('button', { name: 'Editar', exact: true }).click()
+  // O "⋯": arrumar a página, e se sumir, editar tudo, apagar, cada um com a sua frase.
+  await page.getByRole('button', { name: 'Mais da ficha' }).click()
+  const menu = page.getByRole('group', { name: 'Mais da ficha' })
+  await expect(menu.getByRole('button', { name: /^Arrumar a página/ })).toContainText('Subir, descer e tirar blocos')
+  await expect(menu.getByRole('button', { name: /^E se sumir\?/ })).toBeVisible()
+  await expect(menu.getByRole('button', { name: /^Apagar ficha/ })).toBeVisible()
+  await menu.getByRole('button', { name: /^Arrumar a página/ }).click()
+  await expect(page.getByRole('button', { name: /^Subir:/ }).first()).toBeVisible()
+})
