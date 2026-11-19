@@ -14,6 +14,8 @@ test('constelação: estrelas acendem pela régua e a carta mostra o poder', asy
   })
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  // Com a Nova cara, o Mundo abre no mapa (quando há um): as fichas ficam em "Fichas".
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
   // Um sistema pelo modelo "Elementos".
   await page.getByRole('button', { name: 'Nova ficha' }).click()
   const dialog = page.getByRole('dialog', { name: 'Nova ficha' })

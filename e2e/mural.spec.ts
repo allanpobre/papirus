@@ -18,6 +18,11 @@ test('mural em foco: a protagonista no centro, trocar o centro e ir ao grafo com
   const mural = page.getByRole('group', { name: 'Mural de Dorothy' })
   await expect(mural).toBeVisible()
   await expect(mural.getByRole('button', { name: /^Espantalho:/ })).toBeVisible()
+  // A régua: no começo da história, o Espantalho ainda não está ligado à Dorothy.
+  const regua = page.getByRole('combobox', { name: 'Até onde na história' })
+  await regua.selectOption({ index: 1 })
+  await expect(mural.getByRole('button', { name: /^Espantalho:/ })).toHaveCount(0)
+  await regua.selectOption({ index: 0 })
   // Tocar no Espantalho o traz para o centro.
   await mural.getByRole('button', { name: /^Espantalho:/ }).click()
   await expect(page.getByRole('group', { name: 'Mural do Espantalho' }).or(page.getByRole('group', { name: 'Mural de Espantalho' }))).toBeVisible()

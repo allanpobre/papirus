@@ -12477,7 +12477,7 @@ body[data-clima='terror'] .hero-frame {
 }
 /* A régua no rodapé (Nova cara, no celular): uma linha que não cobre a página. */
 @media (max-width: 760px) {
-  body[data-nova] .entity-reader .story-point {
+  body[data-nova] .story-point {
     position: fixed;
     top: auto;
     flex-wrap: nowrap;
@@ -12489,17 +12489,18 @@ body[data-clima='terror'] .hero-frame {
     border-radius: 22px;
     box-shadow: var(--shadow-2);
   }
-  body[data-nova] .entity-reader .story-point-note {
+  body[data-nova] .story-point-note {
     display: none;
   }
-  body[data-nova] .entity-reader .story-point-pick {
+  body[data-nova] .story-point-pick {
     flex: 1 1 auto;
   }
-  body[data-nova] .entity-reader .story-point-reader {
+  body[data-nova] .story-point-reader {
     flex: 0 0 auto;
     white-space: nowrap;
   }
-  body[data-nova] .entity-reader {
+  body[data-nova] .entity-reader,
+  body[data-nova] .view:has(.story-point) {
     padding-bottom: 110px;
   }
 }

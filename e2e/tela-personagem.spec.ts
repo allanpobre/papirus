@@ -14,6 +14,8 @@ test('tela do personagem: retrato, selos, abas e editar pelo retrato', async ({ 
   })
   await page.goto('/app/?exemplo')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  // Com a Nova cara, o Mundo abre no mapa (quando há um): as fichas ficam em "Fichas".
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Dorothy/ }).first().click()
   await fichaModo(page, 'Ler')
   const heroi = page.getByRole('region', { name: 'Retrato de Dorothy' })

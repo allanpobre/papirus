@@ -1,6 +1,12 @@
 import { Network } from 'lucide-react'
 import { useMemo } from 'react'
 import { roleIn } from '../logic/roles'
+import { activeAt } from '../logic/relations'
+import { pointIndex, relationRevealAt } from '../logic/storyPoint'
+import { manuscriptOrder } from '../model/universe'
+import type { Relation } from '../model/schema'
+import { useStoryPoint } from '../state/storyPoint'
+import { StoryPointBar } from '../ui/StoryPointBar'
 import type { Entity } from '../model/schema'
 import { useWorkspace } from '../state/workspace'
 import { Picture } from '../images/Picture'
@@ -15,6 +21,13 @@ const MAX = 8
 
 export function FocusMural({ centerId, onCenter, onFullGraph }: { centerId: string | null; onCenter: (id: string) => void; onFullGraph: () => void }) {
   const { universe, bookId, go, peek } = useWorkspace()
+  // A régua da história: só o que já vale naquela cena e, como o leitor, só o que ele já descobriu.
+  const scenes = manuscriptOrder(universe)
+  const [point] = useStoryPoint(universe.id)
+  const index = pointIndex(scenes, point.sceneId)
+  const scene = point.sceneId ? (scenes[index] ?? null) : null
+  const reader = point.reader && scenes.length > 0
+  const visible = (r: Relation) => activeAt(r, scene) && !(reader && relationRevealAt(r, index, scenes)?.future)
   const withLinks = useMemo(() => {
     const n = new Map<string, number>()
     for (const r of universe.relations) for (const id of [r.fromId, r.toId]) n.set(id, (n.get(id) ?? 0) + 1)
@@ -30,7 +43,7 @@ export function FocusMural({ centerId, onCenter, onFullGraph }: { centerId: stri
   const seen = new Set<string>()
   const links: { other: Entity; label: string; out: boolean }[] = []
   for (const r of universe.relations) {
-    if (r.fromId !== center.id && r.toId !== center.id) continue
+    if ((r.fromId !== center.id && r.toId !== center.id) || !visible(r)) continue
     const otherId = r.fromId === center.id ? r.toId : r.fromId
     const other = universe.entities.find((e) => e.id === otherId)
     if (!other || seen.has(other.id) || other.id === center.id) continue
@@ -63,6 +76,7 @@ export function FocusMural({ centerId, onCenter, onFullGraph }: { centerId: stri
           <Network size={15} aria-hidden="true" /> Grafo completo
         </button>
       </div>
+      <StoryPointBar />
       <div className="focus-mural" role="group" aria-label={`Mural de ${center.name || 'Sem nome'}`}>
         <svg className="focus-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           {[...shown, ...clues].map((_, i) => {
