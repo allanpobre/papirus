@@ -2,6 +2,7 @@ import { BookOpen, Check } from 'lucide-react'
 import { useState } from 'react'
 import { bookIdsOf, chosenBook, isSeries, seriesId } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
+import { BookChooser } from './BookShelf'
 
 const SEVERAL = '__varios'
 
@@ -12,9 +13,11 @@ const SEVERAL = '__varios'
  * só quando há um livro escolhido (`onlyWhenChosen`).
  */
 export function BookPicker({ className = 'book-bar', onlyWhenChosen = false }: { className?: string; onlyWhenChosen?: boolean }) {
-  const { universe, bookId, setBookId } = useWorkspace()
+  const { universe, bookId, setBookId, prefs } = useWorkspace()
   const [picking, setPicking] = useState<string[] | null>(null)
   if (universe.stories.length < 2) return null
+  // Nova cara: o livro se escolhe pelas capas (no Início) e pela faixa fixa no alto de todas as telas.
+  if (prefs.novaCara) return className === 'home-book' ? <BookChooser /> : null
   // O selo das outras áreas só aparece quando há um livro escolhido (lembra que a tela está filtrada).
   if (onlyWhenChosen && !bookId) return null
   const series = isSeries(bookId) ? chosenBook(universe, bookId) : undefined
