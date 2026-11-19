@@ -13567,3 +13567,85 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--muted);
   font-size: 0.72rem;
 }
+
+/* ---------------------------------------------------------------- Mapa: rotas, dias de viagem e camadas */
+.atlas-roads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.road {
+  stroke: #6b4f2a;
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 1px rgb(255 255 255 / 60%));
+}
+.road-trilha {
+  stroke-dasharray: 2 6;
+}
+.road-rio {
+  stroke: #2f6fa8;
+  stroke-width: 4;
+}
+.road-mar {
+  stroke: #1f5d8c;
+  stroke-dasharray: 10 7;
+}
+.road.selected {
+  stroke-width: 6;
+}
+.atlas-road-label {
+  position: absolute;
+  /* Por cima dos nomes dos marcadores (é pequeno); ligando ou pintando, o toque passa para o marcador. */
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  min-width: 28px;
+  padding: 1px 6px;
+  border: 1px solid rgb(0 0 0 / 25%);
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #3a2a12;
+  font: 700 0.7rem/1.4 system-ui, sans-serif;
+  cursor: pointer;
+}
+.atlas-road-label.road-rio,
+.atlas-road-label.road-mar {
+  background: #eaf3fb;
+  color: #173f61;
+}
+.atlas-image.painting .atlas-road-label,
+.atlas-image.routing .atlas-road-label {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.atlas-route-edit {
+  flex-wrap: wrap;
+}
+.atlas-days {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.atlas-days .input {
+  width: 80px;
+}
+.atlas-fast {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--ochre-soft);
+  color: var(--ink);
+  list-style: none;
+}
+.atlas-fast li {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.atlas-fast svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ochre);
+}

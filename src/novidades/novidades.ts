@@ -13,6 +13,17 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-19f',
+    when: '19 de novembro',
+    title: 'Mapas com rotas e dias de viagem',
+    items: [
+      'No mapa, “Rota” liga dois lugares: estrada, trilha, rio ou mar, com os dias de viagem a pé, a cavalo ou de barco.',
+      'Dê a escala do mapa (dias a pé de ponta a ponta) e as rotas calculam os dias sozinhas; ou escreva os dias.',
+      'No “Caminho de” um personagem, aparece quanto leva cada trecho e um aviso quando a história o faz viajar rápido demais.',
+      'Camadas: mostre ou esconda fronteiras, povos e línguas, crenças e rotas. Regiões agora também podem ser de um povo ou de uma religião.',
+    ],
+  },
+  {
     id: '2026-11-19e',
     when: '19 de novembro',
     title: 'Culturas vivas',

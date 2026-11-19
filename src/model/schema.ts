@@ -668,6 +668,9 @@ export const inboxItemSchema = z.object({
   ...timestamps,
 })
 
+/** Tipos de rota no mapa. */
+export const ROUTE_KINDS = ['estrada', 'trilha', 'rio', 'mar'] as const
+
 export const atlasMapSchema = z.object({
   id,
   name: z.string(),
@@ -692,6 +695,21 @@ export const atlasMapSchema = z.object({
       }),
     )
     .optional(),
+  /** Rotas entre dois marcadores: estrada, trilha, rio ou mar, e quantos dias leva a pé (sem número, sai da escala). */
+  routes: z
+    .array(
+      z.object({
+        id,
+        from: id,
+        to: id,
+        kind: z.enum(ROUTE_KINDS).catch('estrada'),
+        days: z.number().nonnegative().nullable().default(null),
+      }),
+    )
+    .optional()
+    .catch(undefined),
+  /** Escala: quantos dias a pé de uma ponta à outra do mapa (na largura). */
+  widthDays: z.number().positive().optional().catch(undefined),
   ...timestamps,
 })
 
