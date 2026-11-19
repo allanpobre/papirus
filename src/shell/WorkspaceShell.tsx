@@ -52,6 +52,7 @@ import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { useWorldClimate } from '../ui/useWorldClimate'
+import { BookBand } from '../ui/BookShelf'
 import { climaOf } from '../model/climas'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
 import { mesaTheme } from '../rpg/themes'
@@ -766,7 +767,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           )}
           <Suspense fallback={<div className="view-loading">Carregando…</div>}>
             {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
-            {BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
+            {prefs.novaCara ? nav.view !== 'config' && <BookBand /> : BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
             {/* Cada área tem o seu próprio aviso de erro: se uma tela quebrar, o menu e o resto do app continuam. */}
             <ErrorBoundary resetKey={nav.view} label="Esta parte deu erro" onHome={nav.view === 'inicio' ? undefined : () => go('inicio')} copyDetails>
               <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />

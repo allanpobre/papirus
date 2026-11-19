@@ -12172,3 +12172,128 @@ button.presence-dot {
   border-radius: var(--radius-s);
   border: 1px solid rgb(0 0 0 / 20%);
 }
+
+/* Nova cara: mundo → livro. As capas para escolher o livro e a faixa fixa "mundo › livro". */
+.book-chooser {
+  margin: 0.4rem 0 1.2rem;
+}
+.book-chooser-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 0.6rem;
+}
+.book-covers {
+  display: flex;
+  gap: 0.8rem;
+  overflow-x: auto;
+  padding: 0.4rem 0.2rem 0.6rem;
+  scroll-snap-type: x mandatory;
+}
+.book-cover-pick {
+  flex: 0 0 104px;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--ink);
+  cursor: pointer;
+  scroll-snap-align: start;
+  text-align: left;
+}
+.book-cover-art {
+  position: relative;
+  width: 104px;
+  height: 152px;
+  border-radius: 3px 8px 8px 3px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  box-shadow: var(--shadow-2), inset 6px 0 0 rgb(0 0 0 / 22%);
+  transition: transform 0.15s;
+}
+.book-cover-art .gen-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.book-cover-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.5rem;
+  font: 600 0.82rem/1.15 var(--font-display);
+  color: #fff;
+  background: linear-gradient(transparent, rgb(0 0 0 / 75%));
+}
+.book-cover-pick.is-world .book-cover-art {
+  color: var(--accent);
+  border: 1px dashed var(--line-strong);
+  box-shadow: none;
+  background: var(--surface);
+}
+.book-cover-pick.is-world .book-cover-title {
+  color: var(--ink);
+  background: none;
+}
+.book-cover-pick.is-on .book-cover-art {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.book-cover-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 50%;
+  padding: 2px;
+}
+.book-band {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.4rem 0.6rem 0.2rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-1);
+}
+.book-band-cover {
+  flex: 0 0 26px;
+  height: 38px;
+  border-radius: 2px 5px 5px 2px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--surface-3);
+}
+.book-band-cover .gen-cover {
+  width: 100%;
+  height: 100%;
+}
+.book-band-text {
+  display: grid;
+  min-width: 0;
+  line-height: 1.2;
+}
+.book-band-text strong {
+  font-family: var(--font-display);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.book-band-switch {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
