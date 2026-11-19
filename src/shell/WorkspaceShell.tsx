@@ -51,7 +51,7 @@ import { commentSender } from '../share/feedback'
 import { Brand } from './Brand'
 import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
-import { useWorldClimate } from '../ui/useWorldClimate'
+import { useNovaFlag, useWorldClimate } from '../ui/useWorldClimate'
 import { BookBand } from '../ui/BookShelf'
 import { climaOf } from '../model/climas'
 import { linkPlayerSheets } from '../rpg/oneCharacter'
@@ -429,7 +429,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const campaignSystem = campaignGroup?.systemId ? universe.systems.find((x) => x.id === campaignGroup.systemId) : undefined
   useMesaSector(mesaTheme(campaignGroup?.theme, campaignSystem?.name), prefs.theme === 'escuro' || (prefs.theme === 'sistema' && systemDark), mesaClimate)
   // Nova cara (teste): o clima do mundo vale no app inteiro.
-  useWorldClimate(prefs.novaCara ? climaOf(universe) : null)
+  useWorldClimate(prefs.novaCara ? climaOf(universe) : null, universe.settings.climaModo ?? 'escuro')
+  useNovaFlag(!!prefs.novaCara)
   // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
   const waiting = useMemo(() => waitingViews(universe, prefs.firstSteps), [universe, prefs.firstSteps])
   const hidden = useMemo(() => [...new Set([...hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), ...waiting])], [universe, prefs.menus, prefs.hiddenViews, waiting])
@@ -539,9 +540,13 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const liveSession = universe.sessions.find((x) => x.status === 'em-andamento')
   // Num livro sem Mesa: o caminho para jogar no mesmo mundo, com as fichas do livro.
   const canPlayHere = kind === 'escrita' && universe.groups.length === 0 && !readOnly && nav.view !== 'rpg'
-  const visibleItems = ALL_ITEMS.filter((item) => !item.inside && (item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view))
+  // Nova cara: a Trama vira a História (com a Linha do tempo), e a barra de baixo tem os lugares grandes fixos.
+  const nova = !!prefs.novaCara
+  const visibleItems = ALL_ITEMS.filter((item) => !item.inside && (item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view)).map((item) =>
+    nova && item.view === 'tramas' ? { ...item, label: 'História' } : item,
+  )
   // A área marcada no menu: o Mapa, por exemplo, fica dentro de Escrever.
-  const area = ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view
+  const area = nova && nav.view === 'timeline' ? 'tramas' : (ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view)
 
   return (
     <WorkspaceContext.Provider value={ws}>
@@ -556,9 +561,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             current={area}
             inboxCount={openInbox}
             universeName={universe.name}
-            onGo={go}
+            onGo={(v) => go(nova && v === 'fichas' && universe.maps.length > 0 && nav.view !== 'fichas' && nav.view !== 'atlas' ? 'atlas' : v)}
             onTools={() => go('config', 'ferramentas')}
-            shortcuts={kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
+            shortcuts={nova ? NOVA_PLACES(visibleItems.some((i) => i.view === 'rpg')) : kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
+            fixed={nova}
             defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
             onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
             onPlay={canPlayHere ? () => go('rpg') : undefined}
@@ -999,6 +1005,9 @@ function groupsOf(items: NavItem[]): [string, NavItem[]][] {
  * Menu do celular: quatro áreas fixas, com nome, e "Mais" com todas. A barra não troca sozinha:
  * aberta uma área que não está nela, o "Mais" acende com o nome dessa área.
  */
+/** Nova cara: os lugares grandes da barra de baixo (a Mesa, se o mundo tem; senão, Publicar). */
+const NOVA_PLACES = (mesa: boolean): View[] => ['escrever', 'fichas', 'tramas', mesa ? 'rpg' : 'livro']
+
 function PhoneNav({
   items,
   current,
@@ -1014,6 +1023,7 @@ function PhoneNav({
   onLibrary,
   onShare,
   extras,
+  fixed = false,
 }: {
   items: NavItem[]
   current: View
@@ -1034,6 +1044,8 @@ function PhoneNav({
   onShare?: () => void
   /** Conta e tema, no fim do "Mais". */
   extras: ReactNode
+  /** Nova cara: a barra tem os lugares grandes fixos (sem escolher atalhos) e o "Mais" vira "Menu". */
+  fixed?: boolean
 }) {
   const [open, setOpen] = useState(false)
   // O "voltar" do aparelho fecha a folha "Mais".
@@ -1061,7 +1073,7 @@ function PhoneNav({
   }
   const grid = items.filter((i) => i.view !== 'oficina')
   const oficina = items.find((i) => i.view === 'oficina')
-  const MoreIcon = elsewhere?.icon ?? Menu
+  const MoreIcon = fixed ? Menu : (elsewhere?.icon ?? Menu)
 
   useEffect(() => {
     if (!open) return
@@ -1081,7 +1093,7 @@ function PhoneNav({
         aria-expanded={open}
         aria-controls="menu-mais"
         aria-current={elsewhere ? 'page' : undefined}
-        aria-label={elsewhere ? `Mais (aberto: ${elsewhere.label})` : 'Mais'}
+        aria-label={fixed ? 'Menu' : elsewhere ? `Mais (aberto: ${elsewhere.label})` : 'Mais'}
         title="Mais áreas"
         onClick={() => {
           setOpen(!open)
@@ -1089,7 +1101,7 @@ function PhoneNav({
         }}
       >
         <MoreIcon size={18} aria-hidden="true" />
-        <span className="rail-label">{elsewhere ? elsewhere.label : 'Mais'}</span>
+        <span className="rail-label">{fixed ? 'Menu' : elsewhere ? elsewhere.label : 'Mais'}</span>
         {inboxCount > 0 && !shortcuts.some((i) => i.view === 'inbox') && <span className="rail-badge" aria-hidden="true" />}
       </button>
       {open && (
@@ -1174,9 +1186,11 @@ function PhoneNav({
               </button>
             )}
             <div className="rail-more-foot">
-              <button type="button" className="btn btn-ghost btn-sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
-                <Pin size={15} aria-hidden="true" /> {editing ? 'Pronto' : 'Escolher atalhos'}
-              </button>
+              {!fixed && (
+                <button type="button" className="btn btn-ghost btn-sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
+                  <Pin size={15} aria-hidden="true" /> {editing ? 'Pronto' : 'Escolher atalhos'}
+                </button>
+              )}
               {onShare && (
                 <button
                   type="button"

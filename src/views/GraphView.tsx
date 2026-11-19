@@ -15,6 +15,7 @@ import { useStoryPoint } from '../state/storyPoint'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
+import { FocusMural } from './FocusMural'
 import { AreaHead } from './AreaModes'
 import { EdgeShape, NodeShape, ViaShape, type NodeActions } from './GraphParts'
 
@@ -117,7 +118,21 @@ function useBoxSize(): [(el: HTMLElement | null) => void, { w: number; h: number
   return [ref, size]
 }
 
+/** Nova cara: o mural em foco primeiro (uma ficha e as ligações dela); o grafo completo a um toque. */
 export default function GraphView() {
+  const { prefs, nav } = useWorkspace()
+  const [full, setFull] = useState(false)
+  const [center, setCenter] = useState<string | null>(nav.view === 'relacoes' ? (nav.id ?? null) : null)
+  if (!prefs.novaCara || full) return <GraphCanvas onMural={prefs.novaCara ? () => setFull(false) : undefined} />
+  return (
+    <div className="view graph-view is-mural">
+      <AreaHead current="relacoes" tour="relacoes" />
+      <FocusMural centerId={center} onCenter={setCenter} onFullGraph={() => setFull(true)} />
+    </div>
+  )
+}
+
+function GraphCanvas({ onMural }: { onMural?: () => void }) {
   const { universe, nav, go, peek, bookId } = useWorkspace()
   const [focusId, setFocusId] = useState<string | null>(nav.view === 'relacoes' ? (nav.id ?? null) : null)
   const [depth, setDepth] = useState(2)
@@ -443,6 +458,11 @@ export default function GraphView() {
   return (
     <div className={`view graph-view${filtersOpen ? ' filters-open' : ''}`}>
       <AreaHead current="relacoes" tour="relacoes" />
+      {onMural && (
+        <button type="button" className="btn btn-ghost btn-sm graph-back-mural" onClick={onMural}>
+          Voltar ao mural
+        </button>
+      )}
       <header className="view-head view-head-wide area-tools">
         {/* No celular, o grafo vem primeiro: os filtros ficam atrás deste botão. */}
         {universe.relations.length > 0 && <button type="button" className="btn btn-sm graph-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>

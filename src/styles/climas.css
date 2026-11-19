@@ -121,3 +121,75 @@ body[data-clima='ficcao'] .btn-primary,
 body[data-clima='terror'] .btn-primary {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent), 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent);
 }
+
+/* Claro: o mesmo clima de dia (pergaminho, painel claro, papel velho). Avisos e sombras do claro. */
+body[data-clima][data-clima-modo='claro'] {
+  color-scheme: light;
+  --ochre: #835810;
+  --ochre-soft: #f3e4c2;
+  --ochre-line: #d7a94c;
+  --danger: #a3372b;
+  --danger-soft: #f6dcd7;
+  --ok: #2f7445;
+  --ok-soft: #dcefe1;
+  --violet: #6a4ea3;
+  --violet-soft: #e8e1f5;
+  --wine: #8b2f52;
+  --wine-soft: #f3dce5;
+  --sky: #2d6290;
+  --sky-soft: #dce8f3;
+  --shadow-1: 0 1px 2px rgb(40 30 20 / 10%), 0 1px 1px rgb(40 30 20 / 6%);
+  --shadow-2: 0 8px 26px rgb(40 30 20 / 14%), 0 2px 6px rgb(40 30 20 / 8%);
+  --shadow-page: 0 1px 0 rgb(40 30 20 / 5%), 0 12px 40px -18px rgb(40 30 20 / 25%);
+}
+body[data-clima='fantasia'][data-clima-modo='claro'] {
+  --bg: #ebdfc4;
+  --surface: #f6eedb;
+  --surface-2: #f0e5cc;
+  --surface-3: #e4d6b6;
+  --paper: #faf4e6;
+  --ink: #2a2117;
+  --ink-2: #4a3d2c;
+  --muted: #6b5a42;
+  --line: #d6c6a2;
+  --line-strong: #b09c74;
+  --accent: #8a5a12;
+  --accent-ink: #fff8ea;
+  background-image:
+    radial-gradient(120% 60% at 50% 0%, rgb(255 255 255 / 45%), transparent 60%),
+    repeating-linear-gradient(45deg, rgb(90 60 20 / 3%) 0 2px, transparent 2px 6px);
+}
+body[data-clima='ficcao'][data-clima-modo='claro'] {
+  --bg: #e7edf6;
+  --surface: #f5f8fc;
+  --surface-2: #edf2f9;
+  --surface-3: #dde6f2;
+  --paper: #fafcff;
+  --ink: #0b1a2c;
+  --ink-2: #29405a;
+  --muted: #557089;
+  --line: #c9d6e6;
+  --line-strong: #93abc6;
+  --accent: #0763a3;
+  --accent-ink: #ffffff;
+  background-image:
+    repeating-linear-gradient(0deg, rgb(7 99 163 / 6%) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgb(7 99 163 / 6%) 0 1px, transparent 1px 32px);
+}
+body[data-clima='terror'][data-clima-modo='claro'] {
+  --bg: #e3dacd;
+  --surface: #efe8de;
+  --surface-2: #e9e0d4;
+  --surface-3: #dbcfbf;
+  --paper: #f5f0e8;
+  --ink: #1e1414;
+  --ink-2: #3d2b2b;
+  --muted: #6e5a50;
+  --line: #cdbfae;
+  --line-strong: #a28f7c;
+  --accent: #9e1b22;
+  --accent-ink: #fff4f0;
+  background-image:
+    radial-gradient(90% 60% at 50% 20%, rgb(158 27 34 / 6%), transparent 70%),
+    repeating-radial-gradient(circle at 30% 40%, rgb(60 30 20 / 4%) 0 1px, transparent 1px 3px);
+}

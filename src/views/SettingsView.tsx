@@ -209,6 +209,15 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               </button>
             ))}
           </div>
+          {climaOf(universe) !== 'caderno' && (
+            <div className="segmented clima-modo" role="radiogroup" aria-label="Claro ou escuro">
+              {(['escuro', 'claro'] as const).map((m) => (
+                <button key={m} type="button" role="radio" aria-checked={(universe.settings.climaModo ?? 'escuro') === m} onClick={() => setSetting('climaModo', m === 'escuro' ? undefined : m)}>
+                  {m === 'escuro' ? 'Escuro' : 'Claro'}
+                </button>
+              ))}
+            </div>
+          )}
           <label className="toggle">
             <input type="checkbox" role="switch" checked={!!prefs.novaCara} onChange={(e) => setPref('novaCara', e.target.checked || undefined)} />
             <span className="toggle-track" aria-hidden="true" />
