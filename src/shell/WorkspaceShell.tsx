@@ -53,6 +53,8 @@ import { WritingGate } from './WritingGate'
 import { useMesaSector } from '../rpg/useMesaSector'
 import { useNovaFlag, useWorldClimate } from '../ui/useWorldClimate'
 import { BookBand } from '../ui/BookShelf'
+import { MenuItem } from '../ui/MenuItem'
+import { TOOL_HINTS } from './toolsList'
 import { NovidadesDialog } from '../novidades/NovidadesDialog'
 import { takeUnseen } from '../novidades/novidades'
 import { climaOf } from '../model/climas'
@@ -1155,7 +1157,7 @@ function PhoneNav({
             {groupsOf(grid).map(([label, list]) => (
               <div key={label} className="rail-more-group" role="group" aria-label={label}>
                 <p className="rail-more-group-label">{label}</p>
-                <div className="rail-more-grid">
+                <div className={`rail-more-grid${fixed && !editing ? ' is-rows' : ''}`}>
                   {list.map((item) => {
                     const Icon = item.icon
                     const pinned = picked.includes(item.view)
@@ -1165,6 +1167,16 @@ function PhoneNav({
                         <span>{item.label}</span>
                         {pinned && <Pin size={12} className="rail-more-pin" aria-label="na barra" />}
                       </button>
+                    ) : fixed ? (
+                      // Nova cara: cada área com o nome e uma frase do que faz.
+                      <MenuItem
+                        key={item.view}
+                        icon={item.icon}
+                        title={item.view === 'inbox' && inboxCount > 0 ? `${item.label} (${inboxCount})` : item.label}
+                        hint={TOOL_HINTS[item.view]}
+                        pressed={current === item.view}
+                        onClick={() => choose(item.view)}
+                      />
                     ) : (
                       <button key={item.view} type="button" className="rail-more-item" style={{ '--area': `var(--area-${item.view}, currentColor)` } as React.CSSProperties} aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
                         <Icon size={20} aria-hidden="true" />

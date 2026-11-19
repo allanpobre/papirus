@@ -2790,3 +2790,13 @@ body:has(.rail-phone) .live-return {
   margin-top: 0.4rem;
   text-align: left;
 }
+
+/* Nova cara: no Menu, cada área numa linha com o nome e uma frase do que faz. */
+.rail-more-grid.is-rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.1rem;
+}
+.rail-more-grid.is-rows .menu-item {
+  padding: 0.6rem 0.5rem;
+}
