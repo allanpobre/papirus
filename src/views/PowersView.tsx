@@ -3,7 +3,6 @@ import { useRef, useState } from 'react'
 import { levelsOf, powerIssues, powerKey, powersAt, POWER_TEMPLATES, systemsOf, templateNodes, type PowerHad, type PowerNode } from '../logic/powers'
 import type { Entity, Scene } from '../model/schema'
 import { draftEntity, entityName, insert, manuscriptOrder, newId, patch, sceneTitle } from '../model/universe'
-import { useState } from 'react'
 import { useWorkspace } from '../state/workspace'
 import { EntityPicker } from '../ui/EntityPicker'
 

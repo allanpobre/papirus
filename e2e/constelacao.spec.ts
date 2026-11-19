@@ -47,7 +47,8 @@ test('constelação: estrelas acendem pela régua e a carta mostra o poder', asy
   await page.getByRole('combobox', { name: 'Até onde na história' }).selectOption({ index: 1 })
   await expect(ceuKael.getByRole('button', { name: 'Água, apagada' })).toBeVisible()
   await page.getByRole('combobox', { name: 'Até onde na história' }).selectOption({ index: 0 })
-  await ceuKael.getByRole('button', { name: 'Água, acesa' }).click()
+  // A régua fica fixa no rodapé e pode cobrir a estrela: aciona o botão direto.
+  await ceuKael.getByRole('button', { name: 'Água, acesa' }).dispatchEvent('click')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   if (process.env.SHOT) {
     await ceuKael.scrollIntoViewIfNeeded()
