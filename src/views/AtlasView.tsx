@@ -1,6 +1,6 @@
 import { bookScope } from '../logic/bookScope'
 import { Check, Hexagon, ImagePlus, MapPin, Minus, Plus, Trash2, X } from 'lucide-react'
-import { centroid, regionIn, type Region } from '../logic/regions'
+import { centroid, inside, regionIn, type Region } from '../logic/regions'
 import { coverLook } from '../ui/coverLook'
 import { tabListKeys } from '../ui/keys'
 import { useMemo, useRef, useState } from 'react'
@@ -18,6 +18,8 @@ import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
+import { GeneratedCover } from '../ui/GeneratedCover'
+import { membersOf } from '../model/lists'
 import { useChosenYear } from './timeYear'
 import { existsIn } from '../logic/timeMachine'
 import { formatYear } from '../model/labels'
@@ -134,7 +136,10 @@ export default function AtlasView() {
 }
 
 function MapCanvas({ map }: { map: AtlasMap }) {
-  const { universe, update, peek, go, undoable, toast, bookId } = useWorkspace()
+  const { universe, update, peek, go, undoable, toast, bookId, prefs } = useWorkspace()
+  // Nova cara: tocar num país ou marcador abre a gaveta com quem vive lá; editar fica num botão.
+  const nova = !!prefs.novaCara
+  const [editPlace, setEditPlace] = useState(false)
   const mapSrc = useImageSrc(map.image)
   // Com um livro escolhido no alto, os lugares dele ficam em destaque e os outros, apagados.
   const book = chosenBook(universe, bookId)
@@ -187,6 +192,13 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   const regions = (map.regions ?? []).filter((r) => regionIn(universe, r, year))
   const toneOf = (id: string) => coverLook(entityName(universe, id) || id).tone
   const region = selectedRegion ? (map.regions ?? []).find((r) => r.id === selectedRegion) : undefined
+  // Outra região ou marcador: a gaveta volta a mostrar quem vive lá (não o modo de editar).
+  const placeKey = `${selectedRegion ?? ''}|${selectedPin ?? ''}`
+  const [lastPlace, setLastPlace] = useState(placeKey)
+  if (lastPlace !== placeKey) {
+    setLastPlace(placeKey)
+    setEditPlace(false)
+  }
   const finishRegion = () => {
     if (!painting?.entityId || painting.points.length < 3) return
     setRegions([...(map.regions ?? []), { id: newId(), entityId: painting.entityId, points: painting.points, fromYear: null, toYear: null }])
@@ -320,7 +332,15 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </button>
         </div>
       )}
-      {region && (
+      {region && nova && !editPlace && (
+        <PlaceDrawer
+          entityId={region.entityId}
+          also={map.pins.filter((p) => inside([p.x, p.y], region.points)).map((p) => p.entityId)}
+          onClose={() => setSelectedRegion(null)}
+          onEdit={() => setEditPlace(true)}
+        />
+      )}
+      {region && (!nova || editPlace) && (
         <div className="atlas-paint" role="group" aria-label={`Região de ${entityName(universe, region.entityId)}`}>
           <strong className="small">{entityName(universe, region.entityId) || 'Região'}</strong>
           <YearInput label="De (ano)" value={region.fromYear} onChange={(n) => setRegions((map.regions ?? []).map((r) => (r.id === region.id ? { ...r, fromYear: n } : r)))} />
@@ -471,7 +491,14 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </button>
         </div>
       )}
-      {pin && moving !== pin.id && (
+      {pin && moving !== pin.id && nova && !editPlace && pinEntity && (
+        <PlaceDrawer
+          entityId={pinEntity.id}
+          onClose={() => setSelectedPin(null)}
+          onEdit={() => setEditPlace(true)}
+        />
+      )}
+      {pin && moving !== pin.id && (!nova || editPlace || !pinEntity) && (
         <aside className="atlas-panel" aria-label="Marcador">
           <button
             type="button"
@@ -521,5 +548,58 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         </aside>
       )}
     </div>
+  )
+}
+
+/**
+ * A gaveta de um lugar (Nova cara): o nome, o resumo e quem vive lá (os de dentro e os das listas dele), como
+ * cartas com rosto. "Abrir ficha" e "Editar região" ficam à mão.
+ */
+function PlaceDrawer({ entityId, also = [], onClose, onEdit }: { entityId: string; also?: string[]; onClose: () => void; onEdit: () => void }) {
+  const { universe, go } = useWorkspace()
+  const place = byId(universe, 'entities', entityId)
+  if (!place) return null
+  const inside = universe.entities.filter((e) => e.parentId === place.id)
+  const members = (place.lists ?? []).flatMap((l) => membersOf(universe, place.id, l.id).map((m) => m.member))
+  // Também os marcadores que ficam dentro da região, no mapa.
+  const pinned = also.flatMap((id) => (id === place.id ? [] : universe.entities.filter((e) => e.id === id)))
+  const people = [...new Map([...members, ...inside, ...pinned].map((e) => [e.id, e])).values()]
+  return (
+    <aside className="place-drawer" aria-label={`Lugar: ${place.name || 'Sem nome'}`}>
+      <span className="place-grip" aria-hidden="true" />
+      <div className="place-head">
+        <div>
+          <h2>{place.name || 'Sem nome'}</h2>
+          <p className="tiny muted">
+            {kindLabel(place.kind)} · {people.length} {people.length === 1 ? 'ficha' : 'fichas'}
+          </p>
+        </div>
+        <button type="button" className="btn-icon" aria-label="Fechar a gaveta" onClick={onClose}>
+          <X size={16} />
+        </button>
+      </div>
+      {place.summary && <p className="small place-sum">{place.summary}</p>}
+      {people.length > 0 && (
+        <div className="place-cards">
+          {people.map((e) => (
+            <button key={e.id} type="button" className="place-card" onClick={() => go('fichas', e.id)}>
+              <span className="place-face" aria-hidden="true">
+                <GeneratedCover name={e.name || '?'} />
+              </span>
+              <b>{e.name || 'Sem nome'}</b>
+              <small>{kindLabel(e.kind)}</small>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="place-actions">
+        <button type="button" className="btn btn-sm btn-primary" onClick={() => go('fichas', place.id)}>
+          Abrir ficha
+        </button>
+        <button type="button" className="btn btn-sm btn-ghost" onClick={onEdit}>
+          Editar no mapa
+        </button>
+      </div>
+    </aside>
   )
 }
