@@ -36,16 +36,16 @@ body[data-clima='terror'] {
 
 /* Fantasia: pergaminho escuro, ouro e letras gravadas. */
 body[data-clima='fantasia'] {
-  --bg: #17110b;
-  --surface: #221910;
-  --surface-2: #2a1f14;
-  --surface-3: #352819;
-  --paper: #1f170f;
-  --ink: #f1e4c8;
-  --ink-2: #d8c7a3;
-  --muted: #b09a72;
-  --line: #4a3a24;
-  --line-strong: #6b5332;
+  --bg: #1f1d1a;
+  --surface: #272522;
+  --surface-2: #2d2b27;
+  --surface-3: #36332e;
+  --paper: #242220;
+  --ink: #efe8da;
+  --ink-2: #d6ccb8;
+  --muted: #a99f8c;
+  --line: #3d3933;
+  --line-strong: #5a5448;
   --accent: #d9b45b;
   --accent-ink: #1a1405;
   --font-display: 'Cinzel', 'Young Serif', Georgia, serif;
@@ -55,14 +55,13 @@ body[data-clima='fantasia'] {
   --radius-l: 10px;
   background-color: var(--bg);
   background-image:
-    radial-gradient(120% 60% at 50% 0%, rgb(217 180 91 / 10%), transparent 60%),
-    repeating-linear-gradient(45deg, rgb(255 255 255 / 1.5%) 0 2px, transparent 2px 6px);
+    radial-gradient(120% 50% at 50% 0%, rgb(217 180 91 / 6%), transparent 60%);
 }
 
 /* Ficção científica: painéis escuros, linhas finas e luz azul. */
 body[data-clima='ficcao'] {
-  --bg: #070b16;
-  --surface: #0c1426;
+  --bg: #0d1322;
+  --surface: #131b2e;
   --surface-2: #0f1930;
   --surface-3: #15223f;
   --paper: #0b1222;
@@ -79,23 +78,23 @@ body[data-clima='ficcao'] {
   --radius-l: 4px;
   background-color: var(--bg);
   background-image:
-    repeating-linear-gradient(0deg, rgb(56 211 255 / 4%) 0 1px, transparent 1px 32px),
-    repeating-linear-gradient(90deg, rgb(56 211 255 / 4%) 0 1px, transparent 1px 32px);
+    repeating-linear-gradient(0deg, rgb(56 211 255 / 2.5%) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgb(56 211 255 / 2.5%) 0 1px, transparent 1px 32px);
 }
 
 /* Terror: escuro, papel velho e vermelho de sangue. */
 body[data-clima='terror'] {
-  --bg: #0b0909;
-  --surface: #151010;
-  --surface-2: #1b1414;
-  --surface-3: #241a1a;
-  --paper: #120e0e;
-  --ink: #e2d6c8;
-  --ink-2: #c4b6a6;
-  --muted: #8f7f73;
-  --line: #352222;
-  --line-strong: #553333;
-  --accent: #c8323a;
+  --bg: #1b1819;
+  --surface: #232021;
+  --surface-2: #2a2627;
+  --surface-3: #332e2f;
+  --paper: #201d1e;
+  --ink: #ebe4dc;
+  --ink-2: #cfc4b8;
+  --muted: #a39890;
+  --line: #3b3436;
+  --line-strong: #5a4e51;
+  --accent: #d4434a;
   --accent-ink: #fff4f0;
   --font-display: 'Playfair Display', 'Young Serif', Georgia, serif;
   --font-text: 'Crimson Pro', 'Literata Variable', Georgia, serif;
@@ -104,8 +103,7 @@ body[data-clima='terror'] {
   --radius-l: 3px;
   background-color: var(--bg);
   background-image:
-    radial-gradient(90% 60% at 50% 20%, rgb(200 50 58 / 8%), transparent 70%),
-    repeating-radial-gradient(circle at 30% 40%, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 3px);
+    radial-gradient(90% 50% at 50% 10%, rgb(212 67 74 / 5%), transparent 70%);
 }
 
 /* Materiais: títulos gravados e destaque com brilho, no lugar do chapado. */
@@ -143,10 +141,10 @@ body[data-clima][data-clima-modo='claro'] {
   --shadow-page: 0 1px 0 rgb(40 30 20 / 5%), 0 12px 40px -18px rgb(40 30 20 / 25%);
 }
 body[data-clima='fantasia'][data-clima-modo='claro'] {
-  --bg: #ebdfc4;
-  --surface: #f6eedb;
-  --surface-2: #f0e5cc;
-  --surface-3: #e4d6b6;
+  --bg: #efe9dc;
+  --surface: #f8f4ea;
+  --surface-2: #f2ecdf;
+  --surface-3: #e6dece;
   --paper: #faf4e6;
   --ink: #2a2117;
   --ink-2: #4a3d2c;
@@ -177,8 +175,8 @@ body[data-clima='ficcao'][data-clima-modo='claro'] {
     repeating-linear-gradient(90deg, rgb(7 99 163 / 6%) 0 1px, transparent 1px 32px);
 }
 body[data-clima='terror'][data-clima-modo='claro'] {
-  --bg: #e3dacd;
-  --surface: #efe8de;
+  --bg: #e8e4df;
+  --surface: #f3f0ec;
   --surface-2: #e9e0d4;
   --surface-3: #dbcfbf;
   --paper: #f5f0e8;
