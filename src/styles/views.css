@@ -231,6 +231,9 @@
 
 .entity-name {
   width: 100%;
+  resize: none;
+  overflow: hidden;
+  display: block;
   border: 0;
   background: transparent;
   padding: 0;
@@ -241,6 +244,10 @@
   outline: none;
   flex: 1;
   min-width: 0;
+}
+
+.entity-title-wrap > .entity-name {
+  flex: none; /* na coluna, o flex:1 espremia o campo de várias linhas em uma só */
 }
 
 .entity-name:focus {

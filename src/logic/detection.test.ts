@@ -86,3 +86,15 @@ describe('findCandidates', () => {
     expect(findCandidates(text, []).map((c) => c.text)).toEqual(['Lyra'])
   })
 })
+
+describe('findCandidates com marcas de segredo', () => {
+  it('não cola o começo da frase seguinte ao nome (auditoria 03: "Depois Kael")', () => {
+    const texto = 'Mira esperava na torre. [segredo]Mira é a rainha disfarçada.[/segredo] Depois Kael partiu com Mira.'
+    const nomes = findCandidates(texto, []).map((c) => c.text)
+    expect(nomes).toContain('Kael')
+    expect(nomes).not.toContain('Depois Kael')
+  })
+  it('o texto dentro do segredo continua sendo lido', () => {
+    expect(findCandidates('Ele viu [segredo]a torre de Ostria[/segredo].', []).map((c) => c.text)).toContain('Ostria')
+  })
+})
