@@ -1,7 +1,7 @@
 import { FileUp, Import } from 'lucide-react'
 import { useRef, useState } from 'react'
 import type { ForeignFile, ForeignWorld } from '../import/foreignWorld'
-import { kindPlural } from '../model/labels'
+import { kindLabel, kindPlural } from '../model/labels'
 import { useWorkspace } from '../state/workspace'
 
 const IMAGE = /\.(png|jpe?g|webp|gif)$/i
@@ -99,7 +99,7 @@ export function ForeignImport({ onDone }: { onDone?: () => void }) {
         <div className="foreign-found" role="status">
           <p>
             Achei <strong>{found.entities.length}</strong> {found.entities.length === 1 ? 'ficha' : 'fichas'} ({found.sources.join(', ')}):{' '}
-            {byKind.map(([k, n]) => `${n} ${kindPlural(k).toLocaleLowerCase('pt-BR')}`).join(', ')}.
+            {byKind.map(([k, n]) => `${n} ${(n === 1 ? kindLabel(k) : kindPlural(k)).toLocaleLowerCase('pt-BR')}`).join(', ')}.
             {found.entities.some((e) => e.secret) && (
               <span> {found.entities.filter((e) => e.secret).length} {found.entities.filter((e) => e.secret).length === 1 ? 'era privada' : 'eram privadas'} no outro app e {found.entities.filter((e) => e.secret).length === 1 ? 'vira' : 'viram'} segredo aqui.</span>
             )}
