@@ -18,7 +18,7 @@ Playwright a 390×844 em universo novo. Arquivos de teste feitos à mão (fora d
 ## Defeitos
 
 1. *(baixa, português)* **"Achei 1 ficha (Obsidian (Markdown)): 1 conceitos."** — plural errado quando há só um item, e "conceitos" é um tipo interno que o usuário não escolheu. **Consertado neste PR**: o resumo usa o singular ("1 conceito"). Arquivo: `src/views/ForeignImport.tsx`.
-2. *(baixa)* **A mensagem de erro anterior continua na tela** quando o arquivo seguinte dá certo: depois de um arquivo vazio, o aviso vermelho "Não achei fichas…" ficou por cima da tela mesmo com "Achei 1 ficha" aberto. Devia sumir ao escolher outro arquivo. Arquivo provável: `src/views/ForeignImport.tsx` (o toast de erro).
+2. *(descartado depois)* **A mensagem de erro anterior continua na tela** quando o arquivo seguinte dá certo: depois de um arquivo vazio, o aviso vermelho "Não achei fichas…" ficou por cima da tela mesmo com "Achei 1 ficha" aberto. Devia sumir ao escolher outro arquivo. **Depois conferi:** é um toast que some em poucos segundos; a auditoria carregou os arquivos em sequência rápida. Não é defeito.
 
 ## Confuso ou difícil
 
