@@ -33,7 +33,7 @@ Tamanhos: **pequeno** (poucas linhas), **médio** (um dia de trabalho, uma área
 | **C1** | ✅ consertado (allanpobre/papirus#241) | Escrever | A janela "Revisão" (nomes novos) era mais larga que o celular; o X de fechar saía da tela | Escrever › digitar 2 nomes › tocar "N nomes novos" | `src/styles/base.css` | pequeno |
 | **C2** | ✅ consertado (allanpobre/papirus#255) | Visual | Terror escuro: texto vermelho e botão cheio abaixo de 4,5:1 (22 textos) | Nova cara › Terror › escuro | `src/styles/climas.css` | pequeno |
 | **C3** | ✅ consertado (allanpobre/papirus#247) | Oficinas | "O Gole de as montanhas" (de + as) nas frases do Rolar no mundo | Mundo › Rolar no mundo › Nome de taverna | `src/logic/worldRolls.ts` | pequeno |
-| **C4** | aberto | Todas | **Alvos de toque abaixo de 44 px** em todo o app: "Rolar no mundo" e "Wiki" 28×28, Buscar e (?) 28×32, abas do Mundo 30 px, "Marcar lugar"/"Rota" 29 px, chips 34 px, "Voltar para a lista" 32 px | Qualquer tela a 390 px | `src/styles/base.css` (`.btn`, `.btn-icon`, `.tab`, `.chip`), `views.css` | médio |
+| **C4** | 🟡 em parte (allanpobre/papirus#262: só a altura, 44 px) | Todas | **Alvos de toque abaixo de 44 px** em todo o app: "Rolar no mundo" e "Wiki" 28×28, Buscar e (?) 28×32, abas do Mundo 30 px, "Marcar lugar"/"Rota" 29 px, chips 34 px, "Voltar para a lista" 32 px | Qualquer tela a 390 px | `src/styles/base.css` (`.btn`, `.btn-icon`, `.tab`, `.chip`), `views.css` | médio |
 | **C5** | aberto | Exemplos | O exemplo principal (Oz) **não mostra as oficinas novas**: sem rota, língua, cultura, festas, panteão, tensões nem causa; só o Ostria tem algumas, e ele só abre por URL e sem livro | Abrir `?exemplo` | `src/model/sampleOz*.ts`, `sampleOstria.ts`, `src/views/HomeView.tsx` | médio |
 | **C6** | aberto | Desempenho | **Digitar no capítulo grande do Oz custa ≈ 40 ms por tecla** com CPU 4× mais lenta (60 teclas em 2,4 s) | Oz › Escrever › digitar | `src/editor/` (o que roda a cada tecla) | médio |
 | **C7** | aberto | Desempenho | **Abrir o app leva 2,2 s** (CPU 4×): 33 arquivos, 1,26 MB, CSS de 358 kB bloqueando | Abrir `/app/` | `src/main.tsx`, `vite.config.ts`, `src/styles/` | médio |
@@ -49,13 +49,13 @@ Os defeitos **baixos** (mais de 20) estão em cada relatório. Os mais úteis de
 
 | # | Onde | O quê |
 |---|---|---|
-| **C15** | 03 | Revisão sugere "Depois Kael" quando antes há um trecho `[segredo]` |
-| **C16** | 05 | Nome em edição fica cortado numa linha só |
+| **C15** | 03 | ✅ consertado (allanpobre/papirus#263): Revisão sugeria "Depois Kael" depois de um trecho `[segredo]` |
+| **C16** | 05 | ✅ consertado (allanpobre/papirus#263): nome em edição ficava cortado numa linha só |
 | **C17** | 07 | Arrastar 12 px nas Faixas move 60 anos; a régua cresce sem aviso |
 | **C18** | 07 | Com "No ano 341 DC" ligado, "Todas (17)" não muda (conferir se a lista filtra) |
 | **C19** | 09 | Frases do Rolar no mundo sem artigo: "A Porta de Reino de Ostria", "Em Paço do Regente"; resultados repetidos |
 | **C20** | 11 | "Revelações" no fim da sessão mostrava 4 sem revelar nada; título da sessão cortado |
-| **C21** | 13 | O aviso de erro do arquivo anterior fica por cima do "Achei 1 ficha" |
+| **C21** | 13 | ~~O aviso de erro do arquivo anterior fica por cima do "Achei 1 ficha"~~ **descartado**: é um toast de poucos segundos; a auditoria carregou os arquivos em sequência rápida |
 | **C22** | 15 | "Clique" no celular — ✅ consertado (allanpobre/papirus#259); falta "Ctrl K" no passo da busca |
 | **C23** | 01 | O passeio não retoma depois de recarregar e não abre sozinho |
 | **C24** | 21 | Nomes iguais para coisas diferentes (Revisão, Mais, Ligações ×4, Snapshots/versões/cópias) |
