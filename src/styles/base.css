@@ -885,6 +885,11 @@ button.chip:hover {
   animation: rise 0.16s ease-out;
 }
 
+.overlay > .modal {
+  /* Sem isto, um conteúdo largo (abas, listas) estica a janela além do celular. */
+  min-width: 0;
+}
+
 .modal-sm {
   max-width: 460px;
 }
