@@ -11,6 +11,8 @@ import { manuscriptOrder } from '../model/universe'
 import { readerCopy } from '../share/readerCopy'
 import { coverLook } from '../ui/coverLook'
 import { centroid } from '../logic/regions'
+import { feastsOf } from '../logic/culture'
+import { daysText, routeDays } from '../logic/travel'
 
 /**
  * Wiki do mundo: um arquivo HTML só, para mandar a jogadores ou leitores.
@@ -81,7 +83,7 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   let entries: WikiEntry[]
   let facts: { text: string; ids: string[] }[]
   let relations: { text: string; ids: string[] }[]
-  let events: { when: string; year: number; title: string; description: string; ids: string[] }[]
+  let events: { when: string; year: number; title: string; description: string; ids: string[]; because?: string[] }[]
   if (upTo === null) {
     // A wiki da história toda: cada ficha como termina (com todas as fases).
     entries = safe.entities.map((base) => entityAt(base, scenes.length - 1, scenes)).map((e) => ({
@@ -102,6 +104,8 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
       title: ev.title,
       description: unmarkReveals(ev.description),
       ids: [...ev.entityIds, ev.placeId].filter((x): x is string => Boolean(x)),
+      // Causa e consequência (só as causas que também saem na wiki).
+      because: (ev.causes ?? []).map((id) => safe.events.find((x) => x.id === id)?.title ?? '').filter(Boolean),
     }))
   } else {
     const book = readerBook(safe)
@@ -173,6 +177,16 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   const nameOf = (id: string) => entries.find((x) => x.entity.id === id)?.entity.name ?? ''
   const link = (id: string, name = nameOf(id)) => `<a href="#${anchor(id)}">${esc(name)}</a>`
 
+  // Festas da cultura e o dicionário da língua (sem segredos: `safe` já não tem fichas secretas).
+  const feasts = feastsOf(safe)
+  const feastsHtml = (id: string) => {
+    const fs = feasts.filter((f) => f.culture.id === id)
+    return fs.length ? `<h3>Festas de todo ano</h3><ul>${fs.map((f) => `<li>${f.when ? `<span class="when">${esc(f.when)}</span> ` : ''}<strong>${esc(f.name)}</strong>${f.about ? `: ${linked(f.about, id)}` : ''}</li>`).join('')}</ul>` : ''
+  }
+  const dictHtml = (id: string) => {
+    const words = safe.entities.find((x) => x.id === id)?.language?.words ?? []
+    return words.length ? `<h3>Palavras</h3><dl class="dict">${words.map((w) => `<dt>${esc(w.word)}</dt><dd>${esc(w.meaning)}</dd>`).join('')}</dl>` : ''
+  }
   const article = ({ entity: e, summary, description, fields }: WikiEntry) => {
     const parent = e.parentId && visible.has(e.parentId) ? entries.find((x) => x.entity.id === e.parentId)!.entity : null
     const children = entries.filter((x) => x.entity.parentId === e.id)
@@ -203,7 +217,7 @@ ${box ? `<aside class="infobox">${box}</aside>` : ''}
 ${description.trim() ? (e.kind === 'documento' ? `<div class="doc-text">${paras(description, e.id)}</div>` : paras(description, e.id)) : ''}
 ${rels.length ? `<h3>Ligações</h3><ul>${[...new Set(rels.map((r) => r.text))].map((t) => `<li>${linked(t, e.id)}</li>`).join('')}</ul>` : ''}
 ${fs.length ? `<h3>O que se sabe</h3><ul>${[...new Set(fs.map((f) => f.text))].map((t) => `<li>${linked(t, e.id)}</li>`).join('')}</ul>` : ''}
-${evs.length ? `<h3>Na linha do tempo</h3><ul>${evs.map((ev) => `<li><span class="when">${esc(ev.when)}</span> ${linked(ev.title, e.id)}</li>`).join('')}</ul>` : ''}
+${feastsHtml(e.id)}${dictHtml(e.id)}${evs.length ? `<h3>Na linha do tempo</h3><ul>${evs.map((ev) => `<li><span class="when">${esc(ev.when)}</span> ${linked(ev.title, e.id)}</li>`).join('')}</ul>` : ''}
 ${cites.length ? `<h3>Citado em</h3><p class="cites">${cites.map((id) => link(id)).join(' · ')}</p>` : ''}
 <nav class="pager" aria-label="Fichas vizinhas">${prev ? `<a href="#${anchor(prev.id)}">← ${esc(prev.name)}</a>` : '<span></span>'}<a href="#inicio">Todas</a>${next ? `<a href="#${anchor(next.id)}">${esc(next.name)} →</a>` : '<span></span>'}</nav>
 </article>`
@@ -212,9 +226,22 @@ ${cites.length ? `<h3>Citado em</h3><p class="cites">${cites.map((id) => link(id
   const until = upTo !== null && scenes[upTo] ? `até “${scenes[upTo].title || 'Sem título'}”` : 'tudo, menos os segredos'
   const timeline = sortedEvents.length
     ? `<section class="entry page" id="linha-do-tempo" data-search="linha do tempo"><header><h2>Linha do tempo</h2><p class="aliases">${sortedEvents.length} ${sortedEvents.length === 1 ? 'acontecimento' : 'acontecimentos'}</p></header><ol class="timeline">${sortedEvents
-        .map((ev) => `<li><span class="when">${esc(ev.when)}</span><strong>${linked(ev.title, '')}</strong>${ev.description ? `<span>${linked(ev.description, '')}</span>` : ''}</li>`)
+        .map((ev) => `<li><span class="when">${esc(ev.when)}</span><strong>${linked(ev.title, '')}</strong>${ev.description ? `<span>${linked(ev.description, '')}</span>` : ''}${ev.because?.length ? `<span class="because">Por causa de: ${ev.because.map(esc).join(', ')}</span>` : ''}</li>`)
         .join('')}</ol></section>`
     : ''
+  // Rotas entre marcadores que saem na wiki, com os dias (a pé; no mar, de barco).
+  const roadsHtml = (m: (typeof maps)[number]) => {
+    const roads = (m.routes ?? []).map((r) => ({ r, a: m.pins.find((p) => p.id === r.from), b: m.pins.find((p) => p.id === r.to) })).filter((x) => x.a && x.b)
+    if (!roads.length) return ''
+    return `<svg class="roads" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${roads
+      .map(({ r, a, b }) => `<line class="road-${r.kind}" x1="${(a!.x * 1000).toFixed(1)}" y1="${(a!.y * 1000).toFixed(1)}" x2="${(b!.x * 1000).toFixed(1)}" y2="${(b!.y * 1000).toFixed(1)}" vector-effect="non-scaling-stroke"/>`)
+      .join('')}</svg>${roads
+      .map(({ r, a, b }) => {
+        const d = routeDays(m, r)
+        return d === null ? '' : `<span class="road-days" style="left:${(((a!.x + b!.x) / 2) * 100).toFixed(2)}%;top:${(((a!.y + b!.y) / 2) * 100).toFixed(2)}%">${esc(daysText(d))}</span>`
+      })
+      .join('')}`
+  }
   const atlas = maps.length
     ? `<section class="entry page" id="mapas" data-search="mapas"><header><h2>${maps.length === 1 ? 'Mapa' : 'Mapas'}</h2></header>${maps
         .map(
@@ -230,7 +257,7 @@ ${cites.length ? `<h3>Citado em</h3><p class="cites">${cites.map((id) => link(id
                     })
                     .join('')}`
                 : ''
-            }${m.pins
+            }${roadsHtml(m)}${m.pins
               .map((p) => `<a class="pin" href="#${anchor(p.entityId)}" style="left:${(p.x * 100).toFixed(2)}%;top:${(p.y * 100).toFixed(2)}%"><span>${esc(p.label || nameOf(p.entityId))}</span></a>`)
               .join('')}</div>${m.name ? `<figcaption>${esc(m.name)}</figcaption>` : ''}</figure>`,
         )
@@ -305,7 +332,7 @@ ul{margin:0;padding-left:1.2rem}li{margin:.15rem 0}.cites{margin:0}.when{color:v
 .card:hover{border-color:var(--accent);transform:translateY(-1px)}.card strong{display:block;font:600 1.05rem/1.25 var(--font);color:var(--ink)}.card small{display:block;color:var(--muted);font-size:13px;line-height:1.4;margin-top:3px}
 .thumb{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--tone) center/cover;color:#fff;font:400 20px var(--font);box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--line)}.thumb.img{color:transparent}
 .results{list-style:none;padding:0;margin:0;display:grid;gap:8px}.results .card{width:100%}.empty{color:var(--muted)}
-.map{margin:18px 0 0}.regions{position:absolute;inset:0;width:100%;height:100%}.regions polygon{fill:color-mix(in srgb,var(--r) 30%,transparent);stroke:var(--r);stroke-width:2;vector-effect:non-scaling-stroke}.region{position:absolute;transform:translate(-50%,-50%);padding:1px 8px;border-radius:999px;background:rgb(0 0 0/.55);color:#fff;font:600 11px system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;white-space:nowrap}.map-box{position:relative}.map-box>img{display:block;width:100%;height:auto;border-radius:8px}
+.roads{position:absolute;inset:0;width:100%;height:100%}.roads line{stroke:#a8432a;stroke-width:3;stroke-linecap:round;opacity:.85}.roads .road-trilha{stroke-dasharray:2 6}.roads .road-rio{stroke:#2f6fa8}.roads .road-mar{stroke:#1f5d8c;stroke-dasharray:10 7}.road-days{position:absolute;transform:translate(-50%,-50%);padding:0 5px;border-radius:999px;background:#a8432a;color:#fff;font:700 9px system-ui,sans-serif;white-space:nowrap}.because{color:var(--muted);font-size:.9em;font-style:italic}.dict{display:grid;grid-template-columns:auto 1fr;gap:2px 12px}.dict dt{font-weight:700;font-style:italic}.dict dd{margin:0}.map{margin:18px 0 0}.regions{position:absolute;inset:0;width:100%;height:100%}.regions polygon{fill:color-mix(in srgb,var(--r) 30%,transparent);stroke:var(--r);stroke-width:2;vector-effect:non-scaling-stroke}.region{position:absolute;transform:translate(-50%,-50%);padding:1px 8px;border-radius:999px;background:rgb(0 0 0/.55);color:#fff;font:600 11px system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;white-space:nowrap}.map-box{position:relative}.map-box>img{display:block;width:100%;height:auto;border-radius:8px}
 .pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;text-decoration:none}
 .pin::after{content:'';width:12px;height:12px;border-radius:50%;background:var(--tone);border:2px solid #fff;box-shadow:0 1px 3px rgb(0 0 0/.5)}
 .pin span{padding:1px 6px;border-radius:6px;background:rgb(0 0 0/.65);color:#fff;font:12px system-ui,sans-serif;white-space:nowrap;margin-bottom:2px}
