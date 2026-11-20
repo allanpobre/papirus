@@ -94,7 +94,7 @@ body[data-clima='terror'] {
   --muted: #a39890;
   --line: #3b3436;
   --line-strong: #5a4e51;
-  --accent: #d4434a;
+  --accent: #e5575e; /* mais claro: o texto vermelho sobre o fundo escuro passa de 4,5:1 */
   --accent-ink: #fff4f0;
   --font-display: 'Playfair Display', 'Young Serif', Georgia, serif;
   --font-text: 'Crimson Pro', 'Literata Variable', Georgia, serif;
@@ -113,6 +113,11 @@ body[data-clima='fantasia'] :is(h1, h2, .view-top-area, .section-title) {
 body[data-clima='ficcao'] :is(h1, h2, .view-top-area, .section-title) {
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+/* Terror: o botão cheio usa um vermelho mais fundo, para o texto claro passar de 4,5:1. */
+body[data-clima='terror']:not([data-clima-modo='claro']) .btn-primary {
+  background: #b3323a;
+  border-color: #b3323a;
 }
 body[data-clima='fantasia'] .btn-primary,
 body[data-clima='ficcao'] .btn-primary,
