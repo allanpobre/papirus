@@ -13802,3 +13802,88 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--muted);
   font-size: 0.68rem;
 }
+
+/* ---------------------------------------------------------------- Panteão e crenças */
+.pantheon-sky {
+  position: relative;
+  height: 260px;
+  margin: 6px 0 10px;
+  border-radius: var(--radius-l);
+  background: radial-gradient(circle at 50% 45%, #2a2f4a, #11131f 75%);
+  overflow: hidden;
+}
+.pantheon-sky > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pantheon-sky line {
+  stroke: rgb(255 236 180 / 45%);
+  stroke-width: 1.5;
+}
+.pantheon-star {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  max-width: 110px;
+  padding: 2px 4px;
+  transform: translate(-50%, -30%);
+  border: 0;
+  background: none;
+  color: #f3e7c4;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+}
+.pantheon-star svg {
+  color: #ffd977;
+  filter: drop-shadow(0 0 6px rgb(255 217 119 / 70%));
+}
+.pantheon-star.is-on span {
+  border-radius: 4px;
+  background: rgb(255 217 119 / 25%);
+}
+.pantheon-card {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--ochre);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.pantheon-card h4 {
+  margin: 0;
+}
+.pantheon-card label {
+  display: grid;
+  gap: 4px;
+}
+.pantheon .pantheon-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pantheon-add {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.pantheon-faith {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+}
+.pantheon-faith div {
+  display: flex;
+  gap: 6px;
+}
+.pantheon-faith dt {
+  font-weight: 700;
+}
+.pantheon-faith dd {
+  margin: 0;
+}

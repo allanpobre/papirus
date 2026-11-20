@@ -304,6 +304,7 @@ export const PAGE_TOURS = {
       },
       { target: '.language-editor', title: 'Língua', body: 'Num povo ou cultura (e em qualquer opção do “Quem é”): escolha cartas de som, teste nomes de pessoa, lugar e família, guarde palavras num dicionário e traduza uma frase palavra a palavra. “Sugerir nomes” e “Rolar no mundo” usam esta língua.', optional: true },
       { target: '.culture-workshop', title: 'Oficina da cultura', body: 'Numa cultura: cartas sobre o dia a dia (comida, cumprimento, tabu, mortos…). Toque, escolha uma ideia ou escreva a sua: vira campo da ficha. Com as respostas, sai “Um dia na vida”. As festas de todo ano aparecem na Linha do tempo.', optional: true },
+      { target: '.pantheon', title: 'Panteão e crenças', body: 'Numa religião: junte os deuses (cada um vira uma estrela, com o seu domínio) e diga quem é filho de quem. “Nova lenda” cria uma lenda ligada ao deus, para escrever o mito. Em “Quem acredita”, junte povos, grupos e pessoas. Tudo vira ligação comum: aparece em Ligações e na wiki.', optional: true },
       { target: '.kv-typed', title: 'Campos com tipo', body: 'Cada campo pode ser texto, número, ano ou uma ficha. “Mãe: Ilsa” leva à ficha da Ilsa e vira ligação dos dois lados.', optional: true },
       { title: 'Fichas nascem do texto também', body: 'No Escrever, selecione um nome e escolha “Ficha”. E os nomes novos que você ainda não cadastrou aparecem no botão Revisar da margem.' },
     ],

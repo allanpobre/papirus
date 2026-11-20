@@ -28,6 +28,7 @@ import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, MoreOptionsE
 import { GameRules } from './GameRules'
 import { LanguageEditor } from './LanguageEditor'
 import { CultureWorkshop } from './CultureWorkshop'
+import { PantheonPanel } from './PantheonPanel'
 import { SecretTextarea } from '../ui/SecretText'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
@@ -491,6 +492,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             {!simple && <GameRules key={base.id} entity={base} />}
             {!simple && <LanguageEditor key={`idioma-${base.id}`} entity={base} />}
             {!simple && <CultureWorkshop key={`cultura-${base.id}`} entity={base} />}
+            {!simple && <PantheonPanel key={`panteao-${base.id}`} entity={base} />}
           </>
         )
       case 'texto':

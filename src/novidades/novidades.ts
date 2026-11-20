@@ -13,6 +13,17 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-20a',
+    when: '20 de novembro',
+    title: 'Panteão e crenças',
+    items: [
+      'Numa religião, “Panteão e crenças”: os deuses viram estrelas num céu, com o domínio de cada um e linhas de quem é filho de quem.',
+      '“Nova lenda” cria uma lenda ligada ao deus (ou à fé), pronta para o mito.',
+      '“Quem acredita”: povos, grupos e pessoas que seguem a fé, com o que ela promete, proíbe e o ritual.',
+      'Tudo vira ligação comum entre fichas: aparece em Ligações, no grafo e na wiki.',
+    ],
+  },
+  {
     id: '2026-11-19g',
     when: '19 de novembro',
     title: 'Linha do tempo em faixas',
