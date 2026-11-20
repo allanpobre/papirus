@@ -13887,3 +13887,80 @@ body[data-nova] .view-top.has-parts .view-top-end {
 .pantheon-faith dd {
   margin: 0;
 }
+
+/* ---------------------------------------------------------------- Poder e tensões */
+.power-ruler,
+.power-tension {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+.power-goods {
+  display: grid;
+  flex: 1 1 140px;
+  gap: 4px;
+}
+.power-trades {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+.power-trades li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  background: var(--ok-soft);
+}
+.power-meter {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+}
+.power-step {
+  padding: 3px 10px;
+  border: 0;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.power-step + .power-step {
+  border-left: 1px solid var(--line);
+}
+.power-step[aria-checked='true'].is-paz {
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-weight: 700;
+}
+.power-step[aria-checked='true'].is-tensao {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-weight: 700;
+}
+.power-step[aria-checked='true'].is-guerra {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 700;
+}
+.tension {
+  stroke-width: 3;
+  stroke-dasharray: 6 5;
+  stroke-linecap: round;
+}
+.tension-tensao {
+  stroke: #d39b1f;
+}
+.tension-guerra {
+  stroke: #c0392b;
+  stroke-width: 4;
+}

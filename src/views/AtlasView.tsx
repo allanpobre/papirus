@@ -2,6 +2,7 @@ import { bookScope } from '../logic/bookScope'
 import { Check, Hexagon, ImagePlus, MapPin, Mountain, Minus, Plus, Route as RouteIcon, Trash2, TriangleAlert, X } from 'lucide-react'
 import { daysText, fastTravels, MODE_LABEL, modeDays, ROUTE_LABEL, routeDays, travelDays, type Mode, type Route } from '../logic/travel'
 import { ROUTE_KINDS } from '../model/schema'
+import { tensionsOf } from '../logic/power'
 import { centroid, inside, regionIn, type Region } from '../logic/regions'
 import { coverLook } from '../ui/coverLook'
 import { tabListKeys } from '../ui/keys'
@@ -161,12 +162,13 @@ export default function AtlasView() {
   )
 }
 
-type Layer = 'fronteiras' | 'povos' | 'crencas' | 'rotas'
+type Layer = 'fronteiras' | 'povos' | 'crencas' | 'rotas' | 'tensoes'
 const LAYERS: { id: Layer; name: string }[] = [
   { id: 'fronteiras', name: 'Fronteiras' },
   { id: 'povos', name: 'Povos e línguas' },
   { id: 'crencas', name: 'Crenças' },
   { id: 'rotas', name: 'Rotas' },
+  { id: 'tensoes', name: 'Tensões' },
 ]
 /** A camada de uma região, pelo tipo da ficha dona dela. */
 const layerOf = (kind: string | undefined): Layer => (kind === 'cultura' || kind === 'especie' ? 'povos' : kind === 'religiao' ? 'crencas' : 'fronteiras')
@@ -280,6 +282,18 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   }
   const openRoute = selectedRoute ? routes.find((r) => r.id === selectedRoute) : undefined
   const shownRoutes = layersOff.has('rotas') ? [] : routes
+  // Tensões entre quem tem marcador ou região no mapa: uma linha amarela (tenso) ou vermelha (guerra).
+  const spotOf = (id: string): [number, number] | null => {
+    const p = map.pins.find((x) => x.entityId === id)
+    if (p) return [p.x, p.y]
+    const r = (map.regions ?? []).find((x) => x.entityId === id)
+    return r ? centroid(r.points) : null
+  }
+  const mapTensions = tensionsOf(universe)
+    .filter((t) => t.level !== 'paz')
+    .map((t) => ({ t, a: spotOf(t.a.id), b: spotOf(t.b.id) }))
+    .filter((x): x is { t: (typeof x)['t']; a: [number, number]; b: [number, number] } => !!x.a && !!x.b)
+  const shownTensions = layersOff.has('tensoes') ? [] : mapTensions
   const pin = selectedPin ? map.pins.find((p) => p.id === selectedPin) : undefined
   const pinEntity = pin ? byId(universe, 'entities', pin.entityId) : undefined
 
@@ -342,9 +356,9 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             ))}
           </span>
         )}
-        {((map.regions ?? []).length > 0 || routes.length > 0) && (
+        {((map.regions ?? []).length > 0 || routes.length > 0 || mapTensions.length > 0) && (
           <span className="filter-chips atlas-extra" role="group" aria-label="Camadas">
-            {LAYERS.filter((l) => (l.id === 'rotas' ? routes.length > 0 : (map.regions ?? []).some((r) => layerOf(byId(universe, 'entities', r.entityId)?.kind) === l.id))).map((l) => (
+            {LAYERS.filter((l) => (l.id === 'tensoes' ? mapTensions.length > 0 : l.id === 'rotas' ? routes.length > 0 : (map.regions ?? []).some((r) => layerOf(byId(universe, 'entities', r.entityId)?.kind) === l.id))).map((l) => (
               <button key={l.id} type="button" className="chip" aria-pressed={!layersOff.has(l.id)} onClick={() => setLayersOff((h) => { const n = new Set(h); if (n.has(l.id)) n.delete(l.id); else n.add(l.id); return n })}>
                 {l.name}
               </button>
@@ -591,6 +605,13 @@ function MapCanvas({ map }: { map: AtlasMap }) {
               </button>
             )
           })}
+          {shownTensions.length > 0 && (
+            <svg className="atlas-roads" viewBox="0 0 1000 1000" preserveAspectRatio="none" role="img" aria-label={`Tensões: ${shownTensions.map((x) => `${x.t.a.name} e ${x.t.b.name}`).join(', ')}`}>
+              {shownTensions.map(({ t, a, b }) => (
+                <line key={t.relation.id} className={`tension tension-${t.level}`} x1={a[0] * 1000} y1={a[1] * 1000} x2={b[0] * 1000} y2={b[1] * 1000} vectorEffect="non-scaling-stroke" />
+              ))}
+            </svg>
+          )}
           {shownRoutes.length > 0 && (
             <svg className="atlas-roads" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
               {shownRoutes.map((r) => {

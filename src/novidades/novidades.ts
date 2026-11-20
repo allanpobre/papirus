@@ -13,6 +13,17 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-20b',
+    when: '20 de novembro',
+    title: 'Poder e tensões',
+    items: [
+      'Num lugar, reino ou grupo, “Poder e tensões”: quem manda, com “E se cair?” (quem sente o golpe e quem pode herdar).',
+      'O que produz e o que precisa: o Papirus sugere comércio entre quem produz e quem precisa, e cria a ligação com um toque.',
+      'Tensões num medidor (calmo, tenso, em guerra), que aparecem no mapa como linhas amarelas ou vermelhas (camada “Tensões”).',
+      'As oficinas do mundo (cultura, panteão e poder) agora aparecem também na leitura da ficha, para quem escreve.',
+    ],
+  },
+  {
     id: '2026-11-20a',
     when: '20 de novembro',
     title: 'Panteão e crenças',
