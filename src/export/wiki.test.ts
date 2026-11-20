@@ -4,6 +4,20 @@ import { createUniverse, draftEntity, insert, manuscriptOrder } from '../model/u
 import { buildWiki, linkUpTo } from './wiki'
 
 describe('wiki do mundo', () => {
+  it('oficinas do mundo: festas, palavras, causa do evento e rotas com dias', () => {
+    let u = ostriaUniverse()
+    const [u1, c] = insert(u, 'entities', { ...draftEntity('cultura', 'Gente do Sal'), feasts: [{ id: 'f', name: 'Primeira Chuva', about: 'todos descalços' }], language: { syllables: ['sal-', 'mi'], sounds: '', example: '', words: [{ word: 'dun', meaning: 'rio' }] } })
+    u = u1
+    // O mapa só entra com a imagem dele.
+    const { html } = buildWiki(u, { upTo: null, images: new Map(u.maps.map((m) => [m.image, 'data:image/png;base64,AA'])) })
+    expect(html).toContain('<h2>Gente do Sal</h2>')
+    expect(html).toContain('<strong>Primeira Chuva</strong>')
+    expect(html).toContain('<dt>dun</dt><dd>rio</dd>')
+    expect(html).toContain('Por causa de: A Queda')
+    expect(html).toContain('class="roads"')
+    expect(c.id).toBeTruthy()
+  })
+
   it('tudo, menos os segredos', () => {
     const { html } = buildWiki(ostriaUniverse(), { upTo: null })
     expect(html).toContain('<h2>Kael</h2>')

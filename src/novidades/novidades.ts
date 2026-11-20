@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-20c',
+    when: '20 de novembro',
+    title: 'As oficinas do mundo na wiki',
+    items: [
+      'A wiki agora mostra as festas de cada cultura e as palavras do dicionário da língua.',
+      'Na linha do tempo da wiki, cada evento diz por causa de quê aconteceu.',
+      'Os mapas da wiki mostram as rotas, com os dias de viagem.',
+    ],
+  },
+  {
     id: '2026-11-20b',
     when: '20 de novembro',
     title: 'Poder e tensões',
