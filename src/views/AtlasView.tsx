@@ -305,7 +305,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         </label>
         <input id="map-name" className="input input-sm" value={map.name} onChange={(e) => update((u) => patch(u, 'maps', map.id, { name: e.target.value }))} />
         <button type="button" className={`btn btn-sm ${placing !== null ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={placing !== null} onClick={() => { setPlacing(placing === null ? '' : null); setPending(null) }}>
-          <MapPin size={15} /> {placing !== null ? 'Clique no mapa…' : 'Marcar lugar'}
+          <MapPin size={15} /> {placing !== null ? 'Toque no mapa…' : 'Marcar lugar'}
         </button>
         <button
           type="button"

@@ -275,7 +275,7 @@ function StoryMap({ storyId, title, structure, map }: { storyId: string; title: 
         <h2 className="section-title">{title}</h2>
         <span className="muted small">
           {map.length} {map.length === 1 ? 'cena' : 'cenas'}
-          {missing > 0 && ` · ${missing} sem cartão`}
+          {missing > 0 && ` · ${missing} sem planejar`}
         </span>
         <label className="story-map-structure small">
           <span className="muted">Modelo</span>
