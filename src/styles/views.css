@@ -13964,3 +13964,27 @@ body[data-nova] .view-top.has-parts .view-top-end {
   stroke: #c0392b;
   stroke-width: 4;
 }
+
+/* ---------------------------------------------------------------- Área de toque (auditoria 18)
+ * Botões pequenos (ícones do alto, abas, chips) ganham uma zona de toque de 44 px de altura por uma
+ * peça invisível, sem mudar o desenho. Só em tela de toque. */
+@media (pointer: coarse) {
+  .btn-icon,
+  .btn-sm,
+  .writing-modes button,
+  .chip {
+    position: relative;
+  }
+  .btn-icon::after,
+  .btn-sm::after,
+  .writing-modes button::after,
+  .chip::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: max(100%, 44px);
+    transform: translateY(-50%);
+  }
+}
