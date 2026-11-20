@@ -235,6 +235,7 @@ export const PAGE_TOURS = {
         optional: true,
       },
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       {
         target: '.split-list .quick-create, .fichas-view .fab',
         title: 'Nova ficha',
@@ -301,7 +302,10 @@ export const PAGE_TOURS = {
         body: 'Qualquer ficha junta outras com o nome que você quiser: as Raças e Criaturas de um reino, os Membros de um clã. “Adicionar” põe várias de uma vez. O que todos de uma lista têm aparece na ficha de cada um, com “de onde veio” ao lado.',
         optional: true,
       },
-      { target: '.language-editor', title: 'Idioma', body: 'Num povo ou cultura (e em qualquer opção do “Quem é”), anote as sílabas do idioma. Ao criar uma ficha, “Sugerir nomes” pode montar nomes no estilo dele.', optional: true },
+      { target: '.language-editor', title: 'Língua', body: 'Num povo ou cultura (e em qualquer opção do “Quem é”): escolha cartas de som, teste nomes de pessoa, lugar e família, guarde palavras num dicionário e traduza uma frase palavra a palavra. “Sugerir nomes” e “Rolar no mundo” usam esta língua.', optional: true },
+      { target: '.culture-workshop', title: 'Oficina da cultura', body: 'Numa cultura: cartas sobre o dia a dia (comida, cumprimento, tabu, mortos…). Toque, escolha uma ideia ou escreva a sua: vira campo da ficha. Com as respostas, sai “Um dia na vida”. As festas de todo ano aparecem na Linha do tempo.', optional: true },
+      { target: '.pantheon', title: 'Panteão e crenças', body: 'Numa religião: junte os deuses (cada um vira uma estrela, com o seu domínio) e diga quem é filho de quem. “Nova lenda” cria uma lenda ligada ao deus, para escrever o mito. Em “Quem acredita”, junte povos, grupos e pessoas. Tudo vira ligação comum: aparece em Ligações e na wiki.', optional: true },
+      { target: '.power-panel', title: 'Poder e tensões', body: 'Num lugar, reino ou grupo: quem manda (com “E se cair?”, que mostra quem sente o golpe e quem pode herdar), o que produz e o que precisa (o Papirus sugere comércio entre quem produz e quem precisa) e as tensões com os outros, num medidor: calmo, tenso, em guerra. As tensões aparecem no mapa.', optional: true },
       { target: '.kv-typed', title: 'Campos com tipo', body: 'Cada campo pode ser texto, número, ano ou uma ficha. “Mãe: Ilsa” leva à ficha da Ilsa e vira ligação dos dois lados.', optional: true },
       { title: 'Fichas nascem do texto também', body: 'No Escrever, selecione um nome e escolha “Ficha”. E os nomes novos que você ainda não cadastrou aparecem no botão Revisar da margem.' },
     ],
@@ -311,6 +315,7 @@ export const PAGE_TOURS = {
     steps: [
       LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       { target: '.graph-filters-btn', title: 'Filtros', body: 'No celular, o grafo vem primeiro. Os filtros (centrar numa ficha, tipos, um ponto da história) ficam aqui.', optional: true },
       { target: '.graph-find-btn', title: 'Achar uma ficha', body: 'A lupa leva o desenho até a ficha que você escolher e a deixa em destaque, com as ligações dela. Se ela não estiver no mapa agora, aparece só ela e quem se liga a ela.', optional: true },
       {
@@ -330,9 +335,12 @@ export const PAGE_TOURS = {
     steps: [
       LIVRO_ATUAL,
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       { target: '.timeline-view .quick-create', title: 'Novo evento', body: 'O nome e o ano, no calendário do seu mundo. Toque num evento para mudar o tipo (uma Era é uma faixa de tempo), a importância, quem participa e onde.' },
       { target: '.timeline-filters', title: 'Filtrar', body: 'Mostre só o que envolve certas fichas, só o que aconteceu num lugar (e nos lugares dentro dele) ou numa região pintada no mapa, só os eventos mais importantes, e escolha se as cenas com data e as sessões de jogo aparecem.' },
       { target: '.time-machine', title: 'Máquina do tempo', body: 'Arraste a régua (ou use − e +) para ver o mundo num ano: quem vivia e com que idade, quem mandava, o que existia. As Fichas e os Mapas passam a mostrar só o que existia nesse ano, com um aviso e o botão “Sair do ano”.', optional: true },
+      { target: '.feast-strip', title: 'Festas de todo ano', body: 'As festas das culturas, na ordem do calendário do mundo. Toque numa para abrir a cultura.', optional: true },
+      { target: '.timeline-modes', title: 'Lista ou faixas', body: '“Faixas” mostra uma faixa por personagem, reino ou lugar, com as eras no fundo. Arraste um evento para o lado para mudar o ano. As setas vão da causa para a consequência (no evento, “Causado por”), e o Papirus avisa quando a consequência ficou antes da causa. Com a régua da história num ponto, uma linha mostra onde a história está.', optional: true },
       { target: '.era-strip', title: 'Eras', body: 'As faixas de tempo do mundo, uma por linha.', optional: true },
       { target: '.timeline', title: 'Ano a ano', body: 'Os eventos, as cenas com data narrativa e as sessões de jogo com ano no mundo. Quem tem nascimento na ficha aparece com a idade daquele ano. Toque num evento para editar; numa cena, para abrir no editor; numa sessão, para abrir na Mesa.', optional: true },
       { title: 'O calendário', body: 'Meses, dias e o rótulo dos anos (como “DC”) ficam em Ajustes → Universo. O Papirus avisa datas impossíveis.' },
@@ -342,9 +350,11 @@ export const PAGE_TOURS = {
     title: 'Mapas',
     steps: [
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
-      { target: '.atlas-view .area-tools', title: 'Mapas', body: 'Cada mapa numa aba. “Adicionar mapa” envia uma imagem: desenho à mão, Inkarnate, qualquer coisa.' },
+      { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
+      { target: '.atlas-view .area-tools', title: 'Mapas', body: 'Cada mapa numa aba. “Adicionar mapa” envia uma imagem: desenho à mão, Inkarnate, qualquer coisa. Sem mapa? “Gerar” cria um continente com costa, montanhas, rios e florestas; “Outro” no aviso troca por outro.' },
       { target: '.atlas-toolbar', title: 'Marcar lugares', body: '“Marcar lugar” e toque no mapa para pôr um marcador ligado a uma ficha. Os botões − e + mudam o zoom, e os tipos mostram ou escondem marcadores.', optional: true },
       { target: '.atlas-route-pick', title: 'Caminho de', body: 'Escolha um personagem: o trajeto dele pelas cenas aparece no mapa, numerado na ordem.', optional: true },
+      { target: '.atlas-toolbar', title: 'Rotas e dias de viagem', body: '“Rota”: toque num lugar e depois em outro para ligar os dois. Toque no número da rota para escolher estrada, trilha, rio ou mar e os dias (ou dê a escala do mapa). No “Caminho de” um personagem, o Papirus avisa quando a história o faz viajar rápido demais entre duas cenas com data. Em “Mais”, as camadas mostram ou escondem fronteiras, povos, crenças e rotas.', optional: true },
       { target: '.atlas-scroll', title: 'O mapa', body: 'No celular, um dedo move o mapa e dois dedos aproximam (um arrasto que começa num marcador não o abre). Toque num marcador para ver a ficha, mudar o nome que aparece no mapa, Mover ou Remover. Com o mouse, dá para arrastar o marcador.', optional: true },
       { title: 'Nas fichas também', body: 'Cada ficha mostra o pedaço do mapa onde ela está (num personagem, o caminho dele pelas cenas). Numa campanha, o mestre revela o mapa aos jogadores; no Codex aparecem só os marcadores que a mesa já conhece.' },
     ],

@@ -13334,3 +13334,633 @@ body[data-nova] .view-top.has-parts .view-top-end {
 .settings-nav-item.is-rich[aria-current='page'] {
   border-color: var(--accent);
 }
+
+/* ---------------------------------------------------------------- Rolar no mundo */
+.roll-tables {
+  margin: 10px 0 14px;
+}
+.roll-die {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 14px;
+  border: 2px solid var(--accent);
+  border-radius: 22px;
+  background: var(--accent-faint);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  animation: roll-spin 0.45s ease-out;
+}
+.roll-die:active {
+  transform: scale(0.95);
+}
+@keyframes roll-spin {
+  from { transform: rotate(-25deg) scale(0.9); }
+  to { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roll-die { animation: none; }
+}
+.roll-result {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.roll-result h3 {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.roll-result p {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+.roll-result .roll-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.roll-before {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+
+/* ---------------------------------------------------------------- Língua (cartas de som, dicionário, frase) */
+.lang-h {
+  margin: 14px 0 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.lang-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.lang-card {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+.lang-card span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.lang-card[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+  cursor: default;
+}
+.language-editor .lang-try {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lang-dict {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+.lang-dict li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lang-dict li .btn {
+  margin-left: auto;
+}
+.lang-add {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.lang-phrase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 6px 0 8px;
+}
+.lang-w {
+  display: grid;
+  text-align: center;
+}
+.lang-w strong {
+  font-size: 1.05rem;
+}
+.lang-w small {
+  color: var(--muted);
+}
+.lang-w.is-new strong {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- Oficina da cultura e festas */
+.culture-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+.culture-card {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+.culture-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+.culture-card.is-done {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-faint);
+}
+.culture-card.is-done span {
+  color: var(--ink-2);
+}
+.culture-card[aria-expanded='true'] {
+  outline: 2px solid var(--accent);
+}
+.culture-answer {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.culture-day {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  font-family: var(--font-text, inherit);
+  line-height: 1.55;
+}
+.culture-feast {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.culture-feast > :first-child,
+.culture-feast > input[aria-label='O que acontece'] {
+  grid-column: 1 / -1;
+}
+.feast-strip {
+  margin: 0 0 14px;
+}
+.feast-strip h3 {
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+.feast-strip ul {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0 0 4px;
+  list-style: none;
+  overflow-x: auto;
+}
+.feast-chip {
+  display: grid;
+  flex: none;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+.feast-chip span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+/* ---------------------------------------------------------------- Mapa: rotas, dias de viagem e camadas */
+.atlas-roads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.road {
+  stroke: #6b4f2a;
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 1px rgb(255 255 255 / 60%));
+}
+.road-trilha {
+  stroke-dasharray: 2 6;
+}
+.road-rio {
+  stroke: #2f6fa8;
+  stroke-width: 4;
+}
+.road-mar {
+  stroke: #1f5d8c;
+  stroke-dasharray: 10 7;
+}
+.road.selected {
+  stroke-width: 6;
+}
+.atlas-road-label {
+  position: absolute;
+  /* Por cima dos nomes dos marcadores (é pequeno); ligando ou pintando, o toque passa para o marcador. */
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  min-width: 28px;
+  padding: 1px 6px;
+  border: 1px solid rgb(0 0 0 / 25%);
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #3a2a12;
+  font: 700 0.7rem/1.4 system-ui, sans-serif;
+  cursor: pointer;
+}
+.atlas-road-label.road-rio,
+.atlas-road-label.road-mar {
+  background: #eaf3fb;
+  color: #173f61;
+}
+.atlas-image.painting .atlas-road-label,
+.atlas-image.routing .atlas-road-label {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.atlas-route-edit {
+  flex-wrap: wrap;
+}
+.atlas-days {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.atlas-days .input {
+  width: 80px;
+}
+.atlas-fast {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--ochre-soft);
+  color: var(--ink);
+  list-style: none;
+}
+.atlas-fast li {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.atlas-fast svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ochre);
+}
+
+/* ---------------------------------------------------------------- Linha do tempo em faixas */
+.timeline-modes {
+  margin: 0 0 10px;
+}
+.lanes {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.lanes-scroll {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.lanes-names {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  flex: none;
+  border-right: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.lane-name {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.lanes-track {
+  position: relative;
+  flex: 1 0 auto;
+}
+.lanes-scroll > .lanes-track {
+  overflow: visible;
+}
+.lanes-scroll {
+  overflow-x: auto;
+}
+.lane-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid var(--line);
+}
+.lane-era {
+  position: absolute;
+  top: 0;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.lane-era span {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  color: var(--muted);
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+.lane-arrows {
+  position: absolute;
+  inset: 0 auto auto 0;
+  pointer-events: none;
+}
+.lane-arrows path {
+  fill: none;
+  stroke: var(--wine);
+  stroke-width: 2;
+}
+.lane-arrows marker path {
+  fill: var(--wine);
+  stroke: none;
+}
+.lane-event {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 150px;
+  padding: 0;
+  transform: translate(-6px, -50%);
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.72rem;
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+}
+.lane-dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.lane-event.imp-1 .lane-dot {
+  width: 9px;
+  height: 9px;
+}
+.lane-event.imp-3 .lane-dot {
+  width: 15px;
+  height: 15px;
+}
+.lane-label {
+  overflow: hidden;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lane-event.is-dragging {
+  z-index: 3;
+  cursor: grabbing;
+}
+.lane-event.is-dragging .lane-label {
+  background: var(--accent-soft);
+}
+.lane-now {
+  position: absolute;
+  top: 0;
+  width: 0;
+  border-left: 2px dashed var(--ochre);
+  pointer-events: none;
+}
+.lane-now span {
+  position: absolute;
+  top: -1px;
+  left: 4px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--ochre-soft);
+  color: var(--ink);
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+.lane-axis {
+  position: absolute;
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+/* ---------------------------------------------------------------- Panteão e crenças */
+.pantheon-sky {
+  position: relative;
+  height: 260px;
+  margin: 6px 0 10px;
+  border-radius: var(--radius-l);
+  background: radial-gradient(circle at 50% 45%, #2a2f4a, #11131f 75%);
+  overflow: hidden;
+}
+.pantheon-sky > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pantheon-sky line {
+  stroke: rgb(255 236 180 / 45%);
+  stroke-width: 1.5;
+}
+.pantheon-star {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  max-width: 110px;
+  padding: 2px 4px;
+  transform: translate(-50%, -30%);
+  border: 0;
+  background: none;
+  color: #f3e7c4;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+}
+.pantheon-star svg {
+  color: #ffd977;
+  filter: drop-shadow(0 0 6px rgb(255 217 119 / 70%));
+}
+.pantheon-star.is-on span {
+  border-radius: 4px;
+  background: rgb(255 217 119 / 25%);
+}
+.pantheon-card {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--ochre);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.pantheon-card h4 {
+  margin: 0;
+}
+.pantheon-card label {
+  display: grid;
+  gap: 4px;
+}
+.pantheon .pantheon-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pantheon-add {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.pantheon-faith {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+}
+.pantheon-faith div {
+  display: flex;
+  gap: 6px;
+}
+.pantheon-faith dt {
+  font-weight: 700;
+}
+.pantheon-faith dd {
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------- Poder e tensões */
+.power-ruler,
+.power-tension {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+.power-goods {
+  display: grid;
+  flex: 1 1 140px;
+  gap: 4px;
+}
+.power-trades {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+.power-trades li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  background: var(--ok-soft);
+}
+.power-meter {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+}
+.power-step {
+  padding: 3px 10px;
+  border: 0;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.power-step + .power-step {
+  border-left: 1px solid var(--line);
+}
+.power-step[aria-checked='true'].is-paz {
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-weight: 700;
+}
+.power-step[aria-checked='true'].is-tensao {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-weight: 700;
+}
+.power-step[aria-checked='true'].is-guerra {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 700;
+}
+.tension {
+  stroke-width: 3;
+  stroke-dasharray: 6 5;
+  stroke-linecap: round;
+}
+.tension-tensao {
+  stroke: #d39b1f;
+}
+.tension-guerra {
+  stroke: #c0392b;
+  stroke-width: 4;
+}

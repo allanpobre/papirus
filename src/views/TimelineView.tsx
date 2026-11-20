@@ -14,6 +14,8 @@ import { EntityMultiPicker, EntityPicker } from '../ui/EntityPicker'
 import { Modal } from '../ui/Modal'
 import { AreaHead } from './AreaModes'
 import { TimeMachine } from './TimeMachine'
+import { FeastStrip } from './FeastStrip'
+import { TimelineLanes } from './TimelineLanes'
 
 export default function TimelineView() {
   const { universe, update, nav, go, undoable, bookId } = useWorkspace()
@@ -38,6 +40,8 @@ export default function TimelineView() {
   const [editing, setEditing] = useState<string | null>(nav.view === 'timeline' ? (nav.id ?? null) : null)
   const [newTitle, setNewTitle] = useState('')
   const [newYear, setNewYear] = useState<number | null>(null)
+  // Lista (ano a ano) ou faixas (uma por personagem, grupo ou lugar).
+  const [lanes, setLanes] = useState(false)
 
   const eras = universe.events.filter((e) => e.kind === 'era').sort((a, b) => a.year - b.year)
   // Com um livro escolhido no alto: as cenas dele e os eventos de quem aparece nele (os eventos sem
@@ -157,8 +161,20 @@ export default function TimelineView() {
       </div>}
 
       <TimeMachine />
+      <FeastStrip />
+      {events.length > 0 && (
+        <div className="chips timeline-modes" role="radiogroup" aria-label="Como ver">
+          <button type="button" role="radio" className="chip" aria-checked={!lanes} onClick={() => setLanes(false)}>
+            Lista
+          </button>
+          <button type="button" role="radio" className="chip" aria-checked={lanes} onClick={() => setLanes(true)}>
+            Faixas
+          </button>
+        </div>
+      )}
+      {lanes && events.length > 0 && <TimelineLanes events={events} eras={eras} onOpen={setEditing} />}
 
-      {eras.length > 0 && (
+      {!lanes && eras.length > 0 && (
         <div className="era-strip" aria-label="Eras" style={{ height: 30 * eras.length + 28 }}>
           {eras.map((era, i) => {
             // Cada era na sua faixa; o nome nunca é cortado (eras curtas crescem para o lado que cabe).
@@ -183,7 +199,7 @@ export default function TimelineView() {
         </div>
       )}
 
-      {groups.length === 0 ? (
+      {lanes && events.length > 0 ? null : groups.length === 0 ? (
         <Empty icon={<CalendarRange size={32} />} title="Nenhum evento ainda.">
           <p>Crie eventos e eras com o ano do seu calendário. Cenas com data narrativa aparecem aqui também.</p>
         </Empty>
@@ -318,9 +334,41 @@ function EventForm({ ev, onChange }: { ev: TimelineEvent; onChange: (c: Partial<
       <div className="field-wide">
         <EntityMultiPicker label="Participantes" value={ev.entityIds} onChange={(ids) => onChange({ entityIds: ids })} />
       </div>
+      {ev.kind === 'evento' && <CausesField ev={ev} onChange={onChange} />}
       <Field label="Descrição" wide>
         {(id) => <textarea id={id} className="input textarea" rows={4} value={ev.description} onChange={(e) => onChange({ description: e.target.value })} />}
       </Field>
+    </div>
+  )
+}
+
+/** "Causado por": os eventos que levaram a este (setas na Linha do tempo em faixas). */
+function CausesField({ ev, onChange }: { ev: TimelineEvent; onChange: (c: Partial<TimelineEvent>) => void }) {
+  const { universe } = useWorkspace()
+  const causes = ev.causes ?? []
+  const others = universe.events.filter((e) => e.kind === 'evento' && e.id !== ev.id && !causes.includes(e.id)).sort((a, b) => a.year - b.year)
+  return (
+    <div className="field field-wide">
+      <span className="field-label">Causado por</span>
+      {causes.length > 0 && (
+        <div className="chips">
+          {causes.map((id) => (
+            <button key={id} type="button" className="chip" aria-label={`Tirar ${byId(universe, 'events', id)?.title ?? 'evento'}`} onClick={() => onChange({ causes: causes.filter((c) => c !== id) })}>
+              {byId(universe, 'events', id)?.title ?? '?'} ×
+            </button>
+          ))}
+        </div>
+      )}
+      {others.length > 0 && (
+        <select className="input" aria-label="Causado por" value="" onChange={(e) => e.target.value && onChange({ causes: [...causes, e.target.value] })}>
+          <option value="">Escolher um evento que levou a este…</option>
+          {others.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.title} ({formatYear(o.year, universe.settings.calendarSuffix)})
+            </option>
+          ))}
+        </select>
+      )}
     </div>
   )
 }

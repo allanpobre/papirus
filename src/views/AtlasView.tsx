@@ -1,5 +1,8 @@
 import { bookScope } from '../logic/bookScope'
-import { Check, Hexagon, ImagePlus, MapPin, Minus, Plus, Trash2, X } from 'lucide-react'
+import { Check, Hexagon, ImagePlus, MapPin, Mountain, Minus, Plus, Route as RouteIcon, Trash2, TriangleAlert, X } from 'lucide-react'
+import { daysText, fastTravels, MODE_LABEL, modeDays, ROUTE_LABEL, routeDays, travelDays, type Mode, type Route } from '../logic/travel'
+import { ROUTE_KINDS } from '../model/schema'
+import { tensionsOf } from '../logic/power'
 import { centroid, inside, regionIn, type Region } from '../logic/regions'
 import { coverLook } from '../ui/coverLook'
 import { tabListKeys } from '../ui/keys'
@@ -19,6 +22,7 @@ import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
 import { AreaHead } from './AreaModes'
 import { GeneratedCover } from '../ui/GeneratedCover'
+import { drawContinent } from './continentCanvas'
 import { membersOf } from '../model/lists'
 import { useChosenYear } from './timeYear'
 import { existsIn } from '../logic/timeMachine'
@@ -59,6 +63,23 @@ export default function AtlasView() {
   const map = (mapId && byId(universe, 'maps', mapId)) || universe.maps[0]
 
   const [cropping, setCropping] = useState<File | null>(null)
+  // Gerar um continente: costa, montanhas, rios e florestas. "Outro" no aviso troca a imagem por outra semente.
+  const addContinent = () => {
+    const img = drawContinent(Math.floor(Math.random() * 1e9))
+    let id = ''
+    update((u) => {
+      const [next, m] = insert(u, 'maps', draftMap('Continente', img.data, img.width, img.height))
+      id = m.id
+      return next
+    })
+    setMapId(id)
+    const again = () => {
+      const next = drawContinent(Math.floor(Math.random() * 1e9))
+      update((u) => patch(u, 'maps', id, { image: next.data }))
+      toast('Outro continente.', { action: { label: 'Outro', run: again } })
+    }
+    toast('Continente gerado. Marque os lugares por cima.', { action: { label: 'Outro', run: again } })
+  }
   const addMap = async (file?: File, crop?: Rect) => {
     try {
       // O mapa vai para as imagens do universo (fora do arquivo do universo, que fica leve).
@@ -88,6 +109,9 @@ export default function AtlasView() {
         </div>
         <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
           <ImagePlus size={16} /> Adicionar mapa
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={addContinent} title="Gerar um continente (costa, montanhas, rios e florestas) para começar">
+          <Mountain size={16} /> Gerar
         </button>
         <input
           ref={fileRef}
@@ -125,6 +149,9 @@ export default function AtlasView() {
             <button type="button" className="btn btn-primary" onClick={() => fileRef.current?.click()}>
               <ImagePlus size={16} /> Enviar imagem
             </button>
+            <button type="button" className="btn" onClick={addContinent}>
+              <Mountain size={16} /> Gerar um continente
+            </button>
             <button type="button" className="btn btn-ghost" onClick={() => void addMap()}>
               Começar com um pergaminho em branco
             </button>
@@ -134,6 +161,17 @@ export default function AtlasView() {
     </div>
   )
 }
+
+type Layer = 'fronteiras' | 'povos' | 'crencas' | 'rotas' | 'tensoes'
+const LAYERS: { id: Layer; name: string }[] = [
+  { id: 'fronteiras', name: 'Fronteiras' },
+  { id: 'povos', name: 'Povos e línguas' },
+  { id: 'crencas', name: 'Crenças' },
+  { id: 'rotas', name: 'Rotas' },
+  { id: 'tensoes', name: 'Tensões' },
+]
+/** A camada de uma região, pelo tipo da ficha dona dela. */
+const layerOf = (kind: string | undefined): Layer => (kind === 'cultura' || kind === 'especie' ? 'povos' : kind === 'religiao' ? 'crencas' : 'fronteiras')
 
 function MapCanvas({ map }: { map: AtlasMap }) {
   const { universe, update, peek, go, undoable, toast, bookId, prefs } = useWorkspace()
@@ -162,8 +200,33 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   const [painting, setPainting] = useState<{ entityId: string | null; points: [number, number][] } | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
   const setRegions = (regions: Region[]) => update((u) => patch(u, 'maps', map.id, { regions }))
+  // Rotas: tocar um marcador e depois outro liga os dois. Tocar o rótulo da rota abre o tipo e os dias.
+  const [routing, setRouting] = useState<{ from: string | null } | null>(null)
+  const [selectedRoute, setSelectedRoute] = useState<string | null>(null)
+  const routes = map.routes ?? []
+  const setRoutes = (next: Route[]) => update((u) => patch(u, 'maps', map.id, { routes: next }))
+  // Camadas: o que aparece por cima do mapa (fronteiras, povos, crenças e rotas).
+  const [layersOff, setLayersOff] = useState<Set<Layer>>(new Set())
 
   const choosePin = (id: string) => {
+    if (routing) {
+      if (!routing.from) {
+        setRouting({ from: id })
+        return
+      }
+      if (routing.from === id) return
+      const same = routes.find((r) => (r.from === routing.from && r.to === id) || (r.to === routing.from && r.from === id))
+      if (same) {
+        setSelectedRoute(same.id)
+        setRouting(null)
+        return
+      }
+      const r: Route = { id: newId(), from: routing.from, to: id, kind: 'estrada', days: null }
+      setRoutes([...routes, r])
+      setSelectedRoute(r.id)
+      setRouting(null)
+      return
+    }
     setSelectedPin(id)
     if (moving !== id) setMoving(null)
   }
@@ -189,7 +252,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   }
   const visible = map.pins.filter((p) => !hiddenKinds.has(byId(universe, 'entities', p.entityId)?.kind ?? '') && exists(p.entityId))
   const outOfTime = year === null ? 0 : map.pins.filter((p) => !exists(p.entityId)).length
-  const regions = (map.regions ?? []).filter((r) => regionIn(universe, r, year))
+  const regions = (map.regions ?? []).filter((r) => regionIn(universe, r, year) && !layersOff.has(layerOf(byId(universe, 'entities', r.entityId)?.kind)))
   const toneOf = (id: string) => coverLook(entityName(universe, id) || id).tone
   const region = selectedRegion ? (map.regions ?? []).find((r) => r.id === selectedRegion) : undefined
   // Outra região ou marcador: a gaveta volta a mostrar quem vive lá (não o modo de editar).
@@ -212,6 +275,25 @@ function MapCanvas({ map }: { map: AtlasMap }) {
     [universe, map],
   )
   const route = useMemo(() => (traveler ? routeOn(universe, map, traveler) : []), [universe, map, traveler])
+  const fast = useMemo(() => (traveler ? fastTravels(universe, map, traveler) : []), [universe, map, traveler])
+  const pinName = (pinId: string) => {
+    const p = map.pins.find((x) => x.id === pinId)
+    return p ? p.label || entityName(universe, p.entityId) || '?' : '?'
+  }
+  const openRoute = selectedRoute ? routes.find((r) => r.id === selectedRoute) : undefined
+  const shownRoutes = layersOff.has('rotas') ? [] : routes
+  // Tensões entre quem tem marcador ou região no mapa: uma linha amarela (tenso) ou vermelha (guerra).
+  const spotOf = (id: string): [number, number] | null => {
+    const p = map.pins.find((x) => x.entityId === id)
+    if (p) return [p.x, p.y]
+    const r = (map.regions ?? []).find((x) => x.entityId === id)
+    return r ? centroid(r.points) : null
+  }
+  const mapTensions = tensionsOf(universe)
+    .filter((t) => t.level !== 'paz')
+    .map((t) => ({ t, a: spotOf(t.a.id), b: spotOf(t.b.id) }))
+    .filter((x): x is { t: (typeof x)['t']; a: [number, number]; b: [number, number] } => !!x.a && !!x.b)
+  const shownTensions = layersOff.has('tensoes') ? [] : mapTensions
   const pin = selectedPin ? map.pins.find((p) => p.id === selectedPin) : undefined
   const pinEntity = pin ? byId(universe, 'entities', pin.entityId) : undefined
 
@@ -224,6 +306,22 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         <input id="map-name" className="input input-sm" value={map.name} onChange={(e) => update((u) => patch(u, 'maps', map.id, { name: e.target.value }))} />
         <button type="button" className={`btn btn-sm ${placing !== null ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={placing !== null} onClick={() => { setPlacing(placing === null ? '' : null); setPending(null) }}>
           <MapPin size={15} /> {placing !== null ? 'Clique no mapa…' : 'Marcar lugar'}
+        </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${routing ? 'btn-primary' : 'btn-ghost'}`}
+          aria-pressed={routing !== null}
+          disabled={map.pins.length < 2}
+          title={map.pins.length < 2 ? 'Marque dois lugares para ligar' : 'Ligar dois lugares com uma rota'}
+          onClick={() => {
+            setRouting(routing ? null : { from: null })
+            setPlacing(null)
+            setPending(null)
+            setPainting(null)
+            setSelectedPin(null)
+          }}
+        >
+          <RouteIcon size={15} /> {routing ? 'Ligando…' : 'Rota'}
         </button>
         <button
           type="button"
@@ -254,6 +352,15 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             {kinds.map((k) => (
               <button key={k} type="button" className="chip" aria-pressed={!hiddenKinds.has(k)} onClick={() => setHiddenKinds((h) => { const n = new Set(h); if (n.has(k)) n.delete(k); else n.add(k); return n })}>
                 {kindPlural(k)}
+              </button>
+            ))}
+          </span>
+        )}
+        {((map.regions ?? []).length > 0 || routes.length > 0 || mapTensions.length > 0) && (
+          <span className="filter-chips atlas-extra" role="group" aria-label="Camadas">
+            {LAYERS.filter((l) => (l.id === 'tensoes' ? mapTensions.length > 0 : l.id === 'rotas' ? routes.length > 0 : (map.regions ?? []).some((r) => layerOf(byId(universe, 'entities', r.entityId)?.kind) === l.id))).map((l) => (
+              <button key={l.id} type="button" className="chip" aria-pressed={!layersOff.has(l.id)} onClick={() => setLayersOff((h) => { const n = new Set(h); if (n.has(l.id)) n.delete(l.id); else n.add(l.id); return n })}>
+                {l.name}
               </button>
             ))}
           </span>
@@ -301,17 +408,90 @@ function MapCanvas({ map }: { map: AtlasMap }) {
 
       {route.length > 0 && (
         <ol className="atlas-route-list small" aria-label="Caminho, na ordem das cenas">
-          {route.map((r, i) => (
+          {route.map((r, i) => {
+            const leg = i > 0 ? travelDays(map, route[i - 1].pinId, r.pinId) : null
+            return (
+              <li key={i}>
+                {leg !== null && leg > 0 && <span className="atlas-leg muted">({daysText(leg)} de viagem) </span>}
+                <strong>{r.place}</strong> <span className="muted">(cena{r.scenes.length > 1 ? 's' : ''} {rangeText(r.scenes)})</span>
+              </li>
+            )
+          })}
+        </ol>
+      )}
+      {fast.length > 0 && (
+        <ul className="atlas-fast small" aria-label="Viagens rápidas demais">
+          {fast.map((f, i) => (
             <li key={i}>
-              <strong>{r.place}</strong> <span className="muted">(cena{r.scenes.length > 1 ? 's' : ''} {rangeText(r.scenes)})</span>
+              <TriangleAlert size={14} aria-hidden="true" /> De {f.from} a {f.to} (cenas {f.scenes[0]} e {f.scenes[1]}): {f.elapsed === 0 ? 'é o mesmo dia' : `passa ${daysText(f.elapsed)}`}, mas a viagem leva {daysText(f.needed)} no jeito mais rápido.
             </li>
           ))}
-        </ol>
+        </ul>
+      )}
+      {routing && (
+        <div className="atlas-paint" role="group" aria-label="Ligar lugares">
+          <span className="small">{routing.from ? <>De <strong>{pinName(routing.from)}</strong>: agora toque no outro lugar.</> : 'Toque no primeiro lugar da rota.'}</span>
+          <button type="button" className="btn btn-sm btn-ghost" onClick={() => setRouting(null)}>
+            Cancelar
+          </button>
+        </div>
+      )}
+      {openRoute && (
+        <div className="atlas-paint atlas-route-edit" role="group" aria-label={`Rota de ${pinName(openRoute.from)} a ${pinName(openRoute.to)}`}>
+          <strong className="small">
+            {pinName(openRoute.from)} ↔ {pinName(openRoute.to)}
+          </strong>
+          <div className="chips" role="radiogroup" aria-label="Tipo de rota">
+            {ROUTE_KINDS.map((k) => (
+              <button key={k} type="button" role="radio" className="chip" aria-checked={openRoute.kind === k} onClick={() => setRoutes(routes.map((r) => (r.id === openRoute.id ? { ...r, kind: k } : r)))}>
+                {ROUTE_LABEL[k]}
+              </button>
+            ))}
+          </div>
+          <label className="small atlas-days">
+            {openRoute.kind === 'mar' ? 'Dias de barco' : 'Dias a pé'}
+            <input
+              className="input input-sm"
+              type="number"
+              min={0}
+              step={0.5}
+              placeholder={routeDays({ ...map }, { ...openRoute, days: null }) !== null ? String(routeDays(map, { ...openRoute, days: null })) : '?'}
+              value={openRoute.days ?? ''}
+              onChange={(ev) => setRoutes(routes.map((r) => (r.id === openRoute.id ? { ...r, days: ev.target.value === '' ? null : Math.max(0, Number(ev.target.value)) } : r)))}
+            />
+          </label>
+          <span className="small muted" aria-label="Tempo de viagem">
+            {(['pe', 'cavalo', 'barco'] as Mode[])
+              .map((m) => [m, modeDays(map, openRoute, m)] as const)
+              .filter(([, d]) => d !== null)
+              .map(([m, d]) => `${daysText(d!)} ${MODE_LABEL[m]}`)
+              .join(' · ') || 'Escreva os dias, ou dê a escala do mapa.'}
+          </span>
+          {!map.widthDays && (
+            <label className="small atlas-days">
+              Escala: dias a pé de ponta a ponta do mapa
+              <input className="input input-sm" type="number" min={1} placeholder="30" onChange={(ev) => Number(ev.target.value) > 0 && update((u) => patch(u, 'maps', map.id, { widthDays: Number(ev.target.value) }))} />
+            </label>
+          )}
+          <button
+            type="button"
+            className="btn btn-sm btn-ghost"
+            onClick={() => {
+              setRoutes(routes.filter((r) => r.id !== openRoute.id))
+              setSelectedRoute(null)
+            }}
+          >
+            <Trash2 size={15} /> Apagar rota
+          </button>
+          <button type="button" className="btn btn-sm btn-ghost" aria-label="Fechar" onClick={() => setSelectedRoute(null)}>
+            <X size={15} />
+          </button>
+        </div>
       )}
       {painting && (
         <div className="atlas-paint" role="group" aria-label="Pintar região">
           {!painting.entityId ? (
-            <EntityPicker label="De quem é esta região?" kinds={['reino', 'faccao', 'lugar', 'cultura']} value={null} onChange={(id) => id && setPainting({ entityId: id, points: [] })} />
+            <EntityPicker label="De quem é esta região?" kinds={['reino', 'faccao', 'lugar', 'cultura', 'especie', 'religiao']} value={null} onChange={(id) => id && setPainting({ entityId: id, points: [] })} />
           ) : (
             <>
               <span className="small">
@@ -363,7 +543,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
       <div className="atlas-scroll" ref={scrollRef} {...bind} style={{ aspectRatio: `${map.width} / ${map.height}` }}>
         <div
           ref={imgRef}
-          className={`atlas-image${placing !== null || moving || painting?.entityId ? ' placing' : ''}${painting?.entityId ? ' painting' : ''}`}
+          className={`atlas-image${placing !== null || moving || painting?.entityId ? ' placing' : ''}${painting?.entityId ? ' painting' : ''}${routing ? ' routing' : ''}`}
           style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: mapSrc ? `url("${mapSrc}")` : undefined }}
           onClick={(e) => {
             // O que acabou de ser arrasto ou pinça no toque não vale como toque no mapa.
@@ -377,6 +557,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             }
             if ((e.target as Element).closest('.pin')) return
             if ((e.target as Element).closest('.atlas-region-label')) return
+            if ((e.target as Element).closest('.atlas-road-label')) return
             if (moving) {
               const before = map.pins
               const c = coords(e)
@@ -421,6 +602,45 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             return (
               <button key={`l${r.id}`} type="button" className="atlas-region-label" style={{ left: `${cx * 100}%`, top: `${cy * 100}%` }} onClick={() => setSelectedRegion(r.id === selectedRegion ? null : r.id)}>
                 {entityName(universe, r.entityId) || 'Região'}
+              </button>
+            )
+          })}
+          {shownTensions.length > 0 && (
+            <svg className="atlas-roads" viewBox="0 0 1000 1000" preserveAspectRatio="none" role="img" aria-label={`Tensões: ${shownTensions.map((x) => `${x.t.a.name} e ${x.t.b.name}`).join(', ')}`}>
+              {shownTensions.map(({ t, a, b }) => (
+                <line key={t.relation.id} className={`tension tension-${t.level}`} x1={a[0] * 1000} y1={a[1] * 1000} x2={b[0] * 1000} y2={b[1] * 1000} vectorEffect="non-scaling-stroke" />
+              ))}
+            </svg>
+          )}
+          {shownRoutes.length > 0 && (
+            <svg className="atlas-roads" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+              {shownRoutes.map((r) => {
+                const a = map.pins.find((p) => p.id === r.from)
+                const b = map.pins.find((p) => p.id === r.to)
+                if (!a || !b) return null
+                return <line key={r.id} className={`road road-${r.kind}${r.id === selectedRoute ? ' selected' : ''}`} x1={a.x * 1000} y1={a.y * 1000} x2={b.x * 1000} y2={b.y * 1000} vectorEffect="non-scaling-stroke" />
+              })}
+            </svg>
+          )}
+          {shownRoutes.map((r) => {
+            const a = map.pins.find((p) => p.id === r.from)
+            const b = map.pins.find((p) => p.id === r.to)
+            if (!a || !b) return null
+            const d = routeDays(map, r)
+            return (
+              <button
+                key={`d${r.id}`}
+                type="button"
+                className={`atlas-road-label road-${r.kind}`}
+                style={{ left: `${((a.x + b.x) / 2) * 100}%`, top: `${((a.y + b.y) / 2) * 100}%` }}
+                aria-label={`${ROUTE_LABEL[r.kind]} de ${pinName(r.from)} a ${pinName(r.to)}${d !== null ? `: ${daysText(d)}` : ''}`}
+                onClick={(ev) => {
+                  ev.stopPropagation()
+                  setSelectedRoute(r.id === selectedRoute ? null : r.id)
+                  setSelectedPin(null)
+                }}
+              >
+                {d !== null ? `${String(d).replace('.', ',')} d` : '?'}
               </button>
             )
           })}

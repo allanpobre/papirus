@@ -180,13 +180,15 @@ export function ostriaUniverse(): Universe {
   ev('Era das Torres', 12, { kind: 'era', endYear: 341, importance: 3, description: 'Os séculos da Casa de Vaelor.' })
   ev('Fundação de Ostria', 12, { importance: 3, placeId: ostria.id })
   ev('Nascimento de Vaelor', 310, { entityIds: [vaelor.id], importance: 1 })
-  ev('A Queda', 341, {
+  const queda = ev('A Queda', 341, {
     importance: 3,
     entityIds: [vaelor.id, ilsa.id, casa.id],
     placeId: ostria.id,
     description: 'Um incêndio na noite do solstício derruba a casa real. A Torre de Marfim é fechada.',
   })
   ev('Era das Cinzas', 341, { kind: 'era', endYear: 360, importance: 2 })
+  // Causa e consequência (setas na Linha do tempo em faixas).
+  ev('Fechamento da Torre', 342, { importance: 2, placeId: torre.id, entityIds: [ilsa.id], causes: [queda.id], description: 'Depois do incêndio, a Torre de Marfim é trancada e Ilsa é dada como morta.' })
   ev('Retorno do Homem Pálido', 359, { entityIds: [vaelor.id], placeId: ostria.id, canon: 'secreto' })
 
   // Manuscrito
@@ -494,17 +496,26 @@ export function ostriaUniverse(): Universe {
   // ─── Atlas: a capital no penhasco e o vale ao norte (o caminho do Kael pelas cenas aparece nele) ───
   {
     const pin = (entityId: string, x: number, y: number, label: string) => ({ id: crypto.randomUUID(), entityId, x, y, label })
+    const pins = [
+      pin(ostria.id, 0.54, 0.6, 'Ostria'),
+      pin(paco.id, 0.61, 0.43, 'Paço do Regente'),
+      pin(torre.id, 0.722, 0.31, 'Torre de Marfim'),
+      pin(anzol.id, 0.39, 0.66, 'Taverna do Anzol'),
+      pin(brumas.id, 0.84, 0.17, 'Vale das Brumas'),
+    ]
     ;[u] = insert(u, 'maps', {
       name: 'Reino de Ostria',
       image: OSTRIA_MAP,
       width: OSTRIA_MAP_W,
       height: OSTRIA_MAP_H,
-      pins: [
-        pin(ostria.id, 0.54, 0.6, 'Ostria'),
-        pin(paco.id, 0.61, 0.43, 'Paço do Regente'),
-        pin(torre.id, 0.722, 0.31, 'Torre de Marfim'),
-        pin(anzol.id, 0.39, 0.66, 'Taverna do Anzol'),
-        pin(brumas.id, 0.84, 0.17, 'Vale das Brumas'),
+      pins,
+      // Rotas com dias de viagem (pela escala): Kael vai de Ostria ao Vale das Brumas no mesmo dia, rápido demais.
+      widthDays: 4,
+      routes: [
+        { id: crypto.randomUUID(), from: pins[0].id, to: pins[1].id, kind: 'estrada', days: null },
+        { id: crypto.randomUUID(), from: pins[1].id, to: pins[2].id, kind: 'estrada', days: null },
+        { id: crypto.randomUUID(), from: pins[2].id, to: pins[4].id, kind: 'trilha', days: null },
+        { id: crypto.randomUUID(), from: pins[0].id, to: pins[3].id, kind: 'estrada', days: null },
       ],
     })
   }

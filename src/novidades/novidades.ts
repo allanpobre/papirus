@@ -13,6 +13,83 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-20b',
+    when: '20 de novembro',
+    title: 'Poder e tensões',
+    items: [
+      'Num lugar, reino ou grupo, “Poder e tensões”: quem manda, com “E se cair?” (quem sente o golpe e quem pode herdar).',
+      'O que produz e o que precisa: o Papirus sugere comércio entre quem produz e quem precisa, e cria a ligação com um toque.',
+      'Tensões num medidor (calmo, tenso, em guerra), que aparecem no mapa como linhas amarelas ou vermelhas (camada “Tensões”).',
+      'As oficinas do mundo (cultura, panteão e poder) agora aparecem também na leitura da ficha, para quem escreve.',
+    ],
+  },
+  {
+    id: '2026-11-20a',
+    when: '20 de novembro',
+    title: 'Panteão e crenças',
+    items: [
+      'Numa religião, “Panteão e crenças”: os deuses viram estrelas num céu, com o domínio de cada um e linhas de quem é filho de quem.',
+      '“Nova lenda” cria uma lenda ligada ao deus (ou à fé), pronta para o mito.',
+      '“Quem acredita”: povos, grupos e pessoas que seguem a fé, com o que ela promete, proíbe e o ritual.',
+      'Tudo vira ligação comum entre fichas: aparece em Ligações, no grafo e na wiki.',
+    ],
+  },
+  {
+    id: '2026-11-19g',
+    when: '19 de novembro',
+    title: 'Linha do tempo em faixas',
+    items: [
+      'Na Linha do tempo, “Faixas”: uma faixa por personagem, por reino ou grupo, ou por lugar, com as eras no fundo.',
+      'Arraste um evento para o lado para mudar o ano (com “Desfazer”).',
+      'Causa e consequência: no evento, “Causado por”. Nas faixas, uma seta liga os dois, e um aviso aparece se a consequência ficar antes da causa.',
+      'Com a régua da história numa cena, uma linha mostra em que ano a história está.',
+    ],
+  },
+  {
+    id: '2026-11-19f',
+    when: '19 de novembro',
+    title: 'Mapas com rotas e dias de viagem',
+    items: [
+      'No mapa, “Rota” liga dois lugares: estrada, trilha, rio ou mar, com os dias de viagem a pé, a cavalo ou de barco.',
+      'Dê a escala do mapa (dias a pé de ponta a ponta) e as rotas calculam os dias sozinhas; ou escreva os dias.',
+      'No “Caminho de” um personagem, aparece quanto leva cada trecho e um aviso quando a história o faz viajar rápido demais.',
+      'Camadas: mostre ou esconda fronteiras, povos e línguas, crenças e rotas. Regiões agora também podem ser de um povo ou de uma religião.',
+      'Sem mapa? “Gerar” cria um continente (costa, montanhas, rios e florestas) para marcar os lugares por cima.',
+    ],
+  },
+  {
+    id: '2026-11-19e',
+    when: '19 de novembro',
+    title: 'Culturas vivas',
+    items: [
+      'Numa cultura, a “Oficina da cultura” traz cartas sobre o dia a dia: comida, roupa, cumprimento, tabu, mortos, o que é belo, trabalho e como se vira adulto.',
+      'Toque numa carta e escolha uma ideia ou escreva a sua: a resposta vira um campo da ficha.',
+      '“Um dia na vida”: um texto curto montado com as respostas (e o “olá” na língua do povo), para pôr na descrição.',
+      'Festas de todo ano, com mês e dia do calendário do mundo, aparecem no alto da Linha do tempo.',
+    ],
+  },
+  {
+    id: '2026-11-19d',
+    when: '19 de novembro',
+    title: 'Línguas de verdade',
+    items: [
+      'Num povo ou cultura, a parte “Língua” começa com cartas de som (áspero, macio, muitas vogais…) que montam as sílabas.',
+      'Nomes de pessoa, de lugar (com um fim como “-heim”) e de família (com um começo como “Mac”).',
+      'Um dicionário pequeno, com “Gerar” palavra, e uma frase traduzida palavra a palavra.',
+      'Lugares sugeridos no estilo de um povo já saem com o fim de lugar dele.',
+    ],
+  },
+  {
+    id: '2026-11-19c',
+    when: '19 de novembro',
+    title: 'Rolar no mundo',
+    items: [
+      'No Mundo, o botão “Rolar” sorteia boatos, encontros na estrada, nomes de taverna, segredos, o clima do dia e festas.',
+      'O sorteio usa o seu mundo: lugares, povos, personagens e grupos que já existem (nunca os secretos), e nomes novos na língua de um povo.',
+      'Gostou? “Virar pista” leva para a Trama; “Virar ideia” guarda em Ideias. As tabelas que você cria na Mesa também aparecem.',
+    ],
+  },
+  {
     id: '2026-11-19b',
     when: '19 de novembro',
     title: 'Cada ficha é dos seus livros',

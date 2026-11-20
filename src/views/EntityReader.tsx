@@ -27,6 +27,9 @@ import { ContentBlockEditor, ContentBlockView } from './ContentBlocks'
 import { BasicsEditor, FactsEditor, FieldsEditor, KnowledgeSection, MoreOptionsEditor, PortraitButton, RelationsSection } from './EntitiesView'
 import { GameRules } from './GameRules'
 import { LanguageEditor } from './LanguageEditor'
+import { CultureWorkshop } from './CultureWorkshop'
+import { PantheonPanel } from './PantheonPanel'
+import { PowerPanel } from './PowerPanel'
 import { SecretTextarea } from '../ui/SecretText'
 import { readerBook } from '../logic/reader'
 import { fold } from '../logic/text'
@@ -268,8 +271,22 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   /** O que o bloco mostra; null quando não tem nada (some da página). */
   const viewOf = (b: Block): React.ReactNode => {
     switch (b.type) {
-      case 'quem-e':
-        return hasWho ? <WhoIsReader entity={e} link={link} at={{ index, reader, scenes }} /> : null
+      case 'quem-e': {
+        // As oficinas do mundo (cultura, panteão, poder) também aparecem na leitura, para quem escreve.
+        const workshops = tools && !simple && ['cultura', 'religiao', 'lugar', 'reino', 'faccao', 'especie'].includes(e.kind)
+        return hasWho || workshops ? (
+          <>
+            {hasWho && <WhoIsReader entity={e} link={link} at={{ index, reader, scenes }} />}
+            {workshops && (
+              <>
+                <CultureWorkshop key={`cultura-${base.id}`} entity={base} />
+                <PantheonPanel key={`panteao-${base.id}`} entity={base} />
+                <PowerPanel key={`poder-${base.id}`} entity={base} />
+              </>
+            )}
+          </>
+        ) : null
+      }
       case 'texto':
         if (paragraphs.length)
           return paragraphs.map((p, i) => {
@@ -489,6 +506,9 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             <PassesEditor entity={base} />
             {!simple && <GameRules key={base.id} entity={base} />}
             {!simple && <LanguageEditor key={`idioma-${base.id}`} entity={base} />}
+            {!simple && <CultureWorkshop key={`cultura-${base.id}`} entity={base} />}
+            {!simple && <PantheonPanel key={`panteao-${base.id}`} entity={base} />}
+            {!simple && <PowerPanel key={`poder-${base.id}`} entity={base} />}
           </>
         )
       case 'texto':

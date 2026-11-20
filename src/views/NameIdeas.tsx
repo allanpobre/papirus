@@ -1,6 +1,6 @@
 import { Dices, RefreshCw } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { languageNames, languagesOf } from '../logic/language'
+import { kindNames, languagesOf } from '../logic/language'
 import { generateNames, type NameStyle } from '../logic/names'
 import { guessGuide } from '../oficina/guides'
 import { useWorkspace } from '../state/workspace'
@@ -25,7 +25,8 @@ export function NameIdeas({ kind, onPick, compact = false, culture }: { kind: st
   const roll = (styleId: string | null = styleOf?.id ?? null) => {
     const lang = cultures.find((c) => c.id === styleId)
     if (lang) {
-      setNames(languageNames(lang.language!, 6, Math.random, universe.entities.map((e) => e.name)))
+      // Lugar e reino ganham o fim de lugar da língua ("-heim").
+      setNames(kindNames(lang.language!, kind === 'lugar' || kind === 'reino' ? 'lugar' : 'pessoa', 6, Math.random, universe.entities.map((e) => e.name)))
       return
     }
     const sameKind = universe.entities.filter((e) => e.kind === kind).map((e) => e.name)

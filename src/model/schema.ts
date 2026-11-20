@@ -267,7 +267,16 @@ export const entitySchema = z.object({
    * começo, "-dor" só no fim), como ele soa e um exemplo. O "Sugerir nomes" usa as sílabas.
    */
   language: z
-    .object({ syllables: z.array(z.string()).default([]), sounds: z.string().default(''), example: z.string().default('') })
+    .object({
+      syllables: z.array(z.string()).default([]),
+      sounds: z.string().default(''),
+      example: z.string().default(''),
+      /** Mini dicionário: palavra no idioma → o que quer dizer. */
+      words: z.array(z.object({ word: z.string(), meaning: z.string() })).optional().catch(undefined),
+      /** Como se fecha um nome de lugar ("-heim") e como começa o de família ("Mac ", "de "). */
+      placeEnding: z.string().optional().catch(undefined),
+      familyPrefix: z.string().optional().catch(undefined),
+    })
     .optional()
     .catch(undefined),
   /** Personagem: protagonista, antagonista, secundário ou figurante. Um valor desconhecido (de outra versão) vira vazio. */
@@ -279,6 +288,11 @@ export const entitySchema = z.object({
   bookRoles: z.record(z.string(), z.string()).optional().catch(undefined),
   /** Os livros desta ficha, escolhidos à mão (além dos livros em que ela aparece no texto). */
   books: z.array(z.string()).optional().catch(undefined),
+  /** Cultura: as festas de todo ano (mês e dia no calendário do mundo, se houver). */
+  feasts: z
+    .array(z.object({ id: z.string(), name: z.string(), month: z.number().int().optional(), day: z.number().int().optional(), about: z.string().default('') }))
+    .optional()
+    .catch(undefined),
   ...timestamps,
 })
 
@@ -334,6 +348,8 @@ export const eventSchema = z.object({
   placeId: ref,
   importance: z.number().int().min(1).max(3),
   canon: canonSchema,
+  /** Os eventos que causaram este ("a guerra causou a fome"): setas na Linha do tempo em faixas. */
+  causes: z.array(id).optional().catch(undefined),
   ...timestamps,
 })
 
@@ -654,6 +670,9 @@ export const inboxItemSchema = z.object({
   ...timestamps,
 })
 
+/** Tipos de rota no mapa. */
+export const ROUTE_KINDS = ['estrada', 'trilha', 'rio', 'mar'] as const
+
 export const atlasMapSchema = z.object({
   id,
   name: z.string(),
@@ -678,6 +697,21 @@ export const atlasMapSchema = z.object({
       }),
     )
     .optional(),
+  /** Rotas entre dois marcadores: estrada, trilha, rio ou mar, e quantos dias leva a pé (sem número, sai da escala). */
+  routes: z
+    .array(
+      z.object({
+        id,
+        from: id,
+        to: id,
+        kind: z.enum(ROUTE_KINDS).catch('estrada'),
+        days: z.number().nonnegative().nullable().default(null),
+      }),
+    )
+    .optional()
+    .catch(undefined),
+  /** Escala: quantos dias a pé de uma ponta à outra do mapa (na largura). */
+  widthDays: z.number().positive().optional().catch(undefined),
   ...timestamps,
 })
 
