@@ -121,7 +121,13 @@ export function fillEntry(entry: string, u: Universe, random = Math.random): Rol
     }
     return COMMON[key] ? pick(COMMON[key], random) : all
   })
-  return { text, entityIds: [...new Set(ids)] }
+  return { text: contract(text), entityIds: [...new Set(ids)] }
+}
+
+/** "de as montanhas" vira "das montanhas": junta a preposição ao artigo que veio da frase pronta (o nome da ficha não leva artigo). */
+export function contract(text: string): string {
+  const base: Record<string, string> = { de: 'd', em: 'n', a: '' }
+  return text.replace(/\b(de|em|a) (o|a|os|as)\b(?= )/g, (_m, p: string, art: string) => (p === 'a' ? `a${art}`.replace(/^aa$/, 'à').replace(/^aas$/, 'às') : `${base[p]}${art}`))
 }
 
 /** Rola uma tabela (pronta ou do universo). */
