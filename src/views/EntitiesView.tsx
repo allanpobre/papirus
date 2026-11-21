@@ -7,7 +7,7 @@ import { NameIdeas } from './NameIdeas'
 import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X, SlidersHorizontal } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
-import { useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { factSentence } from '../logic/codex'
 import { fold } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
@@ -725,6 +725,22 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   const simple = worldLevel(universe) === 'simples' && !showAll
   // Ao renomear a ficha, o nome antigo continua no texto: o Papirus oferece trocar (mostrando cada trecho antes).
   const nameAtFocus = useRef<string | null>(null)
+  // O nome é um campo de várias linhas que cresce: nome longo aparece inteiro, sem ficar cortado.
+  const nameField = useRef<HTMLTextAreaElement>(null)
+  useLayoutEffect(() => {
+    const el = nameField.current
+    if (!el) return
+    const fit = () => {
+      el.style.height = 'auto'
+      el.style.height = `${el.scrollHeight}px`
+    }
+    fit()
+    // A largura e a fonte mudam depois da primeira pintura: mede de novo.
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null
+    ro?.observe(el)
+    void document.fonts?.ready.then(fit)
+    return () => ro?.disconnect()
+  }, [e.name])
   const offerRename = () => {
     const old = nameAtFocus.current?.trim()
     const now = e.name.trim()
@@ -765,14 +781,22 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
           <label htmlFor="entity-name" className="sr-only">
             Nome
           </label>
-          <input
+          <textarea
             id="entity-name"
+            ref={nameField}
             className="entity-name"
+            rows={1}
             value={e.name}
             placeholder="Sem nome"
             onFocus={() => (nameAtFocus.current = e.name)}
             onBlur={offerRename}
-            onChange={(ev) => set({ name: ev.target.value })}
+            onKeyDown={(ev) => {
+              if (ev.key === 'Enter') {
+                ev.preventDefault()
+                ev.currentTarget.blur()
+              }
+            }}
+            onChange={(ev) => set({ name: ev.target.value.replace(/\n/g, ' ') })}
           />
           <span className="eyebrow">{kindLabel(e.kind)}</span>
         </div>

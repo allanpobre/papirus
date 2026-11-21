@@ -86,6 +86,9 @@ const COMMON = new Set(
  */
 export function findCandidates(text: string, known: Entity[], ignored: string[] = []): Candidate[] {
   const skip = new Set([...known.flatMap(namesOf), ...ignored].map(fold))
+  // As marcas de segredo e de "a partir de" não são texto: viram espaços (os índices não mudam),
+  // para não fazer o começo da frase seguinte parecer meio de frase.
+  text = text.replace(/\[\/?(?:segredo|a partir(?: de "[^"]*")?)\]/gi, (m) => ' '.repeat(m.length))
   const tokens = [...text.matchAll(/[\p{L}][\p{L}\p{N}'’-]*|[.!?…:;—–"“”«»\n]/gu)]
   const found = new Map<string, Candidate & { midSentence: boolean }>()
 
