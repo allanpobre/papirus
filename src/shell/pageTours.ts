@@ -274,7 +274,7 @@ export const PAGE_TOURS = {
       {
         target: '.phases-read',
         title: 'Ao longo da história',
-        body: 'As fases: a partir de uma cena, o que muda (nome, resumo, campos) e por quê. “Comparar” mostra o que mudou entre dois momentos. Em Editar, “Ao longo da história” cria as fases.',
+        body: 'As fases: a partir de uma cena, o que muda (nome, resumo, campos) e por quê. “Comparar” mostra o que mudou entre dois momentos. Ainda sem a cena? Uma fase planejada guarda a ideia (só você vê) até você prendê-la a uma cena. Em Editar, “Ao longo da história” cria as fases.',
         optional: true,
       },
       {

@@ -240,7 +240,10 @@ export const entitySchema = z.object({
     .array(
       z.object({
         id: z.string(),
-        sceneId: z.string(),
+        /** A cena em que começa; null = planejada (ainda sem cena: só o autor vê). */
+        sceneId: z.string().nullable().catch(null),
+        /** Planejada: quando, em texto livre ("Livro 2", "depois da guerra"). */
+        when: z.string().optional().catch(undefined),
         /** Nome curto da fase ("General", "Depois da queda"). */
         name: z.string().default(''),
         /** Por quê: o que aconteceu. */

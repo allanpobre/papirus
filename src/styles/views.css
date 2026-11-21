@@ -13995,3 +13995,44 @@ body[data-nova] .view-top.has-parts .view-top-end {
     transform: translateY(-50%);
   }
 }
+
+/* ---------------------------------------------------------------- Fases planejadas (ainda sem cena) */
+.phase-planned {
+  margin-top: 0.9rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+.phase-planned-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+.phase-planned ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.phase-planned-item {
+  padding: 0.4rem 0;
+}
+.phase-planned-item + .phase-planned-item {
+  border-top: 1px solid var(--line);
+}
+.phase-planned-item > .chip {
+  margin-left: 0.4rem;
+}
+.phase-card.is-planned {
+  border-style: dashed;
+}
+.phase-planned-tag {
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+.phase-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

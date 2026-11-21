@@ -14,14 +14,18 @@ function stripDeep<T>(value: T): T {
 /**
  * O universo como quem só pode ver o recebe. É isto que vai para a cópia de leitura
  * no servidor: o resto nunca sai do Papirus de quem edita.
- * - sempre fora: a Inbox (ideias soltas do autor), as referências das fichas e as chaves do Codex ao vivo;
+ * - sempre fora: a Inbox (ideias soltas do autor), as referências e as fases planejadas das fichas e as chaves do Codex ao vivo;
  * - sem `showSecrets`: fichas, relações, eventos e fatos secretos, e os trechos [segredo].
  */
 export function readerCopy(universe: Universe, showSecrets: boolean): Universe {
+  const sceneIds = new Set(universe.scenes.map((sc) => sc.id))
   const base: Universe = {
     ...universe,
-    // As referências (o que inspirou cada ficha) são só do autor.
-    entities: universe.entities.map((e) => (e.refs ? { ...e, refs: undefined } : e)),
+    // As referências (o que inspirou cada ficha) e as fases planejadas (ainda sem cena) são só do autor.
+    entities: universe.entities.map((e) => {
+      const phases = e.phases?.filter((p) => p.sceneId && sceneIds.has(p.sceneId))
+      return e.refs || phases?.length !== e.phases?.length ? { ...e, refs: undefined, phases: phases?.length ? phases : undefined } : e
+    }),
     inbox: [],
     // Lixeira e histórico guardam versões antigas (inclusive o que era secreto).
     trash: [],

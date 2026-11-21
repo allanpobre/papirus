@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ostriaUniverse } from '../model/sampleOstria'
 import { manuscriptOrder } from '../model/universe'
-import { compareAt, entityAt, phaseAt, phasesOf } from './phases'
+import { compareAt, entityAt, phaseAt, phasesOf, plannedOf, previewPlanned } from './phases'
 
 describe('fases: a ficha muda ao longo da história', () => {
   const u = ostriaUniverse()
@@ -49,5 +49,30 @@ describe('fases: a ficha muda ao longo da história', () => {
     expect(diff.find((d) => d.key === 'Posto')).toMatchObject({ before: 'Contrabandista', after: 'Foragido' })
     expect(diff.find((d) => d.key === 'Medo')).toMatchObject({ before: '', after: 'O regente' })
     expect(compareAt(comFases, at('Duas portas'), at('Duas portas'), order)).toEqual([])
+  })
+})
+
+describe('fases planejadas (ainda sem cena)', () => {
+  const u = ostriaUniverse()
+  const order = manuscriptOrder(u)
+  const kael = u.entities.find((e) => e.name === 'Kael')!
+  const planejada = { id: 'p1', sceneId: null, when: 'Livro 2', name: 'Rei do porto', cause: 'Toma o trono.', nameNow: 'Kael I', summary: 'Governa o porto.', image: null, fields: [{ key: 'Posto', value: 'Rei' }] }
+  const comPlano = { ...kael, phases: [planejada] }
+
+  it('não valem em nenhum ponto da história', () => {
+    expect(phasesOf(comPlano, order)).toEqual([])
+    expect(entityAt(comPlano, order.length - 1, order).name).toBe('Kael')
+  })
+  it('aparecem como planejadas, e a de cena apagada também', () => {
+    const apagada = { ...planejada, id: 'p2', sceneId: 'cena-que-sumiu' }
+    expect(plannedOf({ phases: [planejada, apagada] }, order).map((p) => p.id)).toEqual(['p1', 'p2'])
+  })
+  it('mostram como a ficha ficaria a partir do fim da história', () => {
+    const { changes } = previewPlanned(comPlano, planejada, order)
+    expect(changes.find((c) => c.key === 'Nome')).toMatchObject({ before: 'Kael', after: 'Kael I' })
+    expect(changes.find((c) => c.key === 'Posto')?.after).toBe('Rei')
+  })
+  it('um universo antigo com fase sem cena não quebra o esquema', () => {
+    expect(comPlano.phases[0].sceneId).toBeNull()
   })
 })
