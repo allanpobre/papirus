@@ -52,6 +52,8 @@ export interface Prefs {
   shareProgress: boolean
   /** Comemorar meta batida, desafio feito e medalhas novas. */
   celebrate: boolean
+  /** Ficha criada e aberta nasce em cartas (rosto, faíscas, ligações). */
+  birthCards: boolean
   /** Baixar o backup sozinho, uma vez por semana, ao abrir um universo com novidades. */
   autoBackup: boolean
   /** Os atalhos da barra de baixo no celular (até 4). */
@@ -97,6 +99,7 @@ export const DEFAULT_PREFS: Prefs = {
   keySound: 'nenhum',
   shareProgress: true,
   celebrate: true,
+  birthCards: true,
   autoBackup: false,
   phoneShortcuts: ['inicio', 'escrever', 'fichas', 'tramas'],
   campaignShortcuts: CAMPAIGN_SHORTCUTS,

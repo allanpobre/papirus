@@ -11,6 +11,8 @@ export const test = base.extend({
         if (localStorage.getItem('papirus:escrita-modo') === null) localStorage.setItem('papirus:escrita-modo', 'revisao')
         // A primeira vez mais curta (partes que esperam o uso) só vale nos testes dela.
         if (!('firstSteps' in prefs)) localStorage.setItem('papirus:prefs', JSON.stringify({ ...JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}'), firstSteps: { active: false, revealed: [] } }))
+        // O nascimento em cartas só nos testes dele (nos outros, a ficha criada abre direto).
+        if (!('birthCards' in JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}'))) localStorage.setItem('papirus:prefs', JSON.stringify({ ...JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}'), birthCards: false }))
         // A ficha abre para ler; os testes das fichas são sobre o formulário e começam em Editar (os da leitura trocam).
         if (localStorage.getItem('papirus:ficha-vista') === null) localStorage.setItem('papirus:ficha-vista', 'editar')
       } catch {

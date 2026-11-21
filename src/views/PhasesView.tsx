@@ -1,6 +1,6 @@
-import { ArrowRight, GitCommitVertical, Plus, Trash2, X } from 'lucide-react'
+import { ArrowRight, CalendarClock, GitCommitVertical, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
-import { compareAt, phasesOf, type Phase } from '../logic/phases'
+import { compareAt, phasesOf, plannedOf, previewPlanned, type Phase } from '../logic/phases'
 import type { Entity } from '../model/schema'
 import { manuscriptOrder, newId, patch, sceneTitle } from '../model/universe'
 import { useStoryPoint } from '../state/storyPoint'
@@ -20,17 +20,18 @@ export function PhasesReader({ entity, index, reader }: { entity: Entity; index:
   // Como o leitor: só as fases que ele já viu começar.
   const list = reader ? all.filter((p) => p.at <= index) : all
   const current = [...list].reverse().find((p) => p.at <= index)?.phase.id ?? null
+  const planned = reader ? [] : plannedOf(entity, scenes)
   const [from, setFrom] = useState(-1)
   const [to, setTo] = useState<number | null>(null)
-  if (!list.length) return null
-  const toAt = to ?? list[list.length - 1].at
+  if (!list.length && !planned.length) return null
+  const toAt = to ?? list.at(-1)?.at ?? -1
   const diff = compareAt(entity, from, toAt, scenes)
   const label = (at: number) => (at < 0 ? 'O começo' : `${sceneTitle(scenes[at])} (${at + 1})`)
 
   return (
     <section className="phases-read" aria-label="Ao longo da história">
       <h2>Ao longo da história</h2>
-      <ol className="phase-line">
+      {list.length > 0 && <ol className="phase-line">
         <li className={current === null ? 'is-current' : undefined}>
           <GitCommitVertical size={14} aria-hidden="true" /> <strong>O começo</strong>
         </li>
@@ -43,8 +44,9 @@ export function PhasesReader({ entity, index, reader }: { entity: Entity; index:
             {phase.cause && <span className="muted small"> · {phase.cause}</span>}
           </li>
         ))}
-      </ol>
-      {!reader && (
+      </ol>}
+      {planned.length > 0 && <PlannedPhases entity={entity} planned={planned} />}
+      {!reader && list.length > 0 && (
         <div className="phase-compare">
           <p className="phase-compare-pick small">
             <span>Comparar</span>
@@ -86,18 +88,57 @@ export function PhasesReader({ entity, index, reader }: { entity: Entity; index:
   )
 }
 
+/** As fases planejadas (ainda sem cena), só para o autor: quando, por quê e como a ficha ficaria. */
+function PlannedPhases({ entity, planned }: { entity: Entity; planned: Phase[] }) {
+  const { universe } = useWorkspace()
+  const scenes = manuscriptOrder(universe)
+  return (
+    <div className="phase-planned" aria-label="Planejadas">
+      <h3 className="phase-planned-title">
+        <CalendarClock size={14} aria-hidden="true" /> Planejadas <span className="muted small">· só você vê, até ter uma cena</span>
+      </h3>
+      <ul>
+        {planned.map((p) => {
+          const { changes } = previewPlanned(entity, p, scenes)
+          return (
+            <li key={p.id} className="phase-planned-item">
+              <strong>{p.name || 'Fase'}</strong>
+              {p.when && <span className="chip chip-sm">{p.when}</span>}
+              {p.cause && <span className="muted small"> · {p.cause}</span>}
+              {changes.length > 0 && (
+                <ul className="phase-diff" aria-label={`Como fica em ${p.name || 'esta fase'}`}>
+                  {changes.map((d) => (
+                    <li key={d.key}>
+                      <span className="phase-diff-key">{d.key}</span>
+                      <span className="phase-diff-before">{d.before || '—'}</span>
+                      <ArrowRight size={13} aria-hidden="true" />
+                      <span className="phase-diff-after">{d.after || '—'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
 /** Editar: as fases da ficha. A ficha de cima é o começo; cada fase guarda só o que muda a partir de uma cena. */
 export function PhasesEditor({ entity: e }: { entity: Entity }) {
   const { universe, update, readOnly } = useWorkspace()
   const scenes = manuscriptOrder(universe)
   const [point] = useStoryPoint(universe.id)
   const list = phasesOf(e, scenes)
+  const planned = plannedOf(e, scenes)
   const keys = [...new Set(e.fields.map((f) => f.key.trim()).filter(Boolean))]
   const save = (phases: Phase[]) => update((u) => patch(u, 'entities', e.id, { phases: phases.length ? phases : undefined }))
   const change = (id: string, changes: Partial<Phase>) => save((e.phases ?? []).map((p) => (p.id === id ? { ...p, ...changes } : p)))
-  if (!scenes.length) return <p className="muted small">Escreva uma cena antes: cada fase começa numa cena.</p>
+  const addPlanned = () => save([...(e.phases ?? []), { id: newId(), sceneId: null, when: '', name: '', cause: '', nameNow: '', summary: '', image: null, fields: [] }])
 
   const add = () => {
+    if (!scenes.length) return addPlanned()
     // Começa no ponto escolhido na régua; senão, depois da última fase (ou na última cena).
     const last = list.at(-1)?.at ?? -1
     const sceneId = point.sceneId ?? scenes[Math.min(last + 1, scenes.length - 1)].id
@@ -106,15 +147,23 @@ export function PhasesEditor({ entity: e }: { entity: Entity }) {
 
   return (
     <div className="phases-edit">
-      <p className="muted small">A ficha acima é como {e.name || 'ela'} começa. Cada fase vale a partir de uma cena e guarda só o que muda; o resto continua igual.</p>
-      {list.map(({ phase: p }, i) => (
-        <fieldset key={p.id} className="phase-card" disabled={readOnly}>
+      <p className="muted small">A ficha acima é como {e.name || 'ela'} começa. Cada fase vale a partir de uma cena e guarda só o que muda; o resto continua igual. Ainda não escreveu a cena? Crie uma fase planejada.</p>
+      {[...list.map(({ phase }) => phase), ...planned].map((p, i) => {
+        const isPlanned = !p.sceneId || !scenes.some((s) => s.id === p.sceneId)
+        return (
+        <fieldset key={p.id} className={`phase-card${isPlanned ? ' is-planned' : ''}`} disabled={readOnly}>
           <legend>
             {i + 1}. {p.name || 'Fase sem nome'}
+            {isPlanned && <span className="chip chip-sm phase-planned-tag">planejada</span>}
           </legend>
           <label className="field">
             <span className="field-label">A partir de</span>
-            <select className="input select" value={p.sceneId} onChange={(ev) => change(p.id, { sceneId: ev.target.value })}>
+            <select
+              className="input select"
+              value={isPlanned ? '' : (p.sceneId ?? '')}
+              onChange={(ev) => change(p.id, { sceneId: ev.target.value || null })}
+            >
+              <option value="">Ainda sem cena (planejada)</option>
               {scenes.map((s, j) => (
                 <option key={s.id} value={s.id}>
                   {j + 1}. {sceneTitle(s)}
@@ -122,6 +171,13 @@ export function PhasesEditor({ entity: e }: { entity: Entity }) {
               ))}
             </select>
           </label>
+          {isPlanned && (
+            <label className="field">
+              <span className="field-label">Quando</span>
+              <input className="input" placeholder="Livro 2, depois da guerra, daqui a 10 anos…" value={p.when ?? ''} onChange={(ev) => change(p.id, { when: ev.target.value })} />
+              <span className="muted small">Só você vê. Quando a cena existir, escolha-a acima e a fase passa a valer a partir dela.</span>
+            </label>
+          )}
           <div className="phase-row">
             <label className="field">
               <span className="field-label">Nome da fase</span>
@@ -172,16 +228,24 @@ export function PhasesEditor({ entity: e }: { entity: Entity }) {
             <Trash2 size={14} aria-hidden="true" /> Tirar esta fase
           </ConfirmButton>
         </fieldset>
-      ))}
+        )
+      })}
       <datalist id={`campos-${e.id}`}>
         {keys.map((k) => (
           <option key={k} value={k} />
         ))}
       </datalist>
       {!readOnly && (
-        <button type="button" className="btn btn-sm" onClick={add}>
-          <Plus size={14} /> Nova fase
-        </button>
+        <div className="phase-add">
+          {scenes.length > 0 && (
+            <button type="button" className="btn btn-sm" onClick={add}>
+              <Plus size={14} /> Nova fase
+            </button>
+          )}
+          <button type="button" className="btn btn-sm btn-ghost" onClick={addPlanned}>
+            <CalendarClock size={14} /> Fase planejada (sem cena ainda)
+          </button>
+        </div>
       )}
     </div>
   )
