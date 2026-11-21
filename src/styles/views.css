@@ -14048,6 +14048,9 @@ body[data-nova] .view-top.has-parts .view-top-end {
   gap: 0.4rem;
   margin: 0 0 0.4rem;
 }
+.refs-strip-hint {
+  flex-basis: 100%;
+}
 .refs-strip-head .muted svg {
   vertical-align: -1px;
 }
@@ -14132,4 +14135,263 @@ body[data-nova] .view-top.has-parts .view-top-end {
   width: 100%;
   max-height: 60vh;
   object-fit: contain;
+}
+
+/* ---------------------------------------------------------------- Nascimento da ficha (cartas) */
+.modal:has(.birth) {
+  background:
+    radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--birth, var(--accent)) 22%, transparent), transparent 70%),
+    var(--surface);
+}
+.modal:has(.birth-done) .modal-header {
+  visibility: hidden;
+}
+@media (max-width: 600px) {
+  .overlay:has(.birth) {
+    padding: 0;
+  }
+  .modal:has(.birth) {
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
+  }
+  .modal .birth {
+    min-height: calc(100dvh - 110px);
+  }
+}
+.birth {
+  --birth: var(--accent);
+  display: flex;
+  flex-direction: column;
+  min-height: min(70vh, 640px);
+}
+.birth-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.birth-dots li {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transition: width 0.2s ease;
+}
+.birth-dots li.is-done {
+  background: color-mix(in srgb, var(--birth) 55%, var(--line-strong));
+}
+.birth-dots li.is-now {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--birth);
+}
+.birth-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  animation: birth-in 0.28s ease-out;
+}
+@keyframes birth-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px) rotate(1deg);
+  }
+}
+.birth-kind {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--birth);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.birth-portrait {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 132px;
+  height: 132px;
+  overflow: hidden;
+  border: 3px solid var(--birth);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--birth) 14%, var(--surface));
+  color: var(--birth);
+  cursor: pointer;
+  box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--birth) 70%, transparent);
+}
+.birth-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.birth-initial {
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  line-height: 1;
+}
+.birth-portrait-hint {
+  position: absolute;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.birth-name {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  text-align: center;
+  outline: none;
+}
+.birth-line {
+  text-align: center;
+}
+.birth-ask {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  line-height: 1.2;
+  text-align: center;
+}
+.birth-answer {
+  font-family: var(--font-text);
+  font-size: 1.1rem;
+}
+.birth-dice {
+  align-self: center;
+  border-color: var(--birth);
+  color: var(--birth);
+}
+.birth-ties {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.birth-ties > li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+.birth-tie[aria-pressed='true'] {
+  border-color: var(--birth);
+  background: color-mix(in srgb, var(--birth) 16%, var(--surface));
+  color: var(--ink);
+}
+.birth-tie-types {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+}
+.birth-nav {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+.birth-done {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  animation: birth-flip 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes birth-flip {
+  0% {
+    opacity: 0;
+    transform: perspective(800px) rotateY(-90deg) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: perspective(800px) rotateY(8deg) scale(1.02);
+  }
+}
+.birth-done-face {
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  border: 4px solid var(--birth);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--birth) 18%, var(--surface));
+  color: var(--birth);
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--birth) 12%, transparent), 0 18px 40px -16px var(--birth);
+}
+.birth-done-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.birth-done-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+}
+.birth-done-line {
+  margin: 0;
+  color: var(--ink-2);
+  font-family: var(--font-text);
+  font-size: 1.1rem;
+  font-style: italic;
+}
+.birth-done-sparks {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.birth-done-sparks li {
+  padding: 0.5rem 0.7rem;
+  border-left: 3px solid var(--birth);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+.birth-done-key {
+  display: block;
+  color: var(--birth);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.birth-done-ties {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+.birth-open {
+  margin-top: 0.75rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .birth-card,
+  .birth-done {
+    animation: none;
+  }
 }

@@ -189,7 +189,7 @@ export function RefsStrip({ entity: e }: { entity: Entity }) {
         <span className="muted">
           <Lock size={11} aria-hidden="true" /> só você vê
         </span>
-        {!refs.length && <span className="muted"> · o que inspira {e.name || 'esta ficha'}: imagens, links, frases, outras obras</span>}
+        {!refs.length && <span className="muted refs-strip-hint">O que inspira {e.name || 'esta ficha'}: imagens, links, frases, outras obras.</span>}
       </p>
       <ul className="refs-strip-row">
         {refs.map((r) => {
