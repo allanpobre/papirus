@@ -14036,3 +14036,100 @@ body[data-nova] .view-top.has-parts .view-top-end {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* ---------------------------------------------------------------- Faixa de referências (no alto da ficha) */
+.refs-strip {
+  margin: 0.75rem 0 1rem;
+}
+.refs-strip-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0 0 0.4rem;
+}
+.refs-strip-head .muted svg {
+  vertical-align: -1px;
+}
+.refs-strip-row {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0 0 0.25rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.refs-strip-row > li {
+  flex: none;
+  scroll-snap-align: start;
+}
+.ref-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  width: 84px;
+  height: 84px;
+  padding: 0.45rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+.ref-tile.is-imagem {
+  padding: 0;
+}
+.ref-tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ref-tile-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--ink);
+}
+.ref-tile.is-trecho .ref-tile-text {
+  font-family: var(--font-text);
+  font-style: italic;
+}
+.ref-tile-add {
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  background: transparent;
+  color: var(--accent);
+}
+.ref-tile-add[aria-expanded='true'] {
+  background: var(--accent-faint);
+}
+.refs-strip.is-empty .ref-tile-add {
+  width: 100%;
+  min-width: 84px;
+}
+.refs-quick {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.refs-quick-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.ref-open .ref-image {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+}

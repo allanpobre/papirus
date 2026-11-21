@@ -40,3 +40,14 @@ describe('fases planejadas: só do autor', () => {
     expect(buildWiki(comFases, { upTo: null, images: new Map() }).html).not.toContain('Rei do porto secreto')
   })
 })
+
+describe('colar uma referência', () => {
+  it('endereço vira link, frase longa ou entre aspas vira trecho, nome curto vira outra obra', async () => {
+    const { guessRef } = await import('../views/ReferencesView')
+    expect(guessRef('https://a.b/c')?.kind).toBe('link')
+    expect(guessRef('“Ninguém lembra.”')).toMatchObject({ kind: 'trecho', text: 'Ninguém lembra.' })
+    expect(guessRef('Uma frase bem comprida que alguém copiou de um livro qualquer')?.kind).toBe('trecho')
+    expect(guessRef('Arya Stark')).toMatchObject({ kind: 'obra', title: 'Arya Stark' })
+    expect(guessRef('   ')).toBeNull()
+  })
+})

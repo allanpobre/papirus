@@ -46,7 +46,7 @@ import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 import { EntityRevealField } from './RevealControl'
 import { PhasesEditor } from './PhasesView'
-import { ReferencesEditor } from './ReferencesView'
+import { ReferencesEditor, RefsStrip } from './ReferencesView'
 import { CharacterPowersEditor, PowerTreeEditor } from './PowersView'
 import { canHavePowers } from '../logic/powers'
 import { derivedHint, onlyName } from '../logic/derivedFields'
@@ -817,6 +817,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
       <div className="entity-body">
         <div className="entity-main">
+          <RefsStrip entity={e} />
           {asking && (
             <KindQuestions
               entity={e}

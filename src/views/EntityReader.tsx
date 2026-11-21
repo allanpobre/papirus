@@ -18,7 +18,7 @@ import { glimpseOf } from '../logic/route'
 import { entityRevealAt, knownAt, partsAt, pointIndex, relationRevealAt, whoIsAt, yearAt } from '../logic/storyPoint'
 import { entityAt, phaseAt } from '../logic/phases'
 import { PhasesEditor, PhasesReader } from './PhasesView'
-import { ReferencesEditor, ReferencesReader } from './ReferencesView'
+import { ReferencesEditor, ReferencesReader, RefsStrip } from './ReferencesView'
 import { BLOCK_LABEL, CONTENT_BLOCKS, contentEmpty, moveBlock, removeBlock, visibleBlocks, type Block, type BlockType } from '../model/blocks'
 import { AddBlock, BlockFrame } from './BlockFrame'
 import { CharacterPowers, CharacterPowersEditor, PowerTree, PowerTreeEditor } from './PowersView'
@@ -719,6 +719,8 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
         )}
         {known.known && <MembershipChips entity={e} at={{ index, reader, scenes }} />}
       </div>
+
+      {tools && <RefsStrip entity={base} />}
 
       {editHead && tools && (
         <div className="block-editor reader-head-editor" role="group" aria-label="Editando: o básico">
