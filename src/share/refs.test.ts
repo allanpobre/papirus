@@ -25,3 +25,18 @@ describe('referências das fichas: só do autor', () => {
     expect(html).not.toContain('A fúria quieta')
   })
 })
+
+describe('fases planejadas: só do autor', () => {
+  it('não vão na cópia de leitura nem na wiki; as de cena ficam', () => {
+    const u = ostriaUniverse()
+    const kael = u.entities.find((e) => e.name === 'Kael')!
+    const cena = u.scenes[0].id
+    const fase = (id: string, sceneId: string | null, name: string) => ({ id, sceneId, name, cause: '', nameNow: '', summary: '', image: null, fields: [] })
+    const comFases = { ...u, entities: u.entities.map((e) => (e.id === kael.id ? { ...e, phases: [fase('a', cena, 'Escrita'), fase('b', null, 'Rei do porto secreto')] } : e)) }
+    for (const show of [false, true]) {
+      const phases = readerCopy(comFases, show).entities.find((e) => e.id === kael.id)?.phases ?? []
+      expect(phases.map((p) => p.id)).toEqual(['a'])
+    }
+    expect(buildWiki(comFases, { upTo: null, images: new Map() }).html).not.toContain('Rei do porto secreto')
+  })
+})
