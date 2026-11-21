@@ -272,9 +272,15 @@ export const PAGE_TOURS = {
         optional: true,
       },
       {
+        target: '.refs-strip',
+        title: 'Referências',
+        body: 'O que inspira esta ficha, sempre à vista e só para você: toque no + e cole um link, uma frase, o nome de um personagem de outra obra ou uma imagem. Tocar numa abre em grande, com o que você pegou dela.',
+        optional: true,
+      },
+      {
         target: '.phases-read',
         title: 'Ao longo da história',
-        body: 'As fases: a partir de uma cena, o que muda (nome, resumo, campos) e por quê. “Comparar” mostra o que mudou entre dois momentos. Em Editar, “Ao longo da história” cria as fases.',
+        body: 'As fases: a partir de uma cena, o que muda (nome, resumo, campos) e por quê. “Comparar” mostra o que mudou entre dois momentos. Ainda sem a cena? Uma fase planejada guarda a ideia (só você vê) até você prendê-la a uma cena. Em Editar, “Ao longo da história” cria as fases.',
         optional: true,
       },
       {

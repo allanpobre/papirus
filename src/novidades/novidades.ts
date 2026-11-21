@@ -13,6 +13,26 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-21b',
+    when: '21 de novembro',
+    title: 'Referências à vista',
+    items: [
+      'As referências saíram do fim da ficha: agora ficam numa faixa logo abaixo do nome, em Ler e em Editar.',
+      'No +, cole um link, uma frase, o nome de um personagem de outra obra ou uma imagem (colada ou solta): o Papirus entende o que é.',
+      'Tocar numa referência abre em grande, para marcar o que você pegou dela. Continuam só suas: nunca vão para a wiki nem para o leitor.',
+    ],
+  },
+  {
+    id: '2026-11-21a',
+    when: '21 de novembro',
+    title: 'Fases planejadas',
+    items: [
+      'Uma fase do personagem pode existir antes da cena: “Fase planejada”, com um “quando” em texto livre (“Livro 2”, “depois da guerra”).',
+      'Ela aparece em “Ao longo da história”, com como a ficha ficaria, e só você vê: não vai para o leitor, a wiki nem o link de leitura.',
+      'Quando a cena existir, escolha-a na fase e ela passa a valer dali em diante.',
+    ],
+  },
+  {
     id: '2026-11-20c',
     when: '20 de novembro',
     title: 'As oficinas do mundo na wiki',

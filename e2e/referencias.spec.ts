@@ -14,7 +14,7 @@ test('o mural de referências: imagem, link e trecho, com o que se pegou; o leit
   await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Editar')
-  await page.getByText('Referências', { exact: true }).click()
+  await page.locator('summary', { hasText: 'Referências' }).click()
   const novo = page.getByRole('group', { name: 'Nova referência' })
 
   // Um trecho, com o que se pegou dele e o que ele não é.
@@ -36,7 +36,7 @@ test('o mural de referências: imagem, link e trecho, com o que se pegou; o leit
 
   // Lendo: o mural, marcado como só do autor.
   await fichaModo(page, 'Ler')
-  const mural = page.getByRole('region', { name: 'Referências' })
+  const mural = page.getByRole('region', { name: 'Referências', exact: true })
   await expect(mural).toContainText('só você vê')
   await expect(mural.locator('blockquote')).toHaveText('Um homem não tem nome.')
   await expect(mural).toContainText('personalidade')
@@ -46,5 +46,5 @@ test('o mural de referências: imagem, link e trecho, com o que se pegou; o leit
 
   // Como o leitor: o mural some.
   await page.getByRole('group', { name: 'Ponto da história' }).getByText('Ver como o leitor').click()
-  await expect(page.getByRole('region', { name: 'Referências' })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Referências', exact: true })).toHaveCount(0)
 })
