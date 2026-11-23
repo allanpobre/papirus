@@ -12,9 +12,18 @@ export type Phase = NonNullable<Entity['phases']>[number]
 export function phasesOf(e: Pick<Entity, 'phases'>, order: Scene[]): { phase: Phase; at: number }[] {
   const index = new Map(order.map((s, i) => [s.id, i]))
   return (e.phases ?? [])
-    .map((phase) => ({ phase, at: index.get(phase.sceneId) ?? -1 }))
+    .map((phase) => ({ phase, at: phase.sceneId ? (index.get(phase.sceneId) ?? -1) : -1 }))
     .filter((p) => p.at >= 0)
     .sort((a, b) => a.at - b.at)
+}
+
+/**
+ * As fases planejadas: sem cena (ainda não escrita) ou cuja cena foi apagada. Só o autor vê; não valem em
+ * nenhum ponto da história (nem no leitor, na wiki ou no Codex) até serem presas a uma cena.
+ */
+export function plannedOf(e: Pick<Entity, 'phases'>, order: Scene[]): Phase[] {
+  const ids = new Set(order.map((s) => s.id))
+  return (e.phases ?? []).filter((p) => !p.sceneId || !ids.has(p.sceneId))
 }
 
 /** A fase que vale num ponto (a última que já começou), ou null (a ficha de base). */
@@ -61,8 +70,17 @@ export interface PhaseChange {
 
 /** O que mudou da ficha em `a` para a ficha em `b` (nome, resumo, retrato e campos). */
 export function compareAt(e: Entity, a: number, b: number, order: Scene[]): PhaseChange[] {
-  const x = entityAt(e, a, order)
-  const y = entityAt(e, b, order)
+  return diffOf(entityAt(e, a, order), entityAt(e, b, order))
+}
+
+/** Como a ficha ficaria com uma fase planejada: a ficha no fim da história mais o que a fase muda. */
+export function previewPlanned(e: Entity, p: Phase, order: Scene[]): { now: Entity; then: Entity; changes: PhaseChange[] } {
+  const now = entityAt(e, order.length - 1, order)
+  const then = apply(now, p)
+  return { now, then, changes: diffOf(now, then) }
+}
+
+function diffOf(x: Entity, y: Entity): PhaseChange[] {
   const out: PhaseChange[] = []
   if (x.name !== y.name) out.push({ key: 'Nome', before: x.name, after: y.name })
   if (x.summary !== y.summary) out.push({ key: 'Resumo', before: x.summary, after: y.summary })

@@ -90,6 +90,8 @@ test('a escritora vai do zero ao livro e à wiki', async ({ page }) => {
   await nova.getByRole('textbox', { name: 'Nome' }).fill('Gente do Sal')
   await nova.getByRole('combobox', { name: 'Tipo' }).selectOption({ label: 'Cultura' })
   await tap(nova.getByRole('button', { name: 'Criar e abrir' }))
+  // A ficha nasce em cartas; aqui a jornada vai direto para a Língua (as cartas têm a sua spec).
+  await tap(page.getByRole('dialog', { name: /^Nascimento/ }).getByRole('button', { name: 'Pular' }))
   const idioma = page.locator('details.fold', { has: page.locator('summary', { hasText: 'Língua' }) })
   await tap(idioma.locator('summary'))
   await idioma.getByLabel('Sílabas').fill('sal- vo ra mi -dun -esh')

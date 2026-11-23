@@ -272,9 +272,15 @@ export const PAGE_TOURS = {
         optional: true,
       },
       {
+        target: '.refs-strip',
+        title: 'Referências',
+        body: 'O que inspira esta ficha, sempre à vista e só para você: toque no + e cole um link, uma frase, o nome de um personagem de outra obra ou uma imagem. Tocar numa abre em grande, com o que você pegou dela.',
+        optional: true,
+      },
+      {
         target: '.phases-read',
         title: 'Ao longo da história',
-        body: 'As fases: a partir de uma cena, o que muda (nome, resumo, campos) e por quê. “Comparar” mostra o que mudou entre dois momentos. Em Editar, “Ao longo da história” cria as fases.',
+        body: 'As fases: a partir de uma cena, o que muda (nome, resumo, campos) e por quê. “Comparar” mostra o que mudou entre dois momentos. Ainda sem a cena? Uma fase planejada guarda a ideia (só você vê) até você prendê-la a uma cena. Em Editar, “Ao longo da história” cria as fases.',
         optional: true,
       },
       {
@@ -442,6 +448,15 @@ export const PAGE_TOURS = {
         optional: true,
       },
       { title: 'Só uma sugestão', body: 'A busca é simples e pode errar ou deixar passar nomes. Nada é criado sem o seu clique.' },
+    ],
+  },
+  nascimento: {
+    title: 'Nascimento da ficha',
+    steps: [
+      { target: '.birth-face', title: 'Rosto', body: 'Toque no círculo para pôr um retrato, escreva em uma linha quem é e cole as referências que inspiram a ficha (imagem, link, frase, outra obra).', optional: true },
+      { target: '.birth-spark', title: 'Faísca', body: 'Uma pergunta por carta. Sem ideia? “Sortear do meu mundo” inventa uma resposta com os lugares, grupos e pessoas que já existem. As respostas viram campos da ficha.', optional: true },
+      { target: '.birth-world', title: 'Lugar no mundo', body: 'Toque numa ficha e escolha como as duas se ligam (“nasceu em”, “faz parte de”, “rival de”…). As ligações nascem junto.', optional: true },
+      { target: '.birth-dots', title: 'No seu ritmo', body: 'Deslize ou use Próxima e Voltar. “Pular” vai direto para a ficha; tudo o que você escreveu fica guardado.' },
     ],
   },
   versoes: {

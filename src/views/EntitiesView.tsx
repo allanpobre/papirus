@@ -46,7 +46,7 @@ import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
 import { EntityRevealField } from './RevealControl'
 import { PhasesEditor } from './PhasesView'
-import { ReferencesEditor } from './ReferencesView'
+import { ReferencesEditor, RefsStrip } from './ReferencesView'
 import { CharacterPowersEditor, PowerTreeEditor } from './PowersView'
 import { canHavePowers } from '../logic/powers'
 import { derivedHint, onlyName } from '../logic/derivedFields'
@@ -63,6 +63,7 @@ import { AreaHead } from './AreaModes'
 import { findRanges } from '../editor/find'
 import { openBookReplace } from './write/replaceEvents'
 import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
+import { BirthFlow } from './BirthFlow'
 import { InheritedRows, ListsSection, MembershipChips } from './EntityLists'
 import { SelectionBar } from './EntitySelection'
 import { EntityTable } from './EntityTable'
@@ -89,6 +90,9 @@ export default function EntitiesView() {
   })
   // A ficha que acabou de nascer aqui abre para editar.
   const [fresh, setFresh] = useState<string | null>(null)
+  // A ficha que acabou de nascer (criada e aberta): abre as cartas do nascimento por cima.
+  const [birth, setBirth] = useState<string | null>(null)
+  const born = birth && prefs.birthCards !== false ? universe.entities.find((x) => x.id === birth) : undefined
   const changeMode = (m: FichaMode) => {
     setMode(m)
     setFresh(null)
@@ -124,6 +128,7 @@ export default function EntitiesView() {
     })
     setNewName('')
     setFresh(id)
+    setBirth(id)
     go('fichas', id)
   }
   const togglePick = (id: string) => setPicked((p) => (p ? (p.has(id) ? new Set([...p].filter((x) => x !== id)) : new Set([...p, id])) : p))
@@ -437,6 +442,7 @@ export default function EntitiesView() {
             onOpen={(id) => {
               setCreating(null)
               setFresh(id)
+              setBirth(id)
               go('fichas', id)
             }}
           />
@@ -498,6 +504,7 @@ export default function EntitiesView() {
           </Empty>
         )}
       </section>
+      {born && <BirthFlow entity={born} onDone={() => setBirth(null)} />}
     </div>
   )
 }
@@ -817,6 +824,7 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
 
       <div className="entity-body">
         <div className="entity-main">
+          <RefsStrip entity={e} />
           {asking && (
             <KindQuestions
               entity={e}
