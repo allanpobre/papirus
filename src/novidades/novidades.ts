@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-24a',
+    when: '24 de novembro',
+    title: 'Versões do personagem na própria ficha',
+    items: [
+      'No alto da ficha, a barra “Versões”: o começo, cada versão do personagem e “+ Nova versão”.',
+      'A versão nova já vem com a ficha de antes preenchida: troque só o que muda (nome, retrato, resumo, cada campo) e diga desde qual cena, ou deixe planejada.',
+      'Tocar numa versão mostra a ficha inteira como ela é ali; “Editar esta versão” e “Voltar para agora” ficam no aviso.',
+    ],
+  },
+  {
     id: '2026-11-21c',
     when: '21 de novembro',
     title: 'A ficha nasce em cartas',

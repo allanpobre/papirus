@@ -272,6 +272,12 @@ export const PAGE_TOURS = {
         optional: true,
       },
       {
+        target: '.versions-bar',
+        title: 'Versões',
+        body: 'Outras versões do mesmo personagem, na própria ficha: “+ Nova versão” cria uma (outro nome, outro retrato, outro posto), a partir de uma cena ou planejada, sem cena ainda. Tocar numa mostra a ficha inteira como ela é ali; “Editar esta versão” muda só o que muda.',
+        optional: true,
+      },
+      {
         target: '.refs-strip',
         title: 'Referências',
         body: 'O que inspira esta ficha, sempre à vista e só para você: toque no + e cole um link, uma frase, o nome de um personagem de outra obra ou uma imagem. Tocar numa abre em grande, com o que você pegou dela.',
