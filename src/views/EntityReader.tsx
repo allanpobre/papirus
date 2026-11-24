@@ -16,7 +16,8 @@ import { MentionMatcher } from '../logic/detection'
 import { relationDetails } from '../logic/relations'
 import { glimpseOf } from '../logic/route'
 import { entityRevealAt, knownAt, partsAt, pointIndex, relationRevealAt, whoIsAt, yearAt } from '../logic/storyPoint'
-import { entityAt, phaseAt } from '../logic/phases'
+import { entityAt, phaseAt, versionView } from '../logic/phases'
+import { VersionBanner, VersionsBar } from './VersionsView'
 import { PhasesEditor, PhasesReader } from './PhasesView'
 import { ReferencesEditor, ReferencesReader, RefsStrip } from './ReferencesView'
 import { BLOCK_LABEL, CONTENT_BLOCKS, contentEmpty, moveBlock, removeBlock, visibleBlocks, type Block, type BlockType } from '../model/blocks'
@@ -56,9 +57,13 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const scenes = manuscriptOrder(universe)
   const [point] = useStoryPoint(universe.id)
   const index = pointIndex(scenes, point.sceneId)
+  // A versão escolhida na barra de versões (vale só para esta ficha); sem escolha, a da régua da história.
+  const [picked, setPicked] = useState<{ id: string; v: string } | null>(null)
+  const versionId = picked?.id === base.id ? picked.v : null
+  const view = versionId ? versionView(base, versionId, scenes) : null
   // A ficha como está naquele ponto: a base mais as fases que já começaram (nome, resumo, retrato, campos).
-  const e = entityAt(base, index, scenes)
-  const phase = phaseAt(base, index, scenes)
+  const e = view?.entity ?? entityAt(base, index, scenes)
+  const phase = view ? (view.phase && !view.planned ? { phase: view.phase, at: view.at } : null) : phaseAt(base, index, scenes)
   const suffix = universe.settings.calendarSuffix
   // Efeito dominó (no Completo): "e se esta ficha sumir?".
   const [dominoOpen, setDominoOpen] = useState(false)
@@ -637,6 +642,8 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
       {dominoOpen && <DominoDialog entity={e} onClose={() => setDominoOpen(false)} />}
       <TogetherHere entityId={e.id} />
       <StoryPointBar />
+      {tools && <VersionsBar entity={base} current={view ? versionId : null} onPick={(v) => setPicked(v ? { id: base.id, v } : null)} />}
+      {view && <VersionBanner entity={base} view={view} onBack={() => setPicked(null)} />}
 
       {nova && (
         <section className="hero" aria-label={`Retrato de ${e.name || 'Sem nome'}`}>

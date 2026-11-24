@@ -14395,3 +14395,131 @@ body[data-nova] .view-top.has-parts .view-top-end {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------- Versões do personagem (na própria ficha) */
+.versions-bar {
+  margin: 0.5rem 0 0.75rem;
+}
+.versions-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0 0 0.35rem;
+}
+.versions-row {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0 0 0.2rem;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.versions-row > li {
+  flex: none;
+}
+.version-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 34px;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.version-chip.is-planned {
+  border-style: dashed;
+}
+.version-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.version-when {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.version-add {
+  border-style: dashed;
+  color: var(--accent);
+}
+.version-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-faint);
+}
+.version-banner.is-planned {
+  border-left-style: dashed;
+}
+.version-banner p {
+  margin: 0;
+}
+.version-banner-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.version-sheet {
+  display: grid;
+  gap: 0.75rem;
+}
+.version-sheet-face {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+}
+.version-sheet-face > .link-btn {
+  grid-column: 1;
+}
+.version-portrait {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  overflow: hidden;
+  border: 2px dashed var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+.version-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.version-portrait img.is-old {
+  opacity: 0.45;
+}
+.version-fields {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.version-field {
+  display: grid;
+  grid-template-columns: minmax(90px, 35%) 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.version-field.is-changed > span {
+  color: var(--accent);
+  font-weight: 600;
+}

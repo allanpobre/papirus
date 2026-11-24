@@ -93,3 +93,30 @@ function diffOf(x: Entity, y: Entity): PhaseChange[] {
   }
   return out
 }
+
+/** Uma versão da ficha para ver na página: o começo ('base'), uma fase presa a uma cena ou uma planejada. */
+export interface VersionView {
+  entity: Entity
+  /** A fase vista (null = o começo). */
+  phase: Phase | null
+  /** A posição da cena da fase (-1 no começo e nas planejadas). */
+  at: number
+  planned: boolean
+}
+
+/** A ficha como ela é numa versão escolhida pelo autor (sem depender da régua da história). */
+export function versionView(e: Entity, id: string, order: Scene[]): VersionView | null {
+  if (id === 'base') return { entity: e, phase: null, at: -1, planned: false }
+  const placed = phasesOf(e, order).find((p) => p.phase.id === id)
+  if (placed) return { entity: entityAt(e, placed.at, order), phase: placed.phase, at: placed.at, planned: false }
+  const planned = plannedOf(e, order).find((p) => p.id === id)
+  if (planned) return { entity: previewPlanned(e, planned, order).then, phase: planned, at: -1, planned: true }
+  return null
+}
+
+/** A ficha logo antes de uma fase (o que a fase muda é comparado com isto). Sem fase: a ficha no fim da história. */
+export function before(e: Entity, p: Phase | null, order: Scene[]): Entity {
+  const placed = p ? phasesOf(e, order).find((x) => x.phase.id === p.id) : undefined
+  if (placed) return entityAt({ ...e, phases: (e.phases ?? []).filter((x) => x.id !== p!.id) }, placed.at, order)
+  return entityAt({ ...e, phases: (e.phases ?? []).filter((x) => x.id !== p?.id) }, order.length - 1, order)
+}

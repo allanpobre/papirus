@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ostriaUniverse } from '../model/sampleOstria'
 import { manuscriptOrder } from '../model/universe'
-import { compareAt, entityAt, phaseAt, phasesOf, plannedOf, previewPlanned } from './phases'
+import { before, compareAt, entityAt, phaseAt, phasesOf, plannedOf, previewPlanned, versionView } from './phases'
 
 describe('fases: a ficha muda ao longo da história', () => {
   const u = ostriaUniverse()
@@ -74,5 +74,30 @@ describe('fases planejadas (ainda sem cena)', () => {
   })
   it('um universo antigo com fase sem cena não quebra o esquema', () => {
     expect(comPlano.phases[0].sceneId).toBeNull()
+  })
+})
+
+describe('versões vistas na ficha', () => {
+  const u = ostriaUniverse()
+  const order = manuscriptOrder(u)
+  const kael = { ...u.entities.find((e) => e.name === 'Kael')!, fields: [{ key: 'Posto', value: 'Contrabandista', type: 'texto' as const, ref: null }] }
+  const at = (t: string) => order.findIndex((s) => s.title === t)
+  const presa = { id: 'v1', sceneId: order[at('Duas portas')].id, name: 'Marcado', cause: '', nameNow: 'O Fugitivo', summary: '', image: null, fields: [{ key: 'Posto', value: 'Foragido' }] }
+  const plano = { id: 'v2', sceneId: null, when: 'Livro 2', name: 'Rei', cause: '', nameNow: 'Kael I', summary: '', image: null, fields: [{ key: 'Posto', value: 'Rei' }] }
+  const e = { ...kael, phases: [presa, plano] }
+
+  it('mostra o começo, a versão presa e a planejada', () => {
+    expect(versionView(e, 'base', order)?.entity.name).toBe('Kael')
+    expect(versionView(e, 'v1', order)).toMatchObject({ planned: false, at: at('Duas portas') })
+    expect(versionView(e, 'v1', order)?.entity.name).toBe('O Fugitivo')
+    const v2 = versionView(e, 'v2', order)!
+    expect(v2.planned).toBe(true)
+    expect(v2.entity.fields.find((f) => f.key === 'Posto')?.value).toBe('Rei')
+    expect(versionView(e, 'nao-existe', order)).toBeNull()
+  })
+  it('"antes" de uma versão é a ficha sem ela, no ponto em que ela começa', () => {
+    expect(before(e, presa, order).fields.find((f) => f.key === 'Posto')?.value).toBe('Contrabandista')
+    expect(before(e, plano, order).name).toBe('O Fugitivo')
+    expect(before(e, null, order).name).toBe('O Fugitivo')
   })
 })
