@@ -13,6 +13,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-25d',
+    when: '25 de novembro',
+    title: 'Aviso para quem escreve no Safari do iPhone',
+    items: [
+      'No iPhone e no iPad, o Safari apaga o que um site guardou se ele passar 7 dias sem ser aberto. Quem escreve só no aparelho, sem conta e sem instalar, agora vê um aviso no Início com as duas saídas: instalar na Tela de Início ou entrar com uma conta.',
+    ],
+  },
+  {
     id: '2026-11-25c',
     when: '25 de novembro',
     title: '“Salvo” também no celular',

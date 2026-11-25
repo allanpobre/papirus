@@ -1,3 +1,5 @@
+import { SafariNotice } from '../ui/SafariNotice'
+import { isLocalOnly } from '../model/sample'
 import { BookOpen, Dices, Feather, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Timer, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Picture } from '../images/Picture'
@@ -117,6 +119,7 @@ export default function HomeView() {
   return (
     <div className="view home">
       <StorageNotice where="inicio" />
+      {!isLocalOnly(universe) && <SafariNotice hasContent={hasText} />}
       <header className="home-today" data-tour="hoje">
         <div className="home-id">
           {cover ? <Picture value={cover} className="home-thumb" /> : <GeneratedCover name={universe.name.replace(/^Exemplo\s*[—–-]\s*/, '')} tone={universeKind(universe) === 'campanha' ? 'var(--accent)' : undefined} className="home-thumb" />}

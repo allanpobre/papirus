@@ -14601,3 +14601,26 @@ body[data-nova] .view-top.has-parts .view-top-end {
   flex: 1 1 220px;
   font-size: 0.92rem;
 }
+
+/* ---------------------------------------------------------------- Aviso do Safari (iPhone/iPad sem instalar) */
+.safari-notice {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding-right: 2.2rem;
+}
+.safari-notice p {
+  margin: 0;
+  flex: 1 1 240px;
+}
+.safari-notice svg {
+  vertical-align: -2px;
+}
+.safari-notice-x {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+}
