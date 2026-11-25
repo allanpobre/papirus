@@ -43,6 +43,7 @@ import { backupOf } from '../persistence/backupFile'
 import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
+import { MobileSaveStatus } from '../ui/MobileSaveStatus'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
 import { readerCopy } from '../share/readerCopy'
@@ -120,7 +121,7 @@ interface ToastItem extends ToastOptions {
 }
 
 export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose, onOpenOther, source = OWN }: Props) {
-  const { universe, status, update: write, flush, repo } = useUniverse(library, initial, recovered)
+  const { universe, status, saveError, update: write, flush, repo } = useUniverse(library, initial, recovered)
   const readOnly = isReadOnly(source)
   // Quem só vê pode criar um AU se o autor autorizou (Compartilhar › "Pode ver e criar um AU").
   const [auAllowed, setAuAllowed] = useState(false)
@@ -669,9 +670,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             )}
             <AccountButton compact={collapsed} onClick={() => setAccountOpen(true)} />
             <ThemeToggle prefs={prefs} setPref={setPref} />
-            <span className="save-status" data-tour="salvo" role="status" data-status={status} title={STATUS_LABEL[status]}>
+            <span className="save-status" data-tour="salvo" role="status" data-status={status} title={status === 'erro' && saveError === 'espaco' ? 'Sem espaço neste aparelho — baixe um backup e limpe imagens sem uso (Ajustes › Dados)' : STATUS_LABEL[status]}>
               <span className="save-dot" aria-hidden="true" />
-              <span className="rail-label">{STATUS_LABEL[status]}</span>
+              <span className="rail-label">{status === 'erro' && saveError === 'espaco' ? 'Sem espaço — não salvou' : STATUS_LABEL[status]}</span>
             </span>
             <button
               type="button"
@@ -686,6 +687,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
+          {phone && <MobileSaveStatus status={status} saveError={saveError} cloud={!!userId && !isLocalOnly(universe)} onFreeSpace={() => go('config')} />}
           {/* A capa do livro ao abrir um livro (não ao abrir direto na Mesa). A Mesa não tem porta: a abertura é a da sessão. */}
           {kind !== 'campanha' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
           {source.kind !== 'proprio' && (

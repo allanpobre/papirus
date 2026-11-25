@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-25c',
+    when: '25 de novembro',
+    title: '“Salvo” também no celular',
+    items: [
+      'No celular, um selo pequeno no alto diz “Salvo” por um instante depois de cada gravação (e “Salvando…” se demorar).',
+      'Se o aparelho ficar sem espaço, ele avisa “Sem espaço neste aparelho”, com “Liberar espaço”, e tenta salvar de novo sozinho.',
+      'Com conta e sem internet: “Sem internet · salvo neste aparelho”.',
+    ],
+  },
+  {
     id: '2026-11-24a',
     when: '24 de novembro',
     title: 'Versões do personagem na própria ficha',

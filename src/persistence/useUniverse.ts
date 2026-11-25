@@ -13,6 +13,8 @@ const AUTOSAVE_DELAY_MS = 600
 export function useUniverse(library: Library, initial: Universe, recovered: boolean) {
   const [universe, setUniverseState] = useState<Universe>(initial)
   const [status, setStatus] = useState<SaveStatus>('salvo')
+  // O que deu errado na última gravação: falta de espaço no aparelho tem saída diferente.
+  const [saveError, setSaveError] = useState<'espaco' | 'outro' | null>(null)
 
   const [repo] = useState<UniverseRepository>(() => library.repository(initial.id))
   const latest = useRef<Universe>(initial)
@@ -31,11 +33,18 @@ export function useUniverse(library: Library, initial: Universe, recovered: bool
       .then(() => r.save(snapshot))
       .then(() => library.touch(snapshot))
       .then(
-        () => setStatus(dirty.current ? 'pendente' : 'salvo'),
+        () => {
+          setSaveError(null)
+          setStatus(dirty.current ? 'pendente' : 'salvo')
+        },
         (err: unknown) => {
           console.error('Falha ao salvar', err)
           dirty.current = true
+          setSaveError(isQuotaError(err) ? 'espaco' : 'outro')
           setStatus('erro')
+          // Tenta de novo daqui a pouco (o espaço pode ter sido liberado).
+          clearTimeout(timer.current)
+          timer.current = setTimeout(() => void flush(), 5000)
         },
       )
     return saving.current
@@ -81,5 +90,11 @@ export function useUniverse(library: Library, initial: Universe, recovered: bool
     }
   }, [flush, repo])
 
-  return { universe, status, update, flush, repo }
+  return { universe, status, saveError, update, flush, repo }
+}
+
+/** O navegador recusou por falta de espaço (cada navegador diz de um jeito). */
+export function isQuotaError(err: unknown): boolean {
+  const e = err as { name?: string; message?: string; code?: number } | null
+  return !!e && (e.name === 'QuotaExceededError' || e.code === 22 || /quota|espa[cç]o/i.test(e.message ?? ''))
 }

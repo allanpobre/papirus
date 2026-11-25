@@ -14523,3 +14523,45 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* ---------------------------------------------------------------- "Salvo" no celular (o menu lateral não existe lá) */
+.mobile-save {
+  position: fixed;
+  top: calc(6px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: calc(100vw - 24px);
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  box-shadow: var(--shadow-1);
+  transform: translate(-50%, -140%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.mobile-save.is-shown {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+.mobile-save.is-erro {
+  border: 1px solid var(--danger, #b42318);
+  color: var(--ink);
+  pointer-events: auto;
+}
+.mobile-save.is-aviso {
+  border: 1px solid var(--line-strong);
+}
+.mobile-save .link-btn {
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-save {
+    transition: none;
+  }
+}
