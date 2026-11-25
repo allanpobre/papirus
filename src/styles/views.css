@@ -14240,6 +14240,7 @@ body[data-nova] .view-top.has-parts .view-top-end {
   line-height: 1;
 }
 .birth-portrait-hint {
+  color: color-mix(in srgb, var(--birth) 60%, var(--ink));
   position: absolute;
   bottom: 14px;
   display: flex;
@@ -14275,7 +14276,8 @@ body[data-nova] .view-top.has-parts .view-top-end {
 .birth-dice {
   align-self: center;
   border-color: var(--birth);
-  color: var(--birth);
+  /* A cor do tipo puxada para a tinta: passa de 4,5:1 no claro e no escuro. */
+  color: color-mix(in srgb, var(--birth) 70%, var(--ink));
 }
 .birth-ties {
   display: flex;

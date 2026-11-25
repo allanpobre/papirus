@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from './fixtures.ts'
 
 // Criar uma ficha e abrir: as cartas do nascimento (rosto, faíscas com o dado, lugar no mundo) e a carta pronta.
@@ -68,4 +69,16 @@ test('pular o nascimento leva direto à ficha, com o que já foi escrito', async
   await cartas.getByRole('button', { name: 'Pular' }).click()
   await expect(cartas).toHaveCount(0)
   await expect(page.locator('main')).toContainText('Ilmar')
+})
+
+test('as cartas passam no contraste (claro), no rosto e na faísca', async ({ page }) => {
+  const cartas = await nova(page, 'Lume')
+  const contraste = async () => {
+    await page.waitForTimeout(1200) // depois da animação de entrada
+    const { violations } = await new AxeBuilder({ page }).include('.birth').withTags(['wcag2aa']).analyze()
+    return violations.filter((v) => v.id === 'color-contrast').flatMap((v) => v.nodes.map((n) => n.target.join(' ')))
+  }
+  expect(await contraste()).toEqual([])
+  await cartas.getByRole('button', { name: /Próxima/ }).click()
+  expect(await contraste()).toEqual([])
 })
