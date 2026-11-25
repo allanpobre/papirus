@@ -27,7 +27,7 @@ const QUICK: Step[] = [
     target: '[data-tour="editor"]',
     view: 'escrever',
     title: 'Escrever',
-    body: 'Escreva aqui. Selecione um trecho e aparece uma barra para criar ficha, guardar um fato ou comentar. Nada vira ficha sozinho.',
+    body: 'Escreva aqui. Selecione um trecho e aparece uma barra para criar ficha, guardar um fato, marcar um segredo ou comentar. Nada vira ficha sozinho.',
   },
   {
     target: '[data-tour="modos"]',
