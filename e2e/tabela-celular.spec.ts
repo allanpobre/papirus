@@ -2,7 +2,7 @@ import { expect, test, type Page } from './fixtures.ts'
 
 /*
  * A tabela de fichas no celular (390 px): rola de lado com o nome preso à esquerda, edita a célula com um toque,
- * renomeia pelo lápis (não há duplo clique no dedo) e abre com o exemplo de Oz (74 fichas) sem pesar.
+ * renomeia pelo lápis (não há duplo clique no dedo) e abre com o exemplo de Oz (75 fichas) sem pesar.
  */
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
@@ -54,20 +54,20 @@ test('um toque na célula edita ali mesmo, e o lápis renomeia a ficha', async (
   await expect(page.getByRole('dialog').filter({ hasText: 'A moça Munchkin renomeada' })).toBeVisible()
 })
 
-test('com o exemplo de Oz (74 fichas) a tabela abre e ordena depressa, mesmo com a CPU 4x mais lenta', async ({ page }) => {
+test('com o exemplo de Oz (75 fichas) a tabela abre e ordena depressa, mesmo com a CPU 4x mais lenta', async ({ page }) => {
   await page.goto('/app/?exemplo')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
   const cdp = await page.context().newCDPSession(page)
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
   const t0 = Date.now()
   await page.getByRole('radiogroup', { name: 'Vista do Mundo' }).getByRole('radio', { name: 'Tabela' }).click()
-  await expect(page.locator('.entity-table tbody tr')).toHaveCount(74)
+  await expect(page.locator('.entity-table tbody tr')).toHaveCount(75)
   const abrir = Date.now() - t0
   const t1 = Date.now()
   await page.locator('.table-sort', { hasText: 'Tipo' }).click()
   await expect(page.locator('.entity-table thead th[aria-sort="ascending"]')).toContainText('Tipo')
   const ordenar = Date.now() - t1
-  console.log(`tabela de 74 fichas, CPU 4x: abrir ${abrir} ms, ordenar ${ordenar} ms`)
+  console.log(`tabela de 75 fichas, CPU 4x: abrir ${abrir} ms, ordenar ${ordenar} ms`)
   expect(abrir, 'abrir a tabela').toBeLessThan(3000)
   expect(ordenar, 'ordenar por uma coluna').toBeLessThan(2000)
 })

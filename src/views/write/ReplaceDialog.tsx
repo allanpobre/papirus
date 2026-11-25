@@ -78,7 +78,7 @@ export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; o
       onClose={onClose}
       footer={
         <>
-          <span className="muted small replace-foot-note">Antes, um snapshot é guardado. Depois, dá para desfazer.</span>
+          <span className="muted small replace-foot-note">Antes, uma cópia do universo é guardada. Depois, dá para desfazer.</span>
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             Cancelar
           </button>

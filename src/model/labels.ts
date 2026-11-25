@@ -58,7 +58,7 @@ export const CANON_ORDER: Canon[] = ['estabelecido', 'secreto', 'rumor', 'lenda'
 /** "Quão pronta": a ficha (ou o fato) para você. */
 export const EDITORIAL_LABEL: Record<Editorial, string> = {
   rascunho: 'Rascunho',
-  provisorio: 'Quase',
+  provisorio: 'Quase pronta',
   definido: 'Pronta',
   'nao-decidido': 'Ainda não decidi',
 }

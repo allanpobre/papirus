@@ -32,3 +32,31 @@ test('lugares grandes na barra, História com a linha do tempo e o resto no Menu
   await menu.getByRole('button', { name: /^Início/ }).click()
   await expect(page.getByRole('region', { name: 'Em qual livro você vai trabalhar?' })).toBeVisible()
 })
+
+test('passeio, Guia e Menu falam com os nomes da Nova cara', async ({ page }) => {
+  await page.addInitScript(() => {
+    const prefs = JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}')
+    localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, novaCara: true }))
+  })
+  await page.goto('/app/?exemplo=ostria')
+  const barra = page.getByRole('navigation', { name: 'Áreas' })
+
+  // O Menu agrupa “Mundo e História”.
+  await barra.getByRole('button', { name: 'Menu' }).click()
+  await expect(page.getByRole('group', { name: 'Mundo e História' })).toBeVisible()
+  await page.getByRole('group', { name: 'Ferramentas' }).getByRole('button', { name: 'Guia' }).click()
+
+  // No Guia, a área é “História” e a Linha do tempo mora nela, não no Mundo.
+  await expect(page.getByRole('heading', { name: 'História', level: 2 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trama', level: 2 })).toHaveCount(0)
+  const historia = page.locator('section', { has: page.getByRole('heading', { name: 'História', level: 2 }) })
+  await expect(historia.getByRole('button', { name: /^Linha do tempo/ })).toBeVisible()
+  const mundo = page.locator('section', { has: page.getByRole('heading', { name: 'Mundo', level: 2 }) })
+  await expect(mundo.getByRole('button', { name: /^Linha do tempo/ })).toHaveCount(0)
+
+  // O passeio do Mundo diz três partes.
+  await barra.getByRole('button', { name: 'Mundo' }).click()
+  await page.getByRole('button', { name: /^Como usar:/ }).first().click()
+  const passeio = page.getByRole('dialog').filter({ hasText: 'O mundo em três partes' })
+  await expect(passeio).toContainText('Fichas, Ligações e Mapas')
+})

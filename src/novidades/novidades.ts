@@ -13,6 +13,58 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27f',
+    when: '27 de novembro',
+    title: 'Editar a ficha por partes',
+    items: [
+      'Em Editar, a ficha agora vem em abas: Básico, Ligações, Mundo, Tempo e Referências, em vez de uma página enorme. “Tudo” mostra o formulário inteiro, como antes, e o app lembra a última aba.',
+      'A barra de Versões também aparece em Editar: dá para criar uma versão nova sem voltar para a leitura.',
+    ],
+  },
+  {
+    id: '2026-11-27e',
+    when: '27 de novembro',
+    title: 'O exemplo de Oz mostra as oficinas do mundo',
+    items: [
+      'Os povos de Oz agora são culturas: os Munchkins têm costumes, a Festa da libertação e uma língua; os Winkies, o seu feriado.',
+      'Uma crença (“O respeito às Bruxas”) com as quatro Bruxas no panteão, tensões entre a Bruxa do Oeste, o Mágico e Glinda, e comércio de joias entre Winkies e a Cidade.',
+      'No mapa, as rotas da viagem com os dias a pé; na Linha do tempo, o que causou o quê.',
+    ],
+  },
+  {
+    id: '2026-11-27d',
+    when: '27 de novembro',
+    title: 'Nova cara: a ajuda com os mesmos nomes da tela',
+    items: [
+      'Com a Nova cara ligada, os passeios (?), o Guia e esta lista falam “História” (e não Trama), põem a Linha do tempo dentro da História e chamam o “Mais” do celular de “Menu”, como a barra de baixo.',
+    ],
+  },
+  {
+    id: '2026-11-27c',
+    when: '27 de novembro',
+    title: 'A Comunidade não começa vazia',
+    items: [
+      'Na primeira visita, em vez de só “procure o @ de alguém”, aparecem os livros que estão abertos para todo mundo ler, com um toque para abrir, e o atalho para os desafios da semana.',
+    ],
+  },
+  {
+    id: '2026-11-27b',
+    when: '27 de novembro',
+    title: '“Perguntar ao mundo” explica antes de pedir a chave',
+    items: [
+      'A tela agora começa dizendo o que a ferramenta faz, com perguntas de exemplo usando os nomes do seu mundo. A chave da Anthropic só aparece quando você toca em “Ligar com uma chave”.',
+    ],
+  },
+  {
+    id: '2026-11-27a',
+    when: '27 de novembro',
+    title: 'Nomes mais simples',
+    items: [
+      '“Snapshots” agora se chama “Cópias guardadas”, e “Restaurar” virou “Voltar para esta”.',
+      '“Pedir para manter” virou “Pedir para não apagar”, e a ficha “Quase” agora diz “Quase pronta”.',
+    ],
+  },
+  {
     id: '2026-11-26d',
     when: '26 de novembro',
     title: 'A busca entende erro de digitação',
