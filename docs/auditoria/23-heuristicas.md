@@ -172,7 +172,40 @@ Partes que ficaram de fora da primeira passada, agora medidas: duas abas, busca,
 
 ### Ainda não visto
 
-- **Comunidade e contas** com servidor de verdade; **Oficina** (treinos e placar); **Mesa no celular do jogador** à mão; armazenamento cheio (quota do navegador) e o Safari apagando dados após 7 dias sem uso.
+- Visto na terceira rodada (abaixo), menos o Safari, que não dá para testar aqui.
+
+---
+
+## Terceira rodada (25/11): o que faltava ver
+
+### Armazenamento cheio
+Limitei a cota do navegador pelo Chromium (CDP `Storage.overrideQuotaForOrigin`) e continuei escrevendo.
+- **O app percebe** (`QuotaExceededError`, "Falha ao salvar") e marca o estado "Erro ao salvar — tentando de novo" — **mas esse estado só aparece no computador**. No celular, nada (H1.1). E a frase não diz que o problema é **espaço** nem o que fazer.
+- O texto deste teste voltou ao recarregar; não consegui provar que sempre volta. O aviso "O espaço deste navegador está quase acabando" (`StorageNotice`) existe e usa a estimativa de uso, que eu não consegui mudar neste teste.
+- **H9.5 · gravidade 3 · erro de espaço sem nome nem saída.** *Melhoria:* quando o erro for de cota, dizer "Sem espaço neste aparelho — baixe um backup e limpe imagens sem uso", com os dois botões, também no celular.
+
+### Safari apagando dados (não testável aqui)
+Não há WebKit neste ambiente. Pelo código:
+- O pedido para o navegador **não apagar** os dados (`navigator.storage.persist`) só acontece se a pessoa tocar em **"Pedir para manter"**, em Ajustes › Dados. Não é pedido sozinho.
+- Não há aviso de que o **Safari do iPhone pode apagar os dados de sites não usados por 7 dias** (quando não está instalado na Tela de Início). O botão de instalar explica *como* instalar, não *por quê*.
+- O lembrete de backup depois de 7 dias e a conta na nuvem reduzem o risco.
+- **H5.6 · gravidade 3 (no iPhone) · risco de perder tudo sem aviso.** *Melhoria:* pedir `persist()` sozinho depois da primeira cena; no Safari do iPhone sem instalar, um aviso único: "Neste iPhone, o Safari pode apagar o que fica só aqui se você passar uma semana sem abrir. Instale na Tela de Início ou entre com uma conta."
+
+### Oficina (treinos)
+- **Boa.** Tela "Escrever melhor, um pouco por dia" com Hoje, Trilhas, Caderno e Biblioteca; "O que você quer treinar?" abre trilhas curtas; gerador de ideias (QUEM, QUER, MAS, ONDE) com "Outra ideia".
+- **Treino:** escolher Aquecimento (5 min · 100 palavras), Sprint ou Maratona; durante, um relógio, "48 de 100 palavras · 266 caracteres" e "Terminar"; no fim, "Faltaram 52 palavras", tempo e ritmo, "Guardado nos seus treinos", e "Refazer este desafio".
+- *(1)* O relógio de cima é um botão (pausa?) sem dizer que é. *(1)* "Ritmo —" quando o treino foi curto.
+
+### Celular do jogador (à mão, servidor de teste)
+- **Muito bom.** "Qual é o seu personagem?" com os personagens do grupo e "Criar o meu personagem"; depois, três abas grandes (Eu, Palco, Codex) e um botão fixo "Rolar como Taren". A ficha mostra PV, CA, ataque e testes como botões.
+- **O pedido de teste do mestre chega na hora**, numa tela cheia: "O mestre pede um teste · Acrobacia · Rolar Acrobacia (+0) · Depois".
+- *(1)* O nome do universo é cortado no alto ("Exemplo — …").
+- *(2, privacidade)* Quem tem o link do grupo pode escolher **qualquer** personagem (inclusive o de outro jogador). Numa mesa entre amigos é aceitável; vale dizer isso ao criar o link.
+
+### Contas e Comunidade (servidor de teste)
+- **O site publicado já vem com um servidor configurado** (conferi no código publicado em `allanpobre.github.io/papirus`). Por isso quem usa não vê a tela de "crie um projeto Supabase e rode os scripts". Ela só aparece em cópias sem servidor. Mesmo assim, ali o texto é técnico demais (H2): cita SQL Editor e seis arquivos `.sql`.
+- **Comunidade vazia bem escrita:** cada aba (Novidades, Lendo, Pessoas, Seus livros, Desafios, Perfil) diz o que vai aparecer ali e como começar. As seis abas cabem a 390 px, sem rolagem lateral.
+- **H6.5 · gravidade 2 · partida a frio.** Quem entra sozinho não tem o que fazer: não há sugestão de pessoas, livros públicos nem desafios abertos; só "Procure o @ de alguém". *Melhoria:* uma vitrine "Livros abertos para ler" e os desafios da semana já na primeira visita.
 
 ---
 
@@ -185,7 +218,8 @@ Ordem por **gravidade × alcance ÷ esforço**.
 | 0 | **Duas abas não perdem texto:** avisar na segunda aba e conferir a versão guardada antes de salvar | H1, H5 | **4** | médio | `src/persistence/`, `WorkspaceShell.tsx` |
 | 1 | **Segredo seguro por padrão:** `[segredo]` sem fechar esconde até o fim do parágrafo; aviso na Revisão para marca aberta ou parecida; teste nos 3 caminhos (wiki, leitor, link) | H5, H9 | **4** | pequeno | `src/logic/secrets.ts`, `readerCopy.ts`, `continuity` |
 | 2 | **Botão "Segredo"** na barra de seleção da cena (usa o `wrapSecret` que já existe) | H5, H6 | 3 | pequeno | `src/editor/`, barra de seleção |
-| 3 | **Indicador de salvamento no celular** (e "sem internet") | H1 | 3 | pequeno | `WorkspaceShell.tsx`, CSS |
+| 3 | **Indicador de salvamento no celular** (e "sem internet" e "sem espaço", com o que fazer) | H1, H9 | 3 | pequeno | `WorkspaceShell.tsx`, `useUniverse.ts`, CSS |
+| 3b | **Proteger contra o Safari apagar dados:** pedir `persist()` sozinho e avisar no iPhone sem instalar | H5 | 3 | pequeno | `storage.ts`, `InstallButton.tsx` |
 | 4 | **Desfazer nas 6 remoções sem volta** (e no apagar universo) | H3 | 3 | pequeno a médio | `EntitiesView.tsx`, `PowerPanel.tsx`, `PantheonPanel.tsx`, `LibraryScreen.tsx` |
 | 5 | **Guardar o digitado ao fechar** a janela de nova versão (pergunta só se mudou) | H3, H5 | 2 | pequeno | `VersionsView.tsx` |
 | 6 | **Aviso de nome repetido** ao criar ficha | H5 | 2 | pequeno | `EntityCreate.tsx`, `BirthFlow` |
