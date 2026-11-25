@@ -266,15 +266,15 @@ test('dados: rola expressões e recusa as inválidas', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('Não entendi')
 })
 
-test('snapshot: restaura o estado anterior e guarda o atual', async ({ page }) => {
+test('cópia guardada: volta ao estado anterior e guarda o atual', async ({ page }) => {
   await newUniverse(page)
   await startWriting(page)
   await page.keyboard.type('Versão um.')
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Dados e backup' }).click()
-  await page.getByRole('textbox', { name: 'Nome do snapshot' }).fill('Primeira versão')
+  await page.getByRole('textbox', { name: 'Nome da cópia' }).fill('Primeira versão')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
-  await expect(page.getByText('Snapshot criado')).toBeVisible()
+  await expect(page.getByText('Cópia guardada', { exact: true })).toBeVisible()
 
   await nav(page, 'Escrever').click()
   await editor(page).click()
@@ -282,13 +282,13 @@ test('snapshot: restaura o estado anterior e guarda o atual', async ({ page }) =
   await page.keyboard.type('Versão dois.')
   await nav(page, 'Ajustes e dados').click()
   const snap = page.getByRole('listitem').filter({ hasText: 'Primeira versão' })
-  await snap.getByRole('button', { name: 'Restaurar' }).click()
-  await snap.getByRole('group').getByRole('button', { name: 'Restaurar' }).click()
+  await snap.getByRole('button', { name: 'Voltar para esta' }).click()
+  await snap.getByRole('group').getByRole('button', { name: 'Voltar para esta' }).click()
 
   await nav(page, 'Escrever').click()
   await expect(editor(page)).toContainText('Versão um.')
   await nav(page, 'Ajustes e dados').click()
-  await expect(page.getByText('Antes de restaurar o snapshot')).toBeVisible()
+  await expect(page.getByText('Antes de voltar para a cópia')).toBeVisible()
 })
 
 test('Ideias: captura rápida de qualquer lugar e vira cena solta', async ({ page }) => {

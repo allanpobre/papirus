@@ -503,7 +503,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               onChange={setImportMode}
               options={[
                 { value: 'novo', label: 'Abrir como um novo universo' },
-                { value: 'substituir', label: 'Substituir este (guarda um snapshot antes)' },
+                { value: 'substituir', label: 'Substituir este (guarda uma cópia antes)' },
               ]}
             />
             <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
@@ -538,10 +538,10 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                     onClick={async () => {
                       const ok = await requestPersistentStorage()
                       setStorage((s) => (s ? { ...s, persisted: ok } : s))
-                      toast(ok ? 'Armazenamento persistente concedido' : 'O navegador não concedeu. Faça backups.')
+                      toast(ok ? 'Pronto: o navegador não vai apagar estes dados sozinho.' : 'O navegador não deixou. Faça backups de vez em quando.')
                     }}
                   >
-                    Pedir para manter
+                    Pedir para não apagar
                   </button>
                 </>
               )}
@@ -555,21 +555,21 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 
 {show('dados') && (
         <section className="settings-card">
-          <h2 className="section-title">Snapshots</h2>
-          <p className="muted small">Fotografias do universo. Automáticos a cada 30 minutos de trabalho; os nomeados ficam até você apagar.</p>
+          <h2 className="section-title">Cópias guardadas</h2>
+          <p className="muted small">Cópias do universo inteiro, para voltar atrás. O Papirus guarda uma sozinho a cada 30 minutos de trabalho; as que você nomeia ficam até você apagar.</p>
           <form
             className="inline-fields"
             onSubmit={async (e) => {
               e.preventDefault()
               await ws.flush()
-              await repo.createSnapshot(universe, snapName.trim() || 'Snapshot manual')
+              await repo.createSnapshot(universe, snapName.trim() || 'Cópia guardada à mão')
               setSnapName('')
               reloadSnapshots()
-              toast('Snapshot criado')
+              toast('Cópia guardada')
             }}
           >
             <label htmlFor="snap-name" className="sr-only">
-              Nome do snapshot
+              Nome da cópia
             </label>
             <input id="snap-name" className="input" placeholder="Antes de reescrever o ato 2" value={snapName} onChange={(e) => setSnapName(e.target.value)} />
             <button type="submit" className="btn btn-ghost">
@@ -585,17 +585,17 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 </span>
                 <ConfirmButton
                   className="btn btn-ghost btn-sm"
-                  question="Restaurar? O estado atual vira um snapshot."
-                  confirmLabel="Restaurar"
+                  question="Voltar para esta cópia? O estado de agora vira uma cópia guardada antes."
+                  confirmLabel="Voltar para esta"
                   onConfirm={async () => {
                     try {
-                      await replaceWith(await repo.readSnapshot(s.id), 'restaurar o snapshot')
+                      await replaceWith(await repo.readSnapshot(s.id), 'voltar para a cópia')
                     } catch (err) {
                       toast(err instanceof Error ? err.message : 'Falha ao restaurar', { tone: 'erro' })
                     }
                   }}
                 >
-                  <RotateCcw size={14} /> Restaurar
+                  <RotateCcw size={14} /> Voltar para esta
                 </ConfirmButton>
                 <button
                   type="button"
@@ -606,7 +606,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 </button>
                 <ConfirmButton
                   className="btn-icon btn-sm"
-                  title="Apagar snapshot"
+                  title="Apagar esta cópia"
                   question="Apagar?"
                   confirmLabel="Apagar"
                   onConfirm={async () => {
@@ -614,7 +614,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                     reloadSnapshots()
                   }}
                 >
-                  <Trash2 size={14} aria-label="Apagar snapshot" />
+                  <Trash2 size={14} aria-label="Apagar esta cópia" />
                 </ConfirmButton>
               </li>
             ))}

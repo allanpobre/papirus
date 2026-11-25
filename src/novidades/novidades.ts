@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27a',
+    when: '27 de novembro',
+    title: 'Nomes mais simples',
+    items: [
+      '“Snapshots” agora se chama “Cópias guardadas”, e “Restaurar” virou “Voltar para esta”.',
+      '“Pedir para manter” virou “Pedir para não apagar”, e a ficha “Quase” agora diz “Quase pronta”.',
+    ],
+  },
+  {
     id: '2026-11-26d',
     when: '26 de novembro',
     title: 'A busca entende erro de digitação',

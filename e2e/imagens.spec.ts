@@ -87,7 +87,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   await nav(page, 'Ajustes').click()
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Dados e backup' }).click()
   // Uma versão guardada com nome também vai no backup (e volta).
-  await page.getByRole('textbox', { name: 'Nome do snapshot' }).fill('Antes do backup')
+  await page.getByRole('textbox', { name: 'Nome da cópia' }).fill('Antes do backup')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
   await expect(page.locator('.snapshots')).toContainText('Antes do backup')
   const download = page.waitForEvent('download')
