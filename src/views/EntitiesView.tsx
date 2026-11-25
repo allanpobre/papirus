@@ -1066,7 +1066,7 @@ const RELATION_TYPES = [
 ]
 
 export function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; outgoing: Universe['relations']; incoming: Universe['relations'] }) {
-  const { universe, update, peek } = useWorkspace()
+  const { universe, update, peek, undoable } = useWorkspace()
   const [type, setType] = useState('')
   const [targets, setTargets] = useState<string[]>([])
   const involved = involvements(universe, e.id)
@@ -1118,7 +1118,7 @@ export function RelationsSection({ entity: e, outgoing, incoming }: { entity: En
           {entityName(universe, r[side]) || 'Ficha removida'}
         </button>
         {editable && (
-          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta ligação`} onClick={() => update((u) => remove(u, 'relations', r.id))}>
+          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta ligação`} onClick={() => undoable(`Ligação com “${entityName(universe, r[side])}” tirada`, (u) => remove(u, 'relations', r.id))}>
             <X size={12} />
           </button>
         )}
@@ -1132,7 +1132,7 @@ export function RelationsSection({ entity: e, outgoing, incoming }: { entity: En
         type="button"
         className="btn-icon btn-sm relation-remove"
         aria-label={rs.length > 1 ? 'Remover estas ligações' : 'Remover ligação'}
-        onClick={() => update((u) => rs.reduce((acc, r) => remove(acc, 'relations', r.id), u))}
+        onClick={() => undoable(rs.length > 1 ? `${rs.length} ligações tiradas` : 'Ligação tirada', (u) => rs.reduce((acc, r) => remove(acc, 'relations', r.id), u))}
       >
         <X size={14} />
       </button>
@@ -1293,7 +1293,7 @@ export function RelationsSection({ entity: e, outgoing, incoming }: { entity: En
 }
 
 export function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Universe['knowledge'] }) {
-  const { universe, update } = useWorkspace()
+  const { universe, update, undoable } = useWorkspace()
   const [factId, setFactId] = useState('')
   const order = manuscriptOrder(universe)
   const factOptions = universe.facts.map((f) => ({ value: f.id, label: factSentence(universe, f).slice(0, 80) }))
@@ -1319,7 +1319,7 @@ export function KnowledgeSection({ entity: e, entries }: { entity: Entity; entri
                 onChange={(v) => update((u) => patch(u, 'knowledge', k.id, { sinceSceneId: v || null }))}
                 options={[{ value: '', label: 'Desde sempre' }, ...order.map((s) => ({ value: s.id, label: `Desde “${s.title || 'Sem título'}”` }))]}
               />
-              <button type="button" className="btn-icon btn-sm" aria-label="Remover" onClick={() => update((u) => remove(u, 'knowledge', k.id))}>
+              <button type="button" className="btn-icon btn-sm" aria-label="Remover" onClick={() => undoable('Tirado do que a ficha sabe', (u) => remove(u, 'knowledge', k.id))}>
                 <X size={14} />
               </button>
             </li>

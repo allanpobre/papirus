@@ -43,6 +43,7 @@ import { backupOf } from '../persistence/backupFile'
 import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
+import { MobileSaveStatus } from '../ui/MobileSaveStatus'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
 import { readerCopy } from '../share/readerCopy'
@@ -120,8 +121,9 @@ interface ToastItem extends ToastOptions {
 }
 
 export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose, onOpenOther, source = OWN }: Props) {
-  const { universe, status, update: write, flush, repo } = useUniverse(library, initial, recovered)
-  const readOnly = isReadOnly(source)
+  const { universe, status, saveError, update: write, flush, repo, parked, resume, reloads } = useUniverse(library, initial, recovered)
+  // Parado: o mesmo universo foi aberto em outra aba (só leitura aqui até "Continuar aqui").
+  const readOnly = isReadOnly(source) || parked
   // Quem só vê pode criar um AU se o autor autorizou (Compartilhar › "Pode ver e criar um AU").
   const [auAllowed, setAuAllowed] = useState(false)
   // "Fica dentro de" agora é só de lugar: quem não é lugar passa para uma lista da ficha (uma vez, ao abrir).
@@ -151,6 +153,12 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   )
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [remoteRev, setRemoteRev] = useState<Record<string, number>>({})
+  // Releu o que outra aba salvou: cada cena aberta recomeça com o texto de lá.
+  useEffect(() => {
+    if (!reloads) return
+    setRemoteRev((r) => Object.fromEntries(universe.scenes.map((sc) => [sc.id, (r[sc.id] ?? 0) + 1])))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloads])
   const { prefs, setPref } = prefsApi
   const folder = useFolderSync(library, repo, universe, status)
   useCodexSync(universe, prefs)
@@ -301,9 +309,15 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     return () => {
       if (Date.now() - lastBlocked.current < 4000) return
       lastBlocked.current = Date.now()
-      toast(source.kind === 'link' ? 'Você está lendo pelo link: aqui nada pode ser mudado.' : 'Este universo foi compartilhado só para ver. Peça a quem é dono para poder editar.')
+      toast(
+        parked
+          ? 'Este universo está aberto em outra aba. Toque em “Continuar aqui” para escrever nesta.'
+          : source.kind === 'link'
+            ? 'Você está lendo pelo link: aqui nada pode ser mudado.'
+            : 'Este universo foi compartilhado só para ver. Peça a quem é dono para poder editar.',
+      )
     }
-  }, [readOnly, tracked, toast, source.kind])
+  }, [readOnly, tracked, toast, source.kind, parked])
   useReadOnlyInputs(readOnly)
   // Rolagens feitas pelos jogadores no Codex chegam aqui, vão para o registro e para a bandeja da mesa.
   useTableRolls(universe, prefs, tracked, !readOnly)
@@ -669,9 +683,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             )}
             <AccountButton compact={collapsed} onClick={() => setAccountOpen(true)} />
             <ThemeToggle prefs={prefs} setPref={setPref} />
-            <span className="save-status" data-tour="salvo" role="status" data-status={status} title={STATUS_LABEL[status]}>
+            <span className="save-status" data-tour="salvo" role="status" data-status={status} title={status === 'erro' && saveError === 'espaco' ? 'Sem espaço neste aparelho — baixe um backup e limpe imagens sem uso (Ajustes › Dados)' : STATUS_LABEL[status]}>
               <span className="save-dot" aria-hidden="true" />
-              <span className="rail-label">{STATUS_LABEL[status]}</span>
+              <span className="rail-label">{status === 'erro' && saveError === 'espaco' ? 'Sem espaço — não salvou' : STATUS_LABEL[status]}</span>
             </span>
             <button
               type="button"
@@ -686,6 +700,17 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         )}
 
         <main id="conteudo" className="stage" tabIndex={-1}>
+          {phone && <MobileSaveStatus status={status} saveError={saveError} cloud={!!userId && !isLocalOnly(universe)} onFreeSpace={() => go('config')} />}
+          {parked && (
+            <div className="tab-parked" role="alert">
+              <p>
+                <strong>Este universo está aberto em outra aba.</strong> O que você escreveu aqui foi salvo. Para uma aba não apagar a outra, esta fica só para ler.
+              </p>
+              <button type="button" className="btn btn-primary btn-sm" onClick={resume}>
+                Continuar aqui
+              </button>
+            </div>
+          )}
           {/* A capa do livro ao abrir um livro (não ao abrir direto na Mesa). A Mesa não tem porta: a abertura é a da sessão. */}
           {kind !== 'campanha' && openedIn !== 'rpg' && <WritingGate id={universe.id} name={universe.name || 'Sem nome'} cover={universe.settings.cover} />}
           {source.kind !== 'proprio' && (

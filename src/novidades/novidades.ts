@@ -13,6 +13,52 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-25e',
+    when: '25 de novembro',
+    title: 'Mais coisas com “Desfazer”',
+    items: [
+      'Tirar uma ligação, algo do que a ficha sabe, uma tensão, um deus do panteão ou um fiel agora mostra “Desfazer”, como já acontecia ao apagar ficha, cena, evento e trama.',
+      'Fechar a janela de nova versão com algo escrito pergunta antes: “Descartar o que você escreveu?”.',
+    ],
+  },
+  {
+    id: '2026-11-25d',
+    when: '25 de novembro',
+    title: 'Aviso para quem escreve no Safari do iPhone',
+    items: [
+      'No iPhone e no iPad, o Safari apaga o que um site guardou se ele passar 7 dias sem ser aberto. Quem escreve só no aparelho, sem conta e sem instalar, agora vê um aviso no Início com as duas saídas: instalar na Tela de Início ou entrar com uma conta.',
+    ],
+  },
+  {
+    id: '2026-11-25c',
+    when: '25 de novembro',
+    title: '“Salvo” também no celular',
+    items: [
+      'No celular, um selo pequeno no alto diz “Salvo” por um instante depois de cada gravação (e “Salvando…” se demorar).',
+      'Se o aparelho ficar sem espaço, ele avisa “Sem espaço neste aparelho”, com “Liberar espaço”, e tenta salvar de novo sozinho.',
+      'Com conta e sem internet: “Sem internet · salvo neste aparelho”.',
+    ],
+  },
+  {
+    id: '2026-11-25b',
+    when: '25 de novembro',
+    title: 'Segredos mais seguros',
+    items: [
+      'Na cena, selecione um trecho e toque em “Segredo”: o Papirus põe [segredo] e [/segredo] juntos, e o cursor continua fora.',
+      'Um [segredo] esquecido sem fechar não vaza mais: esconde até o fim do parágrafo, e a cena avisa. Uma marca escrita errada (“[segrdo]”) também avisa.',
+      'O livro que você baixa (EPUB, Word, PDF, Markdown) não leva os trechos [segredo] das cenas.',
+    ],
+  },
+  {
+    id: '2026-11-25a',
+    when: '25 de novembro',
+    title: 'Duas abas não apagam mais o texto uma da outra',
+    items: [
+      'Abriu o mesmo universo em outra aba (ou no app instalado e no navegador)? A mais nova fica com ele; a outra salva o que tinha e fica só para ler, com o aviso “Este universo está aberto em outra aba”.',
+      '“Continuar aqui” traz o universo de volta, já com o que foi escrito na outra aba.',
+    ],
+  },
+  {
     id: '2026-11-24a',
     when: '24 de novembro',
     title: 'Versões do personagem na própria ficha',

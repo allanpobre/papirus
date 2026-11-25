@@ -1,6 +1,7 @@
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
-import { Bold, BookmarkPlus, ImagePlus, Italic, Link2, MessageSquarePlus, Milestone, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
+import { Bold, BookmarkPlus, ImagePlus, Italic, Link2, Lock, MessageSquarePlus, Milestone, Quote, SeparatorHorizontal, Sparkles, Strikethrough, UserPlus } from 'lucide-react'
+import { markSecret } from './secretMark'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { MentionMatcher } from '../logic/detection'
 import type { SceneDoc } from '../model/schema'
@@ -254,6 +255,9 @@ export function SceneEditor({ doc, onChange, onCursorParagraph, matcher, actions
           </button>
           <button type="button" className="bubble-btn" title="Isto muda alguém ou revela algo?" onClick={() => actions.change(selection())}>
             <Milestone size={15} /> Muda ou revela
+          </button>
+          <button type="button" className="bubble-btn" title="Só você vê: o leitor, a wiki e o livro não levam" onClick={() => markSecret(editor)}>
+            <Lock size={15} /> Segredo
           </button>
           <button type="button" className="bubble-btn" onClick={() => actions.comment(selection())}>
             <MessageSquarePlus size={15} /> Comentar

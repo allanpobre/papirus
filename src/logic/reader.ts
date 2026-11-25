@@ -8,7 +8,7 @@ import { mentionIdsInDoc } from './doc'
 import { activeAt } from './relations'
 import { entityAt } from './phases'
 import { revealIndex, splitReveals } from './reveals'
-import { stripSecrets } from './secrets'
+import { hasSecretMark, stripSecrets } from './secrets'
 
 /**
  * O caderno do leitor: o que ele já sabe do mundo, cena a cena, sem spoiler.
@@ -208,7 +208,7 @@ export function readerText(text: string, upto: number, scenes: Scene[]): string 
 
 /** Tira [segredo] sem mexer nas marcações de revelação. */
 function stripSecretsKeepingReveals(text: string): string {
-  return /\[segredo\]/i.test(text) ? stripSecrets(text) : text
+  return hasSecretMark(text) ? stripSecrets(text) : text
 }
 
 /** Trechos de fichas que se revelam exatamente na cena `at` (para "Você descobriu"). */
