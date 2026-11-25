@@ -1,3 +1,4 @@
+import { novaOn, novaWords } from './novaWords'
 import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
@@ -1044,7 +1045,7 @@ const MORE_GROUPS: [string, View[]][] = [
 
 function groupsOf(items: NavItem[]): [string, NavItem[]][] {
   const known = new Set(MORE_GROUPS.flatMap(([, v]) => v))
-  const groups = MORE_GROUPS.map(([label, views]): [string, NavItem[]] => [label, views.flatMap((v) => items.filter((i) => i.view === v))])
+  const groups = MORE_GROUPS.map(([label, views]): [string, NavItem[]] => [novaWords(label, novaOn()), views.flatMap((v) => items.filter((i) => i.view === v))])
   // O que não está em nenhum grupo (uma área nova) vai para Ferramentas.
   const rest = items.filter((i) => !known.has(i.view))
   if (rest.length) groups[groups.length - 1][1].push(...rest)

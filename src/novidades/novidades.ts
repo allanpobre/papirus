@@ -13,6 +13,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27d',
+    when: '27 de novembro',
+    title: 'Nova cara: a ajuda com os mesmos nomes da tela',
+    items: [
+      'Com a Nova cara ligada, os passeios (?), o Guia e esta lista falam “História” (e não Trama), põem a Linha do tempo dentro da História e chamam o “Mais” do celular de “Menu”, como a barra de baixo.',
+    ],
+  },
+  {
     id: '2026-11-27c',
     when: '27 de novembro',
     title: 'A Comunidade não começa vazia',
