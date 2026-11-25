@@ -68,3 +68,39 @@ export function searchUniverse(universe: Universe, query: string, limit = 30): S
 
   return results.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, 'pt')).slice(0, limit)
 }
+
+/** Distância de edição entre duas palavras (quantas letras trocar, pôr ou tirar). */
+function editDistance(a: string, b: string): number {
+  const row = Array.from({ length: b.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= a.length; i++) {
+    let prev = row[0]
+    row[0] = i
+    for (let j = 1; j <= b.length; j++) {
+      const cur = row[j]
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1))
+      prev = cur
+    }
+  }
+  return row[b.length]
+}
+
+/**
+ * "Você quis dizer…?": fichas cujo nome (ou uma palavra dele, ou um apelido) fica a uma ou duas letras do que
+ * se digitou ("doroti" → Dorothy). Para quando a busca exata não acha, antes de oferecer criar uma ficha nova.
+ */
+export function didYouMean(universe: Universe, query: string, limit = 3): SearchResult[] {
+  const q = fold(query.trim())
+  if (q.length < 3) return []
+  const tolerance = q.length <= 5 ? 1 : 2
+  const out: SearchResult[] = []
+  for (const e of universe.entities) {
+    const names = [e.name, ...e.aliases].filter(Boolean)
+    let best = Infinity
+    for (const n of names) {
+      const f = fold(n)
+      best = Math.min(best, editDistance(q, f), ...f.split(/\s+/).map((w) => editDistance(q, w)), editDistance(q, f.slice(0, q.length + 1)))
+    }
+    if (best <= tolerance) out.push({ kind: 'ficha', id: e.id, title: e.name || 'Sem nome', detail: kindLabel(e.kind) + (e.summary ? ` · ${e.summary}` : ''), score: 50 - best })
+  }
+  return out.sort((a, b) => b.score - a.score).slice(0, limit)
+}

@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-26d',
+    when: '26 de novembro',
+    title: 'A busca entende erro de digitação',
+    items: [
+      'Buscou “doroti”? A busca pergunta “Você quis dizer Dorothy?” antes de oferecer criar uma ficha nova.',
+      'Para uma ação (“nova cena”, “tema escuro”) ou um nome que já existe, ela não oferece mais “Criar ficha”.',
+    ],
+  },
+  {
     id: '2026-11-26c',
     when: '26 de novembro',
     title: 'Imagem que não abre agora avisa',
