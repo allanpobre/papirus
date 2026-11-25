@@ -1,3 +1,4 @@
+import { nearMissSecretMarks, unclosedSecrets } from '../../logic/secrets'
 import type { Editor } from '@tiptap/react'
 import { useBackLayer } from '../../ui/useBackLayer'
 import {
@@ -6,6 +7,7 @@ import {
   Download,
   Feather,
   History,
+  Lock,
   Maximize2,
   Minimize2,
   PanelLeftClose,
@@ -735,6 +737,14 @@ export default function WriteView() {
             {lore && (
               <p className="notice small au-lore" role="status">
                 Esta cena é do original, de {ws.universe.derivedFrom ? ws.universe.derivedFrom.ownerEmail.split('@')[0] : 'outra pessoa'}: é lore, dá para ler, não para mudar. Escreva as suas numa história nova.
+              </p>
+            )}
+            {!ws.readOnly && (unclosedSecrets(scene.text) > 0 || nearMissSecretMarks(scene.text).length > 0) && (
+              <p className="notice small secret-warn" role="status">
+                <Lock size={13} aria-hidden="true" />{' '}
+                {unclosedSecrets(scene.text) > 0
+                  ? 'Um [segredo] está sem [/segredo]: por segurança, ele esconde até o fim do parágrafo. Feche a marca onde o segredo acaba.'
+                  : `“${nearMissSecretMarks(scene.text)[0]}” parece uma marca de segredo, mas não vale: o leitor vai ver esse trecho. Escreva [segredo] … [/segredo], ou selecione o trecho e toque em “Segredo”.`}
               </p>
             )}
             <SceneEditor

@@ -1,5 +1,6 @@
 import { useEditorState, type Editor } from '@tiptap/react'
-import { Bold, BookmarkPlus, ChevronDown, ImagePlus, Italic, Link2, MessageSquarePlus, Milestone, Quote, Redo2, SeparatorHorizontal, Sparkles, Undo2, UserPlus } from 'lucide-react'
+import { Bold, BookmarkPlus, ChevronDown, ImagePlus, Italic, Link2, Lock, MessageSquarePlus, Milestone, Quote, Redo2, SeparatorHorizontal, Sparkles, Undo2, UserPlus } from 'lucide-react'
+import { markSecret } from './secretMark'
 import { useEffect, useState, type ReactNode } from 'react'
 import type { SceneEditorActions, SelectionInfo } from './SceneEditor'
 import { useKeyboardInset } from './useKeyboardInset'
@@ -135,6 +136,9 @@ export function PhoneDock({
           )}
           <DockButton label="Muda ou revela" onClick={() => actions.change(selection())} wide>
             <Milestone size={16} /> Muda ou revela
+          </DockButton>
+          <DockButton label="Segredo" onClick={() => markSecret(editor)} wide>
+            <Lock size={16} /> Segredo
           </DockButton>
           <DockButton label="Comentar" onClick={() => actions.comment(selection())} wide>
             <MessageSquarePlus size={16} /> Comentar

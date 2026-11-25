@@ -1,12 +1,19 @@
-import { stripSecrets } from '../logic/secrets'
+import { hasSecretMark, stripSecrets, stripSecretsAcross } from '../logic/secrets'
 import type { Universe } from '../model/schema'
 
-const MARK = /\[segredo\]/i
 
 /** Tira os trechos [segredo] de todo texto livre, em qualquer profundidade. */
 function stripDeep<T>(value: T): T {
-  if (typeof value === 'string') return (MARK.test(value) ? stripSecrets(value) : value) as T
-  if (Array.isArray(value)) return value.map(stripDeep) as T
+  if (typeof value === 'string') return (hasSecretMark(value) ? stripSecrets(value) : value) as T
+  if (Array.isArray(value)) {
+    // Os pedaços de texto de um parágrafo (negrito, itálico) são lidos juntos: uma marca aberta num e fechada noutro.
+    const texts = value.every((n) => n && typeof n === 'object' && (n as { type?: unknown }).type === 'text' && typeof (n as { text?: unknown }).text === 'string')
+    if (texts && value.length > 1) {
+      const cleaned = stripSecretsAcross(value.map((n) => (n as { text: string }).text))
+      return value.map((n, i) => ({ ...(n as object), text: cleaned[i] })).filter((n) => (n as { text: string }).text) as T
+    }
+    return value.map(stripDeep) as T
+  }
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, stripDeep(v)])) as T
   return value
 }
@@ -61,4 +68,10 @@ export function readerCopy(universe: Universe, showSecrets: boolean): Universe {
     })),
     seeds: base.seeds.map((s) => ({ ...s, entityIds: s.entityIds.filter((id) => !gone(id)) })),
   })
+}
+
+/** Uma cena sem os trechos [segredo] (para o livro que sai: EPUB, Word, PDF, Markdown). */
+export function sceneWithoutSecrets<T extends { text: string; doc: unknown }>(scene: T): T {
+  if (!hasSecretMark(scene.text)) return scene
+  return { ...scene, text: stripSecrets(scene.text), doc: stripDeep(scene.doc) }
 }
