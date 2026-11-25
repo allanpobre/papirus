@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27e',
+    when: '27 de novembro',
+    title: 'O exemplo de Oz mostra as oficinas do mundo',
+    items: [
+      'Os povos de Oz agora são culturas: os Munchkins têm costumes, a Festa da libertação e uma língua; os Winkies, o seu feriado.',
+      'Uma crença (“O respeito às Bruxas”) com as quatro Bruxas no panteão, tensões entre a Bruxa do Oeste, o Mágico e Glinda, e comércio de joias entre Winkies e a Cidade.',
+      'No mapa, as rotas da viagem com os dias a pé; na Linha do tempo, o que causou o quê.',
+    ],
+  },
+  {
     id: '2026-11-27d',
     when: '27 de novembro',
     title: 'Nova cara: a ajuda com os mesmos nomes da tela',
