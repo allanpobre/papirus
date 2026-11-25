@@ -229,6 +229,12 @@ export const PAGE_TOURS = {
     steps: [
       LIVRO_ATUAL,
       {
+        target: '.edit-tabs',
+        title: 'Editar por partes',
+        body: 'Em Editar, a ficha vem em abas: Básico (nome, Quem é, descrição, campos), Ligações, Mundo (cultura, língua, crença, poderes), Tempo (as versões ao longo da história) e Referências. “Tudo” mostra o formulário inteiro. A barra de Versões fica no alto, como na leitura.',
+        optional: true,
+      },
+      {
         target: '.entity-role',
         title: 'O papel na história',
         body: 'Protagonista, antagonista, secundário ou figurante. Aparece na ficha e na lista (que pode ordenar por papel). Num universo com vários livros, o papel pode mudar de um livro para outro (em “O básico”, no lápis do topo da ficha).',

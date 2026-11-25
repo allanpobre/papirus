@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27f',
+    when: '27 de novembro',
+    title: 'Editar a ficha por partes',
+    items: [
+      'Em Editar, a ficha agora vem em abas: Básico, Ligações, Mundo, Tempo e Referências, em vez de uma página enorme. “Tudo” mostra o formulário inteiro, como antes, e o app lembra a última aba.',
+      'A barra de Versões também aparece em Editar: dá para criar uma versão nova sem voltar para a leitura.',
+    ],
+  },
+  {
     id: '2026-11-27e',
     when: '27 de novembro',
     title: 'O exemplo de Oz mostra as oficinas do mundo',

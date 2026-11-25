@@ -14724,3 +14724,28 @@ body[data-nova] .view-top.has-parts .view-top-end {
 .open-books-start h3 { margin: 0 0 6px; }
 .open-books-blurb { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .open-books-challenges { justify-self: start; display: inline-flex; gap: 6px; align-items: center; }
+
+/* Ficha em Editar: as abas (Básico · Ligações · Mundo · Tempo · Referências · Tudo), roláveis no celular */
+.edit-tabs {
+  display: flex;
+  gap: 0.2rem 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0.4rem 0 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+.edit-tabs::-webkit-scrollbar { display: none; }
+.edit-tabs button {
+  flex: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.55rem 0.1rem;
+  font: 600 0.8rem var(--font-ui);
+  color: var(--muted);
+  cursor: pointer;
+}
+.edit-tabs button[aria-current='page'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
