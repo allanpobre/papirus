@@ -14671,3 +14671,11 @@ body[data-nova] .view-top.has-parts .view-top-end {
   display: flex;
   gap: 0.4rem;
 }
+
+/* ---------------------------------------------------------------- Aviso de nome repetido ao criar ficha */
+.same-name {
+  margin: 0.25rem 0 0;
+}
+.quick-create + .same-name {
+  margin: -0.25rem 0 0.75rem;
+}

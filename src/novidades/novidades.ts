@@ -13,6 +13,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-26b',
+    when: '26 de novembro',
+    title: 'Aviso de nome repetido',
+    items: [
+      'Ao criar uma ficha com um nome (ou apelido) que já existe, aparece “Já existe Kael (personagem). Abrir essa?”. Dá para criar mesmo assim, se for de propósito.',
+    ],
+  },
+  {
     id: '2026-11-26a',
     when: '26 de novembro',
     title: 'Universo apagado tem volta',
