@@ -9,7 +9,15 @@ const FREE_MAX = 320 // o maior lado da imagem na tela, no recorte livre
  * Recortar antes de guardar. Retrato (`square`): a imagem anda e dá zoom dentro de um quadrado (arrasta com o dedo, pinça
  * ou o controle de zoom). Mapa (livre): o retângulo se arrasta e as bordas e cantos o redimensionam. "Sem recortar" usa a imagem toda.
  */
-export function CropDialog({ file, square, title, onDone, onCancel }: { file: Blob; square: boolean; title: string; onDone: (crop: Rect | undefined) => void; onCancel: () => void }) {
+/** O que dizer quando o arquivo não é uma imagem que o navegador consegue abrir (estragado, outro formato). */
+export const BAD_IMAGE = 'Não consegui abrir esta imagem. Tente outro arquivo (JPG, PNG ou WebP).'
+
+export function CropDialog({ file, square, title, onDone, onCancel, onError }: { file: Blob; square: boolean; title: string; onDone: (crop: Rect | undefined) => void; onCancel: () => void; onError?: (message: string) => void }) {
+  // Arquivo que não abre: avisa (antes, a janela abria e fechava sozinha, calada).
+  const fail = () => {
+    onError?.(BAD_IMAGE)
+    onCancel()
+  }
   const [url, setUrl] = useState<string | null>(null)
   const [size, setSize] = useState<{ w: number; h: number } | null>(null)
   // A imagem entra como endereço de dados (sem URL para soltar depois), lida do arquivo.
@@ -17,7 +25,7 @@ export function CropDialog({ file, square, title, onDone, onCancel }: { file: Bl
     let off = false
     const reader = new FileReader()
     reader.onload = () => !off && setUrl(String(reader.result))
-    reader.onerror = () => !off && onCancel()
+    reader.onerror = () => !off && fail()
     reader.readAsDataURL(file)
     return () => {
       off = true
@@ -28,7 +36,7 @@ export function CropDialog({ file, square, title, onDone, onCancel }: { file: Bl
   return (
     <Modal title={title} size="sm" onClose={onCancel} restoreFocus={false}>
       <div className="crop">
-        {url && <img className="crop-probe" src={url} alt="" onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} onError={() => onCancel()} />}
+        {url && <img className="crop-probe" src={url} alt="" onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} onError={fail} />}
         {!size ? (
           <p className="muted small">Abrindo a imagem…</p>
         ) : square ? (

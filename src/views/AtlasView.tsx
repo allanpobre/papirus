@@ -131,6 +131,7 @@ export default function AtlasView() {
             square={false}
             title="Recortar o mapa"
             onCancel={() => setCropping(null)}
+            onError={(m) => toast(m, { tone: 'erro' })}
             onDone={(crop) => {
               const f = cropping
               setCropping(null)

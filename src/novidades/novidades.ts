@@ -13,6 +13,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-26c',
+    when: '26 de novembro',
+    title: 'Imagem que não abre agora avisa',
+    items: [
+      'Escolher um arquivo de imagem estragado (no retrato ou no mapa) não falha mais calado: aparece “Não consegui abrir esta imagem. Tente outro arquivo (JPG, PNG ou WebP).”',
+    ],
+  },
+  {
     id: '2026-11-26b',
     when: '26 de novembro',
     title: 'Aviso de nome repetido',
