@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-25e',
+    when: '25 de novembro',
+    title: 'Mais coisas com “Desfazer”',
+    items: [
+      'Tirar uma ligação, algo do que a ficha sabe, uma tensão, um deus do panteão ou um fiel agora mostra “Desfazer”, como já acontecia ao apagar ficha, cena, evento e trama.',
+      'Fechar a janela de nova versão com algo escrito pergunta antes: “Descartar o que você escreveu?”.',
+    ],
+  },
+  {
     id: '2026-11-25d',
     when: '25 de novembro',
     title: 'Aviso para quem escreve no Safari do iPhone',

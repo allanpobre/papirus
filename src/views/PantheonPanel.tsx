@@ -13,7 +13,7 @@ import { Fold } from '../ui/Fold'
  * as lendas, quem acredita e o que a fé promete e proíbe. Tudo vira ligação comum entre fichas.
  */
 export function PantheonPanel({ entity: rel }: { entity: Entity }) {
-  const { universe, update, go, toast } = useWorkspace()
+  const { universe, update, go, toast, undoable } = useWorkspace()
   const [picked, setPicked] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [domain, setDomain] = useState('')
@@ -114,7 +114,7 @@ export function PantheonPanel({ entity: rel }: { entity: Entity }) {
                 type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={() => {
-                  update((u) => remove(u, 'relations', god.relation.id))
+                  undoable(`${god.entity.name} saiu do panteão`, (u) => remove(u, 'relations', god.relation.id))
                   setPicked(null)
                 }}
               >
@@ -161,7 +161,7 @@ export function PantheonPanel({ entity: rel }: { entity: Entity }) {
                 <button type="button" className="link-btn" onClick={() => go('fichas', b.entity.id)}>
                   {b.entity.name}
                 </button>
-                <button type="button" className="link-btn" aria-label={`Tirar ${b.entity.name}`} onClick={() => update((u) => remove(u, 'relations', b.relation.id))}>
+                <button type="button" className="link-btn" aria-label={`Tirar ${b.entity.name}`} onClick={() => undoable(`${b.entity.name} tirado dos fiéis`, (u) => remove(u, 'relations', b.relation.id))}>
                   <X size={12} aria-hidden="true" />
                 </button>
               </span>

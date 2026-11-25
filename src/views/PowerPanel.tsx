@@ -17,7 +17,7 @@ const PLACES = ['lugar', 'reino']
  * (com o comércio que isso sugere) e as tensões com os outros num medidor de três passos.
  */
 export function PowerPanel({ entity: e }: { entity: Entity }) {
-  const { universe, update, go, toast } = useWorkspace()
+  const { universe, update, go, toast, undoable } = useWorkspace()
   const [falls, setFalls] = useState<Entity | null>(null)
   if (!KINDS.includes(e.kind)) return null
   const rulers = PLACES.includes(e.kind) ? rulersOf(universe, e.id) : []
@@ -102,7 +102,7 @@ export function PowerPanel({ entity: e }: { entity: Entity }) {
                   </button>
                 ))}
               </div>
-              <button type="button" className="btn btn-ghost btn-sm" aria-label={`Tirar a tensão com ${other.name}`} onClick={() => update((u) => remove(u, 'relations', t.relation.id))}>
+              <button type="button" className="btn btn-ghost btn-sm" aria-label={`Tirar a tensão com ${other.name}`} onClick={() => undoable(`Tensão com ${other.name} tirada`, (u) => remove(u, 'relations', t.relation.id))}>
                 <X size={13} aria-hidden="true" />
               </button>
             </div>

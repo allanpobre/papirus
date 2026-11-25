@@ -132,6 +132,11 @@ export function VersionSheet({ entity: e, phase, onClose, onSaved }: { entity: E
   const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(keys.map((k) => [k, valueOf(k)])))
   const [extra, setExtra] = useState<{ key: string; value: string }[]>([])
   const picker = useImagePicker('retrato', (ref) => setImage(ref), (m) => toast(m, { tone: 'erro' }))
+  // Fechar com algo escrito pergunta antes (antes, o X, o Esc ou o Voltar descartavam tudo sem aviso).
+  const [asking, setAsking] = useState(false)
+  const start = useState(() => JSON.stringify({ sceneId, when, name, cause, nameNow, summary, image, values }))[0]
+  const dirty = JSON.stringify({ sceneId, when, name, cause, nameNow, summary, image, values }) !== start || extra.some((f) => f.key.trim() || f.value.trim())
+  const tryClose = () => (dirty ? setAsking(true) : onClose())
 
   const save = () => {
     const prevValue = (k: string) => prev.fields.find((f) => fold(f.key.trim()) === fold(k))?.value ?? ''
@@ -161,7 +166,7 @@ export function VersionSheet({ entity: e, phase, onClose, onSaved }: { entity: E
   return (
     <Modal
       title={phase ? `Versão: ${phase.name || phase.nameNow || 'sem nome'}` : `Nova versão de ${e.name || 'esta ficha'}`}
-      onClose={onClose}
+      onClose={tryClose}
       size="md"
       footer={
         <>
@@ -185,6 +190,21 @@ export function VersionSheet({ entity: e, phase, onClose, onSaved }: { entity: E
       }
     >
       <div className="version-sheet">
+        {asking && (
+          <div className="version-discard" role="alertdialog" aria-label="Descartar o que você escreveu?">
+            <p>
+              <strong>Descartar o que você escreveu?</strong> {phase ? 'As mudanças nesta versão não foram guardadas.' : 'A versão ainda não foi criada.'}
+            </p>
+            <div className="version-discard-actions">
+              <button type="button" className="btn btn-sm" autoFocus onClick={() => setAsking(false)}>
+                Continuar editando
+              </button>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
+                Descartar
+              </button>
+            </div>
+          </div>
+        )}
         <div className="version-sheet-face">
           {picker.field}
           <button type="button" className="version-portrait" onClick={picker.open} disabled={picker.busy} aria-label={image ? 'Trocar o retrato desta versão' : 'Retrato desta versão'}>

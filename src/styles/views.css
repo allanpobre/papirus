@@ -14624,3 +14624,22 @@ body[data-nova] .view-top.has-parts .view-top-end {
   top: 0.4rem;
   right: 0.4rem;
 }
+
+/* ---------------------------------------------------------------- Fechar a versão com algo escrito */
+.version-discard {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-faint);
+}
+.version-discard p {
+  margin: 0;
+}
+.version-discard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
