@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-25b',
+    when: '25 de novembro',
+    title: 'Segredos mais seguros',
+    items: [
+      'Na cena, selecione um trecho e toque em “Segredo”: o Papirus põe [segredo] e [/segredo] juntos, e o cursor continua fora.',
+      'Um [segredo] esquecido sem fechar não vaza mais: esconde até o fim do parágrafo, e a cena avisa. Uma marca escrita errada (“[segrdo]”) também avisa.',
+      'O livro que você baixa (EPUB, Word, PDF, Markdown) não leva os trechos [segredo] das cenas.',
+    ],
+  },
+  {
     id: '2026-11-24a',
     when: '24 de novembro',
     title: 'Versões do personagem na própria ficha',

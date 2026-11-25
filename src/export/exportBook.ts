@@ -5,10 +5,11 @@ import { bookImageSrc } from '../images/bookImages'
 import { bookTitle, storiesOf } from './bookDesign'
 import { epubImageFiles } from './epubImages'
 import { docToMarkdown, sceneToMarkdown } from './markdown'
+import { sceneWithoutSecrets } from '../share/readerCopy'
 
 /**
  * Exporta uma história como livro: Word (.docx) ou EPUB 3.
- * Só sai o texto: comentários, menções e segredos das fichas ficam no Papirus.
+ * Só sai o texto: comentários, menções, segredos das fichas e trechos [segredo] das cenas ficam no Papirus.
  */
 
 interface DocNode {
@@ -31,7 +32,8 @@ export function bookFrom(universe: Universe, story: Story | null, opts: { author
   return {
     title: story?.title || universe.name || 'Sem título',
     author: opts.author ?? '',
-    scenes: scenesOf(universe, story?.id ?? null),
+    // Os trechos [segredo] das cenas são notas do autor: não vão para o livro.
+    scenes: scenesOf(universe, story?.id ?? null).map(sceneWithoutSecrets),
     sceneTitles: opts.sceneTitles ?? true,
   }
 }
@@ -43,7 +45,7 @@ export function bookFrom(universe: Universe, story: Story | null, opts: { author
 export function bookFromDesign(universe: Universe, design: BookDesign): BookExport {
   const stories = storiesOf(universe, design)
   const scenes = stories.length ? stories.flatMap((s) => scenesOf(universe, s.id)) : scenesOf(universe, null)
-  return { title: bookTitle(universe, design), author: design.author.trim(), scenes: scenes.filter((s) => s.text.trim()), sceneTitles: design.chapterTitles }
+  return { title: bookTitle(universe, design), author: design.author.trim(), scenes: scenes.filter((s) => s.text.trim()).map(sceneWithoutSecrets), sceneTitles: design.chapterTitles }
 }
 
 /** O livro em Markdown: título, autor e cada cena com o seu título. */

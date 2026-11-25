@@ -1,5 +1,6 @@
 import type { BookDesign, Scene, SceneDoc, Story, Universe } from '../model/schema'
 import { bookDesignSchema } from '../model/schema'
+import { sceneWithoutSecrets } from '../share/readerCopy'
 import { scenesOf } from '../model/universe'
 import type { BookFontKey } from './bookFonts'
 import { bookImageSrc } from '../images/bookImages'
@@ -256,8 +257,9 @@ export function storiesOf(universe: Universe, d: BookDesign): Story[] {
 /** O miolo: partes e capítulos já montados. */
 export function bookContent(universe: Universe, d: BookDesign): { parts: { story: Story | null; chapters: BookChapter[] }[]; words: number } {
   const stories = storiesOf(universe, d)
-  const groups: { story: Story | null; scenes: Scene[] }[] = stories.map((s) => ({ story: s, scenes: scenesOf(universe, s.id) }))
-  if (!stories.length) groups.push({ story: null, scenes: scenesOf(universe, null) })
+  // Os trechos [segredo] das cenas são notas do autor: não vão para o livro.
+  const groups: { story: Story | null; scenes: Scene[] }[] = stories.map((s) => ({ story: s, scenes: scenesOf(universe, s.id).map(sceneWithoutSecrets) }))
+  if (!stories.length) groups.push({ story: null, scenes: scenesOf(universe, null).map(sceneWithoutSecrets) })
   let n = 0
   let words = 0
   const parts = groups.map(({ story, scenes }) => {

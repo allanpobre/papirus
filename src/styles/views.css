@@ -14523,3 +14523,15 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* ---------------------------------------------------------------- Aviso de segredo mal marcado (na cena) */
+.secret-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0 0 0.6rem;
+}
+.secret-warn svg {
+  flex: none;
+  margin-top: 3px;
+}
