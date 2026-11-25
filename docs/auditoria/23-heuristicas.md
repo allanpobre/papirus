@@ -186,10 +186,10 @@ Limitei a cota do navegador pelo Chromium (CDP `Storage.overrideQuotaForOrigin`)
 
 ### Safari apagando dados (não testável aqui)
 Não há WebKit neste ambiente. Pelo código:
-- O pedido para o navegador **não apagar** os dados (`navigator.storage.persist`) só acontece se a pessoa tocar em **"Pedir para manter"**, em Ajustes › Dados. Não é pedido sozinho.
+- O pedido para o navegador **não apagar** os dados (`navigator.storage.persist`) **já é feito a cada abertura** (`App.tsx`) e também pode ser pedido em Ajustes › Dados. *(Corrigido: na primeira versão deste relatório eu disse que só era pedido à mão; estava errado.)* No Safari, esse pedido costuma não valer para sites não instalados.
 - Não há aviso de que o **Safari do iPhone pode apagar os dados de sites não usados por 7 dias** (quando não está instalado na Tela de Início). O botão de instalar explica *como* instalar, não *por quê*.
 - O lembrete de backup depois de 7 dias e a conta na nuvem reduzem o risco.
-- **H5.6 · gravidade 3 (no iPhone) · risco de perder tudo sem aviso.** *Melhoria:* pedir `persist()` sozinho depois da primeira cena; no Safari do iPhone sem instalar, um aviso único: "Neste iPhone, o Safari pode apagar o que fica só aqui se você passar uma semana sem abrir. Instale na Tela de Início ou entre com uma conta."
+- **H5.6 · gravidade 3 (no iPhone) · risco de perder tudo sem aviso.** *Melhoria:* no Safari do iPhone sem instalar, um aviso único: "Neste iPhone, o Safari pode apagar o que fica só aqui se você passar uma semana sem abrir. Instale na Tela de Início ou entre com uma conta."
 
 ### Oficina (treinos)
 - **Boa.** Tela "Escrever melhor, um pouco por dia" com Hoje, Trilhas, Caderno e Biblioteca; "O que você quer treinar?" abre trilhas curtas; gerador de ideias (QUEM, QUER, MAS, ONDE) com "Outra ideia".
@@ -219,7 +219,7 @@ Ordem por **gravidade × alcance ÷ esforço**.
 | 1 | **Segredo seguro por padrão:** `[segredo]` sem fechar esconde até o fim do parágrafo; aviso na Revisão para marca aberta ou parecida; teste nos 3 caminhos (wiki, leitor, link) | H5, H9 | **4** | pequeno | `src/logic/secrets.ts`, `readerCopy.ts`, `continuity` |
 | 2 | **Botão "Segredo"** na barra de seleção da cena (usa o `wrapSecret` que já existe) | H5, H6 | 3 | pequeno | `src/editor/`, barra de seleção |
 | 3 | **Indicador de salvamento no celular** (e "sem internet" e "sem espaço", com o que fazer) | H1, H9 | 3 | pequeno | `WorkspaceShell.tsx`, `useUniverse.ts`, CSS |
-| 3b | **Proteger contra o Safari apagar dados:** pedir `persist()` sozinho e avisar no iPhone sem instalar | H5 | 3 | pequeno | `storage.ts`, `InstallButton.tsx` |
+| 3b | **Proteger contra o Safari apagar dados:** avisar no iPhone sem instalar e sem conta | H5 | 3 | pequeno | `HomeView.tsx` |
 | 4 | **Desfazer nas 6 remoções sem volta** (e no apagar universo) | H3 | 3 | pequeno a médio | `EntitiesView.tsx`, `PowerPanel.tsx`, `PantheonPanel.tsx`, `LibraryScreen.tsx` |
 | 5 | **Guardar o digitado ao fechar** a janela de nova versão (pergunta só se mudou) | H3, H5 | 2 | pequeno | `VersionsView.tsx` |
 | 6 | **Aviso de nome repetido** ao criar ficha | H5 | 2 | pequeno | `EntityCreate.tsx`, `BirthFlow` |
