@@ -13,6 +13,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27b',
+    when: '27 de novembro',
+    title: '“Perguntar ao mundo” explica antes de pedir a chave',
+    items: [
+      'A tela agora começa dizendo o que a ferramenta faz, com perguntas de exemplo usando os nomes do seu mundo. A chave da Anthropic só aparece quando você toca em “Ligar com uma chave”.',
+    ],
+  },
+  {
     id: '2026-11-27a',
     when: '27 de novembro',
     title: 'Nomes mais simples',

@@ -408,6 +408,12 @@ test('Perguntar ao mundo: mostra o contexto antes de enviar e exibe a resposta',
 
   await openSample(page)
   await nav(page, 'Perguntar ao mundo').click()
+  // A primeira vez: o que a ferramenta faz e exemplos com os nomes do mundo, antes de pedir a chave.
+  const intro = page.getByRole('region', { name: 'O que é' })
+  await expect(intro).toContainText('Pergunte ao seu mundo')
+  await intro.getByRole('button', { name: /e o que ainda não sabe/ }).click()
+  await expect(page.locator('#archivist-q')).toHaveValue(/O que .+ sabe, e o que ainda não sabe\?/)
+  await intro.getByRole('button', { name: 'Ligar com uma chave' }).click()
   await page.getByRole('textbox', { name: 'Chave da API da Anthropic' }).fill('sk-ant-teste')
   await page.getByRole('textbox', { name: 'Pergunta' }).fill('O que Ilsa guardava?')
   await page.getByRole('button', { name: 'Ver o que será enviado' }).click()

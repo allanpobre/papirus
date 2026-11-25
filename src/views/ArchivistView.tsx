@@ -1,4 +1,4 @@
-import { KeyRound, ScrollText, Send, X } from 'lucide-react'
+import { KeyRound, MessageCircleQuestion, ScrollText, Send, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ARCHIVIST_MODELS, ArchivistError, askArchivist, type ArchivistConfig } from '../ai/archivist'
 import { buildArchivistContext } from '../logic/archivistContext'
@@ -60,7 +60,8 @@ function Answer({ text }: { text: string }) {
 export default function ArchivistView() {
   const { universe } = useWorkspace()
   const [config, setConfig] = useState<ArchivistConfig>(readConfig)
-  const [showKey, setShowKey] = useState(() => !readConfig().apiKey)
+  // A chave fica escondida até a pessoa querer ligar: quem abre a tela vê primeiro o que ela faz.
+  const [showKey, setShowKey] = useState(false)
   const [question, setQuestion] = useState('')
   const [includeSecrets, setIncludeSecrets] = useState(false)
   const [includeManuscript, setIncludeManuscript] = useState(false)
@@ -107,10 +108,35 @@ export default function ArchivistView() {
           </button>
         }
       />
-      <p className="muted small view-lede">
-        Opcional. Pergunte sobre a sua lore: lacunas, contradições, consequências. O Archivist só lê os registros enviados, separa o registrado do inferido e
-        nunca muda nada sozinho. Tudo o mais no Papirus funciona sem IA.
-      </p>
+      {!config.apiKey && !showKey ? (
+        <section className="archivist-intro" aria-label="O que é">
+          <h2>
+            <MessageCircleQuestion size={18} aria-hidden="true" /> Pergunte ao seu mundo
+          </h2>
+          <p>Escreva uma pergunta sobre a sua história e o seu mundo. Um assistente de IA lê as suas fichas, a linha do tempo e (se você quiser) trechos do livro, e responde separando o que está escrito do que ele deduziu. Ele nunca muda nada sozinho.</p>
+          <p className="archivist-intro-label">Perguntas que costumam ajudar:</p>
+          <ul className="archivist-examples">
+            {examples(universe).map((q) => (
+              <li key={q}>
+                <button type="button" className="chip" onClick={() => setQuestion(q)}>
+                  {q}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="muted small">
+            É opcional: tudo o mais no Papirus funciona sem IA. Para usar, é preciso uma chave da Anthropic (cada pergunta é cobrada na sua conta de lá; a chave fica só neste navegador).
+          </p>
+          <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowKey(true)}>
+            <KeyRound size={15} aria-hidden="true" /> Ligar com uma chave
+          </button>
+        </section>
+      ) : (
+        <p className="muted small view-lede">
+          Pergunte sobre a sua história e o seu mundo: lacunas, contradições, consequências. O assistente só lê o que é enviado, separa o que está escrito do que
+          ele deduziu e nunca muda nada sozinho.
+        </p>
+      )}
 
       {showKey && (
         <section className="settings-card archivist-key" aria-label="Chave e modelo">
@@ -195,7 +221,7 @@ export default function ArchivistView() {
             <Send size={15} /> {busy ? 'Consultando…' : 'Perguntar'}
           </button>
         </div>
-        {!config.apiKey && <p className="muted small">Informe uma chave da API em “Chave e modelo” para perguntar.</p>}
+        {!config.apiKey && <p className="muted small">Para perguntar, ligue com uma chave (botão “Chave e modelo”, no alto).</p>}
         {context.hiddenSecrets > 0 && !includeSecrets && (
           <p className="muted small">{context.hiddenSecrets} registros secretos ficaram de fora.</p>
         )}
@@ -257,4 +283,18 @@ function SaveToInbox({ question, answer }: { question: string; answer: string })
       {saved ? 'Guardada em Ideias' : 'Guardar em Ideias'}
     </button>
   )
+}
+
+/** Perguntas de exemplo com os nomes deste mundo (quem chega não sabe o que perguntar). */
+function examples(u: import('../model/schema').Universe): string[] {
+  const pick = (kind: string) => u.entities.find((e) => e.kind === kind && e.canon !== 'secreto' && e.name.trim())?.name
+  const quem = pick('personagem')
+  const onde = pick('lugar')
+  const grupo = pick('faccao') ?? pick('reino')
+  return [
+    quem ? `O que ${quem} sabe, e o que ainda não sabe?` : 'Quem sabe o quê, e quem ainda não sabe?',
+    'O que não fecha na linha do tempo?',
+    grupo ? `Se ${grupo} perder o poder, quem sente o golpe?` : 'Se o governante cair, quem sente o golpe?',
+    onde ? `O que ainda falta saber sobre ${onde}?` : 'Que lugares ainda não aparecem em nenhuma cena?',
+  ]
 }

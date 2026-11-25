@@ -215,7 +215,7 @@ test('Atlas com mapa e o Mapa da histÃ³ria em cada aba: o (?) explica o que estÃ
   await openPart(page, 'Mapas')
   await expect(page.locator('.atlas-scroll')).toBeVisible()
   const atlas = await runPageTour(page, 'Mapas')
-  expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['O mundo em quatro partes', 'Mapas', 'Marcar lugares', 'Caminho de', 'O mapa'])
+  expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['O mundo em quatro partes', 'Rolar no mundo', 'Mapas', 'Marcar lugares', 'Caminho de', 'Rotas e dias de viagem', 'O mapa'])
 
   await nav(page, 'Escrever').click()
   await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Estrutura' }).click()

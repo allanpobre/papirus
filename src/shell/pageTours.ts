@@ -414,6 +414,7 @@ export const PAGE_TOURS = {
   archivist: {
     title: 'Perguntar ao mundo',
     steps: [
+      { target: '.archivist-intro', title: 'Pergunte ao seu mundo', body: 'O que a ferramenta faz e perguntas de exemplo com os nomes do seu mundo. Toque numa para começar. É opcional: precisa de uma chave da Anthropic.', optional: true },
       { target: '.archivist-view .view-top .btn', title: 'Chave e modelo', body: 'Usa a sua chave da API da Anthropic, guardada só neste navegador; cada pergunta é cobrada na sua conta. Escolha o modelo e a profundidade.' },
       { target: '.archivist-ask', title: 'Pergunte', body: 'Sobre a sua lore: quem sabe o quê, o que não fecha, como algo aconteceu. A resposta só lê; nunca muda nada no universo.' },
       { target: '.archivist-options', title: 'O que vai junto', body: 'Só vai o que tem a ver com a pergunta. Escolha fichas extras, se vão segredos e trechos do manuscrito, e veja exatamente o que será enviado antes.' },
