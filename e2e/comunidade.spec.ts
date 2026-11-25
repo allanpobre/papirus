@@ -399,3 +399,27 @@ test.describe('Comunidade no celular: vazios e casos chatos', () => {
     expect(await semRolagemLateral(bia)).toBe(true)
   })
 })
+
+test('Comunidade na primeira visita: livros abertos para ler e os desafios da semana', async ({ browser }) => {
+  const fake = createFakeSupabase()
+  seedProfiles(fake)
+  const agora = new Date().toISOString()
+  fake.tables.papirus_shelf.push(
+    { owner: PEOPLE.ana.id, id: 'mare', title: 'A Maré', author: 'Ana', blurb: 'Uma ilha que some na maré alta.', cover: null, chapters: 3, words: 900, universe_name: 'Ostria', visibility: 'publico', read_link: null, updated_at: agora },
+    { owner: PEOPLE.ana.id, id: 'segredo', title: 'Só para amigos', author: 'Ana', blurb: '', cover: null, chapters: 2, words: 300, universe_name: 'Ostria', visibility: 'amigos', read_link: null, updated_at: agora },
+  )
+  const bia = await newPerson(browser, fake, true)
+  await bia.goto('/app/')
+  await signIn(bia, PEOPLE.bia.email)
+  await openCommunity(bia)
+  const abertos = community(bia).getByRole('region', { name: 'Livros abertos para ler' })
+  await expect(abertos).toContainText('A Maré')
+  await expect(abertos).toContainText('Ana · 3 capítulos')
+  await expect(abertos).not.toContainText('Só para amigos')
+  await abertos.getByRole('button', { name: 'Ler “A Maré”' }).click()
+  await expect(community(bia).getByRole('list', { name: 'Estante de @ana' })).toBeVisible()
+
+  await community(bia).getByRole('button', { name: /Voltar/ }).first().click()
+  await community(bia).getByRole('button', { name: 'Ver os desafios da semana' }).click()
+  await expect(tab(bia, 'Desafios')).toHaveAttribute('aria-selected', 'true')
+})

@@ -14718,3 +14718,9 @@ body[data-nova] .view-top.has-parts .view-top-end {
 .archivist-intro .btn {
   justify-self: start;
 }
+
+/* Comunidade: livros abertos e desafios na primeira visita */
+.open-books-start { display: grid; gap: 12px; margin-top: 12px; }
+.open-books-start h3 { margin: 0 0 6px; }
+.open-books-blurb { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.open-books-challenges { justify-self: start; display: inline-flex; gap: 6px; align-items: center; }

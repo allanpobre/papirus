@@ -13,6 +13,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27c',
+    when: '27 de novembro',
+    title: 'A Comunidade não começa vazia',
+    items: [
+      'Na primeira visita, em vez de só “procure o @ de alguém”, aparecem os livros que estão abertos para todo mundo ler, com um toque para abrir, e o atalho para os desafios da semana.',
+    ],
+  },
+  {
     id: '2026-11-27b',
     when: '27 de novembro',
     title: '“Perguntar ao mundo” explica antes de pedir a chave',
