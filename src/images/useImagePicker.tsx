@@ -45,6 +45,7 @@ export function useImagePicker(use: ImageUse, onPick: (ref: string, size: { widt
           square
           title="Enquadrar o retrato"
           onCancel={() => setCropping(null)}
+          onError={onError}
           onDone={(crop) => {
             const f = cropping
             setCropping(null)

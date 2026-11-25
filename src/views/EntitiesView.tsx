@@ -63,6 +63,7 @@ import { AreaHead } from './AreaModes'
 import { findRanges } from '../editor/find'
 import { openBookReplace } from './write/replaceEvents'
 import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
+import { SameNameHint } from './SameName'
 import { BirthFlow } from './BirthFlow'
 import { InheritedRows, ListsSection, MembershipChips } from './EntityLists'
 import { SelectionBar } from './EntitySelection'
@@ -265,6 +266,7 @@ export default function EntitiesView() {
               )}
               <NameIdeas kind={newKind} onPick={setNewName} compact />
             </form>
+            <SameNameHint entities={universe.entities} name={newName} onOpen={(id) => (setNewName(''), go('fichas', id))} />
           </>
         )}
         {/* Sem nenhuma ficha, não há o que procurar nem selecionar. */}
@@ -439,6 +441,10 @@ export default function EntitiesView() {
             initialKind={kind !== 'todos' ? kind : newKind}
             onClose={() => setCreating(null)}
             onMany={() => setCreating('varias')}
+            onOpenExisting={(id) => {
+              setCreating(null)
+              go('fichas', id)
+            }}
             onOpen={(id) => {
               setCreating(null)
               setFresh(id)

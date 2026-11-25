@@ -33,7 +33,9 @@ test('Seus universos: criar primeiro, o exemplo no fim com selo e o menu ··· 
   await list.getByRole('button', { name: 'Mais ações de Maré Baixa' }).click()
   await page.getByRole('button', { name: 'Apagar…' }).click()
   await page.getByRole('button', { name: 'Apagar universo' }).click()
-  await expect(page.getByText('Maré Baixa')).toHaveCount(0)
+  await expect(list.getByText('Maré Baixa')).toHaveCount(0)
+  // Vai para a lixeira, não some de vez.
+  await expect(page.getByRole('region', { name: 'Apagados recentemente' })).toContainText('Maré Baixa')
 })
 
 test('Ajustes em três grupos, cada painel dizendo para quem vale', async ({ page }) => {

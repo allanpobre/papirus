@@ -7,11 +7,12 @@ import { useWorkspace } from '../state/workspace'
 import { Field, Select } from '../ui/bits'
 import { Modal } from '../ui/Modal'
 import { NameIdeas } from './NameIdeas'
+import { SameNameHint } from './SameName'
 import { namesFromText, useKindOptions } from './kindOptions'
 
 /** No celular: criar uma ficha sem sair da lista ("Criar e fazer outra") ou abrir a nova. */
-export function NewEntityDialog({ initialKind, onClose, onOpen, onMany }: { initialKind: string; onClose: () => void; onOpen: (id: string) => void; onMany: () => void }) {
-  const { update, toast, bookId } = useWorkspace()
+export function NewEntityDialog({ initialKind, onClose, onOpen, onOpenExisting, onMany }: { initialKind: string; onClose: () => void; onOpen: (id: string) => void; onOpenExisting?: (id: string) => void; onMany: () => void }) {
+  const { update, toast, bookId, universe } = useWorkspace()
   // Com um livro escolhido, a ficha nasce dele (não aparece nos outros livros).
   const inBook = bookIdsOf(bookId)
   const options = useKindOptions()
@@ -56,6 +57,7 @@ export function NewEntityDialog({ initialKind, onClose, onOpen, onMany }: { init
         <Field label="Nome" wide>
           {(id) => <input id={id} className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} enterKeyHint="next" />}
         </Field>
+        <SameNameHint entities={universe.entities} name={name} onOpen={onOpenExisting ?? onOpen} />
         <Field label="Tipo" wide>
           {(id) => <Select id={id} value={kind} onChange={setKind} options={options} />}
         </Field>

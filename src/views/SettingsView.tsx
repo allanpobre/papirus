@@ -692,15 +692,15 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
 {show('universo') && (
         <section className="settings-card settings-danger">
           <h2 className="section-title">Apagar este universo</h2>
-          <p className="muted small">Apaga o universo e os snapshots deste navegador. Baixe um backup antes, se quiser guardar.</p>
+          <p className="muted small">Vai para “Apagados recentemente”, em Seus universos, e fica lá por 30 dias para recuperar.</p>
           <ConfirmButton
             className="btn btn-danger"
-            question="Apagar este universo e seus snapshots deste navegador? Baixe um backup antes."
+            question="Apagar este universo? Ele fica 30 dias em “Apagados recentemente” para recuperar."
             confirmLabel="Apagar universo"
             onConfirm={async () => {
               // Salva antes de apagar, para que nenhuma gravação pendente recrie o universo depois.
               await ws.flush()
-              await library.remove(universe.id)
+              await library.trash(universe.id)
               ws.closeUniverse()
             }}
           >

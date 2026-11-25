@@ -246,6 +246,18 @@ export interface LibraryEntry {
 }
 
 /** Índice dos universos guardados neste navegador. */
+/** Um universo apagado, guardado por {@link TRASH_DAYS} dias. */
+export interface TrashedUniverse {
+  id: string
+  name: string
+  kind: string
+  words: number
+  deletedAt: string
+  universe: Universe
+}
+export const TRASH_DAYS = 30
+const TRASH_KEY = 'library:lixeira'
+
 export class Library {
   readonly store: KeyValueStore
   private readonly emergency: Storage | null
@@ -330,6 +342,47 @@ export class Library {
     if (i >= 0) list[i] = entry
     else list.push(entry)
     await this.store.set(LIBRARY_KEY, list)
+  }
+
+  /**
+   * Apagar de verdade é para a lixeira: uma cópia do universo fica guardada por 30 dias (em Seus universos,
+   * "Apagados recentemente"), e só então some. Antes, apagar não tinha volta.
+   */
+  async trash(universeId: string): Promise<void> {
+    const u = await this.repository(universeId).load()
+    const entry = (((await this.store.get(LIBRARY_KEY)) as LibraryEntry[] | undefined) ?? []).find((e) => e.id === universeId)
+    if (u && !entry?.sample) {
+      const bin = await this.trashed()
+      const item: TrashedUniverse = { id: u.id, name: u.name || 'Sem nome', kind: entry?.kind ?? universeKind(u), words: countWords(u), deletedAt: new Date().toISOString(), universe: u }
+      await this.store.set(TRASH_KEY, [item, ...bin.filter((t) => t.id !== u.id)])
+    }
+    await this.remove(universeId)
+  }
+
+  /** Os universos na lixeira (os de mais de 30 dias somem aqui). */
+  async trashed(): Promise<TrashedUniverse[]> {
+    const all = ((await this.store.get(TRASH_KEY)) as TrashedUniverse[] | undefined) ?? []
+    const limit = Date.now() - TRASH_DAYS * 86_400_000
+    const kept = all.filter((t) => Date.parse(t.deletedAt) >= limit)
+    if (kept.length !== all.length) await this.store.set(TRASH_KEY, kept)
+    return kept
+  }
+
+  /** Traz de volta da lixeira, com o mesmo id (e a nuvem, se houver conta, recebe de novo ao abrir). */
+  async restore(universeId: string): Promise<Universe | null> {
+    const bin = await this.trashed()
+    const item = bin.find((t) => t.id === universeId)
+    if (!item) return null
+    await this.repository(item.id).save(item.universe)
+    await this.touch(item.universe)
+    await this.store.set(TRASH_KEY, bin.filter((t) => t.id !== universeId))
+    return item.universe
+  }
+
+  /** Apaga de vez o que está na lixeira. */
+  async forget(universeId: string): Promise<void> {
+    const bin = await this.trashed()
+    await this.store.set(TRASH_KEY, bin.filter((t) => t.id !== universeId))
   }
 
   async remove(universeId: string): Promise<void> {

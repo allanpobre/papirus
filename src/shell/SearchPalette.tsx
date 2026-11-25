@@ -2,7 +2,8 @@ import { BookMarked, CalendarRange, Dices, Feather, Lightbulb, Plus, Sprout, Boo
 import { useBackLayer } from '../ui/useBackLayer'
 import { useMemo, useState } from 'react'
 import { commands, matchCommands } from './commands'
-import { searchUniverse, type SearchKind, type SearchResult } from '../logic/search'
+import { didYouMean, searchUniverse, type SearchKind, type SearchResult } from '../logic/search'
+import { fold } from '../logic/text'
 import { byId, draftEntity, insert } from '../model/universe'
 import { useWorkspace, type View } from '../state/workspace'
 
@@ -34,8 +35,13 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const actions = useMemo(() => matchCommands(commands(ws), query).slice(0, 6), [ws, query])
-  const results = useMemo(() => searchUniverse(universe, query, 20), [universe, query])
-  const canCreate = query.trim().length > 0 && !ws.readOnly
+  const found = useMemo(() => searchUniverse(universe, query, 20), [universe, query])
+  // Nada exato? "Você quis dizer…": fichas a uma ou duas letras do que se digitou ("doroti" → Dorothy).
+  const near = useMemo(() => (found.some((r) => r.kind === 'ficha') ? [] : didYouMean(universe, query)), [found, universe, query])
+  const results = useMemo(() => [...near, ...found], [near, found])
+  // Criar ficha só quando não é uma ação ("nova cena") nem uma ficha que já existe. Com um quase-nome, ele vem
+  // antes ("Você quis dizer Dorothy?") e o "Criar ficha" fica por último.
+  const canCreate = query.trim().length > 0 && !ws.readOnly && actions.length === 0 && !found.some((r) => r.kind === 'ficha' && fold(r.title) === fold(query.trim()))
   const total = actions.length + results.length + (canCreate ? 1 : 0)
   // Índices: primeiro as ações, depois os resultados, por fim "Criar ficha".
   const resultAt = (i: number) => results[i - actions.length]
@@ -157,7 +163,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                 }}
               >
                 <Icon size={16} aria-hidden="true" />
-                <span className="palette-title">{r.title}</span>
+                <span className="palette-title">{near.includes(r) ? <>Você quis dizer <strong>{r.title}</strong>?</> : r.title}</span>
                 <span className="palette-detail">{r.detail}</span>
                 <span className="palette-kind">{KIND_LABEL[r.kind]}</span>
               </li>
