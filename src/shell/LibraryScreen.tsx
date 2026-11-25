@@ -68,7 +68,7 @@ import { createUniverse, newId } from '../model/universe'
 import { UNIVERSE_TEMPLATES, applyTemplate, type UniverseTemplate } from '../model/templates'
 import { SYSTEM_TEMPLATES } from '../rpg/systems'
 import { MESA_THEMES } from '../rpg/themes'
-import { countWords, type Library, type LibraryEntry } from '../persistence/repository'
+import { countWords, TRASH_DAYS, type Library, type LibraryEntry, type TrashedUniverse } from '../persistence/repository'
 import { readBackupFromFolder, pickFolder, supportsFolders } from '../persistence/folder'
 import type { usePrefs } from '../state/prefs'
 import type { View } from '../state/workspace'
@@ -496,6 +496,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           {error}
         </p>
       )}
+      <RecentlyDeleted library={library} entries={entries} onRestored={(id) => (onChanged(), onOpen(id))} />
     </>
   )
 
@@ -544,8 +545,9 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
   )
 
   /** Apaga daqui e, se subiu algum dia, da conta. */
-  const removeEverywhere = async (e: LibraryEntry) => {
-    await library.remove(e.id)
+  // O universo vai para a lixeira (30 dias, em "Apagados recentemente"); as versões guardadas dele somem junto.
+  const removeEverywhere = async (e: LibraryEntry, toTrash = true) => {
+    await (toTrash ? library.trash(e.id) : library.remove(e.id))
     if (!account.user || !account.server || !synced[e.id]) return
     try {
       const sb = await authClient(account.server)
@@ -689,12 +691,13 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
                   </button>
                   <ConfirmButton
                     className="more-menu-item more-menu-danger"
-                    question={`${account.user ? 'Apagar de vez, aqui e na sua conta' : 'Apagar de vez, com os snapshots'}${versions.length ? ` (e ${versions.length === 1 ? 'a versão guardada' : `as ${versions.length} versões guardadas`})` : ''}?`}
+                    question={`Apagar${account.user ? ' daqui e da sua conta' : ''}${versions.length ? ` (com ${versions.length === 1 ? 'a versão guardada' : `as ${versions.length} versões guardadas`})` : ''}? Fica 30 dias em “Apagados recentemente” para recuperar.`}
                     confirmLabel={e.kind === 'campanha' ? 'Apagar campanha' : 'Apagar universo'}
                     onConfirm={async () => {
                       close()
                       // As versões guardadas são deste universo: vão junto.
-                      for (const v of [...versions, e]) await removeEverywhere(v)
+                      for (const v of versions) await removeEverywhere(v, false)
+                      await removeEverywhere(e)
                       onChanged()
                     }}
                   >
@@ -1215,4 +1218,62 @@ function OficinaClimate() {
 function MesaClimate({ dark }: { dark: boolean }) {
   useMesaSector('tempestade', dark)
   return null
+}
+
+/**
+ * "Apagados recentemente": os universos na lixeira (30 dias), com Recuperar e Apagar de vez. Só aparece quando
+ * há algum.
+ */
+function RecentlyDeleted({ library, entries, onRestored }: { library: Library; entries: LibraryEntry[]; onRestored: (id: string) => void }) {
+  const [bin, setBin] = useState<TrashedUniverse[]>([])
+  useEffect(() => {
+    let off = false
+    void library.trashed().then((b) => !off && setBin(b))
+    return () => {
+      off = true
+    }
+  }, [library, entries])
+  if (!bin.length) return null
+  const daysLeft = (at: string) => Math.max(1, TRASH_DAYS - Math.floor((Date.now() - Date.parse(at)) / 86_400_000))
+  return (
+    <section className="recently-deleted" aria-label="Apagados recentemente">
+      <h2 className="section-title">Apagados recentemente</h2>
+      <p className="muted small">Ficam aqui por {TRASH_DAYS} dias. Depois disso, somem deste aparelho.</p>
+      <ul>
+        {bin.map((t) => (
+          <li key={t.id} className="recently-deleted-item">
+            <span>
+              <strong>{t.name}</strong>{' '}
+              <span className="muted small">
+                · {t.kind === 'campanha' ? 'campanha' : `${t.words.toLocaleString('pt-BR')} palavras`} · some em {daysLeft(t.deletedAt)} {daysLeft(t.deletedAt) === 1 ? 'dia' : 'dias'}
+              </span>
+            </span>
+            <span className="recently-deleted-actions">
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={async () => {
+                  const u = await library.restore(t.id)
+                  if (u) onRestored(u.id)
+                }}
+              >
+                <RotateCcw size={14} aria-hidden="true" /> Recuperar
+              </button>
+              <ConfirmButton
+                className="btn btn-ghost btn-sm"
+                question={`Apagar “${t.name}” de vez? Não dá para desfazer.`}
+                confirmLabel="Apagar de vez"
+                onConfirm={async () => {
+                  await library.forget(t.id)
+                  setBin(await library.trashed())
+                }}
+              >
+                Apagar de vez
+              </ConfirmButton>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
 }

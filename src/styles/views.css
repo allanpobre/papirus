@@ -14645,3 +14645,29 @@ body[data-nova] .view-top.has-parts .view-top-end {
   justify-content: flex-end;
   gap: 0.5rem;
 }
+
+/* ---------------------------------------------------------------- Apagados recentemente (lixeira de universos) */
+.recently-deleted {
+  margin-top: 1.5rem;
+}
+.recently-deleted ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.recently-deleted-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+.recently-deleted-actions {
+  display: flex;
+  gap: 0.4rem;
+}

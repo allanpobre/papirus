@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-26a',
+    when: '26 de novembro',
+    title: 'Universo apagado tem volta',
+    items: [
+      'Apagar um universo agora manda para “Apagados recentemente”, no fim de Seus universos, onde ele fica por 30 dias.',
+      '“Recuperar” traz tudo de volta, como estava. “Apagar de vez” some com ele na hora.',
+    ],
+  },
+  {
     id: '2026-11-25e',
     when: '25 de novembro',
     title: 'Mais coisas com “Desfazer”',
