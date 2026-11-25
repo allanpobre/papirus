@@ -8,7 +8,7 @@ Feita em 24/11/2026, sobre o `main` já com as fases planejadas, as referências
 
 | # | Heurística | Nota | O que pesa |
 |---|---|---|---|
-| 1 | Visibilidade do estado do sistema | **3** | **No celular não existe indicador de salvamento**; sem aviso de offline |
+| 1 | Visibilidade do estado do sistema | **4** | **Duas abas: as duas dizem "Salvo" e uma perde o texto** (2ª rodada); no celular não existe indicador de salvamento |
 | 2 | Linguagem do mundo real | 2 | Jargão (Snapshots, dupla, Pedir para manter, Quase); frases geradas sem artigo |
 | 3 | Controle e liberdade do usuário | **3** | Desfazer existe em ficha/cena/evento/trama, mas **faltam em 6 remoções**; janelas descartam o digitado |
 | 4 | Consistência e padrões | 2 | Nova cara muda nomes e lugares; mesmo nome para coisas diferentes; 2 jeitos de apagar |
@@ -16,10 +16,10 @@ Feita em 24/11/2026, sobre o `main` já com as fases planejadas, as referências
 | 6 | Reconhecimento em vez de lembrança | 3 | Segredo só digitando tags; 16 ícones sem texto numa ficha; partes que só aparecem com conteúdo |
 | 7 | Flexibilidade e eficiência | 2 | Bom para quem usa teclado (Ctrl K, 8 atalhos, seleção em lote); quase nada de gesto no celular |
 | 8 | Estética e design minimalista | 3 | **A ficha em Editar tem 5,4 telas, 23 seções e 89 controles** |
-| 9 | Ajudar a reconhecer, diagnosticar e corrigir erros | 1 | Mensagens claras e com saída; só falta o caminho de volta em poucos casos |
+| 9 | Ajudar a reconhecer, diagnosticar e corrigir erros | 2 | Mensagens claras e com saída; mas imagem estragada falha calada e busca com erro de digitação só oferece criar ficha nova |
 | 10 | Ajuda e documentação | 2 | Passeio por tela + Guia (ótimo); 48 de 62 janelas sem "?"; passeios falam de lugares que a Nova cara muda |
 
-**Melhor do app:** 9 e 1 (no computador). **Pior:** 5 e 1 (no celular), 3, 8 e 6.
+**Melhor do app:** 9 e 7 (teclado). **Pior:** 1 e 5 (perda de texto em duas abas; segredo que vaza), depois 3, 8 e 6.
 
 ---
 
@@ -144,12 +144,45 @@ Escala de ânimo: 😀 flui · 🙂 ok · 😐 atrito · 😖 trava ou assusta.
 
 ---
 
+## Segunda rodada (25/11): o que a primeira não abriu
+
+Partes que ficaram de fora da primeira passada, agora medidas: duas abas, busca, teclado, botão Voltar, Ideias, Perguntar ao mundo, arquivos ruins, texto muito grande e o modo escuro das telas novas.
+
+### Novos problemas
+
+- **H1/H5.4 · gravidade 4 · o mesmo universo em duas abas perde texto sem aviso.** Medido no computador: abri o universo na aba A e na aba B. Escrevi "Escrito na aba B." na B e, depois, "Mais na aba A." na A. **As duas mostraram "Salvo"**. Ao abrir de novo, ficou só o texto da A: **o da B sumiu**. Não há nada no código que perceba a outra aba (nenhum `BroadcastChannel`, evento `storage` ou trava). É o cenário comum de quem abre o app pelo atalho e depois por um link, ou esquece uma aba aberta no computador. *Melhoria:* (a) avisar na segunda aba "Este universo está aberto em outra aba — usar aqui?" e deixar a outra só de leitura; (b) antes de salvar, conferir se a versão guardada mudou por fora e, se mudou, juntar como já se faz com a nuvem (as "duplas" local/nuvem).
+- **H9.3 · gravidade 2 · imagem estragada falha calada.** Um arquivo `.png` corrompido no retrato da ficha: a janela de recorte abre e fecha sozinha, e **nenhuma mensagem aparece** (`CropDialog.tsx` chama `onCancel` em erro de leitura). Quem tenta de novo acha que o botão não funciona. *Melhoria:* "Não consegui abrir esta imagem. Tente outro arquivo (JPG, PNG ou WebP)."
+- **H9.4/H5.5 · gravidade 2 · busca sem tolerância a erro de digitação.** "Dorothy" acha 21 resultados (fichas, eventos, trechos, cenas), mas "doroti" acha **nada** e oferece só **"Criar ficha 'doroti'"** — um convite a criar uma ficha duplicada com nome errado. "nova cena" e "tema escuro" também oferecem "Criar ficha 'nova cena'". *Melhoria:* busca aproximada (sem acento, uma letra trocada) e "Você quis dizer Dorothy?" antes de "Criar ficha".
+- **H2.3 · gravidade 2 · "Perguntar ao mundo" é técnico de cara.** A tela abre pedindo "Chave da API da Anthropic" e escolhendo entre "Claude Opus/Sonnet/Haiku", fala em "Archivist" e diz que "cada pergunta é cobrada na sua conta". Para quem escreve, é uma parede. *Melhoria:* começar pelo que a ferramenta faz ("Pergunte ao seu mundo: quem sabe o quê, o que se contradiz"), com exemplos, e só depois a configuração, num "Como ligar".
+- **H8.4 · gravidade 1 · carta da faísca vazia:** no celular, a pergunta e a caixa ficam no alto e sobram ~60% de tela vazia antes dos botões. *Melhoria:* centrar a carta na altura ou mostrar ali as faíscas sorteadas anteriores.
+- **Contraste das cartas no tema claro** (meu, da semana passada): a dica "retrato" (3,59:1) e o botão do dado (4,28:1). **Consertado neste PR**, com teste de contraste em `e2e/nascimento.spec.ts`.
+
+### O que se confirmou bom
+
+- **Teclado (computador):** "Pular para o conteúdo" é o primeiro Tab; **nenhum dos 40 primeiros itens com foco invisível**; Ctrl K abre a busca.
+- **Botão Voltar (celular/navegador):** fecha a janela aberta, depois volta da ficha para a lista, depois para o Início. Previsível.
+- **Texto enorme:** colar ~300 mil caracteres numa cena leva 0,5 s; digitar logo depois continua fluido; ao recarregar, os 300.003 caracteres estão lá.
+- **Busca:** com o nome certo, acha fichas, eventos, trechos e cenas, e entende ações ("nova cena", "tema escuro").
+- **Ideias:** captura com Ctrl+Shift+I, e cada ideia vira ficha, cena ou fato, ou é arquivada.
+- **Modo escuro** nas telas novas (versões, referências, cartas): nenhum texto abaixo do contraste.
+
+### Correção de um achado antigo
+
+- No 02 escrevi que, em Publicar, o botão "Mais" sumia. **Não some:** ele passa a se chamar "Mais (aberto: Publicar)" e continua abrindo o menu. O mesmo vale para Ideias, Guia, Ajustes e Mesa. O nome é que confunde.
+
+### Ainda não visto
+
+- **Comunidade e contas** com servidor de verdade; **Oficina** (treinos e placar); **Mesa no celular do jogador** à mão; armazenamento cheio (quota do navegador) e o Safari apagando dados após 7 dias sem uso.
+
+---
+
 ## As 10 melhorias que eu faria, em ordem
 
 Ordem por **gravidade × alcance ÷ esforço**.
 
 | # | Melhoria | Heurística | Gravidade | Esforço | Arquivos prováveis |
 |---|---|---|---|---|---|
+| 0 | **Duas abas não perdem texto:** avisar na segunda aba e conferir a versão guardada antes de salvar | H1, H5 | **4** | médio | `src/persistence/`, `WorkspaceShell.tsx` |
 | 1 | **Segredo seguro por padrão:** `[segredo]` sem fechar esconde até o fim do parágrafo; aviso na Revisão para marca aberta ou parecida; teste nos 3 caminhos (wiki, leitor, link) | H5, H9 | **4** | pequeno | `src/logic/secrets.ts`, `readerCopy.ts`, `continuity` |
 | 2 | **Botão "Segredo"** na barra de seleção da cena (usa o `wrapSecret` que já existe) | H5, H6 | 3 | pequeno | `src/editor/`, barra de seleção |
 | 3 | **Indicador de salvamento no celular** (e "sem internet") | H1 | 3 | pequeno | `WorkspaceShell.tsx`, CSS |
@@ -161,7 +194,7 @@ Ordem por **gravidade × alcance ÷ esforço**.
 | 9 | **Glossário único e troca do jargão** (Snapshots, dupla, Pedir para manter, Quase) | H2, H4 | 2 | pequeno | vários `.tsx` |
 | 10 | **Zona de toque e rótulos** nos ícones da ficha (os 16) e "?" nas 48 janelas que não têm | H6, H10 | 2 | médio | `base.css`, `Modal.tsx` |
 
-**Se for fazer só três coisas:** 1, 3 e 4. São pequenas, e as três mexem com **confiança** — não vazar um segredo, saber que salvou e poder voltar atrás —, que é o que decide se alguém coloca o livro inteiro num app.
+**Se for fazer só três coisas:** 0, 1 e 3 (e logo depois o 4). São pequenas, e as três mexem com **confiança** — não vazar um segredo, saber que salvou e poder voltar atrás —, que é o que decide se alguém coloca o livro inteiro num app. O 0 entrou na segunda rodada e é o mais grave: perde texto dizendo "Salvo".
 
 ## O que ficou de fora
 
