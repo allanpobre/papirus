@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-25a',
+    when: '25 de novembro',
+    title: 'Duas abas não apagam mais o texto uma da outra',
+    items: [
+      'Abriu o mesmo universo em outra aba (ou no app instalado e no navegador)? A mais nova fica com ele; a outra salva o que tinha e fica só para ler, com o aviso “Este universo está aberto em outra aba”.',
+      '“Continuar aqui” traz o universo de volta, já com o que foi escrito na outra aba.',
+    ],
+  },
+  {
     id: '2026-11-24a',
     when: '24 de novembro',
     title: 'Versões do personagem na própria ficha',

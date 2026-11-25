@@ -14523,3 +14523,27 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* ---------------------------------------------------------------- Universo aberto em outra aba */
+.tab-parked {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.tab-parked p {
+  margin: 0;
+  flex: 1 1 220px;
+  font-size: 0.92rem;
+}
