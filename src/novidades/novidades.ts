@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-30a',
+    when: '30 de novembro',
+    title: 'A Nova cara é a de todos',
+    items: [
+      'O que era “Nova cara (teste)” agora vale para todo mundo: a barra de baixo com os lugares grandes (Escrever, Mundo, História, Mesa ou Publicar, Menu), a História com as pistas, quem sabe o quê e a linha do tempo, e o clima de cada mundo no app inteiro.',
+      'O clima de cada mundo continua em Ajustes › Universo: o Caderno é o de sempre.',
+    ],
+  },
+  {
     id: '2026-11-29d',
     when: '29 de novembro',
     title: 'Mesa: preparar e jogar com menos fita adesiva',

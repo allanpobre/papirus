@@ -115,7 +115,7 @@ function read(): Prefs {
     // O Ler/Editar da ficha saiu (a ficha é uma página só): o modo antigo guardado não vale mais.
     localStorage.removeItem('papirus:ficha-modo')
     const raw = localStorage.getItem(KEY)
-    if (!raw) return DEFAULT_PREFS
+    if (!raw) return localStorage.getItem('papirus:cara-antiga') === '1' ? { ...DEFAULT_PREFS, novaCara: false } : DEFAULT_PREFS
     const saved = JSON.parse(raw) as Partial<Prefs>
     // A barra padrão antiga (Início, Escrever, Livro, Mundo) foi gravada com as outras preferências
     // por quem nunca escolheu atalhos: essa pessoa ganha a barra padrão nova.
@@ -127,7 +127,9 @@ function read(): Prefs {
     if ('firstSteps' in saved) saved.firstSteps = cleanFirstSteps(saved.firstSteps)
     if (saved.menus) saved.menus = Object.fromEntries(Object.entries(saved.menus).map(([k, v]) => [k, (v ?? []).filter((x) => (x as string) !== 'wiki')]))
     // A Nova cara é a cara de todos (decisão de 30/11/2026): o valor antigo guardado, ligado ou não, não vale mais.
-    saved.novaCara = true
+    // Exceção só dos testes antigos, enquanto migram área por área: a chave “papirus:cara-antiga” existe apenas nas
+    // preparações dos testes (e2e/fixtures.ts). Sai junto com o último caminho antigo do código.
+    saved.novaCara = saved.novaCara === true || localStorage.getItem('papirus:cara-antiga') !== '1'
     return { ...DEFAULT_PREFS, ...saved, continuity: { ...DEFAULT_PREFS.continuity, ...saved.continuity } }
   } catch {
     return DEFAULT_PREFS

@@ -1,5 +1,5 @@
 /*
- * Os climas do mundo: com a "Nova cara (teste)" ligada, cada universo tem a sua cara (cores, letras, molduras e
+ * Os climas do mundo: com a "Nova cara" ligada, cada universo tem a sua cara (cores, letras, molduras e
  * texturas), como os temas da Mesa. "Caderno" é o Papirus de sempre.
  */
 export type Clima = 'caderno' | 'fantasia' | 'ficcao' | 'terror'

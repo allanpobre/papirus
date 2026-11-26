@@ -463,7 +463,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     // Só na abertura do universo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  // Nova cara (teste): o clima do mundo vale no app inteiro.
+  // Nova cara: o clima do mundo vale no app inteiro.
   useWorldClimate(prefs.novaCara ? climaOf(universe) : null, universe.settings.climaModo ?? 'escuro')
   useNovaFlag(!!prefs.novaCara)
   // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).

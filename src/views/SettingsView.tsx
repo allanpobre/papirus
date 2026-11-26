@@ -226,12 +226,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               ))}
             </div>
           )}
-          <label className="toggle">
-            <input type="checkbox" role="switch" checked={!!prefs.novaCara} onChange={(e) => setPref('novaCara', e.target.checked || undefined)} />
-            <span className="toggle-track" aria-hidden="true" />
-            <span>Nova cara (teste): usar o clima no app inteiro</span>
-          </label>
-          <p className="muted small">Em teste: as cores, as letras e as texturas mudam com o clima de cada mundo. Desligado, o Papirus fica como sempre.</p>
+          <p className="muted small">As cores, as letras e as texturas do app inteiro mudam com o clima de cada mundo.</p>
           <p className="field-label" id="nivel-mundo">
             O Mundo deste universo
           </p>
