@@ -51,6 +51,11 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   --radius-s: 6px;
+  /* Movimento do dia a dia (auditoria 24): três durações e uma curva. Nunca na digitação. */
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 260ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --radius: 10px;
   --radius-l: 16px;
 

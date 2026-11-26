@@ -13,6 +13,44 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-28d',
+    when: '28 de novembro',
+    title: 'Barra lateral mais calma e uma cor para cada área',
+    items: [
+      'No computador, “Ideias”, “Perguntar ao mundo”, “Oficina” e “Guia” ficam num grupo chamado “Ferramentas”, que se recolhe (e o app lembra). A Oficina deixou de ser um cartão colorido: é um item como os outros.',
+      'Cada área tem a sua cor num filete fino no alto da tela (Mundo verde, Trama roxa, Publicar laranja…), para você saber onde está sem ler.',
+    ],
+  },
+  {
+    id: '2026-11-28c',
+    when: '28 de novembro',
+    title: 'Pequenos movimentos com sentido',
+    items: [
+      'A ficha troca o nome, o retrato e o resumo com um fade curto quando eles mudam ao longo da história (e ao trocar de versão).',
+      'A lista de fichas entra em cascata; no mapa, os marcadores caem no lugar e as rotas aparecem; o anel da meta no Início enche e o número sobe; o “Salvo” tem um pontinho que pulsa enquanto grava e faz um “pop” ao terminar.',
+    ],
+  },
+  {
+    id: '2026-11-28b',
+    when: '28 de novembro',
+    title: 'O app responde mais suave ao toque',
+    items: [
+      'O fundo da aba aberta desliza de uma parte para a outra (Fichas, Ligações, Mapas; Estrutura, Página, Revisão; e a barra de baixo do celular), em vez de pular.',
+      'Botões, abas e escolhas trocam de cor com uma transição curta, e afundam um pouquinho enquanto o dedo está neles. Trocar o tema ganhou um fade. “Carregando…” virou barras que brilham de leve.',
+      'Quem pede menos movimento no aparelho não vê nada disso.',
+    ],
+  },
+  {
+    id: '2026-11-28a',
+    when: '28 de novembro',
+    title: 'Telas do celular menos apertadas',
+    items: [
+      'Mapas: as ferramentas ocupam menos linhas, os nomes dos marcadores saem de cima do mapa inteiro e ficam numa lista de “Lugares” logo abaixo (toque para abrir), e os rótulos de região e de rota ficam menores.',
+      'Trama: os quatro estados cabem na barra de pular. A barra de baixo diz “Ajustes”, e o aviso “Salvo” não cobre mais o botão da faixa do exemplo.',
+      'Primeira tela: “Ou abrir o exemplo pronto” aparece logo abaixo de “Criar universo”.',
+    ],
+  },
+  {
     id: '2026-11-27i',
     when: '27 de novembro',
     title: 'Botões com nome e um (?) em cada janela',

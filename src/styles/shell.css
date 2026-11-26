@@ -765,8 +765,52 @@
 }
 
 .view-loading {
+  display: grid;
+  gap: 0.8rem;
   padding: 2rem;
   color: var(--muted);
+}
+
+/* Esqueleto: barras que brilham de leve no lugar de “Carregando…” (só opacidade, para não pesar). */
+.skeleton {
+  display: block;
+  height: 0.9rem;
+  border-radius: 6px;
+  background: var(--surface-3);
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+.skeleton-title {
+  height: 1.6rem;
+  width: 45%;
+}
+.skeleton-short {
+  width: 65%;
+}
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* Troca de tema: as cores vão de um tema ao outro em vez de cortar (a classe fica só uns 300 ms). */
+.theme-fade,
+.theme-fade *,
+.theme-fade *::before,
+.theme-fade *::after {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    fill 0.25s ease !important;
 }
 
 /* Modo foco: só o texto. */
@@ -2813,4 +2857,75 @@ body:has(.rail-phone) .live-return {
   border-radius: var(--radius-s);
   background: var(--accent-soft);
   color: var(--ink);
+}
+
+/* ---------------------------------------------------------------- Barra lateral e cor por área (auditoria 24, pacote 4) */
+
+/* “Ferramentas”: o nome do grupo é um botão que recolhe e abre (o app lembra). */
+.rail-tools-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.rail-tools-toggle:hover {
+  color: var(--ink);
+}
+.rail-tools-toggle .rail-badge {
+  margin-left: auto;
+}
+.rail-tools-chevron {
+  flex: none;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.rail-tools-toggle[aria-expanded='false'] .rail-tools-chevron {
+  transform: rotate(-90deg);
+}
+.rail-tools {
+  display: grid;
+  gap: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-tools-chevron {
+    transition: none;
+  }
+}
+
+/* A cor da área aberta, num filete no alto da tela: Mundo, Trama e Publicar deixam de parecer a mesma tela. */
+.shell {
+  --area-now: transparent;
+}
+.shell:is([data-view='inicio']) {
+  --area-now: var(--area-inicio);
+}
+.shell:is([data-view='organizar'], [data-view='escrever']) {
+  --area-now: var(--area-escrever);
+}
+.shell:is([data-view='livro']) {
+  --area-now: var(--area-livro);
+}
+.shell:is([data-view='fichas'], [data-view='relacoes'], [data-view='timeline'], [data-view='atlas'], [data-view='wiki']) {
+  --area-now: var(--area-fichas);
+}
+.shell:is([data-view='tramas'], [data-view='conhecimento']) {
+  --area-now: var(--area-tramas);
+}
+.shell:is([data-view='rpg']) {
+  --area-now: var(--area-rpg);
+}
+.shell:is([data-view='inbox']) {
+  --area-now: var(--area-inbox);
+}
+.shell:is([data-view='archivist']) {
+  --area-now: var(--area-archivist);
+}
+/* Sombra por dentro do palco (não ocupa espaço): nada na tela muda de lugar. */
+.stage {
+  box-shadow: inset 0 3px 0 var(--area-now);
 }

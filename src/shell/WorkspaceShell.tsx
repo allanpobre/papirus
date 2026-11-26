@@ -1,5 +1,5 @@
 import { novaOn, novaWords } from './novaWords'
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronDown, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { relativeDate } from '../logic/relativeDate'
@@ -45,6 +45,7 @@ import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
 import { MobileSaveStatus } from '../ui/MobileSaveStatus'
+import { useSlide } from '../ui/useSlide'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
 import { readerCopy } from '../share/readerCopy'
@@ -172,6 +173,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [universe, readOnly])
   const [accountOpen, setAccountOpen] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
+  const [toolsOpen, setToolsOpen] = useState(() => recall('rail-ferramentas') !== 'fechado')
   // O tour não abre sozinho: a primeira vez começa pelos Primeiros passos do Início. Ele fica no
   // (?) de cada tela, no "Refazer o tour" dos Ajustes e no fim dos Primeiros passos.
   const [nav, setNav] = useState<Nav>(() => {
@@ -666,10 +668,40 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               </div>
             )}
             <div className="rail-group rail-group-end">
-              {TOOLS.filter((t) => t.view !== 'oficina' && (!hidden.includes(t.view) || nav.view === t.view)).map((t) => (
-                <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
-              ))}
-              {!hidden.includes('oficina') && <OficinaCard compact={collapsed} onClick={() => go('oficina')} />}
+              {/* Ferramentas (Ideias, Perguntar ao mundo, Oficina, Guia) num grupo com nome, que se recolhe e o app lembra. */}
+              {(() => {
+                const tools = TOOLS.filter((t) => !hidden.includes(t.view) || nav.view === t.view)
+                const inside = tools.some((t) => nav.view === t.view)
+                // Aberto se foi o jeito escolhido, se a área aberta é uma delas, se o tour está passando ou se o menu está recolhido (só ícones).
+                const open = toolsOpen || inside || tourOpen || collapsed
+                return (
+                  <>
+                    {tools.length > 0 && !collapsed && (
+                      <button
+                        type="button"
+                        className="rail-group-label rail-tools-toggle"
+                        aria-expanded={open}
+                        aria-controls="rail-ferramentas"
+                        onClick={() => {
+                          setToolsOpen(!open)
+                          remember('rail-ferramentas', open ? 'fechado' : 'aberto')
+                        }}
+                      >
+                        <span>Ferramentas</span>
+                        {!open && openInbox > 0 && <span className="rail-badge" aria-label={`${openInbox} ideias esperando`}>{openInbox}</span>}
+                        <ChevronDown size={14} aria-hidden="true" className="rail-tools-chevron" />
+                      </button>
+                    )}
+                    {open && (
+                      <div id="rail-ferramentas" className="rail-tools">
+                        {tools.map((t) => (
+                          <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
               <RailButton item={CONFIG_ITEM} active={nav.view === 'config'} onClick={() => go('config')} />
             </div>
           </div>
@@ -821,7 +853,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               </button>
             </div>
           )}
-          <Suspense fallback={<div className="view-loading">Carregando…</div>}>
+          <Suspense
+            fallback={
+              <div className="view-loading" role="status">
+                <span className="sr-only">Carregando…</span>
+                <span className="skeleton skeleton-title" aria-hidden="true" />
+                <span className="skeleton" aria-hidden="true" />
+                <span className="skeleton skeleton-short" aria-hidden="true" />
+              </div>
+            }
+          >
             {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
             {prefs.novaCara ? nav.view !== 'config' && <BookBand /> : BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
             {/* Cada área tem o seu próprio aviso de erro: se uma tela quebrar, o menu e o resto do app continuam. */}
@@ -1057,6 +1098,9 @@ function groupsOf(items: NavItem[]): [string, NavItem[]][] {
  * aberta uma área que não está nela, o "Mais" acende com o nome dessa área.
  */
 /** Nova cara: os lugares grandes da barra de baixo (a Mesa, se o mundo tem; senão, Publicar). */
+/** Na barra de baixo cabe uma palavra: os nomes compridos ficam curtos (o nome inteiro segue no aria-label e no Mais). */
+const SHORT_LABEL: Partial<Record<View, string>> = { config: 'Ajustes' }
+
 const NOVA_PLACES = (mesa: boolean): View[] => ['escrever', 'fichas', 'tramas', mesa ? 'rpg' : 'livro']
 
 function PhoneNav({
@@ -1125,6 +1169,8 @@ function PhoneNav({
   const grid = items.filter((i) => i.view !== 'oficina')
   const oficina = items.find((i) => i.view === 'oficina')
   const MoreIcon = fixed ? Menu : (elsewhere?.icon ?? Menu)
+  // O fundo da área aberta desliza de um botão para o outro.
+  const slide = useSlide<HTMLElement>('[aria-current="page"]', `${current}|${elsewhere?.view ?? ''}`)
 
   useEffect(() => {
     if (!open) return
@@ -1134,7 +1180,7 @@ function PhoneNav({
   }, [open])
 
   return (
-    <nav className="rail rail-phone" aria-label="Áreas" data-tour="menu">
+    <nav ref={slide} className="rail rail-phone" aria-label="Áreas" data-tour="menu">
       {shortcuts.map((item) => (
         <RailButton key={item.view} item={item} active={current === item.view} badge={item.view === 'inbox' && inboxCount ? inboxCount : undefined} onClick={() => choose(item.view)} />
       ))}
@@ -1152,7 +1198,7 @@ function PhoneNav({
         }}
       >
         <MoreIcon size={18} aria-hidden="true" />
-        <span className="rail-label">{fixed ? 'Menu' : elsewhere ? elsewhere.label : 'Mais'}</span>
+        <span className="rail-label">{fixed ? 'Menu' : elsewhere ? SHORT_LABEL[elsewhere.view] ?? elsewhere.label : 'Mais'}</span>
         {inboxCount > 0 && !shortcuts.some((i) => i.view === 'inbox') && <span className="rail-badge" aria-hidden="true" />}
       </button>
       {open && (
