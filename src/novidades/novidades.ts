@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-30e',
+    when: '30 de novembro',
+    title: 'Abas perto do polegar e o Codex na sessão',
+    items: [
+      'No celular, Ajustes › Aparência tem uma opção nova: as partes de cada área (Fichas, Ligações, Mapas…) ficam embaixo, logo acima da barra, perto do polegar.',
+      'No modo sessão, o painel do Grupo tem “Codex: mostrar aos jogadores”: revele um mapa, um marcador, um evento ou uma ligação sem sair da mesa, e veja o que já foi mostrado hoje.',
+    ],
+  },
+  {
     id: '2026-11-30d',
     when: '30 de novembro',
     title: 'Atalhos de teclado',

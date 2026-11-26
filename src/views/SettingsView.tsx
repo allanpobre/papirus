@@ -399,6 +399,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 />
               )}
             </Field>
+            <Toggle label="No celular, as partes de cada área (Fichas, Ligações, Mapas…) ficam embaixo, perto do polegar" checked={!!prefs.tabsBottom} onChange={(v) => setPref('tabsBottom', v || undefined)} />
             <Field label="Fonte do texto">
               {(id) => (
                 <Select<Prefs['editorFont']>

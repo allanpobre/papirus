@@ -608,6 +608,7 @@ export const PAGE_TOURS = {
         optional: true,
       },
       { target: '.sm-panel[aria-label="Personagens"]', title: 'Grupo: os personagens', body: 'A vida de cada um; um toque abre as rolagens, as condições e quem joga hoje. “Ficha” abre a ficha completa.', optional: true },
+      { target: '.shield-mesa details:has(.sm-codex)', title: 'Codex sem trocar de aba', body: 'Mostre aos jogadores um mapa, um marcador, um evento ou uma ligação na hora. O título conta o que já foi mostrado hoje.', optional: true },
       { target: '.sm-panel[aria-label="Registro"]', title: 'Registro', body: 'O que aconteceu, com a hora (as rolagens e as cenas entram sozinhas).', optional: true },
       { target: '.sm-dock', title: 'Os painéis', body: 'No celular, um painel por vez: Roteiro, Palco e Grupo. Arrastar para o lado também troca.', optional: true },
       { target: '.sm-end', title: 'Encerrar', body: 'No fim do jogo, o app pergunta “O que aconteceu?”: o resumo entra no “Aparece em” das fichas citadas e, com o ano no mundo, na Linha do tempo. O registro vai para Ideias.' },

@@ -15036,3 +15036,46 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 .shortcut-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
 .shortcut-list li { display: grid; grid-template-columns: minmax(7.5rem, auto) 1fr; gap: 0.75rem; align-items: center; }
 .shortcut-keys { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; }
+
+/* Abas perto do polegar (Ajustes › Aparência): no celular, as partes da área ficam numa faixa logo acima
+   da barra de baixo; os avisos e o “Salvo” sobem junto para não ficarem atrás dela. */
+@media (max-width: 760px) {
+  :root[data-abas='baixo'] body:has(.rail-phone) .view-top.has-parts .view-top-parts {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 0.3rem;
+    padding: 0.3rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-m, 0 6px 18px rgb(0 0 0 / 0.14));
+  }
+  :root[data-abas='baixo'] body:has(.rail-phone) .view-top .view-top-parts button {
+    flex-direction: row;
+    min-height: 44px;
+    gap: 0.35rem;
+    padding: 0.3rem 0.4rem;
+  }
+  :root[data-abas='baixo'] body:has(.rail-phone) .view:has(.view-top.has-parts) {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  :root[data-abas='baixo'] body:has(.view-top.has-parts):has(.rail-phone) .toasts {
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+  }
+  :root[data-abas='baixo'] body:has(.view-top.has-parts):has(.rail-phone) .mobile-save {
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+  }
+  :root[data-abas='baixo'] body:has(.view-top.has-parts):has(.rail-phone) .live-return {
+    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Modo sessão: o Codex no painel do Grupo (o que já se mostrou hoje). */
+.sm-codex-list { margin: 0 0 0.6rem; padding-left: 1.1rem; display: grid; gap: 0.2rem; }

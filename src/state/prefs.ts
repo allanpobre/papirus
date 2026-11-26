@@ -11,6 +11,8 @@ export interface Prefs {
   editorSize: number
   /** Tamanho da letra do app inteiro (menus, listas, fichas), além do texto da cena. Sem valor: normal. */
   appScale?: 'normal' | 'grande' | 'maior'
+  /** No celular, as partes de cada área (Fichas, Ligações, Mapas…) ficam embaixo, perto do polegar. */
+  tabsBottom?: boolean
   editorWidth: 'estreita' | 'media' | 'larga'
   /** Destacar nomes de fichas conhecidas no texto. */
   detection: boolean
@@ -161,6 +163,8 @@ export function usePrefs() {
     else root.setAttribute('data-theme', prefs.theme === 'escuro' ? 'dark' : 'light')
     // A letra do app inteiro cresce junto (tudo que é medido em rem): para quem lê de longe ou com letra grande.
     root.style.fontSize = prefs.appScale === 'maior' ? '125%' : prefs.appScale === 'grande' ? '112.5%' : ''
+    if (prefs.tabsBottom) root.setAttribute('data-abas', 'baixo')
+    else root.removeAttribute('data-abas')
     if (prefs.accent === 'viridiana') root.removeAttribute('data-accent')
     else root.setAttribute('data-accent', prefs.accent)
   }, [prefs])
