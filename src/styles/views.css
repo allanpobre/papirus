@@ -11919,6 +11919,13 @@ button.presence-dot {
   gap: 0.15rem;
   z-index: 1;
 }
+/* Fora do Arrumar, só o “Editar” (com a palavra): ele flutua no canto e o texto contorna, sem ficar por baixo. */
+.block:not(.is-arranging) > .block-tools {
+  position: relative;
+  top: 0;
+  float: right;
+  margin: 0 0 0.3rem 0.5rem;
+}
 .block-tools .btn-icon {
   opacity: 0.55;
   background: var(--surface);
