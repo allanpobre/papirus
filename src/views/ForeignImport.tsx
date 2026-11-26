@@ -12,7 +12,7 @@ const MIME: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg
  * (exportações em JSON ou .zip). Mostra o que achou antes de trazer; nada é apagado.
  */
 export function ForeignImport({ onDone }: { onDone?: () => void }) {
-  const { update, toast, readOnly } = useWorkspace()
+  const { update, toast, readOnly, showAllParts } = useWorkspace()
   const input = useRef<HTMLInputElement>(null)
   const [found, setFound] = useState<ForeignWorld | null>(null)
   const [busy, setBusy] = useState(false)
@@ -66,6 +66,9 @@ export function ForeignImport({ onDone }: { onDone?: () => void }) {
       return out.universe
     })
     toast(`${created} ${created === 1 ? 'ficha trazida' : 'fichas trazidas'}${withImage ? `, ${withImage} com imagem` : ''}${existing ? `; ${existing} já existiam e ficaram como estavam` : ''}.`)
+    // Quem chega com um mundo pronto vê todas as partes do Mundo desde já (auditoria 26, Duda): a Linha do tempo e os
+    // Mapas não ficam escondidos esperando o primeiro uso, como na primeira vez de quem começa do zero.
+    showAllParts()
     setFound(null)
     onDone?.()
   }

@@ -659,7 +659,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
                 <div key={g.group || g.items[0].view} className="rail-group">
                   {g.group && <span className="rail-group-label rail-label">{g.group}</span>}
                   {items.map((item) => (
-                    <RailButton key={item.view} item={item} active={area === item.view} onClick={() => go(item.view)} />
+                    // Na Nova cara, a Trama se chama História em todo lugar (no celular, nos passeios e aqui também).
+                    <RailButton key={item.view} item={nova && item.view === 'tramas' ? { ...item, label: 'História' } : item} active={area === item.view} onClick={() => go(item.view)} />
                   ))}
                 </div>
               )

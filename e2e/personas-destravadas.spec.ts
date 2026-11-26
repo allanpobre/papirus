@@ -8,7 +8,7 @@ test.describe('no computador', () => {
 
   test('Rafa: o NPC criado na Mesa vira ficha do Mundo e se revela no Codex', async ({ page }) => {
     await page.goto('/app/')
-    await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: /Mesa/ }).click()
+    await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
     await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Sombras de Varn')
     await page.getByRole('button', { name: 'Criar campanha' }).click()
     await page.getByRole('tab', { name: 'Grupo' }).click()

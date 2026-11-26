@@ -5,7 +5,7 @@ const nav = (page: Page, name: RegExp) => page.getByRole('navigation', { name: '
 
 async function newCampaign(page: Page, name = 'Sombras de Ostria') {
   await page.goto('/app/')
-  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mesa' }).click()
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill(name)
   await page.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(page.getByRole('tablist', { name: 'Partes da Mesa' })).toBeVisible()
@@ -80,7 +80,7 @@ test('jogar neste mundo: um livro sem Mesa ganha um caminho até ela, também em
 
   // Em Seus universos, na aba Mesa, o livro aparece para jogar.
   await page.getByRole('button', { name: /trocar de universo/ }).click()
-  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mesa' }).click()
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
   await expect(page.getByRole('list', { name: 'Livros para jogar' })).toContainText('Maré Baixa')
   await page.getByRole('list', { name: 'Livros para jogar' }).getByRole('button', { name: /Maré Baixa/ }).click()
   await expect(page.locator('main .empty-title')).toHaveText('Jogar neste mundo')

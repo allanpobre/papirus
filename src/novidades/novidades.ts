@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-30b',
+    when: '30 de novembro',
+    title: 'Cada coisa num lugar',
+    items: [
+      'Na primeira tela, o setor das campanhas se chama “Campanhas”; dentro de cada campanha, a Mesa é onde se joga.',
+      'No computador, a barra lateral também diz “História” (antes ainda dizia “Trama”).',
+      'Quem traz um mundo de outro app vê todas as partes do Mundo e da História desde já. E em Publicar, cada botão (Diagramar, Ler, Folhear) diz o que abre.',
+    ],
+  },
+  {
     id: '2026-11-30a',
     when: '30 de novembro',
     title: 'A Nova cara é a de todos',

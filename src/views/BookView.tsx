@@ -442,14 +442,14 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
         {author && <p className="book-hero-author">{author}</p>}
         <div className="book-hero-actions" data-tour="livro-acoes">
           {!readOnly && (
-            <button type="button" className="btn btn-primary" disabled={!hasText} onClick={() => openBookDesigner(book.id)}>
+            <button type="button" className="btn btn-primary" disabled={!hasText} title="Diagramar: escolher capa, letras e estilo, vendo as páginas como vão sair" onClick={() => openBookDesigner(book.id)}>
               <Palette size={16} /> Diagramar
             </button>
           )}
-          <button type="button" className="btn" disabled={!chapters} onClick={openReader}>
+          <button type="button" className="btn" disabled={!chapters} title="Ler: o texto como o leitor vê, capítulo por capítulo, sem nada secreto" onClick={openReader}>
             <BookOpen size={16} /> Ler
           </button>
-          <button type="button" className="btn" disabled={!chapters} onClick={() => setFlipping(true)}>
+          <button type="button" className="btn" disabled={!chapters} title="Folhear: o livro diagramado, com as páginas virando" onClick={() => setFlipping(true)}>
             <BookOpenText size={16} /> Folhear
           </button>
           {baixar(false)}

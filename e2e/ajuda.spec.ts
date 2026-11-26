@@ -87,8 +87,8 @@ test('fora do universo: setores, Oficina, treino, leitor e diagramação têm o 
   await page.goto('/app/')
   const setores = page.getByRole('navigation', { name: 'Setores' })
   await runPageTour(page, 'Escrita')
-  await setores.getByRole('button', { name: 'Mesa' }).click()
-  await runPageTour(page, 'Mesa')
+  await setores.getByRole('button', { name: 'Campanhas' }).click()
+  await runPageTour(page, 'Campanhas')
   await setores.getByRole('button', { name: 'Oficina' }).click()
   await runPageTour(page, 'Oficina')
 
