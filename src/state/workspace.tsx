@@ -66,6 +66,8 @@ export interface Workspace {
   folder: FolderSync
   /** Baixa o backup completo em JSON e registra a data. */
   downloadBackup: () => void
+  /** Abre a janela da conta (entrar ou criar). */
+  openAccount: () => void
   openCapture: () => void
   openSearch: () => void
   /** Abre o tour guiado pela tela. */

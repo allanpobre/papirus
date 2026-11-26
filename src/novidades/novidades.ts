@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-29b',
+    when: '29 de novembro',
+    title: 'Seu livro, guardado e com histórico à mão',
+    items: [
+      'Quando o livro passa de mil palavras e ainda só existe neste aparelho (sem conta), o Início avisa com todas as letras e oferece guardar na sua conta ou baixar uma cópia. “Agora não” some por duas semanas.',
+      'No rodapé da escrita, o histórico da cena fica à mão: o número de versões guardadas, num toque.',
+    ],
+  },
+  {
     id: '2026-11-29a',
     when: '29 de novembro',
     title: 'Para quem escreve, mestra e constrói mundos',

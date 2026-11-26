@@ -14874,3 +14874,27 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   display: block;
   margin-top: 0.15rem;
 }
+
+/* Convite para guardar na nuvem (auditoria 26, Lia). */
+.cloud-nudge {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem 0.75rem;
+  padding-right: 2.4rem;
+}
+.cloud-nudge > p {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+.cloud-nudge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.cloud-nudge-x {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+}

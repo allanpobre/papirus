@@ -1,5 +1,6 @@
 import { CountUp } from '../ui/CountUp'
 import { SafariNotice } from '../ui/SafariNotice'
+import { CloudNudge } from '../ui/CloudNudge'
 import { isLocalOnly } from '../model/sample'
 import { BookOpen, Dices, Feather, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Timer, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -121,6 +122,7 @@ export default function HomeView() {
     <div className="view home">
       <StorageNotice where="inicio" />
       {!isLocalOnly(universe) && <SafariNotice hasContent={hasText} />}
+      <CloudNudge />
       <header className="home-today" data-tour="hoje">
         <div className="home-id">
           {cover ? <Picture value={cover} className="home-thumb" /> : <GeneratedCover name={universe.name.replace(/^Exemplo\s*[—–-]\s*/, '')} tone={universeKind(universe) === 'campanha' ? 'var(--accent)' : undefined} className="home-thumb" />}
