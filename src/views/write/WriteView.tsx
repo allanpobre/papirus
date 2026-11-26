@@ -836,6 +836,19 @@ export default function WriteView() {
             )}
           </span>
           {!ws.readOnly && <SprintButton />}
+          {/* As versões da cena (uma por dia, guardadas sozinhas) à mão, como o histórico do Docs (auditoria 26, Lia). */}
+          {scene.versions.length > 0 && (
+            <button
+              type="button"
+              className="link-btn write-versions"
+              aria-label={`Versões desta cena (${scene.versions.length})`}
+              title="Versões desta cena: uma por dia, guardadas sozinhas"
+              onClick={() => setDialog({ kind: 'versions' })}
+            >
+              <History size={14} aria-hidden="true" /> {scene.versions.length}
+              <span className="foot-long">{scene.versions.length === 1 ? ' versão' : ' versões'}</span>
+            </button>
+          )}
           {/* Os nomes que o Papirus percebeu no texto, à vista enquanto se escreve: um toque abre a lista. */}
           {!ws.readOnly && candidates > 0 && (
             <button type="button" className="link-btn write-waiting write-names" onClick={() => setDialog({ kind: 'review' })}>

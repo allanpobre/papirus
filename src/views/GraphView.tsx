@@ -16,6 +16,7 @@ import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FocusMural } from './FocusMural'
+import { SuggestedLinks } from './SuggestedLinks'
 import { AreaHead } from './AreaModes'
 import { EdgeShape, NodeShape, ViaShape, type NodeActions } from './GraphParts'
 
@@ -667,6 +668,7 @@ function GraphCanvas({ onMural }: { onMural?: () => void }) {
         </div>
       )}
 
+      <SuggestedLinks />
       {nodes.length === 0 ? (
         book ? (
           <Empty icon={<Network size={32} />} title="Ninguém aparece neste livro ainda.">

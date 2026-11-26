@@ -56,6 +56,11 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
               {SESSION_STATUS_LABEL[next.status]} · {new Date(next.playedOn + 'T12:00').toLocaleDateString('pt-BR')}
             </p>
             {next.prep ? <p className="gm-prep">{next.prep}</p> : <p className="muted small">Sem preparação ainda.</p>}
+            {(next.cast ?? []).length > 0 && (
+              <p className="small">
+                <span className="muted">Nesta sessão:</span> {(next.cast ?? []).map((id) => universe.entities.find((e) => e.id === id)?.name).filter(Boolean).join(', ')}
+              </p>
+            )}
             <div className="inline-fields">
               {next.status === 'em-andamento' ? (
                 <button type="button" className="btn btn-primary btn-sm" onClick={enterSession}>

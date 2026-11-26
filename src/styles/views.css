@@ -10416,13 +10416,42 @@ h3.cork-act {
   }
 }
 
-/* Fichas no PC: busca, tipo e ordem numa linha (as escolhas encolhem para caber na coluna). */
+/* Fichas no PC: a busca numa linha e os filtros na de baixo, dividindo a largura (numa linha só, ficavam cortados:
+   “Toda”, “Todo”; auditoria 25). */
 @media (min-width: 761px) {
-  .split-list .list-tools > .select {
-    flex: 0 1 auto;
-    min-width: 4.5rem;
-    max-width: 9rem;
+  .split-list .list-tools {
+    flex-wrap: wrap;
   }
+  .split-list .list-tools > .input {
+    flex: 1 1 100%;
+  }
+  .split-list .list-tools > .select {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+/* Vistas guardadas da lista de fichas. */
+.saved-views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+}
+.saved-view {
+  display: inline-flex;
+  align-items: center;
+}
+.saved-view .chip:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.saved-view .chip + .chip {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-inline: 0.35rem;
 }
 
 /* No celular, criar fica numa linha só em qualquer tela (o campo encolhe, o "+" não cai). */
@@ -14539,7 +14568,9 @@ body[data-nova] .view-top.has-parts .view-top-end {
 /* ---------------------------------------------------------------- "Salvo" no celular (o menu lateral não existe lá) */
 .mobile-save {
   position: fixed;
-  top: calc(6px + env(safe-area-inset-top, 0px));
+  /* Embaixo, acima da barra de baixo e do rodapé de palavras do Escrever: no alto ele cobria as abas a cada gravação
+     (auditorias 25 e 26). Aqui, quando cobre algo, é só texto. */
+  bottom: calc(118px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   z-index: 70;
   display: flex;
@@ -14552,7 +14583,7 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--ink-2);
   font-size: 0.78rem;
   box-shadow: var(--shadow-1);
-  transform: translate(-50%, -140%);
+  transform: translate(-50%, 140%);
   opacity: 0;
   pointer-events: none;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -14832,13 +14863,159 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   }
 }
 
-/* O “Salvo” do celular desce para baixo da faixa do exemplo (e da faixa de versão), em vez de cobrir o botão dela. */
-.stage:has(.sample-banner) .mobile-save {
-  top: calc(56px + env(safe-area-inset-top, 0px));
-}
-
 /* Primeira tela: a saída “abrir o exemplo” logo abaixo do formulário, sem rolar. */
 .start-example {
   margin-top: 0.4rem;
   justify-self: start;
+}
+
+/* Ligações achadas no texto (auditoria 26): a faixa em Ligações e a lista para aceitar. */
+.suggested-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+.suggested-links > .small {
+  flex: 1 1 14rem;
+}
+.suggested-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.suggested-list label {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+.suggested-list input {
+  margin-top: 0.25rem;
+}
+.suggested-quote {
+  display: block;
+  margin-top: 0.15rem;
+}
+
+/* Convite para guardar na nuvem (auditoria 26, Lia). */
+.cloud-nudge {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem 0.75rem;
+  padding-right: 2.4rem;
+}
+.cloud-nudge > p {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+.cloud-nudge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.cloud-nudge-x {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+}
+.suggested-list li {
+  display: grid;
+  gap: 0.35rem;
+}
+.suggested-title {
+  margin-left: 1.6rem;
+  max-width: 24rem;
+}
+
+/* Mesa (auditoria 25 e 26, Rafa). No celular, cada revelação do Codex em duas linhas fixas: tipo, nome e “×” em cima;
+   “quanto” e a sessão embaixo (antes o “×” quebrava sozinho numa linha e parecia erro). */
+@media (max-width: 760px) {
+  /* “.reveal-list li” (do leitor, em reader.css) também pega aqui: o seletor precisa ser mais forte. */
+  .reveal-list li.reveal-row {
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.3rem 0.45rem;
+  }
+  .reveal-row > .reveal-kind,
+  .reveal-row > .reveal-label {
+    grid-row: 1;
+  }
+  .reveal-row > .btn-icon {
+    grid-row: 1;
+    grid-column: 3;
+    align-self: start;
+  }
+  .reveal-row > .reveal-kind {
+    align-self: start;
+    margin-top: 0.15rem;
+  }
+  .reveal-row > .muted {
+    grid-row: 2;
+    grid-column: 3;
+    justify-self: end;
+  }
+  .reveal-row > :not(.reveal-kind):not(.reveal-label):not(.btn-icon):not(.muted) {
+    grid-row: 2;
+    grid-column: 1 / 3;
+  }
+}
+
+/* O nome do sistema em Regras ocupa a linha toda (antes ficava cortado: “Estilo D&D 5e (d”); os botões vão embaixo. */
+.system-editor .entity-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+}
+.system-editor .entity-title-wrap {
+  order: -1;
+  flex: 1 1 100%;
+  min-width: 0;
+  text-align: left;
+}
+.system-editor .entity-name {
+  width: 100%;
+  font-size: clamp(1.25rem, 5.5vw, 2rem);
+  text-overflow: ellipsis;
+}
+
+/* Sessão: “Nesta sessão” e as rolagens de um toque (auditoria 26, Rafa). */
+.session-cast {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.session-cast-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.session-cast-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.session-cast-add > * {
+  flex: 1 1 14rem;
+}
+.log-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+.log-quick > .select {
+  flex: 0 1 10rem;
 }

@@ -1,3 +1,4 @@
+import { recall, remember } from '../state/prefs'
 import { ArrowRight, Earth, Globe, Import, Layers, ScrollText, Sprout, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { worldGaps } from '../logic/worldGaps'
@@ -21,7 +22,12 @@ export function WorldCard() {
   const full = worldLevel(universe) === 'completo'
   const gaps = useMemo(() => worldGaps(universe, { full }).slice(0, 3), [universe, full])
   const [seeding, setSeeding] = useState(false)
-  const [importing, setImporting] = useState(false)
+  // Vindo da Biblioteca por “Já tenho um mundo em outro app”: o importador já abre.
+  const [importing, setImporting] = useState(() => {
+    const asked = recall('abrir-trazer')
+    if (asked) remember('abrir-trazer', null)
+    return Boolean(asked)
+  })
   const empty = universe.entities.length === 0
   const grown = !full && !readOnly && (universe.entities.length >= GROWN || universe.groups.length > 0)
   const together = others.filter((o) => o.entityId)

@@ -81,6 +81,11 @@ describe('findCandidates', () => {
     expect(found.map((c) => c.text)).toEqual(['Kael'])
   })
 
+  it('aceita um nome no início de frase a partir da 2ª vez (a protagonista que abre as frases)', () => {
+    expect(findCandidates('Selene chegou ao porto. Selene sorriu.', []).map((c) => c.text)).toEqual(['Selene'])
+    expect(findCandidates('Selene chegou ao porto. Era noite.', []).map((c) => c.text)).toEqual([])
+  })
+
   it('aceita um nome que só aparece no início de frase se ele se repetir', () => {
     const text = 'Lyra correu. Lyra parou. Lyra riu.'
     expect(findCandidates(text, []).map((c) => c.text)).toEqual(['Lyra'])

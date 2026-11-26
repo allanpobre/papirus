@@ -118,7 +118,7 @@ export function ReviewDialog({ scene, questions, onClose }: { scene: Scene; ques
             )}
           </div>
           <p className="muted small">
-            Heurística simples: palavras com maiúscula no meio da frase. Pode errar. Nada é criado sem o seu clique.
+            Nomes com maiúscula no meio da frase (ou que abrem duas frases). Pode errar, e nada é criado sem o seu toque. Não achou um nome? Selecione ele no texto e toque em “Ficha”.
           </p>
           {candidates.length === 0 ? (
             <p className="empty-inline">Nenhum nome novo por aqui.</p>

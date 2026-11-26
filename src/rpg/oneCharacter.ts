@@ -31,7 +31,8 @@ export function linkToWorld(u: Universe, sheetId: string): Universe {
 
 /**
  * Uma vez por universo: os personagens de jogador de antes ganham a ficha no Mundo (ou ligam à de
- * mesmo nome). Os NPCs ficam como estão: ganham ficha quando o mestre pedir.
+ * mesmo nome). Os NPCs antigos ficam como estão: ganham ficha pelo botão “Criar a ficha no mundo”
+ * (os novos já nascem com ela).
  */
 export function linkPlayerSheets(u: Universe): Universe {
   let next = u

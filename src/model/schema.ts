@@ -589,6 +589,9 @@ export const sessionSchema = z.object({
   turnId: ref.default(null),
   /** Por lados e pipoca: quem já agiu nesta rodada. */
   acted: z.array(z.string()).default([]),
+  /** “Nesta sessão”: as fichas (NPCs, lugares, facções…) e as pistas que o mestre quer à mão (auditoria 26, Rafa). */
+  cast: z.array(z.string()).optional().catch(undefined),
+  seedIds: z.array(z.string()).optional().catch(undefined),
   /** O início forte da sessão: a primeira cena, já com algo acontecendo. */
   strongStart: z.string().default(''),
   /** As cenas possíveis da sessão (o roteiro do mestre), para riscar ao jogar. */

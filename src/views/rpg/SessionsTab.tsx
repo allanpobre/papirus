@@ -1,4 +1,4 @@
-import { Dices, Flag, Play, Plus, Send, Trash2, X } from 'lucide-react'
+import { Dices, Flag, Play, Plus, Send, Sprout, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { factSentence, revelationLabel } from '../../logic/codex'
 import { SESSION_STATUS_LABEL } from '../../model/labels'
@@ -13,6 +13,8 @@ import { AttendanceList } from './Attendance'
 import { InitiativeTracker } from './InitiativeTracker'
 import { RecapEditor } from './Journal'
 import { useRpg } from './rpgContext'
+
+const QUICK_ROLLS = ['Acertou', 'Errou', 'Crítico!', 'Falha crítica', 'Passou', 'Não passou']
 
 export function SessionsTab() {
   const { universe, update, nav } = useWorkspace()
@@ -69,7 +71,7 @@ export function SessionsTab() {
 }
 
 function SessionDetail({ session: s, group, showInitiative, onDeleted }: { session: Session; group: Group; showInitiative: boolean; onDeleted: () => void }) {
-  const { universe, update, undoable } = useWorkspace()
+  const { universe, update, undoable, go } = useWorkspace()
   const { startSession, endSession } = useRpg()
   const [note, setNote] = useState('')
   const [revealId, setRevealId] = useState<string | null>(null)
@@ -81,6 +83,11 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
   const nowYear = [...universe.sessions].filter((x) => x.worldYear !== null && x.number < s.number).sort((a, b) => b.number - a.number)[0]?.worldYear ?? storyNow(universe)
   const revelations = universe.revelations.filter((r) => r.sessionId === s.id)
 
+  const cast = s.cast ?? []
+  const openSeeds = universe.seeds.filter((x) => x.status === 'aberta' || x.status === 'parcial')
+  const seedsHere = (s.seedIds ?? []).map((id) => universe.seeds.find((x) => x.id === id)).filter((x): x is (typeof universe.seeds)[number] => Boolean(x))
+  const rollers = universe.sheets.filter((x) => x.groupId === group.id).map((x) => x.name).filter(Boolean)
+  const [who, setWho] = useState('')
   const addNote = () => {
     if (!note.trim()) return
     const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -144,9 +151,55 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
           )}
         </Field>
         <Field label="Preparação" wide hint="Só o mestre vê. Ganchos, cenas possíveis, nomes de reserva.">
-          {(id) => <textarea id={id} className="input textarea" rows={4} value={s.prep} onChange={(e) => set({ prep: e.target.value })} />}
+          {(id) => <textarea id={id} className="input textarea" rows={4} value={s.prep} placeholder="Onde a história começa? Quem os jogadores encontram primeiro? Ganchos, cenas possíveis, nomes de reserva…" onChange={(e) => set({ prep: e.target.value })} />}
         </Field>
       </div>
+
+      <section className="session-cast" aria-labelledby="sessao-cast">
+        <h2 id="sessao-cast" className="section-title">
+          Nesta sessão
+        </h2>
+        <p className="muted small">Os NPCs, lugares e pistas que devem aparecer, à mão. Um toque abre a ficha ou a pista.</p>
+        {(cast.length > 0 || seedsHere.length > 0) && (
+          <ul className="chips session-cast-list">
+            {cast.map((id) => {
+              const e = byId(universe, 'entities', id)
+              if (!e) return null
+              return (
+                <li key={id} className="saved-view">
+                  <button type="button" className="chip" onClick={() => go('fichas', id)}>
+                    {e.name || 'Sem nome'}
+                  </button>
+                  <button type="button" className="chip" aria-label={`Tirar ${e.name} desta sessão`} onClick={() => set({ cast: cast.filter((x) => x !== id) })}>
+                    <X size={12} aria-hidden="true" />
+                  </button>
+                </li>
+              )
+            })}
+            {seedsHere.map((seed) => (
+              <li key={seed.id} className="saved-view">
+                <button type="button" className="chip" onClick={() => go('tramas', seed.id)}>
+                  <Sprout size={12} aria-hidden="true" /> {seed.title || 'Sem título'}
+                </button>
+                <button type="button" className="chip" aria-label={`Tirar a pista ${seed.title} desta sessão`} onClick={() => set({ seedIds: (s.seedIds ?? []).filter((x) => x !== seed.id) })}>
+                  <X size={12} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="session-cast-add">
+          <EntityPicker label="Pôr uma ficha nesta sessão" value={null} onChange={(id) => id && set({ cast: [...cast.filter((x) => x !== id), id] })} placeholder="NPC, lugar, facção…" />
+          {openSeeds.length > 0 && (
+            <Select
+              label="Pôr uma pista nesta sessão"
+              value=""
+              onChange={(id) => id && set({ seedIds: [...(s.seedIds ?? []).filter((x) => x !== id), id] })}
+              options={[{ value: '', label: 'Pôr uma pista…' }, ...openSeeds.map((x) => ({ value: x.id, label: x.title || 'Sem título' }))]}
+            />
+          )}
+        </div>
+      </section>
 
       <div className="session-cols">
         <section className="session-log">
@@ -179,6 +232,23 @@ function SessionDetail({ session: s, group, showInitiative, onDeleted }: { sessi
             <button type="button" className="btn-icon" aria-label="Registrar nota" onClick={addNote}>
               <Send size={16} />
             </button>
+          </div>
+          {/* Dado físico na mesa, resultado num toque (auditoria 26, Rafa): quem rolou e como foi, sem digitar. */}
+          <div className="log-quick" role="group" aria-label="Anotar rolagem">
+            <Select label="Quem rolou" value={who} onChange={setWho} options={[{ value: '', label: 'Quem rolou…' }, ...rollers.map((n) => ({ value: n, label: n }))]} />
+            {QUICK_ROLLS.map((r) => (
+              <button
+                key={r}
+                type="button"
+                className="chip"
+                onClick={() => {
+                  const at = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                  set({ log: [...s.log, { id: newId(), at, text: who ? `${who}: ${r.toLowerCase()}` : r, kind: 'rolagem' }] })
+                }}
+              >
+                {r}
+              </button>
+            ))}
           </div>
           <p className="muted tiny">Ao encerrar, o registro vai para Ideias. Nada vira canon sem a sua revisão.</p>
         </section>

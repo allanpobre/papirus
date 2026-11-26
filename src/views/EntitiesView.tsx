@@ -5,6 +5,7 @@ import { PassesEditor, WhoIsEditor } from './WhoIs'
 import { optionKinds, whoIsKeys } from '../logic/definers'
 import { GAME_KINDS } from '../rpg/worldBonuses'
 import { VersionsBar } from './VersionsView'
+import { SuggestedDates } from './SuggestedDates'
 import { NameIdeas } from './NameIdeas'
 import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X, SlidersHorizontal } from 'lucide-react'
 import { Picture } from '../images/Picture'
@@ -102,6 +103,20 @@ export default function EntitiesView() {
     remember('ficha-vista', m)
   }
   const [query, setQuery] = useState('')
+  // Vistas guardadas da lista (auditoria 26, Duda): os filtros de agora viram um atalho, neste aparelho.
+  type SavedView = { name: string; kind: string; role: string; order: string; query: string }
+  const viewsKey = `vistas-fichas:${universe.id}`
+  const [savedViews, setSavedViews] = useState<SavedView[]>(() => {
+    try {
+      return JSON.parse(recall(viewsKey) ?? '[]') as SavedView[]
+    } catch {
+      return []
+    }
+  })
+  const storeViews = (next: SavedView[]) => {
+    setSavedViews(next)
+    remember(viewsKey, next.length ? JSON.stringify(next) : null)
+  }
   const [kind, setKind] = useState<string>('todos')
   const [newName, setNewName] = useState('')
   const [newKind, setNewKind] = useState('personagem')
@@ -229,6 +244,7 @@ export default function EntitiesView() {
     <div className={`view split fichas-view${selected ? ' has-detail' : ''}${table ? ' is-table' : ''}`}>
       <AreaHead current="fichas" tour="fichas" />
       <section className="split-list" aria-label="Lista de fichas">
+        <SuggestedDates />
         {/* No celular, a lista vem primeiro: criar fica no botão redondo. */}
         {!phone && !readOnly && (
           <>
@@ -316,6 +332,45 @@ export default function EntitiesView() {
           </>
           )}
         </div>
+        {(savedViews.length > 0 || kind !== 'todos' || roleFilter || query.trim()) && (
+          <div className="saved-views" role="group" aria-label="Vistas guardadas">
+            {savedViews.map((v, i) => (
+              <span key={i} className="saved-view">
+                <button
+                  type="button"
+                  className="chip"
+                  aria-pressed={v.kind === kind && v.role === roleFilter && v.query === query && v.order === order}
+                  onClick={() => {
+                    setKind(v.kind)
+                    setRoleFilter(v.role)
+                    setQuery(v.query)
+                    changeOrder(v.order as Order)
+                  }}
+                >
+                  {v.name}
+                </button>
+                <button type="button" className="chip" aria-label={`Tirar a vista “${v.name}”`} onClick={() => storeViews(savedViews.filter((_, j) => j !== i))}>
+                  <X size={12} aria-hidden="true" />
+                </button>
+              </span>
+            ))}
+            {(kind !== 'todos' || roleFilter || query.trim()) &&
+              !savedViews.some((v) => v.kind === kind && v.role === roleFilter && v.query === query.trim() && v.order === order) && (
+                <button
+                  type="button"
+                  className="link-btn small"
+                  onClick={() => {
+                    const name = [kind !== 'todos' ? kindPlural(kind) : '', roleFilter ? (roleFilter === 'sem' ? 'Sem papel' : ROLE_LABEL[roleFilter as keyof typeof ROLE_LABEL]) : '', query.trim() ? `“${query.trim()}”` : '']
+                      .filter(Boolean)
+                      .join(' · ')
+                    storeViews([...savedViews, { name, kind, role: roleFilter, order, query: query.trim() }])
+                  }}
+                >
+                  Guardar esta vista
+                </button>
+              )}
+          </div>
+        )}
         {(!nova || filtersOpen) && (
         <div className="list-modes">
           {

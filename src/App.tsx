@@ -152,6 +152,8 @@ export default function App() {
         // "Ver um mundo de exemplo" na apresentação: abre o exemplo (uma vez; o endereço volta ao normal).
         const which = new URLSearchParams(location.search).get('exemplo')
         if (which !== null) {
+          // “Só ler” (auditoria 26, Beto): o exemplo abre direto no leitor, sem passar pelo painel de quem escreve.
+          if (new URLSearchParams(location.search).has('ler')) remember('abrir-leitor', '1')
           history.replaceState(null, '', location.pathname)
           const sample = await sampleFor(which)
           await lib.repository(sample.id).save(sample)

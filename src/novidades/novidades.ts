@@ -13,6 +13,46 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-29d',
+    when: '29 de novembro',
+    title: 'Mesa: preparar e jogar com menos fita adesiva',
+    items: [
+      'Na sessão, “Nesta sessão” junta os NPCs, lugares e pistas que devem aparecer, à mão (e o Painel mostra quem está na próxima).',
+      'Dado de verdade, resultado num toque: escolha quem rolou e toque em Acertou, Errou, Crítico, Passou… vai para o registro com a hora.',
+      'O sistema se escolhe antes de criar a campanha; a preparação da sessão 1 nasce em branco (a pergunta virou dica); o nome do sistema em Regras aparece inteiro; e, no celular, o “×” de cada revelação do Codex fica na linha do nome.',
+    ],
+  },
+  {
+    id: '2026-11-29c',
+    when: '29 de novembro',
+    title: 'Para quem traz um mundo pronto',
+    items: [
+      'Anos escritos nas fichas (“a tempestade de 340”) viram propostas de evento na Linha do tempo, ligadas à ficha. Você troca o título e escolhe quais entram.',
+      'Lista de fichas: os filtros não ficam mais cortados no computador, e “Guardar esta vista” transforma os filtros de agora num atalho.',
+      'Ajustes › Importar e wiki: “Levar para o Obsidian” baixa um .zip com uma pasta por tipo e uma nota por ficha, com as [[ligações]].',
+    ],
+  },
+  {
+    id: '2026-11-29b',
+    when: '29 de novembro',
+    title: 'Seu livro, guardado e com histórico à mão',
+    items: [
+      'Quando o livro passa de mil palavras e ainda só existe neste aparelho (sem conta), o Início avisa com todas as letras e oferece guardar na sua conta ou baixar uma cópia. “Agora não” some por duas semanas.',
+      'No rodapé da escrita, o histórico da cena fica à mão: o número de versões guardadas, num toque.',
+    ],
+  },
+  {
+    id: '2026-11-29a',
+    when: '29 de novembro',
+    title: 'Para quem escreve, mestra e constrói mundos',
+    items: [
+      'Mesa: todo NPC criado no Grupo já ganha a ficha no Mundo, então dá para revelá-lo no Codex sem criar nada à mão. Fichas de jogo antigas ganharam “Criar a ficha no mundo”.',
+      'Ligações: o Papirus lê as fichas e propõe as ligações que já estão escritas (“Irmão de Mira”, “serve à Casa Vaelor”). Você aceita uma por uma, ou todas.',
+      'Primeira tela: “Já tenho um mundo em outro app” cria o universo e abre o importador (Obsidian, Kanka, World Anvil). Na apresentação, “Ou só ler o livro” abre o exemplo direto no leitor.',
+      'Escrever: o “Salvo” do celular desceu e não cobre mais as abas; um nome que abre duas frases já aparece em “nomes novos”; e o primeiro livro nasce com o nome do universo.',
+    ],
+  },
+  {
     id: '2026-11-28e',
     when: '28 de novembro',
     title: 'Lista de Lugares do mapa, no celular',

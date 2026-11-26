@@ -37,6 +37,7 @@ import {
   Trash2,
   Users,
   Wand2,
+  FolderInput,
 } from 'lucide-react'
 import { AccountButton } from '../account/AccountButton'
 
@@ -357,6 +358,19 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <Sparkles size={15} aria-hidden="true" /> Ou abrir o exemplo pronto (O Mágico de Oz)
         </button>
       )}
+      {/* Quem já tem um mundo em outro app (auditoria 26, Duda): cria o universo e já abre o “Trazer de outro app”. */}
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm start-example"
+        onClick={() => {
+          remember('abrir-trazer', '1')
+          if (!p.onboarded) setPref('onboarded', true)
+          onCreated(applyTemplate(createUniverse(name.trim() || 'Meu mundo'), template))
+          setName('')
+        }}
+      >
+        <FolderInput size={15} aria-hidden="true" /> Já tenho um mundo em outro app (Obsidian, Kanka, World Anvil)
+      </button>
     </form>
   )
 
@@ -370,15 +384,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       }}
     >
       {campaigns.length > 0 && <h2 className="start-card-title">Nova campanha</h2>}
-      <label htmlFor="nova-campanha" className={campaigns.length === 0 ? 'start-label' : 'sr-only'}>
-        Nome da campanha
-      </label>
-      <div className="start-row">
-        <input id="nova-campanha" className="input input-lg" placeholder="Ex.: A Queda de Valkaria" autoFocus={campaigns.length > 0} value={name} onChange={(e) => setName(e.target.value)} />
-        <button type="submit" className="btn btn-primary btn-lg start-submit">
-          <Plus size={18} /> Criar campanha
-        </button>
-      </div>
+      {/* O sistema antes do botão: o Rafa jogava D&D e a campanha nasceu em Tormenta 20 sem ele ver (auditoria 26). */}
       <p className="start-label" id="sistema-campanha">
         Sistema
       </p>
@@ -388,6 +394,15 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
             {t.name.replace(/^Estilo /, '')}
           </button>
         ))}
+      </div>
+      <label htmlFor="nova-campanha" className={campaigns.length === 0 ? 'start-label' : 'sr-only'}>
+        Nome da campanha
+      </label>
+      <div className="start-row">
+        <input id="nova-campanha" className="input input-lg" placeholder="Ex.: A Queda de Valkaria" autoFocus={campaigns.length > 0} value={name} onChange={(e) => setName(e.target.value)} />
+        <button type="submit" className="btn btn-primary btn-lg start-submit">
+          <Plus size={18} /> Criar campanha
+        </button>
       </div>
       <p className="tiny muted start-hint">A mesa já vem pronta: o sistema, a sessão 1 e uma tabela de rumores. Você joga com dados de verdade; o Papirus guarda as fichas e mostra o Codex aos jogadores.</p>
     </form>

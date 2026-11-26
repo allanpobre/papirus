@@ -14,6 +14,7 @@ import { EntityMultiPicker, EntityPicker } from '../ui/EntityPicker'
 import { Modal } from '../ui/Modal'
 import { AreaHead } from './AreaModes'
 import { TimeMachine } from './TimeMachine'
+import { SuggestedDates } from './SuggestedDates'
 import { FeastStrip } from './FeastStrip'
 import { TimelineLanes } from './TimelineLanes'
 
@@ -113,6 +114,7 @@ export default function TimelineView() {
   return (
     <div className="view timeline-view">
       <AreaHead current="timeline" tour="timeline" />
+      <SuggestedDates />
       <header className="view-head view-head-wide area-tools">
         <form className="quick-create" onSubmit={create}>
           <label htmlFor="novo-evento" className="sr-only">
