@@ -1,3 +1,4 @@
+import { CountUp } from '../ui/CountUp'
 import { SafariNotice } from '../ui/SafariNotice'
 import { isLocalOnly } from '../model/sample'
 import { BookOpen, Dices, Feather, ImagePlus, Inbox, Library, Lightbulb, Loader2, Plus, Search, Timer, Users, X } from 'lucide-react'
@@ -137,7 +138,7 @@ export default function HomeView() {
             <span className="home-stat" title={until ? `A meta de hoje sai do prazo do livro (${untilFmt.format(new Date(`${until}T12:00:00Z`))})` : undefined}>
               {target > 0 && <span className="home-ring" style={{ '--p': pct } as React.CSSProperties} aria-hidden="true" />}
               <span>
-                <strong className="tabular">{today.toLocaleString('pt-BR')}</strong>
+                <strong className="tabular"><CountUp value={today} /></strong>
                 {target > 0 ? ` de ${target.toLocaleString('pt-BR')}` : ` ${today === 1 ? 'palavra' : 'palavras'}`} hoje
                 {until && <span className="home-stat-sub"> para chegar a {untilFmt.format(new Date(`${until}T12:00:00Z`))}</span>}
               </span>

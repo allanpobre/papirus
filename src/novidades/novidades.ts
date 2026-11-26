@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-28c',
+    when: '28 de novembro',
+    title: 'Pequenos movimentos com sentido',
+    items: [
+      'A ficha troca o nome, o retrato e o resumo com um fade curto quando eles mudam ao longo da história (e ao trocar de versão).',
+      'A lista de fichas entra em cascata; no mapa, os marcadores caem no lugar e as rotas aparecem; o anel da meta no Início enche e o número sobe; o “Salvo” tem um pontinho que pulsa enquanto grava e faz um “pop” ao terminar.',
+    ],
+  },
+  {
     id: '2026-11-28b',
     when: '28 de novembro',
     title: 'O app responde mais suave ao toque',

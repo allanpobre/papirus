@@ -680,14 +680,14 @@ function MapCanvas({ map }: { map: AtlasMap }) {
               {i + 1}
             </span>
           ))}
-          {visible.map((p) => {
+          {visible.map((p, pi) => {
             const e = byId(universe, 'entities', p.entityId)
             return (
               <button
                 key={p.id}
                 type="button"
                 className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}${scope && !scope.belongs(p.entityId) && !scope.inNoBook(p.entityId) ? ' off-book' : ''}`}
-                style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
+                style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%`, '--i': Math.min(pi, 14) } as React.CSSProperties}
                 aria-label={`${p.label || e?.name || 'Marcador'}${e ? `, ${kindLabel(e.kind)}` : ''}`}
                 {...pinTap(p.id)}
               >

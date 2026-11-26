@@ -1,3 +1,4 @@
+import { useSwap } from '../ui/useSwap'
 import { OriginChip } from './AUBanner'
 import { PassesEditor, WhoIsEditor, WhoIsReader } from './WhoIs'
 import { definerListIds, definersFor, whoIsKeys } from '../logic/definers'
@@ -63,6 +64,8 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const view = versionId ? versionView(base, versionId, scenes) : null
   // A ficha como está naquele ponto: a base mais as fases que já começaram (nome, resumo, retrato, campos).
   const e = view?.entity ?? entityAt(base, index, scenes)
+  // O que muda ao longo da história (nome, retrato, resumo) troca com um fade curto.
+  const swapKey = useSwap(e.name, e.image, e.summary)
   const phase = view ? (view.phase && !view.planned ? { phase: view.phase, at: view.at } : null) : phaseAt(base, index, scenes)
   const suffix = universe.settings.calendarSuffix
   // Efeito dominó (no Completo): "e se esta ficha sumir?".
@@ -659,7 +662,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
               disabled={!tools || !quadro}
               onClick={() => quadro && setEditingId(quadro.id)}
             >
-              {e.image ? <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="hero-portrait" /> : <GeneratedCover name={e.name || '?'} className="hero-portrait" />}
+              {e.image ? <Picture key={swapKey} value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} /> : <GeneratedCover key={swapKey} name={e.name || '?'} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} />}
             </button>
             {heroStats.map(([k, v], i) => (
               <div key={k} className={`hero-stat hero-stat-${i + 1}${changedKeys.has(fold(k.trim())) ? ' is-changed' : ''}`}>
@@ -668,7 +671,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
               </div>
             ))}
           </div>
-          <h1 className="hero-name">{e.name || 'Sem nome'}</h1>
+          <h1 key={swapKey} className={`hero-name${swapKey ? ' swap-in' : ''}`}>{e.name || 'Sem nome'}</h1>
           <p className="hero-tags">
             {roleIn(e, bookId) && <span className="hero-role">★ {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
             {!roleIn(e, bookId) && <span className="hero-kind">{kindLabel(e.kind)}</span>}
@@ -694,7 +697,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
           <OriginChip item={e} full />
         </p>
         )}
-        {!nova && <h1>{e.name || 'Sem nome'}</h1>}
+        {!nova && <h1 key={swapKey} className={swapKey ? 'swap-in' : undefined}>{e.name || 'Sem nome'}</h1>}
         {!nova && phase && (
           <p className="phase-now small">
             <span className="phase-chip">{phase.phase.name || 'Fase'}</span> desde “{sceneTitle(scenes[phase.at])}”{phase.phase.cause && <span className="muted"> · {phase.phase.cause}</span>}
@@ -721,7 +724,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             {known.first !== null ? `Aparece pela primeira vez em “${sceneTitle(scenes[known.first])}”.` : 'Ainda não aparece em nenhuma cena.'}
           </p>
         )}
-        {known.known && e.summary && rich(e.summary).length > 0 && <p className="reader-lede">{rich(e.summary)}</p>}
+        {known.known && e.summary && rich(e.summary).length > 0 && <p key={swapKey} className={`reader-lede${swapKey ? ' swap-in' : ''}`}>{rich(e.summary)}</p>}
         {e.game && (e.game.traits.length > 0 || Object.keys(e.game.mods).length > 0) && (
           <p className="reader-game small">
             <Dices size={14} aria-hidden="true" /> No jogo:{' '}

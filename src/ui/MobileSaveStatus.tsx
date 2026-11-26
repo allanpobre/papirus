@@ -81,7 +81,7 @@ export function MobileSaveStatus({ status, saveError, cloud, onFreeSpace }: { st
   } else if (flash) {
     body = (
       <>
-        <Check size={14} aria-hidden="true" /> Salvo
+        <Check size={14} className="save-check" aria-hidden="true" /> Salvo
       </>
     )
   }
