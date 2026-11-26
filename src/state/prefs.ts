@@ -28,7 +28,7 @@ export interface Prefs {
   sector: 'escrita' | 'rpg' | 'oficina' | 'comunidade'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
-  /** "Nova cara (teste)": o clima de cada mundo vale no app inteiro. */
+  /** A Nova cara (o clima de cada mundo no app inteiro, a barra com os lugares grandes). Desde 30/11/2026, sempre ligada. */
   novaCara?: boolean
   /** Primeira vez mais curta: partes que esperam o uso no primeiro universo (sem valor: nunca ligou). */
   firstSteps?: FirstSteps
@@ -66,6 +66,7 @@ export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'graf
 
 export const DEFAULT_PREFS: Prefs = {
   theme: 'sistema',
+  novaCara: true,
   editorFont: 'serifa',
   editorSize: 19,
   editorWidth: 'media',
@@ -125,6 +126,8 @@ function read(): Prefs {
     // Primeira vez: lê sem quebrar (parte desconhecida, de outra versão, fica de fora).
     if ('firstSteps' in saved) saved.firstSteps = cleanFirstSteps(saved.firstSteps)
     if (saved.menus) saved.menus = Object.fromEntries(Object.entries(saved.menus).map(([k, v]) => [k, (v ?? []).filter((x) => (x as string) !== 'wiki')]))
+    // A Nova cara é a cara de todos (decisão de 30/11/2026): o valor antigo guardado, ligado ou não, não vale mais.
+    saved.novaCara = true
     return { ...DEFAULT_PREFS, ...saved, continuity: { ...DEFAULT_PREFS.continuity, ...saved.continuity } }
   } catch {
     return DEFAULT_PREFS
