@@ -81,7 +81,7 @@ test('aviso do exemplo é discreto, dá para esconder, e exemplo antigo vira o a
 
   // Simula um exemplo de uma versão antiga do Papirus.
   await page.getByRole('button', { name: 'Ajustes e dados' }).click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /^Universo/ }).click()
   await page.getByRole('textbox', { name: 'Nome', exact: true }).fill('Exemplo velho')
   await page.getByRole('textbox', { name: 'Descrição' }).fill('Universo de exemplo. Um reino em ruínas, um estranho de rosto pálido e uma herdeira que não sabe quem é.')
   await expect(page.getByRole('status').filter({ hasText: 'Salvo' }).first()).toBeVisible()

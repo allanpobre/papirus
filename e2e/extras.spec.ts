@@ -114,7 +114,7 @@ test('calendário próprio: meses nomeados nas datas das cenas', async ({ page }
   await newUniverse(page)
   await page.keyboard.type('Neblina na costa.')
   await nav(page, 'Ajustes e dados').click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /^Universo/ }).click()
   await page.getByRole('button', { name: '+ Mês' }).click()
   await page.getByRole('button', { name: '+ Mês' }).click()
   await page.getByRole('textbox', { name: 'Nome do mês 1' }).fill('Geada')
@@ -244,12 +244,12 @@ test('relação com várias fichas: "criado por" duas pessoas numa linha só', a
 test('no celular, o menu "Mais" leva a todas as áreas e a página não rola de lado', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openSample(page)
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Trama' }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^História/ }).click()
   await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Quem sabe o quê' }).click()
   await expect(page.getByRole('heading', { name: 'Quem sabe o quê' })).toBeAttached()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('group', { name: 'Todas as áreas' })).toHaveCount(0)
 })
@@ -385,6 +385,9 @@ test('modelo de universo: fantasia já traz o Livro I e campos sugeridos nas fic
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Kael')
   await page.keyboard.press('Enter')
+  // O personagem novo abre no criador (em cartas): “Pronto” leva à página, e “Editar tudo” ao formulário.
+  await page.getByRole('article', { name: 'Criar Kael' }).getByRole('button', { name: 'Pronto' }).click()
+  await fichaModo(page, 'Editar')
   await expect(page.getByRole('textbox', { name: 'Campo' }).first()).toHaveValue('Idade')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Escrever' }).click()
   await expect(page.locator('.write-tree')).toContainText('Capítulo 1')
@@ -393,43 +396,23 @@ test('modelo de universo: fantasia já traz o Livro I e campos sugeridos nas fic
 test.describe('no celular', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true })
 
-  test('dá para escolher os atalhos da barra de baixo, e a Oficina tem destaque no Mais', async ({ page }) => {
+  test('a barra de baixo é fixa; o Menu tem a Oficina em destaque, a busca, e a Mesa leva o clima dela só para ela', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
     const bar = page.getByRole('navigation', { name: 'Áreas' })
-    await expect(bar.getByRole('button', { name: 'Mesa', exact: true })).toHaveCount(0)
-    await bar.getByRole('button', { name: 'Mais', exact: true }).click()
+    const fixed = ['Escrever', 'Mundo', 'História', 'Menu']
+    for (const name of fixed) await expect(bar.getByRole('button', { name, exact: true })).toBeVisible()
+    await bar.getByRole('button', { name: 'Menu', exact: true }).click()
     const mais = page.getByRole('group', { name: 'Todas as áreas' })
     await expect(mais.getByRole('button', { name: /^Oficina/ })).toContainText('Dicas, livros e exercícios')
-    await mais.getByRole('button', { name: 'Escolher atalhos' }).click()
-    await mais.getByRole('button', { name: 'Mesa' }).click()
-    await expect(mais.getByRole('button', { name: 'Mesa' })).toHaveAttribute('aria-pressed', 'true')
-    await mais.getByRole('button', { name: 'Pronto' }).click()
-    await page.keyboard.press('Escape')
-    await expect(bar.getByRole('button', { name: 'Mesa', exact: true })).toBeVisible()
-    // Fica guardado.
-    await page.reload()
-    await expect(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mesa', exact: true })).toBeVisible()
-  })
-
-  test('a barra não muda sozinha: a Mesa de um livro acende o Mais, e o clima da Mesa fica só nela', async ({ page }) => {
-    await page.goto('/app/?exemplo=ostria')
-    const bar = page.getByRole('navigation', { name: 'Áreas' })
-    const fixed = ['Início', 'Escrever', 'Mundo', 'Trama']
-    for (const name of fixed) await expect(bar.getByRole('button', { name, exact: true })).toBeVisible()
-    await expect(bar.getByRole('button', { name: 'Buscar' })).toHaveCount(0)
-    await bar.getByRole('button', { name: 'Mais', exact: true }).click()
-    const mais = page.getByRole('group', { name: 'Todas as áreas' })
     await expect(mais.getByRole('button', { name: 'Buscar em tudo' })).toBeVisible()
-    await mais.getByRole('button', { name: 'Mesa', exact: true }).click()
-    // Na Mesa: a mesma barra, com o "Mais" mostrando a área aberta, e o clima da Mesa.
+    await mais.getByRole('button', { name: /^Mesa/ }).click()
+    // Na Mesa: a mesma barra, e o clima da Mesa.
     for (const name of fixed) await expect(bar.getByRole('button', { name, exact: true })).toBeVisible()
-    await expect(bar.getByRole('button', { name: 'Mais (aberto: Mesa)' })).toHaveAttribute('aria-current', 'page')
     await expect(page.locator('body')).toHaveAttribute('data-sector', 'mesa')
     // Saindo da Mesa, o clima volta ao do livro e a barra continua igual.
     await bar.getByRole('button', { name: 'Mundo', exact: true }).click()
     await expect(page.locator('body')).not.toHaveAttribute('data-sector', 'mesa')
     for (const name of fixed) await expect(bar.getByRole('button', { name, exact: true })).toBeVisible()
-    await expect(bar.getByRole('button', { name: 'Mais', exact: true })).not.toHaveAttribute('aria-current', 'page')
   })
 })
 
@@ -468,6 +451,7 @@ test('a ficha tem um modo de leitura, com nomes que levam a outras fichas', asyn
   const reader = page.getByRole('article', { name: 'Ler a ficha D. Evarista' })
   await expect(reader.getByRole('heading', { level: 1, name: 'D. Evarista' })).toBeVisible()
   await expect(reader).not.toContainText('[a partir de')
+  await reader.getByRole('button', { name: /^Ligações/ }).first().click()
   await expect(reader.getByRole('heading', { name: 'Ligações' })).toBeVisible()
   // Um nome no texto vira link para a outra ficha.
   await reader.getByRole('button', { name: 'Simão Bacamarte' }).first().click()

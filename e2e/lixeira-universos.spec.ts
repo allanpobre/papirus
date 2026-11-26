@@ -3,7 +3,7 @@ import { expect, test } from './fixtures.ts'
 // Apagar um universo não tinha volta (auditoria 23). Agora vai para "Apagados recentemente" por 30 dias.
 async function abrirUniverso(page: import('@playwright/test').Page) {
   // No celular, os Ajustes abrem na lista de categorias.
-  const cat = page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true })
+  const cat = page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /^Universo/ })
   await cat.click({ timeout: 5000 }).catch(() => {})
 }
 

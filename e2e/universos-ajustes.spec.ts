@@ -48,7 +48,7 @@ test('Ajustes em três grupos, cada painel dizendo para quem vale', async ({ pag
   // O servidor fica em Avançado, fechado.
   await expect(cats.getByRole('button', { name: 'Servidor próprio' })).toBeHidden()
 
-  await cats.getByRole('button', { name: 'Universo', exact: true }).click()
+  await cats.getByRole('button', { name: /^Universo/ }).click()
   await expect(page.locator('.settings-scope')).toHaveText('Vale só para este universo.')
   // O tipo e o apagar moram em Universo.
   await expect(page.getByRole('radiogroup', { name: 'Este universo é' })).toBeVisible()

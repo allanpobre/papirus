@@ -137,9 +137,8 @@ test('no celular, os nomes não se sobrepõem e dá para escolher um livro só',
   const all = await page.locator('.graph .node').count()
 
   // O livro 3 (com ou sem "(trechos)" no nome), escolhido no Início; as Ligações seguem.
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).first().click()
-  const livro = page.getByLabel('Livro', { exact: true })
-  await livro.selectOption((await livro.locator('option', { hasText: /^Ozma de Oz/ }).first().getAttribute('value'))!)
+  await page.getByRole('region', { name: 'Livro atual' }).getByRole('button', { name: 'Trocar livro' }).click()
+  await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio', { name: /^Ozma de Oz/ }).click()
   await openGraph(page)
   await expect.poll(() => page.locator('.graph .node').count()).toBeLessThan(all)
   await expect(page.locator('.graph .node', { hasText: 'Ozma' }).first()).toBeVisible()
@@ -169,8 +168,8 @@ test('passar o mouse numa ficha destaca o grupo dela sem mexer no resto do desen
     w.__mut = new Set()
     new MutationObserver((list) => list.forEach((m) => w.__mut.add((m.target as Element).closest('.node, .edge') ?? m.target as Element))).observe(document.querySelector('.graph')!, { subtree: true, attributes: true, childList: true })
   })
-  const box = (await page.locator('.graph .node').first().locator('circle').first().boundingBox())!
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  // Escolhe uma bolinha à vista (o desenho agora começa mais abaixo, com o alto da tela maior).
+  await page.locator('.graph .node').first().locator('circle').first().hover()
   await expect(page.locator('.graph.has-focus')).toHaveCount(1)
   const touched = await page.evaluate(() => (window as unknown as { __mut: Set<Element> }).__mut.size)
   // Só quem entra no destaque (a ficha e quem se liga a ela) é redesenhado; o apagado vem por CSS.
