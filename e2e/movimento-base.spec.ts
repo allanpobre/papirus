@@ -46,11 +46,12 @@ test('Estrutura · Página · Revisão e a barra de baixo do celular também des
 
 test('botões e abas trocam de cor com transição e afundam ao toque', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await expect(page.locator('.btn').first()).toBeVisible()
-  const t = await page.locator('.btn').first().evaluate((el) => getComputedStyle(el).transitionProperty)
+  const botao = page.getByRole('button', { name: 'Ler como livro' })
+  await expect(botao).toBeVisible()
+  const t = await botao.evaluate((el) => getComputedStyle(el).transitionProperty)
   expect(t).toContain('background-color')
   expect(t).toContain('transform')
-  const ms = await page.locator('.btn').first().evaluate((el) => getComputedStyle(el).transitionDuration)
+  const ms = await botao.evaluate((el) => getComputedStyle(el).transitionDuration)
   expect(ms).toMatch(/^0\.12s(, 0\.12s)*$/)
 })
 
@@ -69,8 +70,10 @@ test.describe('com “menos movimento”', () => {
   test('sem transição, sem afundar e sem fade de tema', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/app/?exemplo=ostria')
-    const ms = await page.locator('.btn').first().evaluate((el) => getComputedStyle(el).transitionDuration)
-    expect(ms.split(', ').every((d) => d === '0s')).toBe(true)
+    const botao = page.getByRole('button', { name: 'Ler como livro' })
+    await expect(botao).toBeVisible()
+    const ms = await botao.evaluate((el) => getComputedStyle(el).transitionDuration)
+    expect(ms).toMatch(/^0s(, 0s)*$/)
     await page.getByRole('button', { name: /Usar tema (claro|escuro)/ }).click()
     await page.waitForTimeout(100)
     await expect(page.locator('html')).not.toHaveClass(/theme-fade/)

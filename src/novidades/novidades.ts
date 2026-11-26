@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-28b',
+    when: '28 de novembro',
+    title: 'O app responde mais suave ao toque',
+    items: [
+      'O fundo da aba aberta desliza de uma parte para a outra (Fichas, Ligações, Mapas; Estrutura, Página, Revisão; e a barra de baixo do celular), em vez de pular.',
+      'Botões, abas e escolhas trocam de cor com uma transição curta, e afundam um pouquinho enquanto o dedo está neles. Trocar o tema ganhou um fade. “Carregando…” virou barras que brilham de leve.',
+      'Quem pede menos movimento no aparelho não vê nada disso.',
+    ],
+  },
+  {
     id: '2026-11-28a',
     when: '28 de novembro',
     title: 'Telas do celular menos apertadas',
