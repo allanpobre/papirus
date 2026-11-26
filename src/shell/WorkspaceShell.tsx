@@ -1,5 +1,5 @@
 import { novaOn, novaWords } from './novaWords'
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronDown, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { relativeDate } from '../logic/relativeDate'
@@ -173,6 +173,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [universe, readOnly])
   const [accountOpen, setAccountOpen] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
+  const [toolsOpen, setToolsOpen] = useState(() => recall('rail-ferramentas') !== 'fechado')
   // O tour não abre sozinho: a primeira vez começa pelos Primeiros passos do Início. Ele fica no
   // (?) de cada tela, no "Refazer o tour" dos Ajustes e no fim dos Primeiros passos.
   const [nav, setNav] = useState<Nav>(() => {
@@ -667,10 +668,40 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               </div>
             )}
             <div className="rail-group rail-group-end">
-              {TOOLS.filter((t) => t.view !== 'oficina' && (!hidden.includes(t.view) || nav.view === t.view)).map((t) => (
-                <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
-              ))}
-              {!hidden.includes('oficina') && <OficinaCard compact={collapsed} onClick={() => go('oficina')} />}
+              {/* Ferramentas (Ideias, Perguntar ao mundo, Oficina, Guia) num grupo com nome, que se recolhe e o app lembra. */}
+              {(() => {
+                const tools = TOOLS.filter((t) => !hidden.includes(t.view) || nav.view === t.view)
+                const inside = tools.some((t) => nav.view === t.view)
+                // Aberto se foi o jeito escolhido, se a área aberta é uma delas, se o tour está passando ou se o menu está recolhido (só ícones).
+                const open = toolsOpen || inside || tourOpen || collapsed
+                return (
+                  <>
+                    {tools.length > 0 && !collapsed && (
+                      <button
+                        type="button"
+                        className="rail-group-label rail-tools-toggle"
+                        aria-expanded={open}
+                        aria-controls="rail-ferramentas"
+                        onClick={() => {
+                          setToolsOpen(!open)
+                          remember('rail-ferramentas', open ? 'fechado' : 'aberto')
+                        }}
+                      >
+                        <span>Ferramentas</span>
+                        {!open && openInbox > 0 && <span className="rail-badge" aria-label={`${openInbox} ideias esperando`}>{openInbox}</span>}
+                        <ChevronDown size={14} aria-hidden="true" className="rail-tools-chevron" />
+                      </button>
+                    )}
+                    {open && (
+                      <div id="rail-ferramentas" className="rail-tools">
+                        {tools.map((t) => (
+                          <RailButton key={t.view} item={t} active={nav.view === t.view} badge={t.view === 'inbox' ? openInbox || undefined : undefined} onClick={() => go(t.view)} />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
               <RailButton item={CONFIG_ITEM} active={nav.view === 'config'} onClick={() => go('config')} />
             </div>
           </div>

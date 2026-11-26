@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-28d',
+    when: '28 de novembro',
+    title: 'Barra lateral mais calma e uma cor para cada área',
+    items: [
+      'No computador, “Ideias”, “Perguntar ao mundo”, “Oficina” e “Guia” ficam num grupo chamado “Ferramentas”, que se recolhe (e o app lembra). A Oficina deixou de ser um cartão colorido: é um item como os outros.',
+      'Cada área tem a sua cor num filete fino no alto da tela (Mundo verde, Trama roxa, Publicar laranja…), para você saber onde está sem ler.',
+    ],
+  },
+  {
     id: '2026-11-28c',
     when: '28 de novembro',
     title: 'Pequenos movimentos com sentido',
