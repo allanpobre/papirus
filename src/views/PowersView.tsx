@@ -13,50 +13,8 @@ import { EntityPicker } from '../ui/EntityPicker'
 
 /** A árvore em níveis: quem não pede nada no alto; cada nó mostra o que pede, o custo e de quem é de nascença. */
 export function PowerTree({ system, had, scenes = [], link, editable = false }: { system: Entity; had?: Map<string, PowerHad>; scenes?: Scene[]; link: (id: string) => React.ReactNode; editable?: boolean }) {
-  const { prefs } = useWorkspace()
-  // Nova cara: a árvore vira uma constelação (estrelas que acendem), como no Skyrim.
-  if (prefs.novaCara) return <PowerSky system={system} had={had} scenes={scenes} link={link} editable={editable && !had} />
-  const nodes = system.nodes ?? []
-  const name = (id: string) => nodes.find((n) => n.id === id)?.name ?? '?'
-  return (
-    <ol className="power-tree" aria-label={`Árvore de ${system.name || 'poderes'}`}>
-      {levelsOf(nodes).map((level, i) => (
-        <li key={i} className="power-level">
-          <span className="power-level-n tiny muted">Nível {i + 1}</span>
-          <ul>
-            {level.map((n) => {
-              const h = had?.get(powerKey(system.id, n.id))
-              return (
-                <li key={n.id} className={`power-node${had ? (h ? ' is-lit' : ' is-dark') : ''}`} aria-label={`${n.name}${had ? (h ? ', tem' : ', ainda não') : ''}`}>
-                  <strong>
-                    {h && <Sparkles size={13} aria-hidden="true" />} {n.name || 'Sem nome'}
-                  </strong>
-                  {n.summary && <span className="small">{n.summary}</span>}
-                  {n.requires.length > 0 && <span className="tiny muted">pede {n.requires.map(name).join(' + ')}</span>}
-                  {n.cost && <span className="tiny muted">custo: {n.cost}</span>}
-                  {(n.innate ?? []).length > 0 && !had && (
-                    <span className="tiny muted">
-                      de nascença: {(n.innate ?? []).map((id, j) => (
-                        <span key={id}>
-                          {j > 0 && ', '}
-                          {link(id)}
-                        </span>
-                      ))}
-                    </span>
-                  )}
-                  {h && (
-                    <span className="tiny power-how">
-                      {h.how === 'nasceu' ? <>de nascença{h.from && <> ({h.from.name})</>}</> : h.at >= 0 ? <>aprende em “{sceneTitle(scenes[h.at])}”</> : 'desde o começo'}
-                    </span>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </li>
-      ))}
-    </ol>
-  )
+  // A árvore é uma constelação (estrelas que acendem conforme a régua da história).
+  return <PowerSky system={system} had={had} scenes={scenes} link={link} editable={editable && !had} />
 }
 
 /**
@@ -265,7 +223,7 @@ export function PowerTreeEditor({ entity: e }: { entity: Entity }) {
 
 /** Os poderes do personagem naquele ponto da história, por sistema, e o que não fecha (para o autor). */
 export function CharacterPowers({ entity: e, index, reader, link }: { entity: Entity; index: number; reader: boolean; link: (id: string) => React.ReactNode }) {
-  const { universe, prefs } = useWorkspace()
+  const { universe } = useWorkspace()
   const scenes = manuscriptOrder(universe)
   const had = powersAt(universe, e, index, scenes, reader)
   const systems = systemsOf(universe).filter((s) => (s.nodes ?? []).some((n) => had.has(powerKey(s.id, n.id))) || (e.learned ?? []).some((l) => l.systemId === s.id))
@@ -276,7 +234,7 @@ export function CharacterPowers({ entity: e, index, reader, link }: { entity: En
       <h2>Poderes</h2>
       {systems.map((s) => (
         <div key={s.id}>
-          <p className={`small${prefs.novaCara ? ' sr-only' : ''}`}>
+          <p className="small sr-only">
             <strong>{link(s.id)}</strong> · {(s.nodes ?? []).filter((n) => had.has(powerKey(s.id, n.id))).length} de {(s.nodes ?? []).length}
           </p>
           <PowerTree system={s} had={had} scenes={scenes} link={link} />

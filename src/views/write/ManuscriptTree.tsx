@@ -4,11 +4,10 @@ import type { Scene } from '../../model/schema'
 import { addScene, addStory, moveScene, removeStory, renameStory, sceneTitle, scenesOf, inBook } from '../../model/universe'
 import { wordCount } from '../../persistence/repository'
 import { useWorkspace } from '../../state/workspace'
-import { BookPicker } from '../../ui/BookPicker'
 import { ConfirmButton } from '../../ui/ConfirmButton'
 
 /** Árvore do manuscrito: histórias com suas cenas, e as cenas soltas. */
-export function ManuscriptTree({ selectedId, onSelect, bookPicker = false }: { selectedId: string | null; onSelect: (id: string) => void; bookPicker?: boolean }) {
+export function ManuscriptTree({ selectedId, onSelect }: { selectedId: string | null; onSelect: (id: string) => void }) {
   const { universe, update, undoable, bookId, setBookId } = useWorkspace()
   // Com um livro escolhido no alto, só ele aparece (as cenas soltas não são de livro nenhum).
   const stories = bookId ? universe.stories.filter((s) => inBook(bookId, s.id)) : universe.stories
@@ -65,7 +64,6 @@ export function ManuscriptTree({ selectedId, onSelect, bookPicker = false }: { s
   return (
     <div className="tree">
       {/* O livro se escolhe aqui, no alto da lista de cenas. */}
-      {bookPicker && <BookPicker className="tree-book" />}
       {stories.map((story) => {
         const scenes = scenesOf(universe, story.id)
         return (

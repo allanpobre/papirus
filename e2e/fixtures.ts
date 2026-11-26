@@ -15,9 +15,6 @@ export const test = base.extend({
         if (!('birthCards' in JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}'))) localStorage.setItem('papirus:prefs', JSON.stringify({ ...JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}'), birthCards: false }))
         // A ficha abre para ler; os testes das fichas são sobre o formulário e começam em Editar (os da leitura trocam).
         if (localStorage.getItem('papirus:ficha-vista') === null) localStorage.setItem('papirus:ficha-vista', 'editar')
-        // A Nova cara é a de todos; os testes que ainda não migraram rodam na cara antiga (os que ligam a Nova cara
-        // pelas preferências, ou limpam esta chave, rodam nela). Sai quando a migração acabar.
-        if (localStorage.getItem('papirus:cara-antiga') === null) localStorage.setItem('papirus:cara-antiga', '1')
         // O Editar abre em abas; os testes antigos esperam o formulário inteiro (“Tudo”). O teste das abas limpa isto.
         if (localStorage.getItem('papirus:ficha-editar-aba') === null) localStorage.setItem('papirus:ficha-editar-aba', 'tudo')
       } catch {

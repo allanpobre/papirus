@@ -2,10 +2,6 @@ import { expect, test, type Page } from './fixtures.ts'
 
 // Pacote B (personas, acessibilidade), na Nova cara: contraste medido, letra que se lê, letra do app que cresce,
 // zoom grande sem rolar para o lado, nada só por cor e os nomes dos botões do leitor.
-test.beforeEach(async ({ context }) => {
-  await context.addInitScript(() => localStorage.setItem('papirus:cara-antiga', '0'))
-})
-
 /** O pior contraste (WCAG) entre os textos secundários à vista e o fundo de verdade atrás deles. */
 const piorContraste = (page: Page) =>
   page.evaluate(() => {

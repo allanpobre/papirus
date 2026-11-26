@@ -1,10 +1,6 @@
 import { expect, test } from './fixtures.ts'
 
 // Pacote D (personas): abas perto do polegar no celular, e a sessão como centro da Mesa. Na Nova cara.
-test.beforeEach(async ({ context }) => {
-  await context.addInitScript(() => localStorage.setItem('papirus:cara-antiga', '0'))
-})
-
 test('celular: com a opção ligada, as partes do Mundo ficam embaixo, logo acima da barra', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 })
   await page.goto('/app/?exemplo=ostria')

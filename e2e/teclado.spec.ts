@@ -3,10 +3,6 @@ import { expect, test } from './fixtures.ts'
 // Pacote C (personas, teclado): atalhos para quem vem do Notion/Obsidian. No computador, na Nova cara.
 test.use({ viewport: { width: 1280, height: 800 } })
 
-test.beforeEach(async ({ context }) => {
-  await context.addInitScript(() => localStorage.setItem('papirus:cara-antiga', '0'))
-})
-
 test('“?” mostra os atalhos; Alt+número troca de área; [ e ] trocam de parte', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()

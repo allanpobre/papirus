@@ -122,17 +122,16 @@ function novaAreas(areas: Area[]): Area[] {
   })
 }
 
-function stepsOf(area: Area, part: Part, nova = false) {
+function stepsOf(area: Area, part: Part) {
   const own = PAGE_TOURS[part.tour]?.steps ?? []
   const count = new Map<string, number>()
   for (const p of area.parts) for (const s of PAGE_TOURS[p.tour]?.steps ?? []) count.set(s.title, (count.get(s.title) ?? 0) + 1)
-  return own.filter((s) => area.parts.length < 2 || (count.get(s.title) ?? 0) < 2).map((s) => novaStep(s, nova))
+  return own.filter((s) => area.parts.length < 2 || (count.get(s.title) ?? 0) < 2).map((s) => novaStep(s, true))
 }
 
 export default function GuideView() {
   const [newsOpen, setNewsOpen] = useState(false)
-  const { go, kind, prefs } = useWorkspace()
-  const nova = !!prefs.novaCara
+  const { go, kind } = useWorkspace()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState<string | null>(null)
   const q = fold(query.trim())
@@ -142,17 +141,17 @@ export default function GuideView() {
   // Numa campanha, a Mesa vem logo depois do Início.
   const areas = useMemo(() => {
     const list = kind === 'campanha' ? [AREAS[0], AREAS[4], ...AREAS.slice(1, 4), AREAS[5]] : AREAS
-    return nova ? novaAreas(list) : list
-  }, [kind, nova])
+    return novaAreas(list)
+  }, [kind])
   const found = useMemo(
     () =>
       areas
         .map((a) => ({
           area: a,
-          parts: a.parts.filter((p) => !q || fold([a.title, p.title, p.what, ...stepsOf(a, p, nova).flatMap((s) => [s.title, s.body])].join(' ')).includes(q)),
+          parts: a.parts.filter((p) => !q || fold([a.title, p.title, p.what, ...stepsOf(a, p).flatMap((s) => [s.title, s.body])].join(' ')).includes(q)),
         }))
         .filter((x) => x.parts.length),
-    [areas, q, nova],
+    [areas, q],
   )
 
   const openPart = (p: Part) => {
@@ -190,7 +189,7 @@ export default function GuideView() {
               {parts.map((p) => {
                 const key = `${a.id}:${p.title}`
                 const expanded = open === key || Boolean(q)
-                const steps = stepsOf(a, p, nova)
+                const steps = stepsOf(a, p)
                 return (
                   <li key={key} className={`guide-part${expanded ? ' is-open' : ''}`}>
                     <div className="guide-part-head">

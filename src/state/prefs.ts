@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { QuestionType } from '../logic/continuity'
 import { cleanFirstSteps, type FirstSteps } from '../logic/firstSteps'
 import type { View } from './workspace'
-import { CAMPAIGN_SHORTCUTS, type UniverseKind } from '../model/kind'
+import { type UniverseKind } from '../model/kind'
 
 /** Preferências deste navegador (não fazem parte do universo). */
 export interface Prefs {
@@ -32,8 +32,6 @@ export interface Prefs {
   sector: 'escrita' | 'rpg' | 'oficina' | 'comunidade'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
-  /** A Nova cara (o clima de cada mundo no app inteiro, a barra com os lugares grandes). Desde 30/11/2026, sempre ligada. */
-  novaCara?: boolean
   /** Primeira vez mais curta: partes que esperam o uso no primeiro universo (sem valor: nunca ligou). */
   firstSteps?: FirstSteps
   /** Último backup baixado e "lembrar depois", por universo (ISO). */
@@ -60,17 +58,12 @@ export interface Prefs {
   birthCards: boolean
   /** Baixar o backup sozinho, uma vez por semana, ao abrir um universo com novidades. */
   autoBackup: boolean
-  /** Os atalhos da barra de baixo no celular (até 4). */
-  phoneShortcuts: View[]
-  /** Os atalhos da barra de baixo numa campanha. */
-  campaignShortcuts: View[]
 }
 
 export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'grafite' | 'rosa' | 'turquesa' | 'terracota'
 
 export const DEFAULT_PREFS: Prefs = {
   theme: 'sistema',
-  novaCara: true,
   editorFont: 'serifa',
   editorSize: 19,
   editorWidth: 'media',
@@ -106,34 +99,31 @@ export const DEFAULT_PREFS: Prefs = {
   celebrate: true,
   birthCards: true,
   autoBackup: false,
-  phoneShortcuts: ['inicio', 'escrever', 'fichas', 'tramas'],
-  campaignShortcuts: CAMPAIGN_SHORTCUTS,
 }
 
 const KEY = 'papirus:prefs'
 const SECTORS: Prefs['sector'][] = ['escrita', 'rpg', 'oficina', 'comunidade']
-const OLD_PHONE_SHORTCUTS = 'inicio,escrever,livro,fichas'
 
 function read(): Prefs {
   try {
     // O Ler/Editar da ficha saiu (a ficha é uma página só): o modo antigo guardado não vale mais.
     localStorage.removeItem('papirus:ficha-modo')
     const raw = localStorage.getItem(KEY)
-    if (!raw) return localStorage.getItem('papirus:cara-antiga') === '1' ? { ...DEFAULT_PREFS, novaCara: false } : DEFAULT_PREFS
+    // A chave dos testes antigos (da migração para a Nova cara) não vale mais.
+    localStorage.removeItem('papirus:cara-antiga')
+    if (!raw) return DEFAULT_PREFS
     const saved = JSON.parse(raw) as Partial<Prefs>
-    // A barra padrão antiga (Início, Escrever, Livro, Mundo) foi gravada com as outras preferências
-    // por quem nunca escolheu atalhos: essa pessoa ganha a barra padrão nova.
-    if (saved.phoneShortcuts?.join() === OLD_PHONE_SHORTCUTS) delete saved.phoneShortcuts
+    // Os atalhos que se escolhiam para a barra de baixo (cara antiga) não valem mais: a barra é fixa.
+    delete (saved as { phoneShortcuts?: unknown }).phoneShortcuts
+    delete (saved as { campaignShortcuts?: unknown }).campaignShortcuts
     // Um setor que não existe mais (o "Mundos", que durou pouco) volta para a Escrita.
     if (saved.sector && !SECTORS.includes(saved.sector)) delete saved.sector
     // A Wiki deixou de ser área do menu: se ficou guardada como escondida, deixa de estar.
     // Primeira vez: lê sem quebrar (parte desconhecida, de outra versão, fica de fora).
     if ('firstSteps' in saved) saved.firstSteps = cleanFirstSteps(saved.firstSteps)
     if (saved.menus) saved.menus = Object.fromEntries(Object.entries(saved.menus).map(([k, v]) => [k, (v ?? []).filter((x) => (x as string) !== 'wiki')]))
-    // A Nova cara é a cara de todos (decisão de 30/11/2026): o valor antigo guardado, ligado ou não, não vale mais.
-    // Exceção só dos testes antigos, enquanto migram área por área: a chave “papirus:cara-antiga” existe apenas nas
-    // preparações dos testes (e2e/fixtures.ts). Sai junto com o último caminho antigo do código.
-    saved.novaCara = saved.novaCara === true || localStorage.getItem('papirus:cara-antiga') !== '1'
+    // A Nova cara é a cara de todos (decisão de 30/11/2026): a chave antiga guardada não vale mais.
+    delete (saved as { novaCara?: boolean }).novaCara
     return { ...DEFAULT_PREFS, ...saved, continuity: { ...DEFAULT_PREFS.continuity, ...saved.continuity } }
   } catch {
     return DEFAULT_PREFS

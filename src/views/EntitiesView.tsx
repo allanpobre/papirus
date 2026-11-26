@@ -84,8 +84,6 @@ import { YearBanner } from './YearBanner'
 
 export default function EntitiesView() {
   const { universe, update, nav, go, readOnly, peek, bookId, toast, prefs } = useWorkspace()
-  // Nova cara: fichas como cartas com rosto e os filtros num botão.
-  const nova = !!prefs.novaCara
   const [filtersOpen, setFiltersOpen] = useState(false)
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<FichaMode>(() => {
@@ -242,8 +240,8 @@ export default function EntitiesView() {
   }
 
   // J e K: a próxima e a anterior da lista (na ordem da tela); E: alterna Ler e Editar na ficha aberta.
-  const keyState = useRef({ list, selectedId, shownMode, cards: nova && !picked, hasScenes })
-  keyState.current = { list, selectedId, shownMode, cards: nova && !picked, hasScenes }
+  const keyState = useRef({ list, selectedId, shownMode, cards: !picked, hasScenes })
+  keyState.current = { list, selectedId, shownMode, cards: !picked, hasScenes }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || typingOrDialog(e)) return
@@ -320,12 +318,10 @@ export default function EntitiesView() {
         <div className="list-tools">
           <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Procurar…" title="Procura no nome, nos campos e na descrição" value={query} onChange={(e) => setQuery(e.target.value)} />
           {/* Nova cara: menos controles à vista; tipo, papel, ordem e vista ficam num botão. */}
-          {nova && (
-            <button type="button" className="btn btn-ghost list-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
-              <SlidersHorizontal size={16} aria-hidden="true" /> Filtros{kind !== 'todos' || roleFilter ? ' •' : ''}
-            </button>
-          )}
-          {(!nova || filtersOpen) && (
+          <button type="button" className="btn btn-ghost list-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+            <SlidersHorizontal size={16} aria-hidden="true" /> Filtros{kind !== 'todos' || roleFilter ? ' •' : ''}
+          </button>
+          {filtersOpen && (
           <>
           <Select
             label="Filtrar por tipo"
@@ -398,7 +394,7 @@ export default function EntitiesView() {
               )}
           </div>
         )}
-        {(!nova || filtersOpen) && (
+        {filtersOpen && (
         <div className="list-modes">
           {
             <div className="segmented" role="radiogroup" aria-label="Vista do Mundo">
@@ -455,8 +451,8 @@ export default function EntitiesView() {
             {!universe.entities.length && <p>{phone ? 'Toque no + para criar uma' : 'Crie uma acima'}, ou selecione um nome no texto e escolha “Ficha”.</p>}
           </Empty>
         ) : (
-          <ul className={`entity-list${nova && !picked ? ' is-cards' : ''}`}>
-            {(nova && !picked ? groupedCards(list, (x) => (counts.get(x.id) ?? 0) > 0 || !hasScenes, bookId) : list.map((e) => ({ e }))).map((row) =>
+          <ul className={`entity-list${!picked ? ' is-cards' : ''}`}>
+            {(!picked ? groupedCards(list, (x) => (counts.get(x.id) ?? 0) > 0 || !hasScenes, bookId) : list.map((e) => ({ e }))).map((row) =>
               'head' in row ? (
                 <li key={row.key} className={`entity-group-head${row.sub ? ' is-sub' : ''}`}>
                   {row.sub ? <p className="tiny muted">{row.head}</p> : <h3>{row.head}</h3>}
@@ -472,7 +468,7 @@ export default function EntitiesView() {
                   </label>
                 ) : (
                 <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
-                  {nova ? (
+                  {
                     <span className="entity-card-face" aria-hidden="true">
                       {e.image ? (
                         <Picture value={e.image} className="entity-card-img" />
@@ -484,11 +480,7 @@ export default function EntitiesView() {
                       )}
                       {roleIn(e, bookId) && <span className="entity-card-role">{ROLE_LABEL[roleIn(e, bookId)!]}</span>}
                     </span>
-                  ) : e.image ? (
-                    <Picture value={e.image} className="entity-row-pic" />
-                  ) : (
-                    <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />
-                  )}
+                  }
                   <span className="entity-row-name">
                     {e.name || 'Sem nome'}
                     <OriginChip item={e} />
@@ -556,7 +548,7 @@ export default function EntitiesView() {
           <EntityTable rows={list} kind={kind} counts={counts} onOpen={(id) => peek(id)} />
         ) : selected ? (
           // Nova cara: o personagem que acabou de nascer abre no criador (escolher em cartas), não no formulário.
-          nova && !readOnly && fresh === selected.id && selected.kind === 'personagem' ? (
+          !readOnly && fresh === selected.id && selected.kind === 'personagem' ? (
             <CharacterCreator
               key={selected.id}
               entity={selected}
@@ -711,18 +703,16 @@ function ModeSwitch({
   /** Itens da própria página da ficha (o básico, arrumar, e se sumir), no alto do menu. */
   extra?: (close: () => void) => React.ReactNode
 }) {
-  const { undoable, go, prefs } = useWorkspace()
+  const { undoable, go } = useWorkspace()
   if (mode !== 'ler')
     return (
       <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange('ler')}>
         <BookOpen size={15} aria-hidden="true" /> Ver a página
       </button>
     )
-  const nova = !!prefs.novaCara
   return (
-    <MoreMenu label="Mais da ficha" popClass={nova ? 'menu-rich' : undefined}>
-      {(close) =>
-        nova ? (
+    <MoreMenu label="Mais da ficha" popClass="menu-rich">
+      {(close) => (
           <>
             {extra?.(close)}
             <MenuItem
@@ -770,48 +760,7 @@ function ModeSwitch({
               </>
             )}
           </>
-        ) : (
-          <>
-            {extra?.(close)}
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => {
-                close()
-                onChange('editar')
-              }}
-            >
-              <PenLine size={15} aria-hidden="true" /> Editar tudo de uma vez
-            </button>
-            {game && (
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => {
-                  close()
-                  onChange('jogo')
-                }}
-              >
-                <Dices size={15} aria-hidden="true" /> Ficha de jogo
-              </button>
-            )}
-            {entity && (
-              <ConfirmButton
-                className="btn btn-ghost btn-sm"
-                question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
-                confirmLabel="Apagar ficha"
-                onConfirm={() => {
-                  close()
-                  undoable(`Ficha “${entity.name}” apagada`, (u) => removeEntity(u, entity.id))
-                  go('fichas', null, { replace: true })
-                }}
-              >
-                <Trash2 size={15} aria-hidden="true" /> Apagar ficha
-              </ConfirmButton>
-            )}
-          </>
-        )
-      }
+        )}
     </MoreMenu>
   )
 }

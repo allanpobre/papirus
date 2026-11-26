@@ -12,8 +12,7 @@ async function ajustesUniverso(page: Page) {
   await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /^Universo/ }).click()
 }
 
-test('o clima do mundo muda o app inteiro na hora, no escuro e no claro', async ({ page, context }) => {
-  await context.addInitScript(() => localStorage.setItem('papirus:cara-antiga', '0'))
+test('o clima do mundo muda o app inteiro na hora, no escuro e no claro', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await ajustesUniverso(page)
   const climas = page.getByRole('radiogroup', { name: 'O clima deste mundo' })

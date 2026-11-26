@@ -6,7 +6,6 @@ import { expect, test, type Page } from './fixtures.ts'
 import { openPart, fichaModo } from './areas.ts'
 
 /** Enquanto não migra para a Nova cara (veja playwright.config.ts). */
-const CARA_ANTIGA = { cookies: [], origins: [{ origin: 'http://localhost:5179', localStorage: [{ name: 'papirus:cara-antiga', value: '1' }] }] }
 
 /** Uma "foto" de teste: um PNG grande gerado no navegador (o app deve encolher). */
 async function photo(page: Page, color = '#2f6fae', w = 2400, h = 1600) {
@@ -102,7 +101,7 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   expect(json.images![json.universe.settings.cover.slice(4)]).toMatch(/^data:image\/(webp|jpeg);base64,/)
   expect((json as { versions?: { info: { name: string } }[] }).versions?.map((v) => v.info.name)).toContain('Antes do backup')
 
-  const other = await page.context().browser()!.newContext({ storageState: CARA_ANTIGA })
+  const other = await page.context().browser()!.newContext()
   await other.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
   const p2 = await other.newPage()
   await p2.goto('/app/')
@@ -135,7 +134,7 @@ test('imagens: o mapa novo vai para as imagens (o universo fica leve)', async ({
 type Fake = ReturnType<typeof createFakeSupabase>
 
 async function device(browser: Browser, fake: Fake): Promise<Page> {
-  const context = await browser.newContext({ storageState: CARA_ANTIGA })
+  const context = await browser.newContext()
   await context.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
   await fake.attach(context)
   return context.newPage()

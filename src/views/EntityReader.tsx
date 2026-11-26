@@ -52,8 +52,7 @@ import { AppearanceList } from './AppearanceList'
 
 /** A ficha para ler, como uma página de enciclopédia: texto corrido, quadro ao lado e nomes que levam a outras fichas. */
 export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { entity: Entity; order: Entity[]; modeSwitch: React.ReactNode; onEdit?: () => void }) {
-  const { universe, go, goBack, bookId, readOnly, update, undoable, prefs } = useWorkspace()
-  const nova = !!prefs.novaCara
+  const { universe, go, goBack, bookId, readOnly, update, undoable } = useWorkspace()
   // A régua da história: até qual cena se olha, e se é como o leitor (só o que ele já sabe ali).
   const scenes = manuscriptOrder(universe)
   const [point] = useStoryPoint(universe.id)
@@ -246,7 +245,6 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const quadroView =
     e.image || infobox.length > 0 || e.tags.length > 0 || children.length > 0 || onMap ? (
       <aside className="reader-infobox" aria-label="Em resumo">
-        {e.image && !nova && <Picture value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className="reader-portrait" />}
         {onMap && <MapGlimpse entity={e} />}
         {infobox.length > 0 && (
           <dl>
@@ -587,16 +585,15 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const tabOf = (t: string): HeroTab => HERO_TAB_OF[t] ?? 'visao'
   const tabs = HERO_TABS.filter(([t]) => t === 'visao' || shown.some(({ block }) => tabOf(block.type) === t))
   const activeTab = tabs.some(([t]) => t === tab) ? tab : 'visao'
-  const inTab = nova ? shown.filter(({ block }) => tabOf(block.type) === activeTab) : shown
+  const inTab = shown.filter(({ block }) => tabOf(block.type) === activeTab)
 
   return (
-    <article className={`entity entity-reader${nova ? ' is-hero' : ''}`} aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
+    <article className="entity entity-reader is-hero" aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
       <header className="reader-head">
         <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => goBack('fichas', null)}>
           <ArrowLeft size={18} />
         </button>
         <span className="reader-head-space" />
-        {nova ? (
           <>
             {tools && (
               <button type="button" className="btn btn-sm ficha-edit-btn" aria-pressed={editHead} onClick={() => setEditHead(!editHead)}>
@@ -621,30 +618,6 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
                 })
               : modeSwitch}
           </>
-        ) : (
-          <>
-        {canDomino && (
-          <button type="button" className="btn btn-ghost btn-sm" title="Efeito dominó: o que acontece se esta ficha sumir" onClick={() => setDominoOpen(true)}>
-            <Shuffle size={15} aria-hidden="true" /> E se sumir?
-          </button>
-        )}
-        {/* Com nome à vista, não só o desenho (auditoria 23, H6.2); o "Arrumar a página" mora no "Mais da ficha". */}
-        {tools && (
-          <button type="button" className="btn btn-ghost btn-sm" aria-label="Editar o básico" title="Editar nome, resumo, tipo e apelidos" aria-pressed={editHead} onClick={() => setEditHead(!editHead)}>
-            <Pencil size={15} aria-hidden="true" /> Editar
-          </button>
-        )}
-        {tools && isValidElement(modeSwitch)
-          ? cloneElement(modeSwitch as React.ReactElement<{ extra?: (close: () => void) => React.ReactNode }>, {
-              extra: (close: () => void) => (
-                <button type="button" className="btn btn-ghost btn-sm" aria-pressed={arrange} onClick={() => (close(), setArrange(!arrange))}>
-                  <LayoutList size={15} aria-hidden="true" /> Arrumar a página
-                </button>
-              ),
-            })
-          : modeSwitch}
-          </>
-        )}
       </header>
       {dominoOpen && <DominoDialog entity={e} onClose={() => setDominoOpen(false)} />}
       <TogetherHere entityId={e.id} />
@@ -652,57 +625,42 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
       {tools && <VersionsBar entity={base} current={view ? versionId : null} onPick={(v) => setPicked(v ? { id: base.id, v } : null)} />}
       {view && <VersionBanner entity={base} view={view} onBack={() => setPicked(null)} />}
 
-      {nova && (
-        <section className="hero" aria-label={`Retrato de ${e.name || 'Sem nome'}`}>
-          <div className="hero-stage">
-            <button
-              type="button"
-              className="hero-frame"
-              aria-label={tools ? 'Trocar o retrato e os campos' : `Retrato de ${e.name || 'Sem nome'}`}
-              disabled={!tools || !quadro}
-              onClick={() => quadro && setEditingId(quadro.id)}
-            >
-              {e.image ? <Picture key={`foto${swapKey}`} value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} /> : <GeneratedCover key={`foto${swapKey}`} name={e.name || '?'} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} />}
-            </button>
-            {heroStats.map(([k, v], i) => (
-              <div key={k} className={`hero-stat hero-stat-${i + 1}${changedKeys.has(fold(k.trim())) ? ' is-changed' : ''}`}>
-                <small>{k}</small>
-                <b>{v}</b>
-              </div>
-            ))}
-          </div>
-          <h1 key={`nome${swapKey}`} className={`hero-name${swapKey ? ' swap-in' : ''}`}>{e.name || 'Sem nome'}</h1>
-          <p className="hero-tags">
-            {roleIn(e, bookId) && <span className="hero-role">★ {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
-            {!roleIn(e, bookId) && <span className="hero-kind">{kindLabel(e.kind)}</span>}
-            {phase && <span className="phase-chip">{phase.phase.name || 'Fase'}</span>}
-            <OriginChip item={e} full />
-          </p>
-          {seals.length > 0 && (
-            <p className="hero-seals">
-              {seals.map((s) => (
-                <button key={s.id} type="button" className={`hero-seal${s.locked ? ' is-locked' : ''}`} title={s.locked ? `${s.title}: o leitor ainda não sabe` : s.title} onClick={() => go('fichas', s.optionId)}>
-                  {s.locked && <Lock size={11} aria-label="Segredo por enquanto" />} {s.label}
-                </button>
-              ))}
-            </p>
-          )}
-        </section>
-      )}
-      <div className={`reader-title${nova ? ' is-under-hero' : ''}`}>
-        {!nova && (
-        <p className="eyebrow">
-          <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" /> {kindLabel(e.kind)}
-          {roleIn(e, bookId) && <span className="entity-role"> · {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
+      <section className="hero" aria-label={`Retrato de ${e.name || 'Sem nome'}`}>
+        <div className="hero-stage">
+          <button
+            type="button"
+            className="hero-frame"
+            aria-label={tools ? 'Trocar o retrato e os campos' : `Retrato de ${e.name || 'Sem nome'}`}
+            disabled={!tools || !quadro}
+            onClick={() => quadro && setEditingId(quadro.id)}
+          >
+            {e.image ? <Picture key={`foto${swapKey}`} value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} /> : <GeneratedCover key={`foto${swapKey}`} name={e.name || '?'} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} />}
+          </button>
+          {heroStats.map(([k, v], i) => (
+            <div key={k} className={`hero-stat hero-stat-${i + 1}${changedKeys.has(fold(k.trim())) ? ' is-changed' : ''}`}>
+              <small>{k}</small>
+              <b>{v}</b>
+            </div>
+          ))}
+        </div>
+        <h1 key={`nome${swapKey}`} className={`hero-name${swapKey ? ' swap-in' : ''}`}>{e.name || 'Sem nome'}</h1>
+        <p className="hero-tags">
+          {roleIn(e, bookId) && <span className="hero-role">★ {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
+          {!roleIn(e, bookId) && <span className="hero-kind">{kindLabel(e.kind)}</span>}
+          {phase && <span className="phase-chip">{phase.phase.name || 'Fase'}</span>}
           <OriginChip item={e} full />
         </p>
-        )}
-        {!nova && <h1 key={`nome${swapKey}`} className={swapKey ? 'swap-in' : undefined}>{e.name || 'Sem nome'}</h1>}
-        {!nova && phase && (
-          <p className="phase-now small">
-            <span className="phase-chip">{phase.phase.name || 'Fase'}</span> desde “{sceneTitle(scenes[phase.at])}”{phase.phase.cause && <span className="muted"> · {phase.phase.cause}</span>}
+        {seals.length > 0 && (
+          <p className="hero-seals">
+            {seals.map((s) => (
+              <button key={s.id} type="button" className={`hero-seal${s.locked ? ' is-locked' : ''}`} title={s.locked ? `${s.title}: o leitor ainda não sabe` : s.title} onClick={() => go('fichas', s.optionId)}>
+                {s.locked && <Lock size={11} aria-label="Segredo por enquanto" />} {s.label}
+              </button>
+            ))}
           </p>
         )}
+      </section>
+      <div className="reader-title is-under-hero">
         {/* Só o que foge do comum: verdade e pronta não precisam de selo. */}
         {(e.canon !== 'estabelecido' || e.editorial !== 'definido') && (
           <div className="entity-badges">
@@ -753,7 +711,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
         </div>
       )}
 
-      {known.known && nova && tabs.length > 1 && (
+      {known.known && tabs.length > 1 && (
         <nav className="hero-tabs" aria-label="Partes da ficha">
           {tabs.map(([t, label]) => (
             <button key={t} type="button" aria-current={activeTab === t ? 'page' : undefined} onClick={() => setTab(t)}>
@@ -764,7 +722,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
       )}
       {known.known && (
         <div className="reader-body">
-          {quadro && (nova ? editingId === quadro.id || (activeTab === 'visao' && quadroView && (infobox.length > 4 || onMap || children.length > 0 || e.tags.length > 0)) : quadroView || editingId === quadro.id) && (
+          {quadro && (editingId === quadro.id || (activeTab === 'visao' && quadroView && (infobox.length > 4 || onMap || children.length > 0 || e.tags.length > 0))) && (
             <BlockFrame
               block={quadro}
               label={BLOCK_LABEL.quadro}
@@ -807,7 +765,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
                 empty={emptyTypes}
                 onOpen={(type, id) => {
                   setEditingId(id ?? layout.find((b) => b.type === type)?.id ?? type)
-                  if (nova) setTab(tabOf(type))
+                  setTab(tabOf(type))
                 }}
               />
             )}
