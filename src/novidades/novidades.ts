@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27h',
+    when: '27 de novembro',
+    title: 'Ligações mais legíveis no celular',
+    items: [
+      'No mapa de Ligações, menos linhas passam por cima dos nomes: o nome procura mais lugares em volta da bolinha, e a bolinha pode se afastar um pouco mais para sair do caminho.',
+      'Tocar numa bolinha logo depois de arrastar o mapa agora seleciona na hora.',
+    ],
+  },
+  {
     id: '2026-11-27g',
     when: '27 de novembro',
     title: 'Tocar logo depois de arrastar',

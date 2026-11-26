@@ -167,7 +167,7 @@ describe('nomes sem linha por cima', () => {
     expect(after).toBeLessThan(before)
 
     // Ninguém andou mais que o alcance, e nenhum nome ou bolinha encosta em outro.
-    for (const [id, p] of settled.pos) expect(Math.hypot(p.x - pos.get(id)!.x, p.y - pos.get(id)!.y)).toBeLessThanOrEqual(36.001)
+    for (const [id, p] of settled.pos) expect(Math.hypot(p.x - pos.get(id)!.x, p.y - pos.get(id)!.y)).toBeLessThanOrEqual(60.001)
     const rects = nodes.map((n) => ({ n, box: rectOf(n, settled.pos.get(n.id)!, settled.labels.get(n.id)!) }))
     const circles = nodes.map((n) => ({ x: settled.pos.get(n.id)!.x - n.r, y: settled.pos.get(n.id)!.y - n.r, w: 2 * n.r, h: 2 * n.r }))
     for (let i = 0; i < nodes.length; i++) {
