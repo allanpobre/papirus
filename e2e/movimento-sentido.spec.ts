@@ -16,6 +16,8 @@ test('a ficha troca o nome com um fade quando ele muda (e na abertura não)', as
   await page.getByRole('button', { name: 'Editar o básico' }).click()
   await page.getByRole('textbox', { name: 'Nome', exact: true }).fill('Torre de Marfim Alta')
   await expect(troca).toHaveText('Torre de Marfim Alta')
+  // Só um título na ficha: o que trocou substitui o antigo (chaves repetidas duplicavam o título).
+  await expect(page.locator('article.entity-reader h1')).toHaveCount(1)
 })
 
 test('a lista de fichas entra em cascata e os marcadores caem no mapa', async ({ page }) => {
