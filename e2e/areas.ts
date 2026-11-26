@@ -13,6 +13,12 @@ export async function openPart(page: Page, part: Part) {
   await page.locator('[data-tour="partes"]').getByRole('button', { name: part }).click()
 }
 
+/** Ligações no grafo completo: a parte abre no mural da ficha, e o grafo é um toque adiante. */
+export async function openGraph(page: Page) {
+  await openPart(page, 'Ligações')
+  await page.getByRole('button', { name: 'Grafo completo' }).click()
+}
+
 /**
  * A ficha não tem mais Ler/Editar: é uma página só. "Editar" abre o formulário inteiro pelo menu "⋯"
  * ("Editar tudo de uma vez"); "Ler" volta para a página ("Ver a página"). Os dois não fazem nada se já estão lá.

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { openPart, fichaModo } from './areas.ts'
+import { openGraph, fichaModo } from './areas.ts'
 import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
@@ -313,7 +313,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
   await expect(page.locator('.relation-involved')).toContainText('a mando de: Kael envenenou Vaelor')
 
   // No grafo: a linha tracejada de quem está por trás; no ponto da história (359), a relação ainda não vale.
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await expect(page.locator('.edge-via')).toHaveCount(3)
   await page.locator('.node', { hasText: 'Kael' }).click()
   await expect(page.getByRole('complementary', { name: 'Ficha selecionada' })).toContainText('Kael envenenou Vaelor, a mando de Mira · a partir de 360 DC')
@@ -327,7 +327,7 @@ test('relação indireta e com tempo: "envenenou, a mando de", só num período,
 
 test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', async ({ page }) => {
   await openSample(page)
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   const graph = page.locator('.graph')
   await expect(page.locator('.node').first()).toBeVisible()
   const box = (await graph.boundingBox())!
@@ -342,7 +342,7 @@ test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', asy
   await page.getByRole('button', { name: 'Enquadrar' }).click()
   await page.locator('.node', { hasText: 'Kael' }).dblclick({ force: true })
   expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('')
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   const stage = page.locator('.stage')
   // Pôr o mouse em cima já traz o grafo para a tela; a conta começa depois disso.
   await page.locator('.graph').hover()
@@ -354,7 +354,7 @@ test('arrastar e dar zoom no grafo não seleciona texto nem rola a página', asy
 
 test('arrastar o grafo por cima de nomes e de texto selecionado não inicia o "arrastar e soltar"', async ({ page }) => {
   await openSample(page)
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await expect(page.locator('.node').first()).toBeVisible()
   await page.waitForTimeout(1200)
   await page.evaluate(() => {

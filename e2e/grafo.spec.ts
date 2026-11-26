@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { openPart } from './areas.ts'
+import { openGraph } from './areas.ts'
 
 const transform = (page: import('@playwright/test').Page) => page.locator('.graph > g').getAttribute('transform')
 
@@ -13,7 +13,7 @@ test('mover o mapa funciona mesmo quando o navegador dá largura 0 ao SVG (Safar
   )
   await page.goto('/app/')
   await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await page.locator('.node').first().waitFor()
   const box = (await page.locator('.graph').boundingBox())!
   await page.mouse.move(box.x + 60, box.y + 60)
@@ -31,7 +31,7 @@ test.describe('no celular', () => {
   test('um dedo move, dois dedos dão zoom, e a página não rola', async ({ page }) => {
     await page.goto('/app/')
     await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
-    await openPart(page, 'Ligações')
+    await openGraph(page)
     await page.locator('.node').first().waitFor()
     const box = (await page.locator('.graph').boundingBox())!
     const cdp = await page.context().newCDPSession(page)
@@ -54,7 +54,7 @@ test.describe('no celular', () => {
   test('arrastar começando numa bolinha move o mapa e não seleciona a bolinha; tocar seleciona', async ({ page }) => {
     await page.goto('/app/')
     await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
-    await openPart(page, 'Ligações')
+    await openGraph(page)
     const node = page.locator('.node').first()
     await node.waitFor()
     await page.waitForTimeout(1200)
@@ -96,7 +96,7 @@ test.describe('no celular', () => {
 test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/app/?exemplo=ostria')
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   const card = page.getByRole('complementary', { name: 'Ficha selecionada' })
   const node = page.locator('.node').first()
   await node.click()
@@ -117,7 +117,7 @@ test('o cartão da ficha fecha: no X, no Esc e tocando no fundo', async ({ page 
 test('no celular, os nomes não se sobrepõem e dá para escolher um livro só', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/app/?exemplo')
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   const overlaps = () =>
     page.evaluate(() => {
       const rs = [...document.querySelectorAll('.graph .node text')].map((t) => t.getBoundingClientRect()).filter((r) => r.width > 0)
@@ -140,7 +140,7 @@ test('no celular, os nomes não se sobrepõem e dá para escolher um livro só',
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).first().click()
   const livro = page.getByLabel('Livro', { exact: true })
   await livro.selectOption((await livro.locator('option', { hasText: /^Ozma de Oz/ }).first().getAttribute('value'))!)
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await expect.poll(() => page.locator('.graph .node').count()).toBeLessThan(all)
   await expect(page.locator('.graph .node', { hasText: 'Ozma' }).first()).toBeVisible()
   await page.waitForTimeout(1500)
@@ -157,7 +157,7 @@ test('no celular, os nomes não se sobrepõem e dá para escolher um livro só',
 
 test('passar o mouse numa ficha destaca o grupo dela sem mexer no resto do desenho', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await page.locator('.graph .node').first().waitFor()
   // Espera as bolinhas assentarem (a animação de entrada mexe em todas).
   await page.waitForTimeout(1500)
@@ -187,7 +187,7 @@ test('passar o mouse numa ficha destaca o grupo dela sem mexer no resto do desen
 test('no celular, quase nenhuma linha passa por cima de um nome (Terra de Oz)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/app/?exemplo')
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await expect(page.locator('.graph .node').first()).toBeVisible()
   // Espera as bolinhas assentarem.
   await page.waitForTimeout(1800)
@@ -236,7 +236,7 @@ test.describe('achar uma ficha pela lupa, no celular', () => {
 
   test('a lupa fica à vista, leva o desenho até a ficha escolhida e a deixa em destaque', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await openPart(page, 'Ligações')
+    await openGraph(page)
     await expect(page.locator('.graph .node').first()).toBeVisible()
     await page.waitForTimeout(1500)
     // A lupa está na tela, sem abrir os filtros.
@@ -290,7 +290,7 @@ test.describe('achar uma ficha pela lupa, no celular', () => {
 
   test('uma ficha que não está no mapa agora (tipo escondido) também é achada: o tipo volta e aparece ela e quem se liga a ela', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
-    await openPart(page, 'Ligações')
+    await openGraph(page)
     await expect(page.locator('.graph .node').first()).toBeVisible()
     // Esconde os personagens pelos filtros.
     await page.getByRole('button', { name: /^Filtros/ }).click()
@@ -309,7 +309,7 @@ test.describe('achar uma ficha pela lupa, no celular', () => {
 
   test('Esc fecha a busca e o botão some no computador', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
-    await openPart(page, 'Ligações')
+    await openGraph(page)
     await page.getByRole('button', { name: 'Achar ficha' }).click()
     await expect(page.locator('#graph-find')).toBeVisible()
     // O primeiro Esc fecha a lista de fichas; o segundo, a busca.

@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { openPart } from './areas.ts'
+import { openGraph } from './areas.ts'
 
 const transform = (page: import('@playwright/test').Page) => page.locator('.family > g').getAttribute('transform')
 const scaleOf = (t: string | null) => Number(t?.match(/scale\(([\d.]+)\)/)?.[1])
@@ -10,7 +10,7 @@ const shiftOf = (t: string | null) => {
 
 async function openTree(page: import('@playwright/test').Page, example = '?exemplo') {
   await page.goto(`/app/${example}`)
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await page.locator('.graph .node').first().waitFor()
   await page.getByRole('radio', { name: 'Árvore da família' }).click()
   await expect(page.locator('.family')).toBeVisible()
