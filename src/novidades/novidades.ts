@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-29d',
+    when: '29 de novembro',
+    title: 'Mesa: preparar e jogar com menos fita adesiva',
+    items: [
+      'Na sessão, “Nesta sessão” junta os NPCs, lugares e pistas que devem aparecer, à mão (e o Painel mostra quem está na próxima).',
+      'Dado de verdade, resultado num toque: escolha quem rolou e toque em Acertou, Errou, Crítico, Passou… vai para o registro com a hora.',
+      'O sistema se escolhe antes de criar a campanha; a preparação da sessão 1 nasce em branco (a pergunta virou dica); o nome do sistema em Regras aparece inteiro; e, no celular, o “×” de cada revelação do Codex fica na linha do nome.',
+    ],
+  },
+  {
     id: '2026-11-29c',
     when: '29 de novembro',
     title: 'Para quem traz um mundo pronto',

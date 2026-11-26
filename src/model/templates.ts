@@ -142,7 +142,7 @@ export const UNIVERSE_TEMPLATES: UniverseTemplate[] = [
       ;[u, system] = insert(u, 'systems', systemFromTemplate(options?.system ?? 'd20-5e'))
       let group
       ;[u, group] = insert(u, 'groups', draftGroup('Meu grupo', system.id))
-      ;[u] = insert(u, 'sessions', { ...draftSession(1, group.id), title: 'Sessão 1', prep: 'Onde a história começa? Quem os jogadores encontram primeiro?' })
+      ;[u] = insert(u, 'sessions', { ...draftSession(1, group.id), title: 'Sessão 1' })
       ;[u] = insert(u, 'tables', { name: 'Rumores da taverna', entries: ['Alguém viu luzes na torre abandonada.', 'O ferreiro está devendo para a guilda.', 'Um mercador procura escolta, pagando bem.', 'Ninguém volta da floresta ao norte.'] })
       return u
     },
