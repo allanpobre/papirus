@@ -161,14 +161,14 @@
 
 .entity-row-kind {
   grid-area: kind;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 
 /* Em quantas cenas: só um número, sem cobrança (ficha só nas notas também vale). */
 .entity-row-count {
   grid-area: kind;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--accent);
   white-space: nowrap;
@@ -189,7 +189,7 @@
 
 .entity-row-summary {
   grid-area: summary;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -12750,7 +12750,7 @@ body[data-clima='terror'] .star.is-picked .star-dot {
   border-radius: 4px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -14807,7 +14807,7 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
     min-width: 40px;
   }
   .atlas-region-label {
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     padding: 0.05rem 0.4rem;
     background: rgb(0 0 0 / 0.5);
   }
@@ -14818,7 +14818,7 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   .atlas-image.is-far .atlas-road-label {
     min-width: 0;
     padding: 0 4px;
-    font-size: 0.56rem;
+    font-size: 0.62rem;
     line-height: 1.3;
   }
   .atlas-road-label::before {
@@ -15018,4 +15018,16 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 }
 .log-quick > .select {
   flex: 0 1 10rem;
+}
+
+/* Como a cena termina, também sem depender da cor (auditoria 26, acessibilidade): “pior” listrado, “igual” pontilhado,
+   “melhor” liso. Vale na faixa da Estrutura e na legenda. */
+.map-seg.shift-pior,
+.map-legend i.shift-pior {
+  background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgb(0 0 0 / 22%) 3px 5px);
+}
+.map-seg.shift-igual,
+.map-legend i.shift-igual {
+  background-image: radial-gradient(rgb(0 0 0 / 28%) 1px, transparent 1.5px);
+  background-size: 5px 5px;
 }

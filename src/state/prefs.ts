@@ -9,6 +9,8 @@ export interface Prefs {
   theme: 'sistema' | 'claro' | 'escuro'
   editorFont: 'serifa' | 'sem-serifa' | 'maquina'
   editorSize: number
+  /** Tamanho da letra do app inteiro (menus, listas, fichas), além do texto da cena. Sem valor: normal. */
+  appScale?: 'normal' | 'grande' | 'maior'
   editorWidth: 'estreita' | 'media' | 'larga'
   /** Destacar nomes de fichas conhecidas no texto. */
   detection: boolean
@@ -157,6 +159,8 @@ export function usePrefs() {
     themeSeen.current = true
     if (prefs.theme === 'sistema') root.removeAttribute('data-theme')
     else root.setAttribute('data-theme', prefs.theme === 'escuro' ? 'dark' : 'light')
+    // A letra do app inteiro cresce junto (tudo que é medido em rem): para quem lê de longe ou com letra grande.
+    root.style.fontSize = prefs.appScale === 'maior' ? '125%' : prefs.appScale === 'grande' ? '112.5%' : ''
     if (prefs.accent === 'viridiana') root.removeAttribute('data-accent')
     else root.setAttribute('data-accent', prefs.accent)
   }, [prefs])

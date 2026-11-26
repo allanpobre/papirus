@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-30c',
+    when: '30 de novembro',
+    title: 'Letra que se lê e nada só por cor',
+    items: [
+      'Ajustes › Aparência › “Tamanho da letra do app”: Normal, Grande ou Maior, para menus, listas e fichas (o texto da cena continua no “Aa”).',
+      'As letras pequenas cresceram: dicas, resumo e tipo das fichas na lista, rótulos e o selo de papel nas cartas.',
+      'Na faixa da Estrutura, como a cena termina também se vê pela textura (pior listrado, igual pontilhado), além da cor. No leitor do celular, Ouvir, Como ler e Caderno aparecem com o nome.',
+    ],
+  },
+  {
     id: '2026-11-30b',
     when: '30 de novembro',
     title: 'Cada coisa num lugar',

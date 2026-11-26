@@ -385,6 +385,20 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 />
               )}
             </Field>
+            <Field label="Tamanho da letra do app" hint="Menus, listas e fichas. O texto da cena tem o seu tamanho no “Aa” do Escrever.">
+              {(id) => (
+                <Select<NonNullable<Prefs['appScale']>>
+                  id={id}
+                  value={prefs.appScale ?? 'normal'}
+                  onChange={(v) => setPref('appScale', v === 'normal' ? undefined : v)}
+                  options={[
+                    { value: 'normal', label: 'Normal' },
+                    { value: 'grande', label: 'Grande' },
+                    { value: 'maior', label: 'Maior' },
+                  ]}
+                />
+              )}
+            </Field>
             <Field label="Fonte do texto">
               {(id) => (
                 <Select<Prefs['editorFont']>
