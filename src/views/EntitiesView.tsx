@@ -1,3 +1,4 @@
+import { typingOrDialog } from '../shell/keys'
 import { bookScope } from '../logic/bookScope'
 import { compareByRole, roleIn, roleRank } from '../logic/roles'
 import { OriginChip } from './AUBanner'
@@ -10,7 +11,7 @@ import { NameIdeas } from './NameIdeas'
 import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X, SlidersHorizontal } from 'lucide-react'
 import { Picture } from '../images/Picture'
 import { useImagePicker } from '../images/useImagePicker'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { factSentence } from '../logic/codex'
 import { fold } from '../logic/text'
 import { involvements, scopeLabel } from '../logic/relations'
@@ -240,6 +241,32 @@ export default function EntitiesView() {
     go('fichas', id)
   }
 
+  // J e K: a próxima e a anterior da lista (na ordem da tela); E: alterna Ler e Editar na ficha aberta.
+  const keyState = useRef({ list, selectedId, shownMode, cards: nova && !picked, hasScenes })
+  keyState.current = { list, selectedId, shownMode, cards: nova && !picked, hasScenes }
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || typingOrDialog(e)) return
+      const k = e.key.toLowerCase()
+      const st = keyState.current
+      if (k === 'j' || k === 'k') {
+        const order = st.cards ? groupedCards(st.list, (x) => (counts.get(x.id) ?? 0) > 0 || !st.hasScenes, bookId).flatMap((r) => ('e' in r ? [r.e] : [])) : st.list
+        if (!order.length) return
+        const i = order.findIndex((x) => x.id === st.selectedId)
+        const next = i < 0 ? order[0] : order[Math.min(order.length - 1, Math.max(0, i + (k === 'j' ? 1 : -1)))]
+        e.preventDefault()
+        go('fichas', next.id)
+        requestAnimationFrame(() => document.querySelector(`[data-entity-id="${next.id}"]`)?.scrollIntoView({ block: 'nearest' }))
+      } else if (k === 'e' && st.selectedId && !readOnly) {
+        e.preventDefault()
+        changeMode(st.shownMode === 'ler' ? 'editar' : 'ler')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [go, readOnly, counts, bookId])
+
   return (
     <div className={`view split fichas-view${selected ? ' has-detail' : ''}${table ? ' is-table' : ''}`}>
       <AreaHead current="fichas" tour="fichas" />
@@ -436,7 +463,7 @@ export default function EntitiesView() {
                 </li>
               ) : (
               ((e) => (
-              <li key={e.id}>
+              <li key={e.id} data-entity-id={e.id}>
                 {picked ? (
                   <label className={`entity-row is-picking${picked.has(e.id) ? ' is-picked' : ''}`}>
                     <input type="checkbox" checked={picked.has(e.id)} onChange={() => togglePick(e.id)} aria-label={`Marcar ${e.name || 'Sem nome'}`} />

@@ -982,12 +982,16 @@ button.leitor-found-card {
     padding-inline: 0.45rem;
   }
 
+  /* Ícone com o nome embaixo (antes o nome ficava escondido no celular; auditoria 26, Beto). */
+  .leitor-top .btn-sm:has(.leitor-btn-label) {
+    flex-direction: column;
+    gap: 0;
+    min-height: 44px;
+    padding-block: 0.2rem;
+    line-height: 1.1;
+  }
   .leitor-btn-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+    font-size: 0.7rem;
     white-space: nowrap;
   }
 

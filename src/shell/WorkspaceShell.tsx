@@ -74,6 +74,8 @@ import { SearchPalette } from './SearchPalette'
 import { ReplaceHost } from '../views/write/ReplaceHost'
 import { migrateParents } from '../model/lists'
 import { modKey } from '../ui/keys'
+import { typingOrDialog } from './keys'
+import { ShortcutsDialog } from './ShortcutsDialog'
 
 const OficinaPage = lazy(() => import('../oficina/OficinaPage').then((m) => ({ default: m.OficinaPage })))
 const ShareDialog = lazy(() => import('../share/ShareDialog').then((m) => ({ default: m.ShareDialog })))
@@ -210,6 +212,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
   const [captureOpen, setCaptureOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  // Alt+1…9: as áreas na ordem do menu (preenchida a cada desenho).
+  const areaOrder = useRef<View[]>([])
   const toastSeq = useRef(0)
 
   // Registra o total de palavras no início do dia, para a meta diária.
@@ -463,7 +468,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     // Só na abertura do universo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  // Nova cara (teste): o clima do mundo vale no app inteiro.
+  // Nova cara: o clima do mundo vale no app inteiro.
   useWorldClimate(prefs.novaCara ? climaOf(universe) : null, universe.settings.climaModo ?? 'escuro')
   useNovaFlag(!!prefs.novaCara)
   // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
@@ -560,11 +565,26 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
         // O salvamento é automático; Ctrl+S só antecipa.
         e.preventDefault()
         void flush()
+      } else if (e.altKey && !mod && /^Digit[1-9]$/.test(e.code)) {
+        // Alt+1…9: vai para a área nessa posição do menu.
+        const view = areaOrder.current[Number(e.code.slice(5)) - 1]
+        if (view) {
+          e.preventDefault()
+          go(view)
+        }
+      } else if (e.key === '?' && !mod && !e.altKey && !typingOrDialog(e)) {
+        e.preventDefault()
+        setShortcutsOpen(true)
       }
     }
+    const onOpen = () => setShortcutsOpen(true)
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [flush])
+    window.addEventListener('papirus:atalhos', onOpen)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('papirus:atalhos', onOpen)
+    }
+  }, [flush, go])
 
   const openInbox = universe.inbox.filter((i) => i.status === 'aberto').length
   // Em telas médias (tablet), o menu começa recolhido para sobrar espaço para o texto.
@@ -581,6 +601,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const visibleItems = ALL_ITEMS.filter((item) => !item.inside && (item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view)).map((item) =>
     nova && item.view === 'tramas' ? { ...item, label: 'História' } : item,
   )
+  areaOrder.current = navFor(kind).flatMap((g) => g.items.filter((item) => !item.inside && (!hidden.includes(item.view) || nav.view === item.view)).map((item) => item.view))
   // A área marcada no menu: o Mapa, por exemplo, fica dentro de Escrever.
   const area = nova && nav.view === 'timeline' ? 'tramas' : (ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view)
 
@@ -659,7 +680,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
                 <div key={g.group || g.items[0].view} className="rail-group">
                   {g.group && <span className="rail-group-label rail-label">{g.group}</span>}
                   {items.map((item) => (
-                    <RailButton key={item.view} item={item} active={area === item.view} onClick={() => go(item.view)} />
+                    // Na Nova cara, a Trama se chama História em todo lugar (no celular, nos passeios e aqui também).
+                    <RailButton key={item.view} item={nova && item.view === 'tramas' ? { ...item, label: 'História' } : item} active={area === item.view} onClick={() => go(item.view)} />
                   ))}
                 </div>
               )
@@ -910,6 +932,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
           {shareOpen && <ShareDialog linkFocus={shareLink} onClose={() => setShareOpen(false)} onAccount={() => setAccountOpen(true)} />}
         </Suspense>
         {captureOpen && <CaptureDialog onClose={() => setCaptureOpen(false)} />}
+        {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
 
         <div className="toasts" aria-live="polite">
           {toasts.map((t) => (

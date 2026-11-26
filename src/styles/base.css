@@ -118,7 +118,12 @@ img {
 }
 
 .tiny {
-  font-size: 0.76rem;
+  /* 13 px (era ~12): as dicas cinza também precisam se ler sem chegar perto (auditoria 26, acessibilidade). */
+  font-size: 0.8125rem;
+}
+
+small {
+  font-size: 0.8125rem;
 }
 
 .tabular {
@@ -126,7 +131,7 @@ img {
 }
 
 .eyebrow {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--muted);
@@ -142,7 +147,7 @@ img {
 }
 
 .section-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--muted);

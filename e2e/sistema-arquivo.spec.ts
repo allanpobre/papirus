@@ -33,7 +33,7 @@ test('levar um sistema de RPG para outra campanha: exporta em .json, importa em 
   await outro.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
   const campanha = await outro.newPage()
   await campanha.goto('/app/')
-  await campanha.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mesa' }).click()
+  await campanha.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
   await campanha.getByRole('textbox', { name: 'Nome da campanha' }).fill('Sombras')
   await campanha.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(campanha.locator('.mesa-bar')).toBeVisible()

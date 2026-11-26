@@ -13,6 +13,54 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-30e',
+    when: '30 de novembro',
+    title: 'Abas perto do polegar e o Codex na sessão',
+    items: [
+      'No celular, Ajustes › Aparência tem uma opção nova: as partes de cada área (Fichas, Ligações, Mapas…) ficam embaixo, logo acima da barra, perto do polegar.',
+      'No modo sessão, o painel do Grupo tem “Codex: mostrar aos jogadores”: revele um mapa, um marcador, um evento ou uma ligação sem sair da mesa, e veja o que já foi mostrado hoje.',
+    ],
+  },
+  {
+    id: '2026-11-30d',
+    when: '30 de novembro',
+    title: 'Atalhos de teclado',
+    items: [
+      'No computador, aperte “?” para ver todos os atalhos (eles também estão no fim do Guia e na busca, Ctrl+K).',
+      'Alt+1 a 9 vai direto para as áreas do menu; [ e ] passam para a parte anterior e a próxima (Fichas, Ligações, Mapas…).',
+      'Na lista de fichas, J e K descem e sobem; E alterna entre ler e editar a ficha aberta. As teclas de uma letra nunca atrapalham quem está escrevendo.',
+    ],
+  },
+  {
+    id: '2026-11-30c',
+    when: '30 de novembro',
+    title: 'Letra que se lê e nada só por cor',
+    items: [
+      'Ajustes › Aparência › “Tamanho da letra do app”: Normal, Grande ou Maior, para menus, listas e fichas (o texto da cena continua no “Aa”).',
+      'As letras pequenas cresceram: dicas, resumo e tipo das fichas na lista, rótulos e o selo de papel nas cartas.',
+      'Na faixa da Estrutura, como a cena termina também se vê pela textura (pior listrado, igual pontilhado), além da cor. No leitor do celular, Ouvir, Como ler e Caderno aparecem com o nome.',
+    ],
+  },
+  {
+    id: '2026-11-30b',
+    when: '30 de novembro',
+    title: 'Cada coisa num lugar',
+    items: [
+      'Na primeira tela, o setor das campanhas se chama “Campanhas”; dentro de cada campanha, a Mesa é onde se joga.',
+      'No computador, a barra lateral também diz “História” (antes ainda dizia “Trama”).',
+      'Quem traz um mundo de outro app vê todas as partes do Mundo e da História desde já. E em Publicar, cada botão (Diagramar, Ler, Folhear) diz o que abre.',
+    ],
+  },
+  {
+    id: '2026-11-30a',
+    when: '30 de novembro',
+    title: 'A Nova cara é a de todos',
+    items: [
+      'O que era “Nova cara (teste)” agora vale para todo mundo: a barra de baixo com os lugares grandes (Escrever, Mundo, História, Mesa ou Publicar, Menu), a História com as pistas, quem sabe o quê e a linha do tempo, e o clima de cada mundo no app inteiro.',
+      'O clima de cada mundo continua em Ajustes › Universo: o Caderno é o de sempre.',
+    ],
+  },
+  {
     id: '2026-11-29d',
     when: '29 de novembro',
     title: 'Mesa: preparar e jogar com menos fita adesiva',

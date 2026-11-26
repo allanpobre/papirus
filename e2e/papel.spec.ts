@@ -1,4 +1,4 @@
-import { openPart } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 import { expect, test } from './fixtures.ts'
 
 /*
@@ -71,7 +71,7 @@ test('papel por livro: secundária no livro 3, protagonista nos outros; vale na 
   const nomes = () => lista.locator('.entity-row-name').allInnerTexts().then((t) => t.map((x) => x.trim()))
   await expect(lista.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: /^Dorothy$/ }) }).locator('.entity-row-kindtext')).toContainText('Secundário')
   await lista.getByRole('button', { name: /^Dorothy/ }).first().click()
-  await page.getByRole('button', { name: 'Ler', exact: true }).click()
+  await fichaModo(page, 'Ler')
   await expect(page.locator('.entity-role')).toHaveText(/Secundário/)
 
   // Em todos os livros, volta o papel geral: protagonista.

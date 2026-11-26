@@ -5,7 +5,7 @@ import { expect, test, type BrowserContext, type Page } from './fixtures.ts'
 
 async function novaCampanha(page: Page) {
   await page.goto('/app/')
-  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: /Mesa/ }).click()
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
 }
 
 test.describe('no computador', () => {

@@ -225,7 +225,7 @@ test('o mestre escolhe o tema da mesa pelo gênero; claro ou escuro segue cada p
 test('campanha de Tormenta: criar, montar a ficha e jogar com dado físico', async ({ page }) => {
   await page.goto('/app/')
   // O RPG é um setor à parte: a campanha nasce ali e abre direto na mesa.
-  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Mesa' }).click()
+  await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Arton')
   await expect(page.getByRole('radio', { name: 'Tormenta 20' })).toHaveAttribute('aria-checked', 'true')
   await page.getByRole('button', { name: 'Criar campanha' }).click()

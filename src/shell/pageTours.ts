@@ -608,6 +608,7 @@ export const PAGE_TOURS = {
         optional: true,
       },
       { target: '.sm-panel[aria-label="Personagens"]', title: 'Grupo: os personagens', body: 'A vida de cada um; um toque abre as rolagens, as condições e quem joga hoje. “Ficha” abre a ficha completa.', optional: true },
+      { target: '.shield-mesa details:has(.sm-codex)', title: 'Codex sem trocar de aba', body: 'Mostre aos jogadores um mapa, um marcador, um evento ou uma ligação na hora. O título conta o que já foi mostrado hoje.', optional: true },
       { target: '.sm-panel[aria-label="Registro"]', title: 'Registro', body: 'O que aconteceu, com a hora (as rolagens e as cenas entram sozinhas).', optional: true },
       { target: '.sm-dock', title: 'Os painéis', body: 'No celular, um painel por vez: Roteiro, Palco e Grupo. Arrastar para o lado também troca.', optional: true },
       { target: '.sm-end', title: 'Encerrar', body: 'No fim do jogo, o app pergunta “O que aconteceu?”: o resumo entra no “Aparece em” das fichas citadas e, com o ano no mundo, na Linha do tempo. O registro vai para Ideias.' },
@@ -710,7 +711,7 @@ export const PAGE_TOURS = {
   'hub-escrita': {
     title: 'Escrita',
     steps: [
-      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita (livros e mundos), Mesa (campanhas) e Oficina (aprender). Cada um com a sua cara.' },
+      { target: '.hub-tabs', title: 'Os setores', body: 'Escrita (livros e mundos), Campanhas (RPG), Oficina (aprender) e Comunidade. Cada um com a sua cara.' },
       { target: '.hub-continue', title: 'Continuar', body: 'O universo em que você mexeu por último, a um toque.', optional: true },
       { target: '.treino-card', title: 'Treino de hoje', body: 'A proposta do dia num sprint com tempo e mínimo de palavras ou caracteres. Seus treinos ficam guardados, e há um placar entre amigos.' },
       {
@@ -727,9 +728,9 @@ export const PAGE_TOURS = {
     ],
   },
   'hub-rpg': {
-    title: 'Mesa',
+    title: 'Campanhas',
     steps: [
-      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita, Mesa e Oficina. Aqui ficam as campanhas.' },
+      { target: '.hub-tabs', title: 'Os setores', body: 'Escrita, Campanhas, Oficina e Comunidade. Aqui ficam as campanhas; dentro de cada uma, a Mesa é onde se joga.' },
       { target: '.hub-continue', title: 'Continuar a campanha', body: 'A campanha em que você mexeu por último.', optional: true },
       { target: '.library-list[aria-label="Campanhas"]', title: 'Suas campanhas', body: 'Toque para abrir a Mesa.', optional: true },
       { target: '.start-card, .library-new', title: 'Nova campanha', body: 'Dê um nome e escolha o sistema. A mesa já vem pronta: o sistema, a sessão 1 e uma tabela de rumores.' },
@@ -748,7 +749,7 @@ export const PAGE_TOURS = {
   'hub-oficina': {
     title: 'Oficina',
     steps: [
-      { target: '.hub-tabs', title: 'Três setores', body: 'Escrita, Mesa e Oficina. Aqui você aprende.' },
+      { target: '.hub-tabs', title: 'Os setores', body: 'Escrita, Campanhas, Oficina e Comunidade. Aqui você aprende.' },
       { target: '.oficina-hero', title: 'Oficina', body: 'Gêneros, técnicas e guias para mestres: dicas, armadilhas, livros para estudar, curiosidades e exercícios. O seu progresso fica marcado.' },
       { target: '.oficina-tip', title: 'Dica do dia', body: 'Uma dica nova por dia. Toque para abrir o guia dela.' },
       { target: '.oficina-shelf-section', title: 'Os guias', body: 'Toque num gênero ou técnica para abrir o guia.' },

@@ -3,10 +3,13 @@ import { createFakeSupabase, PASSWORD, SERVER } from './fakeSupabase.ts'
 import { runPageTour } from './pageTour.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
+/** Enquanto não migra para a Nova cara (veja playwright.config.ts). */
+const CARA_ANTIGA = { cookies: [], origins: [{ origin: 'http://localhost:5179', localStorage: [{ name: 'papirus:cara-antiga', value: '1' }] }] }
+
 type Fake = ReturnType<typeof createFakeSupabase>
 
 async function newPerson(browser: Browser, fake: Fake): Promise<Page> {
-  const context = await browser.newContext()
+  const context = await browser.newContext({ storageState: CARA_ANTIGA })
   await context.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
   await fake.attach(context)
   return context.newPage()
@@ -126,7 +129,7 @@ test.describe('Compartilhar no celular', () => {
   test('partes recolhíveis: Pessoas aberta, o resto fechado com resumo; pedidos de AU abrem sozinhos; cada parte faz o que fazia', async ({ browser }) => {
     test.setTimeout(150_000)
     const fake = createFakeSupabase()
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, storageState: CARA_ANTIGA })
     await context.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
     await fake.attach(context)
     const page = await context.newPage()

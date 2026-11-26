@@ -226,12 +226,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               ))}
             </div>
           )}
-          <label className="toggle">
-            <input type="checkbox" role="switch" checked={!!prefs.novaCara} onChange={(e) => setPref('novaCara', e.target.checked || undefined)} />
-            <span className="toggle-track" aria-hidden="true" />
-            <span>Nova cara (teste): usar o clima no app inteiro</span>
-          </label>
-          <p className="muted small">Em teste: as cores, as letras e as texturas mudam com o clima de cada mundo. Desligado, o Papirus fica como sempre.</p>
+          <p className="muted small">As cores, as letras e as texturas do app inteiro mudam com o clima de cada mundo.</p>
           <p className="field-label" id="nivel-mundo">
             O Mundo deste universo
           </p>
@@ -390,6 +385,21 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
                 />
               )}
             </Field>
+            <Field label="Tamanho da letra do app" hint="Menus, listas e fichas. O texto da cena tem o seu tamanho no “Aa” do Escrever.">
+              {(id) => (
+                <Select<NonNullable<Prefs['appScale']>>
+                  id={id}
+                  value={prefs.appScale ?? 'normal'}
+                  onChange={(v) => setPref('appScale', v === 'normal' ? undefined : v)}
+                  options={[
+                    { value: 'normal', label: 'Normal' },
+                    { value: 'grande', label: 'Grande' },
+                    { value: 'maior', label: 'Maior' },
+                  ]}
+                />
+              )}
+            </Field>
+            <Toggle label="No celular, as partes de cada área (Fichas, Ligações, Mapas…) ficam embaixo, perto do polegar" checked={!!prefs.tabsBottom} onChange={(v) => setPref('tabsBottom', v || undefined)} />
             <Field label="Fonte do texto">
               {(id) => (
                 <Select<Prefs['editorFont']>

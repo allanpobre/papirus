@@ -1136,7 +1136,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
   const SECTORS = [
     ['escrita', 'Escrita', Feather],
-    ['rpg', 'Mesa', Dices],
+    ['rpg', 'Campanhas', Dices],
     ['oficina', 'Oficina', GraduationCap],
     ['comunidade', 'Comunidade', Users],
   ] as const

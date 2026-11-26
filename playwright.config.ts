@@ -11,6 +11,9 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
+    // A Nova cara é a de todos. Os testes que ainda não migraram rodam na cara antiga por esta chave (só existe nos
+    // testes; os que migraram a trocam por '0' ou ligam a Nova cara nas preferências). Sai quando a migração acabar.
+    storageState: { cookies: [], origins: [{ origin: `http://localhost:${PORT}`, localStorage: [{ name: 'papirus:cara-antiga', value: '1' }] }] },
   },
   projects: [
     {

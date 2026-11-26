@@ -18,6 +18,8 @@ import { Roteiro } from './Roteiro'
 import { SheetPlay } from './SheetPlay'
 import { LogBox, PartyCards, QuickDice, TableRolls } from './TableTab'
 import { Fold } from '../../ui/Fold'
+import { RevealForm } from './CodexTab'
+import { revelationLabel } from '../../logic/codex'
 
 type Part = 'roteiro' | 'palco' | 'mesa'
 
@@ -91,6 +93,9 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
     remember('sessao-parte', p)
   }
 
+  // O Codex sem trocar de aba: o que já se mostrou hoje e o formulário para mostrar mais.
+  const revealedHere = universe.revelations.filter((r) => r.groupId === group.id && r.sessionId === session.id)
+
   const panels: Record<Part, ReactNode> = {
     roteiro: <Roteiro session={session} onSheet={setSheetId} />,
     palco: <Palco session={session} onRoteiro={phone ? () => choose('roteiro') : undefined} />,
@@ -108,6 +113,20 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
           <h3 className="shield-label">Registro</h3>
           <LogBox />
         </section>
+        {!readOnly && (
+          <Fold id="sm-codex" title={`Codex: mostrar aos jogadores${revealedHere.length ? ` (${revealedHere.length} hoje)` : ''}`} defaultOpen={false}>
+            <section className="sm-panel sm-codex" aria-label="Codex da sessão">
+              {revealedHere.length > 0 && (
+                <ul className="sm-codex-list tiny">
+                  {revealedHere.map((r) => (
+                    <li key={r.id}>{revelationLabel(universe, r)}</li>
+                  ))}
+                </ul>
+              )}
+              <RevealForm group={group} sessionId={session.id} />
+            </section>
+          </Fold>
+        )}
         <Fold id="sm-dados" title="Dados e tabelas" defaultOpen={false}>
           <section className="sm-panel" aria-label="Dados">
             <QuickDice />

@@ -9,6 +9,10 @@ export interface Prefs {
   theme: 'sistema' | 'claro' | 'escuro'
   editorFont: 'serifa' | 'sem-serifa' | 'maquina'
   editorSize: number
+  /** Tamanho da letra do app inteiro (menus, listas, fichas), além do texto da cena. Sem valor: normal. */
+  appScale?: 'normal' | 'grande' | 'maior'
+  /** No celular, as partes de cada área (Fichas, Ligações, Mapas…) ficam embaixo, perto do polegar. */
+  tabsBottom?: boolean
   editorWidth: 'estreita' | 'media' | 'larga'
   /** Destacar nomes de fichas conhecidas no texto. */
   detection: boolean
@@ -28,7 +32,7 @@ export interface Prefs {
   sector: 'escrita' | 'rpg' | 'oficina' | 'comunidade'
   /** Já viu a apresentação da primeira vez. */
   onboarded: boolean
-  /** "Nova cara (teste)": o clima de cada mundo vale no app inteiro. */
+  /** A Nova cara (o clima de cada mundo no app inteiro, a barra com os lugares grandes). Desde 30/11/2026, sempre ligada. */
   novaCara?: boolean
   /** Primeira vez mais curta: partes que esperam o uso no primeiro universo (sem valor: nunca ligou). */
   firstSteps?: FirstSteps
@@ -66,6 +70,7 @@ export type Accent = 'viridiana' | 'azul' | 'vinho' | 'violeta' | 'ocre' | 'graf
 
 export const DEFAULT_PREFS: Prefs = {
   theme: 'sistema',
+  novaCara: true,
   editorFont: 'serifa',
   editorSize: 19,
   editorWidth: 'media',
@@ -114,7 +119,7 @@ function read(): Prefs {
     // O Ler/Editar da ficha saiu (a ficha é uma página só): o modo antigo guardado não vale mais.
     localStorage.removeItem('papirus:ficha-modo')
     const raw = localStorage.getItem(KEY)
-    if (!raw) return DEFAULT_PREFS
+    if (!raw) return localStorage.getItem('papirus:cara-antiga') === '1' ? { ...DEFAULT_PREFS, novaCara: false } : DEFAULT_PREFS
     const saved = JSON.parse(raw) as Partial<Prefs>
     // A barra padrão antiga (Início, Escrever, Livro, Mundo) foi gravada com as outras preferências
     // por quem nunca escolheu atalhos: essa pessoa ganha a barra padrão nova.
@@ -125,6 +130,10 @@ function read(): Prefs {
     // Primeira vez: lê sem quebrar (parte desconhecida, de outra versão, fica de fora).
     if ('firstSteps' in saved) saved.firstSteps = cleanFirstSteps(saved.firstSteps)
     if (saved.menus) saved.menus = Object.fromEntries(Object.entries(saved.menus).map(([k, v]) => [k, (v ?? []).filter((x) => (x as string) !== 'wiki')]))
+    // A Nova cara é a cara de todos (decisão de 30/11/2026): o valor antigo guardado, ligado ou não, não vale mais.
+    // Exceção só dos testes antigos, enquanto migram área por área: a chave “papirus:cara-antiga” existe apenas nas
+    // preparações dos testes (e2e/fixtures.ts). Sai junto com o último caminho antigo do código.
+    saved.novaCara = saved.novaCara === true || localStorage.getItem('papirus:cara-antiga') !== '1'
     return { ...DEFAULT_PREFS, ...saved, continuity: { ...DEFAULT_PREFS.continuity, ...saved.continuity } }
   } catch {
     return DEFAULT_PREFS
@@ -152,6 +161,10 @@ export function usePrefs() {
     themeSeen.current = true
     if (prefs.theme === 'sistema') root.removeAttribute('data-theme')
     else root.setAttribute('data-theme', prefs.theme === 'escuro' ? 'dark' : 'light')
+    // A letra do app inteiro cresce junto (tudo que é medido em rem): para quem lê de longe ou com letra grande.
+    root.style.fontSize = prefs.appScale === 'maior' ? '125%' : prefs.appScale === 'grande' ? '112.5%' : ''
+    if (prefs.tabsBottom) root.setAttribute('data-abas', 'baixo')
+    else root.removeAttribute('data-abas')
     if (prefs.accent === 'viridiana') root.removeAttribute('data-accent')
     else root.setAttribute('data-accent', prefs.accent)
   }, [prefs])

@@ -311,7 +311,7 @@ export function ReaderView({
         >
           <NotebookPen size={15} aria-hidden="true" /> <span className="leitor-btn-label">Caderno</span>
           {fresh > 0 && aids.novidades && (
-            <span className="leitor-new-count" aria-label={`${fresh} novidades`}>
+            <span className="leitor-new-count" aria-label={`${fresh} ${fresh === 1 ? 'nova' : 'novas'}`} title={`${fresh} ${fresh === 1 ? 'anotação nova' : 'anotações novas'} no caderno`}>
               +{fresh}
             </span>
           )}

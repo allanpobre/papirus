@@ -39,7 +39,7 @@ async function selectText(page: Page, text: string) {
 test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a mesa; dá para mostrar tudo', async ({ page }) => {
   await page.goto('/app/')
   const setores = page.getByRole('navigation', { name: 'Setores' })
-  await setores.getByRole('button', { name: 'Mesa' }).click()
+  await setores.getByRole('button', { name: 'Campanhas' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Mar')
   await page.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(page.locator('.mesa-bar')).toBeVisible()
