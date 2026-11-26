@@ -211,6 +211,11 @@ function labelPlacements(n: LabelNode, p: Point, gap: number): Placement[] {
     at(p.x - w / 2, p.y - r - g - h, 0, -r - g - h + base, 'middle'),
     at(p.x + r + g + 1, p.y - h / 2, r + g + 1, -h / 2 + base, 'start'),
     at(p.x - r - g - 1 - w, p.y - h / 2, -r - g - 1, -h / 2 + base, 'end'),
+    // Os cantos um pouco mais afastados: com muitas linhas em volta, às vezes só ali o nome fica limpo.
+    at(p.x + k + 6, p.y + k + g, k + 6, k + g + base, 'start'),
+    at(p.x - k - 6 - w, p.y + k + g, -k - 6, k + g + base, 'end'),
+    at(p.x + k + 6, p.y - k - g - h, k + 6, -k - g - h + base, 'start'),
+    at(p.x - k - 6 - w, p.y - k - g - h, -k - 6, -k - g - h + base, 'end'),
   ]
 }
 
@@ -348,7 +353,7 @@ const DIRECTIONS = [
 export function settleLabels(
   nodes: LabelNode[],
   pos: Map<string, Point>,
-  { width = Infinity, height = Infinity, gap = 4, pad = 0, edges = [] as GraphEdge[], reach = 36, step = 6, spacing = 4, maxTrials = 6000 } = {},
+  { width = Infinity, height = Infinity, gap = 4, pad = 0, edges = [] as GraphEdge[], reach = 60, step = 6, spacing = 4, maxTrials = 6000 } = {},
 ): { pos: Map<string, Point>; labels: Map<string, LabelSpot> } {
   const cur = new Map([...pos].map(([id, p]) => [id, { x: p.x, y: p.y }]))
   const bounds: Bounds = { width, height, pad }

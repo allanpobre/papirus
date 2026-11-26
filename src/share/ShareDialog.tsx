@@ -108,7 +108,7 @@ export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => 
 
   if (isLocalOnly(universe)) {
     return (
-      <Modal title="Compartilhar" size="sm" onClose={onClose}>
+      <Modal about="Convide alguém para ver ou editar junto, ao vivo, ou crie um link só de leitura. Os segredos nunca saem." title="Compartilhar" size="sm" onClose={onClose}>
         <div className="share">
           <ShareWays onClose={onClose} />
           <p className="small">O exemplo é só para conhecer o Papirus: fica neste aparelho e não pode ser compartilhado. Crie um universo seu para mandar a outras pessoas.</p>
@@ -118,7 +118,7 @@ export function ShareDialog({ onClose, onAccount, linkFocus }: { onClose: () => 
   }
   if (!user || !server) {
     return (
-      <Modal title="Compartilhar" size="sm" onClose={onClose}>
+      <Modal about="Convide alguém para ver ou editar junto, ao vivo, ou crie um link só de leitura. Os segredos nunca saem." title="Compartilhar" size="sm" onClose={onClose}>
         <div className="share">
           <ShareWays onClose={onClose} />
           <p className="small">

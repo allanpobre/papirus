@@ -35,6 +35,7 @@ export function FactDialog({
 
   return (
     <Modal
+      about="Um fato numa frase: quem, o quê e se é verdade, boato ou segredo. Ele aparece em “Quem sabe o quê” e nas fichas ligadas."
       title={title}
       onClose={onClose}
       footer={

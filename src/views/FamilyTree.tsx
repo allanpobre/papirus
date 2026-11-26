@@ -1,3 +1,4 @@
+import { useTap } from '../ui/useTap'
 import { Maximize, Minus, Plus } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { familyLayout, familyLinks, type FamilyLink, type FamilyNode } from '../logic/family'
@@ -66,6 +67,7 @@ function FamilyCanvas({ links, nodes }: { links: FamilyLink[]; nodes: FamilyNode
   const height = stageHeight(width, contentW, contentH, maxH)
   const area = { width, height, contentW, contentH }
   const { gRef, svgProps, transform, view, setView, wasDrag, zoomBy, showAll } = usePanZoom(area, { minK: 0.25, maxK: 2.5 })
+  const tap = useTap(wasDrag)
   const name = (id: string) => byId(universe, 'entities', id)?.name ?? '?'
 
   return (
@@ -110,8 +112,8 @@ function FamilyCanvas({ links, nodes }: { links: FamilyLink[]; nodes: FamilyNode
                     role="button"
                     tabIndex={0}
                     aria-label={`${name(n.id)}${years ? `, ${years}` : ''}`}
-                    // Um arrasto que começou na pessoa não é um toque nela.
-                    onClick={() => !wasDrag() && peek(n.id)}
+                    // Um arrasto que começou na pessoa não é um toque nela; um toque parado abre (mesmo logo depois de arrastar).
+                    {...tap(() => peek(n.id))}
                     onKeyDown={(ev) => (ev.key === 'Enter' || ev.key === ' ') && peek(n.id)}
                     // Quem chega pelo teclado: o desenho anda só o preciso para ela aparecer.
                     onFocus={() => setView(revealBox(view, { x: p.x + MARGIN, y: p.y + MARGIN, w: W, h: H }, area))}

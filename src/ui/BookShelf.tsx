@@ -78,7 +78,7 @@ export function BookBand() {
         </button>
       </div>
       {open && (
-        <Modal title="Trocar de livro" size="sm" onClose={() => setOpen(false)}>
+        <Modal about="Num universo com vários livros, escolha em qual você está. Escrever, Mundo e Publicar passam a mostrar só esse livro." title="Trocar de livro" size="sm" onClose={() => setOpen(false)}>
           <BookCovers onPicked={() => setOpen(false)} />
         </Modal>
       )}

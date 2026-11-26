@@ -967,6 +967,7 @@ function LinkDialog({ sel, onClose, onLink }: { sel: SelectionInfo; onClose: () 
   const isKnownName = entity ? namesOf(entity).some((n) => fold(n) === fold(sel.text)) : true
   return (
     <Modal
+      about="Ligue o trecho a uma ficha que já existe: ele passa a contar como menção dela."
       title="Vincular a uma ficha"
       size="sm"
       onClose={onClose}
@@ -999,6 +1000,7 @@ function NewEntityDialog({ name: initial, onClose, onCreate }: { name: string; o
   const [kind, setKind] = useState('personagem')
   return (
     <Modal
+      about="Crie a ficha a partir do trecho escolhido. O nome passa a ser reconhecido no texto."
       title="Nova ficha"
       size="sm"
       onClose={onClose}
@@ -1062,6 +1064,7 @@ function CommentDialog({ sel, onClose, onSave }: { sel: SelectionInfo; onClose: 
   const [text, setText] = useState('')
   return (
     <Modal
+      about="Uma nota sua no trecho, na margem da Revisão. Leitores não veem."
       title="Comentar trecho"
       size="sm"
       onClose={onClose}

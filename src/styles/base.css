@@ -1176,6 +1176,12 @@ input[type='radio'] {
 
 /* Dedo precisa de mais área que o mouse. */
 @media (pointer: coarse) {
+  /* Os ícones sozinhos: pelo menos 40 px para o dedo (auditoria 23, H6.2). */
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+  }
+
   .btn-icon.btn-sm {
     width: 36px;
     height: 36px;
@@ -1380,5 +1386,13 @@ input[type='radio'] {
 @media (min-width: 761px) {
   .update-notice {
     bottom: 1.25rem;
+  }
+}
+
+/* No alto das áreas (Fichas · Ligações · Tempo · Mapas e os ícones ao lado) a faixa é apertada: 36 px bastam ali. */
+@media (pointer: coarse) {
+  .area-head .btn-icon {
+    width: 36px;
+    height: 36px;
   }
 }

@@ -156,6 +156,7 @@ function GraphCanvas({ onMural }: { onMural?: () => void }) {
   const frame = useRef(0)
   // Um arrasto que começou numa bolinha não pode virar "toque" nela ao soltar.
   const suppressClick = useRef(false)
+  const tapped = useRef<{ at: number; down: { id: string; pointer: number; x: number; y: number } | null }>({ at: 0, down: null })
   const svgRef = useRef<SVGSVGElement>(null)
   const [wrapRef, measured] = useBoxSize()
   const { w: W, h: H } = measured ?? FALLBACK
@@ -168,7 +169,18 @@ function GraphCanvas({ onMural }: { onMural?: () => void }) {
   const actions = useMemo<NodeActions>(
     () => ({
       tap: (id) => {
-        if (suppressClick.current) return
+        // O clique que vem depois do toque já tratado não conta de novo.
+        if (suppressClick.current || Date.now() - tapped.current.at < 700) return
+        setSelected((s) => (s === id ? null : id))
+      },
+      down: (id, e) => {
+        tapped.current.down = e.pointerType === 'mouse' ? null : { id, pointer: e.pointerId, x: e.clientX, y: e.clientY }
+      },
+      up: (id, e) => {
+        const d = tapped.current.down
+        tapped.current.down = null
+        if (!d || d.id !== id || d.pointer !== e.pointerId || suppressClick.current || Math.hypot(e.clientX - d.x, e.clientY - d.y) >= 8) return
+        tapped.current.at = Date.now()
         setSelected((s) => (s === id ? null : id))
       },
       pick: (id) => setSelected(id),

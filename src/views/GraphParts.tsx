@@ -12,6 +12,9 @@ import { kindLabel } from '../model/labels'
 /** O que uma bolinha pode fazer. É um objeto único e estável (as peças nunca o veem mudar). */
 export interface NodeActions {
   tap: (id: string) => void
+  /** Toque parado (dedo): vale ao levantar, sem esperar o clique, que o navegador às vezes engole logo depois de um arrasto. */
+  down: (id: string, e: React.PointerEvent) => void
+  up: (id: string, e: React.PointerEvent) => void
   pick: (id: string) => void
   open: (id: string) => void
   enter: (id: string, pointerType: string) => void
@@ -76,6 +79,8 @@ export const NodeShape = memo(function NodeShape(p: NodeShapeProps) {
       role="button"
       aria-label={`${p.name}, ${kindLabel(p.kind)}`}
       onClick={() => actions.tap(id)}
+      onPointerDown={(e) => actions.down(id, e)}
+      onPointerUp={(e) => actions.up(id, e)}
       // Destacar ao passar por cima é só do mouse: no dedo, cada toque redesenharia tudo.
       onPointerEnter={(e) => actions.enter(id, e.pointerType)}
       onPointerLeave={(e) => actions.leave(id, e.pointerType)}

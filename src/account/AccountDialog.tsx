@@ -106,7 +106,7 @@ export function AccountDialog({
 
   if (checkEmail) {
     return (
-      <Modal title="Entrar no Papirus" size="sm" onClose={onClose}>
+      <Modal about="Entrar é opcional. Sem conta, tudo fica neste aparelho. Com conta, seus universos aparecem em todos os seus aparelhos, e você ganha perfil, amigos e desafios." title="Entrar no Papirus" size="sm" onClose={onClose}>
         <div className="account account-done">
           <MailCheck size={36} aria-hidden="true" className="account-done-icon" />
           <h3>Confira seu e-mail</h3>

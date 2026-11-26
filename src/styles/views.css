@@ -9929,10 +9929,9 @@ h3.cork-act {
     font-size: 0.85rem;
   }
 
-  /* Topo da ficha: o "E se sumir?" só com o ícone, para os botões caberem. */
+  /* Topo da ficha: os botões com nome (E se sumir?, Editar) cabem na linha; o texto fica só um pouco menor. */
   .reader-head .btn-ghost.btn-sm {
-    font-size: 0;
-    gap: 0;
+    padding-inline: 0.45rem;
   }
 }
 
@@ -14749,3 +14748,8 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--accent);
   border-bottom-color: var(--accent);
 }
+
+/* Ficha: o lápis do bloco com a palavra; e as bolinhas de "onde aparece" com mais área para o dedo (o desenho fica do mesmo tamanho) */
+.block-edit { padding-inline: 0.5rem; gap: 0.3rem; }
+button.presence-dot { position: relative; }
+button.presence-dot::before { content: ''; position: absolute; inset: -9px; }

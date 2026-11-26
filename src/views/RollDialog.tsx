@@ -35,7 +35,7 @@ export function RollDialog({ onClose }: { onClose: () => void }) {
     setResult(null)
   }
   return (
-    <Modal title="Rolar no mundo" onClose={onClose}>
+    <Modal about="Sem ideia? Role um boato, um encontro, um segredo ou uma festa, tirados do seu mundo. O que gostar vira pista ou ideia." title="Rolar no mundo" onClose={onClose}>
       <p className="small muted">Sorteia a partir do que já existe em “{universe.name}”: lugares, povos, personagens, grupos e as línguas do mundo.</p>
       <div className="chips roll-tables" role="radiogroup" aria-label="Tabela">
         {WORLD_TABLES.map((t) => (

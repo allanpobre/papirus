@@ -246,7 +246,7 @@ export function RefsStrip({ entity: e }: { entity: Entity }) {
         </div>
       )}
       {open && (
-        <Modal title={open.title || KIND_LABEL[open.kind]} onClose={() => setOpen(null)}>
+        <Modal about="Uma referência guardada: imagem, link ou nota que inspira esta ficha. Só você vê." title={open.title || KIND_LABEL[open.kind]} onClose={() => setOpen(null)}>
           <div className={`ref-card ref-open is-${open.kind}`}>
             {open.kind === 'imagem' && open.image && <Picture value={open.image} alt={open.title || 'Referência'} className="ref-image" />}
             {open.kind === 'link' && safeUrl(open.url) && (

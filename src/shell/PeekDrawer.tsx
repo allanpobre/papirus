@@ -43,6 +43,7 @@ export function PeekDrawer({ entityId, onClose }: { entityId: string; onClose: (
 
   return (
     <Modal
+      about="Uma espiada na ficha sem sair de onde você está. “Abrir ficha” leva para a página inteira."
       title={e.name || 'Sem nome'}
       onClose={onClose}
       side

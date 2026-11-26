@@ -1,55 +1,21 @@
-import { bookScope } from "../logic/bookScope";
-import { compareByRole, roleIn, roleRank } from "../logic/roles";
-import { OriginChip } from "./AUBanner";
-import { PassesEditor, WhoIsEditor } from "./WhoIs";
-import { optionKinds, whoIsKeys } from "../logic/definers";
-import { GAME_KINDS } from "../rpg/worldBonuses";
-import { VersionsBar } from "./VersionsView";
-import { NameIdeas } from "./NameIdeas";
-import {
-  ArrowLeft,
-  BookMarked,
-  BookOpen,
-  Check,
-  Copy,
-  Dices,
-  ImagePlus,
-  ListPlus,
-  Loader2,
-  PenLine,
-  Pencil,
-  Plus,
-  Stamp,
-  Trash2,
-  X,
-  SlidersHorizontal,
-} from "lucide-react";
-import { Picture } from "../images/Picture";
-import { useImagePicker } from "../images/useImagePicker";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { factSentence } from "../logic/codex";
-import { fold } from "../logic/text";
-import { involvements, scopeLabel } from "../logic/relations";
-import { RelationDetails } from "./RelationDetails";
-import {
-  CANON_HINT,
-  formatYear,
-  KIND_LABEL,
-  KNOWLEDGE_LABEL,
-  kindLabel,
-  kindPlural,
-  ROLE_LABEL,
-  SEED_STATUS_LABEL,
-} from "../model/labels";
-import {
-  ENTITY_KINDS,
-  FIELD_TYPES,
-  KNOWLEDGE_STATES,
-  STORY_ROLES,
-  type Entity,
-  type KnowledgeState,
-  type StoryRole,
-} from "../model/schema";
+import { bookScope } from '../logic/bookScope'
+import { compareByRole, roleIn, roleRank } from '../logic/roles'
+import { OriginChip } from './AUBanner'
+import { PassesEditor, WhoIsEditor } from './WhoIs'
+import { optionKinds, whoIsKeys } from '../logic/definers'
+import { GAME_KINDS } from '../rpg/worldBonuses'
+import { VersionsBar } from './VersionsView'
+import { NameIdeas } from './NameIdeas'
+import { ArrowLeft, BookMarked, BookOpen, Check, Copy, Dices, ImagePlus, ListPlus, Loader2, PenLine, Pencil, Plus, Stamp, Trash2, X, SlidersHorizontal } from 'lucide-react'
+import { Picture } from '../images/Picture'
+import { useImagePicker } from '../images/useImagePicker'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { factSentence } from '../logic/codex'
+import { fold } from '../logic/text'
+import { involvements, scopeLabel } from '../logic/relations'
+import { RelationDetails } from './RelationDetails'
+import { CANON_HINT, formatYear, KIND_LABEL, KNOWLEDGE_LABEL, kindLabel, kindPlural, ROLE_LABEL, SEED_STATUS_LABEL } from '../model/labels'
+import { ENTITY_KINDS, FIELD_TYPES, KNOWLEDGE_STATES, STORY_ROLES, type Entity, type KnowledgeState, type StoryRole } from '../model/schema'
 import {
   bookOnly,
   byId,
@@ -63,300 +29,204 @@ import {
   patch,
   remove,
   removeEntity,
-  chosenBook,
-  bookIdsOf,
-} from "../model/universe";
-import { recall, remember } from "../state/prefs";
-import { useWorkspace } from "../state/workspace";
-import { worldLevel } from "../model/kind";
-import { GameRules } from "./GameRules";
-import { LanguageEditor } from "./LanguageEditor";
-import { CultureWorkshop } from "./CultureWorkshop";
-import { PantheonPanel } from "./PantheonPanel";
-import { PowerPanel } from "./PowerPanel";
-import { TogetherHere } from "./TogetherHere";
-import { appearancesOf, sceneCounts } from "../logic/appearances";
-import { EntityGame } from "./EntityGame";
-import { EntityReader } from "./EntityReader";
-import { CharacterCreator } from "./CharacterCreator";
-import { KindQuestions } from "./KindQuestions";
-import { MapGlimpse } from "./MapGlimpse";
-import { AppearanceList } from "./AppearanceList";
-import { EntityRevealField } from "./RevealControl";
-import { PhasesEditor } from "./PhasesView";
-import { ReferencesEditor, RefsStrip } from "./ReferencesView";
-import { CharacterPowersEditor, PowerTreeEditor } from "./PowersView";
-import { canHavePowers } from "../logic/powers";
-import { derivedHint, onlyName } from "../logic/derivedFields";
-import { answer, askedKey, isBlank } from "../logic/kindQuestions";
-import {
-  CanonBadge,
-  CanonSelect,
-  EditorialSelect,
-  Empty,
-  Field,
-  Select,
-  TagInput,
-  YearInput,
-} from "../ui/bits";
-import { Fold } from "../ui/Fold";
-import { ArcCard } from "./ArcCard";
-import { ConfirmButton } from "../ui/ConfirmButton";
-import { SecretTextarea } from "../ui/SecretText";
-import { RevealPicker } from "../ui/RevealPicker";
-import { EntityPicker } from "../ui/EntityPicker";
-import { FactDialog } from "../ui/FactDialog";
-import { AreaHead } from "./AreaModes";
-import { findRanges } from "../editor/find";
-import { openBookReplace } from "./write/replaceEvents";
-import { BulkCreateDialog, NewEntityDialog } from "./EntityCreate";
-import { SameNameHint } from "./SameName";
-import { BirthFlow } from "./BirthFlow";
-import { InheritedRows, ListsSection, MembershipChips } from "./EntityLists";
-import { SelectionBar } from "./EntitySelection";
-import { EntityTable } from "./EntityTable";
-import {
-  createFromTemplate,
-  saveAsTemplate,
-  templatesOf,
-} from "../model/entityTemplates";
-import { MoreMenu } from "../ui/MoreMenu";
-import { MenuGroup, MenuItem } from "../ui/MenuItem";
-import { listsOf, listTemplatesFor, PLACE_KINDS } from "../model/lists";
-import { useKindOptions } from "./kindOptions";
-import { useMediaQuery } from "../ui/useMediaQuery";
-import { existsIn } from "../logic/timeMachine";
-import { useChosenYear } from "./timeYear";
-import { YearBanner } from "./YearBanner";
+  chosenBook, bookIdsOf } from '../model/universe'
+import { recall, remember } from '../state/prefs'
+import { useWorkspace } from '../state/workspace'
+import { worldLevel } from '../model/kind'
+import { GameRules } from './GameRules'
+import { LanguageEditor } from './LanguageEditor'
+import { CultureWorkshop } from './CultureWorkshop'
+import { PantheonPanel } from './PantheonPanel'
+import { PowerPanel } from './PowerPanel'
+import { TogetherHere } from './TogetherHere'
+import { appearancesOf, sceneCounts } from '../logic/appearances'
+import { EntityGame } from './EntityGame'
+import { EntityReader } from './EntityReader'
+import { CharacterCreator } from './CharacterCreator'
+import { KindQuestions } from './KindQuestions'
+import { MapGlimpse } from './MapGlimpse'
+import { AppearanceList } from './AppearanceList'
+import { EntityRevealField } from './RevealControl'
+import { PhasesEditor } from './PhasesView'
+import { ReferencesEditor, RefsStrip } from './ReferencesView'
+import { CharacterPowersEditor, PowerTreeEditor } from './PowersView'
+import { canHavePowers } from '../logic/powers'
+import { derivedHint, onlyName } from '../logic/derivedFields'
+import { answer, askedKey, isBlank } from '../logic/kindQuestions'
+import { CanonBadge, CanonSelect, EditorialSelect, Empty, Field, Select, TagInput, YearInput } from '../ui/bits'
+import { Fold } from '../ui/Fold'
+import { ArcCard } from './ArcCard'
+import { ConfirmButton } from '../ui/ConfirmButton'
+import { SecretTextarea } from '../ui/SecretText'
+import { RevealPicker } from '../ui/RevealPicker'
+import { EntityPicker } from '../ui/EntityPicker'
+import { FactDialog } from '../ui/FactDialog'
+import { AreaHead } from './AreaModes'
+import { findRanges } from '../editor/find'
+import { openBookReplace } from './write/replaceEvents'
+import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
+import { SameNameHint } from './SameName'
+import { BirthFlow } from './BirthFlow'
+import { InheritedRows, ListsSection, MembershipChips } from './EntityLists'
+import { SelectionBar } from './EntitySelection'
+import { EntityTable } from './EntityTable'
+import { createFromTemplate, saveAsTemplate, templatesOf } from '../model/entityTemplates'
+import { MoreMenu } from '../ui/MoreMenu'
+import { MenuGroup, MenuItem } from '../ui/MenuItem'
+import { listsOf, listTemplatesFor, PLACE_KINDS } from '../model/lists'
+import { useKindOptions } from './kindOptions'
+import { useMediaQuery } from '../ui/useMediaQuery'
+import { existsIn } from '../logic/timeMachine'
+import { useChosenYear } from './timeYear'
+import { YearBanner } from './YearBanner'
 
 export default function EntitiesView() {
-  const { universe, update, nav, go, readOnly, peek, bookId, toast, prefs } =
-    useWorkspace();
+  const { universe, update, nav, go, readOnly, peek, bookId, toast, prefs } = useWorkspace()
   // Nova cara: fichas como cartas com rosto e os filtros num botão.
-  const nova = !!prefs.novaCara;
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const nova = !!prefs.novaCara
+  const [filtersOpen, setFiltersOpen] = useState(false)
   // Ler ou editar: a ficha abre para ler, e a escolha fica lembrada; quem só pode ler, lê.
   const [mode, setMode] = useState<FichaMode>(() => {
     // A chave antiga ("ficha-modo") guardava "editar" do tempo do Ler/Editar: agora a ficha abre na página.
-    const saved = recall("ficha-vista");
-    return !readOnly && (saved === "editar" || saved === "jogo")
-      ? saved
-      : "ler";
-  });
+    const saved = recall('ficha-vista')
+    return !readOnly && (saved === 'editar' || saved === 'jogo') ? saved : 'ler'
+  })
   // A ficha que acabou de nascer aqui abre para editar.
-  const [fresh, setFresh] = useState<string | null>(null);
+  const [fresh, setFresh] = useState<string | null>(null)
   // A ficha que acabou de nascer (criada e aberta): abre as cartas do nascimento por cima.
-  const [birth, setBirth] = useState<string | null>(null);
-  const born =
-    birth && prefs.birthCards !== false
-      ? universe.entities.find((x) => x.id === birth)
-      : undefined;
+  const [birth, setBirth] = useState<string | null>(null)
+  const born = birth && prefs.birthCards !== false ? universe.entities.find((x) => x.id === birth) : undefined
   const changeMode = (m: FichaMode) => {
-    setMode(m);
-    setFresh(null);
-    remember("ficha-vista", m);
-  };
-  const [query, setQuery] = useState("");
-  const [kind, setKind] = useState<string>("todos");
-  const [newName, setNewName] = useState("");
-  const [newKind, setNewKind] = useState("personagem");
-  const kindOptions = useKindOptions();
-  const phone = useMediaQuery("(max-width: 760px)");
+    setMode(m)
+    setFresh(null)
+    remember('ficha-vista', m)
+  }
+  const [query, setQuery] = useState('')
+  const [kind, setKind] = useState<string>('todos')
+  const [newName, setNewName] = useState('')
+  const [newKind, setNewKind] = useState('personagem')
+  const kindOptions = useKindOptions()
+  const phone = useMediaQuery('(max-width: 760px)')
   // Criar uma (no celular, numa janela que não sai da lista) ou várias de uma vez.
-  const [creating, setCreating] = useState<null | "uma" | "varias">(null);
+  const [creating, setCreating] = useState<null | 'uma' | 'varias'>(null)
   // Selecionar várias: pôr numa lista, etiqueta, tipo ou apagar de uma vez.
-  const [picked, setPicked] = useState<Set<string> | null>(null);
+  const [picked, setPicked] = useState<Set<string> | null>(null)
   // Lista ou tabela (no computador): a tabela mostra as fichas lado a lado, com os campos em colunas.
-  const [layout, setLayout] = useState<"lista" | "tabela">(() =>
-    recall("mundo-vista") === "tabela" ? "tabela" : "lista",
-  );
-  const changeLayout = (l: "lista" | "tabela") => {
-    setLayout(l);
-    remember("mundo-vista", l);
-    setPicked(null);
-  };
+  const [layout, setLayout] = useState<'lista' | 'tabela'>(() => (recall('mundo-vista') === 'tabela' ? 'tabela' : 'lista'))
+  const changeLayout = (l: 'lista' | 'tabela') => {
+    setLayout(l)
+    remember('mundo-vista', l)
+    setPicked(null)
+  }
   // A tabela também vale no celular (rola de lado, com a coluna do nome presa); abrindo uma ficha, a tela é a dela.
-  const table = layout === "tabela";
-  const templates = templatesOf(universe);
+  const table = layout === 'tabela'
+  const templates = templatesOf(universe)
   const fromTemplate = (t: (typeof templates)[number]) => {
-    let id = "";
+    let id = ''
     update((u) => {
-      const [made, ent] = createFromTemplate(u, t, newName.trim());
-      const next = bookIdsOf(bookId)
-        ? patch(made, "entities", ent.id, { books: bookIdsOf(bookId)! })
-        : made;
-      id = ent.id;
-      return next;
-    });
-    setNewName("");
-    setFresh(id);
-    setBirth(id);
-    go("fichas", id);
-  };
-  const togglePick = (id: string) =>
-    setPicked((p) =>
-      p
-        ? p.has(id)
-          ? new Set([...p].filter((x) => x !== id))
-          : new Set([...p, id])
-        : p,
-    );
-  type Order = "nome" | "cenas" | "recentes" | "papel";
+      const [made, ent] = createFromTemplate(u, t, newName.trim())
+      const next = bookIdsOf(bookId) ? patch(made, 'entities', ent.id, { books: bookIdsOf(bookId)! }) : made
+      id = ent.id
+      return next
+    })
+    setNewName('')
+    setFresh(id)
+    setBirth(id)
+    go('fichas', id)
+  }
+  const togglePick = (id: string) => setPicked((p) => (p ? (p.has(id) ? new Set([...p].filter((x) => x !== id)) : new Set([...p, id])) : p))
+  type Order = 'nome' | 'cenas' | 'recentes' | 'papel'
   const [order, setOrder] = useState<Order>(() => {
-    const o = recall("fichas-ordem");
-    return o === "cenas" || o === "recentes" || o === "papel" ? o : "nome";
-  });
+    const o = recall('fichas-ordem')
+    return o === 'cenas' || o === 'recentes' || o === 'papel' ? o : 'nome'
+  })
   // Filtro por papel na história ('' = todos; 'sem' = quem não tem papel).
-  const [roleFilter, setRoleFilter] = useState<string>("");
+  const [roleFilter, setRoleFilter] = useState<string>('')
   const changeOrder = (o: Order) => {
-    setOrder(o);
-    remember("fichas-ordem", o);
-  };
+    setOrder(o)
+    remember('fichas-ordem', o)
+  }
 
-  const selectedId = nav.view === "fichas" ? (nav.id ?? null) : null;
-  const selected = selectedId
-    ? byId(universe, "entities", selectedId)
-    : undefined;
+  const selectedId = nav.view === 'fichas' ? (nav.id ?? null) : null
+  const selected = selectedId ? byId(universe, 'entities', selectedId) : undefined
   // A aba Jogo: só num personagem com ficha de jogo (na Mesa).
-  const hasGame = Boolean(
-    selected && universe.sheets.some((x) => x.entityId === selected.id),
-  );
-  const shownMode: FichaMode =
-    selected && fresh === selected.id
-      ? "editar"
-      : mode === "jogo" && !hasGame
-        ? "ler"
-        : mode;
+  const hasGame = Boolean(selected && universe.sheets.some((x) => x.entityId === selected.id))
+  const shownMode: FichaMode = selected && fresh === selected.id ? 'editar' : mode === 'jogo' && !hasGame ? 'ler' : mode
 
   const kinds = useMemo(() => {
-    const all = new Set([
-      ...ENTITY_KINDS.filter((k) =>
-        universe.entities.some((e) => e.kind === k),
-      ),
-      ...universe.entities.map((e) => e.kind),
-    ]);
-    return [...all];
-  }, [universe.entities]);
+    const all = new Set([...ENTITY_KINDS.filter((k) => universe.entities.some((e) => e.kind === k)), ...universe.entities.map((e) => e.kind)])
+    return [...all]
+  }, [universe.entities])
 
   // Em quantas cenas cada ficha aparece: o que a história usa e o que está só nas notas (sem cobrança).
   // Com um livro escolhido no alto, conta só as cenas dele, e a lista mostra só quem aparece nele.
-  const counts = useMemo(
-    () => sceneCounts(bookOnly(universe, bookId)),
-    [universe, bookId],
-  );
+  const counts = useMemo(() => sceneCounts(bookOnly(universe, bookId)), [universe, bookId])
   // Quem ainda não aparece em livro nenhum (fichas novas) vale para qualquer livro (a mesma regra da Linha do tempo e dos Mapas).
-  const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId]);
-  const inNoBook = (id: string) =>
-    scope ? scope.inNoBook(id) : !counts.get(id);
+  const scope = useMemo(() => bookScope(universe, bookId), [universe, bookId])
+  const inNoBook = (id: string) => (scope ? scope.inNoBook(id) : !counts.get(id))
   // Com um livro escolhido: quantas fichas ainda não são de livro nenhum (só aparecem em "Todos os livros").
-  const noBook = scope
-    ? universe.entities.filter((e) => inNoBook(e.id)).length
-    : 0;
-  const book = chosenBook(universe, bookId);
-  const [everyone, setEveryone] = useState(false);
-  const onlyBook = Boolean(book) && !everyone;
-  const hasScenes = universe.scenes.some((sc) => sc.text.trim());
-  const [where, setWhere] = useState<"tudo" | "cenas" | "notas">("tudo");
-  const inScenes = universe.entities.filter((e) => counts.get(e.id)).length;
+  const noBook = scope ? universe.entities.filter((e) => inNoBook(e.id)).length : 0
+  const book = chosenBook(universe, bookId)
+  const [everyone, setEveryone] = useState(false)
+  const onlyBook = Boolean(book) && !everyone
+  const hasScenes = universe.scenes.some((sc) => sc.text.trim())
+  const [where, setWhere] = useState<'tudo' | 'cenas' | 'notas'>('tudo')
+  const inScenes = universe.entities.filter((e) => counts.get(e.id)).length
 
   // Com a Máquina do tempo num ano, só aparece quem existia nele (dá para mostrar todas).
-  const [year, setYear] = useChosenYear(universe.id);
-  const [onlyThen, setOnlyThen] = useState(true);
-  const timeFilter = year !== null && onlyThen;
-  const outOfYear =
-    year === null
-      ? 0
-      : universe.entities.filter((e) => !existsIn(e, year)).length;
+  const [year, setYear] = useChosenYear(universe.id)
+  const [onlyThen, setOnlyThen] = useState(true)
+  const timeFilter = year !== null && onlyThen
+  const outOfYear = year === null ? 0 : universe.entities.filter((e) => !existsIn(e, year)).length
   const list = useMemo(() => {
-    const q = fold(query.trim());
-    return (
-      universe.entities
-        .filter((e) => kind === "todos" || e.kind === kind)
-        .filter((e) => !timeFilter || existsIn(e, year!))
-        .filter(
-          (e) =>
-            !roleFilter ||
-            (roleFilter === "sem"
-              ? !roleIn(e, bookId)
-              : roleIn(e, bookId) === roleFilter),
-        )
-        .filter(
-          (e) =>
-            where === "tudo" ||
-            (where === "cenas") === Boolean(counts.get(e.id)),
-        )
-        // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
-        // Com um livro escolhido, somem só as fichas que aparecem apenas em outros livros.
-        .filter(
-          (e) =>
-            !onlyBook ||
-            Boolean(counts.get(e.id)) ||
-            Boolean(scope?.belongs(e.id)) ||
-            e.id === fresh,
-        )
-        .filter(
-          (e) =>
-            !q ||
-            namesOf(e).some((n) => fold(n).includes(q)) ||
-            fold(e.summary).includes(q) ||
-            e.tags.some((t) => fold(t).includes(q)) ||
-            // Também nos campos ("Espécie: elfo") e na descrição.
-            e.fields.some((f) => fold(`${f.key} ${f.value}`).includes(q)) ||
-            fold(e.description).includes(q),
-        )
-        .sort((a, b) =>
-          order === "papel"
-            ? compareByRole(
-                { role: roleIn(a, bookId), name: a.name },
-                { role: roleIn(b, bookId), name: b.name },
-              )
-            : order === "cenas"
-              ? (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) ||
-                a.name.localeCompare(b.name, "pt")
-              : order === "recentes"
-                ? b.updatedAt.localeCompare(a.updatedAt)
-                : a.name.localeCompare(b.name, "pt"),
-        )
-    );
+    const q = fold(query.trim())
+    return universe.entities
+      .filter((e) => kind === 'todos' || e.kind === kind)
+      .filter((e) => !timeFilter || existsIn(e, year!))
+      .filter((e) => !roleFilter || (roleFilter === 'sem' ? !roleIn(e, bookId) : roleIn(e, bookId) === roleFilter))
+      .filter((e) => where === 'tudo' || (where === 'cenas') === Boolean(counts.get(e.id)))
+      // A ficha recém-criada fica na lista mesmo antes de aparecer no livro.
+      // Com um livro escolhido, somem só as fichas que aparecem apenas em outros livros.
+      .filter((e) => !onlyBook || Boolean(counts.get(e.id)) || Boolean(scope?.belongs(e.id)) || e.id === fresh)
+      .filter(
+        (e) =>
+          !q ||
+          namesOf(e).some((n) => fold(n).includes(q)) ||
+          fold(e.summary).includes(q) ||
+          e.tags.some((t) => fold(t).includes(q)) ||
+          // Também nos campos ("Espécie: elfo") e na descrição.
+          e.fields.some((f) => fold(`${f.key} ${f.value}`).includes(q)) ||
+          fold(e.description).includes(q),
+      )
+      .sort((a, b) =>
+        order === 'papel'
+          ? compareByRole({ role: roleIn(a, bookId), name: a.name }, { role: roleIn(b, bookId), name: b.name })
+          : order === 'cenas'
+          ? (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) || a.name.localeCompare(b.name, 'pt')
+          : order === 'recentes'
+            ? b.updatedAt.localeCompare(a.updatedAt)
+            : a.name.localeCompare(b.name, 'pt'),
+      )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    universe.entities,
-    kind,
-    roleFilter,
-    bookId,
-    query,
-    where,
-    counts,
-    scope,
-    order,
-    onlyBook,
-    fresh,
-    timeFilter,
-    year,
-  ]);
+  }, [universe.entities, kind, roleFilter, bookId, query, where, counts, scope, order, onlyBook, fresh, timeFilter, year])
 
   const create = (e: React.FormEvent) => {
-    e.preventDefault();
-    const name = newName.trim();
-    if (!name) return;
-    let id = "";
+    e.preventDefault()
+    const name = newName.trim()
+    if (!name) return
+    let id = ''
     update((u) => {
-      const [next, ent] = insert(u, "entities", {
-        ...draftEntity(newKind, name),
-        ...(bookIdsOf(bookId) ? { books: bookIdsOf(bookId)! } : {}),
-      });
-      id = ent.id;
-      return next;
-    });
-    setNewName("");
-    setFresh(id);
-    go("fichas", id);
-  };
+      const [next, ent] = insert(u, 'entities', { ...draftEntity(newKind, name), ...(bookIdsOf(bookId) ? { books: bookIdsOf(bookId)! } : {}) })
+      id = ent.id
+      return next
+    })
+    setNewName('')
+    setFresh(id)
+    go('fichas', id)
+  }
 
   return (
-    <div
-      className={`view split fichas-view${selected ? " has-detail" : ""}${table ? " is-table" : ""}`}
-    >
+    <div className={`view split fichas-view${selected ? ' has-detail' : ''}${table ? ' is-table' : ''}`}>
       <AreaHead current="fichas" tour="fichas" />
       <section className="split-list" aria-label="Lista de fichas">
         {/* No celular, a lista vem primeiro: criar fica no botão redondo. */}
@@ -366,56 +236,27 @@ export default function EntitiesView() {
               <label htmlFor="nova-ficha" className="sr-only">
                 Nome da nova ficha
               </label>
-              <input
-                id="nova-ficha"
-                className="input"
-                placeholder="Nova ficha…"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-              />
-              <Select
-                label="Tipo da nova ficha"
-                value={newKind}
-                onChange={setNewKind}
-                options={kindOptions}
-              />
-              <button
-                type="submit"
-                className="btn btn-primary"
-                aria-label="Criar ficha"
-              >
+              <input id="nova-ficha" className="input" placeholder="Nova ficha…" value={newName} onChange={(e) => setNewName(e.target.value)} />
+              <Select label="Tipo da nova ficha" value={newKind} onChange={setNewKind} options={kindOptions} />
+              <button type="submit" className="btn btn-primary" aria-label="Criar ficha">
                 <Plus size={16} />
               </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                aria-label="Criar várias de uma vez"
-                title="Criar várias de uma vez (colar uma lista de nomes)"
-                onClick={() => setCreating("varias")}
-              >
+              <button type="button" className="btn btn-ghost" aria-label="Criar várias de uma vez" title="Criar várias de uma vez (colar uma lista de nomes)" onClick={() => setCreating('varias')}>
                 <ListPlus size={16} />
               </button>
               {templates.length > 0 && (
-                <MoreMenu
-                  label="Criar a partir de um modelo"
-                  buttonClass="btn btn-ghost"
-                  button={
-                    <Stamp size={16} aria-label="Criar a partir de um modelo" />
-                  }
-                >
+                <MoreMenu label="Criar a partir de um modelo" buttonClass="btn btn-ghost" button={<Stamp size={16} aria-label="Criar a partir de um modelo" />}>
                   {(close) => (
                     <>
-                      <span className="more-menu-label">
-                        Nova ficha a partir de
-                      </span>
+                      <span className="more-menu-label">Nova ficha a partir de</span>
                       {templates.map((t) => (
                         <button
                           key={t.id}
                           type="button"
                           className="more-menu-item"
                           onClick={() => {
-                            close();
-                            fromTemplate(t);
+                            close()
+                            fromTemplate(t)
                           }}
                         >
                           <Copy size={15} /> {t.name}
@@ -427,160 +268,89 @@ export default function EntitiesView() {
               )}
               <NameIdeas kind={newKind} onPick={setNewName} compact />
             </form>
-            <SameNameHint
-              entities={universe.entities}
-              name={newName}
-              onOpen={(id) => (setNewName(""), go("fichas", id))}
-            />
+            <SameNameHint entities={universe.entities} name={newName} onOpen={(id) => (setNewName(''), go('fichas', id))} />
           </>
         )}
         {/* Sem nenhuma ficha, não há o que procurar nem selecionar. */}
         {universe.entities.length > 0 && (
           <>
-            <div className="list-tools">
-              <input
-                className="input"
-                data-livre
-                aria-label="Filtrar fichas"
-                placeholder="Procurar…"
-                title="Procura no nome, nos campos e na descrição"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              {/* Nova cara: menos controles à vista; tipo, papel, ordem e vista ficam num botão. */}
-              {nova && (
-                <button
-                  type="button"
-                  className="btn btn-ghost list-filters-btn"
-                  aria-expanded={filtersOpen}
-                  onClick={() => setFiltersOpen(!filtersOpen)}
-                >
-                  <SlidersHorizontal size={16} aria-hidden="true" /> Filtros
-                  {kind !== "todos" || roleFilter ? " •" : ""}
-                </button>
-              )}
-              {(!nova || filtersOpen) && (
-                <>
-                  <Select
-                    label="Filtrar por tipo"
-                    value={kind}
-                    onChange={setKind}
-                    options={[
-                      {
-                        value: "todos",
-                        label: `Todas (${onlyBook ? inScenes : universe.entities.length})`,
-                      },
-                      ...kinds.map((k) => ({ value: k, label: kindPlural(k) })),
-                    ]}
-                  />
-                  {universe.entities.some((e) => roleIn(e, bookId)) && (
-                    <Select
-                      label="Filtrar por papel"
-                      value={roleFilter}
-                      onChange={setRoleFilter}
-                      options={[
-                        { value: "", label: "Todos os papéis" },
-                        ...STORY_ROLES.filter((r) =>
-                          universe.entities.some(
-                            (e) => roleIn(e, bookId) === r,
-                          ),
-                        ).map((r) => ({
-                          value: r as string,
-                          label: `${ROLE_LABEL[r]} (${universe.entities.filter((e) => roleIn(e, bookId) === r).length})`,
-                        })),
-                        { value: "sem", label: "Sem papel" },
-                      ]}
-                    />
-                  )}
-                  <Select<Order>
-                    label="Ordem da lista"
-                    value={order}
-                    onChange={changeOrder}
-                    options={[
-                      { value: "nome", label: "A–Z" },
-                      {
-                        value: "cenas",
-                        label: phone ? "Cenas" : "Mais nas cenas",
-                      },
-                      { value: "recentes", label: "Recentes" },
-                      {
-                        value: "papel",
-                        label: phone ? "Papel" : "Protagonistas primeiro",
-                      },
-                    ]}
-                  />
-                </>
-              )}
+        <div className="list-tools">
+          <input className="input" data-livre aria-label="Filtrar fichas" placeholder="Procurar…" title="Procura no nome, nos campos e na descrição" value={query} onChange={(e) => setQuery(e.target.value)} />
+          {/* Nova cara: menos controles à vista; tipo, papel, ordem e vista ficam num botão. */}
+          {nova && (
+            <button type="button" className="btn btn-ghost list-filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+              <SlidersHorizontal size={16} aria-hidden="true" /> Filtros{kind !== 'todos' || roleFilter ? ' •' : ''}
+            </button>
+          )}
+          {(!nova || filtersOpen) && (
+          <>
+          <Select
+            label="Filtrar por tipo"
+            value={kind}
+            onChange={setKind}
+            options={[{ value: 'todos', label: `Todas (${onlyBook ? inScenes : universe.entities.length})` },...kinds.map((k) => ({ value: k, label: kindPlural(k) }))]}
+          />
+          {universe.entities.some((e) => roleIn(e, bookId)) && (
+            <Select
+              label="Filtrar por papel"
+              value={roleFilter}
+              onChange={setRoleFilter}
+              options={[
+                { value: '', label: 'Todos os papéis' },
+                ...STORY_ROLES.filter((r) => universe.entities.some((e) => roleIn(e, bookId) === r)).map((r) => ({ value: r as string, label: `${ROLE_LABEL[r]} (${universe.entities.filter((e) => roleIn(e, bookId) === r).length})` })),
+                { value: 'sem', label: 'Sem papel' },
+              ]}
+            />
+          )}
+          <Select<Order>
+            label="Ordem da lista"
+            value={order}
+            onChange={changeOrder}
+            options={[
+              { value: 'nome', label: 'A–Z' },
+              { value: 'cenas', label: phone ? 'Cenas' : 'Mais nas cenas' },
+              { value: 'recentes', label: 'Recentes' },
+              { value: 'papel', label: phone ? 'Papel' : 'Protagonistas primeiro' },
+            ]}
+          />
+          </>
+          )}
+        </div>
+        {(!nova || filtersOpen) && (
+        <div className="list-modes">
+          {
+            <div className="segmented" role="radiogroup" aria-label="Vista do Mundo">
+              <button type="button" role="radio" aria-checked={!table} onClick={() => changeLayout('lista')}>
+                Lista
+              </button>
+              <button type="button" role="radio" aria-checked={table} onClick={() => changeLayout('tabela')}>
+                Tabela
+              </button>
             </div>
-            {(!nova || filtersOpen) && (
-              <div className="list-modes">
-                {
-                  <div
-                    className="segmented"
-                    role="radiogroup"
-                    aria-label="Vista do Mundo"
-                  >
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={!table}
-                      onClick={() => changeLayout("lista")}
-                    >
-                      Lista
-                    </button>
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={table}
-                      onClick={() => changeLayout("tabela")}
-                    >
-                      Tabela
-                    </button>
-                  </div>
-                }
-                {!readOnly && !table && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    aria-pressed={picked !== null}
-                    onClick={() => setPicked(picked ? null : new Set())}
-                  >
-                    {picked ? "Pronto" : "Selecionar"}
-                  </button>
-                )}
-              </div>
-            )}
+          }
+          {!readOnly && !table && (
+            <button type="button" className="btn btn-ghost btn-sm" aria-pressed={picked !== null} onClick={() => setPicked(picked ? null : new Set())}>
+              {picked ? 'Pronto' : 'Selecionar'}
+            </button>
+          )}
+        </div>
+        )}
           </>
         )}
         {book && (
           <p className="book-filter-note small">
             {onlyBook ? (
               <>
-                Quem aparece em “{book.title || "Sem título"}” ou foi posto
-                nele.{" "}
-                {noBook > 0 && (
-                  <strong>
-                    {noBook === 1
-                      ? "1 ficha ainda sem livro."
-                      : `${noBook} fichas ainda sem livro.`}{" "}
-                  </strong>
-                )}
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => setEveryone(true)}
-                >
+                Quem aparece em “{book.title || 'Sem título'}” ou foi posto nele.{' '}
+                {noBook > 0 && <strong>{noBook === 1 ? '1 ficha ainda sem livro.' : `${noBook} fichas ainda sem livro.`} </strong>}
+                <button type="button" className="link-btn" onClick={() => setEveryone(true)}>
                   Ver todas as fichas
                 </button>
               </>
             ) : (
               <>
-                Todas as fichas do mundo.{" "}
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => setEveryone(false)}
-                >
+                Todas as fichas do mundo.{' '}
+                <button type="button" className="link-btn" onClick={() => setEveryone(false)}>
                   Só as deste livro
                 </button>
               </>
@@ -588,311 +358,163 @@ export default function EntitiesView() {
           </p>
         )}
         {hasScenes && universe.entities.length > 0 && !phone && !onlyBook && (
-          <div
-            className="filter-chips where-chips"
-            role="group"
-            aria-label="Onde aparece"
-          >
-            <button
-              type="button"
-              className="chip"
-              aria-pressed={where === "cenas"}
-              onClick={() => setWhere(where === "cenas" ? "tudo" : "cenas")}
-            >
+          <div className="filter-chips where-chips" role="group" aria-label="Onde aparece">
+            <button type="button" className="chip" aria-pressed={where === 'cenas'} onClick={() => setWhere(where === 'cenas' ? 'tudo' : 'cenas')}>
               Nas cenas <span className="chip-count">{inScenes}</span>
             </button>
-            <button
-              type="button"
-              className="chip"
-              aria-pressed={where === "notas"}
-              onClick={() => setWhere(where === "notas" ? "tudo" : "notas")}
-            >
-              Só nas notas{" "}
-              <span className="chip-count">
-                {universe.entities.length - inScenes}
-              </span>
+            <button type="button" className="chip" aria-pressed={where === 'notas'} onClick={() => setWhere(where === 'notas' ? 'tudo' : 'notas')}>
+              Só nas notas <span className="chip-count">{universe.entities.length - inScenes}</span>
             </button>
           </div>
         )}
-        {year !== null && (
-          <YearBanner
-            year={year}
-            hidden={outOfYear}
-            filtering={onlyThen}
-            onToggle={() => setOnlyThen(!onlyThen)}
-            onExit={() => setYear(null)}
-          />
-        )}
+        {year !== null && <YearBanner year={year} hidden={outOfYear} filtering={onlyThen} onToggle={() => setOnlyThen(!onlyThen)} onExit={() => setYear(null)} />}
         {list.length === 0 ? (
-          <Empty
-            icon={<BookMarked size={28} />}
-            title={
-              universe.entities.length
-                ? "Nada com esse filtro."
-                : "Nenhuma ficha ainda."
-            }
-          >
-            {!universe.entities.length && (
-              <p>
-                {phone ? "Toque no + para criar uma" : "Crie uma acima"}, ou
-                selecione um nome no texto e escolha “Ficha”.
-              </p>
-            )}
+          <Empty icon={<BookMarked size={28} />} title={universe.entities.length ? 'Nada com esse filtro.' : 'Nenhuma ficha ainda.'}>
+            {!universe.entities.length && <p>{phone ? 'Toque no + para criar uma' : 'Crie uma acima'}, ou selecione um nome no texto e escolha “Ficha”.</p>}
           </Empty>
         ) : (
-          <ul className={`entity-list${nova && !picked ? " is-cards" : ""}`}>
-            {(nova && !picked
-              ? groupedCards(
-                  list,
-                  (x) => (counts.get(x.id) ?? 0) > 0 || !hasScenes,
-                  bookId,
-                )
-              : list.map((e) => ({ e }))
-            ).map((row) =>
-              "head" in row ? (
-                <li
-                  key={row.key}
-                  className={`entity-group-head${row.sub ? " is-sub" : ""}`}
-                >
-                  {row.sub ? (
-                    <p className="tiny muted">{row.head}</p>
-                  ) : (
-                    <h3>{row.head}</h3>
-                  )}
+          <ul className={`entity-list${nova && !picked ? ' is-cards' : ''}`}>
+            {(nova && !picked ? groupedCards(list, (x) => (counts.get(x.id) ?? 0) > 0 || !hasScenes, bookId) : list.map((e) => ({ e }))).map((row) =>
+              'head' in row ? (
+                <li key={row.key} className={`entity-group-head${row.sub ? ' is-sub' : ''}`}>
+                  {row.sub ? <p className="tiny muted">{row.head}</p> : <h3>{row.head}</h3>}
                 </li>
               ) : (
-                ((e) => (
-                  <li key={e.id}>
-                    {picked ? (
-                      <label
-                        className={`entity-row is-picking${picked.has(e.id) ? " is-picked" : ""}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={picked.has(e.id)}
-                          onChange={() => togglePick(e.id)}
-                          aria-label={`Marcar ${e.name || "Sem nome"}`}
-                        />
-                        <span className="entity-row-name">
-                          {e.name || "Sem nome"}
+              ((e) => (
+              <li key={e.id}>
+                {picked ? (
+                  <label className={`entity-row is-picking${picked.has(e.id) ? ' is-picked' : ''}`}>
+                    <input type="checkbox" checked={picked.has(e.id)} onChange={() => togglePick(e.id)} aria-label={`Marcar ${e.name || 'Sem nome'}`} />
+                    <span className="entity-row-name">{e.name || 'Sem nome'}</span>
+                    <span className="entity-row-kind">{kindLabel(e.kind)}</span>
+                  </label>
+                ) : (
+                <button type="button" className="entity-row" aria-current={e.id === selectedId ? 'true' : undefined} onClick={() => go('fichas', e.id)}>
+                  {nova ? (
+                    <span className="entity-card-face" aria-hidden="true">
+                      {e.image ? (
+                        <Picture value={e.image} className="entity-card-img" />
+                      ) : (
+                        // Sem imagem: a cor do tipo e a inicial (calmo e igual para o mesmo tipo, sem sorteio).
+                        <span className="entity-card-plain" style={{ '--k': `var(--kind-${e.kind}, var(--accent))` } as React.CSSProperties}>
+                          {(e.name.trim()[0] ?? '?').toLocaleUpperCase('pt-BR')}
                         </span>
-                        <span className="entity-row-kind">
-                          {kindLabel(e.kind)}
-                        </span>
-                      </label>
-                    ) : (
-                      <button
-                        type="button"
-                        className="entity-row"
-                        aria-current={e.id === selectedId ? "true" : undefined}
-                        onClick={() => go("fichas", e.id)}
-                      >
-                        {nova ? (
-                          <span className="entity-card-face" aria-hidden="true">
-                            {e.image ? (
-                              <Picture
-                                value={e.image}
-                                className="entity-card-img"
-                              />
-                            ) : (
-                              // Sem imagem: a cor do tipo e a inicial (calmo e igual para o mesmo tipo, sem sorteio).
-                              <span
-                                className="entity-card-plain"
-                                style={
-                                  {
-                                    "--k": `var(--kind-${e.kind}, var(--accent))`,
-                                  } as React.CSSProperties
-                                }
-                              >
-                                {(e.name.trim()[0] ?? "?").toLocaleUpperCase(
-                                  "pt-BR",
-                                )}
-                              </span>
-                            )}
-                            {roleIn(e, bookId) && (
-                              <span className="entity-card-role">
-                                {ROLE_LABEL[roleIn(e, bookId)!]}
-                              </span>
-                            )}
-                          </span>
-                        ) : e.image ? (
-                          <Picture value={e.image} className="entity-row-pic" />
-                        ) : (
-                          <span
-                            className={`kind-dot kind-${e.kind}`}
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="entity-row-name">
-                          {e.name || "Sem nome"}
-                          <OriginChip item={e} />
-                        </span>
-                        {hasScenes ? (
-                          <SceneCount n={counts.get(e.id) ?? 0} />
-                        ) : (
-                          <span className="entity-row-kind">
-                            {roleIn(e, bookId)
-                              ? ROLE_LABEL[roleIn(e, bookId)!]
-                              : kindLabel(e.kind)}
-                          </span>
-                        )}
-                        <span className="entity-row-summary">
-                          {hasScenes && (
-                            <span className="entity-row-kindtext">
-                              {kindLabel(e.kind)}
-                              {roleIn(e, bookId)
-                                ? ` · ${ROLE_LABEL[roleIn(e, bookId)!]}`
-                                : ""}
-                            </span>
-                          )}
-                          {hasScenes && e.summary && " · "}
-                          {e.summary}
-                        </span>
-                      </button>
-                    )}
-                  </li>
-                ))(row.e)
+                      )}
+                      {roleIn(e, bookId) && <span className="entity-card-role">{ROLE_LABEL[roleIn(e, bookId)!]}</span>}
+                    </span>
+                  ) : e.image ? (
+                    <Picture value={e.image} className="entity-row-pic" />
+                  ) : (
+                    <span className={`kind-dot kind-${e.kind}`} aria-hidden="true" />
+                  )}
+                  <span className="entity-row-name">
+                    {e.name || 'Sem nome'}
+                    <OriginChip item={e} />
+                  </span>
+                  {hasScenes ? <SceneCount n={counts.get(e.id) ?? 0} /> : <span className="entity-row-kind">{roleIn(e, bookId) ? ROLE_LABEL[roleIn(e, bookId)!] : kindLabel(e.kind)}</span>}
+                  <span className="entity-row-summary">
+                    {hasScenes && <span className="entity-row-kindtext">{kindLabel(e.kind)}{roleIn(e, bookId) ? ` · ${ROLE_LABEL[roleIn(e, bookId)!]}` : ''}</span>}
+                    {hasScenes && e.summary && ' · '}
+                    {e.summary}
+                  </span>
+                </button>
+                )}
+              </li>
+              ))(row.e)
               ),
             )}
           </ul>
         )}
         {picked && (
           <>
-            <button
-              type="button"
-              className="link-btn small"
-              onClick={() => setPicked(new Set(list.map((x) => x.id)))}
-            >
+            <button type="button" className="link-btn small" onClick={() => setPicked(new Set(list.map((x) => x.id)))}>
               Marcar as {list.length} da lista
             </button>
             <SelectionBar ids={[...picked]} onClear={() => setPicked(null)} />
           </>
         )}
         {phone && !readOnly && !picked && (
-          <button
-            type="button"
-            className="fab"
-            aria-label="Nova ficha"
-            onClick={() => setCreating("uma")}
-          >
+          <button type="button" className="fab" aria-label="Nova ficha" onClick={() => setCreating('uma')}>
             <Plus size={22} />
           </button>
         )}
-        {creating === "uma" && (
+        {creating === 'uma' && (
           <NewEntityDialog
-            initialKind={kind !== "todos" ? kind : newKind}
+            initialKind={kind !== 'todos' ? kind : newKind}
             onClose={() => setCreating(null)}
-            onMany={() => setCreating("varias")}
+            onMany={() => setCreating('varias')}
             onOpenExisting={(id) => {
-              setCreating(null);
-              go("fichas", id);
+              setCreating(null)
+              go('fichas', id)
             }}
             onOpen={(id) => {
-              setCreating(null);
-              setFresh(id);
-              setBirth(id);
-              go("fichas", id);
+              setCreating(null)
+              setFresh(id)
+              setBirth(id)
+              go('fichas', id)
             }}
           />
         )}
-        {creating === "varias" && (
+        {creating === 'varias' && (
           <BulkCreateDialog
-            initialKind={kind !== "todos" ? kind : newKind}
+            initialKind={kind !== 'todos' ? kind : newKind}
             onClose={() => setCreating(null)}
             onDone={(k) => {
-              setCreating(null);
-              setKind(k);
-              setQuery("");
-              if (onlyBook && book)
-                toast(`Fichas criadas em “${book.title || "Sem título"}”.`);
+              setCreating(null)
+              setKind(k)
+              setQuery('')
+              if (onlyBook && book) toast(`Fichas criadas em “${book.title || 'Sem título'}”.`)
             }}
           />
         )}
       </section>
 
-      <section
-        className="split-detail"
-        aria-label={table ? "Tabela de fichas" : "Ficha"}
-      >
+      <section className="split-detail" aria-label={table ? 'Tabela de fichas' : 'Ficha'}>
         {table ? (
-          <EntityTable
-            rows={list}
-            kind={kind}
-            counts={counts}
-            onOpen={(id) => peek(id)}
-          />
+          <EntityTable rows={list} kind={kind} counts={counts} onOpen={(id) => peek(id)} />
         ) : selected ? (
           // Nova cara: o personagem que acabou de nascer abre no criador (escolher em cartas), não no formulário.
-          nova &&
-          !readOnly &&
-          fresh === selected.id &&
-          selected.kind === "personagem" ? (
+          nova && !readOnly && fresh === selected.id && selected.kind === 'personagem' ? (
             <CharacterCreator
               key={selected.id}
               entity={selected}
               onDone={() => {
-                setFresh(null);
-                setMode("ler");
+                setFresh(null)
+                setMode('ler')
               }}
             />
-          ) : shownMode === "jogo" && !readOnly ? (
-            <EntityGame
-              key={selected.id}
-              entity={selected}
-              modeSwitch={<ModeSwitch mode="jogo" game onChange={changeMode} />}
-            />
-          ) : shownMode === "ler" || readOnly ? (
+          ) : shownMode === 'jogo' && !readOnly ? (
+            <EntityGame key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="jogo" game onChange={changeMode} />} />
+          ) : shownMode === 'ler' || readOnly ? (
             <EntityReader
               key={selected.id}
               entity={selected}
               order={list}
-              modeSwitch={
-                !readOnly && (
-                  <ModeSwitch
-                    mode="ler"
-                    game={hasGame}
-                    onChange={changeMode}
-                    entity={selected}
-                  />
-                )
-              }
+              modeSwitch={!readOnly && <ModeSwitch mode="ler" game={hasGame} onChange={changeMode} entity={selected} />}
               onEdit={
                 readOnly
                   ? undefined
                   : () => {
                       // "Responder" traz as perguntas de volta, mesmo que tenham sido puladas antes.
-                      unskipQuestions(selected.id);
-                      setFresh(selected.id);
+                      unskipQuestions(selected.id)
+                      setFresh(selected.id)
                     }
               }
             />
           ) : (
-            <EntityDetail
-              key={selected.id}
-              entity={selected}
-              modeSwitch={
-                <ModeSwitch
-                  mode="editar"
-                  game={hasGame}
-                  onChange={changeMode}
-                />
-              }
-            />
+            <EntityDetail key={selected.id} entity={selected} modeSwitch={<ModeSwitch mode="editar" game={hasGame} onChange={changeMode} />} />
           )
         ) : universe.entities.length ? (
           <WorldOverview counts={counts} hasScenes={hasScenes} />
         ) : (
           <Empty icon={<BookMarked size={32} />} title="Escolha uma ficha">
-            <p>
-              Fichas podem ser mínimas: um nome basta. O resto vem quando for
-              útil.
-            </p>
+            <p>Fichas podem ser mínimas: um nome basta. O resto vem quando for útil.</p>
           </Empty>
         )}
       </section>
       {born && <BirthFlow entity={born} onDone={() => setBirth(null)} />}
     </div>
-  );
+  )
 }
 
 /**
@@ -900,55 +522,33 @@ export default function EntitiesView() {
  * só nas notas (a parte do iceberg embaixo d'água, que não precisa entrar no livro) e o que
  * ainda é só um nome.
  */
-function WorldOverview({
-  counts,
-  hasScenes,
-}: {
-  counts: Map<string, number>;
-  hasScenes: boolean;
-}) {
-  const { universe, go } = useWorkspace();
-  const ents = universe.entities;
-  const kinds = [...new Set(ents.map((e) => e.kind))]
-    .map((k) => [k, ents.filter((e) => e.kind === k).length] as const)
-    .sort((a, b) => b[1] - a[1]);
+function WorldOverview({ counts, hasScenes }: { counts: Map<string, number>; hasScenes: boolean }) {
+  const { universe, go } = useWorkspace()
+  const ents = universe.entities
+  const kinds = [...new Set(ents.map((e) => e.kind))].map((k) => [k, ents.filter((e) => e.kind === k).length] as const).sort((a, b) => b[1] - a[1])
   const top = ents
     .filter((e) => counts.get(e.id))
     .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-    .slice(0, 6);
-  const notes = ents.filter((e) => !counts.get(e.id));
+    .slice(0, 6)
+  const notes = ents.filter((e) => !counts.get(e.id))
   // Só o nome: nem texto, nem ligação, nem lista (uma facção com membros não está em branco).
-  const blank = ents.filter((e) => onlyName(universe, e));
+  const blank = ents.filter((e) => onlyName(universe, e))
   const chips = (list: Entity[]) => (
     <div className="chips">
       {list.slice(0, 12).map((e) => (
-        <button
-          key={e.id}
-          type="button"
-          className="chip chip-entity"
-          onClick={() => go("fichas", e.id)}
-        >
-          {e.name || "Sem nome"}
+        <button key={e.id} type="button" className="chip chip-entity" onClick={() => go('fichas', e.id)}>
+          {e.name || 'Sem nome'}
         </button>
       ))}
-      {list.length > 12 && (
-        <span className="muted small">e mais {list.length - 12}</span>
-      )}
+      {list.length > 12 && <span className="muted small">e mais {list.length - 12}</span>}
     </div>
-  );
+  )
   return (
     <section className="world-overview" aria-label="O mundo em resumo">
       <header>
         <h2 className="section-title">O mundo até aqui</h2>
         <p className="muted">
-          {ents.length} {ents.length === 1 ? "ficha" : "fichas"}:{" "}
-          {kinds
-            .map(
-              ([k, n]) =>
-                `${n} ${(n === 1 ? kindLabel(k) : kindPlural(k)).toLowerCase()}`,
-            )
-            .join(", ")}
-          . Escolha uma na lista para ler.
+          {ents.length} {ents.length === 1 ? 'ficha' : 'fichas'}: {kinds.map(([k, n]) => `${n} ${(n === 1 ? kindLabel(k) : kindPlural(k)).toLowerCase()}`).join(', ')}. Escolha uma na lista para ler.
         </p>
       </header>
       {hasScenes && top.length > 0 && (
@@ -957,18 +557,10 @@ function WorldOverview({
           <ol className="world-overview-top">
             {top.map((e) => (
               <li key={e.id}>
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => go("fichas", e.id)}
-                >
-                  {e.name || "Sem nome"}
+                <button type="button" className="link-btn" onClick={() => go('fichas', e.id)}>
+                  {e.name || 'Sem nome'}
                 </button>
-                <span className="muted small">
-                  {" "}
-                  · {counts.get(e.id)}{" "}
-                  {counts.get(e.id) === 1 ? "cena" : "cenas"}
-                </span>
+                <span className="muted small"> · {counts.get(e.id)} {counts.get(e.id) === 1 ? 'cena' : 'cenas'}</span>
               </li>
             ))}
           </ol>
@@ -977,92 +569,46 @@ function WorldOverview({
       {hasScenes && notes.length > 0 && (
         <div className="world-overview-part">
           <h3 className="section-label">Só nas notas</h3>
-          <p className="muted small">
-            Ainda não aparecem nas cenas. Tudo bem: parte do mundo fica embaixo
-            d'água, como num iceberg.
-          </p>
+          <p className="muted small">Ainda não aparecem nas cenas. Tudo bem: parte do mundo fica embaixo d'água, como num iceberg.</p>
           {chips(notes)}
         </div>
       )}
       {blank.length > 0 && (
         <div className="world-overview-part">
           <h3 className="section-label">Só com o nome</h3>
-          <p className="muted small">
-            Abra uma e responda as perguntas do tipo dela, se quiser.
-          </p>
+          <p className="muted small">Abra uma e responda as perguntas do tipo dela, se quiser.</p>
           {chips(blank)}
         </div>
       )}
     </section>
-  );
+  )
 }
 
 /** "6 cenas" ou "só nas notas": quanto a história já usa desta ficha. */
 function SceneCount({ n }: { n: number }) {
-  return (
-    <span className={`entity-row-count${n ? "" : " is-notes"}`}>
-      {n ? `${n} ${n === 1 ? "cena" : "cenas"}` : "só nas notas"}
-    </span>
-  );
+  return <span className={`entity-row-count${n ? '' : ' is-notes'}`}>{n ? `${n} ${n === 1 ? 'cena' : 'cenas'}` : 'só nas notas'}</span>
 }
 
 /** O retrato (ou imagem) da ficha: toque para escolher; com imagem, dá para trocar ou tirar. */
-export function PortraitButton({
-  entity: e,
-  onChange,
-}: {
-  entity: Entity;
-  onChange: (image: string | null) => void;
-}) {
-  const { toast } = useWorkspace();
-  const picker = useImagePicker(
-    "retrato",
-    (ref) => onChange(ref),
-    (m) => toast(m, { tone: "erro" }),
-  );
+export function PortraitButton({ entity: e, onChange }: { entity: Entity; onChange: (image: string | null) => void }) {
+  const { toast } = useWorkspace()
+  const picker = useImagePicker('retrato', (ref) => onChange(ref), (m) => toast(m, { tone: 'erro' }))
   return (
-    <div className={`portrait-edit${e.image ? " has-image" : ""}`}>
+    <div className={`portrait-edit${e.image ? ' has-image' : ''}`}>
       {picker.field}
-      <button
-        type="button"
-        className="portrait-btn"
-        onClick={picker.open}
-        disabled={picker.busy}
-        aria-label={
-          e.image
-            ? "Trocar a imagem da ficha"
-            : "Escolher uma imagem para a ficha"
-        }
-        title={
-          e.image
-            ? "Trocar a imagem"
-            : "Pôr uma imagem (retrato, foto do lugar…)"
-        }
-      >
-        {e.image ? (
-          <Picture value={e.image} alt={`Imagem de ${e.name}`} />
-        ) : picker.busy ? (
-          <Loader2 size={20} className="spin" />
-        ) : (
-          <ImagePlus size={20} />
-        )}
+      <button type="button" className="portrait-btn" onClick={picker.open} disabled={picker.busy} aria-label={e.image ? 'Trocar a imagem da ficha' : 'Escolher uma imagem para a ficha'} title={e.image ? 'Trocar a imagem' : 'Pôr uma imagem (retrato, foto do lugar…)'}>
+        {e.image ? <Picture value={e.image} alt={`Imagem de ${e.name}`} /> : picker.busy ? <Loader2 size={20} className="spin" /> : <ImagePlus size={20} />}
       </button>
       {e.image && (
-        <button
-          type="button"
-          className="portrait-remove"
-          aria-label="Tirar a imagem da ficha"
-          title="Tirar a imagem"
-          onClick={() => onChange(null)}
-        >
+        <button type="button" className="portrait-remove" aria-label="Tirar a imagem da ficha" title="Tirar a imagem" onClick={() => onChange(null)}>
           <X size={12} />
         </button>
       )}
     </div>
-  );
+  )
 }
 
-type FichaMode = "ler" | "editar" | "jogo";
+type FichaMode = 'ler' | 'editar' | 'jogo'
 
 /** Alternar entre ler a ficha como uma página, editá-la e (num personagem de jogo) ver a ficha de jogo. */
 /**
@@ -1076,27 +622,23 @@ function ModeSwitch({
   entity,
   extra,
 }: {
-  mode: FichaMode;
-  game?: boolean;
-  onChange: (m: FichaMode) => void;
-  entity?: Entity;
+  mode: FichaMode
+  game?: boolean
+  onChange: (m: FichaMode) => void
+  entity?: Entity
   /** Itens da própria página da ficha (o básico, arrumar, e se sumir), no alto do menu. */
-  extra?: (close: () => void) => React.ReactNode;
+  extra?: (close: () => void) => React.ReactNode
 }) {
-  const { undoable, go, prefs } = useWorkspace();
-  if (mode !== "ler")
+  const { undoable, go, prefs } = useWorkspace()
+  if (mode !== 'ler')
     return (
-      <button
-        type="button"
-        className="btn btn-ghost btn-sm"
-        onClick={() => onChange("ler")}
-      >
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange('ler')}>
         <BookOpen size={15} aria-hidden="true" /> Ver a página
       </button>
-    );
-  const nova = !!prefs.novaCara;
+    )
+  const nova = !!prefs.novaCara
   return (
-    <MoreMenu label="Mais da ficha" popClass={nova ? "menu-rich" : undefined}>
+    <MoreMenu label="Mais da ficha" popClass={nova ? 'menu-rich' : undefined}>
       {(close) =>
         nova ? (
           <>
@@ -1106,8 +648,8 @@ function ModeSwitch({
               title="Editar tudo de uma vez"
               hint="O formulário inteiro, com todos os campos."
               onClick={() => {
-                close();
-                onChange("editar");
+                close()
+                onChange('editar')
               }}
             />
             {game && (
@@ -1118,8 +660,8 @@ function ModeSwitch({
                   title="Ficha de jogo"
                   hint="Atributos e rolagens da Mesa."
                   onClick={() => {
-                    close();
-                    onChange("jogo");
+                    close()
+                    onChange('jogo')
                   }}
                 />
               </>
@@ -1132,11 +674,9 @@ function ModeSwitch({
                   question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
                   confirmLabel="Apagar ficha"
                   onConfirm={() => {
-                    close();
-                    undoable(`Ficha “${entity.name}” apagada`, (u) =>
-                      removeEntity(u, entity.id),
-                    );
-                    go("fichas", null, { replace: true });
+                    close()
+                    undoable(`Ficha “${entity.name}” apagada`, (u) => removeEntity(u, entity.id))
+                    go('fichas', null, { replace: true })
                   }}
                 >
                   <Trash2 size={18} aria-hidden="true" />
@@ -1150,12 +690,13 @@ function ModeSwitch({
           </>
         ) : (
           <>
+            {extra?.(close)}
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={() => {
-                close();
-                onChange("editar");
+                close()
+                onChange('editar')
               }}
             >
               <PenLine size={15} aria-hidden="true" /> Editar tudo de uma vez
@@ -1165,8 +706,8 @@ function ModeSwitch({
                 type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={() => {
-                  close();
-                  onChange("jogo");
+                  close()
+                  onChange('jogo')
                 }}
               >
                 <Dices size={15} aria-hidden="true" /> Ficha de jogo
@@ -1178,11 +719,9 @@ function ModeSwitch({
                 question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
                 confirmLabel="Apagar ficha"
                 onConfirm={() => {
-                  close();
-                  undoable(`Ficha “${entity.name}” apagada`, (u) =>
-                    removeEntity(u, entity.id),
-                  );
-                  go("fichas", null, { replace: true });
+                  close()
+                  undoable(`Ficha “${entity.name}” apagada`, (u) => removeEntity(u, entity.id))
+                  go('fichas', null, { replace: true })
                 }}
               >
                 <Trash2 size={15} aria-hidden="true" /> Apagar ficha
@@ -1192,133 +731,77 @@ function ModeSwitch({
         )
       }
     </MoreMenu>
-  );
+  )
 }
 
-function EntityDetail({
-  entity: e,
-  modeSwitch,
-}: {
-  entity: Entity;
-  modeSwitch: React.ReactNode;
-}) {
-  const { universe, update, go, goBack, peek, undoable, toast, readOnly } =
-    useWorkspace();
+function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: React.ReactNode }) {
+  const { universe, update, go, goBack, peek, undoable, toast, readOnly } = useWorkspace()
   // Num mundo Simples, a ficha mostra o essencial; "Mostrar tudo" abre o resto só nesta ficha.
-  const [showAll, setShowAll] = useState(false);
-  const simple = worldLevel(universe) === "simples" && !showAll;
-  const [editTab, setEditTab] = useState<EditTab>(
-    () =>
-      EDIT_TABS.find(([t]) => t === recall("ficha-editar-aba"))?.[0] ??
-      "basico",
-  );
+  const [showAll, setShowAll] = useState(false)
+  const simple = worldLevel(universe) === 'simples' && !showAll
+  const [editTab, setEditTab] = useState<EditTab>(() => (EDIT_TABS.find(([t]) => t === recall('ficha-editar-aba'))?.[0] ?? 'basico'))
   // Ao renomear a ficha, o nome antigo continua no texto: o Papirus oferece trocar (mostrando cada trecho antes).
-  const nameAtFocus = useRef<string | null>(null);
+  const nameAtFocus = useRef<string | null>(null)
   // O nome é um campo de várias linhas que cresce: nome longo aparece inteiro, sem ficar cortado.
-  const nameField = useRef<HTMLTextAreaElement>(null);
+  const nameField = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
-    const el = nameField.current;
-    if (!el) return;
+    const el = nameField.current
+    if (!el) return
     const fit = () => {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    };
-    fit();
+      el.style.height = 'auto'
+      el.style.height = `${el.scrollHeight}px`
+    }
+    fit()
     // A largura e a fonte mudam depois da primeira pintura: mede de novo.
-    const ro =
-      typeof ResizeObserver === "function" ? new ResizeObserver(fit) : null;
-    ro?.observe(el);
-    void document.fonts?.ready.then(fit);
-    return () => ro?.disconnect();
-  }, [e.name]);
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null
+    ro?.observe(el)
+    void document.fonts?.ready.then(fit)
+    return () => ro?.disconnect()
+  }, [e.name])
   const offerRename = () => {
-    const old = nameAtFocus.current?.trim();
-    const now = e.name.trim();
-    nameAtFocus.current = null;
-    if (readOnly || !old || !now || old === now) return;
-    const opts = { wholeWord: true, matchCase: true };
-    const n = universe.scenes.reduce(
-      (sum, s) =>
-        sum +
-        findRanges(s.text, old, opts).length +
-        findRanges(s.title, old, opts).length,
-      0,
-    );
-    if (!n) return;
-    toast(
-      `“${old}” aparece ${n === 1 ? "1 vez" : `${n} vezes`} nas cenas. Trocar por “${now}”?`,
-      {
-        action: {
-          label: "Ver e trocar",
-          run: () => openBookReplace({ find: old, replace: now, opts }),
-        },
-      },
-    );
-  };
-  const set = (changes: Partial<Entity>) =>
-    update((u) => patch(u, "entities", e.id, changes));
-  const suffix = universe.settings.calendarSuffix;
+    const old = nameAtFocus.current?.trim()
+    const now = e.name.trim()
+    nameAtFocus.current = null
+    if (readOnly || !old || !now || old === now) return
+    const opts = { wholeWord: true, matchCase: true }
+    const n = universe.scenes.reduce((sum, s) => sum + findRanges(s.text, old, opts).length + findRanges(s.title, old, opts).length, 0)
+    if (!n) return
+    toast(`“${old}” aparece ${n === 1 ? '1 vez' : `${n} vezes`} nas cenas. Trocar por “${now}”?`, {
+      action: { label: 'Ver e trocar', run: () => openBookReplace({ find: old, replace: now, opts }) },
+    })
+  }
+  const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
+  const suffix = universe.settings.calendarSuffix
   // Ficha vazia: perguntas do tipo dela para começar (até sair da ficha, mesmo depois da primeira resposta).
-  const [asking, setAsking] = useState(
-    () => isBlank(e) && !skippedQuestions().includes(e.id),
-  );
+  const [asking, setAsking] = useState(() => isBlank(e) && !skippedQuestions().includes(e.id))
 
   // As ligações de lista ("faz parte de") aparecem em "Faz parte de" e nas listas, não aqui.
-  const outgoing = universe.relations.filter(
-    (r) => r.fromId === e.id && !r.listId,
-  );
-  const incoming = universe.relations.filter(
-    (r) => r.toId === e.id && !r.listId,
-  );
-  const children = universe.entities.filter((x) => x.parentId === e.id);
-  const knows = universe.knowledge.filter((k) => k.holderId === e.id);
-  const events = universe.events
-    .filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id)
-    .sort((a, b) => a.year - b.year);
-  const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id));
+  const outgoing = universe.relations.filter((r) => r.fromId === e.id && !r.listId)
+  const incoming = universe.relations.filter((r) => r.toId === e.id && !r.listId)
+  const children = universe.entities.filter((x) => x.parentId === e.id)
+  const knows = universe.knowledge.filter((k) => k.holderId === e.id)
+  const events = universe.events.filter((ev) => ev.entityIds.includes(e.id) || ev.placeId === e.id).sort((a, b) => a.year - b.year)
+  const seeds = universe.seeds.filter((s) => s.entityIds.includes(e.id))
 
-  const appearances = useMemo(() => appearancesOf(universe, e), [universe, e]);
-  const groupsOthers =
-    listsOf(e).length > 0 || listTemplatesFor(universe, e.kind).length > 0;
+  const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
+  const groupsOthers = listsOf(e).length > 0 || listTemplatesFor(universe, e.kind).length > 0
   // Editar em abas (auditoria 23, H8.1): a ficha inteira era uma parede. "Tudo" mostra tudo de uma vez.
+  // A árvore de poderes de uma magia aparece até no Simples; o resto do Mundo, só no Completo.
   const hasWorld =
-    !simple &&
-    ([
-      "cultura",
-      "religiao",
-      "lugar",
-      "reino",
-      "faccao",
-      "especie",
-      "magia",
-      ...GAME_KINDS,
-      ...optionKinds(universe),
-    ].includes(e.kind) ||
-      canHavePowers(e.kind));
-  const editTabs = EDIT_TABS.filter(
-    ([t]) =>
-      (t !== "mundo" || hasWorld) &&
-      (t !== "tempo" || !simple || universe.scenes.length > 0),
-  );
-  const tab: EditTab = editTabs.some(([t]) => t === editTab)
-    ? editTab
-    : "basico";
-  const show = (t: EditTab) => tab === "tudo" || tab === t;
+    e.kind === 'magia' || (!simple && (['cultura', 'religiao', 'lugar', 'reino', 'faccao', 'especie', ...GAME_KINDS, ...optionKinds(universe)].includes(e.kind) || canHavePowers(e.kind)))
+  const editTabs = EDIT_TABS.filter(([t]) => (t !== 'mundo' || hasWorld) && (t !== 'tempo' || !simple || universe.scenes.length > 0))
+  const tab: EditTab = editTabs.some(([t]) => t === editTab) ? editTab : 'basico'
+  const show = (t: EditTab) => tab === 'tudo' || tab === t
   const pickTab = (t: EditTab) => {
-    setEditTab(t);
-    remember("ficha-editar-aba", t);
-  };
+    setEditTab(t)
+    remember('ficha-editar-aba', t)
+  }
 
   return (
     <article className="entity">
       <TogetherHere entityId={e.id} />
       <header className="entity-head">
-        <button
-          type="button"
-          className="btn-icon back-btn"
-          aria-label="Voltar para a lista"
-          onClick={() => goBack("fichas", null)}
-        >
+        <button type="button" className="btn-icon back-btn" aria-label="Voltar para a lista" onClick={() => goBack('fichas', null)}>
           <ArrowLeft size={18} />
         </button>
         <PortraitButton entity={e} onChange={(image) => set({ image })} />
@@ -1336,14 +819,12 @@ function EntityDetail({
             onFocus={() => (nameAtFocus.current = e.name)}
             onBlur={offerRename}
             onKeyDown={(ev) => {
-              if (ev.key === "Enter") {
-                ev.preventDefault();
-                ev.currentTarget.blur();
+              if (ev.key === 'Enter') {
+                ev.preventDefault()
+                ev.currentTarget.blur()
               }
             }}
-            onChange={(ev) =>
-              set({ name: ev.target.value.replace(/\n/g, " ") })
-            }
+            onChange={(ev) => set({ name: ev.target.value.replace(/\n/g, ' ') })}
           />
           <span className="eyebrow">{kindLabel(e.kind)}</span>
         </div>
@@ -1354,29 +835,18 @@ function EntityDetail({
           question="Apagar a ficha? Cenas e fatos ficam, sem o vínculo."
           confirmLabel="Apagar ficha"
           onConfirm={() => {
-            undoable(`Ficha “${e.name}” apagada`, (u) => removeEntity(u, e.id));
-            go("fichas", null, { replace: true });
+            undoable(`Ficha “${e.name}” apagada`, (u) => removeEntity(u, e.id))
+            go('fichas', null, { replace: true })
           }}
         >
           <Trash2 size={17} aria-label="Apagar ficha" />
         </ConfirmButton>
       </header>
 
-      <VersionsBar
-        entity={e}
-        current={null}
-        onPick={() =>
-          pickTab(editTabs.some(([t]) => t === "tempo") ? "tempo" : "tudo")
-        }
-      />
+      <VersionsBar entity={e} current={null} onPick={() => pickTab(editTabs.some(([t]) => t === 'tempo') ? 'tempo' : 'tudo')} />
       <nav className="edit-tabs" aria-label="Partes da ficha para editar">
         {editTabs.map(([t, label]) => (
-          <button
-            key={t}
-            type="button"
-            aria-current={tab === t ? "page" : undefined}
-            onClick={() => pickTab(t)}
-          >
+          <button key={t} type="button" aria-current={tab === t ? 'page' : undefined} onClick={() => pickTab(t)}>
             {label}
           </button>
         ))}
@@ -1384,21 +854,19 @@ function EntityDetail({
 
       <div className="entity-body">
         <div className="entity-main">
-          {show("referencias") && <RefsStrip entity={e} />}
+          {show('referencias') && <RefsStrip entity={e} />}
           {asking && (
             <KindQuestions
               entity={e}
-              onAnswer={(key, value) =>
-                set({ fields: answer(e.fields, key, value) })
-              }
+              onAnswer={(key, value) => set({ fields: answer(e.fields, key, value) })}
               onSkip={() => {
-                skipQuestions(e.id);
-                setAsking(false);
+                skipQuestions(e.id)
+                setAsking(false)
               }}
             />
           )}
 
-          {show("basico") && (
+          {show('basico') && (
             <>
               {/* 1. Básico: o que se usa sempre. */}
               <BasicsEditor entity={e} />
@@ -1408,62 +876,44 @@ function EntityDetail({
               <PassesEditor entity={e} />
             </>
           )}
-          {show("mundo") && (
+          {show('mundo') && (
             <>
               {!simple && <GameRules key={e.id} entity={e} />}
               {!simple && <LanguageEditor key={`idioma-${e.id}`} entity={e} />}
-              {!simple && (
-                <CultureWorkshop key={`cultura-${e.id}`} entity={e} />
-              )}
+              {!simple && <CultureWorkshop key={`cultura-${e.id}`} entity={e} />}
               {!simple && <PantheonPanel key={`panteao-${e.id}`} entity={e} />}
               {!simple && <PowerPanel key={`poder-${e.id}`} entity={e} />}
             </>
           )}
 
-          {show("basico") && (
+          {show('basico') && (
             <>
               {/* 3. Descrição. */}
               <Field label="Descrição" wide>
-                {(id) => (
-                  <SecretTextarea
-                    id={id}
-                    value={e.description}
-                    placeholder="Escreva livremente."
-                    onChange={(v) => set({ description: v })}
-                  />
-                )}
+                {(id) => <SecretTextarea id={id} value={e.description} placeholder="Escreva livremente." onChange={(v) => set({ description: v })} />}
               </Field>
 
               {/* 4. Campos (com as datas). */}
               <Fold id="ficha-campos" title="Campos">
-                <FieldsEditor
-                  entity={e}
-                  hide={(key) => asking && askedKey(e.kind, key)}
-                />
+                <FieldsEditor entity={e} hide={(key) => asking && askedKey(e.kind, key)} />
               </Fold>
             </>
           )}
 
-          {show("ligacoes") && (
+          {show('ligacoes') && (
             <>
               {/* Uma ficha que junta outras (facção, reino, lugar) mostra as listas; nas outras, ficam em "Mais opções". */}
               {!simple && groupsOthers && <ListsSection entity={e} />}
 
               {/* 5. Ligações. */}
               <MembershipChips entity={e} editable />
-              <RelationsSection
-                entity={e}
-                outgoing={outgoing}
-                incoming={incoming}
-              />
+              <RelationsSection entity={e} outgoing={outgoing} incoming={incoming} />
             </>
           )}
 
-          {show("tempo") && universe.scenes.length > 0 && (
-            <ArcCard entity={e} />
-          )}
+          {show('tempo') && universe.scenes.length > 0 && <ArcCard entity={e} />}
 
-          {show("ligacoes") && (
+          {show('ligacoes') && (
             <>
               <FactsEditor entity={e} />
               <KnowledgeSection entity={e} entries={knows} />
@@ -1471,56 +921,35 @@ function EntityDetail({
           )}
 
           {/* O resto, fechado: muda pouco e não precisa estar sempre à vista. */}
-          {show("tempo") && !simple && (
-            <Fold
-              id="ficha-fases"
-              title="Ao longo da história"
-              defaultOpen={(e.phases?.length ?? 0) > 0}
-            >
+          {show('tempo') && !simple && (
+            <Fold id="ficha-fases" title="Ao longo da história" defaultOpen={(e.phases?.length ?? 0) > 0}>
               <PhasesEditor entity={e} />
             </Fold>
           )}
-          {show("mundo") && e.kind === "magia" && (
+          {show('mundo') && e.kind === 'magia' && (
             <Fold id="ficha-arvore" title="Árvore de poderes" defaultOpen>
               <PowerTreeEditor entity={e} />
             </Fold>
           )}
-          {show("mundo") && !simple && canHavePowers(e.kind) && (
-            <Fold
-              id="ficha-poderes"
-              title="Poderes"
-              defaultOpen={(e.learned?.length ?? 0) > 0}
-            >
+          {show('mundo') && !simple && canHavePowers(e.kind) && (
+            <Fold id="ficha-poderes" title="Poderes" defaultOpen={(e.learned?.length ?? 0) > 0}>
               <CharacterPowersEditor entity={e} />
             </Fold>
           )}
-          {show("referencias") && (
+          {show('referencias') && (
             <>
-              <Fold
-                id="ficha-referencias"
-                title="Referências"
-                defaultOpen={(e.refs?.length ?? 0) > 0 || tab === "referencias"}
-              >
+              <Fold id="ficha-referencias" title="Referências" defaultOpen={(e.refs?.length ?? 0) > 0 || tab === 'referencias'}>
                 <ReferencesEditor entity={e} />
               </Fold>
-              <Fold
-                id="ficha-mais-opcoes"
-                title="Mais opções"
-                defaultOpen={false}
-              >
+              <Fold id="ficha-mais-opcoes" title="Mais opções" defaultOpen={false}>
                 <MoreOptionsEditor entity={e} simple={simple} />
                 {!simple && !groupsOthers && <ListsSection entity={e} />}
               </Fold>
             </>
           )}
-          {worldLevel(universe) === "simples" && (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm entity-show-all"
-              aria-pressed={showAll}
-              onClick={() => setShowAll((v) => !v)}
-            >
-              {showAll ? "Mostrar só o essencial" : "Mostrar tudo nesta ficha"}
+          {worldLevel(universe) === 'simples' && (
+            <button type="button" className="btn btn-ghost btn-sm entity-show-all" aria-pressed={showAll} onClick={() => setShowAll((v) => !v)}>
+              {showAll ? 'Mostrar só o essencial' : 'Mostrar tudo nesta ficha'}
             </button>
           )}
         </div>
@@ -1528,25 +957,14 @@ function EntityDetail({
         <aside className="entity-side">
           <MapGlimpse entity={e} />
           <Fold id="ficha-apari-es" title="Aparições">
-            <AppearanceList
-              entity={e}
-              appearances={appearances}
-              empty={
-                <p className="muted small">Ainda não aparece no manuscrito.</p>
-              }
-            />
+            <AppearanceList entity={e} appearances={appearances} empty={<p className="muted small">Ainda não aparece no manuscrito.</p>} />
           </Fold>
 
           {children.length > 0 && (
             <Fold id="ficha-cont-m" title="Contém">
               <div className="chips">
                 {children.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className="chip chip-entity"
-                    onClick={() => go("fichas", c.id)}
-                  >
+                  <button key={c.id} type="button" className="chip chip-entity" onClick={() => go('fichas', c.id)}>
                     {c.name}
                   </button>
                 ))}
@@ -1555,40 +973,25 @@ function EntityDetail({
           )}
 
           <Fold id="ficha-linha-do-tempo" title="Linha do tempo">
-            {events.length === 0 &&
-            e.startYear === null &&
-            e.endYear === null ? (
+            {events.length === 0 && e.startYear === null && e.endYear === null ? (
               <p className="muted small">Nenhum evento ligado.</p>
             ) : (
               <ol className="mini-timeline">
                 {e.startYear !== null && (
                   <li>
-                    <span className="mini-year">
-                      {formatYear(e.startYear, suffix)}
-                    </span>{" "}
-                    {e.kind === "personagem" ? "Nascimento" : "Início"}
+                    <span className="mini-year">{formatYear(e.startYear, suffix)}</span> {e.kind === 'personagem' ? 'Nascimento' : 'Início'}
                   </li>
                 )}
                 {events.map((ev) => (
                   <li key={ev.id}>
-                    <button
-                      type="button"
-                      className="link-btn"
-                      onClick={() => go("timeline", ev.id)}
-                    >
-                      <span className="mini-year">
-                        {formatYear(ev.year, suffix)}
-                      </span>{" "}
-                      {ev.title}
+                    <button type="button" className="link-btn" onClick={() => go('timeline', ev.id)}>
+                      <span className="mini-year">{formatYear(ev.year, suffix)}</span> {ev.title}
                     </button>
                   </li>
                 ))}
                 {e.endYear !== null && (
                   <li>
-                    <span className="mini-year">
-                      {formatYear(e.endYear, suffix)}
-                    </span>{" "}
-                    {e.kind === "personagem" ? "Morte" : "Fim"}
+                    <span className="mini-year">{formatYear(e.endYear, suffix)}</span> {e.kind === 'personagem' ? 'Morte' : 'Fim'}
                   </li>
                 )}
               </ol>
@@ -1600,34 +1003,20 @@ function EntityDetail({
               <ul className="plain-list small">
                 {seeds.map((s) => (
                   <li key={s.id}>
-                    <button
-                      type="button"
-                      className="link-btn"
-                      onClick={() => go("tramas", s.id)}
-                    >
+                    <button type="button" className="link-btn" onClick={() => go('tramas', s.id)}>
                       {s.title}
-                    </button>{" "}
-                    <span className={`seed-status seed-${s.status}`}>
-                      {SEED_STATUS_LABEL[s.status]}
-                    </span>
+                    </button>{' '}
+                    <span className={`seed-status seed-${s.status}`}>{SEED_STATUS_LABEL[s.status]}</span>
                   </li>
                 ))}
               </ul>
             </Fold>
           )}
 
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => go("relacoes", e.id)}
-          >
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('relacoes', e.id)}>
             Ver nas Ligações
           </button>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => peek(e.id)}
-          >
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => peek(e.id)}>
             Espiar
           </button>
           <button
@@ -1635,60 +1024,43 @@ function EntityDetail({
             className="btn btn-ghost btn-sm"
             title="Fichas novas podem sair preenchidas como esta (campos, etiquetas, listas)"
             onClick={() => {
-              update((u) => saveAsTemplate(u, e)[0]);
-              toast(
-                `“${e.name || "Sem nome"}” virou modelo. Use no “+” do Mundo.`,
-              );
+              update((u) => saveAsTemplate(u, e)[0])
+              toast(`“${e.name || 'Sem nome'}” virou modelo. Use no “+” do Mundo.`)
             }}
           >
             <Stamp size={14} /> Usar como modelo
           </button>
         </aside>
       </div>
+
     </article>
-  );
+  )
 }
 
-type EditTab =
-  | "basico"
-  | "ligacoes"
-  | "mundo"
-  | "tempo"
-  | "referencias"
-  | "tudo";
+type EditTab = 'basico' | 'ligacoes' | 'mundo' | 'tempo' | 'referencias' | 'tudo'
 /** As abas do Editar: o essencial primeiro; “Tudo” é o formulário inteiro, como antes. */
 const EDIT_TABS: [EditTab, string][] = [
-  ["basico", "Básico"],
-  ["ligacoes", "Ligações"],
-  ["mundo", "Mundo"],
-  ["tempo", "Tempo"],
-  ["referencias", "Referências"],
-  ["tudo", "Tudo"],
-];
+  ['basico', 'Básico'],
+  ['ligacoes', 'Ligações'],
+  ['mundo', 'Mundo'],
+  ['tempo', 'Tempo'],
+  ['referencias', 'Referências'],
+  ['tudo', 'Tudo'],
+]
 
 /** Tipo de ficha: um dos tipos comuns (pelo nome de verdade) ou um tipo próprio, em “Outro…”. */
-function KindSelect({
-  id,
-  value,
-  onChange,
-}: {
-  id: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const { universe } = useWorkspace();
-  const known = (ENTITY_KINDS as readonly string[]).includes(value);
-  const [typing, setTyping] = useState(false);
-  const [draft, setDraft] = useState(known ? "" : value);
+function KindSelect({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const { universe } = useWorkspace()
+  const known = (ENTITY_KINDS as readonly string[]).includes(value)
+  const [typing, setTyping] = useState(false)
+  const [draft, setDraft] = useState(known ? '' : value)
   // Os tipos próprios que já existem no universo também entram na lista.
-  const own = [...new Set(universe.entities.map((x) => x.kind))]
-    .filter((k) => !(ENTITY_KINDS as readonly string[]).includes(k))
-    .sort((a, b) => a.localeCompare(b, "pt"));
+  const own = [...new Set(universe.entities.map((x) => x.kind))].filter((k) => !(ENTITY_KINDS as readonly string[]).includes(k)).sort((a, b) => a.localeCompare(b, 'pt'))
   const commit = () => {
-    const v = draft.trim();
-    if (v) onChange(v);
-    setTyping(false);
-  };
+    const v = draft.trim()
+    if (v) onChange(v)
+    setTyping(false)
+  }
   if (typing)
     return (
       <input
@@ -1700,21 +1072,21 @@ function KindSelect({
         onChange={(ev) => setDraft(ev.target.value)}
         onBlur={commit}
         onKeyDown={(ev) => {
-          if (ev.key === "Enter") commit();
-          if (ev.key === "Escape") setTyping(false);
+          if (ev.key === 'Enter') commit()
+          if (ev.key === 'Escape') setTyping(false)
         }}
       />
-    );
+    )
   return (
     <select
       id={id}
       className="input select"
       value={value}
       onChange={(ev) => {
-        if (ev.target.value === "__outro") {
-          setDraft("");
-          setTyping(true);
-        } else onChange(ev.target.value);
+        if (ev.target.value === '__outro') {
+          setDraft('')
+          setTyping(true)
+        } else onChange(ev.target.value)
       }}
     >
       {ENTITY_KINDS.map((k) => (
@@ -1729,265 +1101,149 @@ function KindSelect({
       ))}
       <option value="__outro">Outro…</option>
     </select>
-  );
+  )
 }
 
-const SKIPPED = "perguntas-puladas";
+const SKIPPED = 'perguntas-puladas'
 
 /** As fichas em que a pessoa pulou as perguntas (neste navegador). */
 function skippedQuestions(): string[] {
   try {
-    return JSON.parse(recall(SKIPPED) ?? "[]") as string[];
+    return JSON.parse(recall(SKIPPED) ?? '[]') as string[]
   } catch {
-    return [];
+    return []
   }
 }
 
 function unskipQuestions(id: string) {
-  const skipped = skippedQuestions();
-  if (skipped.includes(id))
-    remember(SKIPPED, JSON.stringify(skipped.filter((x) => x !== id)));
+  const skipped = skippedQuestions()
+  if (skipped.includes(id)) remember(SKIPPED, JSON.stringify(skipped.filter((x) => x !== id)))
 }
 
 function skipQuestions(id: string) {
-  remember(SKIPPED, JSON.stringify([...skippedQuestions(), id].slice(-300)));
+  remember(SKIPPED, JSON.stringify([...skippedQuestions(), id].slice(-300)))
 }
 
 const RELATION_TYPES = [
-  "pai de",
-  "mãe de",
-  "filho de",
-  "filha de",
-  "irmão de",
-  "irmã de",
-  "casado com",
-  "aliado de",
-  "rival de",
-  "inimigo de",
-  "serve a",
-  "governa",
-  "membro de",
-  "líder de",
-  "fundou",
-  "criou",
-  "causou",
-  "participou de",
-  "vive em",
-  "nasceu em",
-  "carrega",
-  "ama",
-  "teme",
-];
+  'pai de', 'mãe de', 'filho de', 'filha de', 'irmão de', 'irmã de', 'casado com', 'aliado de', 'rival de', 'inimigo de',
+  'serve a', 'governa', 'membro de', 'líder de', 'fundou', 'criou', 'causou', 'participou de', 'vive em', 'nasceu em', 'carrega', 'ama', 'teme',
+]
 
-export function RelationsSection({
-  entity: e,
-  outgoing,
-  incoming,
-}: {
-  entity: Entity;
-  outgoing: Universe["relations"];
-  incoming: Universe["relations"];
-}) {
-  const { universe, update, peek, undoable } = useWorkspace();
-  const [type, setType] = useState("");
-  const [targets, setTargets] = useState<string[]>([]);
-  const involved = involvements(universe, e.id);
+export function RelationsSection({ entity: e, outgoing, incoming }: { entity: Entity; outgoing: Universe['relations']; incoming: Universe['relations'] }) {
+  const { universe, update, peek, undoable } = useWorkspace()
+  const [type, setType] = useState('')
+  const [targets, setTargets] = useState<string[]>([])
+  const involved = involvements(universe, e.id)
   // Cada ligação é uma linha ("irmão de Mira"); o lápis abre o resto (tipo, verdade, período, quem está por trás).
-  const [open, setOpen] = useState<string | null>(null);
-  const editButton = (rs: Universe["relations"]) => (
-    <button
-      type="button"
-      className="btn-icon btn-sm relation-edit"
-      aria-label={`Editar a ligação “${rs[0].type || "sem nome"}”`}
-      title="Editar"
-      onClick={() => setOpen(rs[0].id)}
-    >
+  const [open, setOpen] = useState<string | null>(null)
+  const editButton = (rs: Universe['relations']) => (
+    <button type="button" className="btn-icon btn-sm relation-edit" aria-label={`Editar a ligação “${rs[0].type || 'sem nome'}”`} title="Editar" onClick={() => setOpen(rs[0].id)}>
       <Pencil size={13} />
     </button>
-  );
+  )
   const doneButton = (
-    <button
-      type="button"
-      className="btn btn-ghost btn-sm relation-done"
-      onClick={() => setOpen(null)}
-    >
+    <button type="button" className="btn btn-ghost btn-sm relation-done" onClick={() => setOpen(null)}>
       <Check size={14} /> Pronto
     </button>
-  );
-  const lineMeta = (rs: Universe["relations"]) => (
+  )
+  const lineMeta = (rs: Universe['relations']) => (
     <>
-      {scopeLabel(universe, rs[0]) && (
-        <span className="muted small">{scopeLabel(universe, rs[0])}</span>
-      )}
-      {rs[0].canon !== "estabelecido" && <CanonBadge canon={rs[0].canon} />}
-      {rs[0].via.length > 0 && (
-        <span className="muted small">
-          com{" "}
-          {rs[0].via.map((v) => entityName(universe, v.entityId)).join(", ")}
-        </span>
-      )}
+      {scopeLabel(universe, rs[0]) && <span className="muted small">{scopeLabel(universe, rs[0])}</span>}
+      {rs[0].canon !== 'estabelecido' && <CanonBadge canon={rs[0].canon} />}
+      {rs[0].via.length > 0 && <span className="muted small">com {rs[0].via.map((v) => entityName(universe, v.entityId)).join(', ')}</span>}
     </>
-  );
+  )
   // Campos que apontam para fichas ("Mãe: Ilsa") também são ligações, dos dois lados.
-  const fieldLinks = e.fields.filter((f) => f.type === "ficha" && f.ref);
-  const fieldBacklinks = universe.entities.flatMap((x) =>
-    x.id === e.id
-      ? []
-      : x.fields
-          .filter((f) => f.type === "ficha" && f.ref === e.id)
-          .map((f) => ({ from: x, key: f.key })),
-  );
+  const fieldLinks = e.fields.filter((f) => f.type === 'ficha' && f.ref)
+  const fieldBacklinks = universe.entities.flatMap((x) => (x.id === e.id ? [] : x.fields.filter((f) => f.type === 'ficha' && f.ref === e.id).map((f) => ({ from: x, key: f.key }))))
 
   const add = () => {
-    if (!targets.length || !type.trim()) return;
-    update((u) =>
-      targets.reduce(
-        (acc, t) =>
-          insert(acc, "relations", draftRelation(e.id, t, type.trim()))[0],
-        u,
-      ),
-    );
-    setType("");
-    setTargets([]);
-  };
+    if (!targets.length || !type.trim()) return
+    update((u) => targets.reduce((acc, t) => insert(acc, 'relations', draftRelation(e.id, t, type.trim()))[0], u))
+    setType('')
+    setTargets([])
+  }
 
   // Relações do mesmo tipo ficam numa linha só: "criado por Allan, Bia".
-  const group = (list: Universe["relations"]) => {
-    const map = new Map<string, Universe["relations"]>();
+  const group = (list: Universe['relations']) => {
+    const map = new Map<string, Universe['relations']>()
     for (const r of list) {
       // Mesmo tipo, mesmos envolvidos e mesmo tempo: uma linha só.
-      const k = `${fold(r.type.trim())}|${JSON.stringify(r.via)}|${JSON.stringify(r.scope)}`;
-      map.set(k, [...(map.get(k) ?? []), r]);
+      const k = `${fold(r.type.trim())}|${JSON.stringify(r.via)}|${JSON.stringify(r.scope)}`
+      map.set(k, [...(map.get(k) ?? []), r])
     }
-    return [...map.values()];
-  };
+    return [...map.values()]
+  }
 
-  const names = (
-    rs: Universe["relations"],
-    side: "fromId" | "toId",
-    editable: boolean,
-  ) =>
+  const names = (rs: Universe['relations'], side: 'fromId' | 'toId', editable: boolean) =>
     rs.map((r) => (
       <span key={r.id} className="chip chip-entity">
-        <button
-          type="button"
-          className="chip-link"
-          onClick={() => peek(r[side])}
-        >
-          {entityName(universe, r[side]) || "Ficha removida"}
+        <button type="button" className="chip-link" onClick={() => peek(r[side])}>
+          {entityName(universe, r[side]) || 'Ficha removida'}
         </button>
         {editable && (
-          <button
-            type="button"
-            className="chip-x"
-            aria-label={`Tirar ${entityName(universe, r[side])} desta ligação`}
-            onClick={() =>
-              undoable(
-                `Ligação com “${entityName(universe, r[side])}” tirada`,
-                (u) => remove(u, "relations", r.id),
-              )
-            }
-          >
+          <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, r[side])} desta ligação`} onClick={() => undoable(`Ligação com “${entityName(universe, r[side])}” tirada`, (u) => remove(u, 'relations', r.id))}>
             <X size={12} />
           </button>
         )}
       </span>
-    ));
+    ))
 
-  const groupControls = (rs: Universe["relations"]) => (
+  const groupControls = (rs: Universe['relations']) => (
     <>
-      <CanonSelect
-        value={rs[0].canon}
-        onChange={(v) =>
-          update((u) =>
-            rs.reduce(
-              (acc, r) => patch(acc, "relations", r.id, { canon: v }),
-              u,
-            ),
-          )
-        }
-      />
+      <CanonSelect value={rs[0].canon} onChange={(v) => update((u) => rs.reduce((acc, r) => patch(acc, 'relations', r.id, { canon: v }), u))} />
       <button
         type="button"
         className="btn-icon btn-sm relation-remove"
-        aria-label={
-          rs.length > 1 ? "Remover estas ligações" : "Remover ligação"
-        }
-        onClick={() =>
-          undoable(
-            rs.length > 1 ? `${rs.length} ligações tiradas` : "Ligação tirada",
-            (u) => rs.reduce((acc, r) => remove(acc, "relations", r.id), u),
-          )
-        }
+        aria-label={rs.length > 1 ? 'Remover estas ligações' : 'Remover ligação'}
+        onClick={() => undoable(rs.length > 1 ? `${rs.length} ligações tiradas` : 'Ligação tirada', (u) => rs.reduce((acc, r) => remove(acc, 'relations', r.id), u))}
       >
         <X size={14} />
       </button>
     </>
-  );
+  )
 
-  const outRow = (rs: Universe["relations"]) =>
+  const outRow = (rs: Universe['relations']) =>
     open !== rs[0].id ? (
       <li key={rs[0].id} className="relation-row is-line">
-        <span className="relation-type-text">{rs[0].type || "ligado a"}</span>
+        <span className="relation-type-text">{rs[0].type || 'ligado a'}</span>
         <span className="chips relation-targets">
-          {names(rs, "toId", false)}
+          {names(rs, 'toId', false)}
           {lineMeta(rs)}
         </span>
         {editButton(rs)}
       </li>
     ) : (
-      <li key={rs[0].id} className="relation-row">
-        <span className="muted">{e.name}</span>
-        <input
-          className="input input-sm relation-type"
-          aria-label="Tipo da ligação"
-          value={rs[0].type}
-          onChange={(ev) =>
-            update((u) =>
-              rs.reduce(
-                (acc, r) =>
-                  patch(acc, "relations", r.id, { type: ev.target.value }),
-                u,
-              ),
-            )
-          }
-        />
-        <span className="chips relation-targets">
-          {names(rs, "toId", true)}
-          <EntityPicker
-            label={`Mais alguém: ${rs[0].type}`}
-            hideLabel
-            placeholder="+ nome"
-            value={null}
-            exclude={[e.id, ...rs.map((r) => r.toId)]}
-            onChange={(t) =>
-              t &&
-              update(
-                (u) =>
-                  insert(u, "relations", {
-                    ...draftRelation(e.id, t, rs[0].type),
-                    canon: rs[0].canon,
-                    via: rs[0].via,
-                    scope: rs[0].scope,
-                  })[0],
-              )
-            }
-          />
-        </span>
-        {groupControls(rs)}
-        <RelationDetails
-          relations={rs}
+    <li key={rs[0].id} className="relation-row">
+      <span className="muted">{e.name}</span>
+      <input
+        className="input input-sm relation-type"
+        aria-label="Tipo da ligação"
+        value={rs[0].type}
+        onChange={(ev) => update((u) => rs.reduce((acc, r) => patch(acc, 'relations', r.id, { type: ev.target.value }), u))}
+      />
+      <span className="chips relation-targets">
+        {names(rs, 'toId', true)}
+        <EntityPicker
+          label={`Mais alguém: ${rs[0].type}`}
+          hideLabel
+          placeholder="+ nome"
+          value={null}
           exclude={[e.id, ...rs.map((r) => r.toId)]}
+          onChange={(t) => t && update((u) => insert(u, 'relations', { ...draftRelation(e.id, t, rs[0].type), canon: rs[0].canon, via: rs[0].via, scope: rs[0].scope })[0])}
         />
-        {doneButton}
-      </li>
-    );
+      </span>
+      {groupControls(rs)}
+      <RelationDetails relations={rs} exclude={[e.id, ...rs.map((r) => r.toId)]} />
+      {doneButton}
+    </li>
+    )
 
-  const inRow = (rs: Universe["relations"]) =>
+  const inRow = (rs: Universe['relations']) =>
     open !== rs[0].id ? (
       <li key={rs[0].id} className="relation-row is-line">
         <span className="chips relation-targets">
-          {names(rs, "fromId", false)}
+          {names(rs, 'fromId', false)}
           <span className="relation-type-text">{rs[0].type}</span>
           <span className="muted">{e.name}</span>
           {lineMeta(rs)}
@@ -1996,50 +1252,31 @@ export function RelationsSection({
       </li>
     ) : (
       <li key={rs[0].id} className="relation-row">
-        <span className="chips relation-targets">
-          {names(rs, "fromId", true)}
-        </span>
+        <span className="chips relation-targets">{names(rs, 'fromId', true)}</span>
         <span className="relation-type-text">{rs[0].type}</span>
         <span className="muted">{e.name}</span>
         {groupControls(rs)}
-        <RelationDetails
-          relations={rs}
-          exclude={[e.id, ...rs.map((r) => r.fromId)]}
-        />
+        <RelationDetails relations={rs} exclude={[e.id, ...rs.map((r) => r.fromId)]} />
         {doneButton}
       </li>
-    );
+    )
 
   return (
     <Fold id="ficha-rela-es" title="Ligações">
-      {outgoing.length +
-        incoming.length +
-        fieldLinks.length +
-        fieldBacklinks.length ===
-        0 && (
+      {outgoing.length + incoming.length + fieldLinks.length + fieldBacklinks.length === 0 && (
         // Os membros e o "faz parte de" ficam nas listas: aqui só as outras ligações.
-        <p className="muted small">
-          {universe.relations.some(
-            (r) => r.listId && (r.fromId === e.id || r.toId === e.id),
-          )
-            ? "Fora das listas, nenhuma ligação ainda."
-            : "Nenhuma ligação ainda."}
-        </p>
+        <p className="muted small">{universe.relations.some((r) => r.listId && (r.fromId === e.id || r.toId === e.id)) ? 'Fora das listas, nenhuma ligação ainda.' : 'Nenhuma ligação ainda.'}</p>
       )}
       <ul className="relation-list">
         {group(outgoing).map(outRow)}
         {group(incoming).map(inRow)}
         {fieldLinks.map((f, i) => (
           <li key={`campo-${i}`} className="relation-row is-line is-field">
-            <span className="relation-type-text">{f.key || "Campo"}</span>
+            <span className="relation-type-text">{f.key || 'Campo'}</span>
             <span className="chips relation-targets">
               <span className="chip chip-entity">
-                <button
-                  type="button"
-                  className="chip-link"
-                  onClick={() => peek(f.ref!)}
-                >
-                  {entityName(universe, f.ref!) || f.value || "Ficha removida"}
+                <button type="button" className="chip-link" onClick={() => peek(f.ref!)}>
+                  {entityName(universe, f.ref!) || f.value || 'Ficha removida'}
                 </button>
               </span>
             </span>
@@ -2048,21 +1285,17 @@ export function RelationsSection({
         ))}
         {fieldBacklinks.map(({ from, key }, i) => (
           <li key={`de-campo-${i}`} className="relation-row is-line is-field">
-            <span className="relation-type-text">{key || "Campo"} de</span>
+            <span className="relation-type-text">
+              {key || 'Campo'} de
+            </span>
             <span className="chips relation-targets">
               <span className="chip chip-entity">
-                <button
-                  type="button"
-                  className="chip-link"
-                  onClick={() => peek(from.id)}
-                >
-                  {from.name || "Sem nome"}
+                <button type="button" className="chip-link" onClick={() => peek(from.id)}>
+                  {from.name || 'Sem nome'}
                 </button>
               </span>
             </span>
-            <span className="muted small">
-              do campo de {from.name || "Sem nome"}
-            </span>
+            <span className="muted small">do campo de {from.name || 'Sem nome'}</span>
           </li>
         ))}
       </ul>
@@ -2072,54 +1305,29 @@ export function RelationsSection({
           <ul className="plain-list small">
             {involved.map(({ relation, role }) => (
               <li key={relation.id + role}>
-                <strong>{role || "com"}</strong>:{" "}
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => peek(relation.fromId)}
-                >
+                <strong>{role || 'com'}</strong>:{' '}
+                <button type="button" className="link-btn" onClick={() => peek(relation.fromId)}>
                   {entityName(universe, relation.fromId)}
-                </button>{" "}
-                {relation.type}{" "}
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => peek(relation.toId)}
-                >
+                </button>{' '}
+                {relation.type}{' '}
+                <button type="button" className="link-btn" onClick={() => peek(relation.toId)}>
                   {entityName(universe, relation.toId)}
                 </button>
-                {scopeLabel(universe, relation) && (
-                  <span className="muted">
-                    {" "}
-                    · {scopeLabel(universe, relation)}
-                  </span>
-                )}
+                {scopeLabel(universe, relation) && <span className="muted"> · {scopeLabel(universe, relation)}</span>}
               </li>
             ))}
           </ul>
         </div>
       )}
       <div className="relation-add">
-        <span className="muted small">{e.name || "Esta ficha"}</span>
-        <input
-          className="input input-sm"
-          aria-label="Nova ligação"
-          list="tipos-relacao"
-          placeholder="é irmão de…"
-          value={type}
-          onChange={(ev) => setType(ev.target.value)}
-        />
+        <span className="muted small">{e.name || 'Esta ficha'}</span>
+        <input className="input input-sm" aria-label="Nova ligação" list="tipos-relacao" placeholder="é irmão de…" value={type} onChange={(ev) => setType(ev.target.value)} />
         {targets.length > 0 && (
           <span className="chips">
             {targets.map((t) => (
               <span key={t} className="chip chip-entity">
                 {entityName(universe, t)}
-                <button
-                  type="button"
-                  className="chip-x"
-                  aria-label={`Tirar ${entityName(universe, t)}`}
-                  onClick={() => setTargets(targets.filter((x) => x !== t))}
-                >
+                <button type="button" className="chip-x" aria-label={`Tirar ${entityName(universe, t)}`} onClick={() => setTargets(targets.filter((x) => x !== t))}>
                   <X size={12} />
                 </button>
               </span>
@@ -2129,126 +1337,69 @@ export function RelationsSection({
         <EntityPicker
           label="Com"
           hideLabel
-          placeholder={targets.length ? "+ mais alguém" : "Com quem…"}
+          placeholder={targets.length ? '+ mais alguém' : 'Com quem…'}
           value={null}
           exclude={[e.id, ...targets]}
           onChange={(t) => t && setTargets([...targets, t])}
         />
-        <button
-          type="button"
-          className="btn btn-sm btn-primary"
-          disabled={!targets.length || !type.trim()}
-          onClick={add}
-        >
+        <button type="button" className="btn btn-sm btn-primary" disabled={!targets.length || !type.trim()} onClick={add}>
           Adicionar
         </button>
       </div>
-      <p className="muted tiny">
-        Escolha quantas fichas quiser: “criado por Allan, Bia”. No grafo, cada
-        uma vira uma ligação.
-      </p>
+      <p className="muted tiny">Escolha quantas fichas quiser: “criado por Allan, Bia”. No grafo, cada uma vira uma ligação.</p>
       <datalist id="tipos-relacao">
         {RELATION_TYPES.map((t) => (
           <option key={t} value={t} />
         ))}
       </datalist>
     </Fold>
-  );
+  )
 }
 
-export function KnowledgeSection({
-  entity: e,
-  entries,
-}: {
-  entity: Entity;
-  entries: Universe["knowledge"];
-}) {
-  const { universe, update, undoable } = useWorkspace();
-  const [factId, setFactId] = useState("");
-  const order = manuscriptOrder(universe);
-  const factOptions = universe.facts.map((f) => ({
-    value: f.id,
-    label: factSentence(universe, f).slice(0, 80),
-  }));
+export function KnowledgeSection({ entity: e, entries }: { entity: Entity; entries: Universe['knowledge'] }) {
+  const { universe, update, undoable } = useWorkspace()
+  const [factId, setFactId] = useState('')
+  const order = manuscriptOrder(universe)
+  const factOptions = universe.facts.map((f) => ({ value: f.id, label: factSentence(universe, f).slice(0, 80) }))
 
   return (
-    <Fold
-      id="ficha-o-que-x-sabe"
-      title={<>O que {e.name || "esta ficha"} sabe</>}
-    >
-      {entries.length === 0 && (
-        <p className="muted small">
-          Nada registrado. Útil para pontos de vista, segredos e mentiras.
-        </p>
-      )}
+    <Fold id="ficha-o-que-x-sabe" title={<>O que {e.name || 'esta ficha'} sabe</>}>
+      {entries.length === 0 && <p className="muted small">Nada registrado. Útil para pontos de vista, segredos e mentiras.</p>}
       <ul className="knowledge-list">
         {entries.map((k) => {
-          const f = byId(universe, "facts", k.factId);
+          const f = byId(universe, 'facts', k.factId)
           return (
             <li key={k.id} className="knowledge-row">
               <Select<KnowledgeState>
                 label="Estado"
                 value={k.state}
-                onChange={(v) =>
-                  update((u) => patch(u, "knowledge", k.id, { state: v }))
-                }
-                options={KNOWLEDGE_STATES.map((s) => ({
-                  value: s,
-                  label: KNOWLEDGE_LABEL[s],
-                }))}
+                onChange={(v) => update((u) => patch(u, 'knowledge', k.id, { state: v }))}
+                options={KNOWLEDGE_STATES.map((s) => ({ value: s, label: KNOWLEDGE_LABEL[s] }))}
               />
-              <span className="knowledge-fact">
-                {f ? factSentence(universe, f) : "Fato removido"}
-              </span>
+              <span className="knowledge-fact">{f ? factSentence(universe, f) : 'Fato removido'}</span>
               <Select
                 label="Desde a cena"
-                value={k.sinceSceneId ?? ""}
-                onChange={(v) =>
-                  update((u) =>
-                    patch(u, "knowledge", k.id, { sinceSceneId: v || null }),
-                  )
-                }
-                options={[
-                  { value: "", label: "Desde sempre" },
-                  ...order.map((s) => ({
-                    value: s.id,
-                    label: `Desde “${s.title || "Sem título"}”`,
-                  })),
-                ]}
+                value={k.sinceSceneId ?? ''}
+                onChange={(v) => update((u) => patch(u, 'knowledge', k.id, { sinceSceneId: v || null }))}
+                options={[{ value: '', label: 'Desde sempre' }, ...order.map((s) => ({ value: s.id, label: `Desde “${s.title || 'Sem título'}”` }))]}
               />
-              <button
-                type="button"
-                className="btn-icon btn-sm"
-                aria-label="Remover"
-                onClick={() =>
-                  undoable("Tirado do que a ficha sabe", (u) =>
-                    remove(u, "knowledge", k.id),
-                  )
-                }
-              >
+              <button type="button" className="btn-icon btn-sm" aria-label="Remover" onClick={() => undoable('Tirado do que a ficha sabe', (u) => remove(u, 'knowledge', k.id))}>
                 <X size={14} />
               </button>
             </li>
-          );
+          )
         })}
       </ul>
       {factOptions.length > 0 ? (
         <div className="inline-fields">
-          <Select
-            label="Fato"
-            value={factId}
-            onChange={setFactId}
-            options={[{ value: "", label: "Escolha um fato…" }, ...factOptions]}
-          />
+          <Select label="Fato" value={factId} onChange={setFactId} options={[{ value: '', label: 'Escolha um fato…' }, ...factOptions]} />
           <button
             type="button"
             className="btn btn-sm btn-ghost"
             disabled={!factId}
             onClick={() => {
-              update(
-                (u) => insert(u, "knowledge", draftKnowledge(e.id, factId))[0],
-              );
-              setFactId("");
+              update((u) => insert(u, 'knowledge', draftKnowledge(e.id, factId))[0])
+              setFactId('')
             }}
           >
             <Plus size={14} /> Sabe disso
@@ -2258,211 +1409,90 @@ export function KnowledgeSection({
         <p className="muted small">Registre fatos primeiro.</p>
       )}
     </Fold>
-  );
+  )
 }
 
-type Universe = ReturnType<typeof useWorkspace>["universe"];
+type Universe = ReturnType<typeof useWorkspace>['universe']
 
 /** Valor de um campo livre, com a marcação de spoiler para o modo leitor. */
-const FIELD_TYPE_LABEL: Record<(typeof FIELD_TYPES)[number], string> = {
-  texto: "Texto",
-  numero: "Número",
-  ano: "Ano",
-  ficha: "Ficha",
-};
+const FIELD_TYPE_LABEL: Record<(typeof FIELD_TYPES)[number], string> = { texto: 'Texto', numero: 'Número', ano: 'Ano', ficha: 'Ficha' }
 
 /** O valor do campo do jeito do tipo: texto (com segredo), número, ano do calendário ou uma ficha. */
-function TypedValue({
-  entity: e,
-  field: f,
-  onChange,
-}: {
-  entity: Entity;
-  field: Entity["fields"][number];
-  onChange: (changes: Partial<Entity["fields"][number]>) => void;
-}) {
-  const { universe } = useWorkspace();
-  const type = f.type ?? "texto";
-  if (type === "numero")
-    return (
-      <input
-        className="input"
-        inputMode="decimal"
-        aria-label="Valor"
-        placeholder="0"
-        value={f.value}
-        onChange={(ev) =>
-          onChange({ value: ev.target.value.replace(/[^\d.,\-\s\p{L}]/gu, "") })
-        }
-      />
-    );
-  if (type === "ano")
+function TypedValue({ entity: e, field: f, onChange }: { entity: Entity; field: Entity['fields'][number]; onChange: (changes: Partial<Entity['fields'][number]>) => void }) {
+  const { universe } = useWorkspace()
+  const type = f.type ?? 'texto'
+  if (type === 'numero')
+    return <input className="input" inputMode="decimal" aria-label="Valor" placeholder="0" value={f.value} onChange={(ev) => onChange({ value: ev.target.value.replace(/[^\d.,\-\s\p{L}]/gu, '') })} />
+  if (type === 'ano')
     return (
       <div className="with-reveal">
-        <YearInput
-          label="Valor (ano)"
-          value={
-            f.value.trim() && Number.isFinite(Number(f.value))
-              ? Number(f.value)
-              : null
-          }
-          onChange={(y) => onChange({ value: y === null ? "" : String(y) })}
-        />
-        {universe.settings.calendarSuffix && (
-          <span className="muted small">
-            {universe.settings.calendarSuffix}
-          </span>
-        )}
+        <YearInput label="Valor (ano)" value={f.value.trim() && Number.isFinite(Number(f.value)) ? Number(f.value) : null} onChange={(y) => onChange({ value: y === null ? '' : String(y) })} />
+        {universe.settings.calendarSuffix && <span className="muted small">{universe.settings.calendarSuffix}</span>}
       </div>
-    );
-  if (type === "ficha")
+    )
+  if (type === 'ficha')
     return (
       <EntityPicker
-        label={f.key ? `${f.key} (ficha)` : "Valor (ficha)"}
+        label={f.key ? `${f.key} (ficha)` : 'Valor (ficha)'}
         hideLabel
         placeholder="Qual ficha…"
         value={f.ref ?? null}
         exclude={[e.id]}
-        onChange={(id) =>
-          onChange({
-            ref: id,
-            value: id ? (byId(universe, "entities", id)?.name ?? "") : "",
-          })
-        }
+        onChange={(id) => onChange({ ref: id, value: id ? (byId(universe, 'entities', id)?.name ?? '') : '' })}
       />
-    );
+    )
   // Vazio, mas outra parte do app já responde ("Malkai líder de…" no Líder, a idade pelo nascimento): aparece em cinza.
-  const hint =
-    (!f.value.trim() && f.key.trim() && derivedHint(universe, e, f.key)) ||
-    undefined;
-  return (
-    <FieldValue
-      value={f.value}
-      label={f.key || "Valor"}
-      placeholder={hint}
-      onChange={(v) => onChange({ value: v })}
-    />
-  );
+  const hint = (!f.value.trim() && f.key.trim() && derivedHint(universe, e, f.key)) || undefined
+  return <FieldValue value={f.value} label={f.key || 'Valor'} placeholder={hint} onChange={(v) => onChange({ value: v })} />
 }
 
-function FieldValue({
-  value,
-  label,
-  placeholder = "Valor",
-  onChange,
-}: {
-  value: string;
-  label: string;
-  placeholder?: string;
-  onChange: (v: string) => void;
-}) {
-  const ref = useRef<HTMLInputElement>(null);
+function FieldValue({ value, label, placeholder = 'Valor', onChange }: { value: string; label: string; placeholder?: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLInputElement>(null)
   return (
     <div className="with-reveal">
-      <input
-        ref={ref}
-        className="input"
-        aria-label="Valor"
-        placeholder={placeholder}
-        title={placeholder === "Valor" ? undefined : placeholder}
-        value={value}
-        onChange={(ev) => onChange(ev.target.value)}
-      />
-      <RevealPicker
-        label={label}
-        value={value}
-        inputRef={ref}
-        onChange={onChange}
-      />
+      <input ref={ref} className="input" aria-label="Valor" placeholder={placeholder} title={placeholder === 'Valor' ? undefined : placeholder} value={value} onChange={(ev) => onChange(ev.target.value)} />
+      <RevealPicker label={label} value={value} inputRef={ref} onChange={onChange} />
     </div>
-  );
+  )
 }
 
 /** Os campos da ficha (com as datas de início e fim): o que o modo Editar e o bloco "Quadro" editam. */
-export function FieldsEditor({
-  entity: e,
-  hide,
-}: {
-  entity: Entity;
-  hide?: (key: string) => boolean;
-}) {
-  const { universe, update } = useWorkspace();
-  const set = (changes: Partial<Entity>) =>
-    update((u) => patch(u, "entities", e.id, changes));
-  const whoKeys = whoIsKeys(universe, e);
+export function FieldsEditor({ entity: e, hide }: { entity: Entity; hide?: (key: string) => boolean }) {
+  const { universe, update } = useWorkspace()
+  const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
+  const whoKeys = whoIsKeys(universe, e)
   // As respostas às perguntas do tipo ficam nas perguntas enquanto elas estão na tela.
-  const asking = Boolean(hide);
-  const askedKey = (_kind: string, key: string) => hide?.(key) ?? false;
+  const asking = Boolean(hide)
+  const askedKey = (_kind: string, key: string) => hide?.(key) ?? false
   return (
     <>
       <div className="field">
-        <span className="field-label">
-          {e.kind === "personagem" ? "Nascimento — morte" : "Início — fim"}
-        </span>
+        <span className="field-label">{e.kind === 'personagem' ? 'Nascimento — morte' : 'Início — fim'}</span>
         <div className="inline-fields">
-          <YearInput
-            label="Ano de início"
-            value={e.startYear}
-            onChange={(v) => set({ startYear: v })}
-            placeholder="Início"
-          />
+          <YearInput label="Ano de início" value={e.startYear} onChange={(v) => set({ startYear: v })} placeholder="Início" />
           <span className="muted">—</span>
-          <YearInput
-            label="Ano de fim"
-            value={e.endYear}
-            onChange={(v) => set({ endYear: v })}
-            placeholder="Fim"
-          />
+          <YearInput label="Ano de fim" value={e.endYear} onChange={(v) => set({ endYear: v })} placeholder="Fim" />
         </div>
       </div>
       <InheritedRows entity={e} />
       {e.fields.map((f, i) =>
         // As respostas às perguntas ficam nas perguntas enquanto elas estão na tela; as exceções, no "Quem é".
-        (asking && askedKey(e.kind, f.key)) ||
-        (f.exception && whoKeys.has(fold(f.key.trim()))) ? null : (
+        (asking && askedKey(e.kind, f.key)) || (f.exception && whoKeys.has(fold(f.key.trim()))) ? null : (
           <div key={i} className="kv-row kv-typed">
-            <input
-              className="input"
-              aria-label="Campo"
-              placeholder="Campo"
-              value={f.key}
-              onChange={(ev) =>
-                set({
-                  fields: e.fields.map((x, j) =>
-                    j === i ? { ...x, key: ev.target.value } : x,
-                  ),
-                })
-              }
-            />
+            <input className="input" aria-label="Campo" placeholder="Campo" value={f.key} onChange={(ev) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, key: ev.target.value } : x)) })} />
             <TypedValue
               entity={e}
               field={f}
-              onChange={(changes) =>
-                set({
-                  fields: e.fields.map((x, j) =>
-                    j === i ? { ...x, ...changes } : x,
-                  ),
-                })
-              }
+              onChange={(changes) => set({ fields: e.fields.map((x, j) => (j === i ? { ...x, ...changes } : x)) })}
             />
             <select
               className="input select field-type"
-              aria-label={`Tipo do campo ${f.key || ""}`.trim()}
+              aria-label={`Tipo do campo ${f.key || ''}`.trim()}
               title="Tipo do campo"
-              value={f.type ?? "texto"}
+              value={f.type ?? 'texto'}
               onChange={(ev) => {
-                const type = ev.target.value as NonNullable<typeof f.type>;
-                set({
-                  fields: e.fields.map((x, j) =>
-                    j === i
-                      ? {
-                          ...x,
-                          type,
-                          ...(type === "ficha" ? {} : { ref: null }),
-                        }
-                      : x,
-                  ),
-                });
+                const type = ev.target.value as NonNullable<typeof f.type>
+                set({ fields: e.fields.map((x, j) => (j === i ? { ...x, type, ...(type === 'ficha' ? {} : { ref: null }) } : x)) })
               }}
             >
               {FIELD_TYPES.map((t) => (
@@ -2471,328 +1501,181 @@ export function FieldsEditor({
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              className="btn-icon btn-sm"
-              aria-label="Remover campo"
-              onClick={() =>
-                set({ fields: e.fields.filter((_, j) => j !== i) })
-              }
-            >
+            <button type="button" className="btn-icon btn-sm" aria-label="Remover campo" onClick={() => set({ fields: e.fields.filter((_, j) => j !== i) })}>
               <X size={14} />
             </button>
           </div>
         ),
       )}
-      <button
-        type="button"
-        className="btn btn-ghost btn-sm"
-        onClick={() => set({ fields: [...e.fields, { key: "", value: "" }] })}
-      >
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => set({ fields: [...e.fields, { key: '', value: '' }] })}>
         <Plus size={14} /> Campo
       </button>
     </>
-  );
+  )
 }
 
 /** Os fatos da ficha, com o "+ Fato". */
 export function FactsEditor({ entity: e }: { entity: Entity }) {
-  const { universe } = useWorkspace();
-  const [factFor, setFactFor] = useState<boolean>(false);
-  const facts = universe.facts.filter(
-    (f) => f.subjectId === e.id || f.objectId === e.id,
-  );
+  const { universe } = useWorkspace()
+  const [factFor, setFactFor] = useState<boolean>(false)
+  const facts = universe.facts.filter((f) => f.subjectId === e.id || f.objectId === e.id)
   return (
     <>
-      <section className="entity-section">
-        <div className="section-head">
-          <h2 className="section-title">Fatos</h2>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => setFactFor(true)}
-          >
-            <Plus size={14} /> Fato
-          </button>
-        </div>
-        {facts.length === 0 ? (
-          <p className="muted small">
-            Nenhum fato registrado. Selecione um trecho no texto e escolha
-            “Fato”.
-          </p>
-        ) : (
-          <ul className="fact-list">
-            {facts.map((f) => (
-              <li key={f.id}>
-                <span>{factSentence(universe, f)}</span>
-                <CanonBadge canon={f.canon} />
-                {f.speakerId && (
-                  <span className="muted small">
-                    segundo {entityName(universe, f.speakerId)}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      {factFor && (
-        <FactDialog
-          initial={{ subjectId: e.id }}
-          onClose={() => setFactFor(false)}
-        />
+    <section className="entity-section">
+      <div className="section-head">
+        <h2 className="section-title">Fatos</h2>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFactFor(true)}>
+          <Plus size={14} /> Fato
+        </button>
+      </div>
+      {facts.length === 0 ? (
+        <p className="muted small">Nenhum fato registrado. Selecione um trecho no texto e escolha “Fato”.</p>
+      ) : (
+        <ul className="fact-list">
+          {facts.map((f) => (
+            <li key={f.id}>
+              <span>{factSentence(universe, f)}</span>
+              <CanonBadge canon={f.canon} />
+              {f.speakerId && <span className="muted small">segundo {entityName(universe, f.speakerId)}</span>}
+            </li>
+          ))}
+        </ul>
       )}
+    </section>
+      {factFor && <FactDialog initial={{ subjectId: e.id }} onClose={() => setFactFor(false)} />}
     </>
-  );
+  )
 }
 
 /** O básico da ficha: resumo, tipo, papel, onde fica, outros nomes e etiquetas. */
 export function BasicsEditor({ entity: e }: { entity: Entity }) {
-  const { universe, update } = useWorkspace();
-  const set = (changes: Partial<Entity>) =>
-    update((u) => patch(u, "entities", e.id, changes));
-  const summaryRef = useRef<HTMLInputElement>(null);
+  const { universe, update } = useWorkspace()
+  const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
+  const summaryRef = useRef<HTMLInputElement>(null)
   return (
     <>
-      <div className="form-grid entity-basics">
-        <Field label="Resumo" wide>
+    <div className="form-grid entity-basics">
+      <Field label="Resumo" wide>
+        {(id) => (
+          <div className="with-reveal">
+            <input ref={summaryRef} id={id} className="input" value={e.summary} placeholder="Uma linha sobre esta ficha" onChange={(ev) => set({ summary: ev.target.value })} />
+            <RevealPicker label="Resumo" value={e.summary} inputRef={summaryRef} onChange={(v) => set({ summary: v })} />
+          </div>
+        )}
+      </Field>
+      <Field label="Tipo">{(id) => <KindSelect id={id} value={e.kind} onChange={(kind) => set({ kind })} />}</Field>
+      {(e.kind === 'personagem' || e.role) && (
+        <Field label="Papel na história">
           {(id) => (
-            <div className="with-reveal">
-              <input
-                ref={summaryRef}
-                id={id}
-                className="input"
-                value={e.summary}
-                placeholder="Uma linha sobre esta ficha"
-                onChange={(ev) => set({ summary: ev.target.value })}
-              />
-              <RevealPicker
-                label="Resumo"
-                value={e.summary}
-                inputRef={summaryRef}
-                onChange={(v) => set({ summary: v })}
-              />
-            </div>
-          )}
-        </Field>
-        <Field label="Tipo">
-          {(id) => (
-            <KindSelect
+            <Select<StoryRole | ''>
               id={id}
-              value={e.kind}
-              onChange={(kind) => set({ kind })}
+              value={e.role ?? ''}
+              onChange={(v) => set({ role: v || undefined })}
+              options={[{ value: '', label: 'Sem papel marcado' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
             />
           )}
         </Field>
-        {(e.kind === "personagem" || e.role) && (
-          <Field label="Papel na história">
-            {(id) => (
-              <Select<StoryRole | "">
-                id={id}
-                value={e.role ?? ""}
-                onChange={(v) => set({ role: v || undefined })}
-                options={[
-                  { value: "", label: "Sem papel marcado" },
-                  ...STORY_ROLES.map((r) => ({
-                    value: r,
-                    label: ROLE_LABEL[r],
-                  })),
-                ]}
+      )}
+      {universe.stories.length > 1 && (
+        <fieldset className="field field-wide ficha-books">
+          <legend className="field-label">Livros desta ficha</legend>
+          <p className="field-hint">Escolhendo um livro no alto, a ficha aparece nos livros marcados aqui e nos livros em que ela aparece no texto. Sem nenhum e sem cena, ela só aparece em “Todos os livros”.</p>
+          <div className="chips" role="group" aria-label="Livros desta ficha">
+            {universe.stories.map((st) => {
+              const on = (e.books ?? []).includes(st.id)
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  className="chip"
+                  aria-pressed={on}
+                  onClick={() => set({ books: on ? (e.books ?? []).filter((b) => b !== st.id) : [...(e.books ?? []), st.id] })}
+                >
+                  {st.title || 'Sem título'}
+                </button>
+              )
+            })}
+          </div>
+        </fieldset>
+      )}
+      {(e.kind === 'personagem' || e.role || e.bookRoles) && universe.stories.length > 1 && (
+        <fieldset className="field field-wide book-roles">
+          <legend className="field-label">Papel em cada livro (opcional)</legend>
+          <p className="field-hint">Numa série, quem é secundário no livro 1 pode ser protagonista no 2. Sem marcação, vale o papel de cima.</p>
+          {universe.stories.map((st) => (
+            <label key={st.id} className="book-role-row">
+              <span className="small">{st.title || 'Sem título'}</span>
+              <Select<StoryRole | ''>
+                label={`Papel de ${e.name || 'esta ficha'} em ${st.title || 'Sem título'}`}
+                value={(e.bookRoles?.[st.id] as StoryRole | undefined) ?? ''}
+                onChange={(v) => {
+                  const next = { ...(e.bookRoles ?? {}) }
+                  if (v) next[st.id] = v
+                  else delete next[st.id]
+                  set({ bookRoles: Object.keys(next).length ? next : undefined })
+                }}
+                options={[{ value: '', label: e.role ? `Igual ao geral (${ROLE_LABEL[e.role]})` : 'Igual ao geral' }, ...STORY_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))]}
               />
-            )}
-          </Field>
-        )}
-        {universe.stories.length > 1 && (
-          <fieldset className="field field-wide ficha-books">
-            <legend className="field-label">Livros desta ficha</legend>
-            <p className="field-hint">
-              Escolhendo um livro no alto, a ficha aparece nos livros marcados
-              aqui e nos livros em que ela aparece no texto. Sem nenhum e sem
-              cena, ela só aparece em “Todos os livros”.
-            </p>
-            <div className="chips" role="group" aria-label="Livros desta ficha">
-              {universe.stories.map((st) => {
-                const on = (e.books ?? []).includes(st.id);
-                return (
-                  <button
-                    key={st.id}
-                    type="button"
-                    className="chip"
-                    aria-pressed={on}
-                    onClick={() =>
-                      set({
-                        books: on
-                          ? (e.books ?? []).filter((b) => b !== st.id)
-                          : [...(e.books ?? []), st.id],
-                      })
-                    }
-                  >
-                    {st.title || "Sem título"}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-        )}
-        {(e.kind === "personagem" || e.role || e.bookRoles) &&
-          universe.stories.length > 1 && (
-            <fieldset className="field field-wide book-roles">
-              <legend className="field-label">
-                Papel em cada livro (opcional)
-              </legend>
-              <p className="field-hint">
-                Numa série, quem é secundário no livro 1 pode ser protagonista
-                no 2. Sem marcação, vale o papel de cima.
-              </p>
-              {universe.stories.map((st) => (
-                <label key={st.id} className="book-role-row">
-                  <span className="small">{st.title || "Sem título"}</span>
-                  <Select<StoryRole | "">
-                    label={`Papel de ${e.name || "esta ficha"} em ${st.title || "Sem título"}`}
-                    value={
-                      (e.bookRoles?.[st.id] as StoryRole | undefined) ?? ""
-                    }
-                    onChange={(v) => {
-                      const next = { ...(e.bookRoles ?? {}) };
-                      if (v) next[st.id] = v;
-                      else delete next[st.id];
-                      set({
-                        bookRoles: Object.keys(next).length ? next : undefined,
-                      });
-                    }}
-                    options={[
-                      {
-                        value: "",
-                        label: e.role
-                          ? `Igual ao geral (${ROLE_LABEL[e.role]})`
-                          : "Igual ao geral",
-                      },
-                      ...STORY_ROLES.map((r) => ({
-                        value: r,
-                        label: ROLE_LABEL[r],
-                      })),
-                    ]}
-                  />
-                </label>
-              ))}
-            </fieldset>
-          )}
-        {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
-        {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
-          <EntityPicker
-            label="Fica dentro de"
-            kinds={PLACE_KINDS}
-            value={e.parentId}
-            exclude={[e.id]}
-            onChange={(v) => set({ parentId: v })}
-            placeholder="Reino, lugar…"
-          />
-        )}
-      </div>
-      <div className="entity-names">
-        <TagInput
-          label="Outros nomes, títulos, identidades"
-          value={e.aliases}
-          onChange={(v) => set({ aliases: v })}
-          placeholder="Pale Man, o Herdeiro…"
-        />
-        <TagInput
-          label="Etiquetas"
-          value={e.tags}
-          onChange={(v) => set({ tags: v })}
-          placeholder="porto, nobreza…"
-        />
-      </div>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {/* "Fica dentro de" é de lugar (cidade no reino); o resto usa listas. */}
+      {(PLACE_KINDS.includes(e.kind) || e.parentId) && (
+        <EntityPicker label="Fica dentro de" kinds={PLACE_KINDS} value={e.parentId} exclude={[e.id]} onChange={(v) => set({ parentId: v })} placeholder="Reino, lugar…" />
+      )}
+    </div>
+    <div className="entity-names">
+      <TagInput label="Outros nomes, títulos, identidades" value={e.aliases} onChange={(v) => set({ aliases: v })} placeholder="Pale Man, o Herdeiro…" />
+      <TagInput label="Etiquetas" value={e.tags} onChange={(v) => set({ tags: v })} placeholder="porto, nobreza…" />
+    </div>
     </>
-  );
+  )
 }
 
 /** "Mais opções": se é verdade no mundo, quão pronta, quando o leitor conhece e se entra na wiki. */
-export function MoreOptionsEditor({
-  entity: e,
-  simple,
-}: {
-  entity: Entity;
-  simple: boolean;
-}) {
-  const { update } = useWorkspace();
-  const set = (changes: Partial<Entity>) =>
-    update((u) => patch(u, "entities", e.id, changes));
+export function MoreOptionsEditor({ entity: e, simple }: { entity: Entity; simple: boolean }) {
+  const { update } = useWorkspace()
+  const set = (changes: Partial<Entity>) => update((u) => patch(u, 'entities', e.id, changes))
   return (
     <div className="form-grid">
       {!simple && (
         <>
-          <Field
-            label="É verdade no mundo?"
-            hint={e.canon === "estabelecido" ? undefined : CANON_HINT[e.canon]}
-          >
-            {(id) => (
-              <CanonSelect
-                id={id}
-                value={e.canon}
-                onChange={(v) => set({ canon: v })}
-              />
-            )}
+          <Field label="É verdade no mundo?" hint={e.canon === 'estabelecido' ? undefined : CANON_HINT[e.canon]}>
+            {(id) => <CanonSelect id={id} value={e.canon} onChange={(v) => set({ canon: v })} />}
           </Field>
-          <Field label="Quão pronta">
-            {(id) => (
-              <EditorialSelect
-                id={id}
-                value={e.editorial}
-                onChange={(v) => set({ editorial: v })}
-              />
-            )}
-          </Field>
+          <Field label="Quão pronta">{(id) => <EditorialSelect id={id} value={e.editorial} onChange={(v) => set({ editorial: v })} />}</Field>
         </>
       )}
       <EntityRevealField entity={e} />
       <label className="toggle entity-wiki-toggle">
-        <input
-          type="checkbox"
-          role="switch"
-          checked={!e.wikiHidden}
-          onChange={(ev) =>
-            set({ wikiHidden: ev.target.checked ? undefined : true })
-          }
-        />
+        <input type="checkbox" role="switch" checked={!e.wikiHidden} onChange={(ev) => set({ wikiHidden: ev.target.checked ? undefined : true })} />
         <span className="toggle-track" aria-hidden="true" />
         <span>Entra na wiki</span>
       </label>
     </div>
-  );
+  )
 }
 
 /**
  * Nova cara: as cartas em grupos (Personagens, Lugares, Sistemas de magia…), com quem está no texto primeiro
  * (protagonista na frente) e um subtítulo "Ainda só nas notas" para o resto. Assim a galeria não embaralha.
  */
-function groupedCards(
-  list: Entity[],
-  inText: (e: Entity) => boolean,
-  bookId: string | null,
-): ({ head: string; key: string; sub?: boolean } | { e: Entity })[] {
+function groupedCards(list: Entity[], inText: (e: Entity) => boolean, bookId: string | null): ({ head: string; key: string; sub?: boolean } | { e: Entity })[] {
   const kinds = [...new Set(list.map((e) => e.kind))].sort((a, b) => {
-    const ia = (ENTITY_KINDS as readonly string[]).indexOf(a);
-    const ib = (ENTITY_KINDS as readonly string[]).indexOf(b);
-    return (
-      (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b, "pt-BR")
-    );
-  });
-  const out: ({ head: string; key: string; sub?: boolean } | { e: Entity })[] =
-    [];
+    const ia = (ENTITY_KINDS as readonly string[]).indexOf(a)
+    const ib = (ENTITY_KINDS as readonly string[]).indexOf(b)
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b, 'pt-BR')
+  })
+  const out: ({ head: string; key: string; sub?: boolean } | { e: Entity })[] = []
   for (const k of kinds) {
-    const all = list.filter((e) => e.kind === k);
-    const shown = all
-      .filter(inText)
-      .sort(
-        (a, b) => roleRank(roleIn(a, bookId)) - roleRank(roleIn(b, bookId)),
-      );
-    const notes = all.filter((e) => !inText(e));
-    out.push({ head: `${kindPlural(k)} (${all.length})`, key: `h-${k}` });
-    for (const e of shown) out.push({ e });
-    if (notes.length && shown.length)
-      out.push({ head: "Ainda só nas notas", key: `n-${k}`, sub: true });
-    for (const e of notes) out.push({ e });
+    const all = list.filter((e) => e.kind === k)
+    const shown = all.filter(inText).sort((a, b) => roleRank(roleIn(a, bookId)) - roleRank(roleIn(b, bookId)))
+    const notes = all.filter((e) => !inText(e))
+    out.push({ head: `${kindPlural(k)} (${all.length})`, key: `h-${k}` })
+    for (const e of shown) out.push({ e })
+    if (notes.length && shown.length) out.push({ head: 'Ainda só nas notas', key: `n-${k}`, sub: true })
+    for (const e of notes) out.push({ e })
   }
-  return out;
+  return out
 }

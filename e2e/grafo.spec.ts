@@ -227,9 +227,8 @@ test('no celular, quase nenhuma linha passa por cima de um nome (Terra de Oz)', 
     return { total: names.length, crossed: names.filter((l) => lines.some(([a, b]) => hit(a, b, l.box))).map((l) => l.name) }
   })
   expect(crossed.total).toBeGreaterThan(50)
-  // Antes eram 22 nomes riscados por linhas; sobra, no máximo, um ou outro de quem tem muitas ligações
-  // (o exemplo ganhou a crença nas Bruxas e as tensões, com mais linhas em volta das bruxas).
-  expect(crossed.crossed.length, `riscados: ${crossed.crossed.join(', ')}`).toBeLessThanOrEqual(5)
+  // Antes eram 22 nomes riscados por linhas; sobra, no máximo, um ou outro de quem tem muitas ligações.
+  expect(crossed.crossed.length, `riscados: ${crossed.crossed.join(', ')}`).toBeLessThanOrEqual(3)
 })
 
 test.describe('achar uma ficha pela lupa, no celular', () => {

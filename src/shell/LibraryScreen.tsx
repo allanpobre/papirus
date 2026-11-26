@@ -871,7 +871,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
 
   /** Backup de um universo que já está aqui: o que fazer com ele. */
   const importChoice = importing && (
-    <Modal title="Este universo já está aqui" onClose={() => setImporting(null)} size="sm">
+    <Modal about="Você abriu um universo que já existe neste aparelho. Escolha se fica com o daqui, com o que chegou, ou com os dois." title="Este universo já está aqui" onClose={() => setImporting(null)} size="sm">
       <p>O backup é de “{cleanName(importing.here.name) || 'Sem nome'}”, que já está neste aparelho.</p>
       <dl className="import-compare">
         <div>

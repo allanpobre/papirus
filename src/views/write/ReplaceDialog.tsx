@@ -73,6 +73,7 @@ export function ReplaceDialog({ initial, onClose }: { initial: ReplaceRequest; o
 
   return (
     <Modal
+      about="Troque uma palavra ou nome em todo o livro. Antes, uma cópia do universo é guardada."
       title="Procurar e trocar no livro"
       size="lg"
       onClose={onClose}

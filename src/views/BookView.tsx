@@ -426,7 +426,7 @@ function BookHero({ book, books, hasText, onReview, onReaders, onNextVolume, onR
   return (
     <section className="book-hero" aria-label={`Livro ${title}`}>
       {wiki && (
-        <Modal title="Wiki do mundo" onClose={() => setWiki(false)} size="sm">
+        <Modal about="O mundo como um site para leitores ou jogadores, sem os segredos. Baixe o arquivo ou mande um link." title="Wiki do mundo" onClose={() => setWiki(false)} size="sm">
           <WikiCard />
         </Modal>
       )}

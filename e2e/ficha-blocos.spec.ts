@@ -24,6 +24,8 @@ test('ficha de blocos: editar no lugar, arrumar, tirar, pôr de volta e acrescen
   await expect(ficha.getByText('Sonha com o mar.')).toBeVisible()
 
   // Arrumar: descer o texto, tirar os fatos e pôr de volta.
+  // Arrumar a página fica no “Mais da ficha”.
+  await ficha.page().getByRole('button', { name: 'Mais da ficha' }).click()
   await ficha.page().getByRole('button', { name: 'Arrumar a página' }).click()
   const antes = await ordem()
   await ficha.getByRole('button', { name: 'Descer: Texto' }).click()

@@ -1,3 +1,4 @@
+import { useTap } from '../ui/useTap'
 import { bookScope } from '../logic/bookScope'
 import { Check, Hexagon, ImagePlus, MapPin, Mountain, Minus, Plus, Route as RouteIcon, Trash2, TriangleAlert, X } from 'lucide-react'
 import { daysText, fastTravels, MODE_LABEL, modeDays, ROUTE_LABEL, routeDays, travelDays, type Mode, type Route } from '../logic/travel'
@@ -209,6 +210,30 @@ function MapCanvas({ map }: { map: AtlasMap }) {
   // Camadas: o que aparece por cima do mapa (fronteiras, povos, crenças e rotas).
   const [layersOff, setLayersOff] = useState<Set<Layer>>(new Set())
 
+  const tap = useTap(wasDrag)
+  /**
+   * Os gestos de um marcador. No toque, o dedo que começa num marcador pode ser o começo de um arrasto do mapa: o toque
+   * sobe até o mapa e o marcador só é escolhido num toque parado (ao levantar o dedo). Com o mouse, escolhe já e dá
+   * para arrastar o marcador.
+   */
+  const pinTap = (id: string) => {
+    const t = tap(() => choosePin(id))
+    return {
+      ...t,
+      onPointerDown: (ev: React.PointerEvent) => {
+        t.onPointerDown(ev)
+        if (ev.pointerType !== 'mouse') return
+        ev.stopPropagation()
+        choosePin(id)
+        ;(ev.currentTarget as Element).setPointerCapture?.(ev.pointerId)
+        dragging.current = { id, x: ev.clientX, y: ev.clientY, moved: false, before: map.pins }
+      },
+      onPointerUp: (ev: React.PointerEvent) => {
+        t.onPointerUp(ev)
+        finishDrag()
+      },
+    }
+  }
   const choosePin = (id: string) => {
     if (routing) {
       if (!routing.from) {
@@ -664,19 +689,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
                 className={`pin kind-${e?.kind ?? 'lugar'}${p.id === selectedPin ? ' selected' : ''}${scope && !scope.belongs(p.entityId) && !scope.inNoBook(p.entityId) ? ' off-book' : ''}`}
                 style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
                 aria-label={`${p.label || e?.name || 'Marcador'}${e ? `, ${kindLabel(e.kind)}` : ''}`}
-                onPointerDown={(ev) => {
-                  // No toque, o dedo que começa num marcador pode ser o começo de um arrasto do mapa: o toque sobe até o mapa
-                  // e o marcador só é escolhido no clique (um toque parado). Com o mouse, escolhe já e dá para arrastar o marcador.
-                  if (ev.pointerType !== 'mouse') return
-                  ev.stopPropagation()
-                  choosePin(p.id)
-                  ;(ev.currentTarget as Element).setPointerCapture?.(ev.pointerId)
-                  dragging.current = { id: p.id, x: ev.clientX, y: ev.clientY, moved: false, before: map.pins }
-                }}
-                onPointerUp={finishDrag}
-                onClick={() => {
-                  if (!wasDrag()) choosePin(p.id)
-                }}
+                {...pinTap(p.id)}
               >
                 <MapPin size={22} aria-hidden="true" />
                 <span className="pin-label">{p.label || e?.name || '?'}</span>

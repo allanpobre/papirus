@@ -13,6 +13,32 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27i',
+    when: '27 de novembro',
+    title: 'Botões com nome e um (?) em cada janela',
+    items: [
+      'Na ficha, “Editar” e “E se sumir?” aparecem com o nome também no celular, o lápis de cada bloco diz “Editar”, e “Arrumar a página” foi para o “Mais da ficha”. Os ícones que ficaram sozinhos estão maiores para o dedo.',
+      'As janelas que não tinham ajuda ganharam um (?) com uma frase sobre para que servem.',
+    ],
+  },
+  {
+    id: '2026-11-27h',
+    when: '27 de novembro',
+    title: 'Ligações mais legíveis no celular',
+    items: [
+      'No mapa de Ligações, menos linhas passam por cima dos nomes: o nome procura mais lugares em volta da bolinha, e a bolinha pode se afastar um pouco mais para sair do caminho.',
+      'Tocar numa bolinha logo depois de arrastar o mapa agora seleciona na hora.',
+    ],
+  },
+  {
+    id: '2026-11-27g',
+    when: '27 de novembro',
+    title: 'Tocar logo depois de arrastar',
+    items: [
+      'No celular, tocar num marcador do mapa ou numa pessoa da Árvore da família logo depois de arrastar o desenho às vezes não abria nada. Agora abre na hora.',
+    ],
+  },
+  {
     id: '2026-11-27f',
     when: '27 de novembro',
     title: 'Editar a ficha por partes',
