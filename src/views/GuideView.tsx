@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpenText, Dices, Earth, Feather, House, Search, Sprout, Wrench, type LucideIcon, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpenText, Dices, Earth, Feather, House, Keyboard, Search, Sprout, Wrench, type LucideIcon, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { fold } from '../logic/text'
 import { novaStep, novaWords } from '../shell/novaWords'
@@ -7,6 +7,7 @@ import { NovidadesDialog } from '../novidades/NovidadesDialog'
 import { remember } from '../state/prefs'
 import { useWorkspace, type View } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
+import { ShortcutList } from '../shell/ShortcutsDialog'
 
 /*
  * Guia: todas as ferramentas do Papirus, área por área, e cada parte de cada área a fundo. O texto de
@@ -135,6 +136,8 @@ export default function GuideView() {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState<string | null>(null)
   const q = fold(query.trim())
+  // Os atalhos aparecem no fim (e quando se procura por eles).
+  const keysMatch = !q || ['atalho', 'teclado', 'tecla'].some((w) => w.includes(q) || q.includes(w))
 
   // Numa campanha, a Mesa vem logo depois do Início.
   const areas = useMemo(() => {
@@ -174,7 +177,7 @@ export default function GuideView() {
         <Search size={16} aria-hidden="true" />
         <input className="input" type="search" aria-label="Procurar no guia" placeholder="Procurar: mapa, segredo, dados, capa…" value={query} onChange={(e) => setQuery(e.target.value)} />
       </label>
-      {found.length === 0 && <p className="muted">Nada com “{query.trim()}” no guia.</p>}
+      {found.length === 0 && !keysMatch && <p className="muted">Nada com “{query.trim()}” no guia.</p>}
       {found.map(({ area: a, parts }) => {
         const Icon = a.icon
         return (
@@ -218,6 +221,15 @@ export default function GuideView() {
           </section>
         )
       })}
+      {keysMatch && (
+        <section className="guide-area" aria-labelledby="guia-atalhos">
+          <h2 id="guia-atalhos" className="guide-area-title">
+            <Keyboard size={18} aria-hidden="true" /> Atalhos de teclado
+          </h2>
+          <p className="muted small">No computador: as teclas de uma letra só valem fora de campos de texto. Em qualquer tela, “?” mostra esta lista.</p>
+          <ShortcutList />
+        </section>
+      )}
       <p className="muted small guide-foot">
         <BookOpenText size={14} aria-hidden="true" /> Cada tela tem o seu (?) no alto: ele mostra as mesmas explicações, apontando para cada coisa.
       </p>

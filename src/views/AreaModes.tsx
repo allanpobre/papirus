@@ -1,10 +1,11 @@
 import { Dices, BookMarked, CalendarRange, Globe, Lightbulb, MapIcon, Network, Sprout, type LucideIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { RollDialog } from './RollDialog'
 import { useWorkspace, type View } from '../state/workspace'
 import { ViewTop } from '../ui/ViewTop'
 import { WAITING } from '../logic/firstSteps'
 import type { PageTourId } from '../shell/pageTours'
+import { typingOrDialog } from '../shell/keys'
 
 /*
  * Mundo e Trama, cada um com as suas partes no alto da tela (como Estrutura · Página · Revisão na
@@ -46,6 +47,20 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
   const parts = partsOf(nova)[area].filter(([v]) => v === current || !hiddenViews.includes(v))
   // A wiki do mundo: à mão em todas as partes do Mundo, direto na página com a prévia.
   const [rolling, setRolling] = useState(false)
+  // [ e ]: a parte anterior e a próxima (fora de campos de texto e janelas).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key !== '[' && e.key !== ']') || e.ctrlKey || e.metaKey || e.altKey || typingOrDialog(e)) return
+      const i = parts.findIndex(([v]) => v === current)
+      const next = parts[(i + (e.key === ']' ? 1 : parts.length - 1)) % parts.length]
+      if (next && next[0] !== current) {
+        e.preventDefault()
+        go(next[0])
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [parts, current, go])
   const wikiButton =
     area === 'mundo' ? (
       <>

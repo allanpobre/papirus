@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-30d',
+    when: '30 de novembro',
+    title: 'Atalhos de teclado',
+    items: [
+      'No computador, aperte “?” para ver todos os atalhos (eles também estão no fim do Guia e na busca, Ctrl+K).',
+      'Alt+1 a 9 vai direto para as áreas do menu; [ e ] passam para a parte anterior e a próxima (Fichas, Ligações, Mapas…).',
+      'Na lista de fichas, J e K descem e sobem; E alterna entre ler e editar a ficha aberta. As teclas de uma letra nunca atrapalham quem está escrevendo.',
+    ],
+  },
+  {
     id: '2026-11-30c',
     when: '30 de novembro',
     title: 'Letra que se lê e nada só por cor',

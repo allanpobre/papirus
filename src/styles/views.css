@@ -15031,3 +15031,8 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   background-image: radial-gradient(rgb(0 0 0 / 28%) 1px, transparent 1.5px);
   background-size: 5px 5px;
 }
+
+/* Atalhos de teclado (janela do “?” e Guia). */
+.shortcut-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.shortcut-list li { display: grid; grid-template-columns: minmax(7.5rem, auto) 1fr; gap: 0.75rem; align-items: center; }
+.shortcut-keys { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; }

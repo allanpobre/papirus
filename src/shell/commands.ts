@@ -1,4 +1,4 @@
-import { BookOpen, Compass, Download, FilePlus2, History, Library, Lightbulb, Moon, Replace, UserPlus, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, Compass, Download, FilePlus2, History, Keyboard, Library, Lightbulb, Moon, Replace, UserPlus, Users, type LucideIcon } from 'lucide-react'
 import { fold } from '../logic/text'
 import { addScene, draftEntity, insert, manuscriptOrder } from '../model/universe'
 import type { Workspace } from '../state/workspace'
@@ -67,6 +67,7 @@ export function commands(ws: Workspace): Command[] {
     ...(ws.readOnly ? [] : [{ id: 'livro', title: 'Diagramar o livro (PDF)', words: 'imprimir pdf capa fonte formatação exportar livro publicar diagramação', icon: BookOpen, run: (w: Workspace) => w.openBookDesigner() }]),
     { id: 'tema', title: ws.prefs.theme === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro', words: 'tema claro escuro aparência cor noite', icon: Moon, run: (w) => w.setPref('theme', w.prefs.theme === 'escuro' ? 'claro' : 'escuro') },
     { id: 'lixeira', title: 'Abrir a lixeira e o histórico', words: 'lixeira apagado recuperar histórico mudanças voltar', icon: History, run: (w) => w.go('config', 'historico') },
+    { id: 'atalhos', title: 'Ver os atalhos de teclado', words: 'atalhos teclas teclado tecla', icon: Keyboard, run: () => window.dispatchEvent(new Event('papirus:atalhos')) },
     { id: 'tour', title: 'Fazer o tour', words: 'ajuda tutorial guia', icon: Compass, run: (w) => w.startTour() },
     { id: 'universos', title: 'Trocar de universo', words: 'biblioteca sair voltar universos', icon: Library, run: (w) => w.closeUniverse() },
   )
