@@ -10416,13 +10416,42 @@ h3.cork-act {
   }
 }
 
-/* Fichas no PC: busca, tipo e ordem numa linha (as escolhas encolhem para caber na coluna). */
+/* Fichas no PC: a busca numa linha e os filtros na de baixo, dividindo a largura (numa linha só, ficavam cortados:
+   “Toda”, “Todo”; auditoria 25). */
 @media (min-width: 761px) {
-  .split-list .list-tools > .select {
-    flex: 0 1 auto;
-    min-width: 4.5rem;
-    max-width: 9rem;
+  .split-list .list-tools {
+    flex-wrap: wrap;
   }
+  .split-list .list-tools > .input {
+    flex: 1 1 100%;
+  }
+  .split-list .list-tools > .select {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+/* Vistas guardadas da lista de fichas. */
+.saved-views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+}
+.saved-view {
+  display: inline-flex;
+  align-items: center;
+}
+.saved-view .chip:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.saved-view .chip + .chip {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-inline: 0.35rem;
 }
 
 /* No celular, criar fica numa linha só em qualquer tela (o campo encolhe, o "+" não cai). */
@@ -14897,4 +14926,12 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   position: absolute;
   top: 0.4rem;
   right: 0.4rem;
+}
+.suggested-list li {
+  display: grid;
+  gap: 0.35rem;
+}
+.suggested-title {
+  margin-left: 1.6rem;
+  max-width: 24rem;
 }

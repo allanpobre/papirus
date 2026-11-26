@@ -26,6 +26,7 @@ import { modKey } from '../ui/keys'
 import { BookCard } from './BookCard'
 import { playKey, unlockAudio } from '../editor/keySounds'
 import { ForeignImport } from './ForeignImport'
+import { ObsidianExport } from './ObsidianExport'
 import { WikiCard } from './WikiCard'
 import { ImagesCard } from './ImagesCard'
 import { ServerCard } from './ServerCard'
@@ -476,6 +477,7 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
         {show('livros') && <BookCard />}
         {show('livros') && <WikiCard />}
         {show('livros') && <ForeignImport />}
+        {show('livros') && <ObsidianExport />}
 
         {show('conta') && <AccountCard />}
         {show('servidor') && <ServerCard />}

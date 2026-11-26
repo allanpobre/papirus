@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-29c',
+    when: '29 de novembro',
+    title: 'Para quem traz um mundo pronto',
+    items: [
+      'Anos escritos nas fichas (“a tempestade de 340”) viram propostas de evento na Linha do tempo, ligadas à ficha. Você troca o título e escolhe quais entram.',
+      'Lista de fichas: os filtros não ficam mais cortados no computador, e “Guardar esta vista” transforma os filtros de agora num atalho.',
+      'Ajustes › Importar e wiki: “Levar para o Obsidian” baixa um .zip com uma pasta por tipo e uma nota por ficha, com as [[ligações]].',
+    ],
+  },
+  {
     id: '2026-11-29b',
     when: '29 de novembro',
     title: 'Seu livro, guardado e com histórico à mão',
