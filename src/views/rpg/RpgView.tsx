@@ -52,7 +52,7 @@ const ALL_TABS = PARTS.flatMap(([, , , tabs]) => tabs)
 function ThemePicker({ value, suggested, onChange, onClose, dark }: { value: string | null; suggested: string; onChange: (id: string | null) => void; onClose: () => void; dark: boolean }) {
   const current = value ?? suggested
   return (
-    <Modal title="Tema da Mesa" onClose={onClose}>
+    <Modal about="A cara da Mesa: cores e clima para combinar com o seu jogo. Só muda a aparência." title="Tema da Mesa" onClose={onClose}>
       <p className="muted small">Cada grupo tem o seu clima. Quem joga (aqui e no Codex) só escolhe claro ou escuro.</p>
       <ul className="mesa-themes" role="radiogroup" aria-label="Tema da mesa">
         {MESA_THEMES.map((t) => {

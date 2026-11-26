@@ -625,17 +625,21 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             <Shuffle size={15} aria-hidden="true" /> E se sumir?
           </button>
         )}
+        {/* Com nome à vista, não só o desenho (auditoria 23, H6.2); o "Arrumar a página" mora no "Mais da ficha". */}
         {tools && (
-          <>
-            <button type="button" className="btn-icon" aria-label="Editar o básico" title="Editar nome, resumo, tipo e apelidos" aria-pressed={editHead} onClick={() => setEditHead(!editHead)}>
-              <Pencil size={16} />
-            </button>
-            <button type="button" className="btn-icon" aria-label="Arrumar a página" title="Subir, descer e tirar blocos" aria-pressed={arrange} onClick={() => setArrange(!arrange)}>
-              <LayoutList size={16} />
-            </button>
-          </>
+          <button type="button" className="btn btn-ghost btn-sm" aria-label="Editar o básico" title="Editar nome, resumo, tipo e apelidos" aria-pressed={editHead} onClick={() => setEditHead(!editHead)}>
+            <Pencil size={15} aria-hidden="true" /> Editar
+          </button>
         )}
-        {modeSwitch}
+        {tools && isValidElement(modeSwitch)
+          ? cloneElement(modeSwitch as React.ReactElement<{ extra?: (close: () => void) => React.ReactNode }>, {
+              extra: (close: () => void) => (
+                <button type="button" className="btn btn-ghost btn-sm" aria-pressed={arrange} onClick={() => (close(), setArrange(!arrange))}>
+                  <LayoutList size={15} aria-hidden="true" /> Arrumar a página
+                </button>
+              ),
+            })
+          : modeSwitch}
           </>
         )}
       </header>

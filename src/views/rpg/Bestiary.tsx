@@ -123,6 +123,7 @@ export function MonsterDialog({ monsterId, onClose }: { monsterId: string; onClo
   const monster = universe.monsters.find((m) => m.id === monsterId)
   return (
     <Modal
+      about="Crie ou acerte um inimigo sem sair do combate. Ele entra na luta e fica guardado para as próximas."
       title="Inimigo pronto"
       onClose={onClose}
       footer={

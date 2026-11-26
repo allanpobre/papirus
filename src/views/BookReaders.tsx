@@ -17,7 +17,7 @@ export function BookReadersDialog({ readers, title, onClose }: { readers: BookRe
     go('escrever', sceneId)
   }
   return (
-    <Modal title={`O que os leitores disseram: “${title}”`} size="lg" onClose={onClose}>
+    <Modal about="O que os leitores marcaram no seu livro: comentários e reações, na cena certa." title={`O que os leitores disseram: “${title}”`} size="lg" onClose={onClose}>
       <div className="book-readers">
         {!readers.available ? (
           <p className="muted">

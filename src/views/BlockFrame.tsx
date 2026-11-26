@@ -44,8 +44,8 @@ export function BlockFrame({
       {tools && (
         <div className="block-tools">
           {editor && !editing && (
-            <button type="button" className="btn-icon btn-sm" aria-label={`Editar: ${label}`} title={`Editar ${label.toLowerCase()} aqui`} onClick={() => onEditing(true)}>
-              <Pencil size={14} />
+            <button type="button" className="btn btn-ghost btn-sm block-edit" aria-label={`Editar: ${label}`} title={`Editar ${label.toLowerCase()} aqui`} onClick={() => onEditing(true)}>
+              <Pencil size={14} aria-hidden="true" /> Editar
             </button>
           )}
           {arrange && onMove && !editing && (

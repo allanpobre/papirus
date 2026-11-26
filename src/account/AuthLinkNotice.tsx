@@ -74,7 +74,7 @@ function NewPassword({ email }: { email: string }) {
   }
 
   return (
-    <Modal title="Escolha a senha nova" size="sm" onClose={skipRecovery}>
+    <Modal about="Você chegou pelo link de trocar a senha. Escolha a nova aqui; a antiga deixa de valer." title="Escolha a senha nova" size="sm" onClose={skipRecovery}>
       <form
         className="account account-form"
         onSubmit={(e) => {

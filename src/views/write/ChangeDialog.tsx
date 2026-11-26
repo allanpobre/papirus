@@ -45,6 +45,7 @@ export function ChangeDialog({ scene, text, paragraph, matcher, onClose }: { sce
 
   return (
     <Modal
+      about="Marque o que muda nesta cena (um personagem muda de lado) ou o que o leitor descobre aqui. A ficha passa a mostrar isso a partir desta cena."
       title="Muda ou revela"
       size="sm"
       onClose={onClose}

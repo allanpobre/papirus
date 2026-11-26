@@ -255,6 +255,7 @@ export default function TimelineView() {
 
       {editingEvent && (
         <Modal
+          about="Um evento é um momento; uma era é um intervalo (aparece como faixa). Ligue às fichas e ao lugar para aparecer nas fichas e no mapa."
           title={editingEvent.kind === 'era' ? 'Era' : 'Evento'}
           onClose={() => setEditing(null)}
           footer={

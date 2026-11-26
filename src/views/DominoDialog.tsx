@@ -17,7 +17,7 @@ export function DominoDialog({ entity, onClose }: { entity: Entity; onClose: () 
   const empty = d.groups.length === 0
 
   return (
-    <Modal title={`E se ${name} sumir?`} onClose={onClose} size="sm">
+    <Modal about="Efeito dominó: o que cai junto se esta ficha sumir do mundo. É só para pensar; nada é apagado." title={`E se ${name} sumir?`} onClose={onClose} size="sm">
       <div className="domino">
         {empty ? (
           <p className="muted">Nada cai: {name} ainda não tem ligações. Ligue a alguém, a um lugar ou a uma facção, e o dominó aparece aqui.</p>

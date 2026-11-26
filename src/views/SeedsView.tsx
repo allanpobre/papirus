@@ -216,6 +216,7 @@ function SeedDialog({ seed: s, onClose }: { seed: Seed; onClose: () => void }) {
 
   return (
     <Modal
+      about="Uma semente é algo plantado que precisa se pagar depois; um mistério junta as pistas de uma pergunta. Ligue às cenas onde aparecem."
       title={s.kind === 'misterio' ? 'Mistério' : 'Semente'}
       onClose={onClose}
       size="lg"

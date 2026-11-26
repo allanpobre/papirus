@@ -20,7 +20,7 @@ export function CreateSheetDialog({ form, taken, onSend, onClose }: { form: Form
   const repeated = Boolean(name.trim()) && taken.some((t) => fold(t) === fold(name))
 
   return (
-    <Modal title="Criar o meu personagem" onClose={onClose} size="sm">
+    <Modal about="Monte a sua ficha de jogo. O mestre vê o que você escolher e pode ajustar depois." title="Criar o meu personagem" onClose={onClose} size="sm">
       <form
         className="player-create"
         onSubmit={(e) => {

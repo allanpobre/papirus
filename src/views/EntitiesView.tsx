@@ -690,6 +690,7 @@ function ModeSwitch({
           </>
         ) : (
           <>
+            {extra?.(close)}
             <button
               type="button"
               className="btn btn-ghost btn-sm"
@@ -785,8 +786,9 @@ function EntityDetail({ entity: e, modeSwitch }: { entity: Entity; modeSwitch: R
   const appearances = useMemo(() => appearancesOf(universe, e), [universe, e])
   const groupsOthers = listsOf(e).length > 0 || listTemplatesFor(universe, e.kind).length > 0
   // Editar em abas (auditoria 23, H8.1): a ficha inteira era uma parede. "Tudo" mostra tudo de uma vez.
+  // A árvore de poderes de uma magia aparece até no Simples; o resto do Mundo, só no Completo.
   const hasWorld =
-    !simple && (['cultura', 'religiao', 'lugar', 'reino', 'faccao', 'especie', 'magia', ...GAME_KINDS, ...optionKinds(universe)].includes(e.kind) || canHavePowers(e.kind))
+    e.kind === 'magia' || (!simple && (['cultura', 'religiao', 'lugar', 'reino', 'faccao', 'especie', ...GAME_KINDS, ...optionKinds(universe)].includes(e.kind) || canHavePowers(e.kind)))
   const editTabs = EDIT_TABS.filter(([t]) => (t !== 'mundo' || hasWorld) && (t !== 'tempo' || !simple || universe.scenes.length > 0))
   const tab: EditTab = editTabs.some(([t]) => t === editTab) ? editTab : 'basico'
   const show = (t: EditTab) => tab === 'tudo' || tab === t

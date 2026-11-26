@@ -58,7 +58,7 @@ export function SelectionBar({ ids, onClear }: { ids: string[]; onClear: () => v
         />
       )}
       {open === 'livro' && (
-        <Modal title={`Livro de ${n === 1 ? '1 ficha' : `${n} fichas`}`} size="sm" onClose={() => setOpen(null)}>
+        <Modal about="Diga em qual livro as fichas marcadas entram, mesmo antes de aparecerem no texto." title={`Livro de ${n === 1 ? '1 ficha' : `${n} fichas`}`} size="sm" onClose={() => setOpen(null)}>
           <p className="small muted">As fichas marcadas passam a ser deste livro (e continuam nos outros em que já estavam).</p>
           <div className="chips" role="group" aria-label="Pôr no livro">
             {universe.stories.map((st) => (
@@ -102,6 +102,7 @@ function TagDialog({ n, onClose, onDone }: { n: number; onClose: () => void; onD
   const [tag, setTag] = useState('')
   return (
     <Modal
+      about="Ponha a mesma etiqueta em todas as fichas marcadas, de uma vez."
       title={`Etiqueta em ${n === 1 ? '1 ficha' : `${n} fichas`}`}
       size="sm"
       onClose={onClose}
@@ -133,6 +134,7 @@ function KindDialog({ n, onClose, onDone }: { n: number; onClose: () => void; on
   const [kind, setKind] = useState(options[0].value)
   return (
     <Modal
+      about="Troque o tipo de todas as fichas marcadas, de uma vez. Campos e ligações ficam."
       title={`Tipo de ${n === 1 ? '1 ficha' : `${n} fichas`}`}
       size="sm"
       onClose={onClose}

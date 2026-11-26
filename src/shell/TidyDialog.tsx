@@ -79,7 +79,7 @@ export function TidyDialog({ library, candidates, inCloud, leaveCloud, onDiffere
   }
 
   return (
-    <Modal title="Arrumar repetidos" onClose={onClose} size="lg">
+    <Modal about="Fichas que parecem a mesma coisa com nomes diferentes. Juntar soma as ligações, cenas e campos numa só; nada se perde." title="Arrumar repetidos" onClose={onClose} size="lg">
       <p className="muted small tidy-lede">Para cada livro que aparece mais de uma vez, escolha qual é o universo. Os outros viram versões guardadas dentro dele, só neste aparelho, e saem da nuvem: fica um por livro.</p>
       {error && (
         <p className="alert" role="alert">

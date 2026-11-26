@@ -1,5 +1,5 @@
-import { X } from 'lucide-react'
-import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { CircleHelp, X } from 'lucide-react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { PageTourId } from '../shell/pageTours'
 import { PageHelp } from './PageTour'
 import { useBackLayer } from './useBackLayer'
@@ -15,13 +15,17 @@ interface Props {
   side?: boolean
   /** Janela que funciona como uma tela: o (?) no cabeçalho abre o tour dela. */
   help?: PageTourId
+  /** Janela simples: o (?) abre uma frase sobre para que ela serve (sem passeio). */
+  about?: string
   /** Ao fechar, o foco volta para onde estava (padrão). Em janelas abertas de dentro do texto, no celular, é melhor não voltar: o teclado abriria de novo. */
   restoreFocus?: boolean
 }
 
 /** Janela dentro do app. Esc, clique fora ou o "voltar" do aparelho fecham; o foco volta para onde estava. */
-export function Modal({ title, onClose, children, footer, size = 'md', side = false, help, restoreFocus = true }: Props) {
+export function Modal({ title, onClose, children, footer, size = 'md', side = false, help, about, restoreFocus = true }: Props) {
   const titleId = useId()
+  const aboutId = useId()
+  const [aboutOpen, setAboutOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useBackLayer(onClose)
 
@@ -29,7 +33,7 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
     const previous = document.activeElement as HTMLElement | null
     // O primeiro campo ou botão que se vê (um seletor de arquivo escondido não recebe o foco).
     const first = [
-      ...(ref.current?.querySelectorAll<HTMLElement>('[autofocus], input:not([type=hidden]), textarea, select, button:not(.modal-close):not(.page-help)') ?? []),
+      ...(ref.current?.querySelectorAll<HTMLElement>('[autofocus], input:not([type=hidden]), textarea, select, button:not(.modal-close):not(.page-help):not(.modal-about-btn)') ?? []),
     ].find((el) => el.offsetParent !== null)
     ;(first ?? ref.current)?.focus()
     return () => {
@@ -82,10 +86,27 @@ export function Modal({ title, onClose, children, footer, size = 'md', side = fa
         <header className="modal-header">
           <h2 id={titleId}>{title}</h2>
           {help && <PageHelp tour={help} className="modal-help" />}
+          {!help && about && (
+            <button
+              type="button"
+              className="btn-icon modal-about-btn"
+              aria-label="Para que serve esta janela"
+              aria-expanded={aboutOpen}
+              aria-controls={aboutId}
+              onClick={() => setAboutOpen((v) => !v)}
+            >
+              <CircleHelp size={18} aria-hidden="true" />
+            </button>
+          )}
           <button type="button" className="btn-icon modal-close" aria-label="Fechar" onClick={onClose}>
             <X size={18} />
           </button>
         </header>
+        {aboutOpen && about && (
+          <p id={aboutId} className="modal-about small" role="note">
+            {about}
+          </p>
+        )}
         <div className="modal-body">{children}</div>
         {footer && <footer className="modal-footer">{footer}</footer>}
       </div>

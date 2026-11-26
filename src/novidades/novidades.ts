@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-27i',
+    when: '27 de novembro',
+    title: 'Botões com nome e um (?) em cada janela',
+    items: [
+      'Na ficha, “Editar” e “E se sumir?” aparecem com o nome também no celular, o lápis de cada bloco diz “Editar”, e “Arrumar a página” foi para o “Mais da ficha”. Os ícones que ficaram sozinhos estão maiores para o dedo.',
+      'As janelas que não tinham ajuda ganharam um (?) com uma frase sobre para que servem.',
+    ],
+  },
+  {
     id: '2026-11-27h',
     when: '27 de novembro',
     title: 'Ligações mais legíveis no celular',

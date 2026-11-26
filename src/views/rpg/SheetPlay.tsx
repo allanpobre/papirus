@@ -215,7 +215,7 @@ function Conditions({ sheet: s, system, onChange }: { sheet: Sheet; system: Game
         <Plus size={12} aria-hidden="true" /> Condição
       </button>
       {picking && (
-        <Modal title="Condições" size="sm" onClose={() => setPicking(false)}>
+        <Modal about="Condições que valem agora (envenenado, caído…). Ficam marcadas na ficha até você tirar." title="Condições" size="sm" onClose={() => setPicking(false)}>
           <div className="chips">
             {system.conditions.map((c) => (
               <button key={c} type="button" className="chip chip-condition" aria-pressed={s.conditions.includes(c)} onClick={() => toggle(c)}>
@@ -325,7 +325,7 @@ function Attacks({ sheet: s, system, onChange }: { sheet: Sheet; system: GameSys
       )}
       {picker}
       {adding && (
-        <Modal title="Novo ataque" size="sm" onClose={() => setAdding(false)}>
+        <Modal about="Um ataque com o dado e o bônus. Depois é só tocar para rolar." title="Novo ataque" size="sm" onClose={() => setAdding(false)}>
           <AttackForm
             usesD20={usesD20}
             onSave={(a) => {
@@ -427,7 +427,7 @@ function Abilities({ sheet: s, costAbbr, onUse, onChange }: { sheet: Sheet; cost
         </ul>
       )}
       {adding && (
-        <Modal title="Novo poder ou magia" size="sm" onClose={() => setAdding(false)}>
+        <Modal about="Um poder ou magia com custo e efeito. Depois é só tocar para usar." title="Novo poder ou magia" size="sm" onClose={() => setAdding(false)}>
           <form
             className="sp-form"
             onSubmit={(e) => {

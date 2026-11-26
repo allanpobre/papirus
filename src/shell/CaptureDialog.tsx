@@ -18,6 +18,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal
+      about="Anote uma ideia rápida, de qualquer lugar. Ela espera em Ideias até você decidir o que fazer com ela."
       title="Capturar uma ideia"
       onClose={onClose}
       size="sm"

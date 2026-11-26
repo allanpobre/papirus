@@ -142,7 +142,7 @@ export function SecretsPanel() {
       )}
 
       {other && (
-        <Modal title="Revelar para o grupo" onClose={() => setOther(false)}>
+        <Modal about="Mostre ao grupo algo que estava escondido. Entra no Codex dos jogadores, no celular deles." title="Revelar para o grupo" onClose={() => setOther(false)}>
           <p className="muted small">Fica marcado como revelado nesta sessão e aparece no Codex dos jogadores na hora.</p>
           <RevealForm group={group} sessionId={sessionId} onDone={() => setOther(false)} />
         </Modal>

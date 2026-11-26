@@ -22,7 +22,7 @@ export function SeedDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Modal title="Semente do mundo" onClose={onClose} size="sm">
+    <Modal about="Responda poucas perguntas e o Papirus planta o começo do mundo: lugares, povos e ligações. Tudo pode ser mudado depois." title="Semente do mundo" onClose={onClose} size="sm">
       <form
         className="seed-form"
         onSubmit={(e) => {

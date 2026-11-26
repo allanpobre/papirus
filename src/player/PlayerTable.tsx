@@ -370,7 +370,7 @@ export function PlayerTable({
       )}
 
       {aiming && (
-        <Modal title={`${aiming.name}: em quem?`} size="sm" onClose={() => setAiming(null)}>
+        <Modal about="Escolha em quem mirar e role. O resultado vai para a mesa do mestre." title={`${aiming.name}: em quem?`} size="sm" onClose={() => setAiming(null)}>
           <ul className="target-list">
             {others.map((e) => (
               <li key={e.id}>

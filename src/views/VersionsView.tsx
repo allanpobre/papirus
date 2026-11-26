@@ -165,6 +165,7 @@ export function VersionSheet({ entity: e, phase, onClose, onSaved }: { entity: E
 
   return (
     <Modal
+      about="Uma versão é como a ficha fica a partir de uma cena (ou planejada, só para você): outro nome, outro posto, outro rosto."
       title={phase ? `Versão: ${phase.name || phase.nameNow || 'sem nome'}` : `Nova versão de ${e.name || 'esta ficha'}`}
       onClose={tryClose}
       size="md"

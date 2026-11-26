@@ -33,6 +33,7 @@ export function NewEntityDialog({ initialKind, onClose, onOpen, onOpenExisting, 
   }
   return (
     <Modal
+      about="Dê um nome e escolha o tipo. O resto se preenche depois, com calma."
       title="Nova ficha"
       size="sm"
       onClose={onClose}
@@ -106,6 +107,7 @@ export function BulkCreateDialog({ initialKind, onClose, onDone }: { initialKind
   }
   return (
     <Modal
+      about="Uma ficha por linha. Bom para trazer uma lista de nomes de uma vez; depois você completa cada uma."
       title="Criar várias fichas"
       onClose={onClose}
       footer={

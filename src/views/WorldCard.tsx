@@ -41,7 +41,7 @@ export function WorldCard() {
     <section className="world-card" aria-labelledby="mundo-titulo">
       {seeding && <SeedDialog onClose={() => setSeeding(false)} />}
       {importing && (
-        <Modal title="Trazer de outro app" onClose={() => setImporting(false)} size="sm">
+        <Modal about="Traga o mundo de outro app (Obsidian, Markdown, Kanka, World Anvil ou um .zip). As fichas entram neste universo." title="Trazer de outro app" onClose={() => setImporting(false)} size="sm">
           <ForeignImport onDone={() => setImporting(false)} />
         </Modal>
       )}

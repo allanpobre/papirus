@@ -239,7 +239,7 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
       {announcing && <AnnounceDialog onClose={() => setAnnouncing(false)} />}
       {asking && <AskRollDialog onClose={() => setAsking(false)} />}
       {sheet && (
-        <Modal title={`Ficha de ${sheet.name}`} side onClose={() => setSheetId(null)}>
+        <Modal about="A ficha de jogo do personagem durante a sessão: role direto daqui; o resultado entra no registro." title={`Ficha de ${sheet.name}`} side onClose={() => setSheetId(null)}>
           {sheetSystem ? <SheetPlay sheet={sheet} system={sheetSystem} /> : <p className="muted small">Esta ficha não tem sistema: escolha um em Personagens.</p>}
         </Modal>
       )}

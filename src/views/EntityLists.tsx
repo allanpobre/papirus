@@ -287,6 +287,7 @@ export function MemberPicker({ owner, list, onClose }: { owner: Entity; list: En
   }
   return (
     <Modal
+      about="Escolha quem entra nesta lista. Quem entra herda o que a lista diz que todos têm."
       title={`Adicionar a ${list.name} de ${owner.name || 'Sem nome'}`}
       onClose={onClose}
       footer={
@@ -409,6 +410,7 @@ export function PutInListDialog({ ids, onClose, onDone }: { ids: string[]; onClo
   }
   return (
     <Modal
+      about="Escolha a lista em que as fichas marcadas vão entrar."
       title={`Pôr ${ids.length === 1 ? '1 ficha' : `${ids.length} fichas`} numa lista`}
       size="sm"
       onClose={onClose}
