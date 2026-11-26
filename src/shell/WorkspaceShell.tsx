@@ -1057,6 +1057,9 @@ function groupsOf(items: NavItem[]): [string, NavItem[]][] {
  * aberta uma área que não está nela, o "Mais" acende com o nome dessa área.
  */
 /** Nova cara: os lugares grandes da barra de baixo (a Mesa, se o mundo tem; senão, Publicar). */
+/** Na barra de baixo cabe uma palavra: os nomes compridos ficam curtos (o nome inteiro segue no aria-label e no Mais). */
+const SHORT_LABEL: Partial<Record<View, string>> = { config: 'Ajustes' }
+
 const NOVA_PLACES = (mesa: boolean): View[] => ['escrever', 'fichas', 'tramas', mesa ? 'rpg' : 'livro']
 
 function PhoneNav({
@@ -1152,7 +1155,7 @@ function PhoneNav({
         }}
       >
         <MoreIcon size={18} aria-hidden="true" />
-        <span className="rail-label">{fixed ? 'Menu' : elsewhere ? elsewhere.label : 'Mais'}</span>
+        <span className="rail-label">{fixed ? 'Menu' : elsewhere ? SHORT_LABEL[elsewhere.view] ?? elsewhere.label : 'Mais'}</span>
         {inboxCount > 0 && !shortcuts.some((i) => i.view === 'inbox') && <span className="rail-badge" aria-hidden="true" />}
       </button>
       {open && (

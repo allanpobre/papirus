@@ -108,11 +108,11 @@ export default function AtlasView() {
             </button>
           ))}
         </div>
-        <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
-          <ImagePlus size={16} /> Adicionar mapa
+        <button type="button" className="btn btn-ghost atlas-add" aria-label="Adicionar mapa" onClick={() => fileRef.current?.click()}>
+          <ImagePlus size={16} aria-hidden="true" /> <span className="atlas-add-text">Adicionar mapa</span>
         </button>
-        <button type="button" className="btn btn-ghost" onClick={addContinent} title="Gerar um continente (costa, montanhas, rios e florestas) para começar">
-          <Mountain size={16} /> Gerar
+        <button type="button" className="btn btn-ghost atlas-add" aria-label="Gerar" onClick={addContinent} title="Gerar um continente (costa, montanhas, rios e florestas) para começar">
+          <Mountain size={16} aria-hidden="true" /> <span className="atlas-add-text">Gerar</span>
         </button>
         <input
           ref={fileRef}
@@ -329,7 +329,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         <label htmlFor="map-name" className="sr-only">
           Nome do mapa
         </label>
-        <input id="map-name" className="input input-sm" value={map.name} onChange={(e) => update((u) => patch(u, 'maps', map.id, { name: e.target.value }))} />
+        <input id="map-name" className="input input-sm atlas-extra atlas-name" value={map.name} onChange={(e) => update((u) => patch(u, 'maps', map.id, { name: e.target.value }))} />
         <button type="button" className={`btn btn-sm ${placing !== null ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={placing !== null} onClick={() => { setPlacing(placing === null ? '' : null); setPending(null) }}>
           <MapPin size={15} /> {placing !== null ? 'Toque no mapa…' : 'Marcar lugar'}
         </button>
@@ -569,7 +569,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
       <div className="atlas-scroll" ref={scrollRef} {...bind} style={{ aspectRatio: `${map.width} / ${map.height}` }}>
         <div
           ref={imgRef}
-          className={`atlas-image${placing !== null || moving || painting?.entityId ? ' placing' : ''}${painting?.entityId ? ' painting' : ''}${routing ? ' routing' : ''}`}
+          className={`atlas-image${zoom < 1.6 ? ' is-far' : ''}${placing !== null || moving || painting?.entityId ? ' placing' : ''}${painting?.entityId ? ' painting' : ''}${routing ? ' routing' : ''}`}
           style={{ width: `${zoom * 100}%`, aspectRatio: `${map.width} / ${map.height}`, backgroundImage: mapSrc ? `url("${mapSrc}")` : undefined }}
           onClick={(e) => {
             // O que acabou de ser arrasto ou pinça no toque não vale como toque no mapa.
@@ -716,6 +716,19 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           )}
         </div>
       </div>
+
+      {/* Celular: com o mapa inteiro à vista, os nomes saem de cima dele e ficam nesta lista (toque para abrir). Só para quem vê: os marcadores têm nome para o leitor de tela. */}
+      {visible.length > 0 && (
+        <ul className="atlas-places" aria-hidden="true">
+          {visible.map((p) => (
+            <li key={p.id}>
+              <button type="button" tabIndex={-1} className={`chip${p.id === selectedPin ? ' is-on' : ''}`} onClick={() => choosePin(p.id)}>
+                <MapPin size={13} aria-hidden="true" /> {p.label || entityName(universe, p.entityId) || '?'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {pin && moving === pin.id && (
         <div className="atlas-moving" role="status">

@@ -13,6 +13,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-28a',
+    when: '28 de novembro',
+    title: 'Telas do celular menos apertadas',
+    items: [
+      'Mapas: as ferramentas ocupam menos linhas, os nomes dos marcadores saem de cima do mapa inteiro e ficam numa lista de “Lugares” logo abaixo (toque para abrir), e os rótulos de região e de rota ficam menores.',
+      'Trama: os quatro estados cabem na barra de pular. A barra de baixo diz “Ajustes”, e o aviso “Salvo” não cobre mais o botão da faixa do exemplo.',
+      'Primeira tela: “Ou abrir o exemplo pronto” aparece logo abaixo de “Criar universo”.',
+    ],
+  },
+  {
     id: '2026-11-27i',
     when: '27 de novembro',
     title: 'Botões com nome e um (?) em cada janela',

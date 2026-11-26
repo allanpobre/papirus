@@ -351,6 +351,12 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
         })}
       </div>
       <p className="tiny muted start-hint">{chosen.hint}</p>
+      {/* Quem chega pela primeira vez e não quer criar nada às cegas vê a saída sem rolar a tela. */}
+      {first && !sampleEntry && (
+        <button type="button" className="btn btn-ghost btn-sm start-example" onClick={openSample}>
+          <Sparkles size={15} aria-hidden="true" /> Ou abrir o exemplo pronto (O Mágico de Oz)
+        </button>
+      )}
     </form>
   )
 
