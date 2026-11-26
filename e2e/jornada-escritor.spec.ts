@@ -92,6 +92,8 @@ test('a escritora vai do zero ao livro e à wiki', async ({ page }) => {
   await tap(nova.getByRole('button', { name: 'Criar e abrir' }))
   // A ficha nasce em cartas; aqui a jornada vai direto para a Língua (as cartas têm a sua spec).
   await tap(page.getByRole('dialog', { name: /^Nascimento/ }).getByRole('button', { name: 'Pular' }))
+  // Em Editar, a Língua fica na aba Mundo.
+  await tap(page.getByRole('navigation', { name: 'Partes da ficha para editar' }).getByRole('button', { name: 'Mundo' }))
   const idioma = page.locator('details.fold', { has: page.locator('summary', { hasText: 'Língua' }) })
   await tap(idioma.locator('summary'))
   await idioma.getByLabel('Sílabas').fill('sal- vo ra mi -dun -esh')
