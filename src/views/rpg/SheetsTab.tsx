@@ -50,8 +50,9 @@ export function SheetsTab() {
             update((u) => {
               const [next, s] = insert(u, 'sheets', draftSheet(name.trim(), system ?? null, { role: newRole, groupId: group.id, player: newRole === 'pj' ? player.trim() : '' }))
               id = s.id
-              // Personagem de jogador é um personagem do Mundo também: ganha a ficha lá (ou liga à de mesmo nome).
-              return newRole === 'pj' ? linkToWorld(next, s.id) : next
+              // Todo personagem da mesa é um personagem do Mundo também (de jogador ou NPC): ganha a ficha lá, ou liga à de
+              // mesmo nome. Assim o mestre revela o NPC no Codex sem criar a ficha à mão (auditoria 26, Rafa).
+              return linkToWorld(next, s.id)
             })
             setName('')
             setPlayer('')
@@ -215,6 +216,11 @@ function SheetEditor({ sheet: s, onBack }: { sheet: Sheet; onBack: () => void })
               </Field>
             )}
             <EntityPicker label="Ficha no mundo" kinds={['personagem']} value={s.entityId} onChange={(v) => set({ entityId: v })} placeholder="Ligar a uma ficha…" />
+            {!s.entityId && s.name.trim() && (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => update((u) => linkToWorld(u, s.id))}>
+                <Plus size={15} aria-hidden="true" /> Criar a ficha no mundo
+              </button>
+            )}
             <Field label="Sistema">
               {(id) => (
                 <Select

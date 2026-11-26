@@ -44,7 +44,12 @@ export function addBook(u: Universe, opts: { title?: string; styleFrom?: string 
   const from = opts.styleFrom ? shelf(base).find((b) => b.id === opts.styleFrom) : undefined
   const free = storiesOutsideBooks(base)
   const storyIds = opts.storyIds ?? (shelf(base).length === 0 ? [] : free.length ? free : [])
-  const design: BookDesign = { ...defaultDesign(), ...(from ? styleOf(from) : {}), title: opts.title?.trim() ?? '', storyIds }
+  // O primeiro livro de um universo com uma história só, de nome genérico (“Livro I”, “Volume 2”), nasce com o nome do
+  // universo (antes a folha de rosto dizia “Livro I”; auditoria 26, Lia). História com nome próprio segue dando o nome.
+  const only = base.stories.length <= 1 ? (base.stories[0]?.title ?? '').trim() : null
+  const generic = only !== null && (only === '' || /^(livro|volume|parte|hist[óo]ria|tomo)\s+([ivxlc]+|\d+)$/i.test(only))
+  const title = opts.title?.trim() ?? (shelf(base).length === 0 && generic ? base.name.trim() : '')
+  const design: BookDesign = { ...defaultDesign(), ...(from ? styleOf(from) : {}), title, storyIds }
   return insert(base, 'books', design)
 }
 

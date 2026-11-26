@@ -13,6 +13,17 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-29a',
+    when: '29 de novembro',
+    title: 'Para quem escreve, mestra e constrói mundos',
+    items: [
+      'Mesa: todo NPC criado no Grupo já ganha a ficha no Mundo, então dá para revelá-lo no Codex sem criar nada à mão. Fichas de jogo antigas ganharam “Criar a ficha no mundo”.',
+      'Ligações: o Papirus lê as fichas e propõe as ligações que já estão escritas (“Irmão de Mira”, “serve à Casa Vaelor”). Você aceita uma por uma, ou todas.',
+      'Primeira tela: “Já tenho um mundo em outro app” cria o universo e abre o importador (Obsidian, Kanka, World Anvil). Na apresentação, “Ou só ler o livro” abre o exemplo direto no leitor.',
+      'Escrever: o “Salvo” do celular desceu e não cobre mais as abas; um nome que abre duas frases já aparece em “nomes novos”; e o primeiro livro nasce com o nome do universo.',
+    ],
+  },
+  {
     id: '2026-11-28e',
     when: '28 de novembro',
     title: 'Lista de Lugares do mapa, no celular',

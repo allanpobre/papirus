@@ -37,6 +37,7 @@ import {
   Trash2,
   Users,
   Wand2,
+  FolderInput,
 } from 'lucide-react'
 import { AccountButton } from '../account/AccountButton'
 
@@ -357,6 +358,19 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
           <Sparkles size={15} aria-hidden="true" /> Ou abrir o exemplo pronto (O Mágico de Oz)
         </button>
       )}
+      {/* Quem já tem um mundo em outro app (auditoria 26, Duda): cria o universo e já abre o “Trazer de outro app”. */}
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm start-example"
+        onClick={() => {
+          remember('abrir-trazer', '1')
+          if (!p.onboarded) setPref('onboarded', true)
+          onCreated(applyTemplate(createUniverse(name.trim() || 'Meu mundo'), template))
+          setName('')
+        }}
+      >
+        <FolderInput size={15} aria-hidden="true" /> Já tenho um mundo em outro app (Obsidian, Kanka, World Anvil)
+      </button>
     </form>
   )
 

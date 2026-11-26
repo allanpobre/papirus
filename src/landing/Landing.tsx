@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   Bell,
+  BookOpen,
   BookOpenCheck,
   Check,
   Feather,
@@ -147,6 +148,9 @@ export function Landing() {
               )}
               <a className="btn btn-ghost btn-lg" href={`${APP}?exemplo`}>
                 <Sparkles size={18} /> Abrir o exemplo: O Mágico de Oz
+              </a>
+              <a className="btn btn-ghost lp-just-read" href={`${APP}?exemplo&ler`}>
+                <BookOpen size={17} aria-hidden="true" /> Ou só ler o livro
               </a>
             </div>
             <ul className="lp-proof">

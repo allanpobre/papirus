@@ -14539,7 +14539,9 @@ body[data-nova] .view-top.has-parts .view-top-end {
 /* ---------------------------------------------------------------- "Salvo" no celular (o menu lateral não existe lá) */
 .mobile-save {
   position: fixed;
-  top: calc(6px + env(safe-area-inset-top, 0px));
+  /* Embaixo, acima da barra de baixo e do rodapé de palavras do Escrever: no alto ele cobria as abas a cada gravação
+     (auditorias 25 e 26). Aqui, quando cobre algo, é só texto. */
+  bottom: calc(118px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   z-index: 70;
   display: flex;
@@ -14552,7 +14554,7 @@ body[data-nova] .view-top.has-parts .view-top-end {
   color: var(--ink-2);
   font-size: 0.78rem;
   box-shadow: var(--shadow-1);
-  transform: translate(-50%, -140%);
+  transform: translate(-50%, 140%);
   opacity: 0;
   pointer-events: none;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -14832,13 +14834,43 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   }
 }
 
-/* O “Salvo” do celular desce para baixo da faixa do exemplo (e da faixa de versão), em vez de cobrir o botão dela. */
-.stage:has(.sample-banner) .mobile-save {
-  top: calc(56px + env(safe-area-inset-top, 0px));
-}
-
 /* Primeira tela: a saída “abrir o exemplo” logo abaixo do formulário, sem rolar. */
 .start-example {
   margin-top: 0.4rem;
   justify-self: start;
+}
+
+/* Ligações achadas no texto (auditoria 26): a faixa em Ligações e a lista para aceitar. */
+.suggested-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+.suggested-links > .small {
+  flex: 1 1 14rem;
+}
+.suggested-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.suggested-list label {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+.suggested-list input {
+  margin-top: 0.25rem;
+}
+.suggested-quote {
+  display: block;
+  margin-top: 0.15rem;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ostriaUniverse as sampleUniverse } from '../model/sampleOstria'
-import { addStory } from '../model/universe'
+import { addStory, createUniverse } from '../model/universe'
 import { defaultDesign } from './bookDesign'
 import { addBook, copyStyle, removeBook, shelf, storiesOutsideBooks, updateBook } from './shelf'
 
@@ -30,5 +30,16 @@ describe('estante', () => {
     u = copyStyle(u, first.id, second.id)
     expect(u.books[1]).toMatchObject({ bodyFont: 'baskerville', cover: 'data:y', title: 'Volume 2' })
     expect(removeBook(u, first.id).books.map((b) => b.title)).toEqual(['Volume 2'])
+  })
+})
+
+describe('título do primeiro livro', () => {
+  it('nasce com o nome do universo quando a única história tem nome genérico; senão, sem título (vale o da história)', () => {
+    let u = createUniverse('A Coroa de Sal')
+    ;[u] = addStory(u, 'Livro I')
+    expect(addBook(u)[1].title).toBe('A Coroa de Sal')
+    let v = createUniverse('Ostria')
+    ;[v] = addStory(v, 'Livro I — A Maré Volta')
+    expect(addBook(v)[1].title).toBe('')
   })
 })

@@ -135,7 +135,11 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [])
   const [shareOpen, setShareOpen] = useState(false)
   const [shareLink, setShareLink] = useState<'wiki' | undefined>(undefined)
-  const [readerOpen, setReaderOpen] = useState(false)
+  const [readerOpen, setReaderOpen] = useState(() => {
+    const asked = recall('abrir-leitor')
+    if (asked) remember('abrir-leitor', null)
+    return Boolean(asked)
+  })
   // A Oficina é uma página à parte, por cima da área de trabalho.
   const [oficinaOpen, setOficinaOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState<string | null>(null)

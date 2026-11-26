@@ -145,7 +145,9 @@ export function findCandidates(text: string, known: Entity[], ignored: string[] 
   }
 
   return [...found.values()]
-    .filter((c) => c.midSentence || c.count >= 3)
+    // Só no começo de frase, o nome conta a partir da 2ª vez (era a 3ª: a protagonista que abre as frases demorava a
+    // aparecer, auditoria 26). Uma vez só não basta: “Chovia”, “Depois” e “Ontem” também abrem frases.
+    .filter((c) => c.midSentence || c.count >= 2)
     .sort((a, b) => b.count - a.count || a.index - b.index)
     .map(({ text, count, index }) => ({ text, count, index }))
 }
