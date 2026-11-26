@@ -1183,8 +1183,8 @@ input[type='radio'] {
   }
 
   .btn-icon.btn-sm {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
   }
 
   .btn-icon.btn-xs {
@@ -1386,5 +1386,13 @@ input[type='radio'] {
 @media (min-width: 761px) {
   .update-notice {
     bottom: 1.25rem;
+  }
+}
+
+/* No alto das áreas (Fichas · Ligações · Tempo · Mapas e os ícones ao lado) a faixa é apertada: 36 px bastam ali. */
+@media (pointer: coarse) {
+  .area-head .btn-icon {
+    width: 36px;
+    height: 36px;
   }
 }
