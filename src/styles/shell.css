@@ -765,8 +765,52 @@
 }
 
 .view-loading {
+  display: grid;
+  gap: 0.8rem;
   padding: 2rem;
   color: var(--muted);
+}
+
+/* Esqueleto: barras que brilham de leve no lugar de “Carregando…” (só opacidade, para não pesar). */
+.skeleton {
+  display: block;
+  height: 0.9rem;
+  border-radius: 6px;
+  background: var(--surface-3);
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+.skeleton-title {
+  height: 1.6rem;
+  width: 45%;
+}
+.skeleton-short {
+  width: 65%;
+}
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* Troca de tema: as cores vão de um tema ao outro em vez de cortar (a classe fica só uns 300 ms). */
+.theme-fade,
+.theme-fade *,
+.theme-fade *::before,
+.theme-fade *::after {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    fill 0.25s ease !important;
 }
 
 /* Modo foco: só o texto. */

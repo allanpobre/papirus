@@ -1,3 +1,4 @@
+import { useSlide } from './useSlide'
 import { Search, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { PageTourId } from '../shell/pageTours'
@@ -45,6 +46,8 @@ export function ViewTop({
 }) {
   const { openSearch } = useWorkspace()
   const many = Boolean(parts && parts.length > 1)
+  // O fundo da parte aberta desliza de uma parte para a outra (os dois jeitos: abas e navegação).
+  const slide = useSlide<HTMLDivElement>(tabs ? '[aria-selected="true"]' : '[aria-current="page"]', parts?.find((p) => p.current)?.id)
   return (
     <header className={`view-top${many ? ' has-parts' : ''} ${className}`.trim()}>
       {heading && heading !== area ? (
@@ -60,7 +63,7 @@ export function ViewTop({
       {many &&
         parts &&
         (tabs ? (
-          <div className="writing-modes view-top-parts" role="tablist" aria-label={partsLabel} onKeyDown={tabListKeys} data-tour="partes">
+          <div ref={slide} className="writing-modes view-top-parts" role="tablist" aria-label={partsLabel} onKeyDown={tabListKeys} data-tour="partes">
             {parts.map(({ id, label, short, icon: Icon, current, onPick }) => (
               <button key={id} type="button" aria-label={short ? label : undefined} role="tab" aria-selected={current} tabIndex={current ? 0 : -1} onClick={onPick}>
                 {Icon && <Icon size={15} aria-hidden="true" />}
@@ -74,7 +77,7 @@ export function ViewTop({
             ))}
           </div>
         ) : (
-          <nav className="writing-modes view-top-parts" aria-label={partsLabel} data-tour="partes">
+          <nav ref={slide as React.RefObject<HTMLElement>} className="writing-modes view-top-parts" aria-label={partsLabel} data-tour="partes">
             {parts.map(({ id, label, short, icon: Icon, current, onPick }) => (
               <button key={id} type="button" aria-label={short ? label : undefined} aria-current={current ? 'page' : undefined} onClick={() => !current && onPick()}>
                 {Icon && <Icon size={15} aria-hidden="true" />}

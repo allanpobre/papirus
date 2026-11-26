@@ -1396,3 +1396,103 @@ input[type='radio'] {
     height: 36px;
   }
 }
+
+/* ---------------------------------------------------------------- Movimento do dia a dia (auditoria 24) */
+
+/* Troca de cor curta nas abas e nos botões de escolha (antes cortava de uma vez). */
+.tab,
+.segmented button,
+.writing-modes button,
+.chip,
+.start-chip,
+.rail-item,
+.btn,
+.btn-icon {
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out),
+    box-shadow var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+
+/* O fundo do item ativo desliza (useSlide): o contêiner desenha o fundo; o botão ativo fica sem fundo. */
+:where([data-slide]) {
+  position: relative; /* sem peso: se o contêiner já é fixo ou colado, vale o dele */
+}
+[data-slide]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--slide-w, 0);
+  height: var(--slide-h, 0);
+  transform: translate(var(--slide-x, 0), var(--slide-y, 0));
+  border-radius: var(--slide-r, 4px);
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
+  opacity: 0;
+}
+[data-slide='on']::before {
+  opacity: 1;
+}
+[data-slide-ready]::before {
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    width var(--dur-2) var(--ease-out),
+    height var(--dur-2) var(--ease-out);
+}
+[data-slide] > button {
+  position: relative;
+  z-index: 1;
+}
+[data-slide][data-slide='on'] > button[aria-current='page'],
+[data-slide][data-slide='on'] > button[aria-selected='true'] {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Resposta ao toque: o botão afunda um pouco enquanto o dedo está nele (só em tela de toque, sem mudar o tamanho de ninguém). */
+@media (pointer: coarse) {
+  .btn:active:not(:disabled),
+  .btn-icon:active:not(:disabled),
+  .chip:active,
+  .start-chip:active,
+  .tab:active,
+  .writing-modes button:active,
+  .segmented button:active,
+  .entity-row:active,
+  .rail-item:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .segmented button,
+  .writing-modes button,
+  .chip,
+  .start-chip,
+  .rail-item,
+  .btn,
+  .btn-icon,
+  [data-slide]::before {
+    transition: none;
+  }
+  .btn:active:not(:disabled),
+  .btn-icon:active:not(:disabled),
+  .chip:active,
+  .start-chip:active,
+  .tab:active,
+  .writing-modes button:active,
+  .segmented button:active,
+  .entity-row:active,
+  .rail-item:active {
+    transform: none;
+  }
+}
+
+.rail-phone {
+  --slide-r: var(--radius-s);
+}

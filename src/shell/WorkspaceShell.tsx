@@ -45,6 +45,7 @@ import { onSceneImageError } from '../editor/imageErrors'
 import { guessGuide } from '../oficina/guides'
 import { isReadOnly, useLiveSync, type LiveSource } from '../share/useLiveSync'
 import { MobileSaveStatus } from '../ui/MobileSaveStatus'
+import { useSlide } from '../ui/useSlide'
 import { useReadOnlyInputs } from './useReadOnlyInputs'
 import { shortName } from '../share/sharing'
 import { readerCopy } from '../share/readerCopy'
@@ -821,7 +822,16 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
               </button>
             </div>
           )}
-          <Suspense fallback={<div className="view-loading">Carregando…</div>}>
+          <Suspense
+            fallback={
+              <div className="view-loading" role="status">
+                <span className="sr-only">Carregando…</span>
+                <span className="skeleton skeleton-title" aria-hidden="true" />
+                <span className="skeleton" aria-hidden="true" />
+                <span className="skeleton skeleton-short" aria-hidden="true" />
+              </div>
+            }
+          >
             {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
             {prefs.novaCara ? nav.view !== 'config' && <BookBand /> : BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
             {/* Cada área tem o seu próprio aviso de erro: se uma tela quebrar, o menu e o resto do app continuam. */}
@@ -1128,6 +1138,8 @@ function PhoneNav({
   const grid = items.filter((i) => i.view !== 'oficina')
   const oficina = items.find((i) => i.view === 'oficina')
   const MoreIcon = fixed ? Menu : (elsewhere?.icon ?? Menu)
+  // O fundo da área aberta desliza de um botão para o outro.
+  const slide = useSlide<HTMLElement>('[aria-current="page"]', `${current}|${elsewhere?.view ?? ''}`)
 
   useEffect(() => {
     if (!open) return
@@ -1137,7 +1149,7 @@ function PhoneNav({
   }, [open])
 
   return (
-    <nav className="rail rail-phone" aria-label="Áreas" data-tour="menu">
+    <nav ref={slide} className="rail rail-phone" aria-label="Áreas" data-tour="menu">
       {shortcuts.map((item) => (
         <RailButton key={item.view} item={item} active={current === item.view} badge={item.view === 'inbox' && inboxCount ? inboxCount : undefined} onClick={() => choose(item.view)} />
       ))}

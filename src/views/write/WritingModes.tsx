@@ -1,3 +1,4 @@
+import { useSlide } from '../../ui/useSlide'
 import { PanelsTopLeft, PenLine, SearchCheck } from 'lucide-react'
 import { useState } from 'react'
 import { SCENE_SHIFTS, type Scene } from '../../model/schema'
@@ -20,8 +21,9 @@ const MODES: [WritingMode, string, typeof PenLine][] = [
 
 /** Estrutura · Página · Revisão, no alto da Escrita. */
 export function WritingModes({ current, onPick }: { current: WritingMode; onPick: (m: WritingMode) => void }) {
+  const slide = useSlide<HTMLElement>('[aria-current="page"]', current)
   return (
-    <nav className="writing-modes" aria-label="Momento da escrita" data-tour="modos">
+    <nav ref={slide} className="writing-modes" aria-label="Momento da escrita" data-tour="modos">
       {MODES.map(([m, label, Icon]) => (
         <button key={m} type="button" aria-current={current === m ? 'page' : undefined} onClick={() => onPick(m)}>
           <Icon size={15} aria-hidden="true" />

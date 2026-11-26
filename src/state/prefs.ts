@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { QuestionType } from '../logic/continuity'
 import { cleanFirstSteps, type FirstSteps } from '../logic/firstSteps'
 import type { View } from './workspace'
@@ -133,6 +133,7 @@ function read(): Prefs {
 
 export function usePrefs() {
   const [prefs, setPrefs] = useState<Prefs>(read)
+  const themeSeen = useRef(false)
 
   useEffect(() => {
     try {
@@ -141,6 +142,14 @@ export function usePrefs() {
       // Sem armazenamento: as preferências valem só nesta visita.
     }
     const root = document.documentElement
+    // Trocar claro/escuro (ou o tema) acontece com uma transição curta de cor, não de uma vez; na abertura, não.
+    const before = root.getAttribute('data-theme')
+    const now = prefs.theme === 'sistema' ? null : prefs.theme === 'escuro' ? 'dark' : 'light'
+    if (themeSeen.current && before !== now && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      root.classList.add('theme-fade')
+      window.setTimeout(() => root.classList.remove('theme-fade'), 320)
+    }
+    themeSeen.current = true
     if (prefs.theme === 'sistema') root.removeAttribute('data-theme')
     else root.setAttribute('data-theme', prefs.theme === 'escuro' ? 'dark' : 'light')
     if (prefs.accent === 'viridiana') root.removeAttribute('data-accent')
