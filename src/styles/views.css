@@ -14809,6 +14809,10 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
     margin: 0.7rem 0 0;
     padding: 0;
     list-style: none;
+    /* Com muitos marcadores a lista não empurra a tela: tem altura própria e rola por dentro. */
+    max-height: 10.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .atlas-places .chip {
     display: inline-flex;

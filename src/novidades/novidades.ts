@@ -13,6 +13,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-11-28e',
+    when: '28 de novembro',
+    title: 'Lista de Lugares do mapa, no celular',
+    items: [
+      'Com muitos marcadores no mapa, a lista de “Lugares” embaixo dele agora tem altura própria e rola por dentro, em vez de empurrar a tela.',
+    ],
+  },
+  {
     id: '2026-11-28d',
     when: '28 de novembro',
     title: 'Barra lateral mais calma e uma cor para cada área',

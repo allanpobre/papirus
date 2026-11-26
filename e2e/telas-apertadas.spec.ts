@@ -45,3 +45,18 @@ test('barra de baixo com “Ajustes” curto; Biblioteca mostra “abrir o exemp
   await page.getByRole('group', { name: 'Ferramentas' }).getByRole('button', { name: /^Ajustes/ }).click()
   await expect(nav.getByRole('button', { name: /Ajustes e dados/ })).toHaveText('Ajustes')
 })
+
+test('a lista de Lugares não cresce sem fim: com 40 marcadores a mais, ela rola por dentro', async ({ page }) => {
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await page.locator('[data-tour="partes"], nav[aria-label="Partes do mundo"]').first().getByRole('button', { name: 'Mapas' }).click()
+  const lista = page.locator('.atlas-places')
+  await expect(lista).toBeVisible()
+  await lista.evaluate((el) => {
+    const li = el.querySelector('li')!
+    for (let i = 0; i < 40; i++) el.appendChild(li.cloneNode(true))
+  })
+  const caixa = (await lista.boundingBox())!
+  expect(caixa.height).toBeLessThanOrEqual(10.5 * 16 + 1)
+  expect(await lista.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
+}) 
