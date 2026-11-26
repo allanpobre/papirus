@@ -13,8 +13,8 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
-    id: '2026-11-28a',
-    when: '28 de novembro',
+    id: '2026-11-27g',
+    when: '27 de novembro',
     title: 'Tocar logo depois de arrastar',
     items: [
       'No celular, tocar num marcador do mapa ou numa pessoa da Árvore da família logo depois de arrastar o desenho às vezes não abria nada. Agora abre na hora.',
