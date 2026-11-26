@@ -1,6 +1,6 @@
 import { devices } from '@playwright/test'
 import { expect, test, type Page } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, abrirFiltros } from './areas.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name, exact: true })
 const row = (page: Page, name: string) => page.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: new RegExp(`^${name}$`) }) })
@@ -29,6 +29,7 @@ test('Mundo: criar várias de uma vez, busca nos campos e na descrição, e a or
   await page.getByRole('textbox', { name: 'Filtrar fichas' }).fill('')
 
   // Ordem: mais nas cenas primeiro.
+  await abrirFiltros(page)
   await page.getByRole('combobox', { name: 'Ordem da lista' }).selectOption('cenas')
   await expect(page.locator('.entity-row-name').first()).toHaveText(/Kael|Mira/)
 
@@ -130,6 +131,7 @@ test('listas: Habitantes do reino, vários de uma vez, e o que todos têm aparec
 
 test('selecionar várias no Mundo e pôr uma etiqueta em todas; a tabela compara e edita na célula', async ({ page }) => {
   await mundo(page)
+  await abrirFiltros(page)
   await page.getByRole('button', { name: 'Selecionar' }).click()
   await page.getByRole('checkbox', { name: 'Marcar Mira' }).check()
   await page.getByRole('checkbox', { name: 'Marcar Ilsa' }).check()
@@ -144,7 +146,9 @@ test('selecionar várias no Mundo e pôr uma etiqueta em todas; a tabela compara
   await page.getByRole('textbox', { name: 'Filtrar fichas' }).fill('')
 
   // Tabela: os personagens lado a lado; a célula edita ali mesmo.
+  await abrirFiltros(page)
   await page.getByRole('combobox', { name: 'Filtrar por tipo' }).selectOption('personagem')
+  await abrirFiltros(page)
   await page.getByRole('radiogroup', { name: 'Vista do Mundo' }).getByRole('radio', { name: 'Tabela' }).click()
   const table = page.getByRole('region', { name: 'Tabela de fichas' })
   await expect(table.getByRole('columnheader', { name: /Cenas/ })).toBeVisible()

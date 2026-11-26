@@ -13,6 +13,12 @@ export async function openPart(page: Page, part: Part) {
   await page.locator('[data-tour="partes"]').getByRole('button', { name: part }).click()
 }
 
+/** Fichas: abre os "Filtros" (tipo, papel, ordem e vista ficam atrás do botão). Não faz nada se já estão abertos. */
+export async function abrirFiltros(page: Page) {
+  const botao = page.getByRole('button', { name: /^Filtros/ })
+  if ((await botao.getAttribute('aria-expanded')) !== 'true') await botao.click()
+}
+
 /** Ligações no grafo completo: a parte abre no mural da ficha, e o grafo é um toque adiante. */
 export async function openGraph(page: Page) {
   await openPart(page, 'Ligações')

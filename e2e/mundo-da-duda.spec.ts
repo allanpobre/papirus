@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { expect, test, type Page } from './fixtures.ts'
+import { abrirFiltros, openPart } from './areas.ts'
 
 // Auditoria 26, pacote 3: a Duda traz o mundo do Obsidian, põe os anos na linha do tempo, guarda uma vista da lista
 // e leva tudo de volta ao Obsidian. No computador.
@@ -30,13 +31,14 @@ test('os anos escritos nas notas viram eventos da linha do tempo, com o título 
   await lista.getByRole('textbox', { name: /Título do evento de 340/ }).fill('A Grande Tempestade')
   await lista.getByRole('button', { name: 'Pôr 2 eventos' }).click()
   await expect(faixa).toHaveCount(0)
-  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Linha do tempo' }).click()
+  await openPart(page, 'Linha do tempo')
   await expect(page.getByText('A Grande Tempestade').first()).toBeVisible()
 })
 
 test('filtros da lista em duas linhas, vista guardada que volta depois de recarregar', async ({ page }) => {
   await trazerMundo(page)
   const busca = (await page.getByRole('textbox', { name: 'Filtrar fichas' }).boundingBox())!
+  await abrirFiltros(page)
   const tipo = page.getByRole('combobox', { name: 'Filtrar por tipo' })
   expect((await tipo.boundingBox())!.y).toBeGreaterThan(busca.y + busca.height - 1)
   await tipo.selectOption({ label: 'Personagens' })
@@ -47,6 +49,7 @@ test('filtros da lista em duas linhas, vista guardada que volta depois de recarr
   await expect(vista).toHaveAttribute('aria-pressed', 'false')
   await page.reload()
   await page.getByRole('group', { name: 'Vistas guardadas' }).getByRole('button', { name: 'Personagens', exact: true }).click()
+  await abrirFiltros(page)
   await expect(page.getByRole('combobox', { name: 'Filtrar por tipo' })).toHaveValue('personagem')
   await expect(page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Porto de Varn/ })).toHaveCount(0)
 })

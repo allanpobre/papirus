@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from './fixtures.ts'
+import { openPart } from './areas.ts'
 
 // Criar uma ficha e abrir: as cartas do nascimento (rosto, faíscas com o dado, lugar no mundo) e a carta pronta.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
@@ -11,7 +12,7 @@ async function nova(page: import('@playwright/test').Page, nome: string) {
     localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, birthCards: true }))
   })
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('button', { name: 'Nova ficha' }).first().click()
   const d = page.getByRole('dialog', { name: 'Nova ficha' })
   await d.getByRole('textbox', { name: 'Nome' }).fill(nome)
