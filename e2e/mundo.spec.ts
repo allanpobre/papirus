@@ -9,8 +9,8 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
   await nav(page, 'Mundo').click()
   const parts = page.getByRole('navigation', { name: 'Partes do mundo' })
   // Pelo nome que o leitor de tela lê (no celular, "Linha do tempo" aparece como "Tempo").
-  await expect(parts.getByRole('button')).toHaveCount(4)
-  for (const [i, name] of ['Fichas', 'Ligações', 'Linha do tempo', 'Mapas'].entries()) await expect(parts.getByRole('button').nth(i)).toHaveAccessibleName(name)
+  await expect(parts.getByRole('button')).toHaveCount(3)
+  for (const [i, name] of ['Fichas', 'Ligações', 'Mapas'].entries()) await expect(parts.getByRole('button').nth(i)).toHaveAccessibleName(name)
   await expect(parts.getByRole('button', { name: 'Fichas' })).toHaveAttribute('aria-current', 'page')
 
   // Sem ficha aberta: o mundo em resumo, com o que está só nas notas.
@@ -34,7 +34,7 @@ test('o Mundo: as partes no alto, a ficha abre para ler com o mapa, e a lista mo
   await expect(page.getByRole('button', { name: /^Torre de Marfim/ })).toBeVisible()
 
   // Na linha do tempo, a idade de cada um no evento.
-  await parts.getByRole('button', { name: 'Linha do tempo' }).click()
+  await openPart(page, 'Linha do tempo')
   await expect(page.locator('.tl-card').filter({ hasText: 'A Queda' })).toContainText('Vaelor (31 anos)')
 })
 
@@ -61,7 +61,7 @@ test('ficha nova abre em Editar com perguntas do tipo dela, em palavras simples'
 
   // Em Ler, o campo aparece no quadro.
   await fichaModo(page, 'Ler')
-  await expect(page.getByRole('complementary', { name: 'Em resumo' })).toContainText('Um dia de memória')
+  await expect(page.getByRole('article', { name: /^Ler a ficha/ })).toContainText('Um dia de memória')
 
   // Um tipo próprio pelo "Outro…".
   await fichaModo(page, 'Editar')
@@ -104,6 +104,8 @@ test.describe('no celular', () => {
   test('Ligações: o grafo vem primeiro e os filtros ficam no botão; a ficha aberta mostra o nome inteiro', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
     await openPart(page, 'Ligações')
+    await expect(page.getByRole('button', { name: 'Grafo completo' })).toBeVisible()
+    await page.getByRole('button', { name: 'Grafo completo' }).click()
     await expect(page.locator('.graph-wrap')).toBeVisible()
     await expect(page.getByRole('checkbox', { name: 'Incluir “fica em”' })).toBeHidden()
     await page.getByRole('button', { name: 'Filtros' }).click()
@@ -155,6 +157,7 @@ test('efeito dominó: e se Cassian sumir?', async ({ page }) => {
   await openPart(page, 'Fichas')
   await page.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: /^Cassian$/ }) }).click()
   await fichaModo(page, 'Ler')
+  await page.getByRole('button', { name: 'Mais da ficha' }).click()
   await page.getByRole('button', { name: /E se sumir\?/ }).click()
   const d = page.getByRole('dialog', { name: 'E se Cassian sumir?' })
   await expect(d.getByRole('heading', { name: 'Ficam sem quem mande' })).toBeVisible()

@@ -56,6 +56,7 @@ test('o inimigo acompanha a ficha do Mundo: o que muda no "No jogo" da espécie 
   await page.goto('/app/?exemplo')
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
   await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
   await page.locator('.entity-row', { has: page.locator('.entity-row-name', { hasText: /^Kalidah$/ }) }).first().click()
   await fichaModo(page, 'Editar')
   const jogo = page.locator('details.fold', { hasText: 'No jogo' })

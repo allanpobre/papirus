@@ -57,6 +57,7 @@ test.describe('Quem é no celular (390 px), com o exemplo de Oz', () => {
     await page.goto('/app/?exemplo')
     await page.getByRole('button', { name: 'Menu', exact: true }).click()
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
+    await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
     await row(page, 'Lenhador de Lata').first().click()
     await fichaModo(page, 'Editar')
     const who = page.getByRole('region', { name: 'Quem é' })

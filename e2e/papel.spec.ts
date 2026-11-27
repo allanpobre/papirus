@@ -78,8 +78,8 @@ test('papel por livro: secundária no livro 3, protagonista nos outros; vale na 
   await expect(page.locator('.hero-role')).toHaveText(/Secundário/)
 
   // Em todos os livros, volta o papel geral: protagonista.
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).click()
-  await page.getByLabel('Livro', { exact: true }).selectOption('')
+  await page.getByRole('region', { name: 'Livro atual' }).getByRole('button', { name: 'Trocar livro' }).click()
+  await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio', { name: /^Todos os livros/ }).click()
   await openPart(page, 'Fichas')
   await expect(lista.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: /^Dorothy$/ }) }).locator('.entity-row-kindtext')).toContainText('Protagonista')
   await abrirFiltros(page)

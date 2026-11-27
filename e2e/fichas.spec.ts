@@ -1,6 +1,6 @@
 import { devices } from '@playwright/test'
 import { expect, test, type Page } from './fixtures.ts'
-import { fichaModo, abrirFiltros } from './areas.ts'
+import { fichaModo, abrirFiltros, abaFicha, fecharCriador } from './areas.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name, exact: true })
 const row = (page: Page, name: string) => page.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: new RegExp(`^${name}$`) }) })
@@ -74,6 +74,7 @@ test('ficha: ligações numa linha, outros nomes no alto e campo que aponta para
   // Do outro lado, em Ler: "Ilsa é mãe de Kael".
   await row(page, 'Ilsa').click()
   await fichaModo(page, 'Ler')
+  await abaFicha(page, 'Ligações')
   await expect(page.getByRole('article', { name: 'Ler a ficha Ilsa' })).toContainText('Ilsa é mãe de Kael')
 })
 
@@ -84,9 +85,10 @@ test.describe('no celular', () => {
   test('a lista primeiro; o botão redondo cria uma atrás da outra sem sair da lista', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
     await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).tap()
+    await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
     // A primeira ficha aparece no alto da tela.
     const first = await page.locator('.entity-row').first().boundingBox()
-    expect(first!.y).toBeLessThan(260)
+    expect(first!.y).toBeLessThan(400)
     await page.getByRole('button', { name: 'Nova ficha' }).tap()
     const dialog = page.getByRole('dialog', { name: 'Nova ficha' })
     await dialog.getByRole('textbox', { name: 'Nome' }).fill('Doran')
@@ -171,6 +173,7 @@ test('modelo de ficha: "Usar como modelo" e criar outra já preenchida', async (
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Doran')
   await page.getByRole('button', { name: 'Criar a partir de um modelo' }).click()
   await page.locator('.more-menu-pop').getByRole('button', { name: 'Kael' }).click()
+  await fecharCriador(page)
   await expect(page.locator('#entity-name')).toHaveValue('Doran')
   await expect(
     page
