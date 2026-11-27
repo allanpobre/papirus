@@ -297,7 +297,18 @@ export default function WriteView() {
     if (!created) return
     select(created.id)
     // Depois do editor (que leva o cursor ao fim do texto ao abrir a cena), o título fica selecionado para trocar.
-    setTimeout(() => (document.getElementById('scene-title') as HTMLTextAreaElement | null)?.select(), 120)
+    // Espera o título da cena nova aparecer (numa máquina lenta, um tempo fixo não bastava) e, se o editor levar o
+    // cursor depois, devolve ao título: até ~2 s, e para assim que a pessoa mexer em outra coisa.
+    const id = created.id
+    let tries = 0
+    const grab = () => {
+      const el = document.querySelector<HTMLTextAreaElement>(`#scene-title[data-scene="${id}"]`)
+      if (el && document.activeElement === el) return
+      if (el && document.activeElement && document.activeElement !== document.body && !document.activeElement.closest('.ProseMirror') && tries > 0) return
+      if (el) el.select()
+      if (++tries < 20) setTimeout(grab, 100)
+    }
+    setTimeout(grab, 60)
   }
 
   const newLooseScene = () => {
@@ -605,6 +616,7 @@ export default function WriteView() {
             <textarea
               key={scene.id}
               id="scene-title"
+              data-scene={scene.id}
               className="scene-title"
               rows={1}
               value={scene.title === DEFAULT_SCENE_TITLE ? '' : scene.title}
