@@ -77,17 +77,19 @@ for (const scheme of ['light', 'dark'] as const) {
     const found: string[] = []
 
     // O seletor de livro do Início: tem nome, e o teclado chega nele.
-    const livro = page.getByLabel('Livro', { exact: true })
+    const livro = page.getByRole('region', { name: 'Livro atual' }).getByRole('button', { name: 'Trocar livro' })
     await expect(livro).toBeVisible()
     found.push(...(await audit(page, 'Início (seletor do livro)')))
     await livro.focus()
     await expect(livro).toBeFocused()
-    await livro.selectOption({ index: 3 })
+    await livro.click()
+    await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio').nth(2).click()
 
     // O selo do livro nas áreas do Mundo, e o papel na ficha (editar).
     await nav(page, 'Mundo').click()
-    await expect(page.locator('.book-chip')).toBeVisible()
-    found.push(...(await audit(page, 'Fichas (selo do livro)')))
+    await expect(page.getByRole('region', { name: 'Livro atual' })).toBeVisible()
+    await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
+    found.push(...(await audit(page, 'Fichas (faixa do livro)')))
     await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /Dorothy/ }).first().click()
     await expect(page.getByRole('combobox', { name: /Papel na história/ }).first()).toBeVisible()
     found.push(...(await audit(page, 'Ficha de personagem (papel)')))
@@ -96,8 +98,8 @@ for (const scheme of ['light', 'dark'] as const) {
     await nav(page, 'Escrever').click()
     await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
     const tree = page.getByRole('complementary', { name: 'Manuscrito' })
-    await expect(tree.getByLabel('Livro', { exact: true })).toBeVisible()
-    found.push(...(await audit(page, 'Lista de cenas (seletor do livro)')))
+    await expect(tree).toBeVisible()
+    found.push(...(await audit(page, 'Lista de cenas')))
     await page.keyboard.press('Escape')
 
     // O cartão da ficha nas Ligações: abre ao tocar numa bolinha e fecha com Esc.
