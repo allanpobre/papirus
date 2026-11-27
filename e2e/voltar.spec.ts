@@ -97,17 +97,16 @@ test('voltar entre a lista de universos e o universo, e reabrir no mesmo lugar',
   await expect(page.getByRole('region', { name: 'Lista de fichas' })).toBeVisible()
 })
 
-// A Linha do tempo foi para a História na Nova cara: o caminho do "voltar" mudou e este teste ainda precisa ser reescrito.
-test.fixme('uma sequência longa de "voltar" refaz o caminho, e a cena aberta volta depois de recarregar', async ({ page }) => {
+test('uma sequência longa de "voltar" refaz o caminho, e a cena aberta volta depois de recarregar', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeVisible()
   await fichas(page).click()
   await page.locator('.entity-row-name', { hasText: /^Kael$/ }).click()
-  // Com a ficha aberta, a outra parte do Mundo fica a dois toques: o Mundo e a parte.
+  // A Linha do tempo mora na História: com a ficha aberta, o caminho é a História e a parte (dois passos).
   await openPart(page, 'Linha do tempo')
   await expect(h1(page)).toHaveText('Linha do tempo')
   await page.goBack()
-  await expect(page.getByRole('region', { name: 'Lista de fichas' })).toBeVisible()
+  await expect(h1(page)).toHaveText('Pistas e mistérios')
   await page.goBack()
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Kael')
   await page.goBack()
