@@ -15121,3 +15121,84 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   width: 100%;
   margin-bottom: 0.5rem;
 }
+
+/* Fichas: "O que vamos criar hoje?" (grade de tipos num toque). */
+.create-today {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface);
+}
+.create-today-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: 650;
+  color: var(--ink);
+  min-height: 44px;
+  cursor: pointer;
+}
+.create-today-head svg {
+  transition: transform 0.15s;
+}
+.create-today-head svg:not(.is-open) {
+  transform: rotate(-90deg);
+}
+.create-today-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.2rem, 1fr));
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem;
+}
+.create-tile {
+  --k: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.6rem 0.7rem;
+  min-height: 76px;
+  border: 1px solid color-mix(in srgb, var(--k) 35%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--k) 9%, var(--surface));
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.create-tile svg {
+  color: var(--k);
+}
+.create-tile b {
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+.create-tile small {
+  font-size: 0.72rem;
+  color: var(--ink-2);
+  line-height: 1.25;
+}
+.create-tile:hover {
+  background: color-mix(in srgb, var(--k) 16%, var(--surface));
+}
+.create-tile.is-more {
+  border-style: dashed;
+  --k: var(--ink-2);
+}
+@media (max-width: 760px) {
+  .create-today-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    padding: 0 0.5rem 0.5rem;
+  }
+  .create-tile {
+    padding: 0.5rem;
+    min-height: 68px;
+  }
+}
