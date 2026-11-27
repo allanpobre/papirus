@@ -136,11 +136,12 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   }, [])
   const [shareOpen, setShareOpen] = useState(false)
   const [shareLink, setShareLink] = useState<'wiki' | undefined>(undefined)
-  const [readerOpen, setReaderOpen] = useState(() => {
-    const asked = recall('abrir-leitor')
-    if (asked) remember('abrir-leitor', null)
-    return Boolean(asked)
-  })
+  // Lê sem apagar e apaga depois de montar (apagar dentro do useState perdia o pedido numa montagem dupla).
+  const [readerOpen, setReaderOpen] = useState(() => Boolean(recall('abrir-leitor')))
+  useEffect(() => {
+    if (readerOpen) remember('abrir-leitor', null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // A Oficina é uma página à parte, por cima da área de trabalho.
   const [oficinaOpen, setOficinaOpen] = useState(false)
   const [bookOpen, setBookOpen] = useState<string | null>(null)

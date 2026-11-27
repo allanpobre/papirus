@@ -1,6 +1,6 @@
 import { recall, remember } from '../state/prefs'
 import { ArrowRight, Earth, Globe, Import, Layers, ScrollText, Sprout, Users } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { worldGaps } from '../logic/worldGaps'
 import { worldLevel } from '../model/kind'
 import { draftEntity, insert } from '../model/universe'
@@ -23,11 +23,12 @@ export function WorldCard() {
   const gaps = useMemo(() => worldGaps(universe, { full }).slice(0, 3), [universe, full])
   const [seeding, setSeeding] = useState(false)
   // Vindo da Biblioteca por “Já tenho um mundo em outro app”: o importador já abre.
-  const [importing, setImporting] = useState(() => {
-    const asked = recall('abrir-trazer')
-    if (asked) remember('abrir-trazer', null)
-    return Boolean(asked)
-  })
+  // Lê sem apagar e apaga depois de montar: apagar aqui dentro perdia o pedido quando o React montava duas vezes.
+  const [importing, setImporting] = useState(() => Boolean(recall('abrir-trazer')))
+  useEffect(() => {
+    if (importing) remember('abrir-trazer', null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const empty = universe.entities.length === 0
   const grown = !full && !readOnly && (universe.entities.length >= GROWN || universe.groups.length > 0)
   const together = others.filter((o) => o.entityId)
