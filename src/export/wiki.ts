@@ -7,7 +7,8 @@ import { relationSentence } from '../logic/relations'
 import { unmarkReveals } from '../logic/reveals'
 import { formatYear, kindLabel, kindPlural, ROLE_LABEL } from '../model/labels'
 import type { Entity, Universe, WikiSettings } from '../model/schema'
-import { manuscriptOrder } from '../model/universe'
+import { collectionBookId, manuscriptOrder } from '../model/universe'
+import { bookScope, eventBelongs } from '../logic/bookScope'
 import { readerCopy } from '../share/readerCopy'
 import { coverLook } from '../ui/coverLook'
 import { centroid } from '../logic/regions'
@@ -125,11 +126,19 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   const fold = (t: string) => t.trim().toLocaleLowerCase('pt-BR')
   const hiddenKinds = new Set(ws.hiddenKinds ?? [])
   const hiddenFields = new Set((ws.hiddenFields ?? []).map(fold).filter(Boolean))
+  // Só os livros de uma coleção: entra quem aparece neles (ou foi posto neles à mão) e o pano de fundo do mundo (ficha
+  // sem livro nenhum, como lugares e povos). Quem aparece nos livros dos dois lados (crossover) entra nos dois.
+  const collection = ws.collectionId ? universe.collections.find((c) => c.id === ws.collectionId) : undefined
+  const collectionBooks = collection ? collectionBookId(universe, collection.id) : null
+  const scope = collectionBooks ? bookScope(universe, collectionBooks) : null
+  const inCollection = (id: string) => !scope || scope.belongs(id) || scope.inNoBook(id)
+  if (scope) events = events.filter((ev) => eventBelongs({ entityIds: ev.ids, placeId: null }, scope))
   entries = entries
+    .filter((x) => inCollection(x.entity.id))
     .filter((x) => !x.entity.wikiHidden && !hiddenKinds.has(x.entity.kind))
     .map((x) => (hiddenFields.size ? { ...x, fields: x.fields.filter((f) => !hiddenFields.has(fold(f.key))) } : x))
   const show = { timeline: ws.timeline !== false, maps: ws.maps !== false, cites: ws.cites !== false, portraits: ws.portraits !== false }
-  const title = ws.title?.trim() || universe.name
+  const title = ws.title?.trim() || (collection && collectionBooks ? `${universe.name}: ${collection.name}` : universe.name)
   const intro = ws.intro?.trim() || universe.description
   const author = ws.author?.trim() || ''
   const visible = new Set(entries.map((e) => e.entity.id))
@@ -261,7 +270,8 @@ ${cites.length ? `<h3>Citado em</h3><p class="cites">${cites.map((id) => link(id
 </article>`
   }
 
-  const until = upTo !== null && scenes[upTo] ? `até “${scenes[upTo].title || 'Sem título'}”` : 'tudo, menos os segredos'
+  const untilScene = upTo !== null && scenes[upTo] ? `até “${scenes[upTo].title || 'Sem título'}”` : 'tudo, menos os segredos'
+  const until = collection && collectionBooks ? `${untilScene}, só ${collection.name}` : untilScene
   const timeline = sortedEvents.length
     ? `<section class="entry page" id="linha-do-tempo" data-search="linha do tempo"><header><h2>Linha do tempo</h2><p class="aliases">${sortedEvents.length} ${sortedEvents.length === 1 ? 'acontecimento' : 'acontecimentos'}</p></header><ol class="timeline">${sortedEvents
         .map((ev) => `<li><span class="when">${esc(ev.when)}</span><strong>${linked(ev.title, '')}</strong>${ev.description ? `<span>${linked(ev.description, '')}</span>` : ''}${ev.because?.length ? `<span class="because">Por causa de: ${ev.because.map(esc).join(', ')}</span>` : ''}</li>`)

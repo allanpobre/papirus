@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-04a',
+    when: '4 de dezembro',
+    title: 'Wiki só de uma coleção',
+    items: [
+      'Na página Wiki, Personalizar › O que entra › “Só os livros de uma coleção” faz a wiki (site, .md, .json e o link) trazer só o que é daqueles livros: quem aparece neles e o que é do mundo todo, como lugares e povos sem livro. Quem aparece nos dois lados (crossover) entra nos dois.',
+      'O título da wiki passa a ser “Mundo: Coleção”, a menos que você escreva o seu.',
+    ],
+  },
+  {
     id: '2026-12-03b',
     when: '3 de dezembro',
     title: 'Poderes na wiki',
