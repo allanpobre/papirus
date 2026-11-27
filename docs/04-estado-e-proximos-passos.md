@@ -46,10 +46,10 @@ Vieram do quiz de opinião e das conversas, mais ou menos em ordem de valor:
 
 (As antigas “Achar as funções” e “Primeira vez mais curta” foram feitas: Menu em grupos, “Todas as ferramentas”, passeios e a Nova cara.)
 
-1. **Coleções em todo lugar:** hoje elas só filtram as telas. Faltam a wiki, o livro diagramado (publicar “Tales of Malkai” como um volume), o link de leitura e o compartilhar.
+1. **Coleções em todo lugar:** elas filtram as telas e, em Publicar, o volume novo pode nascer com os livros de uma coleção. Faltam a wiki só de uma coleção (decidir o que entra: a ficha que aparece nos dois lados), o link de leitura e o compartilhar.
 2. **Mundo:** idiomas e nomes por cultura, e linha do tempo por região.
 3. **Poderes** na wiki e no link de leitura.
-4. **A wiki do link só até um ponto da história** (para mandar a amigos sem o fim).
+4. (Feito: a wiki do link já vai só até a cena escolhida em Compartilhar e na página Wiki; `settings.wiki.upToScene`.)
 5. **Retorno das personas** que ficou: nada pendente (os 9 itens da última rodada entraram).
 
 ## O que ainda não foi testado de verdade
