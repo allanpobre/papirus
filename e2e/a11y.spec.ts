@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { openPart } from './areas.ts'
+import { openPart, openGraph } from './areas.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) }).first()
@@ -103,7 +103,7 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.keyboard.press('Escape')
 
     // O cartão da ficha nas Ligações: abre ao tocar numa bolinha e fecha com Esc.
-    await openPart(page, 'Ligações')
+    await openGraph(page)
     await page.locator('.node').first().click({ force: true })
     const cartao = page.getByRole('complementary', { name: 'Ficha selecionada' })
     await expect(cartao).toBeVisible()
