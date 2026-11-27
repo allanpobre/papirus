@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from './fixtures.ts'
+import { openPart, fichaModo, abaFicha, fecharCriador } from './areas.ts'
 
 // Criar uma ficha e abrir: as cartas do nascimento (rosto, faíscas com o dado, lugar no mundo) e a carta pronta.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
@@ -11,7 +12,7 @@ async function nova(page: import('@playwright/test').Page, nome: string) {
     localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, birthCards: true }))
   })
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('button', { name: 'Nova ficha' }).first().click()
   const d = page.getByRole('dialog', { name: 'Nova ficha' })
   await d.getByRole('textbox', { name: 'Nome' }).fill(nome)
@@ -58,9 +59,13 @@ test('a ficha nasce em cartas: uma linha, faíscas sorteadas do mundo, ligaçõe
 
   // Na ficha: tudo guardado de verdade (campos e ligações).
   const ficha = page.locator('main')
-  await expect(ficha.getByRole('textbox', { name: 'Do que tem medo?' })).toHaveValue('De água funda')
+  await fecharCriador(page)
+  // O que a carta guardou virou campo da ficha (Medo).
+  await expect.poll(async () => (await ficha.locator('input, textarea').evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value))).includes('De água funda')).toBe(true)
+  await fichaModo(page, 'Ler')
   await expect(ficha).toContainText('Faroleira que ouve o mar falar.')
-  await expect(ficha).toContainText('rival deKael')
+  await abaFicha(page, 'Ligações')
+  await expect(ficha).toContainText(/rival de\s*Kael/)
 })
 
 test('pular o nascimento leva direto à ficha, com o que já foi escrito', async ({ page }) => {

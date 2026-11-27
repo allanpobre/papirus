@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
+import { abrirFiltros, openPart } from './areas.ts'
 
 /*
  * A tabela de fichas no celular (390 px): rola de lado com o nome preso à esquerda, edita a célula com um toque,
@@ -8,7 +9,8 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 async function abrirTabela(page: Page) {
   await page.goto('/app/?exemplo')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
+  await openPart(page, 'Fichas')
+  await abrirFiltros(page)
   await page.getByRole('radiogroup', { name: 'Vista do Mundo' }).getByRole('radio', { name: 'Tabela' }).click()
   await expect(page.locator('.entity-table')).toBeVisible()
 }
@@ -56,10 +58,11 @@ test('um toque na célula edita ali mesmo, e o lápis renomeia a ficha', async (
 
 test('com o exemplo de Oz (75 fichas) a tabela abre e ordena depressa, mesmo com a CPU 4x mais lenta', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
+  await openPart(page, 'Fichas')
   const cdp = await page.context().newCDPSession(page)
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
   const t0 = Date.now()
+  await abrirFiltros(page)
   await page.getByRole('radiogroup', { name: 'Vista do Mundo' }).getByRole('radio', { name: 'Tabela' }).click()
   await expect(page.locator('.entity-table tbody tr')).toHaveCount(75)
   const abrir = Date.now() - t0

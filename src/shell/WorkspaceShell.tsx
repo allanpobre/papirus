@@ -1,5 +1,5 @@
 import { novaOn, novaWords } from './novaWords'
-import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronDown, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Pin, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowLeftRight, BookOpen, ChevronDown, ChevronsLeft, Dices, LayoutGrid, ChevronsRight, Eye, GraduationCap, Moon, Sparkles, Sun, Library as LibraryIcon, Menu, Search, Users, X } from 'lucide-react'
 import { ConfirmButton } from '../ui/ConfirmButton'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { relativeDate } from '../logic/relativeDate'
@@ -20,7 +20,6 @@ import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
 import { useUniverse, type SaveStatus } from '../persistence/useUniverse'
 import { recall, remember, type usePrefs } from '../state/prefs'
-import { BookPicker } from '../ui/BookPicker'
 import { WorkspaceContext, type Nav, type ToastOptions, type View, type Workspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
 import { useCodexSync } from '../share/useCodexSync'
@@ -469,8 +468,8 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   // Nova cara: o clima do mundo vale no app inteiro.
-  useWorldClimate(prefs.novaCara ? climaOf(universe) : null, universe.settings.climaModo ?? 'escuro')
-  useNovaFlag(!!prefs.novaCara)
+  useWorldClimate(climaOf(universe), universe.settings.climaModo ?? 'escuro')
+  useNovaFlag(true)
   // Primeira vez mais curta: partes que esperam o uso (ex.: Ligações até haver duas fichas).
   const waiting = useMemo(() => waitingViews(universe, prefs.firstSteps), [universe, prefs.firstSteps])
   const hidden = useMemo(() => [...new Set([...hiddenViewsFor(universe, prefs.menus, prefs.hiddenViews), ...waiting])], [universe, prefs.menus, prefs.hiddenViews, waiting])
@@ -597,13 +596,12 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   // Num livro sem Mesa: o caminho para jogar no mesmo mundo, com as fichas do livro.
   const canPlayHere = kind === 'escrita' && universe.groups.length === 0 && !readOnly && nav.view !== 'rpg'
   // Nova cara: a Trama vira a História (com a Linha do tempo), e a barra de baixo tem os lugares grandes fixos.
-  const nova = !!prefs.novaCara
   const visibleItems = ALL_ITEMS.filter((item) => !item.inside && (item.view === 'config' || !hidden.includes(item.view) || nav.view === item.view)).map((item) =>
-    nova && item.view === 'tramas' ? { ...item, label: 'História' } : item,
+    item.view === 'tramas' ? { ...item, label: 'História' } : item,
   )
   areaOrder.current = navFor(kind).flatMap((g) => g.items.filter((item) => !item.inside && (!hidden.includes(item.view) || nav.view === item.view)).map((item) => item.view))
   // A área marcada no menu: o Mapa, por exemplo, fica dentro de Escrever.
-  const area = nova && nav.view === 'timeline' ? 'tramas' : (ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view)
+  const area = nav.view === 'timeline' ? 'tramas' : (ALL_ITEMS.find((item) => item.view === nav.view)?.inside ?? nav.view)
 
   return (
     <WorkspaceContext.Provider value={ws}>
@@ -618,12 +616,10 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             current={area}
             inboxCount={openInbox}
             universeName={universe.name}
-            onGo={(v) => go(nova && v === 'fichas' && universe.maps.length > 0 && nav.view !== 'fichas' && nav.view !== 'atlas' ? 'atlas' : v)}
+            onGo={(v) => go(v === 'fichas' && universe.maps.length > 0 && nav.view !== 'fichas' && nav.view !== 'atlas' ? 'atlas' : v)}
             onTools={() => go('config', 'ferramentas')}
-            shortcuts={nova ? NOVA_PLACES(visibleItems.some((i) => i.view === 'rpg')) : kind === 'campanha' ? prefs.campaignShortcuts : prefs.phoneShortcuts}
-            fixed={nova}
+            shortcuts={NOVA_PLACES(visibleItems.some((i) => i.view === 'rpg'))}
             defaults={kind === 'campanha' ? CAMPAIGN_SHORTCUTS : DEFAULT_SHORTCUTS}
-            onShortcuts={(v) => setPref(kind === 'campanha' ? 'campaignShortcuts' : 'phoneShortcuts', v)}
             onPlay={canPlayHere ? () => go('rpg') : undefined}
             onSearch={() => setSearchOpen(true)}
             onLibrary={() => void ws.closeUniverse()}
@@ -681,7 +677,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
                   {g.group && <span className="rail-group-label rail-label">{g.group}</span>}
                   {items.map((item) => (
                     // Na Nova cara, a Trama se chama História em todo lugar (no celular, nos passeios e aqui também).
-                    <RailButton key={item.view} item={nova && item.view === 'tramas' ? { ...item, label: 'História' } : item} active={area === item.view} onClick={() => go(item.view)} />
+                    <RailButton key={item.view} item={item.view === 'tramas' ? { ...item, label: 'História' } : item} active={area === item.view} onClick={() => go(item.view)} />
                   ))}
                 </div>
               )
@@ -891,7 +887,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             }
           >
             {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
-            {prefs.novaCara ? nav.view !== 'config' && <BookBand /> : BOOK_VIEWS.includes(nav.view) && <BookPicker className="book-chip" onlyWhenChosen />}
+            {nav.view !== 'config' && <BookBand />}
             {/* Cada área tem o seu próprio aviso de erro: se uma tela quebrar, o menu e o resto do app continuam. */}
             <ErrorBoundary resetKey={nav.view} label="Esta parte deu erro" onHome={nav.view === 'inicio' ? undefined : () => go('inicio')} copyDetails>
               <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
@@ -1064,7 +1060,6 @@ function RailButton({ item, active, onClick, badge }: { item: NavItem; active: b
 }
 
 /** As áreas que seguem o livro escolhido e mostram o selo dele (o Início e o Escrever têm o seletor próprio). */
-const BOOK_VIEWS: View[] = ['organizar', 'livro', 'fichas', 'relacoes', 'timeline', 'atlas', 'tramas', 'conhecimento']
 
 function ViewSwitch({ view, navId, onOpenOther }: { view: View; navId: string | null; onOpenOther: (u: Universe) => void }) {
   switch (view) {
@@ -1125,10 +1120,7 @@ function groupsOf(items: NavItem[]): [string, NavItem[]][] {
  * Menu do celular: quatro áreas fixas, com nome, e "Mais" com todas. A barra não troca sozinha:
  * aberta uma área que não está nela, o "Mais" acende com o nome dessa área.
  */
-/** Nova cara: os lugares grandes da barra de baixo (a Mesa, se o mundo tem; senão, Publicar). */
-/** Na barra de baixo cabe uma palavra: os nomes compridos ficam curtos (o nome inteiro segue no aria-label e no Mais). */
-const SHORT_LABEL: Partial<Record<View, string>> = { config: 'Ajustes' }
-
+/** Os lugares grandes da barra de baixo (a Mesa, se o mundo tem; senão, Publicar). */
 const NOVA_PLACES = (mesa: boolean): View[] => ['escrever', 'fichas', 'tramas', mesa ? 'rpg' : 'livro']
 
 function PhoneNav({
@@ -1138,7 +1130,6 @@ function PhoneNav({
   universeName,
   shortcuts: chosen,
   defaults,
-  onShortcuts,
   onPlay,
   onGo,
   onTools,
@@ -1146,17 +1137,15 @@ function PhoneNav({
   onLibrary,
   onShare,
   extras,
-  fixed = false,
 }: {
   items: NavItem[]
   current: View
   inboxCount: number
   universeName: string
-  /** Atalhos escolhidos para a barra (até 4). */
+  /** Os lugares grandes fixos da barra (até 4). */
   shortcuts: View[]
-  /** Os atalhos padrão deste tipo de universo. */
+  /** Os atalhos padrão deste tipo de universo (completam a barra quando falta um lugar). */
   defaults: View[]
-  onShortcuts: (v: View[]) => void
   /** Num livro sem Mesa: começar uma Mesa neste mesmo mundo. */
   onPlay?: () => void
   onGo: (v: View) => void
@@ -1167,13 +1156,10 @@ function PhoneNav({
   onShare?: () => void
   /** Conta e tema, no fim do "Mais". */
   extras: ReactNode
-  /** Nova cara: a barra tem os lugares grandes fixos (sem escolher atalhos) e o "Mais" vira "Menu". */
-  fixed?: boolean
 }) {
   const [open, setOpen] = useState(false)
   // O "voltar" do aparelho fecha a folha "Mais".
   useBackLayer(() => setOpen(false), open)
-  const [editing, setEditing] = useState(false)
   const byView = (v: View) => items.find((i) => i.view === v)
   // Os escolhidos (que estão visíveis), completados com os padrões até 4. Um atalho antigo para uma
   // parte (o Atlas, por exemplo) vira a área em que ela mora (o Mundo).
@@ -1186,17 +1172,10 @@ function PhoneNav({
   const elsewhere = picked.includes(current) ? undefined : (byView(current) ?? ALL_ITEMS.find((i) => i.view === current))
   const choose = (v: View) => {
     setOpen(false)
-    setEditing(false)
     onGo(v)
-  }
-  // Editando: tocar fixa ou tira da barra. O novo entra na frente; com 4, sai o último.
-  const toggleShortcut = (v: View) => {
-    const now = picked.includes(v) ? picked.filter((x) => x !== v) : [v, ...picked].slice(0, 4)
-    if (now.length) onShortcuts(now)
   }
   const grid = items.filter((i) => i.view !== 'oficina')
   const oficina = items.find((i) => i.view === 'oficina')
-  const MoreIcon = fixed ? Menu : (elsewhere?.icon ?? Menu)
   // O fundo da área aberta desliza de um botão para o outro.
   const slide = useSlide<HTMLElement>('[aria-current="page"]', `${current}|${elsewhere?.view ?? ''}`)
 
@@ -1218,15 +1197,12 @@ function PhoneNav({
         aria-expanded={open}
         aria-controls="menu-mais"
         aria-current={elsewhere ? 'page' : undefined}
-        aria-label={fixed ? 'Menu' : elsewhere ? `Mais (aberto: ${elsewhere.label})` : 'Mais'}
+        aria-label="Menu"
         title="Mais áreas"
-        onClick={() => {
-          setOpen(!open)
-          setEditing(false)
-        }}
+        onClick={() => setOpen(!open)}
       >
-        <MoreIcon size={18} aria-hidden="true" />
-        <span className="rail-label">{fixed ? 'Menu' : elsewhere ? SHORT_LABEL[elsewhere.view] ?? elsewhere.label : 'Mais'}</span>
+        <Menu size={18} aria-hidden="true" />
+        <span className="rail-label">Menu</span>
         {inboxCount > 0 && !shortcuts.some((i) => i.view === 'inbox') && <span className="rail-badge" aria-hidden="true" />}
       </button>
       {open && (
@@ -1252,43 +1228,26 @@ function PhoneNav({
                 <span className="muted tiny">Sair de “{universeName || 'Sem nome'}” e ver os outros</span>
               </span>
             </button>
-            {oficina && !editing && <OficinaCard onClick={() => choose('oficina')} />}
-            {editing && <p className="small rail-more-hint">Toque para pôr ou tirar da barra de baixo (até 4; o novo entra no lugar do último).</p>}
+            {oficina && <OficinaCard onClick={() => choose('oficina')} />}
             {groupsOf(grid).map(([label, list]) => (
               <div key={label} className="rail-more-group" role="group" aria-label={label}>
                 <p className="rail-more-group-label">{label}</p>
-                <div className={`rail-more-grid${fixed && !editing ? ' is-rows' : ''}`}>
-                  {list.map((item) => {
-                    const Icon = item.icon
-                    const pinned = picked.includes(item.view)
-                    return editing ? (
-                      <button key={item.view} type="button" className={`rail-more-item${pinned ? ' is-pinned' : ''}`} aria-pressed={pinned} onClick={() => toggleShortcut(item.view)}>
-                        <Icon size={20} aria-hidden="true" />
-                        <span>{item.label}</span>
-                        {pinned && <Pin size={12} className="rail-more-pin" aria-label="na barra" />}
-                      </button>
-                    ) : fixed ? (
-                      // Nova cara: cada área com o nome e uma frase do que faz.
-                      <MenuItem
-                        key={item.view}
-                        icon={item.icon}
-                        title={item.view === 'inbox' && inboxCount > 0 ? `${item.label} (${inboxCount})` : item.label}
-                        hint={TOOL_HINTS[item.view]}
-                        pressed={current === item.view}
-                        onClick={() => choose(item.view)}
-                      />
-                    ) : (
-                      <button key={item.view} type="button" className="rail-more-item" style={{ '--area': `var(--area-${item.view}, currentColor)` } as React.CSSProperties} aria-current={current === item.view ? 'page' : undefined} onClick={() => choose(item.view)}>
-                        <Icon size={20} aria-hidden="true" />
-                        <span>{item.label}</span>
-                        {item.view === 'inbox' && inboxCount > 0 && <span className="rail-badge">{inboxCount}</span>}
-                      </button>
-                    )
-                  })}
+                <div className="rail-more-grid is-rows">
+                  {list.map((item) => (
+                    // Cada área com o nome e uma frase do que faz.
+                    <MenuItem
+                      key={item.view}
+                      icon={item.icon}
+                      title={item.view === 'inbox' && inboxCount > 0 ? `${item.label} (${inboxCount})` : item.label}
+                      hint={TOOL_HINTS[item.view]}
+                      pressed={current === item.view}
+                      onClick={() => choose(item.view)}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
-            {onPlay && !editing && (
+            {onPlay && (
               <button
                 type="button"
                 className="rail-more-universe rail-more-play"
@@ -1304,7 +1263,7 @@ function PhoneNav({
                 </span>
               </button>
             )}
-            {!editing && (
+            {(
               <button
                 type="button"
                 className="rail-more-universe rail-more-tools"
@@ -1321,11 +1280,6 @@ function PhoneNav({
               </button>
             )}
             <div className="rail-more-foot">
-              {!fixed && (
-                <button type="button" className="btn btn-ghost btn-sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
-                  <Pin size={15} aria-hidden="true" /> {editing ? 'Pronto' : 'Escolher atalhos'}
-                </button>
-              )}
               {onShare && (
                 <button
                   type="button"

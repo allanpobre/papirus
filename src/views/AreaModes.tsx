@@ -30,8 +30,7 @@ const NOVA_PARTS: typeof PARTS = {
   mundo: PARTS.mundo.filter(([v]) => v !== 'timeline'),
   trama: [...PARTS.trama, PARTS.mundo.find(([v]) => v === 'timeline')!],
 }
-const partsOf = (nova: boolean) => (nova ? NOVA_PARTS : PARTS)
-const areaOf = (view: View, nova = false) => (partsOf(nova).trama.some(([v]) => v === view) ? 'trama' : 'mundo')
+const areaOf = (view: View) => (NOVA_PARTS.trama.some(([v]) => v === view) ? 'trama' : 'mundo')
 
 /** O nome de cada parte, para o título da tela. */
 const partLabel = (view: View) => [...PARTS.mundo, ...PARTS.trama].find(([v]) => v === view)?.[1] ?? ''
@@ -41,10 +40,9 @@ const partLabel = (view: View) => [...PARTS.mundo, ...PARTS.trama].find(([v]) =>
  * (as escondidas no menu ficam de fora), a busca no celular, o (?) e o botão principal.
  */
 export function AreaHead({ current, tour, actions }: { current: View; tour: PageTourId; actions?: ReactNode }) {
-  const { go, hiddenViews, waitingViews, showAllParts, prefs } = useWorkspace()
-  const nova = !!prefs.novaCara
-  const area = areaOf(current, nova)
-  const parts = partsOf(nova)[area].filter(([v]) => v === current || !hiddenViews.includes(v))
+  const { go, hiddenViews, waitingViews, showAllParts } = useWorkspace()
+  const area = areaOf(current)
+  const parts = NOVA_PARTS[area].filter(([v]) => v === current || !hiddenViews.includes(v))
   // A wiki do mundo: à mão em todas as partes do Mundo, direto na página com a prévia.
   const [rolling, setRolling] = useState(false)
   // [ e ]: a parte anterior e a próxima (fora de campos de texto e janelas).
@@ -73,7 +71,7 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
       </>
     ) : null
   // Primeira vez: as partes que ainda esperam o uso, e quando aparecem ("Mostrar todas" desliga).
-  const waiting = WAITING.filter((w) => partsOf(nova)[area].some(([v]) => v === w.view) && waitingViews.includes(w.view))
+  const waiting = WAITING.filter((w) => NOVA_PARTS[area].some(([v]) => v === w.view) && waitingViews.includes(w.view))
   const hint =
     waiting.length > 0 ? (
       <p className="first-steps-hint tiny muted">
@@ -87,10 +85,10 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
     <>
       <ViewTop
         className="area-head"
-        area={area === 'mundo' ? 'Mundo' : nova ? 'História' : 'Trama'}
+        area={area === 'mundo' ? 'Mundo' : 'História'}
         heading={partLabel(current)}
         parts={parts.map(([v, label, Icon]) => ({ id: v, label, short: v === 'timeline' ? 'Tempo' : undefined, icon: Icon, current: v === current, onPick: () => go(v) }))}
-        partsLabel={area === 'mundo' ? 'Partes do mundo' : nova ? 'Partes da história' : 'Partes da trama'}
+        partsLabel={area === 'mundo' ? 'Partes do mundo' : 'Partes da história'}
         tour={tour}
         actions={
           wikiButton || actions ? (

@@ -37,7 +37,7 @@ test('primeiro universo: as partes do Mundo aparecem conforme o uso', async ({ p
 
   // "Mostrar todas" traz o resto, e continua assim depois de recarregar.
   await page.getByRole('button', { name: 'Mostrar todas' }).click()
-  await expect(partes.getByRole('button', { name: /Tempo|Linha do tempo/ })).toBeVisible()
+  await expect(partes.getByRole('button', { name: 'Mapas' })).toBeVisible()
   await expect(page.getByText('Mais partes aparecem conforme você usa')).toHaveCount(0)
   await page.reload()
   await expect(partes.getByRole('button', { name: /Mapas/ })).toBeVisible()

@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 // A ficha em Editar vem em abas (auditoria 23, H8.1), com a barra de Versões no alto. No celular.
 test.use({
@@ -11,7 +11,7 @@ test.use({
 test('Editar em abas: Básico primeiro, cada parte na sua aba, Tudo e a aba lembrada; Versões no alto', async ({ page, context }) => {
   await context.addInitScript(() => localStorage.getItem('aba-limpa') || (localStorage.removeItem('papirus:ficha-editar-aba'), localStorage.setItem('aba-limpa', '1')))
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Editar')
 

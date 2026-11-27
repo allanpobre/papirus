@@ -23,7 +23,8 @@ test('no iPhone sem instalar: avisa uma vez no Início, só quando já há o que
   // No Início, o aviso (uma vez).
   await page.keyboard.press('Escape')
   await page.getByRole('button', { name: 'Fechar o teclado' }).click().catch(() => {})
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Início', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Início/ }).click()
   await expect(aviso).toBeVisible()
   await expect(aviso).toContainText('Adicionar à Tela de Início')
   await aviso.getByRole('button', { name: 'Entendi' }).click()

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 /*
  * As fases: o personagem muda ao longo da história. No celular, o autor cria uma fase (a partir de uma cena,
@@ -13,7 +13,7 @@ const ate = async (page: Page, cena: string | null) => {
 
 test('uma fase muda nome e campos a partir de uma cena, e dá para comparar', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Editar')
 

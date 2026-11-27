@@ -3,17 +3,40 @@ import { expect, type Page } from '@playwright/test'
 export type Part = 'Fichas' | 'Ligações' | 'Linha do tempo' | 'Mapas' | 'Pistas e mistérios' | 'Quem sabe o quê'
 
 /**
- * Abre uma parte do Mundo ou da Trama: a entrada do menu (no celular, pelo "Mais") e depois a
- * parte no alto da tela.
+ * Abre uma parte do Mundo ou da História: a entrada do menu (a barra de baixo no celular, o menu lateral no
+ * computador) e depois a parte no alto da tela. O Mundo abre no Atlas, no celular, se há mapas: por isso a parte
+ * é sempre escolhida pelo nome.
  */
 export async function openPart(page: Page, part: Part) {
-  const area = part === 'Pistas e mistérios' || part === 'Quem sabe o quê' ? 'Trama' : 'Mundo'
-  const more = page.getByRole('button', { name: 'Mais', exact: true })
-  if (await more.isVisible()) {
-    await more.click()
-    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: area, exact: true }).click()
-  } else await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${area}`) }).first().click()
-  if (part !== 'Fichas' && part !== 'Pistas e mistérios') await page.locator('[data-tour="partes"]').getByRole('button', { name: part }).click()
+  const area = part === 'Pistas e mistérios' || part === 'Quem sabe o quê' || part === 'Linha do tempo' ? 'História' : 'Mundo'
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${area}`) }).first().click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: part }).click()
+}
+
+/** A ficha de personagem que acabou de nascer abre no criador (cartas): "Pronto" leva à página; depois, Editar abre o formulário. */
+export async function fecharCriador(page: Page) {
+  const criador = page.getByRole('article', { name: /^Criar / })
+  await criador.waitFor({ timeout: 4000 }).catch(() => undefined)
+  if (await criador.count()) await criador.getByRole('button', { name: 'Pronto' }).click()
+  await fichaModo(page, 'Editar')
+}
+
+/** A ficha do personagem tem abas (Visão, Ligações, Poderes, Diário, Referências): abre a aba, se ela existe. */
+export async function abaFicha(page: Page, nome: string) {
+  const aba = page.getByRole('navigation', { name: 'Partes da ficha' }).getByRole('button', { name: nome, exact: true })
+  if (await aba.count()) await aba.click()
+}
+
+/** Fichas: abre os "Filtros" (tipo, papel, ordem e vista ficam atrás do botão). Não faz nada se já estão abertos. */
+export async function abrirFiltros(page: Page) {
+  const botao = page.getByRole('button', { name: /^Filtros/ })
+  if ((await botao.getAttribute('aria-expanded')) !== 'true') await botao.click()
+}
+
+/** Ligações no grafo completo: a parte abre no mural da ficha, e o grafo é um toque adiante. */
+export async function openGraph(page: Page) {
+  await openPart(page, 'Ligações')
+  await page.getByRole('button', { name: 'Grafo completo' }).click()
 }
 
 /**

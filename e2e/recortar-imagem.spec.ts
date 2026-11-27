@@ -1,4 +1,4 @@
-import { openPart, fichaModo } from './areas.ts'
+import { openPart, fichaModo, fecharCriador } from './areas.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 /*
@@ -51,6 +51,7 @@ async function fichaNova(page: Page, nome: string) {
   const nova = page.getByRole('dialog', { name: 'Nova ficha' })
   await nova.getByRole('textbox', { name: 'Nome' }).fill(nome)
   await nova.getByRole('button', { name: 'Criar e abrir' }).click()
+  await fecharCriador(page)
 }
 
 const vermelho = (c: number[]) => c[0] > 150 && c[2] < 100

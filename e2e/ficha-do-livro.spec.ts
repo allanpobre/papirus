@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 /*
  * Cada ficha é dos seus livros: a criada com um livro escolhido nasce dele e não aparece nos outros; a ficha
@@ -16,7 +16,7 @@ const lista = (page: Page) => page.getByRole('region', { name: 'Lista de fichas'
 test('ficha criada num livro não aparece no outro; e se põe num livro pela ficha', async ({ page }) => {
   await page.goto('/app/?exemplo')
   await pick(book(page), /^Ozma de Oz/)
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await openPart(page, 'Fichas')
   await page.getByRole('button', { name: 'Nova ficha' }).click()
   const dialog = page.getByRole('dialog', { name: 'Nova ficha' })
   await dialog.getByRole('textbox', { name: 'Nome' }).fill('Pipt')

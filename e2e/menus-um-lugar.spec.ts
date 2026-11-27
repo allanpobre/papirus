@@ -4,8 +4,7 @@ import { expect, test } from './fixtures.ts'
 // Pacote A (personas, menus): na Nova cara, cada coisa num lugar. No computador.
 test.use({ viewport: { width: 1280, height: 800 } })
 
-test('a primeira tela chama o setor de “Campanhas”; dentro do universo, a Mesa é onde se joga', async ({ page, context }) => {
-  await context.addInitScript(() => localStorage.setItem('papirus:cara-antiga', '0'))
+test('a primeira tela chama o setor de “Campanhas”; dentro do universo, a Mesa é onde se joga', async ({ page }) => {
   await page.goto('/app/')
   const setores = page.getByRole('navigation', { name: 'Setores' })
   await expect(setores.getByRole('button')).toHaveText([/Escrita/, /Campanhas/, /Oficina/, /Comunidade/])
@@ -19,7 +18,6 @@ test('quem traz um mundo pronto vê todas as partes, mesmo na primeira vez', asy
   await context.addInitScript(() => {
     if (localStorage.getItem('pv-feito')) return
     localStorage.setItem('pv-feito', '1')
-    localStorage.setItem('papirus:cara-antiga', '0')
     const prefs = JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}')
     localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, firstSteps: { active: true, revealed: [] } }))
   })

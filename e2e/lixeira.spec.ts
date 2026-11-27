@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, abaFicha } from './areas.ts'
 
 test('lixeira e histórico: apagar, recuperar e voltar como estava', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
@@ -106,6 +106,7 @@ test('apagar uma ficha e recuperar: volta com as ligações, o ponto de vista da
   await page.getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
   // Antes: Kael é irmão da Mira e desconfia de gente.
+  await abaFicha(page, 'Ligações')
   const ficha = page.getByRole('region', { name: 'Ficha: E se sumir?' }).or(page.getByRole('main'))
   await expect(ficha.first()).toContainText('irmão de')
 
@@ -129,6 +130,7 @@ test('apagar uma ficha e recuperar: volta com as ligações, o ponto de vista da
   await nav(page, 'Mundo').click()
   await page.getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
+  await abaFicha(page, 'Ligações')
   await expect(ficha.first()).toContainText('irmão de')
   await nav(page, 'Escrever').click()
   await page.getByRole('button', { name: /A chegada/ }).first().click()

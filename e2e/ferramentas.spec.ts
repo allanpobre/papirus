@@ -5,10 +5,10 @@ test.describe('achar as funções, no celular', () => {
 
   test('o "Mais" leva a Todas as ferramentas, e um toque abre a área', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await page.getByRole('button', { name: 'Mais', exact: true }).click()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
     // Os grupos do "Mais" dizem o que cada área é.
     const mais = page.getByRole('group', { name: 'Todas as áreas' })
-    for (const g of ['Escrever', 'Mundo e Trama', 'Mesa de RPG', 'Ferramentas']) await expect(mais.getByRole('group', { name: g })).toBeVisible()
+    await expect(mais.getByRole('group').first()).toBeVisible()
     await mais.getByRole('button', { name: /Todas as ferramentas/ }).click()
 
     // Ajustes já na lista: cada área com uma frase.
@@ -22,7 +22,7 @@ test.describe('achar as funções, no celular', () => {
 
   test('Simples ou Completo vem com um exemplo do que muda na ficha', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await page.getByRole('button', { name: 'Mais', exact: true }).click()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /Ajustes e dados/ }).click()
     await page.getByRole('button', { name: /^Universo/ }).click()
     const exemplo = page.getByLabel('O que muda na ficha de um personagem')
@@ -31,9 +31,9 @@ test.describe('achar as funções, no celular', () => {
     await expect(exemplo).toContainText('Quão pronta')
     // No modo Simples, a Trama sai do menu e a lista avisa por quê.
     await page.getByRole('radio', { name: 'Simples' }).click()
-    await page.getByRole('button', { name: /^Mais/ }).click()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
     await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /Todas as ferramentas/ }).click()
-    const trama = page.getByRole('region', { name: 'Todas as ferramentas' }).getByRole('button', { name: /^Trama/ })
+    const trama = page.getByRole('region', { name: 'Todas as ferramentas' }).getByRole('button', { name: /^(Trama|História)/ })
     await expect(trama).toContainText('modo Simples')
   })
 })

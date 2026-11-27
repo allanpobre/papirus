@@ -10,7 +10,7 @@ test.use({ viewport: { width: 360, height: 780 }, hasTouch: true, isMobile: true
 const cabe = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
 
 async function area(page: Page, nome: string) {
-  const more = page.getByRole('button', { name: 'Mais', exact: true })
+  const more = page.getByRole('button', { name: 'Menu', exact: true })
   const direto = page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: nome, exact: true })
   if (await direto.isVisible()) return direto.click()
   await more.click()

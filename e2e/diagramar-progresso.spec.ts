@@ -9,8 +9,8 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 test('Oz inteiro: mostra "Montando página N…", cancela, monta de novo e termina com o total de páginas', async ({ page }) => {
   test.setTimeout(150_000)
   await page.goto('/app/?exemplo')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mais/ }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Publicar/ }).click()
   await page.getByRole('button', { name: /^Diagramar/ }).first().click()
   const designer = page.getByRole('dialog', { name: 'Diagramar o livro' })
   await expect(designer).toBeVisible()

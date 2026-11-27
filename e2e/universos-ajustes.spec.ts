@@ -42,13 +42,13 @@ test('Ajustes em três grupos, cada painel dizendo para quem vale', async ({ pag
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Ajustes e dados').click()
   const cats = page.getByRole('navigation', { name: 'Categorias dos ajustes' })
-  await expect(cats.getByRole('group', { name: 'Este universo' }).getByRole('button')).toHaveText(['Universo', 'Dados e backup', 'Lixeira e histórico', 'Importar e wiki'])
-  await expect(cats.getByRole('group', { name: 'Este aparelho' }).getByRole('button')).toHaveText(['Aparência', 'Escrita', 'Menu e ajuda', 'Todas as ferramentas'])
-  await expect(cats.getByRole('group', { name: 'Sua conta' }).getByRole('button')).toHaveText(['Conta'])
+  await expect(cats.getByRole('group', { name: 'Este universo' }).getByRole('button')).toHaveText([/^Universo/, /^Dados e backup/, /^Lixeira e histórico/, /^Importar e wiki/])
+  await expect(cats.getByRole('group', { name: 'Este aparelho' }).getByRole('button')).toHaveText([/^Aparência/, /^Escrita/, /^Menu e ajuda/, /^Todas as ferramentas/])
+  await expect(cats.getByRole('group', { name: 'Sua conta' }).getByRole('button')).toHaveText([/^Conta/])
   // O servidor fica em Avançado, fechado.
   await expect(cats.getByRole('button', { name: 'Servidor próprio' })).toBeHidden()
 
-  await cats.getByRole('button', { name: 'Universo', exact: true }).click()
+  await cats.getByRole('button', { name: /^Universo/ }).click()
   await expect(page.locator('.settings-scope')).toHaveText('Vale só para este universo.')
   // O tipo e o apagar moram em Universo.
   await expect(page.getByRole('radiogroup', { name: 'Este universo é' })).toBeVisible()
@@ -76,7 +76,7 @@ test.describe('no celular', () => {
 
   test('Ajustes: uma lista com tudo à vista; um toque abre e o "voltar" volta', async ({ page }) => {
     await page.goto('/app/?exemplo=ostria')
-    await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mais' }).tap()
+    await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).tap()
     await page
       .getByRole('button', { name: /^Ajustes/ })
       .first()
@@ -84,16 +84,16 @@ test.describe('no celular', () => {
     const cats = page.getByRole('navigation', { name: 'Categorias dos ajustes' })
     // Todas as categorias à vista, sem rolar de lado.
     for (const name of ['Universo', 'Dados e backup', 'Lixeira e histórico', 'Importar e wiki', 'Aparência', 'Escrita', 'Menu e ajuda', 'Conta']) {
-      await expect(cats.getByRole('button', { name, exact: true })).toBeVisible()
+      await expect(cats.getByRole('button', { name: new RegExp(`^${name}`) })).toBeVisible()
     }
-    await cats.getByRole('button', { name: 'Dados e backup', exact: true }).tap()
+    await cats.getByRole('button', { name: /^Dados e backup/ }).tap()
     await expect(cats).toBeHidden()
     await expect(page.getByRole('heading', { name: 'Dados e backup' })).toBeVisible()
     await page.goBack()
-    await expect(cats.getByRole('button', { name: 'Dados e backup', exact: true })).toBeVisible()
+    await expect(cats.getByRole('button', { name: /^Dados e backup/ })).toBeVisible()
     // O botão "Ajustes" no alto também volta.
-    await cats.getByRole('button', { name: 'Aparência', exact: true }).tap()
+    await cats.getByRole('button', { name: /^Aparência/ }).tap()
     await page.getByRole('button', { name: 'Ajustes', exact: true }).tap()
-    await expect(cats.getByRole('button', { name: 'Aparência', exact: true })).toBeVisible()
+    await expect(cats.getByRole('button', { name: /^Aparência/ })).toBeVisible()
   })
 })

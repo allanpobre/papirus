@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 /*
  * A ficha como página de blocos, no celular: editar um bloco ali mesmo (sem trocar para "Editar"), arrumar a
@@ -9,7 +9,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 test('ficha de blocos: editar no lugar, arrumar, tirar, pôr de volta e acrescentar', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
   const ficha = page.getByRole('article', { name: /^Ler a ficha/ })

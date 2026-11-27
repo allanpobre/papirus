@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { openPart, fichaModo } from './areas.ts'
+import { openPart, fichaModo, abaFicha } from './areas.ts'
 
 const nav = (page: Page, name: RegExp) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name }).first()
 
@@ -66,8 +66,10 @@ test('fim da sessão: "O que aconteceu?" vai para a Linha do tempo e para o "Apa
   await openPart(page, 'Fichas')
   await page.locator('.entity-row-name', { hasText: /^Brenn$/ }).click()
   await fichaModo(page, 'Ler')
+  await abaFicha(page, 'Diário')
   await expect(page.getByRole('list', { name: 'Sessões' })).toContainText('Sessão 1 no resumo')
   await page.locator('.entity-row-name', { hasText: /^Kaya$/ }).click()
+  await abaFicha(page, 'Diário')
   await expect(page.getByRole('list', { name: 'Sessões' })).toContainText('Sessão 1 jogou · no resumo')
 })
 

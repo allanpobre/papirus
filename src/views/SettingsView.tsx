@@ -133,16 +133,12 @@ export default function SettingsView({ onOpenOther }: { onOpenOther: (u: Univers
               <ul>
                 {SETTINGS_CATEGORIES.filter((c) => c.group === g.id).map((c) => (
                   <li key={c.id}>
-                    <button type="button" className={`settings-nav-item${prefs.novaCara ? ' is-rich' : ''}`} aria-current={!query && cat === c.id && !listOnPhone ? 'page' : undefined} onClick={() => choose(c.id)}>
-                      <c.icon size={prefs.novaCara ? 20 : 16} aria-hidden="true" />
-                      {prefs.novaCara ? (
-                        <span className="settings-nav-text">
-                          <span>{c.label}</span>
-                          <small>{SETTINGS_HINTS[c.id]}</small>
-                        </span>
-                      ) : (
+                    <button type="button" className="settings-nav-item is-rich" aria-current={!query && cat === c.id && !listOnPhone ? 'page' : undefined} onClick={() => choose(c.id)}>
+                      <c.icon size={20} aria-hidden="true" />
+                      <span className="settings-nav-text">
                         <span>{c.label}</span>
-                      )}
+                        <small>{SETTINGS_HINTS[c.id]}</small>
+                      </span>
                       <ChevronRight size={16} className="settings-nav-go" aria-hidden="true" />
                     </button>
                   </li>

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 /*
  * Máscara no texto e ficha revelada numa cena, no celular. O autor marca o que o leitor lê até a revelação
@@ -8,7 +8,7 @@ import { fichaModo } from './areas.ts'
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
 const abrir = async (page: Page, nome: string) => {
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: new RegExp(`^${nome}`) }).first().click()
 }
 const ate = async (page: Page, cena: string | null) => {

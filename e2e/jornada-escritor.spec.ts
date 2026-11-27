@@ -112,7 +112,7 @@ test('a escritora vai do zero ao livro e à wiki', async ({ page }) => {
 
   // 7. Diagrama o livro (com o teclado aberto a barra de baixo some: um toque para fechá-lo).
   await tap(page.getByRole('button', { name: 'Fechar o teclado' }))
-  await tap(page.getByRole('button', { name: 'Mais', exact: true }))
+  await tap(page.getByRole('button', { name: 'Menu', exact: true }))
   await tap(page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Publicar' }))
   await tap(page.getByRole('button', { name: 'Criar o livro' }))
   const designer = page.getByRole('dialog', { name: 'Diagramar o livro' })

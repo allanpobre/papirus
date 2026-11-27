@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { openPart, fichaModo } from './areas.ts'
+import { openPart, openGraph, fichaModo, abaFicha } from './areas.ts'
 
 /*
  * A régua da história na ficha, no celular: até qual cena se olha, e "ver como o leitor".
@@ -8,7 +8,7 @@ import { openPart, fichaModo } from './areas.ts'
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
 const abrir = async (page: import('@playwright/test').Page, nome: string) => {
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: new RegExp(`^${nome}`) }).first().click()
   await fichaModo(page, 'Ler')
 }
@@ -42,6 +42,7 @@ test('a ficha muda com o ponto da história: o autor vê as marcas, o leitor só
   await expect(quadro).toContainText('Cinzentos, segundo Mira')
   await expect(quadro).not.toContainText('vidro negro')
   // "Aparece em" só até ali.
+  await abaFicha(page, 'Diário')
   await expect(ficha.locator('.appear-sum')).toContainText('de 1 cena')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
@@ -53,7 +54,7 @@ test('a ficha muda com o ponto da história: o autor vê as marcas, o leitor só
   await expect(rhea.getByRole('combobox', { name: 'Até onde na história' })).toHaveValue(chegada!)
 
   // As Ligações, no cena a cena, começam no mesmo ponto; mover lá muda a régua das fichas.
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   // No celular, os filtros do grafo ficam recolhidos.
   await page.getByRole('button', { name: /^Filtros/ }).click()
   await page.getByRole('radio', { name: 'Num ponto da história' }).click()

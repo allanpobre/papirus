@@ -4,12 +4,11 @@ import { runPageTour } from './pageTour.ts'
 import { expect, test, type Page } from './fixtures.ts'
 
 /** Enquanto não migra para a Nova cara (veja playwright.config.ts). */
-const CARA_ANTIGA = { cookies: [], origins: [{ origin: 'http://localhost:5179', localStorage: [{ name: 'papirus:cara-antiga', value: '1' }] }] }
 
 type Fake = ReturnType<typeof createFakeSupabase>
 
 async function newPerson(browser: Browser, fake: Fake): Promise<Page> {
-  const context = await browser.newContext({ storageState: CARA_ANTIGA })
+  const context = await browser.newContext()
   await context.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
   await fake.attach(context)
   return context.newPage()
@@ -129,7 +128,7 @@ test.describe('Compartilhar no celular', () => {
   test('partes recolhíveis: Pessoas aberta, o resto fechado com resumo; pedidos de AU abrem sozinhos; cada parte faz o que fazia', async ({ browser }) => {
     test.setTimeout(150_000)
     const fake = createFakeSupabase()
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, storageState: CARA_ANTIGA })
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
     await context.addInitScript(() => localStorage.setItem('papirus:prefs', JSON.stringify({ tourDone: true })))
     await fake.attach(context)
     const page = await context.newPage()
@@ -142,13 +141,13 @@ test.describe('Compartilhar no celular', () => {
     await page.waitForTimeout(900)
     // Com o cursor no texto, o celular troca a barra de baixo pela de formatação: tira o cursor e vai à lista para entrar.
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-    await page.getByRole('button', { name: 'Mais', exact: true }).click()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
     await page.getByRole('button', { name: /^Seus universos \(sair de/ }).click()
     await signIn(page, 'ana@exemplo.com')
     await page.getByRole('button', { name: /^Continuar escrevendo Ostria/ }).click()
     /** No celular, Compartilhar fica no pé do "Mais". */
     const abrirCompartilhar = async () => {
-      await page.getByRole('button', { name: 'Mais', exact: true }).click()
+      await page.getByRole('button', { name: 'Menu', exact: true }).click()
       await page.getByRole('button', { name: 'Compartilhar', exact: true }).click()
     }
     await abrirCompartilhar()

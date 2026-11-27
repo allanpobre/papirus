@@ -9,8 +9,8 @@ const ORCAMENTO_MS = 3000
 async function combateDeQuinze(page: Page) {
   await page.goto('/app/')
   await page.getByRole('button', { name: /O Alienista, de Machado de Assis/ }).click()
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mesa', exact: true }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mesa/ }).click()
   await page.getByRole('tab', { name: 'Preparar' }).click()
   await page.getByRole('tab', { name: 'Sessões' }).click()
   await page.getByRole('button', { name: 'Começar', exact: true }).click()

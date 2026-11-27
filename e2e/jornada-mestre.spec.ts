@@ -37,8 +37,8 @@ test('o mestre vai da campanha ao fim da primeira sessão', async ({ page }) => 
   mark('1 campanha')
 
   // 2. Faz o mundo com a Semente (pelo Início).
-  await tap(page.getByRole('button', { name: /^Mais$/ }))
-  await tap(page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Início' }))
+  await tap(page.getByRole('button', { name: 'Menu', exact: true }))
+  await tap(page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Início/ }))
   await tap(page.getByRole('button', { name: 'Plantar a semente' }).first())
   const seed = page.getByRole('dialog', { name: 'Semente do mundo' })
   await tap(seed.getByRole('radio', { name: 'Um império' }))

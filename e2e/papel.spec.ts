@@ -1,4 +1,4 @@
-import { fichaModo, openPart } from './areas.ts'
+import { fichaModo, openPart, openGraph, abrirFiltros } from './areas.ts'
 import { expect, test } from './fixtures.ts'
 
 /*
@@ -14,6 +14,7 @@ test('Fichas: filtrar por papel e ordenar com os protagonistas primeiro', async 
   const nomes = () => lista.locator('.entity-row-name').allInnerTexts().then((t) => t.map((x) => x.trim()))
 
   // Ordem "Papel": protagonista (Dorothy) no alto, depois os antagonistas, secundários…
+  await abrirFiltros(page)
   await page.getByLabel('Ordem da lista').selectOption('papel')
   await expect.poll(async () => (await nomes())[0]).toBe('Dorothy')
   const todos = await nomes()
@@ -21,6 +22,7 @@ test('Fichas: filtrar por papel e ordenar com os protagonistas primeiro', async 
   // A escolha da ordem fica guardada.
   await page.reload()
   await openPart(page, 'Fichas')
+  await abrirFiltros(page)
   await expect(page.getByLabel('Ordem da lista')).toHaveValue('papel')
 
   // Filtro por papel: só os protagonistas; só quem não tem papel.
@@ -41,7 +43,7 @@ test('Fichas: filtrar por papel e ordenar com os protagonistas primeiro', async 
 
 test('Ligações: a bolinha do protagonista é um pouco maior que a dos outros', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await openPart(page, 'Ligações')
+  await openGraph(page)
   await expect(page.locator('.node').first()).toBeVisible()
   const raio = (nome: string) =>
     page.locator('.node', { has: page.locator('text.node-label', { hasText: new RegExp(`^${nome}$`) }) }).locator('> circle:not(.node-ring)').first().getAttribute('r').then(Number)
@@ -64,22 +66,25 @@ test('papel por livro: secundária no livro 3, protagonista nos outros; vale na 
   await doLivro3.selectOption('secundario')
 
   // Com o livro 3 escolhido, a Dorothy é secundária: sai do filtro "Protagonista" e a ficha diz "Secundário".
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).click()
-  await page.getByLabel('Livro', { exact: true }).selectOption({ label: (await page.getByLabel('Livro', { exact: true }).locator('option', { hasText: /^Ozma de Oz/ }).innerText()).trim() })
+  await page.getByRole('region', { name: 'Livro atual' }).getByRole('button', { name: 'Trocar livro' }).click()
+  await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio', { name: /^Ozma de Oz/ }).click()
   await openPart(page, 'Fichas')
+  await abrirFiltros(page)
   await expect(page.getByLabel('Filtrar por papel').locator('option', { hasText: /^Protagonista/ })).toHaveCount(0)
   const nomes = () => lista.locator('.entity-row-name').allInnerTexts().then((t) => t.map((x) => x.trim()))
   await expect(lista.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: /^Dorothy$/ }) }).locator('.entity-row-kindtext')).toContainText('Secundário')
   await lista.getByRole('button', { name: /^Dorothy/ }).first().click()
   await fichaModo(page, 'Ler')
-  await expect(page.locator('.entity-role')).toHaveText(/Secundário/)
+  await expect(page.locator('.hero-role')).toHaveText(/Secundário/)
 
   // Em todos os livros, volta o papel geral: protagonista.
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).click()
-  await page.getByLabel('Livro', { exact: true }).selectOption('')
+  await page.getByRole('region', { name: 'Livro atual' }).getByRole('button', { name: 'Trocar livro' }).click()
+  await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio', { name: /^Todos os livros/ }).click()
   await openPart(page, 'Fichas')
   await expect(lista.locator('.entity-row').filter({ has: page.locator('.entity-row-name', { hasText: /^Dorothy$/ }) }).locator('.entity-row-kindtext')).toContainText('Protagonista')
+  await abrirFiltros(page)
   await page.getByLabel('Ordem da lista').selectOption('papel')
   await expect.poll(async () => (await nomes())[0]).toBe('Dorothy')
+  await abrirFiltros(page)
   await expect(page.getByLabel('Filtrar por papel').locator('option', { hasText: /^Protagonista \(1\)/ })).toBeAttached()
 })

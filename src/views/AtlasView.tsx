@@ -176,9 +176,8 @@ const LAYERS: { id: Layer; name: string }[] = [
 const layerOf = (kind: string | undefined): Layer => (kind === 'cultura' || kind === 'especie' ? 'povos' : kind === 'religiao' ? 'crencas' : 'fronteiras')
 
 function MapCanvas({ map }: { map: AtlasMap }) {
-  const { universe, update, peek, go, undoable, toast, bookId, prefs } = useWorkspace()
+  const { universe, update, peek, go, undoable, toast, bookId } = useWorkspace()
   // Nova cara: tocar num país ou marcador abre a gaveta com quem vive lá; editar fica num botão.
-  const nova = !!prefs.novaCara
   const [editPlace, setEditPlace] = useState(false)
   const mapSrc = useImageSrc(map.image)
   // Com um livro escolhido no alto, os lugares dele ficam em destaque e os outros, apagados.
@@ -538,7 +537,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </button>
         </div>
       )}
-      {region && nova && !editPlace && (
+      {region && !editPlace && (
         <PlaceDrawer
           entityId={region.entityId}
           also={map.pins.filter((p) => inside([p.x, p.y], region.points)).map((p) => p.entityId)}
@@ -546,7 +545,7 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           onEdit={() => setEditPlace(true)}
         />
       )}
-      {region && (!nova || editPlace) && (
+      {region && editPlace && (
         <div className="atlas-paint" role="group" aria-label={`Região de ${entityName(universe, region.entityId)}`}>
           <strong className="small">{entityName(universe, region.entityId) || 'Região'}</strong>
           <YearInput label="De (ano)" value={region.fromYear} onChange={(n) => setRegions((map.regions ?? []).map((r) => (r.id === region.id ? { ...r, fromYear: n } : r)))} />
@@ -738,14 +737,14 @@ function MapCanvas({ map }: { map: AtlasMap }) {
           </button>
         </div>
       )}
-      {pin && moving !== pin.id && nova && !editPlace && pinEntity && (
+      {pin && moving !== pin.id && !editPlace && pinEntity && (
         <PlaceDrawer
           entityId={pinEntity.id}
           onClose={() => setSelectedPin(null)}
           onEdit={() => setEditPlace(true)}
         />
       )}
-      {pin && moving !== pin.id && (!nova || editPlace || !pinEntity) && (
+      {pin && moving !== pin.id && (editPlace || !pinEntity) && (
         <aside className="atlas-panel" aria-label="Marcador">
           <button
             type="button"

@@ -121,13 +121,14 @@ function useBoxSize(): [(el: HTMLElement | null) => void, { w: number; h: number
 
 /** Nova cara: o mural em foco primeiro (uma ficha e as ligações dela); o grafo completo a um toque. */
 export default function GraphView() {
-  const { prefs, nav } = useWorkspace()
+  const { nav } = useWorkspace()
   const [full, setFull] = useState(false)
   const [center, setCenter] = useState<string | null>(nav.view === 'relacoes' ? (nav.id ?? null) : null)
-  if (!prefs.novaCara || full) return <GraphCanvas onMural={prefs.novaCara ? () => setFull(false) : undefined} />
+  if (full) return <GraphCanvas onMural={() => setFull(false)} />
   return (
     <div className="view graph-view is-mural">
       <AreaHead current="relacoes" tour="relacoes" />
+      <SuggestedLinks />
       <FocusMural centerId={center} onCenter={setCenter} onFullGraph={() => setFull(true)} />
     </div>
   )

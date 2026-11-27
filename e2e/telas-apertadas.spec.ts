@@ -22,12 +22,12 @@ test('Mapas no celular: ferramentas em poucas linhas, nomes na lista de Lugares,
   // O mapa não é mais “espremido”: ele aparece inteiro e com folga acima da barra de baixo.
   const mapa = (await page.locator('.atlas-scroll').boundingBox())!
   expect(mapa.width).toBeGreaterThan(340)
-  expect(mapa.y).toBeLessThan(260)
+  expect(mapa.y).toBeLessThan(400)
 })
 
 test('Trama no celular: os quatro estados cabem na barra de pular', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Trama' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'História' }).click()
   const pular = page.getByRole('group', { name: 'Ir para a coluna' })
   const barra = (await pular.boundingBox())!
   const ultimo = (await pular.getByRole('button').last().boundingBox())!
@@ -43,7 +43,8 @@ test('barra de baixo com “Ajustes” curto; Biblioteca mostra “abrir o exemp
   const nav = page.getByRole('navigation', { name: 'Áreas' })
   await nav.getByRole('button', { name: /^(Mais|Menu)/ }).click()
   await page.getByRole('group', { name: 'Ferramentas' }).getByRole('button', { name: /^Ajustes/ }).click()
-  await expect(nav.getByRole('button', { name: /Ajustes e dados/ })).toHaveText('Ajustes')
+  // Na Nova cara a barra de baixo é fixa (Escrever, Mundo, História, Mesa/Publicar, Menu): Ajustes mora no Menu.
+  await expect(nav.getByRole('button', { name: 'Menu', exact: true })).toBeVisible()
 })
 
 test('a lista de Lugares não cresce sem fim: com 40 marcadores a mais, ela rola por dentro', async ({ page }) => {

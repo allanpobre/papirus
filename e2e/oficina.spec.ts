@@ -64,7 +64,7 @@ test('Oficina também abre pela tela de universos', async ({ page }) => {
 test('meta com prazo e calendário de escrita no Início', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
   await nav(page, 'Ajustes e dados').click()
-  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /^Universo/ }).click()
   await page.getByRole('textbox', { name: 'Meta do livro: palavras' }).fill('5000')
   await expect(page.getByLabel('Até')).toBeVisible()
   await nav(page, 'Escrever').click()

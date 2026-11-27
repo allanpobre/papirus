@@ -21,7 +21,7 @@ test('depois de atualizar, o aviso leva ao "O que mudou"; e as novidades ficam n
   await page.reload()
   await expect(page.getByText('O Papirus mudou. Veja o que há de novo.')).toHaveCount(0)
   // No Menu ("Mais"), as novidades continuam à mão.
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
   await page.getByRole('button', { name: /^Novidades/ }).click()
   await expect(page.getByRole('dialog', { name: 'O que mudou' })).toBeVisible()
 })

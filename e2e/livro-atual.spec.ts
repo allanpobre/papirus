@@ -1,20 +1,22 @@
-import { expect, test, type Locator, type Page } from './fixtures.ts'
+import { expect, test, type Page } from './fixtures.ts'
 import { openPart } from './areas.ts'
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: new RegExp(`^${name}`) }).first()
-const book = (page: Page) => page.getByLabel('Livro', { exact: true })
+/** A faixa fixa no alto: em que livro se está. */
+const band = (page: Page) => page.getByRole('region', { name: 'Livro atual' })
 /** O livro 3 do exemplo (com ou sem "(trechos)" no nome, conforme a versão do exemplo). */
 const OZMA = /^Ozma de Oz/
 
-/** Escolhe um livro pelo começo do nome. */
-async function pick(select: Locator, name: RegExp) {
-  await select.selectOption((await select.locator('option', { hasText: name }).first().getAttribute('value'))!)
+/** Escolhe um livro pelo começo do nome (a faixa do alto: "Trocar livro"). */
+async function pick(page: Page, name: RegExp) {
+  await band(page).getByRole('button', { name: 'Trocar livro' }).click()
+  await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio', { name }).click()
 }
 
-/** Abre uma área pelo "Mais" do celular. */
+/** Abre uma área pelo "Menu" do celular. */
 async function viaMore(page: Page, area: string) {
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: area, exact: true }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: new RegExp(`^${area}`) }).click()
 }
 
 test.describe('o livro escolhido no alto', () => {
@@ -23,17 +25,15 @@ test.describe('o livro escolhido no alto', () => {
   test('Início, Escrever, Fichas e Publicar seguem o livro, e a escolha fica guardada', async ({ page }) => {
     await page.goto('/app/?exemplo')
     // No Início, a faixa está no alto; o "onde você parou" passa a ser do livro.
-    await expect(book(page)).toHaveValue('')
-    await pick(book(page), OZMA)
+    await expect(band(page)).toContainText('Todos os livros')
+    await pick(page, OZMA)
     await expect(page.getByText(/^Ozma de Oz.* · onde você parou$/)).toBeVisible()
 
     // Escrever: no celular a faixa não cabe; o livro fica no topo da lista de cenas.
     await nav(page, 'Escrever').click()
-    await expect(page.locator('.book-bar')).toHaveCount(0)
     await expect(page.getByText(/^Ozma de Oz.* · cena 1 de/).filter({ visible: true }).first()).toBeVisible()
     await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
     const tree = page.getByRole('complementary', { name: 'Manuscrito' })
-    await expect(tree.getByLabel('Livro', { exact: true })).toHaveValue(/.+/)
     await expect(tree.getByRole('textbox', { name: 'Título da história' })).toHaveCount(1)
     await expect(tree.getByRole('textbox', { name: 'Título da história' })).toHaveValue(OZMA)
     await page.keyboard.press('Escape')
@@ -53,7 +53,7 @@ test.describe('o livro escolhido no alto', () => {
     await expect(list.filter({ hasText: 'Zorba Um' })).toHaveCount(1)
     await expect(list.filter({ hasText: 'Zorba Dois' })).toHaveCount(1)
     // Saindo e voltando, continuam (ainda não estão em livro nenhum, então valem para qualquer livro).
-    await nav(page, 'Início').click()
+    await viaMore(page, 'Início')
     await openPart(page, 'Fichas')
     await expect(list.filter({ hasText: 'Zorba Um' })).toHaveCount(1)
     await expect(list.filter({ hasText: 'Zorba Dois' })).toHaveCount(1)
@@ -62,18 +62,18 @@ test.describe('o livro escolhido no alto', () => {
 
     // Guardado: depois de recarregar, o livro continua escolhido.
     await page.reload()
-    await expect(book(page).locator('option:checked')).toHaveText(OZMA)
+    await expect(band(page)).toContainText('Ozma de Oz')
 
-    // Todos os livros (pela lista de cenas): o manuscrito volta a ter todas as histórias.
+    // Todos os livros (pela faixa): o manuscrito volta a ter todas as histórias.
+    await pick(page, /^Todos os livros/)
     await nav(page, 'Escrever').click()
     await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
-    await tree.getByLabel('Livro', { exact: true }).selectOption({ label: 'Todos os livros' })
     await expect.poll(() => tree.getByRole('textbox', { name: 'Título da história' }).count()).toBeGreaterThan(2)
   })
 
   test('Publicar abre o volume do livro escolhido', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await pick(book(page), OZMA)
+    await pick(page, OZMA)
     await viaMore(page, 'Publicar')
     // O volume da estante que tem essa história (o título do volume é o do livro).
     await expect(page.locator('.book-hero-info h2')).toHaveText('Ozma de Oz')
@@ -87,13 +87,10 @@ test.describe('o livro escolhido no alto', () => {
     const scenes = page.locator('.tl-scene:not(.tl-session)')
     await expect(scenes.first()).toBeVisible()
     const allScenes = await scenes.count()
-    // Sem livro escolhido, as outras áreas não mostram nada sobre livro (sem faixa no alto).
-    await expect(page.locator('[data-tour="livro-atual"]')).toHaveCount(0)
-    // O livro se escolhe no Início; aqui aparece só um selo com ele.
-    await nav(page, 'Início').click()
-    await pick(book(page), OZMA)
+    // O livro se escolhe na faixa do alto, que continua à vista nas outras áreas.
+    await pick(page, OZMA)
     await openPart(page, 'Linha do tempo')
-    await expect(page.locator('.book-chip')).toBeVisible()
+    await expect(band(page)).toContainText('Ozma de Oz')
     await expect.poll(() => scenes.count()).toBeLessThan(Math.max(1, allScenes))
 
     // Quem sabe o quê: o fim é o fim deste livro.
@@ -103,7 +100,7 @@ test.describe('o livro escolhido no alto', () => {
 
     // Trama: a tela abre com o livro (as tramas sem cena continuam).
     await openPart(page, 'Pistas e mistérios')
-    await expect(book(page).locator('option:checked')).toHaveText(OZMA)
+    await expect(band(page)).toContainText('Ozma de Oz')
 
     // Mapas: os lugares do livro em destaque, os outros apagados.
     await openPart(page, 'Mapas')
@@ -118,7 +115,7 @@ test.describe('o livro escolhido no alto', () => {
 
   test('lugar novo, que ainda não está em cena nenhuma, não fica apagado nos Mapas', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await pick(book(page), OZMA)
+    await pick(page, OZMA)
     await openPart(page, 'Mapas')
     // Marca um lugar novo no mapa (cria a ficha na hora): ele ainda não aparece em livro nenhum.
     await page.getByRole('button', { name: 'Marcar lugar' }).click()
@@ -135,7 +132,7 @@ test.describe('o livro escolhido no alto', () => {
 
   test('Ler como livro começa no livro escolhido', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await pick(book(page), OZMA)
+    await pick(page, OZMA)
     await page.getByRole('button', { name: 'Ler como livro' }).first().click()
     const reader = page.getByRole('dialog', { name: 'Modo leitor' })
     await expect(reader.locator('.leitor-title')).toHaveText('A menina no galinheiro')
@@ -159,19 +156,19 @@ test.describe('palavras e meta do livro escolhido, no Início', () => {
     await expect(page.locator('.home-book-goal')).toHaveCount(0)
 
     // Escolhendo o livro 3, aparecem as palavras dele (só dele, não as do universo todo).
-    await pick(book(page), OZMA)
+    await pick(page, OZMA)
     await expect(stats.locator('.home-book-goal')).toContainText(/Neste livro: [\d.]+ palavras/)
     const doLivro = Number((await stats.locator('.home-book-goal strong').innerText()).replace(/\./g, ''))
     expect(doLivro).toBeGreaterThan(100)
-    await pick(book(page), /^Todos/)
+    await pick(page, /^Todos/)
     await expect(page.locator('.home-book-goal')).toHaveCount(0)
 
     // Com a meta do livro (e o prazo), diz quanto falta.
     await viaMore(page, 'Ajustes e dados')
-    await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: 'Universo', exact: true }).click()
+    await page.getByRole('navigation', { name: 'Categorias dos ajustes' }).getByRole('button', { name: /^Universo/ }).click()
     await page.getByRole('textbox', { name: 'Meta do livro: palavras' }).fill('50000')
-    await nav(page, 'Início').click()
-    await pick(book(page), OZMA)
+    await viaMore(page, 'Início')
+    await pick(page, OZMA)
     const meta = stats.locator('.home-book-goal')
     await expect(meta).toContainText(`faltam ${(50000 - doLivro).toLocaleString('pt-BR')} para 50.000 (até `)
   })
@@ -182,7 +179,7 @@ test.describe('procurar e trocar com um livro escolhido', () => {
 
   test('"Só neste livro" é o padrão, mostra quantos achados há em cada, e "Em todos os livros" amplia', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await pick(book(page), OZMA)
+    await pick(page, OZMA)
     await nav(page, 'Escrever').click()
     // O Ctrl+K do computador não existe no celular: abre pelo "Mais" da barra da cena (⋯) ou por Procurar e trocar.
     await page.evaluate(() => window.dispatchEvent(new CustomEvent('papirus:trocar-no-livro', { detail: { find: 'Dorothy' } })))
@@ -222,7 +219,7 @@ test.describe('bilhete e sprint com um livro escolhido', () => {
   test('o bilhete de uma cena de outro livro leva a essa cena e o livro escolhido passa a ser o dela', async ({ page }) => {
     await page.goto('/app/?exemplo')
     // No livro 3: um bilhete na cena em que se parou.
-    await pick(book(page), OZMA)
+    await pick(page, OZMA)
     const proximo = page.getByRole('region', { name: 'O próximo passo' })
     await proximo.getByRole('button', { name: 'Deixar um bilhete para amanhã' }).click()
     await proximo.getByRole('textbox', { name: 'Bilhete para amanhã' }).fill('Ozma descobre quem a escondeu.')
@@ -230,20 +227,19 @@ test.describe('bilhete e sprint com um livro escolhido', () => {
     await expect(proximo.getByRole('note', { name: 'Bilhete para amanhã' })).toContainText('Ozma descobre quem a escondeu.')
 
     // Trocando para o livro 1, o bilhete continua à vista, com o nome da cena dele; um toque leva até ela.
-    await pick(book(page), /^O Mágico de Oz/)
+    await pick(page, /^O Mágico de Oz/)
     const bilhete = page.getByRole('note', { name: 'Bilhete para amanhã' })
     await expect(bilhete).toContainText('Ozma descobre quem a escondeu.')
     await bilhete.getByRole('button', { name: /^\(em “/ }).click()
     // Chegou na cena certa (do livro 3) e o livro escolhido virou o dela.
     await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
-    const lista = page.getByRole('complementary', { name: 'Manuscrito' })
-    await expect(lista.getByLabel('Livro', { exact: true }).locator('option:checked')).toHaveText(OZMA)
+    await expect(band(page)).toContainText('Ozma de Oz')
     await expect(page.getByRole('note', { name: 'Bilhete para amanhã' })).toContainText('Ozma descobre quem a escondeu.')
   })
 
   test('o sprint conta só as palavras do livro em que começou, mesmo que se escreva em outro', async ({ page }) => {
     await page.goto('/app/?exemplo')
-    await pick(book(page), OZMA)
+    await pick(page, OZMA)
     await page.getByRole('button', { name: '15 minutos' }).click()
     const editor = page.getByRole('textbox', { name: 'Texto da cena' })
     await editor.click()
@@ -253,9 +249,9 @@ test.describe('bilhete e sprint com um livro escolhido', () => {
     await expect(relogio).toContainText('+5', { timeout: 10_000 })
 
     // Troca para o livro 1 pela lista de cenas e escreve lá: o sprint continua contando o livro 3.
+    await pick(page, /^O Mágico de Oz/)
     await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
     const lista = page.getByRole('complementary', { name: 'Manuscrito' })
-    await pick(lista.getByLabel('Livro', { exact: true }), /^O Mágico de Oz/)
     await lista.locator('.tree-scene, [data-scene], li button').filter({ hasText: /./ }).first().click()
     await page.keyboard.press('Escape')
     await editor.click()
@@ -264,36 +260,5 @@ test.describe('bilhete e sprint com um livro escolhido', () => {
     await page.waitForTimeout(1800)
     await expect(relogio).toContainText('+5')
     await expect(relogio).not.toContainText('+12')
-  })
-})
-
-test.describe('uma série: vários livros juntos', () => {
-  test.use({ viewport: { width: 390, height: 844 } })
-
-  test('juntar os livros de Oz sem a Zixi: o manuscrito e as fichas seguem a série, e ela fica guardada', async ({ page }) => {
-    await page.goto('/app/?exemplo')
-    await book(page).selectOption('__varios')
-    const series = page.getByRole('group', { name: 'Escolher os livros da série' })
-    const boxes = series.getByRole('checkbox')
-    const n = await boxes.count()
-    expect(n).toBeGreaterThan(2)
-    // Todos menos o último (a Zixi).
-    for (let i = 0; i < n - 1; i++) await boxes.nth(i).check()
-    await series.getByRole('button', { name: `Juntar ${n - 1} livros` }).click()
-    await expect(book(page).locator('option:checked')).toContainText(' + ')
-    await expect(book(page).locator('option:checked')).not.toContainText('Zixi')
-
-    // Escrever: a lista de cenas mostra as histórias da série, sem a Zixi.
-    await nav(page, 'Escrever').click()
-    await page.getByRole('button', { name: 'Mostrar manuscrito' }).click()
-    const tree = page.getByRole('complementary', { name: 'Manuscrito' })
-    await expect(tree.getByRole('textbox', { name: 'Título da história' })).toHaveCount(n - 1)
-    await expect(tree.getByRole('textbox', { name: 'Título da história' }).filter({ hasText: /Zixi/ })).toHaveCount(0)
-    await page.keyboard.press('Escape')
-
-    // Recarregar mantém a série.
-    await page.reload()
-    await nav(page, 'Início').click()
-    await expect(book(page).locator('option:checked')).toContainText(' + ')
   })
 })

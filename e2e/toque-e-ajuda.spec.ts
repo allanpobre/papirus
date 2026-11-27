@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 // Auditoria 23 (H6.2 e H10.1): na ficha, os botões do alto com nome e com área para o dedo; e as janelas
 // simples com um (?) que diz para que servem.
@@ -7,12 +7,15 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 test('ficha no celular: Editar e E se sumir? com nome, ícones com 40 px e Arrumar no Mais', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
   const head = page.locator('.reader-head')
-  await expect(head.getByRole('button', { name: 'Editar o básico' })).toHaveText('Editar')
-  await expect(head.getByRole('button', { name: /E se sumir/ })).toHaveText(/E se sumir\?/)
+  await expect(head.getByRole('button', { name: 'Editar', exact: true })).toHaveText('Editar')
+  // O “E se sumir?” mora no menu da ficha, com o nome por extenso.
+  await head.getByRole('button', { name: 'Mais da ficha' }).click()
+  await expect(page.getByRole('button', { name: /E se sumir\?/ })).toBeVisible()
+  await page.keyboard.press('Escape')
   // Os que seguem só com desenho têm pelo menos 40 px.
   for (const nome of ['Voltar para a lista', 'Mais da ficha']) {
     const b = (await head.getByRole('button', { name: nome }).boundingBox())!
