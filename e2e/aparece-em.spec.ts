@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo, openPart } from './areas.ts'
+import { fichaModo, openPart, abaFicha } from './areas.ts'
 
 /*
  * "Aparece em" na ficha, no celular: a tira com todas as cenas (as do personagem acesas), o nome em
@@ -13,6 +13,7 @@ test('a ficha mostra onde o personagem aparece, com o nome em destaque, e abre a
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
 
+  await abaFicha(page, 'Diário')
   const resumo = page.locator('.appear-sum')
   await expect(resumo).toContainText(/Em \d+ de \d+ cenas/)
   const [em, de] = ((await resumo.innerText()).match(/Em (\d+) de (\d+)/) ?? []).slice(1).map(Number)

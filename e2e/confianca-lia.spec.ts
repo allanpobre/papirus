@@ -46,7 +46,12 @@ test('com mais de mil palavras só no aparelho, o Início convida a guardar na c
   await colar(page, `<p>${muito}</p>`, muito)
   await page.waitForTimeout(800)
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Início', exact: true }).click()
+  const inicio = page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Início', exact: true })
+  if (await inicio.isVisible()) await inicio.click()
+  else {
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Início/ }).click()
+  }
   const convite = page.getByRole('note', { name: 'Seu livro só está neste aparelho' })
   await expect(convite).toContainText('1.050 palavras')
   await expect(convite.getByRole('button', { name: 'Guardar na minha conta' })).toBeVisible()

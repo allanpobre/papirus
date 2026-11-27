@@ -36,7 +36,7 @@ test('cada área tem a sua cor no alto da tela', async ({ page }) => {
   const cor = () => page.locator('.stage').evaluate((el) => getComputedStyle(el).boxShadow)
   await barra.getByRole('button', { name: 'Mundo', exact: true }).click()
   const mundo = await cor()
-  await barra.getByRole('button', { name: 'Trama' }).click()
+  await barra.getByRole('button', { name: 'História' }).click()
   const trama = await cor()
   expect(mundo).toContain('inset')
   expect(trama).toContain('inset')
