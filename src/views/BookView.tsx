@@ -66,7 +66,7 @@ export default function BookView() {
     let id = ''
     update((u) => {
       const col = u.collections.find((c) => c.id === fromCollection)
-      const [next, b] = addBook(u, { title: newTitle || col?.name, styleFrom: styleFrom || null, ...(col ? { storyIds: collectionStoryIds(u, col.id) } : {}) })
+      const [next, b] = addBook(u, { title: newTitle || col?.name || '', styleFrom: styleFrom || null, ...(col ? { storyIds: collectionStoryIds(u, col.id) } : {}) })
       id = b.id
       return next
     })
