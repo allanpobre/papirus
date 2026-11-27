@@ -1,0 +1,56 @@
+# Testes a cada pedido (PR) e toda noite: tipos, lint, testes de unidade, build e a bateria e2e inteira.
+# O resultado aparece no PR (✅ ou ❌); toda noite, se algo quebrar no main, o GitHub manda um e-mail.
+name: Testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Toda noite, 3h17 em Brasília (6h17 UTC).
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checar:
+    name: Tipos, lint, unidade e build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  e2e:
+    name: e2e (parte ${{ matrix.parte }} de 4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        parte: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --shard=${{ matrix.parte }}/4 --trace retain-on-failure
+        env:
+          CI: '1'
+      - name: Guardar o que falhou (fotos e rastros)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-falhas-${{ matrix.parte }}
+          path: test-results
+          retention-days: 7
