@@ -1,12 +1,12 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart, abaFicha } from './areas.ts'
 
 // As referências ficam no alto da ficha: colar um link, uma frase ou um nome vira referência; tocar abre em grande.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
 test('a faixa de referências no alto da ficha: colar, abrir, marcar o que peguei, e o leitor não vê', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Mira/ }).first().click()
   await fichaModo(page, 'Ler')
   const faixa = page.getByRole('region', { name: 'Referências desta ficha' })
@@ -34,6 +34,7 @@ test('a faixa de referências no alto da ficha: colar, abrir, marcar o que pegue
   await janela.getByRole('button', { name: 'personalidade' }).click()
   await expect(janela.getByRole('button', { name: 'personalidade' })).toHaveAttribute('aria-pressed', 'true')
   await page.keyboard.press('Escape')
+  await abaFicha(page, 'Referências')
   await expect(page.getByRole('region', { name: 'Referências', exact: true })).toContainText('personalidade')
 
   // Como o leitor: a faixa some.

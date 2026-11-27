@@ -1,12 +1,12 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 // As versões do personagem nascem e se veem na própria ficha: barra "Versões", "+ Nova versão", ver e editar.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
 test('criar, ver e editar uma versão do personagem pela própria ficha', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
   const ficha = page.getByRole('article', { name: /Ler a ficha/ })

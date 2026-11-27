@@ -1,11 +1,12 @@
 import { expect, test } from './fixtures.ts'
+import { openPart } from './areas.ts'
 
 // Criar uma ficha com um nome que já existe avisa (auditoria 23), sem impedir.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
 test('nova ficha com nome (ou apelido) que já existe: avisa e oferece abrir a que existe', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('button', { name: 'Nova ficha' }).first().click()
   const nova = page.getByRole('dialog', { name: 'Nova ficha' })
   const aviso = nova.getByRole('status').filter({ hasText: 'Já existe' })

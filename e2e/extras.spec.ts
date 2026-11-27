@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { openGraph, fichaModo } from './areas.ts'
+import { openGraph, fichaModo, openPart } from './areas.ts'
 import { readFile } from 'node:fs/promises'
 
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto da cena' })
@@ -382,7 +382,7 @@ test('modelo de universo: fantasia já traz o Livro I e campos sugeridos nas fic
   await page.getByRole('textbox', { name: 'Nome do novo universo' }).fill('Eldra')
   await page.getByRole('radiogroup', { name: 'Começar como' }).getByRole('radio', { name: 'Fantasia' }).click()
   await page.getByRole('button', { name: 'Criar universo' }).click()
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await openPart(page, 'Fichas')
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Kael')
   await page.keyboard.press('Enter')
   // O personagem novo abre no criador (em cartas): “Pronto” leva à página, e “Editar tudo” ao formulário.

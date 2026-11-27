@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 /*
  * "Aparece em" na ficha, no celular: a tira com todas as cenas (as do personagem acesas), o nome em
@@ -9,7 +9,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 test('a ficha mostra onde o personagem aparece, com o nome em destaque, e abre a cena no lugar certo', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
 

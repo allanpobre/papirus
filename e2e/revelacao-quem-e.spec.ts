@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 /*
  * A espécie verdadeira revelada mais tarde (o caso do Malkai), no celular: o autor marca em que cena o leitor
@@ -9,7 +9,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 test('Quem é revelado numa cena, com máscara até lá', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Editar')
 

@@ -21,6 +21,12 @@ export async function fecharCriador(page: Page) {
   await fichaModo(page, 'Editar')
 }
 
+/** A ficha do personagem tem abas (Visão, Ligações, Poderes, Diário, Referências): abre a aba, se ela existe. */
+export async function abaFicha(page: Page, nome: string) {
+  const aba = page.getByRole('navigation', { name: 'Partes da ficha' }).getByRole('button', { name: nome, exact: true })
+  if (await aba.count()) await aba.click()
+}
+
 /** Fichas: abre os "Filtros" (tipo, papel, ordem e vista ficam atrás do botão). Não faz nada se já estão abertos. */
 export async function abrirFiltros(page: Page) {
   const botao = page.getByRole('button', { name: /^Filtros/ })
