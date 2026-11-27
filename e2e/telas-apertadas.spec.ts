@@ -27,7 +27,7 @@ test('Mapas no celular: ferramentas em poucas linhas, nomes na lista de Lugares,
 
 test('Trama no celular: os quatro estados cabem na barra de pular', async ({ page }) => {
   await page.goto('/app/?exemplo')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Trama' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'História' }).click()
   const pular = page.getByRole('group', { name: 'Ir para a coluna' })
   const barra = (await pular.boundingBox())!
   const ultimo = (await pular.getByRole('button').last().boundingBox())!

@@ -334,7 +334,7 @@ test.describe('dupla com dois lados diferentes, no celular', () => {
     const paraALista = async () => {
       // Com o cursor no texto, o celular troca a barra de baixo pela de formatação: tira o cursor.
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-      await page.getByRole('button', { name: 'Mais', exact: true }).click()
+      await page.getByRole('button', { name: 'Menu', exact: true }).click()
       await page.getByRole('button', { name: /^Seus universos \(sair de/ }).click()
     }
     await page.goto('/app/')

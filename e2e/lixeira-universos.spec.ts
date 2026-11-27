@@ -21,7 +21,7 @@ test('apagar um universo manda para a lixeira; Recuperar traz tudo de volta; Apa
 
   // Apaga pelos Ajustes (o mesmo caminho do menu do cartão).
   await page.getByRole('button', { name: 'Fechar o teclado' }).click().catch(() => {})
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).click()
   await page.locator('#menu-mais').getByRole('button', { name: /^Ajustes e dados/ }).click()
   await abrirUniverso(page)
   await page.getByRole('button', { name: 'Apagar este universo…' }).click()
@@ -39,7 +39,7 @@ test('apagar um universo manda para a lixeira; Recuperar traz tudo de volta; Apa
   await expect(page.getByRole('textbox', { name: 'Texto da cena' })).toContainText('O farol apagou na noite em que ela voltou.')
 
   // Apagar de novo e, desta vez, de vez.
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).click()
   await page.locator('#menu-mais').getByRole('button', { name: /^Ajustes e dados/ }).click()
   await abrirUniverso(page)
   await page.getByRole('button', { name: 'Apagar este universo…' }).click()

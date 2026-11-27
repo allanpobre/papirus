@@ -13,6 +13,14 @@ export async function openPart(page: Page, part: Part) {
   await page.locator('[data-tour="partes"]').getByRole('button', { name: part }).click()
 }
 
+/** A ficha de personagem que acabou de nascer abre no criador (cartas): "Pronto" leva à página; depois, Editar abre o formulário. */
+export async function fecharCriador(page: Page) {
+  const criador = page.getByRole('article', { name: /^Criar / })
+  await criador.waitFor({ timeout: 4000 }).catch(() => undefined)
+  if (await criador.count()) await criador.getByRole('button', { name: 'Pronto' }).click()
+  await fichaModo(page, 'Editar')
+}
+
 /** Fichas: abre os "Filtros" (tipo, papel, ordem e vista ficam atrás do botão). Não faz nada se já estão abertos. */
 export async function abrirFiltros(page: Page) {
   const botao = page.getByRole('button', { name: /^Filtros/ })

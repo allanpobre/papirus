@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { strFromU8, unzipSync } from 'fflate'
 import { createFakeSupabase, PASSWORD, SERVER, PEOPLE } from './fakeSupabase.ts'
 import { expect, test, type Page } from './fixtures.ts'
-import { openPart, fichaModo } from './areas.ts'
+import { openPart, fichaModo, fecharCriador } from './areas.ts'
 
 /** Enquanto não migra para a Nova cara (veja playwright.config.ts). */
 
@@ -60,11 +60,12 @@ test('imagens: retrato na ficha, capa do universo e imagem na cena, encolhidas e
   await nav(page, 'Mundo').click()
   await page.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Mira')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
+  await fecharCriador(page)
   await page.locator('.portrait-edit input[type=file]').setInputFiles(await photo(page, '#c0577a', 1200, 1500))
   // A imagem passa por um recorte antes de guardar: aqui, sem recortar.
   await page.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
   await expect(page.getByRole('button', { name: 'Trocar a imagem da ficha' }).locator('img')).toHaveAttribute('src', /^blob:/)
-  await expect(page.locator('.entity-row-pic')).toBeVisible()
+  await expect(page.locator('.entity-card-img')).toBeVisible()
   await fichaModo(page, 'Ler')
   await expect(page.getByRole('img', { name: 'Imagem de Mira' })).toBeVisible()
   expect(await page.getByRole('img', { name: 'Imagem de Mira' }).evaluate((img: HTMLImageElement) => img.naturalHeight)).toBe(800)
@@ -162,6 +163,7 @@ test('imagens: com conta, sobem sozinhas e aparecem no outro aparelho', async ({
   await nav(a, 'Mundo').click()
   await a.getByRole('textbox', { name: 'Nome da nova ficha' }).fill('Kael')
   await a.getByRole('button', { name: 'Criar ficha' }).click()
+  await fecharCriador(a)
   await a.locator('.portrait-edit input[type=file]').setInputFiles(await photo(a, '#7b5ea7', 900, 900))
   // A imagem passa por um recorte antes de guardar: aqui, sem recortar.
   await a.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
@@ -256,7 +258,7 @@ test('imagens: no Codex dos jogadores, a ficha revelada mostra o retrato (miniat
   await page.locator('.portrait-edit input[type=file]').setInputFiles(await photo(page, '#2f6fae', 1200, 900))
   // A imagem passa por um recorte antes de guardar: aqui, sem recortar.
   await page.getByRole('dialog', { name: 'Enquadrar o retrato' }).getByRole('button', { name: 'Sem recortar' }).click()
-  await expect(page.locator('.entity-row-pic')).toBeVisible()
+  await expect(page.locator('.entity-card-img')).toBeVisible()
 
   await nav(page, 'Ajustes').click()
   // O servidor próprio fica em Ajustes › Avançado (fechado).

@@ -6,7 +6,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 /** A Mesa do exemplo de Oz, no bestiário ("Dados e tabelas"). */
 async function bestiario(page: Page) {
   await page.goto('/app/?exemplo')
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
   await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mesa', exact: true }).click()
   await page.getByRole('tab', { name: 'Regras' }).click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
@@ -54,7 +54,7 @@ test('o inimigo que vem do Mundo herda o "No jogo" da ficha (traços e modificad
 test('o inimigo acompanha a ficha do Mundo: o que muda no "No jogo" da espécie aparece no bestiário e na iniciativa', async ({ page }) => {
   // Na ficha da Kalidah (Mundo), um traço novo no "No jogo".
   await page.goto('/app/?exemplo')
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
   await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
   await page.locator('.entity-row', { has: page.locator('.entity-row-name', { hasText: /^Kalidah$/ }) }).first().click()
   await fichaModo(page, 'Editar')
@@ -63,7 +63,7 @@ test('o inimigo acompanha a ficha do Mundo: o que muda no "No jogo" da espécie 
   await jogo.getByLabel('Traços (um por linha)').fill('Garras longas\nCaça em dupla\nTem medo de água')
 
   // No bestiário, o inimigo já tem o traço novo.
-  await page.getByRole('button', { name: 'Mais', exact: true }).click()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
   await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mesa', exact: true }).click()
   await page.getByRole('tab', { name: 'Regras' }).click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()

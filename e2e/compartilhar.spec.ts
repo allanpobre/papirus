@@ -141,13 +141,13 @@ test.describe('Compartilhar no celular', () => {
     await page.waitForTimeout(900)
     // Com o cursor no texto, o celular troca a barra de baixo pela de formatação: tira o cursor e vai à lista para entrar.
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-    await page.getByRole('button', { name: 'Mais', exact: true }).click()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
     await page.getByRole('button', { name: /^Seus universos \(sair de/ }).click()
     await signIn(page, 'ana@exemplo.com')
     await page.getByRole('button', { name: /^Continuar escrevendo Ostria/ }).click()
     /** No celular, Compartilhar fica no pé do "Mais". */
     const abrirCompartilhar = async () => {
-      await page.getByRole('button', { name: 'Mais', exact: true }).click()
+      await page.getByRole('button', { name: 'Menu', exact: true }).click()
       await page.getByRole('button', { name: 'Compartilhar', exact: true }).click()
     }
     await abrirCompartilhar()
