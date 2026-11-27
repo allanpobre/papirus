@@ -21,9 +21,9 @@ test('poderes: árvore pelo modelo, aprende numa cena, acende pela régua e avis
   await page.getByRole('group', { name: 'Começar com um modelo' }).getByRole('button', { name: 'Graus' }).click()
   await expect(page.getByRole('group', { name: /^Poder / })).toHaveCount(4)
   await fichaModo(page, 'Ler')
-  const arvore = page.getByRole('list', { name: 'Árvore de Os Graus' })
-  await expect(arvore.getByText('Nível 4')).toBeVisible()
-  await expect(arvore).toContainText('pede Segundo grau')
+  // Na Nova cara, a árvore é uma constelação: uma estrela por poder.
+  const arvore = page.getByRole('group', { name: 'Constelação de Os Graus' })
+  await expect(arvore.getByRole('button')).toHaveCount(4)
 
   // Kael aprende o Segundo grau (sem o Primeiro) numa cena do meio.
   await page.getByRole('button', { name: 'Voltar para a lista' }).click()
@@ -39,13 +39,16 @@ test('poderes: árvore pelo modelo, aprende numa cena, acende pela régua e avis
   await editando.getByRole('button', { name: 'Pronto' }).click()
 
   const poderes = page.getByRole('region', { name: 'Poderes' })
-  await expect(poderes.getByRole('listitem', { name: 'Segundo grau, tem' })).toContainText(`aprende em “${titulo}”`)
+  const estrela = poderes.getByRole('button', { name: 'Segundo grau, acesa' })
+  await expect(estrela).toBeVisible()
+  await estrela.click()
+  await expect(poderes.getByRole('region', { name: 'Poder: Segundo grau' })).toContainText(titulo)
   await expect(poderes.getByRole('list', { name: 'O que não fecha nos poderes' })).toContainText('antes de “Primeiro grau”')
 
   // Antes da cena, ainda não tem.
   const regua = page.getByRole('combobox', { name: 'Até onde na história' })
   await regua.selectOption({ index: 1 })
-  await expect(poderes.getByRole('listitem', { name: 'Segundo grau, ainda não' })).toBeVisible()
+  await expect(poderes.getByRole('button', { name: 'Segundo grau, apagada' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 
@@ -63,6 +66,6 @@ test('sem sistema ainda: o personagem acha os Poderes no "+ Bloco" e cria o sist
   const editando = page.getByRole('group', { name: 'Editando: Poderes' })
   await editando.getByRole('checkbox', { name: 'Água' }).check()
   await editando.getByRole('button', { name: 'Pronto' }).click()
-  await expect(page.getByRole('region', { name: 'Poderes' }).getByRole('listitem', { name: 'Água, tem' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Poderes' }).getByRole('button', { name: 'Água, acesa' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Poderes' })).toContainText('Marés')
 })
