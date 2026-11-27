@@ -2,7 +2,8 @@ import { expect, test } from './fixtures.ts'
 
 test('a apresentação leva ao app e ao exemplo', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Seu mundo, escrito e jogado no mesmo caderno.')
+  // A palavra do meio troca (escrito, jogado, mapeado, lido); o leitor de tela ouve todas.
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Seu mundo, escrito, jogado, mapeado e lido')
   await expect(page.getByRole('heading', { name: 'O mesmo mundo, agora na mesa.' })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Áreas' })).toHaveCount(0)
 
@@ -28,10 +29,13 @@ test('links antigos de jogadores e retornos de login vão para o app', async ({ 
   await expect(page).toHaveURL(/\/app\/$/)
 })
 
-test('a apresentação mostra os três setores, a mesa nova e o gerador da Oficina', async ({ page }) => {
+test('a apresentação mostra os mundos para abrir, a mesa nova e o gerador da Oficina', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Cada parte com a sua cara. O mesmo caderno por trás.' })).toBeAttached()
-  for (const name of ['Escrita', 'Mesa de RPG', 'Oficina']) await expect(page.locator('.lp-sector-name', { hasText: name })).toBeAttached()
+  // A vitrine: três mundos prontos, cada um abre de verdade (com o mapa dele na capa).
+  const mundos = page.locator('#mundos')
+  await expect(mundos.getByRole('heading', { level: 3 })).toHaveText(['Terra de Oz', 'O Alienista', 'As Cinzas de Ostria'])
+  await expect(mundos.getByRole('link', { name: 'Abrir o mundo' }).nth(1)).toHaveAttribute('href', /exemplo=alienista/)
+  await expect(page.locator('.lp-num')).toHaveCount(5)
   await expect(page.getByRole('list', { name: 'Temas da mesa' }).getByRole('listitem')).toHaveCount(6)
 
   const ideia = page.getByRole('figure', { name: 'Gerador de ideias da Oficina' })
