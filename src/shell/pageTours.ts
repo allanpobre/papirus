@@ -638,7 +638,7 @@ export const PAGE_TOURS = {
       { target: '.mesa-sub', title: 'Painel e Sessões', body: 'O Painel mostra o que importa agora; Sessões tem todas, com a preparação, o registro e o diário de cada uma.', optional: true },
       { target: '.gm-next', title: 'Próxima sessão', body: 'A sessão marcada e a sua preparação. “Começar agora” abre a sessão na tela inteira e o app vira o modo sessão, com tudo do jogo.', optional: true },
       { target: '[data-tour="gm-sistema"]', title: 'Sistema do grupo', body: 'As regras deste grupo: escolha um sistema que você já tem ou crie um a partir de um modelo. “Editar sistemas” abre Regras.', optional: true },
-      { target: '[data-tour="gm-grupo"]', title: 'Grupo', body: 'Os personagens de jogador, com a vida e as condições de cada um. “Convidar jogadores” manda o link do Codex para os celulares.', optional: true },
+      { target: '[data-tour="gm-grupo"]', title: 'Personagens', body: 'Os personagens de jogador, com a vida e as condições de cada um. “Convidar jogadores” manda o link do Codex para os celulares.', optional: true },
       { target: '[data-tour="gm-segredos"]', title: 'Segredos ainda guardados', body: 'O que o grupo ainda não sabe, e o que ele conhece só em parte (o nome ou o resumo).', optional: true },
       { target: '[data-tour="gm-misterios"]', title: 'Mistérios em jogo', body: 'Os mistérios abertos e quantas pistas cada um tem. Toque para abrir em Pistas e mistérios.', optional: true },
       { target: '[data-tour="gm-mesas"]', title: 'Grupos', body: 'Um universo pode ter vários grupos de jogadores, cada um com o que já descobriu. Renomeie ou apague aqui.', optional: true },
@@ -657,7 +657,7 @@ export const PAGE_TOURS = {
     ],
   },
   'rpg-personagens': {
-    title: 'Grupo',
+    title: 'Personagens',
     steps: [
       { target: '[aria-label="Personagens da mesa"] .quick-create', title: 'Novo personagem', body: 'De jogador ou NPC, já com os atributos e recursos do sistema da mesa.' },
       { target: '[aria-label="Personagens da mesa"] .filter-chips', title: 'Mostrar', body: 'Todos, só os jogadores ou só os NPCs.' },

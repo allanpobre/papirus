@@ -11,7 +11,7 @@ test.describe('no computador', () => {
     await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
     await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Sombras de Varn')
     await page.getByRole('button', { name: 'Criar campanha' }).click()
-    await page.getByRole('tab', { name: 'Grupo' }).click()
+    await page.getByRole('tab', { name: 'Personagens' }).click()
     await page.getByRole('radio', { name: 'NPC do mestre' }).click()
     await page.locator('#nova-ficha-jogo').fill('Corvo Velho')
     await page.getByRole('button', { name: 'Criar personagem' }).click()

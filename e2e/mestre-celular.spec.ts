@@ -42,7 +42,7 @@ test('mestre de primeira viagem no celular: da campanha ao fim da sessão', asyn
   await semRolagemDeLado(page, 'Mesa › Preparar')
 
   // Dois personagens de jogador. Criar abre a ficha; "Voltar para a lista" leva ao formulário de novo.
-  await tap(page.getByRole('tab', { name: 'Grupo', exact: true }))
+  await tap(page.getByRole('tab', { name: 'Personagens', exact: true }))
   for (const [nome, quem] of [
     ['Kaya', 'Ana'],
     ['Brenn', 'Davi'],

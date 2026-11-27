@@ -715,7 +715,7 @@ test('o jogador cria o próprio personagem pelo convite: vira ficha do grupo e d
   const toast = page.locator('.toast').filter({ hasText: 'Ana criou Kaya pelo convite.' })
   await expect(toast).toBeVisible({ timeout: 15_000 })
   await toast.getByRole('button', { name: 'Abrir' }).click()
-  await expect(page.getByRole('tab', { name: 'Grupo', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Personagens', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('region', { name: 'Personagens da mesa' }).locator('[aria-current="true"]')).toContainText('Kaya')
 
   // No celular, a ficha chega pelo Codex e ele já é a Kaya.

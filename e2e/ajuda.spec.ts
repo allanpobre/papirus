@@ -61,7 +61,7 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
   for (const [tab, title] of [
     ['Preparar', 'Preparar'],
     ['Sessões', 'Sessões'],
-    ['Grupo', 'Grupo'],
+    ['Personagens', 'Personagens'],
     ['Codex', 'Codex'],
     ['Regras', 'Sistemas'],
     ['Dados e tabelas', 'Dados e tabelas'],
@@ -183,7 +183,7 @@ test('as janelas que funcionam como tela também têm o (?)', async ({ page }) =
 
   // Na mesa, a janela do dado de verdade.
   await nav(page, 'Mesa').click()
-  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
+  await page.getByRole('tab', { name: 'Personagens', exact: true }).click()
   await page.locator('.entity-row-name', { hasText: /^Brisa$/ }).click()
   await page.getByRole('button', { name: /^Rolar Destreza/ }).click()
   const dado = page.getByRole('dialog', { name: 'Quanto saiu no dado?' })
