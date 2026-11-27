@@ -15,7 +15,7 @@ const log = (...a) => console.log(...a)
   log('botões:', (await r.locator('button:visible').allInnerTexts()).map((t) => t.trim()).filter(Boolean).join(' | '))
   await r.getByRole('button', { name: /Caderno/ }).first().click().catch(() => log('sem Caderno'))
   await p.waitForTimeout(800); await shot('beto-2-caderno')
-  log('caderno texto:', (await p.locator('[role=dialog]').last().innerText()).slice(0, 300).replace(/\n+/g, ' / '))
+  log('caderno texto:', (await p.locator('[role=dialog]').last().innerText().catch(() => '-')).slice(0, 300).replace(/\n+/g, ' / '))
   await p.keyboard.press('Escape'); await p.waitForTimeout(300)
   // Fechar o leitor: o que ele vê?
   await r.getByRole('button', { name: /Fechar|Voltar|Sair/ }).first().click().catch(() => log('sem fechar visível'))
