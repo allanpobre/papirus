@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { fichaModo, openPart } from './areas.ts'
+import { fichaModo, openPart, abaFicha } from './areas.ts'
 
 /*
  * As fases: o personagem muda ao longo da história. No celular, o autor cria uma fase (a partir de uma cena,
@@ -36,6 +36,7 @@ test('uma fase muda nome e campos a partir de uma cena, e dá para comparar', as
   await expect(ficha.getByRole('heading', { level: 1 })).toHaveText('O Fugitivo')
   await expect(ficha.locator('.phase-now')).toContainText('Procurado desde “Duas portas” · Viu o regente')
   await expect(ficha.getByRole('complementary', { name: 'Em resumo' })).toContainText('O regente')
+  await abaFicha(page, 'Diário')
   const linha = ficha.getByRole('region', { name: 'Ao longo da história' })
   await expect(linha.locator('.phase-line li.is-current')).toContainText('Procurado')
   const mudou = linha.getByRole('list', { name: 'O que mudou' })

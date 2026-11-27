@@ -1,15 +1,9 @@
-import { openPart } from './areas.ts'
-import { expect, test, type Locator } from './fixtures.ts'
-
-const livro = (page: import('@playwright/test').Page) => page.getByLabel('Livro', { exact: true })
-async function escolher(select: Locator, nome: RegExp) {
-  await select.selectOption((await select.locator('option', { hasText: nome }).first().getAttribute('value'))!)
-}
+import { openPart, escolherLivro } from './areas.ts'
+import { expect, test } from './fixtures.ts'
 
 /** O livro se escolhe no Início (nas outras áreas há só um selo): escolhe lá e volta aos fatos. */
 async function irAoLivro(page: import('@playwright/test').Page, nome: RegExp) {
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).first().click()
-  await escolher(livro(page), nome)
+  await escolherLivro(page, nome)
   await openPart(page, 'Quem sabe o quê')
 }
 

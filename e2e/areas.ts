@@ -13,6 +13,12 @@ export async function openPart(page: Page, part: Part) {
   await page.locator('[data-tour="partes"]').getByRole('button', { name: part }).click()
 }
 
+/** Escolhe o livro pela faixa do alto ("Trocar livro"), em qualquer tela. */
+export async function escolherLivro(page: Page, nome: RegExp) {
+  await page.getByRole('region', { name: 'Livro atual' }).getByRole('button', { name: 'Trocar livro' }).click()
+  await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio', { name: nome }).first().click()
+}
+
 /** A ficha de personagem que acabou de nascer abre no criador (cartas): "Pronto" leva à página; depois, Editar abre o formulário. */
 export async function fecharCriador(page: Page) {
   const criador = page.getByRole('article', { name: /^Criar / })

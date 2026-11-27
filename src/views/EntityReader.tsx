@@ -585,7 +585,8 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
   const tabOf = (t: string): HeroTab => HERO_TAB_OF[t] ?? 'visao'
   const tabs = HERO_TABS.filter(([t]) => t === 'visao' || shown.some(({ block }) => tabOf(block.type) === t))
   const activeTab = tabs.some(([t]) => t === tab) ? tab : 'visao'
-  const inTab = shown.filter(({ block }) => tabOf(block.type) === activeTab)
+  // Arrumando, a página inteira aparece (senão “Descer” pula blocos de outras abas e parece não fazer nada).
+  const inTab = arrange ? shown : shown.filter(({ block }) => tabOf(block.type) === activeTab)
 
   return (
     <article className="entity entity-reader is-hero" aria-label={`Ler a ficha ${e.name || 'Sem nome'}`}>
@@ -647,7 +648,6 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
         <p className="hero-tags">
           {roleIn(e, bookId) && <span className="hero-role">★ {ROLE_LABEL[roleIn(e, bookId)!]}</span>}
           {!roleIn(e, bookId) && <span className="hero-kind">{kindLabel(e.kind)}</span>}
-          {phase && <span className="phase-chip">{phase.phase.name || 'Fase'}</span>}
           <OriginChip item={e} full />
         </p>
         {seals.length > 0 && (
@@ -661,6 +661,11 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
         )}
       </section>
       <div className="reader-title is-under-hero">
+        {phase && (
+          <p className="phase-now small">
+            <span className="phase-chip">{phase.phase.name || 'Fase'}</span> desde “{sceneTitle(scenes[phase.at])}”{phase.phase.cause && <span className="muted"> · {phase.phase.cause}</span>}
+          </p>
+        )}
         {/* Só o que foge do comum: verdade e pronta não precisam de selo. */}
         {(e.canon !== 'estabelecido' || e.editorial !== 'definido') && (
           <div className="entity-badges">

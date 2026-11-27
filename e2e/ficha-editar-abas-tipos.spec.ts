@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 // As abas do Editar em cada tipo: “Mundo” só aparece quando há o que mostrar ali; e com a Nova cara também.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
@@ -7,6 +7,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 const abas = (page: Page) => page.getByRole('navigation', { name: 'Partes da ficha para editar' })
 
 async function editar(page: Page, nome: RegExp) {
+  if (!(await page.getByRole('region', { name: 'Lista de fichas' }).isVisible())) await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: nome }).first().click()
   await fichaModo(page, 'Editar')
   await abas(page).getByRole('button', { name: 'Mundo' }).or(abas(page).getByRole('button', { name: 'Básico' })).first().waitFor()
