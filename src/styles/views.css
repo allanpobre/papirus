@@ -15202,3 +15202,13 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
     min-height: 68px;
   }
 }
+@media (max-width: 760px) {
+  /* Fechada, a grade ocupa pouco: a lista de fichas continua vindo primeiro. */
+  .create-today {
+    margin-bottom: 0.5rem;
+  }
+  .create-today-head {
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+  }
+}
