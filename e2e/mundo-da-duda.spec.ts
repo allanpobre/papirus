@@ -37,8 +37,9 @@ test('os anos escritos nas notas viram eventos da linha do tempo, com o título 
 
 test('filtros da lista em duas linhas, vista guardada que volta depois de recarregar', async ({ page }) => {
   await trazerMundo(page)
-  const busca = (await page.getByRole('textbox', { name: 'Filtrar fichas' }).boundingBox())!
   await abrirFiltros(page)
+  // As duas medidas depois de abrir (a página pode rolar ao abrir os filtros).
+  const busca = (await page.getByRole('textbox', { name: 'Filtrar fichas' }).boundingBox())!
   const tipo = page.getByRole('combobox', { name: 'Filtrar por tipo' })
   expect((await tipo.boundingBox())!.y).toBeGreaterThan(busca.y + busca.height - 1)
   await tipo.selectOption({ label: 'Personagens' })
