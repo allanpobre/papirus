@@ -3,8 +3,6 @@ import { expect, test } from './fixtures.ts'
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
-/** Troca de parte do Mundo pela faixa do alto (o "Mais" do menu também existe dentro dos Mapas). */
-const parte = (page: import('@playwright/test').Page, nome: string) => page.locator('[data-tour="partes"]').getByRole('button', { name: nome }).click()
 
 test('Máquina do tempo no celular: régua grande para o dedo, botões − e +, e o ano vale nas Fichas e nos Mapas com saída à vista', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
@@ -45,7 +43,7 @@ test('Máquina do tempo no celular: régua grande para o dedo, botões − e +, 
   await expect(page.locator('.time-machine-year-label')).toContainText('300')
 
   // Fichas: só o que existia, com o aviso e a saída.
-  await parte(page, 'Fichas')
+  await openPart(page, 'Fichas')
   const aviso = page.getByRole('status').filter({ hasText: 'No ano' })
   await expect(aviso).toBeVisible()
   await expect(aviso).toContainText('escondidas')
@@ -59,17 +57,17 @@ test('Máquina do tempo no celular: régua grande para o dedo, botões − e +, 
   await expect(lista.getByText('Kael', { exact: true })).toHaveCount(0)
 
   // Mapas: o mesmo ano, e a saída.
-  await parte(page, 'Mapas')
+  await openPart(page, 'Mapas')
   await expect(page.getByRole('status').filter({ hasText: 'No ano' })).toBeVisible()
 
   // Sair do ano (no aviso das Fichas) vale em todas as telas.
-  await parte(page, 'Fichas')
+  await openPart(page, 'Fichas')
   await page.getByRole('status').filter({ hasText: 'No ano' }).getByRole('button', { name: 'Sair do ano' }).click()
   await expect(page.getByRole('status').filter({ hasText: 'No ano' })).toHaveCount(0)
   await expect(page.locator('.entity-list').getByText('Kael', { exact: true }).first()).toBeVisible()
-  await parte(page, 'Mapas')
+  await openPart(page, 'Mapas')
   await expect(page.getByRole('status').filter({ hasText: 'No ano' })).toHaveCount(0)
-  await parte(page, 'Linha do tempo')
+  await openPart(page, 'Linha do tempo')
   await expect(page.getByRole('button', { name: 'Sair do ano' })).toHaveCount(0)
 })
 
