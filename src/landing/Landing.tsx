@@ -3,7 +3,6 @@ import {
   Bell,
   BookOpen,
   BookOpenCheck,
-  Check,
   Feather,
   Flame,
   FolderInput,
@@ -41,6 +40,8 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BrandMark } from '../shell/Brand'
+import { OZ_MAP } from '../model/sampleOzMap'
+import { ITAGUAI_MAP, OSTRIA_MAP } from '../model/sampleMap'
 import { FriendsPhone, MesaDemo, ScreensShowcase, StepScreen } from './Demos'
 import { BookDemo, WikiDemo } from './WorldDemos'
 import { rollIdea, type IdeaMode } from '../oficina/ideas'
@@ -131,7 +132,7 @@ export function Landing() {
           <div className="lp-hero-copy">
             <p className="lp-eyebrow">Escrita, mesa de RPG e oficina, num app só</p>
             <h1>
-              Seu mundo, escrito e jogado <em>no mesmo caderno.</em>
+              Seu mundo, <RotatingWord /> no mesmo caderno.
             </h1>
             <p className="lp-lede">
               Escreva como sempre. O Papirus percebe os nomes, guarda fichas, datas, segredos e mentiras. Na mesa, organiza as fichas e mostra aos jogadores só o que você revelar. E na Oficina, ensina um pouco por dia. Nada é obrigatório.
@@ -165,41 +166,50 @@ export function Landing() {
               </li>
             </ul>
           </div>
-          <Manuscript />
-        </section>
-
-        <div className="lp-zone lp-zone-setores">
-        <section className="lp-section" id="setores" aria-labelledby="setores-titulo">
-          <p className="lp-eyebrow">Três setores</p>
-          <h2 id="setores-titulo">Cada parte com a sua cara. O mesmo caderno por trás.</h2>
-          <div className="lp-sectors">
-            {SECTORS.map(({ id, icon: Icon, name, title, items, href }) => (
-              <a key={id} className={`lp-sector lp-sector-${id}`} href={href}>
-                <span className="lp-sector-icon" aria-hidden="true">
-                  <Icon size={22} />
-                </span>
-                <span className="lp-sector-name">{name}</span>
-                <span className="lp-sector-title">{title}</span>
-                <ul>
-                  {items.map((t) => (
-                    <li key={t}>
-                      <Check size={14} aria-hidden="true" /> {t}
-                    </li>
-                  ))}
-                </ul>
-                <span className="lp-sector-go">
-                  Saber mais <ArrowRight size={15} aria-hidden="true" />
-                </span>
-              </a>
-            ))}
+          <div className="lp-hero-art">
+            {/* O mapa da Terra de Oz (o do exemplo, desenhado no próprio Papirus) atrás da página que se escreve. */}
+            <img className="lp-hero-map" src={OZ_MAP} alt="" aria-hidden="true" />
+            <Manuscript />
           </div>
         </section>
-        </div>
+
+        <section className="lp-section lp-worlds" id="mundos" aria-labelledby="mundos-titulo">
+          <p className="lp-eyebrow">Mundos para abrir agora</p>
+          <h2 id="mundos-titulo">
+            Não precisa imaginar como fica. <em>Abra um.</em>
+          </h2>
+          <p className="lp-lede">Três mundos prontos, de verdade, com fichas, mapa, linha do tempo e segredos. Abrem num toque, sem conta. Mexa à vontade: nada aqui é seu, e nada se perde do seu.</p>
+          <ul className="lp-world-cards">
+            {SAMPLES.map((w) => (
+              <li key={w.id} className="lp-world-card">
+                <a className="lp-world-card-art" href={w.href} aria-label={`Abrir ${w.name}`}>
+                  <img src={w.map} alt="" aria-hidden="true" />
+                  <span className="lp-world-card-genre">{w.genre}</span>
+                </a>
+                <div className="lp-world-card-body">
+                  <h3>{w.name}</h3>
+                  <p className="lp-world-card-by">{w.by}</p>
+                  <p>{w.text}</p>
+                  <div className="lp-world-card-actions">
+                    <a className="btn btn-primary btn-sm" href={w.href}>
+                      Abrir o mundo <ArrowRight size={15} aria-hidden="true" />
+                    </a>
+                    {w.read && (
+                      <a className="btn btn-ghost btn-sm" href={w.read}>
+                        <BookOpen size={15} aria-hidden="true" /> Só ler
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <div className="lp-zone lp-zone-escrita">
         <section className="lp-section" id="escrever" aria-labelledby="escrever-titulo">
           <p className="lp-eyebrow">
-            <Feather size={14} aria-hidden="true" /> Escrita · para quem escreve
+            <span className="lp-num">01</span> <Feather size={14} aria-hidden="true" /> Escrita · para quem escreve
           </p>
           <h2 id="escrever-titulo">Planeje, escreva e revise. Um de cada vez.</h2>
           <ol className="lp-steps">
@@ -229,12 +239,13 @@ export function Landing() {
         <section className="lp-section lp-world" id="mundo" aria-labelledby="mundo-titulo">
           <div className="lp-world-copy">
             <p className="lp-eyebrow">
-              <Globe size={14} aria-hidden="true" /> Mundo · para quem constrói
+              <span className="lp-num">02</span> <Globe size={14} aria-hidden="true" /> Mundo · para quem constrói
             </p>
             <h2 id="mundo-titulo">O mundo cresce junto com a história.</h2>
             <p className="lp-lede">Cada universo tem o seu mundo: fichas, ligações, linha do tempo e mapas. Comece no Simples e abra o Completo quando quiser; nada se perde. Para ver tudo pronto, abra o exemplo: “O Mágico de Oz” inteiro, com os quatro países no mapa.</p>
+            {/* Quatro à vista; o resto num “ver mais” (antes era uma parede de dez itens). */}
             <ul className="lp-checks">
-              {WORLD.map(({ icon: Icon, title, text }) => (
+              {WORLD.slice(0, 4).map(({ icon: Icon, title, text }) => (
                 <li key={title}>
                   <Icon size={18} aria-hidden="true" />
                   <span>
@@ -243,6 +254,21 @@ export function Landing() {
                 </li>
               ))}
             </ul>
+            {WORLD.length > 4 && (
+              <details className="lp-more">
+                <summary>Mais {WORLD.length - 4} coisas do Mundo</summary>
+                <ul className="lp-checks">
+                  {WORLD.slice(4).map(({ icon: Icon, title, text }) => (
+                    <li key={title}>
+                      <Icon size={18} aria-hidden="true" />
+                      <span>
+                        <strong>{title}:</strong> {text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </div>
           <WikiDemo />
         </section>
@@ -253,7 +279,7 @@ export function Landing() {
           <BookDemo />
           <div className="lp-world-copy">
             <p className="lp-eyebrow">
-              <Printer size={14} aria-hidden="true" /> Livro · para quem publica
+              <span className="lp-num">03</span> <Printer size={14} aria-hidden="true" /> Livro · para quem publica
             </p>
             <h2 id="livro-titulo">Do manuscrito ao livro na mão.</h2>
             <p className="lp-lede">O livro aparece em 3D, com a sua capa e a lombada do tamanho certo. Folheie as páginas como vão sair, duas lado a lado, antes de baixar.</p>
@@ -275,7 +301,7 @@ export function Landing() {
           <div className="lp-band-inner">
             <div className="lp-band-copy">
               <p className="lp-eyebrow">
-                <Dices size={14} aria-hidden="true" /> Mesa de RPG · para quem mestra
+                <span className="lp-num">04</span> <Dices size={14} aria-hidden="true" /> Mesa de RPG · para quem mestra
               </p>
               <h2 id="mestrar-titulo">O mesmo mundo, agora na mesa.</h2>
               <p className="lp-lede">
@@ -326,7 +352,7 @@ export function Landing() {
           <div className="lp-section lp-oficina">
           <div className="lp-oficina-copy">
             <p className="lp-eyebrow">
-              <GraduationCap size={14} aria-hidden="true" /> Oficina · para aprender
+              <span className="lp-num">05</span> <GraduationCap size={14} aria-hidden="true" /> Oficina · para aprender
             </p>
             <h2 id="oficina-titulo">Aprenda escrevendo. Um pouco por dia.</h2>
             <p className="lp-lede">Cada guia vira uma trilha curta: ler uma técnica em um minuto, escrever dez com o relógio e olhar o que escreveu, com contas e perguntas. Tem imitação de Machado de Assis e de O Mágico de Oz, um caderno com tudo o que você treinou e trilhas para quem mestra.</p>
@@ -453,32 +479,6 @@ const FEATURES = [
   { icon: ScrollText, title: 'Perguntar ao mundo (opcional)', text: 'Pergunte à sua lore com IA, usando a sua chave. Ele só lê o que você manda e nunca muda nada.' },
 ]
 
-const SECTORS = [
-  {
-    id: 'escrita',
-    icon: Feather,
-    name: 'Escrita',
-    title: 'Escreva e veja o mundo crescer',
-    items: ['Editor que reconhece os nomes', 'Mundo: fichas, mapas, linha do tempo e wiki', 'Livro em 3D: folhear, PDF, EPUB e Word', 'Amigos, estante e desafios'],
-    href: '#escrever',
-  },
-  {
-    id: 'mesa',
-    icon: Dices,
-    name: 'Mesa de RPG',
-    title: 'Mestre com dados de verdade',
-    items: ['Dado físico primeiro; o app faz as contas', 'Combate: acerta ou erra, e o dano no alvo', 'Seis climas, um para cada gênero', 'Jogadores rolam pelo Codex, ao vivo'],
-    href: '#mestrar',
-  },
-  {
-    id: 'oficina',
-    icon: GraduationCap,
-    name: 'Oficina',
-    title: 'Aprenda um pouco por dia',
-    items: ['Trilhas: ler um minuto, escrever dez', 'Imitação de Machado de Assis e de O Mágico de Oz', 'Caderno com tudo o que você treinou', 'Gerador de ideias e de ganchos'],
-    href: '#oficina',
-  },
-] as const
 
 const WORLD = [
   { icon: Sprout, title: 'Semente do mundo', text: 'cinco perguntas viram as primeiras fichas.' },
@@ -581,6 +581,36 @@ const STARTS: number[][] = (() => {
     }),
   )
 })()
+/** Os três exemplos, prontos para abrir (a vitrine: o World Anvil mostra imagens; aqui, o mundo abre de verdade). */
+const SAMPLES: { id: string; name: string; by: string; genre: string; text: string; href: string; read?: string; map: string }[] = [
+  { id: 'oz', name: 'Terra de Oz', by: '“O Mágico de Oz”, de L. Frank Baum (1900)', genre: 'Fantasia clássica', text: 'O livro inteiro, os quatro países no mapa, povos, segredos e uma Mesa pronta para jogar.', href: `${APP}?exemplo`, read: `${APP}?exemplo&ler`, map: OZ_MAP },
+  { id: 'alienista', name: 'O Alienista', by: 'Machado de Assis (1882)', genre: 'Clássico brasileiro', text: 'Itaguaí, a Casa Verde e quem é louco, ficha por ficha, com o que cada um sabe em cada capítulo.', href: `${APP}?exemplo=alienista`, map: ITAGUAI_MAP },
+  { id: 'ostria', name: 'As Cinzas de Ostria', by: 'Um mundo de fantasia feito no Papirus', genre: 'Fantasia de intriga', text: 'Um reino em ruínas, um estranho pálido e uma herdeira: segredos, mapa político e ligações que mudam com o tempo.', href: `${APP}?exemplo=ostria`, map: OSTRIA_MAP },
+]
+
+/** A palavra que troca no título (escrito, jogado, mapeado, lido); parada para quem pede menos movimento. */
+const ROTATING = ['escrito', 'jogado', 'mapeado', 'lido']
+function RotatingWord() {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    if (calm()) return
+    const t = setInterval(() => setI((n) => (n + 1) % ROTATING.length), 2200)
+    return () => clearInterval(t)
+  }, [])
+  return (
+    <>
+      <span className="sr-only">escrito, jogado, mapeado e lido</span>
+      <em className="lp-rotating" aria-hidden="true">
+        {ROTATING.map((w, n) => (
+          <span key={w} className={n === i ? 'is-on' : ''}>
+            {w}
+          </span>
+        ))}
+      </em>
+    </>
+  )
+}
+
 const calm = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
