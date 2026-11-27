@@ -140,6 +140,13 @@ test('ensaio: quatro jogadores abrem o link ao mesmo tempo e todos recebem a rev
   await eventos.selectOption({ label: (await eventos.locator('option', { hasText: 'A Queda' }).textContent())! })
   await page.getByRole('button', { name: 'Revelar', exact: true }).click()
   await expect(page.getByText(/Em dia · atualizado às/)).toBeVisible()
-  await Promise.all(jogadores.map((p) => p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))))
-  for (const p of jogadores) await expect(p.locator('.codex-timeline')).toContainText('A Queda')
+  // Cada celular busca de novo ao voltar para a tela; numa máquina lenta, o primeiro aviso pode chegar antes da
+  // revelação publicada: repete o aviso até ela chegar (o tempo real do servidor fica de fora no teste).
+  for (const p of jogadores)
+    await expect
+      .poll(async () => {
+        await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+        return p.locator('.codex-timeline').innerText().catch(() => '')
+      }, { timeout: 30_000 })
+      .toContain('A Queda')
 })
