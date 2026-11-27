@@ -40,9 +40,9 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - `model/` — esquema (zod, `schema.ts`), rótulos (`labels.ts`), tipo do universo e nível do Mundo (`kind.ts`), operações do universo (`universe.ts`), exemplos (`sample*.ts`: `sampleOz.ts` + `ozTexto.ts` (livro 1) + `ozOutros.ts` (trechos dos livros 2 e 3 e de "A Rainha Zixi de Ix", do mesmo mundo sem ligar às histórias) + `sampleOzMap.ts` é o principal; `sample.ts` tem O Alienista e escolhe qual abrir).
 - `logic/` — regras sem tela: menções, segredos, leitor sem spoiler (`reader.ts`), frases de ligação (`relations.ts`, com o "é" de papéis), campos derivados e o worldbuilding:
   - `worldGaps.ts` (o que falta no mundo), `worldSeed.ts` (Semente do mundo), `timeMachine.ts` (o mundo num ano), `domino.ts` (e se a ficha sumir), `regions.ts` (mapa político).
-- `views/` — telas. Áreas: Início, Escrever, Publicar, Mundo (Fichas, Ligações, Linha do tempo, Mapas), Trama, Mesa (RPG), Ajustes. `AreaModes.tsx` = topo do Mundo/Trama (com o botão Wiki).
+- `views/` — telas. Áreas: Início, Escrever, Publicar, Mundo (Fichas, Ligações, Mapas), História (Pistas e mistérios, Quem sabe o quê, Linha do tempo; era a Trama), Mesa (RPG), Ajustes. `AreaModes.tsx` = topo do Mundo/História (com o botão Wiki; as partes de cada área em `NOVA_PARTS`). A **Nova cara** é a única: não existe mais a cara antiga nem `prefs.novaCara`.
   - Mundo: `WorldCard.tsx` (cartão no Início), `SeedDialog.tsx`, `TimeMachine.tsx` (na Linha do tempo), `DominoDialog.tsx` (na leitura da ficha), `GameRules.tsx` ("No jogo" de espécie/cultura), `ForeignImport.tsx`, `TogetherHere.tsx`, `WikiCard.tsx` (baixar; nas janelas, só o atalho) + `WikiView.tsx` (página Wiki: prévia ao vivo e Personalizar; o botão Wiki do Mundo leva para lá).
-- `shell/` — moldura do app, lista de universos e setores (Escrita, Mesa, Oficina), navegação (`nav.ts`; o "Mais" do celular em grupos em `MORE_GROUPS`), tours (`pageTours.ts`). O **Guia** (`views/GuideView.tsx`) lista todas as áreas e partes e mostra o texto dos passeios de cada tela: tela nova ganha passeio e entra no Guia.
+- `shell/` — moldura do app, lista de universos e setores (Escrita, Mesa, Oficina), navegação (`nav.ts`; o "Menu" do celular em grupos em `MORE_GROUPS`; a barra de baixo é fixa, `NOVA_PLACES` em `WorkspaceShell.tsx`; atalhos de teclado em `keys.ts`), tours (`pageTours.ts`). O **Guia** (`views/GuideView.tsx`) lista todas as áreas e partes e mostra o texto dos passeios de cada tela: tela nova ganha passeio e entra no Guia.
 - `state/` — `useWorkspace()` (`universe`, `update`, `go`, `others`…) e preferências (`prefs.ts`).
 - `persistence/` + `account/cloud.ts` — salvar local, versões e nuvem (duplas local/nuvem, conflitos).
 - `export/` — livro, wiki do mundo (`wiki.ts`: site, .md e .json; personalizável em `settings.wiki`, com 4 estilos em `wikiLook`), downloads.
@@ -52,7 +52,7 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - `player/`, `share/` — celular do jogador, canal da mesa, compartilhar e presença ao vivo (`useLiveSync.ts`, com a ficha aberta).
 - `landing/` — a apresentação (`/`): `Landing.tsx`, telinhas em `Demos.tsx`, Mundo e Livro em `WorldDemos.tsx`.
 - `ui/` — peças comuns (`ViewTop`, `Modal`, capa gerada…). `styles/` — CSS por área (`views.css` é o maior; blocos novos vão no fim). Cores de cada área e tipo de ficha em `tokens.css` (`--area-*`, `--kind-*`, com versão escura).
-- `e2e/` — Playwright; `areas.ts` tem `openPart(page, 'Ligações')`; `mundos.spec.ts` cobre o cartão do mundo.
+- `e2e/` — Playwright; `areas.ts` tem `openPart(page, 'Ligações')`, `openGraph`, `abrirFiltros`, `fecharCriador`, `abaFicha` e `escolherLivro`; `mundos.spec.ts` cobre o cartão do mundo.
 
 ## Decisões de produto
 
@@ -64,7 +64,7 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - **O livro não se personaliza no 3D nem no Folhear:** é sempre igual à diagramação.
 - **Wiki:** o Personalizar mora na página Wiki; Ajustes e Publicar têm só o atalho “Personalizar e ver como fica”.
 - **Bônus de espécie** ficam na ficha de jogo como `bonuses` (sincronizados com o Mundo) e são somados onde o atributo é lido (`attributeOf`, rolagens, Codex). Editar mexe no valor base.
-- **Livro no alto:** num universo com mais de um livro (história), `bookId` do `useWorkspace()` diz em qual se está (guardado no aparelho, por universo). As telas usam `bookScenes`/`bookOnly` (`model/universe.ts`) ou `useBookUniverse()`; o seletor é `ui/BookPicker.tsx` (no celular, no Escrever, fica no topo da lista de cenas).
+- **Livro no alto:** num universo com mais de um livro (história), `bookId` do `useWorkspace()` diz em qual se está (guardado no aparelho, por universo). As telas usam `bookScenes`/`bookOnly` (`model/universe.ts`) ou `useBookUniverse()`; a faixa fixa no alto é `BookBand` e as capas/coleções ficam em `ui/BookShelf.tsx` (`BookCovers`; “Agrupar em coleções” em `ui/CollectionsEditor.tsx`). **Coleções:** `universe.collections` (com `parentId`) e `story.collectionId` (uma casa só); escolher uma coleção vira a série guardada de `bookId` (ids separados por vírgula, em `model/universe.ts`: `collectionBookId`, `collectionOfBook`).
 - **Wiki com link** é o link de leitura com `modo=wiki` (`share/WikiLinkPage.tsx`): sem script novo no servidor; a wiki tira os segredos sozinha.
 - **Comunidade** é um setor do início do app (`SocialDialog` com `inline`; o "Sua conta" continua janela). Seguir (sem ser amigo), Continuar lendo (lugar no servidor), "Seus livros" (só números, nunca quem), bloquear, denunciar e pedir AU pelo perfil. Servidor em `supabase/comunidade.sql` (depois de contas, compartilhar e social); sem o script, as partes novas só não aparecem. Lógica em `social/community.ts`, telas em `social/CommunityParts.tsx` e `share/AURequests.tsx`.
 
