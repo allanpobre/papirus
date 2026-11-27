@@ -12,6 +12,7 @@ import { readerCopy } from '../share/readerCopy'
 import { coverLook } from '../ui/coverLook'
 import { centroid } from '../logic/regions'
 import { feastsOf } from '../logic/culture'
+import { levelsOf, powersAt, systemsOf } from '../logic/powers'
 import { daysText, routeDays } from '../logic/travel'
 
 /**
@@ -61,6 +62,10 @@ export interface WikiData {
     linhaDoTempo: string[]
     citadoEm: string[]
     mapas: string[]
+    /** Se a ficha é um sistema de poderes: a árvore, nível por nível. */
+    arvore?: { nivel: number; poderes: { nome: string; faz: string; custo: string; pede: string[] }[] }[]
+    /** Os poderes que o personagem tem até o recorte, com de onde vêm. */
+    poderes?: string[]
   }[]
   linhaDoTempo: { quando: string; titulo: string; descricao: string }[]
   mapas: { nome: string; marcadores: { nome: string; x: number; y: number }[] }[]
@@ -183,6 +188,39 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
     const fs = feasts.filter((f) => f.culture.id === id)
     return fs.length ? `<h3>Festas de todo ano</h3><ul>${fs.map((f) => `<li>${f.when ? `<span class="when">${esc(f.when)}</span> ` : ''}<strong>${esc(f.name)}</strong>${f.about ? `: ${linked(f.about, id)}` : ''}</li>`).join('')}</ul>` : ''
   }
+  // Poderes: a árvore de cada sistema e, em cada personagem, o que ele tem até o recorte (de nascença ou aprendido).
+  const powerIndex = upTo === null ? scenes.length - 1 : upTo
+  const systemTree = (id: string) => {
+    const sys = safe.entities.find((x) => x.id === id)
+    if (!sys || !(sys.nodes?.length ?? 0)) return []
+    const nameOfNode = (nid: string) => sys.nodes?.find((n) => n.id === nid)?.name ?? ''
+    return levelsOf(sys.nodes ?? []).map((nodes, i) => ({
+      nivel: i + 1,
+      poderes: nodes.map((n) => ({ nome: n.name || 'Sem nome', faz: unmarkReveals(n.summary ?? ''), custo: unmarkReveals(n.cost ?? ''), pede: n.requires.map(nameOfNode).filter(Boolean) })),
+    }))
+  }
+  const havePowers = (id: string) => {
+    const self = safe.entities.find((x) => x.id === id)
+    if (!self || (self.nodes?.length ?? 0)) return []
+    const out: string[] = []
+    for (const [key, had] of powersAt(safe, self, powerIndex, scenes, true)) {
+      const [sysId, nodeId] = key.split(':')
+      const sys = systemsOf(safe).find((x) => x.id === sysId)
+      const node = sys?.nodes?.find((n) => n.id === nodeId)
+      if (!sys || !node || !visible.has(sys.id)) continue
+      out.push(`${sys.name}: ${node.name || 'Sem nome'}${had.how === 'nasceu' ? ` (de nascença${had.from && had.from.id !== id ? `, pela ficha ${had.from.name}` : ''})` : ' (aprendeu)'}`)
+    }
+    return out.sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }
+  const powersHtml = (id: string) => {
+    const tree = systemTree(id)
+    if (tree.length)
+      return `<h3>Poderes</h3><ol class="power-levels">${tree
+        .map((l) => `<li><strong>Nível ${l.nivel}</strong><ul>${l.poderes.map((p) => `<li><b>${esc(p.nome)}</b>${p.faz ? `: ${linked(p.faz, id)}` : ''}${p.custo ? ` <span class="meta">Custo: ${esc(p.custo)}.</span>` : ''}${p.pede.length ? ` <span class="meta">Pede: ${p.pede.map(esc).join(', ')}.</span>` : ''}</li>`).join('')}</ul></li>`)
+        .join('')}</ol>`
+    const has = havePowers(id)
+    return has.length ? `<h3>Poderes</h3><ul>${has.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''
+  }
   const dictHtml = (id: string) => {
     const words = safe.entities.find((x) => x.id === id)?.language?.words ?? []
     return words.length ? `<h3>Palavras</h3><dl class="dict">${words.map((w) => `<dt>${esc(w.word)}</dt><dd>${esc(w.meaning)}</dd>`).join('')}</dl>` : ''
@@ -217,7 +255,7 @@ ${box ? `<aside class="infobox">${box}</aside>` : ''}
 ${description.trim() ? (e.kind === 'documento' ? `<div class="doc-text">${paras(description, e.id)}</div>` : paras(description, e.id)) : ''}
 ${rels.length ? `<h3>Ligações</h3><ul>${[...new Set(rels.map((r) => r.text))].map((t) => `<li>${linked(t, e.id)}</li>`).join('')}</ul>` : ''}
 ${fs.length ? `<h3>O que se sabe</h3><ul>${[...new Set(fs.map((f) => f.text))].map((t) => `<li>${linked(t, e.id)}</li>`).join('')}</ul>` : ''}
-${feastsHtml(e.id)}${dictHtml(e.id)}${evs.length ? `<h3>Na linha do tempo</h3><ul>${evs.map((ev) => `<li><span class="when">${esc(ev.when)}</span> ${linked(ev.title, e.id)}</li>`).join('')}</ul>` : ''}
+${feastsHtml(e.id)}${powersHtml(e.id)}${dictHtml(e.id)}${evs.length ? `<h3>Na linha do tempo</h3><ul>${evs.map((ev) => `<li><span class="when">${esc(ev.when)}</span> ${linked(ev.title, e.id)}</li>`).join('')}</ul>` : ''}
 ${cites.length ? `<h3>Citado em</h3><p class="cites">${cites.map((id) => link(id)).join(' · ')}</p>` : ''}
 <nav class="pager" aria-label="Fichas vizinhas">${prev ? `<a href="#${anchor(prev.id)}">← ${esc(prev.name)}</a>` : '<span></span>'}<a href="#inicio">Todas</a>${next ? `<a href="#${anchor(next.id)}">${esc(next.name)} →</a>` : '<span></span>'}</nav>
 </article>`
@@ -403,6 +441,8 @@ window.addEventListener('hashchange',route);route()})();
       linhaDoTempo: eventsOf(e.id).map((ev) => `${ev.when}: ${ev.title}`),
       citadoEm: [...(citedBy.get(e.id) ?? [])].map(nameOf).sort((a, b) => a.localeCompare(b, 'pt-BR')),
       mapas: mapsOf(e.id).map((m) => m.name || 'Mapa'),
+      ...(systemTree(e.id).length ? { arvore: systemTree(e.id) } : {}),
+      ...(havePowers(e.id).length ? { poderes: havePowers(e.id) } : {}),
     })),
     linhaDoTempo: sortedEvents.map((ev) => ({ quando: ev.when, titulo: ev.title, descricao: ev.description })),
     mapas: maps.map((m) => ({ nome: m.name || 'Mapa', marcadores: m.pins.map((p) => ({ nome: p.label || nameOf(p.entityId), x: p.x, y: p.y })) })),
@@ -470,6 +510,8 @@ export function wikiMarkdown(data: WikiData): string {
       ]
       if (info.length) out.push(...info, '')
       out.push(...list('Ligações', f.ligacoes), ...list('O que se sabe', f.fatos), ...list('Na linha do tempo', f.linhaDoTempo))
+      for (const l of f.arvore ?? []) out.push(...list(`Poderes, nível ${l.nivel}`, l.poderes.map((p) => `${p.nome}${p.faz ? `: ${p.faz}` : ''}${p.custo ? ` (custo: ${p.custo})` : ''}${p.pede.length ? ` (pede: ${p.pede.join(', ')})` : ''}`)))
+      out.push(...list('Poderes', f.poderes ?? []))
       if (f.citadoEm.length) out.push(`**Citado em:** ${f.citadoEm.join(' · ')}`, '')
     }
   }
