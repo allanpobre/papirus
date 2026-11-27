@@ -15103,3 +15103,21 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 @media (max-width: 760px) {
   .book-chooser { display: none; }
 }
+
+/* “Salvo” no celular (feedback das personas, Lia): no canto direito, pequeno, em vez de no meio da tela por cima
+   do texto. Erro e aviso continuam largos e no meio, porque pedem leitura. */
+.mobile-save.is-ok {
+  left: auto;
+  right: 12px;
+  padding: 0.2rem 0.55rem;
+  transform: translate(0, 140%);
+}
+.mobile-save.is-ok.is-shown {
+  transform: translate(0, 0);
+}
+
+/* Início: as ligações escritas nas fichas (de um mundo trazido), antes do que falta no mundo. */
+.world-gap-links {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}

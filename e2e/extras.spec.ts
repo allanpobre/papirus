@@ -41,6 +41,7 @@ test('setores: campanha abre na mesa e tem menu de mestre; livro não mostra a m
   const setores = page.getByRole('navigation', { name: 'Setores' })
   await setores.getByRole('button', { name: 'Campanhas' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Mar')
+  await page.getByRole('radio', { name: 'Tormenta 20' }).click()
   await page.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(page.locator('.mesa-bar')).toBeVisible()
   await expect(nav(page, 'Mesa')).toBeVisible()

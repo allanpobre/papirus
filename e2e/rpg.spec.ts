@@ -227,6 +227,9 @@ test('campanha de Tormenta: criar, montar a ficha e jogar com dado físico', asy
   // O RPG é um setor à parte: a campanha nasce ali e abre direto na mesa.
   await page.getByRole('navigation', { name: 'Setores' }).getByRole('button', { name: 'Campanhas' }).click()
   await page.getByRole('textbox', { name: 'Nome da campanha' }).fill('Arton')
+  // Nenhum sistema vem marcado: escolhe-se o Tormenta 20.
+  await expect(page.getByRole('radio', { name: 'Tormenta 20' })).toHaveAttribute('aria-checked', 'false')
+  await page.getByRole('radio', { name: 'Tormenta 20' }).click()
   await expect(page.getByRole('radio', { name: 'Tormenta 20' })).toHaveAttribute('aria-checked', 'true')
   await page.getByRole('button', { name: 'Criar campanha' }).click()
   await expect(page.locator('.mesa-bar')).toContainText('Estilo Tormenta 20')

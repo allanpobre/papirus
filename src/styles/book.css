@@ -91,7 +91,10 @@
   border-color: var(--accent);
 }
 
-.book-covers {
+.book-covers.book-design-covers {
+  overflow: visible;
+  padding: 0;
+  /* (Só a diagramação: as capas dos livros do mundo, em BookShelf, usam .book-covers sozinho.) */
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.8rem;

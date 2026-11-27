@@ -1004,3 +1004,26 @@ button.leitor-found-card {
     border-radius: 0;
   }
 }
+
+/* Celular (feedback das personas, Beto): o nome da cena ganha uma linha inteira (antes ficava “1. O ciclo”),
+   e as abas do Caderno quebram a linha em vez de cortar (“Ligações” passava da borda e as letras cortavam embaixo). */
+@media (max-width: 640px) {
+  .leitor-top {
+    flex-wrap: wrap;
+  }
+  .leitor-where {
+    order: 10;
+    flex: 1 1 100%;
+  }
+  .leitor-tabs {
+    flex-wrap: wrap;
+    overflow: visible;
+    max-width: none;
+    margin-inline: 1rem;
+  }
+  .leitor-tabs button {
+    flex: 1 1 auto;
+    padding-block: 0.4rem;
+    line-height: 1.3;
+  }
+}

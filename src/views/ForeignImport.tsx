@@ -12,7 +12,7 @@ const MIME: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg
  * (exportações em JSON ou .zip). Mostra o que achou antes de trazer; nada é apagado.
  */
 export function ForeignImport({ onDone }: { onDone?: () => void }) {
-  const { update, toast, readOnly, showAllParts } = useWorkspace()
+  const { update, toast, readOnly, showAllParts, go } = useWorkspace()
   const input = useRef<HTMLInputElement>(null)
   const [found, setFound] = useState<ForeignWorld | null>(null)
   const [busy, setBusy] = useState(false)
@@ -59,18 +59,25 @@ export function ForeignImport({ onDone }: { onDone?: () => void }) {
     )
     let created = 0
     let existing = 0
+    let links = 0
+    const { suggestLinks } = await import('../logic/suggestLinks')
     update((u) => {
       const out = applyForeign(u, { ...found, entities })
       created = out.created
       existing = out.existing
+      links = suggestLinks(out.universe).length
       return out.universe
     })
-    toast(`${created} ${created === 1 ? 'ficha trazida' : 'fichas trazidas'}${withImage ? `, ${withImage} com imagem` : ''}${existing ? `; ${existing} já existiam e ficaram como estavam` : ''}.`)
+    toast(
+      `${created} ${created === 1 ? 'ficha trazida' : 'fichas trazidas'}${withImage ? `, ${withImage} com imagem` : ''}${existing ? `; ${existing} já existiam e ficaram como estavam` : ''}.${links ? ` Achei ${links} ${links === 1 ? 'ligação escrita' : 'ligações escritas'} nas notas: confira em Ligações.` : ''}`,
+    )
     // Quem chega com um mundo pronto vê todas as partes do Mundo desde já (auditoria 26, Duda): a Linha do tempo e os
     // Mapas não ficam escondidos esperando o primeiro uso, como na primeira vez de quem começa do zero.
     showAllParts()
     setFound(null)
     onDone?.()
+    // Com ligações escritas nas notas ("irmão de [[Mira]]"), o próximo passo é aceitá-las: vai direto para lá.
+    if (links) go('relacoes')
   }
 
   const byKind = found

@@ -306,7 +306,7 @@ export default function BookDesigner({ bookId, focus, onClose }: { bookId: strin
             <p className="muted tiny">
               A capa é sua: envie a imagem pronta ({PAGE_SIZES[design.pageSize].label.replace(/ \(.*/, '')}, em pé). Ela ocupa a página inteira, sem margens.
             </p>
-            <div className="book-covers">
+            <div className="book-covers book-design-covers">
               {(['cover', 'backCover'] as const).map((which) => (
                 <div key={which} className="book-cover-slot">
                   <span className="field-label">{which === 'cover' ? 'Capa' : 'Contracapa (opcional)'}</span>

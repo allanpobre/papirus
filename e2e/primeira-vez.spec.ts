@@ -21,7 +21,7 @@ test('primeiro universo: as partes do Mundo aparecem conforme o uso', async ({ p
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
 
   const partes = page.getByRole('navigation', { name: 'Partes do mundo' }).or(page.getByRole('group', { name: 'Partes do mundo' }))
-  await expect(page.getByText('Mais partes aparecem conforme você usa')).toBeVisible()
+  await expect(page.getByText('Mais partes aparecem com o uso')).toBeVisible()
   await expect(partes.getByRole('button', { name: /Ligações/ })).toHaveCount(0)
 
   // Duas fichas: as Ligações aparecem.
@@ -38,7 +38,7 @@ test('primeiro universo: as partes do Mundo aparecem conforme o uso', async ({ p
   // "Mostrar todas" traz o resto, e continua assim depois de recarregar.
   await page.getByRole('button', { name: 'Mostrar todas' }).click()
   await expect(partes.getByRole('button', { name: 'Mapas' })).toBeVisible()
-  await expect(page.getByText('Mais partes aparecem conforme você usa')).toHaveCount(0)
+  await expect(page.getByText('Mais partes aparecem com o uso')).toHaveCount(0)
   await page.reload()
   await expect(partes.getByRole('button', { name: /Mapas/ })).toBeVisible()
 })
