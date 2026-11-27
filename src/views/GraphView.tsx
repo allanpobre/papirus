@@ -128,6 +128,7 @@ export default function GraphView() {
   return (
     <div className="view graph-view is-mural">
       <AreaHead current="relacoes" tour="relacoes" />
+      <SuggestedLinks />
       <FocusMural centerId={center} onCenter={setCenter} onFullGraph={() => setFull(true)} />
     </div>
   )

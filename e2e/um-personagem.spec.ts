@@ -69,6 +69,7 @@ test('fim da sessão: "O que aconteceu?" vai para a Linha do tempo e para o "Apa
   await abaFicha(page, 'Diário')
   await expect(page.getByRole('list', { name: 'Sessões' })).toContainText('Sessão 1 no resumo')
   await page.locator('.entity-row-name', { hasText: /^Kaya$/ }).click()
+  await abaFicha(page, 'Diário')
   await expect(page.getByRole('list', { name: 'Sessões' })).toContainText('Sessão 1 jogou · no resumo')
 })
 

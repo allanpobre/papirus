@@ -50,6 +50,7 @@ test.describe('no computador', () => {
     await lista.getByRole('checkbox').nth(1).uncheck()
     await lista.getByRole('button', { name: 'Criar 2 ligações' }).click()
     await expect(faixa).toHaveCount(0)
+    await page.getByRole('button', { name: 'Grafo completo' }).click()
     await expect(page.locator('.graph .edge').first()).toBeAttached()
   })
 })
