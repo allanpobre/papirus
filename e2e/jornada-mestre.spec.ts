@@ -53,7 +53,7 @@ test('o mestre vai da campanha ao fim da primeira sessão', async ({ page }) => 
   // Sem escolher na criação, a campanha nasce no Narrativo; aqui se troca por um estilo D&D novo (1 toque na lista).
   await page.getByRole('combobox', { name: 'Sistema do grupo' }).selectOption({ label: '+ Novo: estilo D&D 5e' })
   await expect(page.getByRole('combobox', { name: 'Sistema do grupo' })).toContainText('Estilo D&D 5e')
-  await tap(page.getByRole('tab', { name: 'Grupo', exact: true }))
+  await tap(page.getByRole('tab', { name: 'Personagens', exact: true }))
   for (const [personagem, jogador] of [['Kaya', 'Ana'], ['Brenn', 'Bruno'], ['Lume', 'Carla']]) {
     await page.getByRole('textbox', { name: 'Nome do personagem' }).fill(personagem)
     await page.getByRole('textbox', { name: 'Quem joga' }).fill(jogador)

@@ -41,7 +41,8 @@ export type RpgTab = 'mestre' | 'sessoes' | 'personagens' | 'sistemas' | 'codex'
 type RpgPart = 'preparar' | 'grupo' | 'codex' | 'regras'
 const PARTS: [RpgPart, string, LucideIcon, RpgTab[]][] = [
   ['preparar', 'Preparar', Crown, ['mestre', 'sessoes']],
-  ['grupo', 'Grupo', Users, ['personagens']],
+  // “Personagens” (feedback das personas, Rafa): “Grupo” aparecia três vezes na Mesa (aba, cartão e lista de grupos).
+  ['grupo', 'Personagens', Users, ['personagens']],
   ['codex', 'Codex', Eye, ['codex']],
   ['regras', 'Regras', Settings2, ['sistemas', 'dados']],
 ]

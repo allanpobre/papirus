@@ -138,6 +138,9 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [shareLink, setShareLink] = useState<'wiki' | undefined>(undefined)
   // Lê sem apagar e apaga depois de montar (apagar dentro do useState perdia o pedido numa montagem dupla).
   const [readerOpen, setReaderOpen] = useState(() => Boolean(recall('abrir-leitor')))
+  // Quem chegou da apresentação só para ler (“Ou só ler o livro”): fechar o leitor volta para lá, não para a área de
+  // quem escreve (feedback das personas, Beto).
+  const readerFromLink = useRef(readerOpen && Boolean(document.referrer) && new URL(document.referrer, location.href).origin === location.origin)
   useEffect(() => {
     if (readerOpen) remember('abrir-leitor', null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1011,7 +1014,15 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             preview={source.kind === 'proprio' || source.kind === 'editar'}
             onComment={commentSender(source, universe.id, account.server)}
             commenterName={account.user?.email ? shortName(account.user.email) : undefined}
-            onClose={() => setReaderOpen(false)}
+            onClose={() => {
+              if (readerFromLink.current) {
+                readerFromLink.current = false
+                // Volta ao endereço de onde veio (o leitor também ocupa uma entrada do “voltar”, então não é history.back()).
+                location.assign(document.referrer)
+                return
+              }
+              setReaderOpen(false)
+            }}
           />,
           document.body,
         )}

@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-02b',
+    when: '2 de dezembro',
+    title: 'Mesa mais clara e leitor mais limpo',
+    items: [
+      'Na Mesa, a aba “Grupo” passou a se chamar “Personagens” (é onde ficam as fichas de jogo), e a lista de grupos virou “Grupos de jogo”.',
+      'No leitor, o sublinhado dos nomes ficou mais discreto; ao passar ou focar, ele aparece. Quem abriu o livro pela apresentação (“Ou só ler o livro”) volta para lá ao fechar.',
+    ],
+  },
+  {
     id: '2026-12-02a',
     when: '2 de dezembro',
     title: 'Ajustes pedidos por quem usa',

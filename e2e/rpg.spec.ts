@@ -29,7 +29,7 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
   await page.getByRole('button', { name: 'Mais da sessão' }).click()
   await page.getByRole('button', { name: 'Sair do modo sessão' }).click()
 
-  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
+  await page.getByRole('tab', { name: 'Personagens', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Dante')
   await page.getByRole('button', { name: 'Criar personagem' }).click()
   // A ficha abre para jogar; montar a ficha é no modo Editar.
@@ -74,7 +74,7 @@ test('mesa com sistema pronto: ficha, rolagem de perícia e registro na sessão'
 test('recursos: dano e cura respeitam o máximo', async ({ page }) => {
   await newUniverseWithTable(page)
   await page.getByRole('combobox', { name: 'Sistema do grupo' }).selectOption({ label: '+ Novo: estilo D&D 5e' })
-  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
+  await page.getByRole('tab', { name: 'Personagens', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Taren')
   await page.getByRole('button', { name: 'Criar personagem' }).click()
 
@@ -239,7 +239,7 @@ test('campanha de Tormenta: criar, montar a ficha e jogar com dado físico', asy
 
   // Grupo vazio: o primeiro passo é criar os personagens, cada um com quem joga.
   await page.getByRole('button', { name: 'Criar personagens' }).click()
-  await expect(page.getByRole('tab', { name: 'Grupo', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Personagens', exact: true })).toHaveAttribute('aria-selected', 'true')
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Kaya')
   await page.getByRole('textbox', { name: 'Quem joga' }).fill('Ana')
   await page.getByRole('button', { name: 'Criar personagem' }).click()
@@ -321,7 +321,7 @@ test('o jogador vê a ficha completa no Codex, só para consultar', async ({ pag
   await page.getByRole('textbox', { name: 'Endereço público do Papirus' }).fill(baseURL + '/')
   await nav(page, 'Mesa').click()
   // A Brisa leva dano e ganha um item antes de o mestre compartilhar.
-  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
+  await page.getByRole('tab', { name: 'Personagens', exact: true }).click()
   await page.locator('.entity-row-name', { hasText: /^Brisa$/ }).click()
   await page.getByRole('button', { name: 'Menos 1 PV' }).click()
   await page.getByRole('textbox', { name: 'Novo item' }).fill('2 poções')

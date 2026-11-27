@@ -174,7 +174,8 @@
 .leitor-name {
   padding: 0;
   border: 0;
-  border-bottom: 1px dotted color-mix(in srgb, var(--accent) 35%, transparent);
+  /* Mais discreto (feedback das personas, Beto): o texto não parece corrigido; ao passar ou focar, fica claro. */
+  border-bottom: 1px dotted color-mix(in srgb, var(--accent) 18%, transparent);
   background: none;
   color: inherit;
   font: inherit;

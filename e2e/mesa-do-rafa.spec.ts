@@ -22,7 +22,7 @@ test.describe('no computador', () => {
     await expect(page.getByText(/D&D 5e/).first()).toBeVisible()
 
     // O NPC (que já nasce no Mundo) entra em “Nesta sessão”.
-    await page.getByRole('tab', { name: 'Grupo' }).click()
+    await page.getByRole('tab', { name: 'Personagens' }).click()
     await page.getByRole('radio', { name: 'NPC do mestre' }).click()
     await page.locator('#nova-ficha-jogo').fill('Corvo Velho')
     await page.getByRole('button', { name: 'Criar personagem' }).click()

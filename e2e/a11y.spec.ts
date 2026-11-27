@@ -46,7 +46,7 @@ for (const scheme of ['light', 'dark'] as const) {
     }
     for (const [part, tab] of [
       ['Preparar', 'Sessões'],
-      ['Grupo', ''],
+      ['Personagens', ''],
       ['Codex', ''],
       ['Regras', 'Sistemas'],
       ['Regras', 'Dados e tabelas'],

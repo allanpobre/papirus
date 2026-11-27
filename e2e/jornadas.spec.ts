@@ -76,7 +76,7 @@ test('mestre no computador: da apresentação à sessão 1 encerrada, pelos prim
   await expect(page.getByRole('tablist', { name: 'Partes da Mesa' })).toBeVisible()
   await tap(page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }))
   await tap(firstSteps(page).getByRole('button', { name: 'Crie o personagem de cada jogador' }))
-  await expect(page.getByRole('tab', { name: 'Grupo', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Personagens', exact: true })).toHaveAttribute('aria-selected', 'true')
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Kaya')
   await page.getByRole('textbox', { name: 'Quem joga' }).fill('Ana')
   await tap(page.getByRole('button', { name: 'Criar personagem' }))

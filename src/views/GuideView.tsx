@@ -86,7 +86,7 @@ const AREAS: Area[] = [
     parts: [
       { title: 'Preparar', what: 'A próxima sessão, o sistema, o grupo e os segredos ainda guardados.', tour: 'rpg-mestre', view: 'rpg', rpgTab: 'mestre' },
       { title: 'Sessões', what: 'Cada sessão com preparação, registro, diário e iniciativa.', tour: 'rpg-sessoes', view: 'rpg', rpgTab: 'sessoes' },
-      { title: 'Grupo', what: 'As fichas de jogo dos personagens: vida, ataques e rolagens a um toque.', tour: 'rpg-personagens', view: 'rpg', rpgTab: 'personagens' },
+      { title: 'Personagens', what: 'As fichas de jogo dos personagens: vida, ataques e rolagens a um toque.', tour: 'rpg-personagens', view: 'rpg', rpgTab: 'personagens' },
       { title: 'Codex', what: 'O que os jogadores veem no celular: só o que você revelou.', tour: 'rpg-codex', view: 'rpg', rpgTab: 'codex' },
       { title: 'Regras e dados', what: 'Os sistemas de jogo, os dados, as tabelas aleatórias e os inimigos prontos.', tour: 'rpg-sistemas', view: 'rpg', rpgTab: 'sistemas' },
       { title: 'Sessão ao vivo', what: 'Quando a sessão começa, o app vira a mesa: roteiro, palco e grupo.', tour: 'sessao', view: 'rpg', rpgTab: 'sessoes' },

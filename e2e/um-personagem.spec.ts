@@ -13,7 +13,7 @@ async function newCampaign(page: Page, name = 'Sombras de Ostria') {
 
 test('um personagem só: a Kaya criada na Mesa está no Mundo, com a aba Jogo', async ({ page }) => {
   await newCampaign(page)
-  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
+  await page.getByRole('tab', { name: 'Personagens', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Kaya')
   await page.getByRole('textbox', { name: 'Quem joga' }).fill('Ana')
   await page.getByRole('button', { name: 'Criar personagem' }).click()
@@ -28,13 +28,13 @@ test('um personagem só: a Kaya criada na Mesa está no Mundo, com a aba Jogo', 
 
   // "Abrir na Mesa" leva para o Grupo, com a ficha dela aberta.
   await jogo.getByRole('button', { name: 'Abrir na Mesa' }).click()
-  await expect(page.getByRole('tab', { name: 'Grupo', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Personagens', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('region', { name: 'Personagens da mesa' }).locator('[aria-current="true"]')).toContainText('Kaya')
 })
 
 test('fim da sessão: "O que aconteceu?" vai para a Linha do tempo e para o "Aparece em" da ficha', async ({ page }) => {
   await newCampaign(page)
-  await page.getByRole('tab', { name: 'Grupo', exact: true }).click()
+  await page.getByRole('tab', { name: 'Personagens', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nome do personagem' }).fill('Kaya')
   await page.getByRole('textbox', { name: 'Quem joga' }).fill('Ana')
   await page.getByRole('button', { name: 'Criar personagem' }).click()
