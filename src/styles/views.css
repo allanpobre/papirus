@@ -15094,3 +15094,9 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 .collections-add { display: flex; gap: 0.5rem; }
 .collections-add .input { flex: 1; }
 @media (max-width: 760px) { .collections-list li { grid-template-columns: 1fr; } }
+
+/* Início no celular: o “Continuar escrevendo” vem primeiro. As capas dos livros ficam atrás do “Trocar livro”
+   da faixa do alto (que já está em todas as telas); no computador as capas continuam no Início. */
+@media (max-width: 760px) {
+  .book-chooser { display: none; }
+}
