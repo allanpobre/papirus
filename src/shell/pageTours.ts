@@ -242,6 +242,7 @@ export const PAGE_TOURS = {
       },
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
+      { target: '.create-today', title: 'O que vamos criar hoje?', body: 'Os tipos mais usados num toque: personagem, facção, reino, item, lugar, espécie, mapa e linha do tempo. Cada um mostra quantos você já tem e quantos ainda estão sem resumo. “Mais” abre os outros tipos. Dá para fechar a grade; ela fica fechada.', optional: true },
       {
         target: '.split-list .quick-create, .fichas-view .fab',
         title: 'Nova ficha',
