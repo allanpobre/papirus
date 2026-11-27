@@ -36,6 +36,14 @@ describe('wiki por coleção', () => {
     expect(nomesDe('c-pap')).toEqual(nomesDe())
   })
 
+  it('ligações e fatos não citam quem ficou de fora da coleção', () => {
+    const fora = nomesDe().filter((n) => !nomesDe('c-mal').includes(n))
+    expect(fora.length).toBeGreaterThan(0)
+    const { data } = buildWiki({ ...u, settings: { ...u.settings, wiki: { collectionId: 'c-mal' } } }, { upTo: null })
+    const textos = data.fichas.flatMap((f) => [...f.ligacoes, ...f.fatos]).join(' | ')
+    for (const n of fora) expect(textos).not.toContain(n)
+  })
+
   it('o título e o recorte dizem de qual coleção é', () => {
     const { data } = buildWiki({ ...u, settings: { ...u.settings, wiki: { collectionId: 'c-mal' } } }, { upTo: null })
     expect(data.mundo.nome).toContain('Malkai')

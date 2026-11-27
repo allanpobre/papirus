@@ -133,6 +133,11 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
   const scope = collectionBooks ? bookScope(universe, collectionBooks) : null
   const inCollection = (id: string) => !scope || scope.belongs(id) || scope.inNoBook(id)
   if (scope) events = events.filter((ev) => eventBelongs({ entityIds: ev.ids, placeId: null }, scope))
+  // Ligações e fatos só entram se todo mundo citado também entra (senão a ficha de um crossover citaria o outro lado).
+  if (scope) {
+    relations = relations.filter((r) => r.ids.every(inCollection))
+    facts = facts.filter((f) => f.ids.every(inCollection))
+  }
   entries = entries
     .filter((x) => inCollection(x.entity.id))
     .filter((x) => !x.entity.wikiHidden && !hiddenKinds.has(x.entity.kind))
