@@ -21,6 +21,8 @@ test.describe('no celular', () => {
     expect(await style()).toBe(before)
 
     // Mover: "Mover" no cartão e toque no lugar novo.
+    // O toque abre a gaveta do lugar; “Editar no mapa” traz o cartão com Mover.
+    await page.getByRole('button', { name: 'Editar no mapa' }).click()
     const card = page.getByRole('complementary', { name: 'Marcador' })
     await card.getByRole('button', { name: 'Mover', exact: true }).click()
     await expect(page.getByRole('status').filter({ hasText: 'Toque no mapa onde' })).toBeVisible()
@@ -82,7 +84,7 @@ test.describe('no celular: mover e aproximar o mapa com o dedo', () => {
     const pb2 = (await pin.boundingBox())!
     await touch('touchStart', [[pb2.x + pb2.width / 2, pb2.y + pb2.height / 2]])
     await touch('touchEnd', [])
-    await expect(page.getByRole('complementary', { name: 'Marcador' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Editar no mapa' })).toBeVisible()
     await expect(page.locator('.pin.selected')).toHaveCount(1)
   })
 
@@ -127,6 +129,7 @@ test('mapa político: pintar a região de Ostria, ver o nome e apagar', async ({
   const label = page.locator('.atlas-region-label', { hasText: 'Reino de Ostria' })
   await expect(label).toBeVisible()
   await label.click()
+  await page.getByRole('button', { name: 'Editar no mapa' }).click()
   await page.getByRole('button', { name: 'Apagar região' }).click()
   await expect(label).toHaveCount(0)
 })
