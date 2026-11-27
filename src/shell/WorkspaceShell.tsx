@@ -140,7 +140,14 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
   const [readerOpen, setReaderOpen] = useState(() => Boolean(recall('abrir-leitor')))
   // Quem chegou da apresentação só para ler (“Ou só ler o livro”): fechar o leitor volta para lá, não para a área de
   // quem escreve (feedback das personas, Beto).
-  const readerFromLink = useRef(readerOpen && Boolean(document.referrer) && new URL(document.referrer, location.href).origin === location.origin)
+  const readerFromLink = useRef(
+    (() => {
+      if (!readerOpen || !document.referrer) return false
+      const from = new URL(document.referrer, location.href)
+      // Só a apresentação (fora de /app): uma recarga dentro do app não conta.
+      return from.origin === location.origin && !/\/app(\/|$)/.test(from.pathname)
+    })(),
+  )
   useEffect(() => {
     if (readerOpen) remember('abrir-leitor', null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
