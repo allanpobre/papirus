@@ -208,7 +208,7 @@ export function buildWiki(universe: Universe, { upTo, images }: WikiOptions): { 
       const sys = systemsOf(safe).find((x) => x.id === sysId)
       const node = sys?.nodes?.find((n) => n.id === nodeId)
       if (!sys || !node || !visible.has(sys.id)) continue
-      out.push(`${sys.name}: ${node.name || 'Sem nome'}${had.how === 'nasceu' ? ` (de nascença${had.from && had.from.id !== id ? `, pela ficha ${had.from.name}` : ''})` : ' (aprendeu)'}`)
+      out.push(`${sys.name}: ${node.name || 'Sem nome'}${had.how === 'nasceu' ? ` (de nascença${had.from && had.from.id !== id && visible.has(had.from.id) ? `, pela ficha ${had.from.name}` : ''})` : ' (aprendeu)'}`)
     }
     return out.sort((a, b) => a.localeCompare(b, 'pt-BR'))
   }
