@@ -44,6 +44,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # O repositório apt da Microsoft (que o runner já traz) às vezes responde 403 e derruba a instalação do Chromium:
+      # o Chromium não precisa dele, então tira da lista antes.
+      - run: sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list /etc/apt/sources.list.d/microsoft-prod.sources /etc/apt/sources.list.d/*microsoft*
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --shard=${{ matrix.parte }}/4 --trace retain-on-failure
         env:
