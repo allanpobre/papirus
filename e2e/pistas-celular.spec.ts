@@ -27,7 +27,16 @@ test('Pistas e mistérios no celular: colunas que rolam de lado, botões para ir
   const col = (await page.locator('.seed-col-resolvida').boundingBox())!
   expect(col.x).toBeGreaterThanOrEqual(0)
 
-  // Deslizar com o dedo também troca de coluna: o botão acompanha.
+  // Deslizar com o dedo também troca de coluna: o botão acompanha. (Antes, espera a rolagem suave do botão parar.)
+  let anterior = -1
+  await expect
+    .poll(async () => {
+      const agora = await quadro.evaluate((el) => el.scrollLeft)
+      const parou = agora === anterior
+      anterior = agora
+      return parou
+    })
+    .toBe(true)
   const cdp = await page.context().newCDPSession(page)
   const toque = (type: 'touchStart' | 'touchMove' | 'touchEnd', pts: [number, number][]) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], id) => ({ x, y, id })) })
   const q = (await quadro.boundingBox())!

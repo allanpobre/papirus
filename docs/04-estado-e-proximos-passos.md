@@ -48,7 +48,7 @@ Vieram do quiz de opinião e das conversas, mais ou menos em ordem de valor:
 
 1. **Coleções em todo lugar:** elas filtram as telas e, em Publicar, o volume novo pode nascer com os livros de uma coleção. Faltam a wiki só de uma coleção (decidir o que entra: a ficha que aparece nos dois lados), o link de leitura e o compartilhar.
 2. **Mundo:** idiomas e nomes por cultura, e linha do tempo por região.
-3. **Poderes** na wiki e no link de leitura.
+3. (Feito: a wiki, em todos os formatos e pelo link, traz a árvore de cada sistema e os poderes de cada personagem, sem spoiler.)
 4. (Feito: a wiki do link já vai só até a cena escolhida em Compartilhar e na página Wiki; `settings.wiki.upToScene`.)
 5. **Retorno das personas** que ficou: nada pendente (os 9 itens da última rodada entraram).
 
@@ -57,7 +57,7 @@ Vieram do quiz de opinião e das conversas, mais ou menos em ordem de valor:
 - Duas pessoas ao vivo, ao mesmo tempo: na Mesa, no Mundo a quatro mãos e com conflitos na nuvem.
 - O AU com contas de verdade, no servidor de verdade (o teste usa um servidor de mentira), e uma história do AU que mistura cenas do original.
 - A ficha de blocos com duas pessoas arrumando a mesma página ao mesmo tempo; a galeria de imagens num bloco (o e2e não sobe arquivo).
-- Poderes: a constelação ainda não entra na wiki nem no link de leitura.
+- Poderes na wiki: só conferido pelos testes de unidade e o HTML gerado, não aberto em Safari e Firefox.
 - Sugestões do texto: o “Muda ou revela” na barra do celular só foi conferido pelos tipos; o padrão do Quem é só pega “Nome, um/uma/o/a Opção”.
 - Backup: importar “como novo” dentro de Ajustes não traz as versões guardadas; backup do Oz inteiro com imagens.
 - Os arquivos abertos em outros programas:

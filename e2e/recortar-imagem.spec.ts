@@ -127,9 +127,10 @@ test('mapa: o recorte é livre; arrastar uma borda deixa só o lado de que se pr
   const janela = page.getByRole('dialog', { name: 'Recortar o mapa' })
   await expect(janela).toBeVisible()
   const caixa = janela.getByRole('group', { name: /Área do recorte/ })
+  // (A imagem termina de assentar depois de aparecer: espera as duas medidas se igualarem em vez de medir uma vez só.)
+  await expect.poll(async () => Math.abs((await caixa.boundingBox())!.width - (await janela.locator('.crop-free').boundingBox())!.width)).toBeLessThan(1)
   const imagem = (await janela.locator('.crop-free').boundingBox())!
   const antes = (await caixa.boundingBox())!
-  expect(antes.width).toBeCloseTo(imagem.width, 0)
   // A borda da direita para o meio: o recorte fica só com a metade da esquerda (a vermelha).
   const borda = janela.getByRole('button', { name: 'Arrastar a borda da direita' })
   const b = (await borda.boundingBox())!

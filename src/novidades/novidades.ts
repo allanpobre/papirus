@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-03b',
+    when: '3 de dezembro',
+    title: 'Poderes na wiki',
+    items: [
+      'A wiki do mundo (site, .md e .json, e também a do link) agora traz os poderes: a ficha do sistema mostra a árvore nível por nível, com o que cada poder faz, o custo e o que pede antes.',
+      'Em cada personagem aparece o que ele tem, de nascença ou aprendido. Sem spoiler: na wiki até uma cena, só entra o que ele já tinha até ali. Ficha escondida da wiki esconde os poderes dela.',
+    ],
+  },
+  {
     id: '2026-12-03a',
     when: '3 de dezembro',
     title: 'Coleções em Publicar',
