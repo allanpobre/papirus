@@ -142,11 +142,12 @@ test('ensaio: quatro jogadores abrem o link ao mesmo tempo e todos recebem a rev
   await expect(page.getByText(/Em dia · atualizado às/)).toBeVisible()
   // Cada celular busca de novo ao voltar para a tela; numa máquina lenta, o primeiro aviso pode chegar antes da
   // revelação publicada: repete o aviso até ela chegar (o tempo real do servidor fica de fora no teste).
-  for (const p of jogadores)
-    await expect
-      .poll(async () => {
-        await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
-        return p.locator('.codex-timeline').innerText().catch(() => '')
-      }, { timeout: 30_000 })
-      .toContain('A Queda')
+  for (const p of jogadores) {
+    const linha = p.locator('.codex-timeline')
+    for (let tentativa = 0; tentativa < 3; tentativa++) {
+      await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+      if (await linha.filter({ hasText: 'A Queda' }).waitFor({ timeout: 8_000 }).then(() => true, () => false)) break
+    }
+    await expect(linha).toContainText('A Queda')
+  }
 })
