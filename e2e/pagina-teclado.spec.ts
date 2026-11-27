@@ -40,7 +40,8 @@ const linhasVisiveis = (page: Page) =>
 test('Página com o teclado aberto: a linha dos modos some, o texto ganha espaço e dá para voltar', async ({ page }) => {
   await prepararTecladoDeMentira(page)
   await page.addInitScript(() => localStorage.setItem('papirus:escrita-modo', 'pagina'))
-  await page.goto('/app/?exemplo')
+  // Um livro só: sem a faixa de livro do alto (que também ocupa espaço).
+  await page.goto('/app/?exemplo=alienista')
   await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Escrever/ }).click()
   const barraDoAlto = page.locator('.write-bar')
   await expect(barraDoAlto).toBeVisible()
