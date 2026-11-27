@@ -1,4 +1,4 @@
-import { Castle, CalendarRange, ChevronDown, Gem, Map as MapIcon, MapPin, PawPrint, Plus, User, Users } from 'lucide-react'
+import { Castle, CalendarRange, ChevronDown, GitBranch, Gem, Map as MapIcon, MapPin, PawPrint, Plus, User, Users } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useState } from 'react'
 import { recall, remember } from '../state/prefs'
@@ -6,7 +6,7 @@ import { useMediaQuery } from '../ui/useMediaQuery'
 import { kindPlural } from '../model/labels'
 import type { Universe } from '../model/schema'
 
-type Tile = { key: string; label: string; icon: ComponentType<{ size?: number; 'aria-hidden'?: boolean }>; kind?: string; go?: 'atlas' | 'timeline'; count: (u: Universe) => number | null }
+type Tile = { key: string; label: string; icon: ComponentType<{ size?: number; 'aria-hidden'?: boolean }>; kind?: string; go?: 'atlas' | 'timeline' | 'arvore'; count: (u: Universe) => number | null }
 
 const ofKind = (k: string) => (u: Universe) => u.entities.filter((e) => e.kind === k).length
 
@@ -17,6 +17,7 @@ const TILES: Tile[] = [
   { key: 'artefato', label: 'Item', icon: Gem, kind: 'artefato', count: ofKind('artefato') },
   { key: 'lugar', label: 'Lugar', icon: MapPin, kind: 'lugar', count: ofKind('lugar') },
   { key: 'especie', label: 'Espécie', icon: PawPrint, kind: 'especie', count: ofKind('especie') },
+  { key: 'arvore', label: 'Árvore', icon: GitBranch, go: 'arvore', count: () => null },
   { key: 'mapa', label: 'Mapa', icon: MapIcon, go: 'atlas', count: (u) => u.maps.length },
   { key: 'tempo', label: 'Linha do tempo', icon: CalendarRange, go: 'timeline', count: (u) => u.events.length },
 ]
@@ -25,7 +26,7 @@ const TILES: Tile[] = [
  * "O que vamos criar hoje?": os tipos mais usados num toque, no alto das Fichas. Cada um mostra quantos já existem
  * e, se faltar resumo, avisa. Pode ser fechado; fica fechado neste aparelho.
  */
-export function CreateToday({ universe, onKind, onGo, onMore }: { universe: Universe; onKind: (kind: string) => void; onGo: (view: 'atlas' | 'timeline') => void; onMore: () => void }) {
+export function CreateToday({ universe, onKind, onGo, onMore }: { universe: Universe; onKind: (kind: string) => void; onGo: (view: 'atlas' | 'timeline' | 'arvore') => void; onMore: () => void }) {
   // No celular a lista vem primeiro: a grade começa fechada (um toque abre); no computador, aberta.
   const phone = useMediaQuery('(max-width: 760px)')
   const saved = recall('criar-hoje')
@@ -59,7 +60,7 @@ export function CreateToday({ universe, onKind, onGo, onMore }: { universe: Univ
               >
                 <Icon size={22} aria-hidden />
                 <b>{t.label}</b>
-                <small>{n ? `${n}${bare ? ` · ${bare} sem resumo` : ''}` : 'nenhum ainda'}</small>
+                <small>{t.key === 'arvore' ? 'tipos, ordens, cidades…' : n ? `${n}${bare ? ` · ${bare} sem resumo` : ''}` : 'nenhum ainda'}</small>
               </button>
             )
           })}

@@ -15212,3 +15212,214 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
     padding: 0.4rem 0.75rem;
   }
 }
+
+/* Árvore de uma ficha: cartões ligados por linhas (de cima para baixo no computador; recuada no celular). */
+.tree-wrap {
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 1rem;
+}
+.tree,
+.tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tree {
+  display: flex;
+  justify-content: center;
+  min-width: max-content;
+}
+.tree ul {
+  display: flex;
+  justify-content: center;
+  padding-top: 1.25rem;
+  position: relative;
+}
+.tree li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 0.4rem 0;
+}
+.tree > li {
+  padding-top: 0;
+}
+/* As linhas: uma vertical de cima de cada galho, uma horizontal entre irmãos. */
+.tree ul::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 1.25rem;
+  border-left: 1.5px solid var(--line-strong, var(--ink-3));
+}
+.tree ul > li::before,
+.tree ul > li::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 1.25rem;
+  border-top: 1.5px solid var(--line-strong, var(--ink-3));
+}
+.tree ul > li::before {
+  right: 50%;
+}
+.tree ul > li::after {
+  left: 50%;
+  border-left: 1.5px solid var(--line-strong, var(--ink-3));
+}
+.tree ul > li:first-child::before,
+.tree ul > li:last-child::after {
+  border-top: 0;
+}
+.tree ul > li:last-child::before {
+  border-right: 1.5px solid var(--line-strong, var(--ink-3));
+  border-radius: 0 6px 0 0;
+}
+.tree ul > li:first-child::after {
+  border-radius: 6px 0 0 0;
+}
+.tree ul > li:only-child::before,
+.tree ul > li:only-child::after {
+  border-top: 0;
+  border-right: 0;
+}
+.tree ul > li:only-child::after {
+  border-left: 1.5px solid var(--line-strong, var(--ink-3));
+  border-radius: 0;
+}
+.tree-node {
+  --k: var(--accent);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 8.5rem;
+  max-width: 12rem;
+  border: 1.5px solid color-mix(in srgb, var(--k) 55%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--k) 8%, var(--surface));
+  text-align: center;
+}
+.tree-node.is-root {
+  border-width: 2px;
+}
+.tree-name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.6rem 0.3rem;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tree-name small {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree-tools {
+  display: flex;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0 0.25rem 0.3rem;
+}
+.tree-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.tree-btn:hover {
+  background: color-mix(in srgb, var(--k) 18%, transparent);
+  color: var(--ink);
+}
+.tree-add {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.4rem;
+  min-width: 12rem;
+}
+@media (max-width: 760px) {
+  /* No celular a árvore fica recuada, de cima para baixo: cabe em 360 px. */
+  .tree {
+    display: block;
+    min-width: 0;
+  }
+  .tree ul {
+    display: block;
+    padding: 0 0 0 1.1rem;
+    margin-left: 0.7rem;
+    border-left: 1.5px solid var(--line-strong, var(--ink-3));
+  }
+  .tree ul::before,
+  .tree ul > li::before,
+  .tree ul > li::after {
+    display: none;
+  }
+  .tree li,
+  .tree > li {
+    display: block;
+    padding: 0.5rem 0 0;
+  }
+  .tree-node {
+    max-width: none;
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+  }
+  .tree-name {
+    flex: 1;
+    min-width: 0;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .tree-tools {
+    flex-wrap: wrap;
+    max-width: 7.5rem;
+    padding: 0.25rem;
+  }
+  .tree-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .tree-add {
+    min-width: 0;
+  }
+}
+.tree-section {
+  margin-block: 1rem;
+}
+.tree-mini,
+.tree-mini ul {
+  list-style: none;
+  margin: 0.25rem 0;
+  padding-left: 1rem;
+  border-left: 1.5px solid var(--line);
+}
+.tree-mini {
+  padding-left: 0.75rem;
+}
+.tree-mini-link {
+  background: none;
+  border: 0;
+  padding: 0.15rem 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}

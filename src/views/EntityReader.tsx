@@ -34,6 +34,7 @@ import { PantheonPanel } from './PantheonPanel'
 import { PowerPanel } from './PowerPanel'
 import { SecretTextarea } from '../ui/SecretText'
 import { readerBook } from '../logic/reader'
+import { TreeSection } from './TreeSection'
 import { fold } from '../logic/text'
 import { inheritedFields, isPast, listsOf, membersOf } from '../model/lists'
 import { ListsSection, MembershipChips } from './EntityLists'
@@ -764,6 +765,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
                 {node}
               </BlockFrame>
             ))}
+            {activeTab === 'visao' && !editingId && <TreeSection entity={base} reader={Boolean(reader)} />}
             {tools && (
               <AddBlock
                 entity={base}
