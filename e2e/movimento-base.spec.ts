@@ -24,9 +24,7 @@ test('o fundo da parte aberta acompanha a parte (Fichas · Ligações · Mapas)'
   expect(b.x).toBe(`${b.left}px`)
   // Depois do primeiro desenho, as trocas passam a animar.
   expect(b.ready).toBe(true)
-  // O botão ativo fica sem fundo próprio (quem desenha é o deslizante).
-  const mapas = page.locator(partes).getByRole('button', { name: 'Mapas' })
-  await expect.poll(() => mapas.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)')
+  // (Na Nova cara cada parte tem o próprio quadro com fundo; o deslizante acompanha a parte, e é o que se confere acima.)
 })
 
 test('Estrutura · Página · Revisão e a barra de baixo do celular também deslizam', async ({ page }) => {
