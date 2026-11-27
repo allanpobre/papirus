@@ -15094,4 +15094,3 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 
 /* Modo sessão: o Codex no painel do Grupo (o que já se mostrou hoje). */
 .sm-codex-list { margin: 0 0 0.6rem; padding-left: 1.1rem; display: grid; gap: 0.2rem; }
-
