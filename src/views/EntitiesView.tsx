@@ -525,7 +525,7 @@ export default function EntitiesView() {
           </>
         )}
         {phone && !readOnly && !picked && (
-          <button type="button" className="fab" aria-label="Nova ficha" onClick={() => setCreating('uma')}>
+          <button type="button" className="fab" aria-label="Nova ficha" onClick={() => (setTileKind(null), setCreating('uma'))}>
             <Plus size={22} />
           </button>
         )}
