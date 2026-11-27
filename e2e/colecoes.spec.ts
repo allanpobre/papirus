@@ -3,6 +3,11 @@ import { expect, test } from './fixtures.ts'
 // Coleções de livros: "Tales of Papilio" com "Tales of Malkai" dentro, cada livro numa casa só.
 test.use({ viewport: { width: 1280, height: 800 } })
 
+// (Enquanto os testes antigos não migram: roda na Nova cara.)
+test.beforeEach(async ({ context }) => {
+  await context.addInitScript(() => localStorage.setItem('papirus:cara-antiga', '0'))
+})
+
 test('agrupar livros em coleções, uma dentro da outra, e escolher a coleção no alto', async ({ page }) => {
   await page.goto('/app/?exemplo')
   const faixa = page.getByRole('region', { name: 'Livro atual' })
