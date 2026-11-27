@@ -16,7 +16,7 @@ test('wiki no celular (360 e 390 px), nos quatro estilos: sem rolagem de lado, a
   test.setTimeout(120_000)
   await page.goto('/app/?exemplo=ostria')
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
   await page.getByRole('button', { name: 'Wiki', exact: true }).click()
   await page.locator('iframe.wiki-view-preview').waitFor()
   const hostUrl = page.url()

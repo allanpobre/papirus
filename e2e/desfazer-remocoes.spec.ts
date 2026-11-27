@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 // Remoções que não tinham volta (auditoria 23): agora dão "Desfazer". E a janela de nova versão pergunta antes
 // de descartar o que foi escrito.
@@ -7,7 +7,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 async function abrirKael(page: import('@playwright/test').Page) {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
 }
 

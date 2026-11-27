@@ -34,8 +34,8 @@ async function fakeVoice(page: Page, auto: boolean) {
 const falas = (page: Page) => page.evaluate(() => (window as unknown as { falas: string[] }).falas)
 
 async function escolherLivro(page: Page, nome: RegExp) {
-  const select = page.getByLabel('Livro', { exact: true })
-  await select.selectOption((await select.locator('option', { hasText: nome }).first().getAttribute('value'))!)
+  await page.getByRole('region', { name: 'Livro atual' }).getByRole('button', { name: 'Trocar livro' }).click()
+  await page.getByRole('dialog', { name: 'Trocar de livro' }).getByRole('radio', { name: nome }).click()
 }
 
 test('com um livro escolhido: começa nele, passa de cena e para no fim dele', async ({ page }) => {

@@ -35,8 +35,8 @@ test('um nome que parece lugar já vem como lugar; o que parece gente, como pers
   await page.keyboard.press('Escape')
 
   // No Mundo: Vaelor é lugar e Brenn é artefato, como escolhido.
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mais/ }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
   await expect(page.locator('.entity-row', { hasText: 'Vaelor' })).toContainText('Lugar')
   await expect(page.locator('.entity-row', { hasText: 'Brenn' })).toContainText('Artefato')
 })
@@ -59,8 +59,8 @@ test('"Criar fichas" para vários nomes usa o tipo sugerido para cada um', async
   await revisao.getByRole('button', { name: 'Criar fichas' }).click()
   await expect(page.getByText('2 fichas criadas')).toBeVisible()
   await page.keyboard.press('Escape')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mais/ }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
   await expect(page.locator('.entity-row', { hasText: 'Vaelor' })).toContainText('Lugar')
   await expect(page.locator('.entity-row', { hasText: 'Kaya' })).toContainText('Personagem')
 })

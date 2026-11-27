@@ -92,8 +92,8 @@ test.describe('no celular', () => {
     await page.goBack()
     await expect(cats.getByRole('button', { name: /^Dados e backup/ })).toBeVisible()
     // O botão "Ajustes" no alto também volta.
-    await cats.getByRole('button', { name: 'Aparência', exact: true }).tap()
+    await cats.getByRole('button', { name: /^Aparência/ }).tap()
     await page.getByRole('button', { name: 'Ajustes', exact: true }).tap()
-    await expect(cats.getByRole('button', { name: 'Aparência', exact: true })).toBeVisible()
+    await expect(cats.getByRole('button', { name: /^Aparência/ })).toBeVisible()
   })
 })

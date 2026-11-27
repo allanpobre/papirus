@@ -7,7 +7,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 async function bestiario(page: Page) {
   await page.goto('/app/?exemplo')
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mesa', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mesa/ }).click()
   await page.getByRole('tab', { name: 'Regras' }).click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
   const sec = page.getByRole('region', { name: 'Inimigos prontos' })
@@ -55,7 +55,7 @@ test('o inimigo acompanha a ficha do Mundo: o que muda no "No jogo" da espécie 
   // Na ficha da Kalidah (Mundo), um traço novo no "No jogo".
   await page.goto('/app/?exemplo')
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
   await page.locator('.entity-row', { has: page.locator('.entity-row-name', { hasText: /^Kalidah$/ }) }).first().click()
   await fichaModo(page, 'Editar')
   const jogo = page.locator('details.fold', { hasText: 'No jogo' })
@@ -64,7 +64,7 @@ test('o inimigo acompanha a ficha do Mundo: o que muda no "No jogo" da espécie 
 
   // No bestiário, o inimigo já tem o traço novo.
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mesa', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mesa/ }).click()
   await page.getByRole('tab', { name: 'Regras' }).click()
   await page.getByRole('tab', { name: 'Dados e tabelas' }).click()
   const sec = page.getByRole('region', { name: 'Inimigos prontos' })

@@ -40,7 +40,7 @@ test('Estrutura · Página · Revisão e a barra de baixo do celular também des
   const barra = '[data-tour="menu"]'
   const r1 = await slideOf(page, barra)
   expect(r1.on).toBe('on')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Trama' }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'História' }).click()
   await expect.poll(async () => (await slideOf(page, barra)).x).not.toBe(r1.x)
 })
 

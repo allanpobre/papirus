@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo } from './areas.ts'
+import { fichaModo, openPart } from './areas.ts'
 
 /*
  * Poderes e magia, no celular: um sistema montado a partir de um modelo, o personagem aprende um poder numa
@@ -9,7 +9,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 test('poderes: árvore pelo modelo, aprende numa cena, acende pela régua e avisa o que não fecha', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
 
   // Um sistema de magia novo, a partir do modelo "Graus".
   await page.getByRole('button', { name: 'Nova ficha' }).click()
@@ -51,7 +51,7 @@ test('poderes: árvore pelo modelo, aprende numa cena, acende pela régua e avis
 
 test('sem sistema ainda: o personagem acha os Poderes no "+ Bloco" e cria o sistema ali mesmo', async ({ page }) => {
   await page.goto('/app/?exemplo=ostria')
-  await page.getByRole('button', { name: 'Mundo', exact: true }).first().click()
+  await openPart(page, 'Fichas')
   await page.getByRole('region', { name: 'Lista de fichas' }).getByRole('button', { name: /^Kael/ }).first().click()
   await fichaModo(page, 'Ler')
   await page.getByRole('button', { name: 'Bloco', exact: true }).click()

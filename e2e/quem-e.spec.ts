@@ -56,7 +56,7 @@ test.describe('Quem é no celular (390 px), com o exemplo de Oz', () => {
   async function abrirLenhador(page: Page) {
     await page.goto('/app/?exemplo')
     await page.getByRole('button', { name: 'Menu', exact: true }).click()
-    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
     await row(page, 'Lenhador de Lata').first().click()
     await fichaModo(page, 'Editar')
     const who = page.getByRole('region', { name: 'Quem é' })
@@ -127,7 +127,7 @@ test.describe('Quem é no celular (390 px), com o exemplo de Oz', () => {
 
     // Voltar ao personagem: tirar "Povo" de todo personagem é de todos, então pergunta antes (e dá para desistir).
     await page.getByRole('button', { name: 'Menu', exact: true }).click()
-    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Mundo', exact: true }).click()
+    await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Mundo/ }).click()
     await row(page, 'Lenhador de Lata').first().click()
     await fichaModo(page, 'Editar')
     const region = page.getByRole('region', { name: 'Quem é' })

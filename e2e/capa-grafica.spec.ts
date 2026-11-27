@@ -8,8 +8,8 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 test('a capa para gráfica mostra a lombada e a capa inteira, e explica de onde vem cada medida', async ({ page }) => {
   test.setTimeout(120_000)
   await page.goto('/app/?exemplo')
-  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mais/ }).click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: 'Publicar', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: /^Publicar/ }).click()
   await page.getByRole('button', { name: /^Diagramar/ }).first().click()
   const designer = page.getByRole('dialog', { name: 'Diagramar o livro' })
   await expect(designer.getByRole('status').filter({ hasText: /^\d+ páginas$/ })).toBeVisible({ timeout: 90_000 })
