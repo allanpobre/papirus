@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-03a',
+    when: '3 de dezembro',
+    title: 'Coleções em Publicar',
+    items: [
+      'Em Publicar › Novo livro, “Com os livros de uma coleção” cria o volume já com as histórias dela (as das coleções de dentro também) e o nome da coleção como título: “Tales of Malkai” vira um volume em um passo.',
+      'Escolhendo uma coleção no alto, Publicar abre o volume que tem exatamente esses livros.',
+    ],
+  },
+  {
     id: '2026-12-02b',
     when: '2 de dezembro',
     title: 'Mesa mais clara e leitor mais limpo',

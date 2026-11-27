@@ -8,6 +8,7 @@ import { fileNameFor, downloadText } from '../export/download'
 import { addBook, removeBook, shelf, storiesOutsideBooks } from '../export/shelf'
 import { reviewBook, reviewIfDone } from '../logic/review'
 import type { BookRecord } from '../model/schema'
+import { bookIdsOf, collectionStoryIds } from '../model/universe'
 import { useAccount } from '../account/auth'
 import { useWorkspace } from '../state/workspace'
 import { ConfirmButton } from '../ui/ConfirmButton'
@@ -40,7 +41,13 @@ export default function BookView() {
   const books = useMemo(() => shelf(universe), [universe])
   const [picked, setSelectedId] = useState<{ id: string; forBook: string | null } | null>(null)
   // O livro escolhido no alto abre o volume da estante que tem essa história (ou o que tem todas).
-  const forBook = bookId ? (books.find((b) => b.storyIds.includes(bookId)) ?? books.find((b) => !b.storyIds.length)) : undefined
+  // Com uma coleção (ou série) escolhida, abre o volume que tem exatamente esses livros; com um livro, o que tem a história.
+  const wanted = bookIdsOf(bookId)
+  const forBook = wanted
+    ? ((wanted.length > 1 ? books.find((b) => b.storyIds.length === wanted.length && wanted.every((id) => b.storyIds.includes(id))) : undefined) ??
+      books.find((b) => wanted.every((id) => b.storyIds.includes(id))) ??
+      books.find((b) => !b.storyIds.length))
+    : undefined
   const selectedId = picked && picked.forBook === bookId ? picked.id : null
   const selected = books.find((b) => b.id === selectedId) ?? forBook ?? books[0] ?? null
   const [adding, setAdding] = useState(false)
@@ -51,18 +58,22 @@ export default function BookView() {
   const readersBook = books.find((b) => b.id === readersOf)
   const [newTitle, setNewTitle] = useState('')
   const [styleFrom, setStyleFrom] = useState<string>('')
+  // “Com os livros de…”: o volume nasce com as histórias de uma coleção (as de dentro também).
+  const [fromCollection, setFromCollection] = useState('')
   const hasText = universe.scenes.some((s) => s.text.trim())
 
   const create = () => {
     let id = ''
     update((u) => {
-      const [next, b] = addBook(u, { title: newTitle, styleFrom: styleFrom || null })
+      const col = u.collections.find((c) => c.id === fromCollection)
+      const [next, b] = addBook(u, { title: newTitle || col?.name || '', styleFrom: styleFrom || null, ...(col ? { storyIds: collectionStoryIds(u, col.id) } : {}) })
       id = b.id
       return next
     })
     setSelectedId({ id, forBook: bookId })
     setAdding(false)
     setNewTitle('')
+    setFromCollection('')
     toast('Livro novo na estante. Escolha as histórias e a capa na diagramação.')
   }
 
@@ -111,6 +122,21 @@ export default function BookView() {
             <span className="field-label">Título</span>
             <input className="input" autoFocus value={newTitle} placeholder="Ex.: Livro II — A Torre" onChange={(e) => setNewTitle(e.target.value)} />
           </label>
+          {universe.collections.some((c) => collectionStoryIds(universe, c.id).length > 0) && (
+            <label className="book-new-field">
+              <span className="field-label">Com os livros de uma coleção</span>
+              <select className="input" value={fromCollection} onChange={(e) => setFromCollection(e.target.value)}>
+                <option value="">Escolher as histórias depois</option>
+                {universe.collections
+                  .filter((c) => collectionStoryIds(universe, c.id).length > 0)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name || 'Sem nome'} ({collectionStoryIds(universe, c.id).length})
+                    </option>
+                  ))}
+              </select>
+            </label>
+          )}
           {books.length > 0 && (
             <label className="book-new-field">
               <span className="field-label">Estilo</span>
