@@ -21,9 +21,11 @@ test('Pistas e mistérios no celular: colunas que rolam de lado, botões para ir
   await expect(salto.getByRole('button', { name: /^Resolvida/ })).toHaveAttribute('aria-pressed', 'true')
   await expect.poll(() => quadro.evaluate((el) => el.scrollLeft)).toBeGreaterThan(300)
   // A coluna Resolvida ficou à vista (cabe na tela).
+  // (A rolagem é suave: espera a coluna parar antes de medir.)
+  const fim = async () => { const b = (await page.locator('.seed-col-resolvida').boundingBox())!; return b.x + b.width }
+  await expect.poll(fim).toBeLessThanOrEqual(390)
   const col = (await page.locator('.seed-col-resolvida').boundingBox())!
   expect(col.x).toBeGreaterThanOrEqual(0)
-  expect(col.x + col.width).toBeLessThanOrEqual(390)
 
   // Deslizar com o dedo também troca de coluna: o botão acompanha.
   const cdp = await page.context().newCDPSession(page)

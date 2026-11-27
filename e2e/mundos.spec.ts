@@ -26,7 +26,7 @@ test('o mundo no Início: o que falta, e Simples ou Completo em qualquer univers
   // Simples (em Ajustes › Universo): a ficha mostra o essencial e a Trama sai do menu.
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('radio', { name: 'Simples' }).click()
-  await expect(nav(page, 'Trama')).toHaveCount(0)
+  await expect(nav(page, 'História')).toHaveCount(0)
   await nav(page, 'Início').click()
   await world(page).getByRole('button', { name: /2 fichas sem resumo/ }).click()
   await fichaModo(page, 'Editar')
@@ -36,7 +36,7 @@ test('o mundo no Início: o que falta, e Simples ou Completo em qualquer univers
   await expect(page.getByText('É verdade no mundo?')).toBeVisible()
   await nav(page, 'Ajustes e dados').click()
   await page.getByRole('radio', { name: 'Completo' }).click()
-  await expect(nav(page, 'Trama')).toBeVisible()
+  await expect(nav(page, 'História')).toBeVisible()
 })
 
 test('a semente planta as primeiras fichas, e a wiki tem prévia', async ({ page }) => {
