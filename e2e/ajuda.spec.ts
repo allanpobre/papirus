@@ -28,7 +28,7 @@ test('cada área do universo tem o seu (?), que destaca as partes da tela', asyn
     ['Escrever', 'Escrever'],
     ['Publicar', 'Publicar'],
     ['Mundo', 'Fichas'],
-    ['Trama', 'Pistas e mistérios'],
+    ['História', 'Pistas e mistérios'],
     ['Ideias', 'Ideias'],
     ['Perguntar ao mundo', 'Perguntar ao mundo'],
     ['Ajustes e dados', 'Ajustes'],
@@ -215,7 +215,7 @@ test('Atlas com mapa e o Mapa da história em cada aba: o (?) explica o que est�
   await openPart(page, 'Mapas')
   await expect(page.locator('.atlas-scroll')).toBeVisible()
   const atlas = await runPageTour(page, 'Mapas')
-  expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['O mundo em quatro partes', 'Rolar no mundo', 'Mapas', 'Marcar lugares', 'Caminho de', 'Rotas e dias de viagem', 'O mapa'])
+  expect(atlas.filter((s) => s.spot).map((s) => s.title)).toEqual(['O mundo em três partes', 'Rolar no mundo', 'Mapas', 'Marcar lugares', 'Caminho de', 'Rotas e dias de viagem', 'O mapa'])
 
   await nav(page, 'Escrever').click()
   await page.getByRole('navigation', { name: 'Momento da escrita' }).getByRole('button', { name: 'Estrutura' }).click()
