@@ -46,7 +46,7 @@ Vieram do quiz de opinião e das conversas, mais ou menos em ordem de valor:
 
 (As antigas “Achar as funções” e “Primeira vez mais curta” foram feitas: Menu em grupos, “Todas as ferramentas”, passeios e a Nova cara.)
 
-1. **Coleções em todo lugar:** elas filtram as telas e, em Publicar, o volume novo pode nascer com os livros de uma coleção. Faltam a wiki só de uma coleção (decidir o que entra: a ficha que aparece nos dois lados), o link de leitura e o compartilhar.
+1. **Coleções em todo lugar:** elas filtram as telas e, em Publicar, o volume novo pode nascer com os livros de uma coleção. A wiki também pode ser só de uma coleção (Personalizar › O que entra; vale para o site, .md, .json e o link; entra quem aparece nos livros dela, quem aparece nos dois lados e o pano de fundo sem livro). Falta o leitor (modo leitor do livro) respeitar a coleção.
 2. (Feito: idiomas e nomes por cultura (`LanguageEditor`, “Sugerir nomes” no estilo de um povo, fim de nome de lugar e prefixo de família, dicionário na wiki) e linha do tempo por lugar e por região pintada no mapa.)
 3. (Feito: a wiki, em todos os formatos e pelo link, traz a árvore de cada sistema e os poderes de cada personagem, sem spoiler.)
 4. (Feito: a wiki do link já vai só até a cena escolhida em Compartilhar e na página Wiki; `settings.wiki.upToScene`.)

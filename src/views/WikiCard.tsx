@@ -168,6 +168,20 @@ function WikiCustomize() {
 
       <fieldset className="wiki-custom-group">
         <legend>O que entra</legend>
+        {universe.collections.length > 0 && (
+          <label className="field">
+            <span className="field-label">Só os livros de uma coleção</span>
+            <select className="input select" aria-label="Só os livros de uma coleção" value={universe.collections.some((c) => c.id === ws.collectionId) ? ws.collectionId : ''} onChange={(e) => set({ collectionId: e.target.value || undefined })}>
+              <option value="">O mundo todo</option>
+              {universe.collections.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name || 'Sem nome'}
+                </option>
+              ))}
+            </select>
+            <span className="tiny muted">Entra quem aparece nesses livros (também quem aparece nos dois lados) e o que é do mundo todo: lugares e povos sem livro.</span>
+          </label>
+        )}
         {kinds.length > 0 && (
           <div className="wiki-custom-checks" role="group" aria-label="Tipos de ficha">
             {kinds.map((k) => (

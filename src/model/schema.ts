@@ -762,6 +762,8 @@ export const wikiSettingsSchema = z.object({
   style: z.enum(WIKI_STYLES).optional().catch(undefined),
   /** Até que cena vai a wiki do link (id da cena). Sem valor, vai tudo, menos os segredos. */
   upToScene: z.string().nullable().optional(),
+  /** Só os livros de uma coleção (id): entra quem aparece neles e o pano de fundo do mundo. Sem valor, o mundo todo. */
+  collectionId: z.string().optional().catch(undefined),
 })
 export type WikiSettings = z.infer<typeof wikiSettingsSchema>
 
