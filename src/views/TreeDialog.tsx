@@ -41,6 +41,14 @@ function TreeDialogInner({ rootId, onClose, onPickRoot }: { rootId: string | nul
     setName('')
   }
   const total = treeSize(tree)
+  // Quem está debaixo de um galho não pode receber ele (viraria um laço): fica fora da escolha.
+  const below = (id: string): string[] => {
+    const sub = contentTree(universe, id, { everyone: true })
+    const out: string[] = []
+    const walk = (x: TreeNode) => x.children.forEach((c) => (out.push(c.entity.id), walk(c)))
+    if (sub) walk(sub)
+    return out
+  }
 
   const node = (n: TreeNode, top = false): React.ReactNode => (
     <li key={n.entity.id}>
@@ -91,7 +99,7 @@ function TreeDialogInner({ rootId, onClose, onPickRoot }: { rootId: string | nul
             value={null}
             allowCreate={false}
             autoFocus
-            exclude={[n.entity.id]}
+            exclude={[n.entity.id, ...below(n.entity.id)]}
             onChange={(to) => {
               if (to) update((u) => moveBranch(u, n.entity.id, n.via, to))
               setMoving(null)
