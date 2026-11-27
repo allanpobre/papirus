@@ -2399,3 +2399,10 @@ body.escrevendo-no-celular .shared-banner {
     max-height: 30vh;
   }
 }
+
+/* Título vazio mais discreto (feedback das personas, Lia): “Título (opcional)” menor e mais claro; ao digitar, volta
+   ao tamanho de título. */
+.scene-title:placeholder-shown {
+  font-size: calc(var(--editor-size) * 1.2);
+  opacity: 0.75;
+}

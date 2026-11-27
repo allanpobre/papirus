@@ -7,6 +7,7 @@ import { draftEntity, insert } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { Modal } from '../ui/Modal'
 import { ForeignImport } from './ForeignImport'
+import { suggestLinks } from '../logic/suggestLinks'
 import { SeedDialog } from './SeedDialog'
 
 /** A partir de quantas fichas o Simples sugere o Completo. */
@@ -30,6 +31,8 @@ export function WorldCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const empty = universe.entities.length === 0
+  // Ligações que já estão escritas nas fichas (de um mundo trazido, por exemplo): o primeiro "falta" é aceitá-las.
+  const written = useMemo(() => suggestLinks(universe).length, [universe])
   const grown = !full && !readOnly && (universe.entities.length >= GROWN || universe.groups.length > 0)
   const together = others.filter((o) => o.entityId)
 
@@ -56,6 +59,17 @@ export function WorldCard() {
         <Earth size={16} aria-hidden="true" /> {empty ? 'Comece o mundo' : 'O que falta no mundo'}
       </h2>
 
+      {written > 0 && !readOnly && (
+        <button type="button" className="world-gap world-gap-links" onClick={() => go('relacoes')}>
+          <span>
+            <strong>
+              {written} {written === 1 ? 'ligação escrita' : 'ligações escritas'} nas fichas, para aceitar
+            </strong>
+            <small className="muted">Como “irmão de” ou “serve a”: um toque vira ligação no mapa de Ligações.</small>
+          </span>
+          <ArrowRight size={16} aria-hidden="true" />
+        </button>
+      )}
       {empty ? (
         <p className="muted small">Um lugar, um povo, uma pessoa. Ou plante a semente: cinco perguntas, e o mundo ganha as primeiras fichas já ligadas.</p>
       ) : gaps.length === 0 ? (

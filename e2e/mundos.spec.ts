@@ -73,5 +73,10 @@ test('trazer notas do Obsidian', async ({ page }) => {
   ])
   await expect(dialog.getByText(/Achei 2 fichas/)).toBeVisible()
   await dialog.getByRole('button', { name: 'Trazer 2 fichas' }).click()
+  // As notas já diziam "irmão de [[Mira]]": o app leva para Ligações, com a ligação para aceitar.
+  await expect(page.getByRole('region', { name: 'Ligações achadas no texto' })).toContainText('1 ligação')
+  // E o Início conta as fichas e avisa da ligação que espera um toque.
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Início/ }).first().click()
   await expect(page.getByRole('navigation', { name: 'O seu mundo' })).toContainText('2 fichas')
+  await expect(world(page).getByRole('button', { name: /1 ligação escrita nas fichas/ })).toBeVisible()
 })

@@ -109,10 +109,6 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
           <h3 className="shield-label">Personagens</h3>
           <PartyCards onSheet={setSheetId} />
         </section>
-        <section className="table-panel sm-panel" aria-label="Registro">
-          <h3 className="shield-label">Registro</h3>
-          <LogBox />
-        </section>
         {!readOnly && (
           <Fold id="sm-codex" title={`Codex: mostrar aos jogadores${revealedHere.length ? ` (${revealedHere.length} hoje)` : ''}`} defaultOpen={false}>
             <section className="sm-panel sm-codex" aria-label="Codex da sessão">
@@ -127,6 +123,10 @@ export function SessionMode({ session, diceMode, onTheme, onLeave }: { session: 
             </section>
           </Fold>
         )}
+        <section className="table-panel sm-panel" aria-label="Registro">
+          <h3 className="shield-label">Registro</h3>
+          <LogBox />
+        </section>
         <Fold id="sm-dados" title="Dados e tabelas" defaultOpen={false}>
           <section className="sm-panel" aria-label="Dados">
             <QuickDice />

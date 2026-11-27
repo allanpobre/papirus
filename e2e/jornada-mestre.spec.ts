@@ -50,7 +50,7 @@ test('o mestre vai da campanha ao fim da primeira sessão', async ({ page }) => 
   // 3. Escolhe um sistema e cria 3 fichas de jogo.
   await tap(nav(page, 'Mesa'))
   await tap(page.getByRole('tab', { name: 'Preparar' }))
-  // A campanha já nasce com um sistema (Tormenta 20); aqui se troca por um estilo D&D novo (1 toque na lista).
+  // Sem escolher na criação, a campanha nasce no Narrativo; aqui se troca por um estilo D&D novo (1 toque na lista).
   await page.getByRole('combobox', { name: 'Sistema do grupo' }).selectOption({ label: '+ Novo: estilo D&D 5e' })
   await expect(page.getByRole('combobox', { name: 'Sistema do grupo' })).toContainText('Estilo D&D 5e')
   await tap(page.getByRole('tab', { name: 'Grupo', exact: true }))

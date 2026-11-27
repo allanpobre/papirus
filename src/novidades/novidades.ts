@@ -13,6 +13,18 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-02a',
+    when: '2 de dezembro',
+    title: 'Ajustes pedidos por quem usa',
+    items: [
+      'Trouxe um mundo de outro app e as notas já diziam “irmão de [[Mira]]”? O app leva direto para Ligações, e o Início avisa quantas ligações escritas esperam um toque.',
+      'No leitor do celular, o nome da cena tem uma linha inteira e as abas do Caderno não cortam mais.',
+      'O “Salvo” do celular fica pequeno no canto, sem tampar o texto. O título vazio da cena (“Título (opcional)”) ficou mais discreto.',
+      'No computador, as capas dos livros do Início ficam em fileira.',
+      'No modo sessão, o Codex fica logo abaixo dos personagens. A campanha nova não vem com sistema marcado: sem escolher, começa no Narrativo.',
+    ],
+  },
+  {
     id: '2026-12-01a',
     when: '1 de dezembro',
     title: 'Coleções de livros',

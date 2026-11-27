@@ -74,8 +74,9 @@ export function AreaHead({ current, tour, actions }: { current: View; tour: Page
   const waiting = WAITING.filter((w) => NOVA_PARTS[area].some(([v]) => v === w.view) && waitingViews.includes(w.view))
   const hint =
     waiting.length > 0 ? (
-      <p className="first-steps-hint tiny muted">
-        Mais partes aparecem conforme você usa: {waiting.map((w) => `${partLabel(w.view)}, ${w.why}`).join('; ')}.{' '}
+      // Curto (feedback das personas, Lia): o porquê de cada parte fica no “title”, sem um parágrafo no alto da tela.
+      <p className="first-steps-hint tiny muted" title={waiting.map((w) => `${partLabel(w.view)}: ${w.why}`).join('\n')}>
+        Mais partes aparecem com o uso ({waiting.map((w) => partLabel(w.view)).join(', ')}).{' '}
         <button type="button" className="link-btn" onClick={showAllParts}>
           Mostrar todas
         </button>

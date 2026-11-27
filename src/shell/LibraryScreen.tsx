@@ -108,7 +108,8 @@ const dateFmt = new Intl.DateTimeFormat('pt-BR', {
 export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onChanged, onOpenShared }: Props) {
   const [name, setName] = useState('')
   const [template, setTemplate] = useState<UniverseTemplate['id']>('branco')
-  const [rpgSystem, setRpgSystem] = useState('t20')
+  // Nenhum sistema vem marcado (feedback das personas, Rafa): sem escolher, a mesa começa no Narrativo, sem números.
+  const [rpgSystem, setRpgSystem] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [accountOpen, setAccountOpen] = useState(false)
   const [oficinaOpen, setOficinaOpen] = useState<GuideId | null>(null)
@@ -315,7 +316,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
     const fallback = kind === 'campanha' ? 'Nova campanha' : 'Novo universo'
     // O primeiro universo de quem nunca usou: as partes aparecem conforme o uso (a "primeira vez mais curta").
     if (p.firstSteps === undefined && entries.length === 0) setPref('firstSteps', { active: true, revealed: [] })
-    onCreated(applyTemplate(createUniverse(name.trim() || fallback), kind === 'campanha' ? 'rpg' : template, { system: rpgSystem }))
+    onCreated(applyTemplate(createUniverse(name.trim() || fallback), kind === 'campanha' ? 'rpg' : template, { system: rpgSystem || 'narrativo' }))
     setName('')
   }
 
@@ -386,7 +387,7 @@ export function LibraryScreen({ library, entries, prefs, onOpen, onCreated, onCh
       {campaigns.length > 0 && <h2 className="start-card-title">Nova campanha</h2>}
       {/* O sistema antes do botão: o Rafa jogava D&D e a campanha nasceu em Tormenta 20 sem ele ver (auditoria 26). */}
       <p className="start-label" id="sistema-campanha">
-        Sistema
+        Sistema <span className="tiny muted">(dá para trocar depois, em Regras; sem escolher, começa no Narrativo)</span>
       </p>
       <div className="start-chips" role="radiogroup" aria-labelledby="sistema-campanha">
         {SYSTEM_TEMPLATES.map((t) => (
