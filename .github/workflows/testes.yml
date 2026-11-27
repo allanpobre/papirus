@@ -30,7 +30,8 @@ jobs:
 
   e2e:
     name: e2e (parte ${{ matrix.parte }} de 4)
-    runs-on: ubuntu-latest
+    # 24.04 fixo: no ubuntu-latest (26.04) a instalação do Chromium para num repositório da Microsoft (403).
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     strategy:
       fail-fast: false
