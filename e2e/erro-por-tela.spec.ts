@@ -12,7 +12,8 @@ test('uma tela que quebra não derruba o app: o menu continua e o universo fica 
   await expect(menu.getByRole('button', { name: /^Mundo/ })).toBeVisible()
 
   // O código da tela das Fichas deixa de chegar.
-  await page.route(/EntitiesView\.tsx/, (route) => route.abort())
+  // (No celular, com mapas, o Mundo abre no Atlas: as duas telas deixam de chegar.)
+  await page.route(/(EntitiesView|AtlasView)\.tsx/, (route) => route.abort())
   await menu.getByRole('button', { name: /^Mundo/ }).click()
   const aviso = page.getByRole('alert').filter({ hasText: 'Esta parte deu erro' })
   await expect(aviso).toBeVisible()
@@ -39,8 +40,9 @@ test('uma tela que quebra não derruba o app: o menu continua e o universo fica 
   await expect(page.getByRole('heading', { name: /Exemplo — Terra de Oz/ }).first()).toBeVisible()
 
   // E, depois de recarregar, tudo está salvo como estava (o erro não escreveu nada).
-  await page.unroute(/EntitiesView\.tsx/)
+  await page.unroute(/(EntitiesView|AtlasView)\.tsx/)
   await page.reload()
   await menu.getByRole('button', { name: /^Mundo/ }).click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Fichas' }).click()
   await expect(page.locator('.entity-row-name', { hasText: 'Dorothy' }).first()).toBeVisible()
 })

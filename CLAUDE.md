@@ -9,6 +9,12 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 - Nunca pedir senha, token ou chave no chat.
 - Linguagem simples na interface: nomes que o usuário entende ("Ligações", "Linha do tempo"), sem jargão técnico.
 - Ser honesto no fim: dizer o que foi testado e o que **não** foi (ex.: formato real de exportações, duas pessoas ao vivo).
+- **Decisões de produto:** decidir e contar no fim, dizendo como desfazer (tirar uma função, mudar o que o usuário vê, esconder algo). Nunca tirar algo calado.
+- **Pode sem perguntar:** commit e push no ramo do PR; juntar (merge) um PR no main quando o CI (Testes) estiver verde e ele não depender de outro PR aberto.
+- **Pronto é:** PR aberto, testes ligados à mudança passando, sem conflito com os outros PRs abertos, e a descrição dizendo o que não foi testado. Só dizer "pronto" assim.
+- **Antes de abrir o PR:** rodar `/code-review` na mudança e corrigir o que for de verdade.
+- **Modelo:** trabalho repetitivo (migrar testes, ajustes em série) cabe no Sonnet; produto, desenho e análise, no Opus. Sugerir a troca quando a tarefa mudar de tipo.
+- **Agentes:** sessões em paralelo só para pacotes que não mexem nos mesmos arquivos; nunca para coisa pequena ou encadeada.
 
 ## Como trabalhar
 
@@ -16,13 +22,16 @@ App (PWA) de escrita, mundo (worldbuilding) e RPG de mesa. React + TypeScript + 
 2. Fazer, testar, commitar e dar push (`git push -u origin produto/<nome>`).
 3. Abrir o pedido (PR) para o main; o dono junta (merge). Mudança em PR ainda aberto vai para o mesmo ramo.
 4. Descrição do PR em português: o que muda, para quem, e os testes que rodaram.
-5. Várias etapas que dependem uma da outra: cada ramo parte do anterior, todos os PRs para o main, e a descrição diz **"Juntar depois do #N"**. Antes de dar por pronto, conferir que nenhum par de PRs abertos conflita (`git merge-tree --write-tree origin/A origin/B`).
+5. **Um pacote por vez:** abrir o PR e esperar ele entrar no main antes do próximo pacote (evita cadeias longas de PRs e conflitos). Se o dono pedir vários de uma vez, avisar o custo e propor a ordem.
+6. Várias etapas que dependem uma da outra: cada ramo parte do anterior, todos os PRs para o main, e a descrição diz **"Juntar depois do #N"**. Antes de dar por pronto, conferir que nenhum par de PRs abertos conflita (`git merge-tree --write-tree origin/A origin/B`).
 
 ## Comandos
 
 - `npx tsc -b` — tipos (rápido).
 - `npm run check` — tipos, oxlint, vitest e build. Os ~15 avisos `only-export-components` são normais; procurar erros.
 - `npx vitest run <arquivo>` — testes de unidade de um arquivo.
+- O CI (`.github/workflows/testes.yml`) roda tudo (check + e2e em 4 partes) em cada PR e toda noite: a bateria inteira fica para ele, não para a sessão.
+- Personas: `node scripts/personas/rodar.mjs [lia duda rafa beto]` (servidor de pé; fotos em `personas-saida/`). As personas estão em `docs/07-personas.md`.
 - e2e só dos arquivos ligados: `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npx playwright test e2e/<arquivo>.spec.ts --trace off --reporter=line` (servidor em `localhost:5179`; reaproveita um que já esteja de pé: `npx vite --port 5179 --strictPort`).
 - Universos de exemplo: `/app/?exemplo` (Terra de Oz, o principal: "O Mágico de Oz" inteiro, traduzido), `/app/?exemplo=alienista` (O Alienista, o segundo) e `/app/?exemplo=ostria` (fantasia dos testes, com segredos, mapa, datas e ligações de período — bom para testar o Mundo).
 

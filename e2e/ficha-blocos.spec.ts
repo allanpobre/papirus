@@ -63,5 +63,7 @@ test('ficha de blocos: editar no lugar, arrumar, tirar, pôr de volta e acrescen
   const final = await ordem()
   await page.reload()
   await expect(page.getByRole('article', { name: /^Ler a ficha/ })).toBeVisible()
-  expect(await ordem()).toEqual(final)
+  // (Fora do “Arrumar”, a página mostra só os blocos da aba aberta: confere a ordem deles.)
+  const recarregada = await ordem()
+  expect(recarregada).toEqual(final.filter((b) => recarregada.includes(b)))
 })

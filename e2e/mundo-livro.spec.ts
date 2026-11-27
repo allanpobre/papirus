@@ -11,6 +11,8 @@ test('escolher o livro pelas capas e ver sempre em qual se está', async ({ page
     const prefs = JSON.parse(localStorage.getItem('papirus:prefs') ?? '{}')
     localStorage.setItem('papirus:prefs', JSON.stringify({ ...prefs, novaCara: true }))
   })
+  // As capas no Início são do computador; no celular elas ficam no “Trocar livro” da faixa (o Continuar vem primeiro).
+  await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/app/?exemplo')
   const capas = page.getByRole('region', { name: 'Em qual livro você vai trabalhar?' }).getByRole('radiogroup', { name: 'Livros deste mundo' })
   await expect(capas.getByRole('radio', { name: /Todos os livros/ })).toHaveAttribute('aria-checked', 'true')

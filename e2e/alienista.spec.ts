@@ -14,7 +14,7 @@ async function area(page: Page, nome: string) {
   const direto = page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: nome, exact: true })
   if (await direto.isVisible()) return direto.click()
   await more.click()
-  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: nome, exact: true }).click()
+  await page.getByRole('group', { name: 'Todas as áreas' }).getByRole('button', { name: new RegExp(`^${nome}`) }).first().click()
 }
 
 test('O Alienista no celular: papéis, Ligações, Linha do tempo, Trama e Publicar', async ({ page }) => {
@@ -33,7 +33,7 @@ test('O Alienista no celular: papéis, Ligações, Linha do tempo, Trama e Publi
   await expect(page.getByText(/Casa Verde/).first()).toBeVisible()
   expect(await cabe(page)).toBe(true)
 
-  await area(page, 'Trama')
+  await area(page, 'História')
   await expect(page.locator('main')).not.toBeEmpty()
   expect(await cabe(page)).toBe(true)
 

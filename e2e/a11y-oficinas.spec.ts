@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from './fixtures.ts'
+import { openPart } from './areas.ts'
 
 // Auditoria 18: as telas das oficinas (Rolar no mundo, Faixas, mapa com rota, ficha de religião) no celular.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
@@ -20,10 +21,10 @@ test('as telas das oficinas, no celular, sem violações e com Esc e foco no lug
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(abrir, 'o foco volta ao botão que abriu a janela').toBeFocused()
-  await page.locator('[data-tour="partes"]').getByRole('button', { name: /Tempo|Linha do tempo/ }).click()
+  await openPart(page, 'Linha do tempo')
   await page.getByText('Faixas', { exact: true }).first().click()
   await limpo(page, 'Faixas')
-  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Mapas' }).click()
+  await openPart(page, 'Mapas')
   await page.getByRole('button', { name: 'Rota', exact: true }).click()
   await limpo(page, 'Mapa ligando uma rota')
   await page.getByRole('button', { name: 'Cancelar' }).click()

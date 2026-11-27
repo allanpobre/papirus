@@ -30,7 +30,9 @@ test('lugares grandes na barra, História com a linha do tempo e o resto no Menu
   await expect(menu.getByRole('button', { name: /^Início/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Escolher atalhos' })).toHaveCount(0)
   await menu.getByRole('button', { name: /^Início/ }).click()
-  await expect(page.getByRole('region', { name: 'Em qual livro você vai trabalhar?' })).toBeVisible()
+  // No celular, o Início abre com o Continuar; o livro se troca pela faixa do alto.
+  await expect(page.getByRole('region', { name: 'Livro atual' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continuar escrevendo' })).toBeInViewport()
 })
 
 test('passeio, Guia e Menu falam com os nomes da Nova cara', async ({ page }) => {

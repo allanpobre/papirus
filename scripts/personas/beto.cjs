@@ -1,0 +1,25 @@
+const { chromium, devices } = require('playwright')
+const BASE = process.env.BASE ?? 'http://localhost:5179'
+const OUT = process.env.OUT ?? 'personas-saida'
+const log = (...a) => console.log(...a)
+;(async () => {
+  const b = await chromium.launch(process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {})
+  const c = await b.newContext({ ...devices['iPhone 13'] })
+  const p = await c.newPage()
+  const shot = (n) => p.screenshot({ path: `${OUT}/${n}.png` })
+  await p.goto(BASE + '/')
+  await p.getByRole('link', { name: /Ou só ler o livro/ }).first().click()
+  await p.waitForTimeout(2000); await shot('beto-1-leitor')
+  const r = p.getByRole('dialog', { name: 'Modo leitor' })
+  log('leitor aberto:', await r.count(), '| título:', await r.locator('.leitor-title').innerText().catch(() => '-'))
+  log('botões:', (await r.locator('button:visible').allInnerTexts()).map((t) => t.trim()).filter(Boolean).join(' | '))
+  await r.getByRole('button', { name: /Caderno/ }).first().click().catch(() => log('sem Caderno'))
+  await p.waitForTimeout(800); await shot('beto-2-caderno')
+  log('caderno texto:', (await p.locator('[role=dialog]').last().innerText().catch(() => '-')).slice(0, 300).replace(/\n+/g, ' / '))
+  await p.keyboard.press('Escape'); await p.waitForTimeout(300)
+  // Fechar o leitor: o que ele vê?
+  await r.getByRole('button', { name: /Fechar|Voltar|Sair/ }).first().click().catch(() => log('sem fechar visível'))
+  await p.waitForTimeout(800); await shot('beto-3-depois')
+  log('depois de fechar:', await p.locator('main h1').first().innerText().catch(() => '-'))
+  await b.close()
+})()

@@ -5216,7 +5216,7 @@ code {
 
   .board-jump {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.3rem;
     overflow-x: auto;
     margin: 0 0 0.6rem;
     padding-bottom: 0.2rem;
@@ -5224,10 +5224,13 @@ code {
 
   /* Os quatro estados cabem na linha (antes o último ficava cortado: “Abandonad…”); se faltar, ainda rola. */
   .board-jump .chip {
-    flex: 1 0 auto;
+    /* Encolhe um pouco se a fonte do aparelho for mais larga (no Linux sem a fonte do app, passava 2 px). */
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
     justify-content: center;
     min-height: 40px;
-    padding-inline: 0.5rem;
+    padding-inline: 0.35rem;
     font-size: 0.82rem;
   }
 
@@ -15094,3 +15097,9 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 .collections-add { display: flex; gap: 0.5rem; }
 .collections-add .input { flex: 1; }
 @media (max-width: 760px) { .collections-list li { grid-template-columns: 1fr; } }
+
+/* Início no celular: o “Continuar escrevendo” vem primeiro. As capas dos livros ficam atrás do “Trocar livro”
+   da faixa do alto (que já está em todas as telas); no computador as capas continuam no Início. */
+@media (max-width: 760px) {
+  .book-chooser { display: none; }
+}

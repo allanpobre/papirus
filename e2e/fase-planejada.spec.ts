@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures.ts'
-import { fichaModo, openPart } from './areas.ts'
+import { fichaModo, openPart, abaFicha } from './areas.ts'
 
 // Uma fase do personagem antes de existir a cena: fica planejada, só para o autor, e depois se prende a uma cena.
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
@@ -22,6 +22,7 @@ test('fase planejada: sem cena ainda, aparece só para o autor e passa a valer q
   await fichaModo(page, 'Ler')
   const ficha = page.getByRole('article', { name: /Ler a ficha/ })
   await expect(ficha.getByRole('heading', { level: 1 })).toHaveText('Kael')
+  await abaFicha(page, 'Diário')
   const planejadas = ficha.locator('.phase-planned')
   await expect(planejadas).toContainText('Rei do porto')
   await expect(planejadas).toContainText('Livro 2')

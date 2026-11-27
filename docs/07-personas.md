@@ -141,3 +141,16 @@ Quando um pedido serve só ao Gerador (gerar ficha inteira, escrever cena, preen
 - **Conversar com 5 a 8 pessoas** de cada grupo (escritoras, mestres, construtores) e ver se os medos e os dias batem.
 - Saber **quanto** se usa no celular de fato (hoje é suposição, apoiada só na regra “celular é prioridade”).
 - Ver se Duda existe em número suficiente para justificar as oficinas, ou se elas servem mais à Lia do que parece.
+
+---
+
+## Rodar as personas
+
+Os roteiros de uso de cada uma (sempre começando pela apresentação) ficam em `scripts/personas/`. Com o servidor de pé:
+
+```
+node scripts/personas/rodar.mjs            # todas
+node scripts/personas/rodar.mjs lia beto   # só algumas
+```
+
+Cada passo sai no terminal (ok/FALHOU, toques, medidas) e as fotos em `personas-saida/`. Depois, ler as fotos como a persona e escrever o retorno (como em `auditoria/26-personas-usando.md`).
