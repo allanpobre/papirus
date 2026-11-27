@@ -15121,3 +15121,59 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   width: 100%;
   margin-bottom: 0.5rem;
 }
+
+/* O nível do mundo no cartão do Início: a ilustração do mundo crescendo e a barra até o próximo estágio. */
+.world-level {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: center;
+  margin: 0.4rem 0 0.9rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+.world-stage {
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+.world-level-text {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.world-level-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+.world-level-text p.tiny {
+  margin: 0;
+}
+.world-level-how > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+}
+.world-level-how ul {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+.world-level-how li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+@media (max-width: 420px) {
+  .world-level {
+    grid-template-columns: 1fr;
+  }
+  .world-stage {
+    max-width: 220px;
+  }
+}
