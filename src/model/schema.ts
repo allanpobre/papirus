@@ -47,7 +47,16 @@ export const storySchema = z.object({
   synopsis: z.string(),
   /** Como o Mapa divide a história: livre, três atos, Save the Cat ou Jornada do herói. */
   structure: z.enum(STORY_STRUCTURES).default('livre'),
+  /** A coleção a que o livro pertence (uma casa só). Sem valor: solto, fora de coleção. */
+  collectionId: z.string().optional(),
   ...timestamps,
+})
+
+/** Uma coleção de livros do universo (ex.: "Tales of Papilio"). Pode estar dentro de outra (`parentId`). */
+export const collectionSchema = z.object({
+  id,
+  name: z.string(),
+  parentId: z.string().optional(),
 })
 
 /** Como a cena termina para quem a vive (o autor marca; o app não julga o texto). */
@@ -945,6 +954,8 @@ export const universeSchema = z.object({
   name: z.string(),
   description: z.string(),
   stories: z.array(storySchema),
+  /** As coleções de livros (uma dentro da outra, se for o caso). */
+  collections: z.array(collectionSchema).default([]),
   scenes: z.array(sceneSchema),
   entities: z.array(entitySchema),
   relations: z.array(relationSchema),
@@ -1011,6 +1022,7 @@ export type Editorial = z.infer<typeof editorialSchema>
 export type SceneDoc = z.infer<typeof sceneDocSchema>
 export type NarrativeDate = z.infer<typeof narrativeDateSchema>
 export type Story = z.infer<typeof storySchema>
+export type Collection = z.infer<typeof collectionSchema>
 export type Scene = z.infer<typeof sceneSchema>
 export type SceneStatus = Scene['status']
 export type Entity = z.infer<typeof entitySchema>

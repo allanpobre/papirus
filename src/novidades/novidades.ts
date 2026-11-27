@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-01a',
+    when: '1 de dezembro',
+    title: 'Coleções de livros',
+    items: [
+      'Em “Trocar livro” (a faixa do alto), “Agrupar em coleções” junta os livros do universo em coleções, uma dentro da outra: o “Tales of Malkai” dentro do “Tales of Papilio”, por exemplo. Cada livro fica em uma coleção só.',
+      'Escolher “Todos de …” mostra, em todas as telas, só os livros daquela coleção (com os das coleções de dentro). As fichas continuam sendo do universo todo, então os crossovers funcionam.',
+    ],
+  },
+  {
     id: '2026-11-30e',
     when: '30 de novembro',
     title: 'Abas perto do polegar e o Codex na sessão',

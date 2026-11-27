@@ -33,6 +33,7 @@ export function createUniverse(name = 'Meu universo'): Universe {
     name,
     description: '',
     stories: [],
+    collections: [],
     scenes: [],
     entities: [],
     relations: [],
@@ -295,12 +296,36 @@ export const seriesId = (universe: Universe, ids: string[]): string | null => {
   const picked = universe.stories.map((s) => s.id).filter((id) => ids.includes(id))
   return picked.length ? picked.join(',') : null
 }
+/** As coleções dentro de outra (filhas, netas…), sem repetir (protege de um ciclo). */
+export function collectionTree(universe: Pick<Universe, 'collections'>, collectionId: string): string[] {
+  const out = [collectionId]
+  for (let i = 0; i < out.length; i++) for (const c of universe.collections) if (c.parentId === out[i] && !out.includes(c.id)) out.push(c.id)
+  return out
+}
+/** Os livros de uma coleção, com os das coleções que estão dentro dela (ex.: o Malkai dentro do Papilio). */
+export function collectionStoryIds(universe: Pick<Universe, 'collections' | 'stories'>, collectionId: string): string[] {
+  const inside = collectionTree(universe, collectionId)
+  return universe.stories.filter((s) => s.collectionId && inside.includes(s.collectionId)).map((s) => s.id)
+}
+/** Escolher uma coleção = escolher os livros dela juntos (a série guardada). Sem livros, null. */
+export const collectionBookId = (universe: Pick<Universe, 'collections' | 'stories'>, collectionId: string): string | null => seriesId(universe as Universe, collectionStoryIds(universe, collectionId))
+/** A coleção que a escolha guardada representa (a mais ampla, se duas dão no mesmo), para mostrar o nome dela. */
+export function collectionOfBook(universe: Pick<Universe, 'collections' | 'stories'>, bookId: string | null) {
+  if (!bookId) return undefined
+  const depth = (id: string) => collectionTree(universe, id).length
+  return [...universe.collections].sort((a, b) => depth(b.id) - depth(a.id)).find((c) => collectionBookId(universe, c.id) === bookId)
+}
+/** Quem está solto: livros que não estão em coleção nenhuma. */
+export const looseStories = (universe: Pick<Universe, 'collections' | 'stories'>) => universe.stories.filter((s) => !s.collectionId || !universe.collections.some((c) => c.id === s.collectionId))
+
 /** O livro escolhido para mostrar (título): um livro, ou a série com os títulos juntos. */
 export function chosenBook(universe: Universe, bookId: string | null): { id: string; title: string } | undefined {
   const ids = bookIdsOf(bookId)
   if (!ids) return undefined
   const stories = universe.stories.filter((s) => ids.includes(s.id))
   if (!stories.length) return undefined
+  const collection = ids.length > 1 ? collectionOfBook(universe, bookId) : undefined
+  if (collection) return { id: bookId!, title: collection.name }
   return { id: bookId!, title: stories.map((s) => s.title || 'Sem título').join(' + ') }
 }
 

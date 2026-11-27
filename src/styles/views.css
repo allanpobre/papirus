@@ -15079,3 +15079,18 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 
 /* Modo sessão: o Codex no painel do Grupo (o que já se mostrou hoje). */
 .sm-codex-list { margin: 0 0 0.6rem; padding-left: 1.1rem; display: grid; gap: 0.2rem; }
+
+/* Coleções de livros: grupos nas capas e o editor. */
+.book-collections { display: grid; gap: 0.9rem; }
+.book-collection { display: grid; gap: 0.5rem; padding-inline-start: 0.6rem; border-inline-start: 2px solid var(--line); }
+.book-collection-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.book-collection-name { margin: 0; font-size: 1rem; }
+.book-collection-head .btn.is-on { border-color: var(--accent); color: var(--accent); }
+.book-collections-edit { justify-self: start; }
+.collections-editor { display: grid; gap: 0.8rem; }
+.collections-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.collections-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 0.5rem; align-items: center; }
+.collections-book { font-weight: 600; overflow-wrap: anywhere; }
+.collections-add { display: flex; gap: 0.5rem; }
+.collections-add .input { flex: 1; }
+@media (max-width: 760px) { .collections-list li { grid-template-columns: 1fr; } }
