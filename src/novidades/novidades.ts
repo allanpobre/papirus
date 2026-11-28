@@ -13,6 +13,15 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-05c',
+    when: '5 de dezembro',
+    title: 'Ler como livro, por coleção',
+    items: [
+      'Com uma coleção escolhida no alto, “Ler como livro” lê só os livros dela: começa no primeiro, termina no último e o leitor só conhece o que está neles (nada dos outros livros do universo).',
+      'Com um livro só, continua como antes: quem lê o terceiro já leu os dois primeiros.',
+    ],
+  },
+  {
     id: '2026-12-05b',
     when: '5 de dezembro',
     title: 'O nível do mundo',

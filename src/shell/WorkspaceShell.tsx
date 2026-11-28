@@ -14,7 +14,7 @@ import { addBook, shelf } from '../export/shelf'
 import { authClient, useAccount } from '../account/auth'
 import { syncedMap } from '../account/cloud'
 import type { Scene, Universe } from '../model/schema'
-import { addScene, draftInbox, insert, manuscriptOrder, updateScene, inBook, bookIdsOf, seriesId } from '../model/universe'
+import { addScene, draftInbox, insert, manuscriptOrder, updateScene, inBook, bookIdsOf, seriesId, isSeries, bookOnly } from '../model/universe'
 import type { Library } from '../persistence/repository'
 import { downloadText, fileNameFor } from '../export/download'
 import { useFolderSync } from '../persistence/useFolderSync'
@@ -1382,19 +1382,21 @@ function ReaderOverlay({
   onComment?: SendComment
   commenterName?: string
 }) {
-  const [copy] = useState(() => readerCopy(universe, false))
-  // Os livros de antes continuam no caderno do leitor: quem lê o terceiro já leu os dois primeiros.
+  // Uma coleção (ou série) é lida por si só: o leitor conhece só o que está nos livros dela, e a leitura não passa para os outros.
+  // Um livro só continua no caderno do leitor dos de antes: quem lê o terceiro já leu os dois primeiros.
+  const series = isSeries(bookId)
+  const [copy] = useState(() => readerCopy(series ? bookOnly(universe, bookId) : universe, false))
   const order = manuscriptOrder(copy)
-  const start = bookId ? order.findIndex((s) => inBook(bookId, s.storyId)) : -1
-  // O fim do livro (ou da série): o "Ouvir" para ali.
-  const end = bookId ? order.findLastIndex((s) => inBook(bookId, s.storyId)) : -1
+  const start = bookId && !series ? order.findIndex((s) => inBook(bookId, s.storyId)) : -1
+  // O fim do livro: o "Ouvir" para ali (numa coleção, o fim é o fim da leitura).
+  const end = bookId && !series ? order.findLastIndex((s) => inBook(bookId, s.storyId)) : -1
   useBackLayer(onClose)
   return (
     <div className="leitor-overlay" role="dialog" aria-modal="true" aria-label="Modo leitor">
       <Suspense fallback={null}>
       <ReaderView
         universe={copy}
-        storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}${start >= 0 ? `:${bookId}` : ''}`}
+        storageKey={`leitor:${universe.id}:${preview ? 'previa' : 'leitura'}${start >= 0 || series ? `:${bookId}` : ''}`}
         startAt={start >= 0 ? start : undefined}
         endAt={end >= 0 ? end : undefined}
         onClose={onClose}
