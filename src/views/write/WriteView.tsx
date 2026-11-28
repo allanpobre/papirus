@@ -442,6 +442,7 @@ export default function WriteView() {
             type="button"
             className="btn-icon"
             aria-label={treeOpen ? 'Esconder manuscrito' : 'Mostrar manuscrito'}
+            title={treeOpen ? 'Esconder a lista de cenas' : 'Mostrar a lista de cenas'}
             onClick={() => {
               setTreeOpen(!treeOpen)
               if (!treeOverlay) remember('arvore', treeOpen ? 'fechada' : 'aberta')
@@ -572,6 +573,7 @@ export default function WriteView() {
                 type="button"
                 className="btn-icon"
                 aria-label={marginVisible ? 'Esconder margem' : 'Mostrar margem'}
+                title={marginVisible ? 'Esconder a margem (nomes, perguntas e cartão da cena)' : 'Mostrar a margem (nomes, perguntas e cartão da cena)'}
                 onClick={() => (narrow ? setNarrowMargin(!narrowMargin) : setPref('margin', !prefs.margin))}
               >
                 {marginVisible ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}

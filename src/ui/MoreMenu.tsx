@@ -39,7 +39,7 @@ export function MoreMenu({
   }, [open])
   return (
     <div className="more-menu" ref={ref}>
-      <button type="button" className={buttonClass} aria-label={button ? undefined : label} title={button ? undefined : label} aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button type="button" className={buttonClass} aria-label={button ? undefined : label} title={label} aria-expanded={open} onClick={() => setOpen(!open)}>
         {button ?? <MoreHorizontal size={18} />}
       </button>
       {open && (
