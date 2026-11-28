@@ -5405,3 +5405,116 @@ body,
     opacity: 0.4;
   }
 }
+
+/* O que se desenha sozinho: árvore e diplomacia (só desenho). */
+.lp-quadros {
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding: 0 var(--lp-gutter-r) clamp(2rem, 5vw, 3.5rem) var(--lp-gutter-l);
+}
+.lp-quadros h3 {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  text-wrap: balance;
+}
+.lp-quadros-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.lp-quadros figure {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.lp-quadros svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.lp-quadros figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.lq-lines path {
+  fill: none;
+  stroke: var(--ink-3, #888);
+  stroke-width: 1.5;
+}
+.lq-box rect {
+  fill: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  stroke: color-mix(in srgb, var(--accent) 55%, var(--line));
+  stroke-width: 1.5;
+}
+.lq-box.is-strong rect {
+  stroke-width: 2.2;
+}
+.lq-name {
+  font-size: 12px;
+  font-weight: 650;
+  fill: var(--ink);
+}
+.lq-sub {
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  fill: var(--ink-2);
+}
+.lq-label {
+  font-size: 10px;
+  fill: var(--ink-2);
+}
+.lq-ally,
+.lq-war,
+.lq-tense {
+  stroke-width: 2.5;
+}
+.lq-ally {
+  stroke: #2e8b6a;
+}
+.lq-war {
+  stroke: #c0392b;
+  stroke-dasharray: 7 4;
+}
+.lq-tense {
+  stroke: #c98a0b;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+@media (max-width: 760px) {
+  .lp-quadros-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Chamada final: o mapa de Oz, bem de fundo. */
+.lp-final {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.lp-final-map {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  pointer-events: none;
+}
+:root[data-theme='dark'] .lp-final-map {
+  opacity: 0.12;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .lp-final-map {
+    opacity: 0.12;
+  }
+}
