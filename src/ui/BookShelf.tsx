@@ -83,11 +83,11 @@ export function BookCovers({ onPicked }: { onPicked?: () => void }) {
 }
 
 /** No Início: "Em qual livro você vai trabalhar?" com as capas. */
-export function BookChooser() {
+export function BookChooser({ compact = false }: { compact?: boolean }) {
   const { universe } = useWorkspace()
   if (universe.stories.length < 2) return null
   return (
-    <section className="book-chooser" aria-label="Em qual livro você vai trabalhar?" data-tour="livro-atual">
+    <section className={`book-chooser${compact ? ' is-compact' : ''}`} aria-label="Em qual livro você vai trabalhar?" data-tour="livro-atual">
       <h2 className="book-chooser-title">Em qual livro você vai trabalhar?</h2>
       <BookCovers />
     </section>

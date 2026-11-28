@@ -152,3 +152,17 @@ for (const [largura, altura] of [
     expect([proximo, olhar, mundo, ritmo], 'ordem das seções').toEqual([proximo, olhar, mundo, ritmo].sort((a, b) => a - b))
   })
 }
+
+test('Início com vários livros: o próximo passo vem antes das capas, e as capas são menores', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  const proximo = await next(page).boundingBox()
+  const capas = page.getByRole('region', { name: 'Em qual livro você vai trabalhar?' })
+  await expect(capas).toBeAttached()
+  const escolha = await capas.boundingBox()
+  expect(proximo!.y).toBeLessThan(escolha!.y)
+  // O botão de continuar escrevendo aparece sem rolar.
+  await expect(next(page).getByRole('button', { name: 'Continuar escrevendo' })).toBeInViewport()
+  const largura = await capas.locator('.book-cover-art').first().evaluate((e) => e.getBoundingClientRect().width)
+  expect(largura).toBeLessThanOrEqual(80)
+})

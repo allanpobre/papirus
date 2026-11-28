@@ -15725,3 +15725,26 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   font: 600 9px var(--font-display);
   fill: #fff;
 }
+
+/* No Início, depois do próximo passo: as capas dos livros menores. */
+.book-chooser.is-compact {
+  margin: 1.2rem 0 0.6rem;
+}
+.book-chooser.is-compact .book-chooser-title {
+  font-size: 1rem;
+}
+.book-chooser.is-compact .book-cover-pick {
+  flex-basis: 76px;
+}
+.book-chooser.is-compact .book-cover-art {
+  width: 76px;
+  height: 110px;
+}
+.book-chooser.is-compact .book-cover-title {
+  padding: 0.3rem;
+  font-size: 0.68rem;
+}
+.book-chooser.is-compact .book-cover-art > svg:not(.gen-cover) {
+  width: 22px;
+  height: 22px;
+}
