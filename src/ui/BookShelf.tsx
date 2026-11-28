@@ -95,10 +95,13 @@ export function BookChooser() {
 }
 
 /** A faixa fixa no alto: onde se está (mundo › livro) e "Trocar livro". */
-export function BookBand() {
+/** Onde o livro escolhido não muda nada do que se vê (a Mesa, a Oficina, o Guia, as Ideias): a faixa nem aparece. */
+const BAND_HIDDEN = ['rpg', 'oficina', 'guia', 'inbox', 'config']
+
+export function BookBand({ view }: { view?: string }) {
   const { universe, bookId } = useWorkspace()
   const [open, setOpen] = useState(false)
-  if (universe.stories.length < 2) return null
+  if (universe.stories.length < 2 || (view && BAND_HIDDEN.includes(view))) return null
   const book = chosenBook(universe, bookId)
   return (
     <>
@@ -111,7 +114,7 @@ export function BookBand() {
           <strong>{book?.title ?? 'Todos os livros'}</strong>
         </span>
         <button type="button" className="btn btn-sm book-band-switch" onClick={() => setOpen(true)}>
-          <Repeat size={14} aria-hidden="true" /> Trocar livro
+          <Repeat size={14} aria-hidden="true" /> Trocar<span className="sr-only"> livro</span>
         </button>
       </div>
       {open && (

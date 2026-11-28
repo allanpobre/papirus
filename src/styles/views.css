@@ -12309,17 +12309,17 @@ button.presence-dot {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0.4rem 0.6rem 0.2rem;
-  padding: 0.35rem 0.5rem 0.35rem 0.4rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
-  border-radius: 14px;
+  margin: 0.3rem 0.6rem 0.1rem;
+  padding: 0.2rem 0.35rem 0.2rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 10px;
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow-1);
 }
 .book-band-cover {
-  flex: 0 0 26px;
-  height: 38px;
+  flex: 0 0 18px;
+  height: 26px;
   border-radius: 2px 5px 5px 2px;
   overflow: hidden;
   display: grid;
@@ -12332,11 +12332,20 @@ button.presence-dot {
   height: 100%;
 }
 .book-band-text {
-  display: grid;
+  /* Uma linha só: "Universo › Livro". */
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
   min-width: 0;
   line-height: 1.2;
 }
+@media (max-width: 560px) {
+  .book-band-text > .tiny {
+    display: none;
+  }
+}
 .book-band-text strong {
+  min-width: 0;
   font-family: var(--font-display);
   white-space: nowrap;
   overflow: hidden;

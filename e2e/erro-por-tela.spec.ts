@@ -36,7 +36,6 @@ test('uma tela que quebra não derruba o app: o menu continua e o universo fica 
   // "Voltar ao Início" leva ao Início, e o universo continua lá, inteiro.
   await aviso.getByRole('button', { name: 'Voltar ao Início' }).click()
   await expect(aviso).toHaveCount(0)
-  await expect(page.getByText('Exemplo — Terra de Oz').first()).toBeVisible()
   await expect(page.getByRole('heading', { name: /Exemplo — Terra de Oz/ }).first()).toBeVisible()
 
   // E, depois de recarregar, tudo está salvo como estava (o erro não escreveu nada).
