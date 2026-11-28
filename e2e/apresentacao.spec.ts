@@ -36,6 +36,10 @@ test('a apresentação mostra os mundos para abrir, a mesa nova e o gerador da O
   await expect(mundos.getByRole('heading', { level: 3 })).toHaveText(['Terra de Oz', 'O Alienista', 'As Cinzas de Ostria'])
   await expect(mundos.getByRole('link', { name: 'Abrir o mundo' }).nth(1)).toHaveAttribute('href', /exemplo=alienista/)
   await expect(page.locator('.lp-num')).toHaveCount(5)
+  // A Mesa mostra quatro coisas e guarda o resto num "ver mais"; o Mundo mostra os quadros que se desenham sozinhos.
+  await expect(page.locator('.lp-mesa').getByText('Mais 3 coisas da Mesa')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Os quadros se desenham sozinhos/ })).toBeVisible()
+  await expect(page.getByRole('img', { name: /Terra de Oz se divide em Munchkins, Winkies, Quadlings e Norte/ })).toBeVisible()
   await expect(page.getByRole('list', { name: 'Temas da mesa' }).getByRole('listitem')).toHaveCount(6)
 
   const ideia = page.getByRole('figure', { name: 'Gerador de ideias da Oficina' })
