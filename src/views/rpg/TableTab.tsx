@@ -1,12 +1,13 @@
 import { Dices, Minus, Plus, ScrollText, Send } from 'lucide-react'
 import { useState } from 'react'
-import { DiceError, roll } from '../../logic/dice'
+import { DiceError } from '../../logic/dice'
 import type { RandomTable, Sheet } from '../../model/schema'
 import { patch } from '../../model/universe'
 import { resolveRoll, rollAttribute } from '../../rpg/rolls'
 import { adjustResource, isPool } from '../../rpg/sheets'
 import { makeSystem } from '../../rpg/systems'
 import { attendanceOf } from '../../rpg/sessionLife'
+import { rollTable as rollWorldTable } from '../../logic/worldRolls'
 import { useWorkspace } from '../../state/workspace'
 import { AttendanceSelect } from './Attendance'
 import { useRpg } from './rpgContext'
@@ -190,8 +191,8 @@ export function TableRolls() {
   const tables = universe.tables.filter((t) => t.entries.some((e) => e.trim()))
   if (!tables.length) return null
   const rollTable = (t: RandomTable) => {
-    const entries = t.entries.filter((e) => e.trim())
-    const pick = entries[Math.min(entries.length, roll(`1d${Math.max(2, entries.length)}`).total) - 1]
+    const pick = rollWorldTable(t, universe)?.text
+    if (!pick) return
     setLast({ table: t.name, pick })
     logText(`${t.name}: ${pick}`, 'rolagem')
   }

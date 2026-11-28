@@ -67,6 +67,9 @@ import { AreaHead } from './AreaModes'
 import { findRanges } from '../editor/find'
 import { openBookReplace } from './write/replaceEvents'
 import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
+import { CreateToday } from './CreateToday'
+import { TreeDialog } from './TreeDialog'
+import { TablesDialog } from './TablesDialog'
 import { SameNameHint } from './SameName'
 import { BirthFlow } from './BirthFlow'
 import { InheritedRows, ListsSection, MembershipChips } from './EntityLists'
@@ -123,6 +126,11 @@ export default function EntitiesView() {
   const phone = useMediaQuery('(max-width: 760px)')
   // Criar uma (no celular, numa janela que não sai da lista) ou várias de uma vez.
   const [creating, setCreating] = useState<null | 'uma' | 'varias'>(null)
+  // O tipo escolhido na grade "O que vamos criar hoje?" (vale para a próxima janela de criar).
+  const [tileKind, setTileKind] = useState<string | null>(null)
+  // A árvore aberta pela grade: '' = escolhendo a ficha do alto; null = fechada.
+  const [treeRoot, setTreeRoot] = useState<string | null>(null)
+  const [tables, setTables] = useState(false)
   // Selecionar várias: pôr numa lista, etiqueta, tipo ou apagar de uma vez.
   const [picked, setPicked] = useState<Set<string> | null>(null)
   // Lista ou tabela (no computador): a tabela mostra as fichas lado a lado, com os campos em colunas.
@@ -270,6 +278,20 @@ export default function EntitiesView() {
       <AreaHead current="fichas" tour="fichas" />
       <section className="split-list" aria-label="Lista de fichas">
         <SuggestedDates />
+        {!readOnly && !picked && (
+          <CreateToday
+            universe={universe}
+            onKind={(k) => {
+              setTileKind(k)
+              setCreating('uma')
+            }}
+            onGo={(v) => (v === 'arvore' ? setTreeRoot('') : v === 'tabela' ? setTables(true) : go(v))}
+            onMore={() => {
+              setTileKind(null)
+              setCreating('uma')
+            }}
+          />
+        )}
         {/* No celular, a lista vem primeiro: criar fica no botão redondo. */}
         {!phone && !readOnly && (
           <>
@@ -508,14 +530,14 @@ export default function EntitiesView() {
           </>
         )}
         {phone && !readOnly && !picked && (
-          <button type="button" className="fab" aria-label="Nova ficha" onClick={() => setCreating('uma')}>
+          <button type="button" className="fab" aria-label="Nova ficha" onClick={() => (setTileKind(null), setCreating('uma'))}>
             <Plus size={22} />
           </button>
         )}
         {creating === 'uma' && (
           <NewEntityDialog
-            initialKind={kind !== 'todos' ? kind : newKind}
-            onClose={() => setCreating(null)}
+            initialKind={tileKind ?? (kind !== 'todos' ? kind : newKind)}
+            onClose={() => (setCreating(null), setTileKind(null))}
             onMany={() => setCreating('varias')}
             onOpenExisting={(id) => {
               setCreating(null)
@@ -529,6 +551,8 @@ export default function EntitiesView() {
             }}
           />
         )}
+        {tables && <TablesDialog onClose={() => setTables(false)} />}
+        {treeRoot !== null && <TreeDialog rootId={treeRoot || null} onClose={() => setTreeRoot(null)} onPickRoot={setTreeRoot} />}
         {creating === 'varias' && (
           <BulkCreateDialog
             initialKind={kind !== 'todos' ? kind : newKind}

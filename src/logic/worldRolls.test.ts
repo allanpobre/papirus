@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ostriaUniverse } from '../model/sampleOstria'
-import { createUniverse } from '../model/universe'
+import { createUniverse, draftEntity, insert } from '../model/universe'
 import { contract, fillEntry, rollTable, WORLD_TABLES } from './worldRolls'
 
 const seq = (...xs: number[]) => {
@@ -41,5 +41,22 @@ describe('contract', () => {
   it('deixa nomes e frases normais em paz', () => {
     expect(contract('Uma carroça de Casa de Vaelor')).toBe('Uma carroça de Casa de Vaelor')
     expect(contract('A Porta de Ostria')).toBe('A Porta de Ostria')
+  })
+
+  it('uma marca com o nome de uma tabela rola ela dentro, em cadeia; as fichas citadas entram na lista', () => {
+    let u = createUniverse('Mundo')
+    u = insert(u, 'entities', draftEntity('personagem', 'Doran'))[0]
+    u = insert(u, 'tables', { name: 'Taverna', entries: ['O Javali'] })[0]
+    u = insert(u, 'tables', { name: 'Rumores do porto', entries: ['Doran bebe n{Taverna}.'] })[0]
+    const r = fillEntry('Dizem que {rumores do PORTO}', u, seq(0))
+    expect(r.text).toBe('Dizem que Doran bebe nO Javali.')
+    expect(r.entityIds).toHaveLength(1)
+  })
+
+  it('tabela que chama a si mesma não trava', () => {
+    let u = createUniverse('Mundo')
+    u = insert(u, 'tables', { name: 'Eco', entries: ['volta {Eco}'] })[0]
+    const r = fillEntry('{Eco}', u, seq(0))
+    expect(r.text.startsWith('volta volta')).toBe(true)
   })
 })

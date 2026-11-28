@@ -15175,5 +15175,448 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   }
   .world-stage {
     max-width: 220px;
+/* Fichas: "O que vamos criar hoje?" (grade de tipos num toque). */
+.create-today {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface);
+}
+.create-today-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: 650;
+  color: var(--ink);
+  min-height: 44px;
+  cursor: pointer;
+}
+.create-today-head svg {
+  transition: transform 0.15s;
+}
+.create-today-head svg:not(.is-open) {
+  transform: rotate(-90deg);
+}
+.create-today-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.2rem, 1fr));
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem;
+}
+.create-tile {
+  --k: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.6rem 0.7rem;
+  min-height: 76px;
+  border: 1px solid color-mix(in srgb, var(--k) 35%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--k) 9%, var(--surface));
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.create-tile svg {
+  color: var(--k);
+}
+.create-tile b {
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+.create-tile small {
+  font-size: 0.72rem;
+  color: var(--ink-2);
+  line-height: 1.25;
+}
+.create-tile:hover {
+  background: color-mix(in srgb, var(--k) 16%, var(--surface));
+}
+.create-tile.is-more {
+  border-style: dashed;
+  --k: var(--ink-2);
+}
+@media (max-width: 760px) {
+  .create-today-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    padding: 0 0.5rem 0.5rem;
+  }
+  .create-tile {
+    padding: 0.5rem;
+    min-height: 68px;
+  }
+}
+@media (max-width: 760px) {
+  /* Fechada, a grade ocupa pouco: a lista de fichas continua vindo primeiro. */
+  .create-today {
+    margin-bottom: 0.5rem;
+  }
+  .create-today-head {
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+  }
+}
+
+/* Árvore de uma ficha: cartões ligados por linhas (de cima para baixo no computador; recuada no celular). */
+.tree-wrap {
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 1rem;
+}
+.tree,
+.tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tree {
+  display: flex;
+  justify-content: center;
+  min-width: max-content;
+}
+.tree ul {
+  display: flex;
+  justify-content: center;
+  padding-top: 1.25rem;
+  position: relative;
+}
+.tree li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 0.4rem 0;
+}
+.tree > li {
+  padding-top: 0;
+}
+/* As linhas: uma vertical de cima de cada galho, uma horizontal entre irmãos. */
+.tree ul::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 1.25rem;
+  border-left: 1.5px solid var(--line-strong, var(--ink-3));
+}
+.tree ul > li::before,
+.tree ul > li::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 1.25rem;
+  border-top: 1.5px solid var(--line-strong, var(--ink-3));
+}
+.tree ul > li::before {
+  right: 50%;
+}
+.tree ul > li::after {
+  left: 50%;
+  border-left: 1.5px solid var(--line-strong, var(--ink-3));
+}
+.tree ul > li:first-child::before,
+.tree ul > li:last-child::after {
+  border-top: 0;
+}
+.tree ul > li:last-child::before {
+  border-right: 1.5px solid var(--line-strong, var(--ink-3));
+  border-radius: 0 6px 0 0;
+}
+.tree ul > li:first-child::after {
+  border-radius: 6px 0 0 0;
+}
+.tree ul > li:only-child::before,
+.tree ul > li:only-child::after {
+  border-top: 0;
+  border-right: 0;
+}
+.tree ul > li:only-child::after {
+  border-left: 1.5px solid var(--line-strong, var(--ink-3));
+  border-radius: 0;
+}
+.tree-node {
+  --k: var(--accent);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 8.5rem;
+  max-width: 12rem;
+  border: 1.5px solid color-mix(in srgb, var(--k) 55%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--k) 8%, var(--surface));
+  text-align: center;
+}
+.tree-node.is-root {
+  border-width: 2px;
+}
+.tree-name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.6rem 0.3rem;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tree-name small {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree-tools {
+  display: flex;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0 0.25rem 0.3rem;
+}
+.tree-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.tree-btn:hover {
+  background: color-mix(in srgb, var(--k) 18%, transparent);
+  color: var(--ink);
+}
+.tree-add {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.4rem;
+  min-width: 12rem;
+}
+@media (max-width: 760px) {
+  /* No celular a árvore fica recuada, de cima para baixo: cabe em 360 px. */
+  .tree {
+    display: block;
+    min-width: 0;
+  }
+  .tree ul {
+    display: block;
+    padding: 0 0 0 1.1rem;
+    margin-left: 0.7rem;
+    border-left: 1.5px solid var(--line-strong, var(--ink-3));
+  }
+  .tree ul::before,
+  .tree ul > li::before,
+  .tree ul > li::after {
+    display: none;
+  }
+  .tree li,
+  .tree > li {
+    display: block;
+    padding: 0.5rem 0 0;
+  }
+  .tree-node {
+    max-width: none;
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+  }
+  .tree-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .tree-tools {
+    flex-wrap: wrap;
+    max-width: 7.5rem;
+    padding: 0.25rem;
+  }
+  .tree-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .tree-add {
+    min-width: 0;
+  }
+}
+.tree-section {
+  margin-block: 1rem;
+}
+.tree-mini,
+.tree-mini ul {
+  list-style: none;
+  margin: 0.25rem 0;
+  padding-left: 1rem;
+  border-left: 1.5px solid var(--line);
+}
+.tree-mini {
+  padding-left: 0.75rem;
+}
+.tree-mini-link {
+  background: none;
+  border: 0;
+  padding: 0.15rem 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Ligações: as formas de ver (Mural, Família, Árvores, Diplomacia). */
+.quadro-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+.quadro-modes .chip {
+  min-height: 34px;
+  padding-inline: 0.8rem;
+}
+.quadro-modes button.chip[aria-pressed='true'],
+.quadro-modes button.chip[aria-pressed='true']:hover {
+  color: var(--surface);
+}
+.quadro-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.quadro-pick {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+.quadro-empty {
+  max-width: 38rem;
+  padding: 1rem 0;
+}
+.quadro-year {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.quadro-year label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 14rem;
+}
+.quadro-year input[type='range'] {
+  flex: 1;
+  min-height: 32px;
+}
+/* Diplomacia: nomes em cartões, ligações com cor e traço (o traço também diz o tipo, não só a cor). */
+.dip {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+  max-height: 60vh;
+  display: block;
+}
+.dip-node {
+  cursor: pointer;
+  outline: none;
+}
+.dip-node rect {
+  fill: var(--surface);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.dip-node:focus-visible rect,
+.dip-node:hover rect {
+  stroke-width: 3;
+}
+.dip-name {
+  font-size: 13px;
+  font-weight: 650;
+  fill: var(--ink);
+}
+.dip-sub {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  fill: var(--ink-2);
+}
+.dip-edge line {
+  stroke-width: 2.5;
+}
+.dip-edge text {
+  font-size: 11px;
+  fill: var(--ink-2);
+  paint-order: stroke;
+  stroke: var(--bg, var(--surface));
+  stroke-width: 4px;
+}
+.dip-edge.is-alianca line,
+.dip-legend .is-alianca i {
+  stroke: #2e8b6a;
+  background: #2e8b6a;
+}
+.dip-edge.is-guerra line {
+  stroke: #c0392b;
+  stroke-dasharray: 8 5;
+}
+.dip-legend .is-guerra i {
+  background: repeating-linear-gradient(90deg, #c0392b 0 6px, transparent 6px 9px);
+}
+.dip-edge.is-tensa line {
+  stroke: #c98a0b;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+.dip-legend .is-tensa i {
+  background: repeating-linear-gradient(90deg, #c98a0b 0 2px, transparent 2px 5px);
+}
+.dip-edge.is-outra line,
+.dip-legend .is-outra i {
+  stroke: var(--ink-3, #888);
+  background: var(--ink-3, #888);
+}
+.dip-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.85rem;
+}
+.dip-legend i {
+  display: inline-block;
+  width: 28px;
+  height: 3px;
+  vertical-align: middle;
+  margin-right: 0.3rem;
+}
+.dip-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+@media (max-width: 760px) {
+  .dip-name {
+    font-size: 15px;
   }
 }

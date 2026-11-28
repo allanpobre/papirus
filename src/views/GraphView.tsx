@@ -16,6 +16,8 @@ import { useWorkspace } from '../state/workspace'
 import { CanonBadge, Empty } from '../ui/bits'
 import { EntityPicker } from '../ui/EntityPicker'
 import { FocusMural } from './FocusMural'
+import { QuadroBoard, QuadroModes, type QuadroMode } from './Quadros'
+import { recall, remember } from '../state/prefs'
 import { SuggestedLinks } from './SuggestedLinks'
 import { AreaHead } from './AreaModes'
 import { EdgeShape, NodeShape, ViaShape, type NodeActions } from './GraphParts'
@@ -124,12 +126,28 @@ export default function GraphView() {
   const { nav } = useWorkspace()
   const [full, setFull] = useState(false)
   const [center, setCenter] = useState<string | null>(nav.view === 'relacoes' ? (nav.id ?? null) : null)
+  // Os quadros prontos (família, árvores, diplomacia) além do mural; a escolha fica no aparelho.
+  const [mode, setMode] = useState<QuadroMode>(() => {
+    const m = recall('ligacoes-modo')
+    return m === 'familia' || m === 'arvores' || m === 'diplomacia' ? m : 'mural'
+  })
+  const changeMode = (m: QuadroMode) => {
+    setMode(m)
+    remember('ligacoes-modo', m === 'mural' ? null : m)
+  }
   if (full) return <GraphCanvas onMural={() => setFull(false)} />
   return (
     <div className="view graph-view is-mural">
       <AreaHead current="relacoes" tour="relacoes" />
-      <SuggestedLinks />
-      <FocusMural centerId={center} onCenter={setCenter} onFullGraph={() => setFull(true)} />
+      <QuadroModes mode={mode} onMode={changeMode} />
+      {mode === 'mural' ? (
+        <>
+          <SuggestedLinks />
+          <FocusMural centerId={center} onCenter={setCenter} onFullGraph={() => setFull(true)} />
+        </>
+      ) : (
+        <QuadroBoard mode={mode} />
+      )}
     </div>
   )
 }

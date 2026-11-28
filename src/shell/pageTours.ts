@@ -242,6 +242,8 @@ export const PAGE_TOURS = {
       },
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
+      { target: '.tree-section', title: 'Árvore da ficha', body: 'Espécie, facção, reino ou religião podem ser divididos em galhos (Dragões → Cromáticos → Vermelho). Toque em “Dividir em tipos” ou use “Árvore” na grade de criar: o + cria um galho novo, Mover troca de lugar e Tirar solta. Por baixo são as listas e o “fica dentro de” da ficha.', optional: true },
+      { target: '.create-today', title: 'O que vamos criar hoje?', body: 'Os tipos mais usados num toque: personagem, facção, reino, item, lugar, espécie, árvore, tabela de sorteio, mapa e linha do tempo. Cada um mostra quantos você já tem e quantos ainda estão sem resumo. “Mais” abre os outros tipos. Dá para fechar a grade; ela fica fechada.', optional: true },
       {
         target: '.split-list .quick-create, .fichas-view .fab',
         title: 'Nova ficha',
@@ -332,6 +334,7 @@ export const PAGE_TOURS = {
     title: 'Ligações',
     steps: [
       LIVRO_ATUAL,
+      { target: '.quadro-modes', title: 'Formas de ver as ligações', body: 'Mural é o de sempre. Família mostra a árvore de parentesco (pai de, filha de, casado com…). Árvores mostra o que está dentro de quê (tipos de dragão, ordens, cidades) e deixa criar galhos. Diplomacia mostra facções e reinos com linhas de cor: aliança, guerra, paz tensa; um controle de ano mostra como mudou.', optional: true },
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       { target: '.graph-filters-btn', title: 'Filtros', body: 'No celular, o grafo vem primeiro. Os filtros (centrar numa ficha, tipos, um ponto da história) ficam aqui.', optional: true },
@@ -693,7 +696,7 @@ export const PAGE_TOURS = {
       { target: '.dice-quick', title: 'Dados rápidos', body: 'Um toque em cada dado, mais vantagem e desvantagem.' },
       { target: '.dice-result', title: 'Resultado', body: 'O total e cada dado que saiu. Com uma sessão em andamento, vai para o registro.' },
       { target: '.dice-history', title: 'Histórico', body: 'As últimas rolagens.', optional: true },
-      { target: '.tables', title: 'Tabelas aleatórias', body: 'Nomes de taverna, rumores, encontros: crie a lista e sorteie uma linha na hora.', optional: true },
+      { target: '.tables', title: 'Tabelas aleatórias', body: 'Nomes de taverna, rumores, encontros: crie a lista e sorteie uma linha na hora. Uma linha pode sortear do seu mundo ({lugar}, {personagem}, {grupo}) ou chamar outra tabela pelo nome, como {Taverna}. Também dá para criar tabelas em Mundo › Fichas, no botão Tabela.', optional: true },
       { target: '.bestiary', title: 'Inimigos prontos', body: 'O bestiário da campanha: vida, Defesa, iniciativa e ataques de cada inimigo. No combate, “3” goblins entram na iniciativa numerados, com os ataques a um toque na vez deles. As espécies do Mundo aparecem em “Do Mundo”, para virar inimigo com um toque. Primeira vez mestrando? Com o bestiário vazio, “Trazer inimigos comuns” põe Goblin, Lobo, Esqueleto, Bandido e Ogro (números do estilo D&D 5e, para você acertar ao seu sistema). Uma espécie (ou qualquer ficha) do Mundo vira inimigo com um toque, já com o “No jogo” dela; com quatro ou mais, aparecem a busca e os filtros por tipo e por nível.', optional: true },
     ],
   },
