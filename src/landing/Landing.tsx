@@ -43,7 +43,7 @@ import { BrandMark } from '../shell/Brand'
 import { OZ_MAP } from '../model/sampleOzMap'
 import { ITAGUAI_MAP, OSTRIA_MAP } from '../model/sampleMap'
 import { FriendsPhone, MesaDemo, ScreensShowcase, StepScreen } from './Demos'
-import { BookDemo, WikiDemo } from './WorldDemos'
+import { BookDemo, QuadrosDemo, WikiDemo } from './WorldDemos'
 import { rollIdea, type IdeaMode } from '../oficina/ideas'
 import { MESA_THEMES } from '../rpg/themes'
 
@@ -272,6 +272,7 @@ export function Landing() {
           </div>
           <WikiDemo />
         </section>
+        <QuadrosDemo />
         </div>
 
         <div className="lp-zone lp-zone-livro">
@@ -307,6 +308,7 @@ export function Landing() {
               <p className="lp-lede">
                 O RPG de verdade acontece na mesa, com dados de verdade. O Papirus é o ajudante: o mestre ganha um escudo, com o roteiro da sessão e o palco do que está acontecendo; cada jogador ganha o cartão do personagem no celular.
               </p>
+              {/* Quatro à vista; o resto num “ver mais” (era uma parede de sete itens). */}
               <ul className="lp-checks">
                 <li>
                   <Dices size={18} aria-hidden="true" /> Role os seus dados e diga o que saiu: o app soma o bônus, vê o crítico e calcula o dano. Esqueceu os dados? Ele rola.
@@ -320,6 +322,10 @@ export function Landing() {
                 <li>
                   <Smartphone size={18} aria-hidden="true" /> O cartão do jogador: vida, defesa e ataques a um toque. Na vez dele, o celular vibra e mostra tudo no meio da tela
                 </li>
+              </ul>
+              <details className="lp-more">
+                <summary>Mais 3 coisas da Mesa</summary>
+                <ul className="lp-checks">
                 <li>
                   <Palette size={18} aria-hidden="true" /> Cada mesa com o clima do gênero, escolhido pelo mestre; cada jogador escolhe claro ou escuro
                 </li>
@@ -329,7 +335,8 @@ export function Landing() {
                 <li>
                   <EyeOff size={18} aria-hidden="true" /> Segredos ficam com você; uma mentira aparece só como “segundo fulano”
                 </li>
-              </ul>
+                </ul>
+              </details>
               <p className="lp-systems">D&amp;D 5e · Tormenta 20 · Ordem Paranormal · Call of Cthulhu · parada de dados · ou as suas regras</p>
               <ul className="lp-themes" aria-label="Temas da mesa">
                 {MESA_THEMES.map((t) => (
@@ -435,6 +442,7 @@ export function Landing() {
 
         <div className="lp-zone lp-zone-final">
         <section className="lp-final" aria-labelledby="final-titulo">
+          <img className="lp-final-map" src={OZ_MAP} alt="" aria-hidden="true" loading="lazy" />
           <h2 id="final-titulo">Abra o caderno.</h2>
           <p>Leva dez segundos: dê um nome ao seu mundo e comece a escrever.</p>
           <div className="lp-ctas">
