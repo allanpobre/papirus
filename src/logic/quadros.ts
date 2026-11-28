@@ -56,9 +56,10 @@ export function diplomacyOf(u: Universe, { year = null, hideSecrets = false }: {
 
 /** Os anos em que alguma ligação entre facções/reinos começa ou termina (para o controle de ano). */
 export function diplomacyYears(u: Universe): number[] {
+  const ok = (id: string) => DIPLOMACY_KINDS.includes(byId(u, 'entities', id)?.kind ?? '')
   const years = new Set<number>()
   for (const r of u.relations)
-    if (!r.listId && r.scope.kind === 'periodo') {
+    if (!r.listId && r.scope.kind === 'periodo' && ok(r.fromId) && ok(r.toId)) {
       if (r.scope.fromYear !== null) years.add(r.scope.fromYear)
       if (r.scope.toYear !== null) years.add(r.scope.toYear)
     }

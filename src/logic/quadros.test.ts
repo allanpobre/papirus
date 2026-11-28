@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createUniverse, draftEntity, draftRelation, insert } from '../model/universe'
 import type { Universe } from '../model/schema'
-import { diplomacyOf, toneOf } from './quadros'
+import { diplomacyOf, diplomacyYears, toneOf } from './quadros'
 
 function mundo() {
   let u: Universe = createUniverse('W')
@@ -35,5 +35,8 @@ describe('diplomacia', () => {
     expect(diplomacyOf(m.u, { year: 50 }).edges.map((e) => e.tone)).toEqual(['alianca'])
     expect(diplomacyOf(m.u, { year: 110 }).edges).toHaveLength(2)
     expect(diplomacyOf(m.u, { year: 130 }).edges).toHaveLength(1)
+    // Só contam os anos de ligações entre facções e reinos.
+    m.r(p, 'aliado de', b, { scope: { kind: 'periodo', fromYear: 999, toYear: null, storyIds: [], sceneIds: [] } })
+    expect(diplomacyYears(m.u)).toEqual([100, 120])
   })
 })

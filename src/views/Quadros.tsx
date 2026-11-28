@@ -115,6 +115,7 @@ function DiplomacyBoard() {
     return <Empty>Ainda não há ligações entre facções ou reinos. Ligue duas delas (“aliado de”, “em guerra com”, “paz tensa com”) e o quadro aparece, com cores e linhas diferentes para cada tipo.</Empty>
 
   const W = 560
+  const noneThisYear = !nodes.length
   const H = nodes.length <= 2 ? 200 : nodes.length === 3 ? 340 : 440
   const pos = new Map(
     nodes.map((n, i) => {
@@ -141,7 +142,7 @@ function DiplomacyBoard() {
               aria-label="Ano do mundo"
             />
           </label>
-          <output>{year === null ? 'Hoje' : formatYear(year, suffix)}</output>
+          <output>{year === null ? 'Todos os anos' : formatYear(year, suffix)}</output>
           {year !== null && (
             <button type="button" className="btn btn-ghost" onClick={() => setYear(null)}>
               Todos os anos
@@ -149,15 +150,25 @@ function DiplomacyBoard() {
           )}
         </div>
       )}
-      <svg className="dip" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Quadro de diplomacia: as ligações entre facções e reinos">
-        {edges.map((e) => {
+      {noneThisYear && <Empty>Nenhuma ligação entre facções e reinos neste ano. Mexa no controle de ano, ou toque em “Todos os anos”.</Empty>}
+      {!noneThisYear && <svg className="dip" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Quadro de diplomacia: as ligações entre facções e reinos">
+        {edges.map((e, i) => {
           const a = pos.get(e.from)
           const b = pos.get(e.to)
           if (!a || !b) return null
+          // Duas ligações entre o mesmo par: uma linha mais para cima e a outra para baixo, com os textos separados.
+          const key = [e.from, e.to].sort().join('|')
+          const group = edges.filter((x) => [x.from, x.to].sort().join('|') === key)
+          const k = group.indexOf(e) - (group.length - 1) / 2
+          const dx = b.x - a.x
+          const dy = b.y - a.y
+          const len = Math.hypot(dx, dy) || 1
+          const ox = (-dy / len) * k * 12
+          const oy = (dx / len) * k * 12
           return (
-            <g key={e.id} className={`dip-edge is-${e.tone}`}>
-              <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
-              <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 5} textAnchor="middle">
+            <g key={`${e.id}-${i}`} className={`dip-edge is-${e.tone}`}>
+              <line x1={a.x + ox} y1={a.y + oy} x2={b.x + ox} y2={b.y + oy} />
+              <text x={(a.x + b.x) / 2 + ox} y={(a.y + b.y) / 2 + oy - 5} textAnchor="middle">
                 {e.label}
               </text>
             </g>
@@ -177,7 +188,7 @@ function DiplomacyBoard() {
             </g>
           )
         })}
-      </svg>
+      </svg>}
       <ul className="dip-legend" aria-label="Legenda">
         {TONES.filter((t) => edges.some((e) => e.tone === t)).map((t) => (
           <li key={t} className={`is-${t}`}>
