@@ -52,27 +52,27 @@ function TreeDialogInner({ rootId, onClose, onPickRoot }: { rootId: string | nul
 
   const node = (n: TreeNode, top = false): React.ReactNode => (
     <li key={n.entity.id}>
-      <div className={`tree-node${top ? ' is-root' : ''}`} style={{ '--k': `var(--kind-${n.entity.kind}, var(--accent))` } as React.CSSProperties} title={n.entity.summary || undefined}>
-        <button type="button" className="tree-name" onClick={() => (onClose(), go('fichas', n.entity.id))} aria-label={`Abrir a ficha ${n.entity.name}`}>
+      <div className={`ftree-node${top ? ' is-root' : ''}`} style={{ '--k': `var(--kind-${n.entity.kind}, var(--accent))` } as React.CSSProperties} title={n.entity.summary || undefined}>
+        <button type="button" className="ftree-name" onClick={() => (onClose(), go('fichas', n.entity.id))} aria-label={`Abrir a ficha ${n.entity.name}`}>
           <b>{n.entity.name}</b>
           <small>{n.entity.summary.trim() || kindLabel(n.entity.kind)}</small>
         </button>
         {!readOnly && (
-          <span className="tree-tools">
-            <button type="button" className="tree-btn" aria-label={`Novo galho em ${n.entity.name}`} title="Novo galho" onClick={() => (setAdding(adding === n.entity.id ? null : n.entity.id), setMoving(null), setName(''))}>
+          <span className="ftree-tools">
+            <button type="button" className="ftree-btn" aria-label={`Novo galho em ${n.entity.name}`} title="Novo galho" onClick={() => (setAdding(adding === n.entity.id ? null : n.entity.id), setMoving(null), setName(''))}>
               <Plus size={14} aria-hidden="true" />
             </button>
             {!top && n.via && (
               <>
-                <button type="button" className="tree-btn" aria-label={`Mover ${n.entity.name}`} title="Mover para outro galho" onClick={() => (setMoving(moving === n.entity.id ? null : n.entity.id), setAdding(null))}>
+                <button type="button" className="ftree-btn" aria-label={`Mover ${n.entity.name}`} title="Mover para outro galho" onClick={() => (setMoving(moving === n.entity.id ? null : n.entity.id), setAdding(null))}>
                   <ArrowRightLeft size={14} aria-hidden="true" />
                 </button>
-                <button type="button" className="tree-btn" aria-label={`Tirar ${n.entity.name} da árvore`} title="Tirar da árvore (a ficha continua)" onClick={() => update((u) => detach(u, n.entity.id, n.via))}>
+                <button type="button" className="ftree-btn" aria-label={`Tirar ${n.entity.name} da árvore`} title="Tirar da árvore (a ficha continua)" onClick={() => update((u) => detach(u, n.entity.id, n.via))}>
                   <Unlink size={14} aria-hidden="true" />
                 </button>
               </>
             )}
-            <button type="button" className="tree-btn" aria-label={`Abrir ${n.entity.name}`} title="Abrir a ficha" onClick={() => (onClose(), go('fichas', n.entity.id))}>
+            <button type="button" className="ftree-btn" aria-label={`Abrir ${n.entity.name}`} title="Abrir a ficha" onClick={() => (onClose(), go('fichas', n.entity.id))}>
               <ExternalLink size={14} aria-hidden="true" />
             </button>
           </span>
@@ -80,7 +80,7 @@ function TreeDialogInner({ rootId, onClose, onPickRoot }: { rootId: string | nul
       </div>
       {adding === n.entity.id && (
         <form
-          className="tree-add"
+          className="ftree-add"
           onSubmit={(e) => {
             e.preventDefault()
             add(n.entity.id)
@@ -93,7 +93,7 @@ function TreeDialogInner({ rootId, onClose, onPickRoot }: { rootId: string | nul
         </form>
       )}
       {moving === n.entity.id && (
-        <div className="tree-add">
+        <div className="ftree-add">
           <EntityPicker
             label={`Mover ${n.entity.name} para dentro de`}
             value={null}
@@ -124,8 +124,8 @@ function TreeDialogInner({ rootId, onClose, onPickRoot }: { rootId: string | nul
       }
     >
       <p className="muted small">{total ? `${total} ${total === 1 ? 'galho' : 'galhos'} abaixo de ${root.name}.` : `Ainda sem galhos. Toque no + de ${root.name} para dividir em tipos.`}</p>
-      <div className="tree-wrap">
-        <ul className="tree">{node(tree, true)}</ul>
+      <div className="ftree-wrap">
+        <ul className="ftree">{node(tree, true)}</ul>
       </div>
     </Modal>
   )

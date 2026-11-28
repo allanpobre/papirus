@@ -47,8 +47,8 @@ function TreesBoard() {
   const roleOf = (n: TreeNode) => (n.via?.kind === 'lista' ? universe.relations.find((r) => r.id === (n.via as { relationId: string }).relationId)?.role : undefined)
   const draw = (n: TreeNode, top = false): React.ReactNode => (
     <li key={n.entity.id}>
-      <div className={`tree-node${top ? ' is-root' : ''}`} style={{ '--k': `var(--kind-${n.entity.kind}, var(--accent))` } as React.CSSProperties}>
-        <button type="button" className="tree-name" aria-label={`Abrir a ficha ${n.entity.name}`} onClick={() => go('fichas', n.entity.id)}>
+      <div className={`ftree-node${top ? ' is-root' : ''}`} style={{ '--k': `var(--kind-${n.entity.kind}, var(--accent))` } as React.CSSProperties}>
+        <button type="button" className="ftree-name" aria-label={`Abrir a ficha ${n.entity.name}`} onClick={() => go('fichas', n.entity.id)}>
           <b>{n.entity.name}</b>
           <small>{roleOf(n) || n.entity.summary.trim() || n.entity.kind}</small>
         </button>
@@ -89,8 +89,8 @@ function TreesBoard() {
           <label className="check">
             <input type="checkbox" checked={everyone} onChange={(e) => setEveryone(e.target.checked)} /> Mostrar também pessoas (com o papel de cada uma)
           </label>
-          <div className="tree-wrap">
-            <ul className="tree">{draw(tree, true)}</ul>
+          <div className="ftree-wrap">
+            <ul className="ftree">{draw(tree, true)}</ul>
           </div>
         </>
       ) : (

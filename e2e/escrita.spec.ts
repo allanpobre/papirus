@@ -594,3 +594,16 @@ test('procurar e trocar: na cena, no livro todo e ao renomear uma ficha', async 
   await expect(rename.getByRole('checkbox', { name: 'Palavra inteira' })).toBeChecked()
   await expect(rename.locator('.replace-summary')).toContainText('achados')
 })
+
+test('Escrever: a lista de cenas cabe na coluna dela, com as cenas alinhadas à esquerda (sem o zigue-zague)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Escrever/ }).first().click()
+  const coluna = (await page.locator('.write-tree').boundingBox())!
+  const links = page.locator('.tree-scene-link')
+  await expect(links.first()).toBeVisible()
+  const caixas = await links.evaluateAll((els) => els.slice(0, 8).map((e) => e.getBoundingClientRect()).map((r) => ({ x: Math.round(r.x), right: Math.round(r.right) })))
+  // Todas começam no mesmo lugar e terminam dentro da coluna.
+  expect(new Set(caixas.map((c) => c.x)).size).toBe(1)
+  for (const c of caixas) expect(c.right).toBeLessThanOrEqual(coluna.x + coluna.width)
+})

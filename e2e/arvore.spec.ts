@@ -34,7 +34,7 @@ test('árvore: criar pela grade, galhos com o +, mover, e a seção na ficha', a
   await arvore.getByRole('combobox', { name: 'Mover Metálicos para dentro de' }).fill('Cromát')
   await arvore.getByRole('option', { name: /Cromáticos/ }).click()
   await expect(arvore.getByText('2 galhos abaixo de Dragões')).toBeVisible()
-  await expect(arvore.locator('.tree ul ul').getByRole('button', { name: 'Abrir a ficha Metálicos' })).toBeVisible()
+  await expect(arvore.locator('.ftree ul ul').getByRole('button', { name: 'Abrir a ficha Metálicos' })).toBeVisible()
 
   // 4. Tirar solta o galho, mas a ficha continua.
   await arvore.getByRole('button', { name: 'Tirar Metálicos da árvore' }).click()
@@ -70,7 +70,7 @@ test('Ligações ganha quadros: Família à vista, Árvores e Diplomacia com cor
 
   await modos.getByRole('button', { name: 'Árvores' }).click()
   await page.getByRole('combobox', { name: 'Árvore de' }).selectOption({ label: 'Reino de Ostria' })
-  await expect(page.locator('.tree').getByRole('button', { name: 'Abrir a ficha Ostria', exact: true })).toBeVisible()
+  await expect(page.locator('.ftree').getByRole('button', { name: 'Abrir a ficha Ostria', exact: true })).toBeVisible()
 
   await modos.getByRole('button', { name: 'Família' }).click()
   await expect(page.locator('.family')).toBeVisible()
