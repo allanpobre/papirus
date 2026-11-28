@@ -70,7 +70,7 @@ test('Ligações ganha quadros: Família à vista, Árvores e Diplomacia com cor
 
   await modos.getByRole('button', { name: 'Árvores' }).click()
   await page.getByRole('combobox', { name: 'Árvore de' }).selectOption({ label: 'Reino de Ostria' })
-  await expect(page.locator('.ftree').getByRole('button', { name: 'Abrir a ficha Ostria', exact: true })).toBeVisible()
+  await expect(page.locator('.ftree-wrap').getByRole('button', { name: 'Abrir a ficha Ostria', exact: true })).toBeVisible()
 
   await modos.getByRole('button', { name: 'Família' }).click()
   await expect(page.locator('.family')).toBeVisible()
@@ -80,4 +80,36 @@ test('Ligações ganha quadros: Família à vista, Árvores e Diplomacia com cor
   await nav(page, 'Mundo').click()
   await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Ligações' }).click()
   await expect(modos.getByRole('button', { name: 'Família' })).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('o exemplo de Oz mostra as mesmas árvores e a diplomacia da apresentação', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
+  await nav(page, 'Mundo').click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Ligações' }).click()
+  const modos = page.getByRole('group', { name: 'Ver as ligações como' })
+
+  // Árvores: abre na maior (a Terra de Oz), deitada, com os países e o que há neles.
+  await modos.getByRole('button', { name: 'Árvores' }).click()
+  await expect(page.getByRole('combobox', { name: 'Árvore de' })).toHaveValue(/.+/)
+  const arvore = page.locator('.ftree-wrap')
+  await expect(arvore.getByRole('button', { name: 'Abrir a ficha Terra de Oz' })).toBeVisible()
+  await expect(arvore.getByRole('button', { name: 'Abrir a ficha Terra dos Quadlings' })).toBeVisible()
+  await expect(arvore.getByRole('button', { name: 'Abrir a ficha Castelo de Glinda' })).toBeVisible()
+  // Deitada: a raiz fica à esquerda dos filhos.
+  const raiz = (await arvore.getByRole('button', { name: 'Abrir a ficha Terra de Oz' }).boundingBox())!
+  const filho = (await arvore.getByRole('button', { name: 'Abrir a ficha Terra dos Quadlings' }).boundingBox())!
+  expect(raiz.x + raiz.width).toBeLessThanOrEqual(filho.x)
+
+  // Diplomacia: aliança, guerra e tensão, cada um com o seu traço; o ano mostra como mudou.
+  await modos.getByRole('button', { name: 'Diplomacia' }).click()
+  const legenda = page.getByRole('list', { name: 'Legenda' })
+  await expect(legenda).toContainText('Aliança e paz')
+  await expect(legenda).toContainText('Guerra e rivalidade')
+  await expect(legenda).toContainText('Tensão')
+  await expect(page.locator('.dip-list')).toContainText('Terra dos Winkies em guerra com Terra de Oz')
+  await page.getByRole('slider', { name: 'Ano do mundo' }).fill('1855')
+  await expect(page.locator('.dip-list')).not.toContainText('em guerra com')
+  await expect(page.locator('.dip-list')).toContainText('Terra de Oz em tensão com Terra dos Quadlings')
 })

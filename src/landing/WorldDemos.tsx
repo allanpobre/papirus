@@ -124,19 +124,19 @@ export function QuadrosDemo() {
           <figcaption>Do exemplo “Terra de Oz”: terras dentro de terras, e você cria galhos direto no desenho.</figcaption>
         </figure>
         <figure aria-label="Diplomacia entre terras e povos de Oz">
-          <svg viewBox="0 0 320 190" role="img" aria-label="Winkies e Macacos Alados são aliados; Winkies estão em guerra com Oz; Oz e Quadlings estão em paz tensa">
+          <svg viewBox="0 0 320 190" role="img" aria-label="Os Macacos estão a serviço dos Winkies; Winkies estão em guerra com Oz; Oz e Quadlings estão em tensão">
             <path className="lq-ally" d="M40 128 C40 96 118 96 118 128" />
             <path className="lq-war" d="M40 128 C40 20 196 20 196 128" />
             <path className="lq-tense" d="M196 128 C196 80 274 80 274 128" />
-            <text className="lq-label" x="79" y="100" textAnchor="middle">aliados</text>
+            <text className="lq-label" x="79" y="100" textAnchor="middle">a serviço de</text>
             <text className="lq-label" x="120" y="44" textAnchor="middle">em guerra</text>
-            <text className="lq-label" x="235" y="86" textAnchor="middle">paz tensa</text>
+            <text className="lq-label" x="235" y="86" textAnchor="middle">em tensão</text>
             <QBox x={4} y={128} w={72} label="Winkies" sub="Reino" small />
             <QBox x={82} y={128} w={72} label="Macacos" sub="Facção" small />
             <QBox x={160} y={128} w={72} label="Oz" sub="Reino" small />
             <QBox x={238} y={128} w={72} label="Quadlings" sub="Reino" small />
           </svg>
-          <figcaption>Facções e reinos com cor e traço para cada tipo (aqui, uma ilustração), e um controle de ano.</figcaption>
+          <figcaption>Facções e reinos com cor e traço para cada tipo (os mesmos do exemplo “Terra de Oz”), e um controle de ano.</figcaption>
         </figure>
       </div>
     </section>

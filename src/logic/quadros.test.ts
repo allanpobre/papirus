@@ -21,6 +21,9 @@ describe('diplomacia', () => {
     expect(toneOf('aliado de')).toBe('alianca')
     expect(toneOf('em guerra com')).toBe('guerra')
     expect(toneOf('paz tensa com')).toBe('tensa')
+    expect(toneOf('em tensão com')).toBe('tensa')
+    // "em paz com" é paz de verdade (não é tensão).
+    expect(toneOf('em paz com')).toBe('alianca')
     expect(toneOf('conhece')).toBe('outra')
     const m = mundo()
     const a = m.e('reino', 'Ember')
