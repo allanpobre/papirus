@@ -133,3 +133,35 @@ test('mapa político: pintar a região de Ostria, ver o nome e apagar', async ({
   await page.getByRole('button', { name: 'Apagar região' }).click()
   await expect(label).toHaveCount(0)
 })
+
+test('Mapas: tipos e camadas num menu só ("Camadas"), e o caminho de alguém com nome simples', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Mapas' }).click()
+  // Sem as fileiras de botões pretos soltas: elas só aparecem dentro do menu.
+  await expect(page.getByRole('button', { name: 'Fronteiras' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Camadas' }).click()
+  const menu = page.getByRole('group', { name: 'Camadas do mapa' })
+  await expect(menu.getByText('Mostrar no mapa')).toBeVisible()
+  await expect(menu.getByRole('button', { name: 'Lugares' })).toHaveAttribute('aria-pressed', 'true')
+  await menu.getByRole('button', { name: 'Fronteiras' }).click()
+  await expect(menu.getByRole('button', { name: 'Fronteiras' })).toHaveAttribute('aria-pressed', 'false')
+  await page.keyboard.press('Escape')
+  await expect(page.getByLabel('Ver o caminho de')).toBeVisible()
+  await expect(page.getByLabel('Ver o caminho de').getByRole('option', { name: 'Ninguém' })).toBeAttached()
+})
+
+test('Mapas: "Apagar mapa" no menu pede confirmação (o menu não fecha antes) e dá para desfazer', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Mapas' }).click()
+  await page.getByRole('button', { name: 'Mais ações do mapa' }).click()
+  await page.getByRole('button', { name: 'Apagar mapa' }).click()
+  // A pergunta aparece (o menu continua aberto) e só o segundo toque apaga.
+  const confirmar = page.getByRole('button', { name: 'Apagar mapa' }).last()
+  await expect(page.getByText('Apagar este mapa e seus marcadores?')).toBeVisible()
+  await confirmar.click()
+  await expect(page.getByText('Mapa apagado')).toBeVisible()
+})
