@@ -254,7 +254,6 @@ export default function HomeView() {
         </div>
       </header>
 
-      {universe.stories.length > 1 && <BookChooser />}
       <div className="home-layout">
         <section className="home-card home-next" aria-label="O próximo passo" data-tour="continuar">
           {mesaFirst ? (
@@ -385,6 +384,8 @@ export default function HomeView() {
           </details>
         )}
       </div>
+      {/* O próximo passo vem primeiro; a escolha do livro (as capas, menores) fica logo depois. A faixa do alto também troca de livro. */}
+      {universe.stories.length > 1 && <BookChooser compact />}
     </div>
   )
 }
