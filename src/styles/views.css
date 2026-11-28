@@ -15132,7 +15132,7 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-l);
-  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  background: var(--surface);
 }
 .world-stage {
   width: 100%;
