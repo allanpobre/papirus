@@ -262,3 +262,15 @@ test.describe('bilhete e sprint com um livro escolhido', () => {
     await expect(relogio).not.toContainText('+12')
   })
 })
+
+test('a faixa do livro é de uma linha, e nem aparece onde o livro não muda nada (Mesa)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  const faixa = page.getByRole('region', { name: 'Livro atual' })
+  await expect(faixa).toBeVisible()
+  // Uma linha só: baixa, e sem o texto empilhado de antes.
+  expect((await faixa.boundingBox())!.height).toBeLessThan(44)
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mesa/ }).first().click()
+  await expect(page.getByRole('heading', { name: 'Mesa' })).toBeVisible()
+  await expect(faixa).toHaveCount(0)
+})

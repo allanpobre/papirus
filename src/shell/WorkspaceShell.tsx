@@ -898,7 +898,7 @@ export function WorkspaceShell({ library, initial, recovered, prefsApi, onClose,
             }
           >
             {/* Sem faixa fixa: o livro se escolhe no Início e na lista de cenas; aqui, só um selo quando há um escolhido. */}
-            {nav.view !== 'config' && <BookBand />}
+            <BookBand view={nav.view} />
             {/* Cada área tem o seu próprio aviso de erro: se uma tela quebrar, o menu e o resto do app continuam. */}
             <ErrorBoundary resetKey={nav.view} label="Esta parte deu erro" onHome={nav.view === 'inicio' ? undefined : () => go('inicio')} copyDetails>
               <ViewSwitch view={nav.view} navId={nav.id ?? null} onOpenOther={onOpenOther} />
