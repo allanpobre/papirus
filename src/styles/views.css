@@ -15170,11 +15170,12 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   gap: 0.5rem;
 }
 @media (max-width: 420px) {
+  /* No celular o desenho fica ao lado do texto (o Início tem que caber em duas telas). */
   .world-level {
-    grid-template-columns: 1fr;
-  }
-  .world-stage {
-    max-width: 220px;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 0.6rem;
+    margin: 0.3rem 0 0.6rem;
+    padding: 0.5rem 0.6rem;
   }
 }
 
