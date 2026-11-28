@@ -23,6 +23,7 @@ export function VersionsBar({ entity: e, current, onPick }: { entity: Entity; cu
   const placed = phasesOf(e, scenes)
   const planned = plannedOf(e, scenes)
   const [sheet, setSheet] = useState<Phase | 'nova' | null>(null)
+  const empty = !placed.length && !planned.length
   const chip = (id: string, label: React.ReactNode, extra = '') => (
     <li key={id}>
       <button type="button" className={`version-chip${extra}`} aria-pressed={current === id} onClick={() => onPick(current === id ? null : id)}>
@@ -31,11 +32,13 @@ export function VersionsBar({ entity: e, current, onPick }: { entity: Entity; cu
     </li>
   )
   return (
-    <section className="versions-bar" aria-label="Versões">
-      <p className="versions-head small">
-        <strong>Versões</strong>
-        {!placed.length && !planned.length && <span className="muted">Como {e.name || 'esta ficha'} muda: outro nome, outro posto, outro rosto.</span>}
-      </p>
+    <section className={`versions-bar${empty ? ' is-empty' : ''}`} aria-label="Versões">
+      {/* Sem versões, só o botão (a explicação vai na dica): uma linha a menos antes do nome da ficha. */}
+      {!empty && (
+        <p className="versions-head small">
+          <strong>Versões</strong>
+        </p>
+      )}
       <ul className="versions-row">
         {(placed.length > 0 || planned.length > 0) && chip('base', 'O começo')}
         {placed.map(({ phase, at }) =>
@@ -56,7 +59,12 @@ export function VersionsBar({ entity: e, current, onPick }: { entity: Entity; cu
           ),
         )}
         <li>
-          <button type="button" className="version-chip version-add" onClick={() => setSheet('nova')}>
+          <button
+            type="button"
+            className="version-chip version-add"
+            title={empty ? `Como ${e.name || 'esta ficha'} muda: outro nome, outro posto, outro rosto.` : undefined}
+            onClick={() => setSheet('nova')}
+          >
             <Plus size={14} aria-hidden="true" /> Nova versão
           </button>
         </li>

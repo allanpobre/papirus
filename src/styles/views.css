@@ -14453,6 +14453,16 @@ body[data-nova] .view-top.has-parts .view-top-end {
 .versions-bar {
   margin: 0.5rem 0 0.75rem;
 }
+/* Sem versões: só o botão pequeno, quase sem espaço (o nome da ficha sobe). */
+.versions-bar.is-empty {
+  margin: 0 0 0.35rem;
+}
+.versions-bar.is-empty .version-chip {
+  min-height: 30px;
+  padding: 0.15rem 0.65rem;
+  color: var(--ink-2);
+  border-style: dashed;
+}
 .versions-head {
   display: flex;
   flex-wrap: wrap;
