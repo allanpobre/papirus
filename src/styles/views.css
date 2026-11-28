@@ -15748,3 +15748,19 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   width: 22px;
   height: 22px;
 }
+
+/* Mapas: o menu "Camadas" (tipos de lugar e camadas) em vez de duas fileiras de botões. */
+.atlas-layers-pop {
+  min-width: 15rem;
+  max-width: 22rem;
+  padding: 0.6rem;
+}
+.atlas-layers-pop .filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.4rem;
+}
+.atlas-layers-pop .filter-chips:last-child {
+  margin-bottom: 0;
+}

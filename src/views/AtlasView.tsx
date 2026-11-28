@@ -1,6 +1,6 @@
 import { useTap } from '../ui/useTap'
 import { bookScope } from '../logic/bookScope'
-import { Check, Hexagon, ImagePlus, MapPin, Mountain, Minus, Plus, Route as RouteIcon, Trash2, TriangleAlert, X } from 'lucide-react'
+import { Check, Hexagon, ImagePlus, Layers, MapPin, Mountain, Minus, Plus, Route as RouteIcon, Trash2, TriangleAlert, X } from 'lucide-react'
 import { daysText, fastTravels, MODE_LABEL, modeDays, ROUTE_LABEL, routeDays, travelDays, type Mode, type Route } from '../logic/travel'
 import { ROUTE_KINDS } from '../model/schema'
 import { tensionsOf } from '../logic/power'
@@ -18,6 +18,7 @@ import type { Rect } from '../images/crop'
 import { useWorkspace } from '../state/workspace'
 import { Empty, YearInput } from '../ui/bits'
 import { ConfirmButton } from '../ui/ConfirmButton'
+import { MoreMenu } from '../ui/MoreMenu'
 import { EntityPicker } from '../ui/EntityPicker'
 import { addImage } from '../images/add'
 import { useImageSrc } from '../images/resolve'
@@ -372,22 +373,34 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             <Plus size={15} />
           </button>
         </span>
-        {kinds.length > 1 && (
-          <span className="filter-chips atlas-extra">
-            {kinds.map((k) => (
-              <button key={k} type="button" className="chip" aria-pressed={!hiddenKinds.has(k)} onClick={() => setHiddenKinds((h) => { const n = new Set(h); if (n.has(k)) n.delete(k); else n.add(k); return n })}>
-                {kindPlural(k)}
-              </button>
-            ))}
-          </span>
-        )}
+        {/* Tipos de lugar e camadas (fronteiras, povos, rotas…) num menu só: antes eram duas fileiras de botões pretos. */}
+        {(kinds.length > 1 || (map.regions ?? []).length > 0 || routes.length > 0 || mapTensions.length > 0) && (
+          <span className="atlas-extra atlas-layers">
+            <MoreMenu label="Camadas do mapa" buttonClass="btn btn-ghost btn-sm" popClass="atlas-layers-pop" button={<><Layers size={15} aria-hidden="true" /> Camadas</>}>
+              {() => (
+                <>
+                  <span className="more-menu-label">Mostrar no mapa</span>
+                  {kinds.length > 1 && (
+                    <span className="filter-chips">
+                      {kinds.map((k) => (
+                        <button key={k} type="button" className="chip" aria-pressed={!hiddenKinds.has(k)} onClick={() => setHiddenKinds((h) => { const n = new Set(h); if (n.has(k)) n.delete(k); else n.add(k); return n })}>
+                          {kindPlural(k)}
+                        </button>
+                      ))}
+                    </span>
+                  )}
         {((map.regions ?? []).length > 0 || routes.length > 0 || mapTensions.length > 0) && (
-          <span className="filter-chips atlas-extra" role="group" aria-label="Camadas">
-            {LAYERS.filter((l) => (l.id === 'tensoes' ? mapTensions.length > 0 : l.id === 'rotas' ? routes.length > 0 : (map.regions ?? []).some((r) => layerOf(byId(universe, 'entities', r.entityId)?.kind) === l.id))).map((l) => (
-              <button key={l.id} type="button" className="chip" aria-pressed={!layersOff.has(l.id)} onClick={() => setLayersOff((h) => { const n = new Set(h); if (n.has(l.id)) n.delete(l.id); else n.add(l.id); return n })}>
-                {l.name}
-              </button>
-            ))}
+                    <span className="filter-chips" role="group" aria-label="Camadas">
+                      {LAYERS.filter((l) => (l.id === 'tensoes' ? mapTensions.length > 0 : l.id === 'rotas' ? routes.length > 0 : (map.regions ?? []).some((r) => layerOf(byId(universe, 'entities', r.entityId)?.kind) === l.id))).map((l) => (
+                        <button key={l.id} type="button" className="chip" aria-pressed={!layersOff.has(l.id)} onClick={() => setLayersOff((h) => { const n = new Set(h); if (n.has(l.id)) n.delete(l.id); else n.add(l.id); return n })}>
+                          {l.name}
+                        </button>
+                      ))}
+                    </span>
+                  )}
+                </>
+              )}
+            </MoreMenu>
           </span>
         )}
         {book && scope && (
@@ -410,9 +423,9 @@ function MapCanvas({ map }: { map: AtlasMap }) {
         )}
         {travelers.length > 0 && (
           <label className="atlas-route-pick atlas-extra">
-            <span className="small">Caminho de</span>
+            <span className="small">Ver o caminho de</span>
             <select className="input input-sm" value={traveler} onChange={(e) => setTraveler(e.target.value)}>
-              <option value="">ninguém</option>
+              <option value="">Ninguém</option>
               {travelers.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
@@ -421,14 +434,23 @@ function MapCanvas({ map }: { map: AtlasMap }) {
             </select>
           </label>
         )}
-        <ConfirmButton
-          className="btn btn-ghost btn-sm atlas-extra"
-          question="Apagar este mapa e seus marcadores?"
-          confirmLabel="Apagar mapa"
-          onConfirm={() => undoable('Mapa apagado', (u) => remove(u, 'maps', map.id))}
-        >
-          <Trash2 size={15} /> Apagar mapa
-        </ConfirmButton>
+        <span className="atlas-extra">
+          <MoreMenu label="Mais ações do mapa">
+            {(close) => (
+              <ConfirmButton
+                className="more-menu-item more-menu-danger"
+                question="Apagar este mapa e seus marcadores?"
+                confirmLabel="Apagar mapa"
+                onConfirm={() => {
+                  close()
+                  undoable('Mapa apagado', (u) => remove(u, 'maps', map.id))
+                }}
+              >
+                <Trash2 size={15} /> Apagar mapa
+              </ConfirmButton>
+            )}
+          </MoreMenu>
+        </span>
       </div>
 
       {route.length > 0 && (
