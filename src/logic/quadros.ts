@@ -10,15 +10,15 @@ import { byId } from '../model/universe'
 // ---------------------------------------------------------------- diplomacia
 
 export type Tone = 'alianca' | 'guerra' | 'tensa' | 'outra'
-export const TONE_LABEL: Record<Tone, string> = { alianca: 'Aliança', guerra: 'Guerra e rivalidade', tensa: 'Paz tensa', outra: 'Outras ligações' }
+export const TONE_LABEL: Record<Tone, string> = { alianca: 'Aliança e paz', guerra: 'Guerra e rivalidade', tensa: 'Tensão', outra: 'Outras ligações' }
 export const DIPLOMACY_KINDS = ['faccao', 'reino']
 
-/** A cor da ligação, pelo que está escrito no tipo. */
+/** A cor da ligação, pelo que está escrito no tipo. Ordem: guerra, depois tensão, depois aliança/paz. */
 export function toneOf(type: string): Tone {
   const t = fold(type)
   if (/guerr|inimig|rival|hostil|ataca|conflit|disputa|odei|traid|conquist/.test(t)) return 'guerra'
-  if (/tens|trégua|tregua|desconf|neutr|paz|fria/.test(t)) return 'tensa'
-  if (/alia|pacto|tratado|amig|apoi|comerci|vassal|protege|servi/.test(t)) return 'alianca'
+  if (/tens|tregua|desconf|neutr|fria/.test(t)) return 'tensa'
+  if (/alia|pacto|tratado|amig|apoi|comerci|vassal|protege|servi|paz/.test(t)) return 'alianca'
   return 'outra'
 }
 

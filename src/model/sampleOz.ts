@@ -409,6 +409,11 @@ export function buildOz(chapters: Chapter[], outros?: { terra: Chapter[]; ozma: 
   rel(bruxaOeste.id, magico.id, 'em guerra com', { note: 'Ela o expulsou do Oeste; ele vive com medo dela.' })
   rel(bruxaOeste.id, glinda.id, 'em tensão com', { note: 'A bruxa má do Oeste e a boa do Sul.' })
   rel(munchkins.id, quadlings.id, 'em paz com')
+  // Entre os países e os povos (o quadro de Diplomacia, em Ligações): quem está com quem, e contra quem, em cada época.
+  const entre = (fromYear: number, toYear: number | null) => ({ kind: 'periodo' as const, fromYear, toYear, storyIds: [], sceneIds: [] })
+  rel(macacos.id, oeste.id, 'a serviço de', { scope: entre(1860, 1900), note: 'Obedecem a quem tem o Barrete de Ouro: a Bruxa do Oeste.' })
+  rel(oeste.id, oz.id, 'em guerra com', { scope: entre(1865, 1900), note: 'A Bruxa do Oeste expulsou Oz do Oeste.' })
+  rel(oz.id, sul.id, 'em tensão com', { scope: entre(1850, 1900), note: 'Glinda sabe que o Mágico é um farsante.' })
   // Em Oz não há deuses: há as quatro Bruxas. O “panteão” da crença do povo (na ficha da crença).
   const crenca = ent('religiao', 'O respeito às Bruxas', {
     summary: 'Em Oz não há deuses: há quatro Bruxas, duas boas e duas más. O povo as teme ou as bendiz como se fossem.',
