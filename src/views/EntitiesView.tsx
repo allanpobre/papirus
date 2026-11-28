@@ -68,6 +68,7 @@ import { findRanges } from '../editor/find'
 import { openBookReplace } from './write/replaceEvents'
 import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
 import { CreateToday } from './CreateToday'
+import { KindPortrait } from '../ui/KindPortrait'
 import { TreeDialog } from './TreeDialog'
 import { TablesDialog } from './TablesDialog'
 import { SameNameHint } from './SameName'
@@ -495,10 +496,8 @@ export default function EntitiesView() {
                       {e.image ? (
                         <Picture value={e.image} className="entity-card-img" />
                       ) : (
-                        // Sem imagem: a cor do tipo e a inicial (calmo e igual para o mesmo tipo, sem sorteio).
-                        <span className="entity-card-plain" style={{ '--k': `var(--kind-${e.kind}, var(--accent))` } as React.CSSProperties}>
-                          {(e.name.trim()[0] ?? '?').toLocaleUpperCase('pt-BR')}
-                        </span>
+                        // Sem imagem: o desenho do tipo na cor dele, com a inicial pequena (igual para o mesmo tipo, sem sorteio).
+                        <KindPortrait kind={e.kind} name={e.name} />
                       )}
                       {roleIn(e, bookId) && <span className="entity-card-role">{ROLE_LABEL[roleIn(e, bookId)!]}</span>}
                     </span>
