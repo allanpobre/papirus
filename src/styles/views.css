@@ -13218,17 +13218,6 @@ body[data-clima='terror'] .focus-lines line {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.entity-card-plain {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  font: 600 2.4rem var(--font-display);
-  color: color-mix(in srgb, var(--k) 70%, var(--ink));
-  background:
-    radial-gradient(80% 90% at 50% 20%, color-mix(in srgb, var(--k) 22%, transparent), transparent 70%),
-    color-mix(in srgb, var(--k) 10%, var(--surface-2));
-}
 
 /* Nova cara: as partes de cada área (Fichas · Ligações · Mapas…) como abas grandes, com ícone e nome,
    numa linha só delas; o nome da área, a busca e a ajuda ficam na linha de cima. */
@@ -15700,4 +15689,39 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 }
 .dip-edge.is-outra path {
   stroke: var(--ink-3, #888);
+}
+
+/* Retrato de ficha sem imagem: o desenho do tipo, na cor do tipo, com a inicial pequena no canto. */
+.kind-portrait {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.kp-bg {
+  fill: var(--k);
+}
+.kp-shade {
+  fill: #000;
+  fill-opacity: 0.12;
+}
+.kp-art {
+  fill: #fff;
+  fill-opacity: 0.9;
+  stroke: none;
+}
+.kp-art.is-line {
+  fill-opacity: 0.18;
+  stroke: #fff;
+  stroke-opacity: 0.92;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.kp-chip {
+  fill: #000;
+  fill-opacity: 0.3;
+}
+.kp-letter {
+  font: 600 9px var(--font-display);
+  fill: #fff;
 }

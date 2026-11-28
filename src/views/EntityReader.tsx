@@ -46,7 +46,7 @@ import { StoryPointBar } from '../ui/StoryPointBar'
 import { useWorkspace } from '../state/workspace'
 import { CanonBadge, EditorialBadge, Field } from '../ui/bits'
 import { Picture } from '../images/Picture'
-import { GeneratedCover } from '../ui/GeneratedCover'
+import { KindPortrait } from '../ui/KindPortrait'
 import { MenuGroup, MenuItem } from '../ui/MenuItem'
 import { MapGlimpse } from './MapGlimpse'
 import { AppearanceList } from './AppearanceList'
@@ -636,7 +636,7 @@ export function EntityReader({ entity: base, order, modeSwitch, onEdit }: { enti
             disabled={!tools || !quadro}
             onClick={() => quadro && setEditingId(quadro.id)}
           >
-            {e.image ? <Picture key={`foto${swapKey}`} value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} /> : <GeneratedCover key={`foto${swapKey}`} name={e.name || '?'} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} />}
+            {e.image ? <Picture key={`foto${swapKey}`} value={e.image} alt={`Imagem de ${e.name || 'Sem nome'}`} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} /> : <KindPortrait key={`foto${swapKey}`} kind={e.kind} name={e.name || '?'} className={`hero-portrait${swapKey ? ' swap-in' : ''}`} />}
           </button>
           {heroStats.map(([k, v], i) => (
             <div key={k} className={`hero-stat hero-stat-${i + 1}${changedKeys.has(fold(k.trim())) ? ' is-changed' : ''}`}>

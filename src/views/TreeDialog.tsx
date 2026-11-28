@@ -5,6 +5,7 @@ import { addBranch, contentTree, detach, moveBranch, treeSize, type TreeNode } f
 import { kindLabel } from '../model/labels'
 import { byId } from '../model/universe'
 import { EntityPicker } from '../ui/EntityPicker'
+import { kindVar } from '../ui/KindPortrait'
 import { Modal } from '../ui/Modal'
 import { useWorkspace } from '../state/workspace'
 
@@ -52,7 +53,7 @@ function TreeDialogInner({ rootId, onClose, onPickRoot }: { rootId: string | nul
 
   const node = (n: TreeNode, top = false): React.ReactNode => (
     <li key={n.entity.id}>
-      <div className={`ftree-node${top ? ' is-root' : ''}`} style={{ '--k': `var(--kind-${n.entity.kind}, var(--accent))` } as React.CSSProperties} title={n.entity.summary || undefined}>
+      <div className={`ftree-node${top ? ' is-root' : ''}`} style={{ '--k': kindVar(n.entity.kind) } as React.CSSProperties} title={n.entity.summary || undefined}>
         <button type="button" className="ftree-name" onClick={() => (onClose(), go('fichas', n.entity.id))} aria-label={`Abrir a ficha ${n.entity.name}`}>
           <b>{n.entity.name}</b>
           <small>{n.entity.summary.trim() || kindLabel(n.entity.kind)}</small>
