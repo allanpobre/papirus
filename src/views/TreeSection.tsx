@@ -11,7 +11,7 @@ const BRANCHY = ['especie', 'faccao', 'religiao', 'cultura', 'magia', 'reino', '
 
 const Mini = ({ n, open }: { n: TreeNode; open: (id: string) => void }) => (
   <li>
-    <button type="button" className="tree-mini-link" onClick={() => open(n.entity.id)}>
+    <button type="button" className="ftree-mini-link" onClick={() => open(n.entity.id)}>
       {n.entity.name}
     </button>
     {n.children.length > 0 && <ul>{n.children.map((c) => <Mini key={c.entity.id} n={c} open={open} />)}</ul>}
@@ -30,11 +30,11 @@ export function TreeSection({ entity, reader }: { entity: Entity; reader: boolea
   if (!has && !invite) return null
   const tree = has ? contentTree(universe, entity.id, { hideSecrets: reader }) : null
   return (
-    <section className="tree-section" aria-label="Árvore">
+    <section className="ftree-section" aria-label="Árvore">
       <h2>Árvore</h2>
       {tree && (
         <>
-          <ul className="tree-mini">{tree.children.map((c) => <Mini key={c.entity.id} n={c} open={(id) => go('fichas', id)} />)}</ul>
+          <ul className="ftree-mini">{tree.children.map((c) => <Mini key={c.entity.id} n={c} open={(id) => go('fichas', id)} />)}</ul>
           <p className="muted small">{treeSize(tree)} {treeSize(tree) === 1 ? 'galho' : 'galhos'}.</p>
         </>
       )}
