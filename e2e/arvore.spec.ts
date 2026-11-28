@@ -47,3 +47,37 @@ test('árvore: criar pela grade, galhos com o +, mover, e a seção na ficha', a
   await expect(secao.getByRole('button', { name: 'Cromáticos' })).toBeVisible()
   await expect(secao.getByRole('button', { name: 'Ver e editar como árvore' })).toBeVisible()
 })
+
+test('Ligações ganha quadros: Família à vista, Árvores e Diplomacia com cores e texto', async ({ page }) => {
+  await page.goto('/app/?exemplo=ostria')
+  await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
+  await nav(page, 'Mundo').click()
+  // Uma ligação entre duas facções/reinos, pela ficha.
+  await page.getByRole('button', { name: /^Casa de Vaelor/ }).first().click()
+  await page.getByRole('combobox', { name: 'Nova ligação' }).fill('em guerra com')
+  await page.getByRole('combobox', { name: 'Com' }).fill('Reino de Ostria')
+  await page.getByRole('option', { name: /^Reino de Ostria/ }).first().click()
+  await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
+
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Ligações' }).click()
+  const modos = page.getByRole('group', { name: 'Ver as ligações como' })
+  await expect(modos.getByRole('button', { name: 'Mural' })).toHaveAttribute('aria-pressed', 'true')
+
+  await modos.getByRole('button', { name: 'Diplomacia' }).click()
+  await expect(page.getByRole('img', { name: /Quadro de diplomacia/ })).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Legenda' })).toContainText('Guerra e rivalidade')
+  await expect(page.locator('.dip-list')).toContainText('Casa de Vaelor em guerra com Reino de Ostria')
+
+  await modos.getByRole('button', { name: 'Árvores' }).click()
+  await page.getByRole('combobox', { name: 'Árvore de' }).selectOption({ label: 'Reino de Ostria' })
+  await expect(page.locator('.tree').getByRole('button', { name: 'Abrir a ficha Ostria', exact: true })).toBeVisible()
+
+  await modos.getByRole('button', { name: 'Família' }).click()
+  await expect(page.locator('.family')).toBeVisible()
+
+  // A escolha fica: ao voltar a Ligações, abre na última.
+  await page.reload()
+  await nav(page, 'Mundo').click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Ligações' }).click()
+  await expect(modos.getByRole('button', { name: 'Família' })).toHaveAttribute('aria-pressed', 'true')
+})
