@@ -607,3 +607,13 @@ test('Escrever: a lista de cenas cabe na coluna dela, com as cenas alinhadas à 
   expect(new Set(caixas.map((c) => c.x)).size).toBe(1)
   for (const c of caixas) expect(c.right).toBeLessThanOrEqual(coluna.x + coluna.width)
 })
+
+test('Escrever: os ícones da barra do editor têm nome ao passar o mouse', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Escrever/ }).first().click()
+  const barra = page.locator('.write-bar')
+  await expect(barra.getByRole('button', { name: 'Esconder manuscrito' })).toHaveAttribute('title', /lista de cenas/)
+  await expect(barra.getByRole('button', { name: 'Texto da página' })).toHaveAttribute('title', 'Texto da página')
+  await expect(barra.getByRole('button', { name: /margem/i })).toHaveAttribute('title', /nomes, perguntas e cartão/)
+})
