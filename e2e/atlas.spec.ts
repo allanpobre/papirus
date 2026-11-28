@@ -151,3 +151,17 @@ test('Mapas: tipos e camadas num menu só ("Camadas"), e o caminho de alguém co
   await expect(page.getByLabel('Ver o caminho de')).toBeVisible()
   await expect(page.getByLabel('Ver o caminho de').getByRole('option', { name: 'Ninguém' })).toBeAttached()
 })
+
+test('Mapas: "Apagar mapa" no menu pede confirmação (o menu não fecha antes) e dá para desfazer', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo')
+  await page.getByRole('navigation', { name: 'Áreas' }).getByRole('button', { name: /^Mundo/ }).first().click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Mapas' }).click()
+  await page.getByRole('button', { name: 'Mais ações do mapa' }).click()
+  await page.getByRole('button', { name: 'Apagar mapa' }).click()
+  // A pergunta aparece (o menu continua aberto) e só o segundo toque apaga.
+  const confirmar = page.getByRole('button', { name: 'Apagar mapa' }).last()
+  await expect(page.getByText('Apagar este mapa e seus marcadores?')).toBeVisible()
+  await confirmar.click()
+  await expect(page.getByText('Mapa apagado')).toBeVisible()
+})
