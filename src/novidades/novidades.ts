@@ -13,6 +13,26 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-05b',
+    when: '5 de dezembro',
+    title: 'O nível do mundo',
+    items: [
+      'No Início, o cartão do mundo ganhou um desenho que cresce com ele: de Semente a Lenda (vilarejo, cidade, reino, império, continente). Conta o que você constrói: fichas com resumo, ligações, datas, lugares no mapa, cenas escritas e sessões de jogo encerradas.',
+      '“Como o mundo cresce” mostra a conta. Não tem cobrança, e nada se perde se o número baixar.',
+    ],
+  },
+  {
+    id: '2026-12-05a',
+    when: '5 de dezembro',
+    title: 'Criar e ver o mundo ficou mais à mão',
+    items: [
+      'Em Mundo › Fichas, a grade “O que vamos criar hoje?” cria personagem, facção, reino, item, lugar, espécie, árvore, tabela, mapa ou linha do tempo num toque. No celular ela começa fechada.',
+      'Árvores: qualquer ficha pode virar uma árvore (tipos de uma espécie, ordens de uma facção, cidades de um reino). O + cria um galho, Mover troca de lugar e Tirar solta. Aparece na leitura da ficha, e em Ligações › Árvores.',
+      'Ligações ganhou uma faixa: Mural, Família (a árvore de parentesco, que estava escondida no grafo), Árvores e Diplomacia (facções e reinos com cor e traço para aliança, guerra e paz tensa, com um controle de ano).',
+      'Tabelas de sorteio: uma linha pode chamar outra tabela pelo nome, como {Taverna}, e as fichas citadas entram em “Virar pista”. A Mesa rola do mesmo jeito.',
+    ],
+  },
+  {
     id: '2026-12-04a',
     when: '4 de dezembro',
     title: 'Wiki só de uma coleção',

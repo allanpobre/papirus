@@ -129,8 +129,8 @@ export function levelFor(words: number): { n: number; name: string; from: number
 }
 
 // ─── Nível deste mundo ───────────────────────────────────────────────────
-// Como o "Worldbuilding Trainer" do World Anvil, mas sem cobrança: o mundo sobe de nível conforme cresce. Conta o que
-// se constrói (não só o que se escreve), para quem é mais de mundo ou de mesa do que de texto.
+// O mundo sobe de nível conforme cresce, sem cobrança. Conta o que se constrói (não só o que se escreve), para quem é
+// mais de mundo ou de mesa do que de texto.
 
 export const WORLD_LEVELS: { points: number; name: string }[] = [
   { points: 0, name: 'Semente' },

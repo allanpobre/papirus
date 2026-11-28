@@ -80,3 +80,15 @@ test('trazer notas do Obsidian', async ({ page }) => {
   await expect(page.getByRole('navigation', { name: 'O seu mundo' })).toContainText('2 fichas')
   await expect(world(page).getByRole('button', { name: /1 ligação escrita nas fichas/ })).toBeVisible()
 })
+
+test('o cartão do mundo mostra o nível, de Semente em diante, e como ele cresce', async ({ page }) => {
+  await newUniverse(page, 'Terras')
+  await nav(page, 'Início').click()
+  const nivel = world(page).getByRole('group', { name: /Este mundo: nível 1, Semente/ })
+  await expect(nivel).toBeVisible()
+  await nivel.getByText('Como o mundo cresce').click()
+  await expect(nivel.getByText('Sessão de jogo encerrada')).toBeVisible()
+  // Um mundo pronto (o exemplo) já passou da Semente.
+  await page.goto('/app/?exemplo')
+  await expect(page.getByRole('group', { name: /Este mundo: nível [2-7], / })).toBeVisible()
+})
