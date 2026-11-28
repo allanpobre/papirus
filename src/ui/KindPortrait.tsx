@@ -31,6 +31,9 @@ const ART: Record<string, string> = {
 }
 const FALLBACK = 'M30 8L52 30L30 52L8 30Z'
 
+/** A cor do tipo. Tipos próprios têm nome livre ("Língua falada"): só um nome simples vira variável; o resto usa a cor de destaque. */
+export const kindVar = (kind: string): string => (/^[a-z][a-z0-9-]*$/.test(kind) ? `var(--kind-${kind}, var(--accent))` : 'var(--accent)')
+
 export function KindPortrait({ kind, name, className = '' }: { kind: string; name: string; className?: string }) {
   const letter = (name.trim()[0] ?? '?').toLocaleUpperCase('pt-BR')
   const stroke = kind === 'especie' || kind === 'documento'
@@ -39,14 +42,14 @@ export function KindPortrait({ kind, name, className = '' }: { kind: string; nam
       className={`kind-portrait ${className}`.trim()}
       viewBox="0 0 60 60"
       preserveAspectRatio="xMidYMid meet"
-      style={{ '--k': `var(--kind-${kind}, var(--accent))` } as CSSProperties}
+      style={{ '--k': kindVar(kind) } as CSSProperties}
       aria-hidden="true"
       focusable="false"
     >
       {/* O fundo passa dos 60×60: o desenho cabe inteiro (e o selo não é cortado) em qualquer moldura. */}
       <rect className="kp-bg" x="-200" y="-200" width="460" height="460" />
       <rect className="kp-shade" x="-200" y="-200" width="460" height="460" />
-      <path className={`kp-art${stroke ? ' is-line' : ''}`} d={ART[kind] ?? FALLBACK} />
+      <path className={`kp-art${stroke ? ' is-line' : ''}`} d={(Object.hasOwn(ART, kind) ? ART[kind] : FALLBACK)} />
       <circle className="kp-chip" cx="46" cy="47" r="8" />
       <text className="kp-letter" x="46" y="47" dy="0.36em" textAnchor="middle">
         {letter}

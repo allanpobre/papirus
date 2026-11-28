@@ -8,6 +8,7 @@ import type { Entity, Universe } from '../model/schema'
 import { byId } from '../model/universe'
 import { useWorkspace } from '../state/workspace'
 import { useMediaQuery } from '../ui/useMediaQuery'
+import { kindVar } from '../ui/KindPortrait'
 import { FamilyTree } from './FamilyTree'
 import { TreeDialog } from './TreeDialog'
 
@@ -62,7 +63,7 @@ function TreesBoard() {
   // No celular, a árvore fica recuada, de cima para baixo (a deitada pede largura).
   const draw = (n: TreeNode, top = false): React.ReactNode => (
     <li key={n.entity.id}>
-      <div className={`ftree-node${top ? ' is-root' : ''}`} style={{ '--k': `var(--kind-${n.entity.kind}, var(--accent))` } as React.CSSProperties}>
+      <div className={`ftree-node${top ? ' is-root' : ''}`} style={{ '--k': kindVar(n.entity.kind) } as React.CSSProperties}>
         <button type="button" className="ftree-name" aria-label={`Abrir a ficha ${n.entity.name}`} onClick={() => go('fichas', n.entity.id)}>
           <b>{n.entity.name}</b>
           <small>{label(n)}</small>
@@ -116,7 +117,7 @@ function TreesBoard() {
                   <div
                     key={l.node.entity.id}
                     className={`ftree-node ftree-h-node${l === layout.nodes[layout.nodes.length - 1] ? ' is-root' : ''}`}
-                    style={{ left: l.x, top: l.y, width: BOX_W, height: BOX_H, '--k': `var(--kind-${l.node.entity.kind}, var(--accent))` } as React.CSSProperties}
+                    style={{ left: l.x, top: l.y, width: BOX_W, height: BOX_H, '--k': kindVar(l.node.entity.kind) } as React.CSSProperties}
                   >
                     <button type="button" className="ftree-name" aria-label={`Abrir a ficha ${l.node.entity.name}`} onClick={() => go('fichas', l.node.entity.id)}>
                       <b>{l.node.entity.name}</b>
