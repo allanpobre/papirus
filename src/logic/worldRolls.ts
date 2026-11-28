@@ -1,5 +1,6 @@
 import type { Entity, Universe } from '../model/schema'
 import { languageNames, languagesOf } from './language'
+import { fold } from './text'
 import { generateNames } from './names'
 
 /*
@@ -106,11 +107,19 @@ function newName(u: Universe, random: () => number): string {
   return generateNames(samples, 'fantasia', 1, random)[0] ?? 'Arel'
 }
 
-/** Troca as marcas {lugar}, {personagem}… por nomes do mundo. Segredos ficam de fora. */
-export function fillEntry(entry: string, u: Universe, random = Math.random): Rolled {
+/** Até quantas tabelas podem chamar outras (uma chamando a si mesma ou em volta não trava). */
+const MAX_CHAIN = 4
+
+/**
+ * Troca as marcas {lugar}, {personagem}… por nomes do mundo. Segredos ficam de fora. Uma marca com o nome de uma
+ * tabela sua ({Taverna}, {Rumores do porto}) rola aquela tabela ali dentro, em cadeia; e as fichas que aparecem pelo
+ * nome no texto entram na lista (para "Virar pista" ligar a elas).
+ */
+export function fillEntry(entry: string, u: Universe, random = Math.random, depth = 0): Rolled {
   const ids: string[] = []
   const pool = (kinds: string[]): Entity[] => u.entities.filter((e) => kinds.includes(e.kind) && e.canon !== 'secreto' && e.name.trim())
-  const text = entry.replace(/\{(\w+)\}/g, (all, key: string) => {
+  const text = entry.replace(/\{([^{}]+)\}/g, (all, raw: string) => {
+    const key = raw.trim()
     if (key === 'nomeNovo') return newName(u, random)
     const kinds = KINDS[key]
     const real = kinds ? pool(kinds) : []
@@ -119,8 +128,20 @@ export function fillEntry(entry: string, u: Universe, random = Math.random): Rol
       ids.push(e.id)
       return e.name
     }
-    return COMMON[key] ? pick(COMMON[key], random) : all
+    if (COMMON[key]) return pick(COMMON[key], random)
+    const chained = depth < MAX_CHAIN ? u.tables.find((t) => fold(t.name.trim()) === fold(key) && t.entries.some((x) => x.trim())) : undefined
+    if (chained) {
+      const inner = fillEntry(pick(chained.entries.filter((x) => x.trim()), random), u, random, depth + 1)
+      ids.push(...inner.entityIds)
+      return inner.text
+    }
+    return all
   })
+  const flat = fold(text)
+  for (const e of u.entities) {
+    const n = fold(e.name.trim())
+    if (n.length >= 3 && e.canon !== 'secreto' && new RegExp(`(^|[^\\p{L}\\p{N}])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^\\p{L}\\p{N}])`, 'u').test(flat)) ids.push(e.id)
+  }
   return { text: contract(text), entityIds: [...new Set(ids)] }
 }
 
