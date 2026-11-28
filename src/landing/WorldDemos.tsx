@@ -98,38 +98,45 @@ export function BookDemo() {
   )
 }
 
-/** Dois quadros que saem sozinhos das fichas e ligações: a árvore de uma espécie e a diplomacia entre reinos. Só desenho. */
+/**
+ * Dois quadros que saem sozinhos das fichas e ligações, com o mundo de exemplo do próprio Papirus (a Terra de Oz):
+ * as terras de Oz numa árvore deitada e quem está com quem (e contra quem) em arcos. Só desenho.
+ */
 export function QuadrosDemo() {
   return (
     <section className="lp-quadros" aria-labelledby="quadros-titulo">
       <h3 id="quadros-titulo">Escreva as ligações. Os quadros se desenham sozinhos.</h3>
       <div className="lp-quadros-grid">
-        <figure aria-label="Árvore de uma espécie: Dragões, Cromáticos e Metálicos">
-          <svg viewBox="0 0 320 190" role="img" aria-label="Dragões se divide em Cromáticos e Metálicos; Cromáticos em Vermelho e Azul">
+        <figure aria-label="Árvore da Terra de Oz, deitada">
+          <svg viewBox="0 0 320 190" role="img" aria-label="Terra de Oz se divide em Munchkins, Winkies, Quadlings e Norte; o Sul tem o Castelo de Glinda e o País de Porcelana">
             <g className="lq-lines">
-              <path d="M160 40 V58 M80 58 H240 M80 58 V74 M240 58 V74 M80 110 V126 M44 126 H116 M44 126 V142 M116 126 V142" />
+              <path d="M96 95 C118 95 118 28 138 28 M96 95 C118 95 118 70 138 70 M96 95 C118 95 118 112 138 112 M96 95 C118 95 118 154 138 154" />
+              <path d="M218 112 C236 112 236 92 250 92 M218 112 C236 112 236 132 250 132" />
             </g>
-            <QBox x={110} y={14} w={100} label="Dragões" sub="Espécie" strong />
-            <QBox x={30} y={74} w={100} label="Cromáticos" sub="Espécie" />
-            <QBox x={190} y={74} w={100} label="Metálicos" sub="Espécie" />
-            <QBox x={11} y={142} w={66} label="Vermelho" sub="" small />
-            <QBox x={83} y={142} w={66} label="Azul" sub="" small />
+            <QBox x={8} y={77} w={88} label="Terra de Oz" sub="Reino" strong />
+            <QBox x={138} y={10} w={80} label="Munchkins" sub="Leste" small />
+            <QBox x={138} y={52} w={80} label="Winkies" sub="Oeste" small />
+            <QBox x={138} y={94} w={80} label="Quadlings" sub="Sul" small />
+            <QBox x={138} y={136} w={80} label="Norte" sub="Reino" small />
+            <QBox x={250} y={74} w={66} label="Glinda" sub="Castelo" small />
+            <QBox x={250} y={114} w={66} label="Porcelana" sub="País" small />
           </svg>
-          <figcaption>Árvores de espécies, ordens e lugares: crie galhos direto no desenho.</figcaption>
+          <figcaption>Do exemplo “Terra de Oz”: terras dentro de terras, e você cria galhos direto no desenho.</figcaption>
         </figure>
-        <figure aria-label="Diplomacia entre três reinos">
-          <svg viewBox="0 0 320 190" role="img" aria-label="Corte de Brasa e República da Maré são aliadas; ambas em guerra e em paz tensa com o Domínio de Ferro">
-            <line className="lq-ally" x1="85" y1="40" x2="235" y2="40" />
-            <line className="lq-war" x1="70" y1="58" x2="140" y2="140" />
-            <line className="lq-tense" x1="250" y1="58" x2="180" y2="140" />
-            <text className="lq-label" x="160" y="33" textAnchor="middle">aliança</text>
-            <text className="lq-label" x="84" y="106" textAnchor="middle">em guerra</text>
-            <text className="lq-label" x="244" y="106" textAnchor="middle">paz tensa</text>
-            <QBox x={20} y={20} w={110} label="Corte de Brasa" sub="Reino" />
-            <QBox x={190} y={20} w={110} label="República da Maré" sub="Reino" />
-            <QBox x={105} y={140} w={110} label="Domínio de Ferro" sub="Reino" />
+        <figure aria-label="Diplomacia entre terras e povos de Oz">
+          <svg viewBox="0 0 320 190" role="img" aria-label="Winkies e Macacos Alados são aliados; Winkies estão em guerra com Oz; Oz e Quadlings estão em paz tensa">
+            <path className="lq-ally" d="M40 128 C40 96 118 96 118 128" />
+            <path className="lq-war" d="M40 128 C40 20 196 20 196 128" />
+            <path className="lq-tense" d="M196 128 C196 80 274 80 274 128" />
+            <text className="lq-label" x="79" y="100" textAnchor="middle">aliados</text>
+            <text className="lq-label" x="120" y="44" textAnchor="middle">em guerra</text>
+            <text className="lq-label" x="235" y="86" textAnchor="middle">paz tensa</text>
+            <QBox x={4} y={128} w={72} label="Winkies" sub="Reino" small />
+            <QBox x={82} y={128} w={72} label="Macacos" sub="Facção" small />
+            <QBox x={160} y={128} w={72} label="Oz" sub="Reino" small />
+            <QBox x={238} y={128} w={72} label="Quadlings" sub="Reino" small />
           </svg>
-          <figcaption>Diplomacia com cor e traço para cada tipo, e um controle de ano.</figcaption>
+          <figcaption>Facções e reinos com cor e traço para cada tipo (aqui, uma ilustração), e um controle de ano.</figcaption>
         </figure>
       </div>
     </section>
