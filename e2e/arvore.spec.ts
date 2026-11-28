@@ -113,3 +113,19 @@ test('o exemplo de Oz mostra as mesmas árvores e a diplomacia da apresentação
   await expect(page.locator('.dip-list')).not.toContainText('em guerra com')
   await expect(page.locator('.dip-list')).toContainText('Terra de Oz em tensão com Terra dos Quadlings')
 })
+
+test('Diplomacia lê as tensões da ficha (Em guerra) também entre lugares', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/app/?exemplo=ostria')
+  await expect(page.getByRole('navigation', { name: 'Áreas' })).toBeVisible()
+  await nav(page, 'Mundo').click()
+  // Uma tensão entre dois lugares (a Torre de Marfim e a Taverna do Anzol), pela ficha.
+  await page.getByRole('button', { name: /^Torre de Marfim/ }).first().click()
+  await page.getByRole('combobox', { name: 'Nova ligação' }).fill('em guerra com')
+  await page.getByRole('combobox', { name: 'Com' }).fill('Taverna do Anzol')
+  await page.getByRole('option', { name: /^Taverna do Anzol/ }).first().click()
+  await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
+  await page.locator('[data-tour="partes"]').getByRole('button', { name: 'Ligações' }).click()
+  await page.getByRole('group', { name: 'Ver as ligações como' }).getByRole('button', { name: 'Diplomacia' }).click()
+  await expect(page.locator('.dip-list')).toContainText('Torre de Marfim em guerra com Taverna do Anzol')
+})

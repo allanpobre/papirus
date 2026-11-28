@@ -42,4 +42,21 @@ describe('diplomacia', () => {
     m.r(p, 'aliado de', b, { scope: { kind: 'periodo', fromYear: 999, toYear: null, storyIds: [], sceneIds: [] } })
     expect(diplomacyYears(m.u)).toEqual([100, 120])
   })
+
+  it('as tensões da ficha (Calmo, Tenso, Em guerra) valem entre lugares e outros tipos; as outras ligações só entre facções e reinos', () => {
+    const m = mundo()
+    const a = m.e('lugar', 'Gar’Nael')
+    const b = m.e('lugar', 'Vangouver')
+    const c = m.e('lugar', 'Terra Vizinha')
+    const p1 = m.e('personagem', 'Ana')
+    const p2 = m.e('personagem', 'Beto')
+    m.r(a, 'em guerra com', b)
+    m.r(b, 'em paz com', c)
+    // Ligação comum entre lugares, e tensão entre pessoas: ficam de fora.
+    m.r(a, 'vizinho de', c)
+    m.r(p1, 'em guerra com', p2)
+    const d = diplomacyOf(m.u)
+    expect(d.nodes.map((n) => n.name)).toEqual(['Gar’Nael', 'Terra Vizinha', 'Vangouver'])
+    expect(d.edges.map((e) => e.tone).sort()).toEqual(['alianca', 'guerra'])
+  })
 })
