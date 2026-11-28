@@ -15764,3 +15764,10 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
 .atlas-layers-pop .filter-chips:last-child {
   margin-bottom: 0;
 }
+/* Árvore no celular: o resumo longo ganha reticências em vez de passar da borda do cartão. */
+.ftree-name small {
+  max-width: 100%;
+}
+.ftree-node {
+  overflow: hidden;
+}
