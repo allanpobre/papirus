@@ -15175,6 +15175,9 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   }
   .world-stage {
     max-width: 220px;
+  }
+}
+
 /* Fichas: "O que vamos criar hoje?" (grade de tipos num toque). */
 .create-today {
   margin-bottom: 0.75rem;
