@@ -13,6 +13,20 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: '2026-12-06a',
+    when: '6 de dezembro',
+    title: 'Telas mais limpas, retratos por tipo e quadros mais bonitos',
+    items: [
+      'O topo ficou mais baixo: a faixa do livro atual é de uma linha só e some onde o livro não muda nada (Mesa, Oficina, Guia, Ideias e Ajustes).',
+      'Em Escrever, a lista de cenas voltou a ficar alinhada dentro da coluna (estava em zigue-zague e cortada), e os ícones da barra do editor têm nome ao passar o mouse.',
+      'Na ficha, sem versões vem só um botão pequeno “+ Nova versão”. Sem imagem, o retrato é o desenho do tipo (pessoa, lugar, reino, facção…) na cor dele, com a inicial pequena, e não mais uma letra gigante.',
+      'No Início, o “onde você parou” vem primeiro e a escolha de livro fica embaixo, com capas menores.',
+      'Em Ligações, a Árvore agora é desenhada deitada, com curvas, e a Diplomacia fica em arcos de cor e traço; “em paz com” conta como paz, não como tensão. O exemplo de Oz ganhou ligações entre países e povos para mostrar isso.',
+      'Em Mapas, os tipos de lugar e as camadas ficam num botão “Camadas”, e “Apagar mapa” num menu ⋯.',
+      'Na Mesa, a iniciativa do sistema aparece em palavras (“1d20 + modificador de Destreza”), sem as chaves da fórmula.',
+    ],
+  },
+  {
     id: '2026-12-05c',
     when: '5 de dezembro',
     title: 'Ler como livro, por coleção',
