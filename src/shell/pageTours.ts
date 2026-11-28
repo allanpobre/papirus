@@ -334,6 +334,7 @@ export const PAGE_TOURS = {
     title: 'Ligações',
     steps: [
       LIVRO_ATUAL,
+      { target: '.quadro-modes', title: 'Formas de ver as ligações', body: 'Mural é o de sempre. Família mostra a árvore de parentesco (pai de, filha de, casado com…). Árvores mostra o que está dentro de quê (tipos de dragão, ordens, cidades) e deixa criar galhos. Diplomacia mostra facções e reinos com linhas de cor: aliança, guerra, paz tensa; um controle de ano mostra como mudou.', optional: true },
       { target: '[data-tour="partes"]', title: 'O mundo em quatro partes', body: 'Fichas, Ligações, Linha do tempo e Mapas: tudo sobre o mundo numa entrada só do menu. Toque para trocar de parte.', optional: true },
       { target: '.area-roll', title: 'Rolar no mundo', body: 'Sem ideia? Role um boato, um encontro, um segredo ou uma festa: o sorteio usa os lugares, povos e personagens do seu mundo, e os nomes novos saem na língua de um povo. O que gostar vira pista (Trama) ou ideia. As tabelas que você cria na Mesa entram também.', optional: true },
       { target: '.graph-filters-btn', title: 'Filtros', body: 'No celular, o grafo vem primeiro. Os filtros (centrar numa ficha, tipos, um ponto da história) ficam aqui.', optional: true },

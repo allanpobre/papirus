@@ -15385,6 +15385,7 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   .tree-name {
     flex: 1;
     min-width: 0;
+    overflow: hidden;
     align-items: flex-start;
     text-align: left;
   }
@@ -15422,4 +15423,147 @@ button.presence-dot::before { content: ''; position: absolute; inset: -9px; }
   color: var(--accent);
   cursor: pointer;
   text-align: left;
+}
+
+/* Ligações: as formas de ver (Mural, Família, Árvores, Diplomacia). */
+.quadro-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+.quadro-modes .chip {
+  min-height: 34px;
+  padding-inline: 0.8rem;
+}
+.quadro-modes button.chip[aria-pressed='true'],
+.quadro-modes button.chip[aria-pressed='true']:hover {
+  color: var(--surface);
+}
+.quadro-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.quadro-pick {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+.quadro-empty {
+  max-width: 38rem;
+  padding: 1rem 0;
+}
+.quadro-year {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.quadro-year label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 14rem;
+}
+.quadro-year input[type='range'] {
+  flex: 1;
+  min-height: 32px;
+}
+/* Diplomacia: nomes em cartões, ligações com cor e traço (o traço também diz o tipo, não só a cor). */
+.dip {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+  max-height: 60vh;
+  display: block;
+}
+.dip-node {
+  cursor: pointer;
+  outline: none;
+}
+.dip-node rect {
+  fill: var(--surface);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.dip-node:focus-visible rect,
+.dip-node:hover rect {
+  stroke-width: 3;
+}
+.dip-name {
+  font-size: 13px;
+  font-weight: 650;
+  fill: var(--ink);
+}
+.dip-sub {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  fill: var(--ink-2);
+}
+.dip-edge line {
+  stroke-width: 2.5;
+}
+.dip-edge text {
+  font-size: 11px;
+  fill: var(--ink-2);
+  paint-order: stroke;
+  stroke: var(--bg, var(--surface));
+  stroke-width: 4px;
+}
+.dip-edge.is-alianca line,
+.dip-legend .is-alianca i {
+  stroke: #2e8b6a;
+  background: #2e8b6a;
+}
+.dip-edge.is-guerra line {
+  stroke: #c0392b;
+  stroke-dasharray: 8 5;
+}
+.dip-legend .is-guerra i {
+  background: repeating-linear-gradient(90deg, #c0392b 0 6px, transparent 6px 9px);
+}
+.dip-edge.is-tensa line {
+  stroke: #c98a0b;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+.dip-legend .is-tensa i {
+  background: repeating-linear-gradient(90deg, #c98a0b 0 2px, transparent 2px 5px);
+}
+.dip-edge.is-outra line,
+.dip-legend .is-outra i {
+  stroke: var(--ink-3, #888);
+  background: var(--ink-3, #888);
+}
+.dip-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.85rem;
+}
+.dip-legend i {
+  display: inline-block;
+  width: 28px;
+  height: 3px;
+  vertical-align: middle;
+  margin-right: 0.3rem;
+}
+.dip-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+@media (max-width: 760px) {
+  .dip-name {
+    font-size: 15px;
+  }
 }
