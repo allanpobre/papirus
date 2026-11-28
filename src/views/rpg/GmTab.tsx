@@ -10,6 +10,7 @@ import { ConfirmButton } from '../../ui/ConfirmButton'
 import type { RpgTab } from './RpgView'
 import { isPool } from '../../rpg/sheets'
 import { attendanceOf } from '../../rpg/sessionLife'
+import { formulaText } from '../../rpg/formulaText'
 import { useRpg } from './rpgContext'
 
 /** Visão rápida do mestre: sistema, grupo, próxima sessão, segredos guardados, mistérios, elenco. */
@@ -107,7 +108,7 @@ export function GmTab({ onGo }: { onGo: (t: RpgTab) => void }) {
         />
         <p className="muted small">
           {system
-            ? `${system.attributes.length} atributos, ${system.resources.length} recursos, ${system.skills.length} perícias. Iniciativa: ${system.initiativeFormula}.`
+            ? `${system.attributes.length} atributos, ${system.resources.length} recursos, ${system.skills.length} perícias. Iniciativa: ${formulaText(system, system.initiativeFormula)}.`
             : 'Sem sistema, o grupo usa d20 simples e fichas só com anotações.'}
         </p>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => onGo('sistemas')}>
