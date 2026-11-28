@@ -1,6 +1,7 @@
 import { Dices, Plus, Trash2 } from 'lucide-react'
 import { useContext, useState } from 'react'
 import { DiceError, roll, type DiceRoll } from '../../logic/dice'
+import { rollTable } from '../../logic/worldRolls'
 import type { RandomTable } from '../../model/schema'
 import { insert, patch, remove } from '../../model/universe'
 import { resolveRoll } from '../../rpg/rolls'
@@ -128,18 +129,17 @@ export function DiceTab() {
 }
 
 /** Tabelas aleatórias próprias: uma entrada por linha, rola com um clique. */
-function RandomTables() {
+export function RandomTables() {
   const { universe, update } = useWorkspace()
   const rpg = useContext(RpgContext)
   const [name, setName] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [results, setResults] = useState<Record<string, string>>({})
 
-  const rollTable = (t: RandomTable) => {
-    const entries = t.entries.filter((e) => e.trim())
-    if (!entries.length) return
-    const r = roll(`1d${Math.max(2, entries.length)}`)
-    const pick = entries[Math.min(entries.length, r.total) - 1]
+  const rollOne = (t: RandomTable) => {
+    // Rola com as marcas e as outras tabelas ({lugar}, {Taverna}…), como em Rolar no mundo.
+    const pick = rollTable(t, universe)?.text
+    if (!pick) return
     setResults((x) => ({ ...x, [t.id]: pick }))
     rpg?.logText(`${t.name}: ${pick}`, 'rolagem')
   }
@@ -171,13 +171,14 @@ function RandomTables() {
         </button>
       </form>
       {universe.tables.length === 0 && <p className="muted small">Nenhuma tabela. Crie uma e escreva uma opção por linha.</p>}
+      <p className="muted tiny">Dica: escreva {'{lugar}'}, {'{personagem}'} ou {'{grupo}'} para sortear do seu mundo, ou o nome de outra tabela entre chaves, como {'{Taverna}'}, para encadear.</p>
       <ul className="table-cards">
         {universe.tables.map((t) => (
           <li key={t.id} className="table-card">
             <div className="table-card-head">
               <input className="input input-sm table-name" aria-label="Nome da tabela" value={t.name} onChange={(e) => update((u) => patch(u, 'tables', t.id, { name: e.target.value }))} />
               <span className="muted tiny">{t.entries.filter((e) => e.trim()).length} opções</span>
-              <button type="button" className="btn btn-sm btn-primary" disabled={!t.entries.some((e) => e.trim())} onClick={() => rollTable(t)}>
+              <button type="button" className="btn btn-sm btn-primary" disabled={!t.entries.some((e) => e.trim())} onClick={() => rollOne(t)}>
                 <Dices size={14} /> Rolar
               </button>
               <button type="button" className="btn btn-sm btn-ghost" aria-expanded={editing === t.id} onClick={() => setEditing(editing === t.id ? null : t.id)}>

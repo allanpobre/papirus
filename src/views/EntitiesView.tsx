@@ -69,6 +69,7 @@ import { openBookReplace } from './write/replaceEvents'
 import { BulkCreateDialog, NewEntityDialog } from './EntityCreate'
 import { CreateToday } from './CreateToday'
 import { TreeDialog } from './TreeDialog'
+import { TablesDialog } from './TablesDialog'
 import { SameNameHint } from './SameName'
 import { BirthFlow } from './BirthFlow'
 import { InheritedRows, ListsSection, MembershipChips } from './EntityLists'
@@ -129,6 +130,7 @@ export default function EntitiesView() {
   const [tileKind, setTileKind] = useState<string | null>(null)
   // A árvore aberta pela grade: '' = escolhendo a ficha do alto; null = fechada.
   const [treeRoot, setTreeRoot] = useState<string | null>(null)
+  const [tables, setTables] = useState(false)
   // Selecionar várias: pôr numa lista, etiqueta, tipo ou apagar de uma vez.
   const [picked, setPicked] = useState<Set<string> | null>(null)
   // Lista ou tabela (no computador): a tabela mostra as fichas lado a lado, com os campos em colunas.
@@ -283,7 +285,7 @@ export default function EntitiesView() {
               setTileKind(k)
               setCreating('uma')
             }}
-            onGo={(v) => (v === 'arvore' ? setTreeRoot('') : go(v))}
+            onGo={(v) => (v === 'arvore' ? setTreeRoot('') : v === 'tabela' ? setTables(true) : go(v))}
             onMore={() => {
               setTileKind(null)
               setCreating('uma')
@@ -549,6 +551,7 @@ export default function EntitiesView() {
             }}
           />
         )}
+        {tables && <TablesDialog onClose={() => setTables(false)} />}
         {treeRoot !== null && <TreeDialog rootId={treeRoot || null} onClose={() => setTreeRoot(null)} onPickRoot={setTreeRoot} />}
         {creating === 'varias' && (
           <BulkCreateDialog
