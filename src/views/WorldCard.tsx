@@ -8,6 +8,8 @@ import { useWorkspace } from '../state/workspace'
 import { Modal } from '../ui/Modal'
 import { ForeignImport } from './ForeignImport'
 import { suggestLinks } from '../logic/suggestLinks'
+import { WORLD_LEVELS, WORLD_POINTS, worldLevelFor, worldPoints } from '../logic/play'
+import { WorldStage } from '../ui/WorldStage'
 import { SeedDialog } from './SeedDialog'
 
 /** A partir de quantas fichas o Simples sugere o Completo. */
@@ -31,6 +33,8 @@ export function WorldCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const empty = universe.entities.length === 0
+  const points = useMemo(() => worldPoints(universe), [universe])
+  const level = worldLevelFor(points.total)
   // Ligações que já estão escritas nas fichas (de um mundo trazido, por exemplo): o primeiro "falta" é aceitá-las.
   const written = useMemo(() => suggestLinks(universe).length, [universe])
   const grown = !full && !readOnly && (universe.entities.length >= GROWN || universe.groups.length > 0)
@@ -58,6 +62,35 @@ export function WorldCard() {
       <h2 id="mundo-titulo">
         <Earth size={16} aria-hidden="true" /> {empty ? 'Comece o mundo' : 'O que falta no mundo'}
       </h2>
+
+      {/* O nível do mundo: o próprio mundo crescendo (de Semente a Lenda), e o caminho até o próximo é o que falta. */}
+      <div className="world-level" role="group" aria-label={`Este mundo: nível ${level.n}, ${level.name}`}>
+        <WorldStage level={level.n} />
+        <div className="world-level-text">
+          <p className="world-level-name">
+            <strong>{level.name}</strong> <span className="muted small">· nível {level.n} de {WORLD_LEVELS.length}</span>
+          </p>
+          <span className="resource-bar" aria-hidden="true">
+            <span style={{ width: `${level.to ? Math.round(((points.total - level.from) / (level.to - level.from)) * 100) : 100}%` }} />
+          </span>
+          <p className="tiny muted">
+            {level.to ? `${points.total} pontos · faltam ${level.to - points.total} para virar ${WORLD_LEVELS[level.n].name}` : `${points.total} pontos · o mundo virou lenda`}
+          </p>
+          <details className="world-level-how">
+            <summary className="tiny">Como o mundo cresce</summary>
+            <ul className="tiny">
+              {WORLD_POINTS.map((p) => (
+                <li key={p.key}>
+                  <span>
+                    {p.label} <span className="muted">(+{p.each})</span>
+                  </span>
+                  <span className="tabular">{points.parts[p.key]}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </div>
+      </div>
 
       {written > 0 && !readOnly && (
         <button type="button" className="world-gap world-gap-links" onClick={() => go('relacoes')}>

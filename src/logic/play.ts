@@ -128,6 +128,59 @@ export function levelFor(words: number): { n: number; name: string; from: number
   return { n: i + 1, name: LEVELS[i].name, from: LEVELS[i].words, to: LEVELS[i + 1]?.words ?? null }
 }
 
+// ─── Nível deste mundo ───────────────────────────────────────────────────
+// O mundo sobe de nível conforme cresce, sem cobrança. Conta o que se constrói (não só o que se escreve), para quem é
+// mais de mundo ou de mesa do que de texto.
+
+export const WORLD_LEVELS: { points: number; name: string }[] = [
+  { points: 0, name: 'Semente' },
+  { points: 60, name: 'Vilarejo' },
+  { points: 200, name: 'Cidade' },
+  { points: 500, name: 'Reino' },
+  { points: 1_000, name: 'Império' },
+  { points: 2_000, name: 'Continente' },
+  { points: 4_000, name: 'Lenda' },
+]
+
+/** Quanto vale cada coisa (a mesma tabela aparece em "Como ganhar"). */
+export const WORLD_POINTS = [
+  { key: 'fichas', label: 'Ficha com resumo', each: 10 },
+  { key: 'ligacoes', label: 'Ligação entre fichas', each: 5 },
+  { key: 'datas', label: 'Data na linha do tempo', each: 5 },
+  { key: 'lugares', label: 'Lugar marcado no mapa', each: 5 },
+  { key: 'cenas', label: 'Cena com texto', each: 10 },
+  { key: 'sessoes', label: 'Sessão de jogo encerrada', each: 25 },
+] as const
+
+export type WorldPointKey = (typeof WORLD_POINTS)[number]['key']
+
+/** Os pontos do mundo, com quanto veio de cada parte. */
+export function worldPoints(u: {
+  entities: { summary: string }[]
+  relations: unknown[]
+  events: unknown[]
+  maps: { pins: unknown[] }[]
+  scenes: { text: string }[]
+  sessions: { status: string }[]
+}): { total: number; parts: Record<WorldPointKey, number> } {
+  const counts: Record<WorldPointKey, number> = {
+    fichas: u.entities.filter((e) => e.summary.trim()).length,
+    ligacoes: u.relations.length,
+    datas: u.events.length,
+    lugares: u.maps.reduce((n, m) => n + m.pins.length, 0),
+    cenas: u.scenes.filter((s) => s.text.trim()).length,
+    sessoes: u.sessions.filter((s) => s.status === 'encerrada').length,
+  }
+  const parts = Object.fromEntries(WORLD_POINTS.map((p) => [p.key, counts[p.key] * p.each])) as Record<WorldPointKey, number>
+  return { total: Object.values(parts).reduce((a, b) => a + b, 0), parts }
+}
+
+export function worldLevelFor(points: number): { n: number; name: string; from: number; to: number | null } {
+  let i = 0
+  while (i + 1 < WORLD_LEVELS.length && points >= WORLD_LEVELS[i + 1].points) i++
+  return { n: i + 1, name: WORLD_LEVELS[i].name, from: WORLD_LEVELS[i].points, to: WORLD_LEVELS[i + 1]?.points ?? null }
+}
+
 // ─── Medalhas ────────────────────────────────────────────────────────────
 
 export interface PlayStats {

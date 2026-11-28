@@ -43,6 +43,7 @@ export const PAGE_TOURS = {
         body: 'Quando sai uma versão nova do Papirus, um aviso pequeno aparece embaixo. “Atualizar” recarrega na hora (o que você escreveu já está salvo); o X deixa para depois.',
         optional: true,
       },
+      { target: '.world-level', title: 'O nível do mundo', body: 'O desenho cresce com o seu mundo: de Semente a Lenda, passando por vilarejo, cidade, reino, império e continente. Contam as fichas com resumo, as ligações, as datas, os lugares no mapa, as cenas escritas e as sessões de jogo encerradas. “Como o mundo cresce” mostra a conta; não tem cobrança nem perda.', optional: true },
       {
         target: '.home-stats',
         title: 'O seu dia',
